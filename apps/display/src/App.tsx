@@ -1785,8 +1785,8 @@ function DisplayTableLive({
                 <div
                   className={
                     actingHere
-                      ? 'relative min-h-[118px] w-[120px] origin-center scale-[1.40625] transform rounded-lg border-2 border-cyan-400 bg-black/90 p-3 text-center shadow-lg ring-2 ring-cyan-300/85 backdrop-blur-md'
-                      : 'relative min-h-[118px] w-[120px] origin-center scale-[1.40625] transform rounded-lg border-2 border-yellow-600 bg-black/90 p-3 text-center shadow-lg backdrop-blur-md'
+                      ? 'relative min-h-[170px] w-[120px] origin-center scale-[1.40625] transform rounded-lg border-2 border-cyan-400 bg-black/90 p-3 pb-14 text-center shadow-lg ring-2 ring-cyan-300/85 backdrop-blur-md'
+                      : 'relative min-h-[170px] w-[120px] origin-center scale-[1.40625] transform rounded-lg border-2 border-yellow-600 bg-black/90 p-3 pb-14 text-center shadow-lg backdrop-blur-md'
                   }
                 >
                   <div className="mb-0.5 text-base font-semibold uppercase tracking-wide text-yellow-600/85">
@@ -1844,7 +1844,7 @@ function DisplayTableLive({
                 (actingHere &&
                   heroBettingHud.showCallBubble &&
                   heroBettingHud.callLabel != null) ? (
-                  <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-2 flex w-max max-w-[min(92vw,18rem)] -translate-x-1/2 flex-col items-center gap-2 sm:max-w-[20rem]">
+                  <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-3 flex w-max max-w-[min(96vw,26rem)] -translate-x-1/2 flex-col items-center gap-2 sm:max-w-[30rem]">
                     {actingHere &&
                     heroBettingHud.showCallBubble &&
                     heroBettingHud.callLabel != null ? (
@@ -1856,7 +1856,7 @@ function DisplayTableLive({
                     ) : null}
                     {heroBettingHud.showSeatPills && lastBetAct != null ? (
                       <span
-                        className={`inline-flex w-full items-center justify-center rounded-md border px-3.5 py-1.5 text-xl font-black uppercase tracking-wider shadow-md ${HERO_SEAT_BETTING_ACTION_PILL_CLASS[lastBetAct]}`}
+                        className={`inline-flex w-full items-center justify-center rounded-xl border-2 px-8 py-5 text-5xl font-black uppercase leading-none tracking-wider shadow-xl sm:text-6xl ${HERO_SEAT_BETTING_ACTION_PILL_CLASS[lastBetAct]}`}
                       >
                         {HERO_SEAT_BETTING_ACTION_LABELS[lastBetAct]}
                       </span>

@@ -1807,7 +1807,7 @@ function DisplayTableLive({
                     const hideForDealFlight = isDealing || !showRealHand
                     return (
                       <motion.div
-                        className={`absolute bottom-0 left-1/2 flex -translate-x-1/2 ${
+                        className={`absolute bottom-3 left-1/2 flex -translate-x-1/2 ${
                           hideForDealFlight ? 'pointer-events-none opacity-0' : ''
                         }`}
                         aria-hidden={hideForDealFlight}
@@ -1844,19 +1844,19 @@ function DisplayTableLive({
                 (actingHere &&
                   heroBettingHud.showCallBubble &&
                   heroBettingHud.callLabel != null) ? (
-                  <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-3 flex w-max max-w-[min(96vw,26rem)] -translate-x-1/2 flex-col items-center gap-2 sm:max-w-[30rem]">
+                  <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-3 flex w-max max-w-[min(96vw,22rem)] -translate-x-1/2 flex-col items-center gap-2 sm:max-w-[24rem]">
                     {actingHere &&
                     heroBettingHud.showCallBubble &&
                     heroBettingHud.callLabel != null ? (
-                      <div className="w-full rounded-lg border border-amber-300/45 bg-neutral-950/95 px-3.5 py-2 text-center shadow-md ring-1 ring-amber-400/25">
-                        <p className="font-mono text-lg font-bold tabular-nums leading-snug text-amber-50 sm:text-xl">
+                      <div className="w-full rounded-xl border-2 border-amber-300/55 bg-neutral-950/95 px-5 py-3 text-center shadow-lg ring-2 ring-amber-400/35">
+                        <p className="font-mono text-2xl font-black tabular-nums leading-tight text-amber-50 sm:text-3xl">
                           {heroBettingHud.callLabel}
                         </p>
                       </div>
                     ) : null}
                     {heroBettingHud.showSeatPills && lastBetAct != null ? (
                       <span
-                        className={`inline-flex w-full items-center justify-center rounded-xl border-2 px-8 py-5 text-5xl font-black uppercase leading-none tracking-wider shadow-xl sm:text-6xl ${HERO_SEAT_BETTING_ACTION_PILL_CLASS[lastBetAct]}`}
+                        className={`inline-flex w-full items-center justify-center rounded-lg border-2 px-5 py-2.5 text-3xl font-black uppercase leading-none tracking-wider shadow-lg sm:text-4xl ${HERO_SEAT_BETTING_ACTION_PILL_CLASS[lastBetAct]}`}
                       >
                         {HERO_SEAT_BETTING_ACTION_LABELS[lastBetAct]}
                       </span>

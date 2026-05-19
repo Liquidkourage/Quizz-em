@@ -2127,14 +2127,18 @@ io.on('connection', (socket) => {
             (gs) =>
               gs.phase === 'betting' &&
               gs.round.bettingRound === 1 &&
-              gs.round.isBettingOpen === false &&
               (gs.round.communityCards?.length ?? 0) < 5,
-            'finish pre-board wagering (clock closed) so all felts match before dealing the board',
+            'be in pre-board wagering (round 1, board empty) before dealing community cards',
           )
           if (!lockBoard) break
           let anyDealt = false
+          let anyAutoClosed = false
           for (const { tk } of lockBoard) {
             let gs = rooms.get(tk)
+            if (gs.round.isBettingOpen) {
+              gs = adminCloseBetting(gs)
+              anyAutoClosed = true
+            }
             const communityBefore = gs.round.communityCards.length
             gs = dealCommunityCards(gs)
             const dealt = gs.round.communityCards.length > communityBefore
@@ -2161,7 +2165,12 @@ io.on('connection', (socket) => {
             }
           }
           if (anyDealt) {
-            socket.emit('toast', 'Board complete — wagering round 2 (every table at this venue).')
+            socket.emit(
+              'toast',
+              anyAutoClosed
+                ? 'Closed round 1 + dealt board — wagering round 2 (every table at this venue).'
+                : 'Board complete — wagering round 2 (every table at this venue).',
+            )
           } else {
             socket.emit('toast', 'Board failed to deal — reload from host if this persists.')
           }

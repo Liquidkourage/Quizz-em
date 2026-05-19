@@ -495,19 +495,18 @@ function HostApp() {
   const dealCommunityBlocked =
     gameState.phase !== 'betting' ||
     bettingRound !== 1 ||
-    !!(round as { isBettingOpen?: boolean }).isBettingOpen ||
     communityLen >= 5
   const dealCommunityHint = dealCommunityBlocked
     ? gameState.phase !== 'betting'
       ? 'Available during wagering (betting phase).'
       : bettingRound !== 1
         ? 'Board already dealt — you are in wagering round 2.'
-        : (round as { isBettingOpen?: boolean }).isBettingOpen
-          ? 'Close wagering round 1 first, then deal the board.'
-          : communityLen >= 5
-            ? 'Board is already complete.'
-            : ''
-    : null
+        : communityLen >= 5
+          ? 'Board is already complete.'
+          : ''
+    : (round as { isBettingOpen?: boolean }).isBettingOpen
+      ? 'Will close wagering round 1 + deal the board in one click.'
+      : null
 
   const startAnswerBlocked =
     gameState.phase !== 'betting' ||
@@ -1544,7 +1543,13 @@ function HostApp() {
                 Deal Community Cards (board)
               </NeonButton>
               {dealCommunityHint && (
-                <p className="text-sm text-amber-200/90">{dealCommunityHint}</p>
+                <p
+                  className={`text-sm ${
+                    dealCommunityBlocked ? 'text-amber-200/90' : 'text-emerald-200/90'
+                  }`}
+                >
+                  {dealCommunityHint}
+                </p>
               )}
                 </div>
                 <div className="flex flex-col gap-3 sm:col-span-2">

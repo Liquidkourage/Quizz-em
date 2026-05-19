@@ -24,6 +24,7 @@ import { heroSeatBlindMarkerPills } from './heroBlindMarkers'
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { showdownRowsFromGameState } from './showdownDisplay'
+import { nowOnServerClock } from './serverClock'
 
 /** Authoring viewport (logical px). Embedded venue heroes scale uniformly to fit the measured game plane; fullscreen uses live `gw/gh`. */
 const EMBEDDED_FELT_LAYOUT_W = 1280
@@ -1237,7 +1238,7 @@ function DisplayTableLive({
     }
 
     const tick = () => {
-      const s = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
+      const s = Math.max(0, Math.ceil((deadline - nowOnServerClock()) / 1000))
       setAnswerSecondsLeft(s)
     }
     tick()

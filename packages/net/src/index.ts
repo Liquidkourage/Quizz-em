@@ -92,6 +92,13 @@ export type DisplayVenueWallSnapshot = {
   headlineQuestionText: string | null
   /** Server epoch ms when a trivia-visible felt is in `answering` with `answerDeadline`; cleared outside that window. */
   answerDeadlineMs: number | null
+  /**
+   * Server epoch ms captured at the instant this snapshot was emitted.
+   * The display uses (clientReceivedMs - serverNowMs) to cancel client-clock skew when rendering countdowns
+   * — otherwise a client whose clock trails the server by 2–3s would see the 45-second timer start at 47–48.
+   * Optional for backward compatibility with older servers.
+   */
+  serverNowMs?: number
   /** Humans in lobby pool (`LOBBY` session); 0 before anyone joins lobby. */
   lobbyPlayerCount: number
   /** Sum of seated humans across numbered tables (1–8). */

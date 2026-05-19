@@ -11,6 +11,7 @@ import { readUrlLayoutBootstrap } from './displayUrlParams'
 import AudienceWelcomeWall from './AudienceWelcomeWall.tsx'
 import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
 import { useVenueWallFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
+import { recordServerClockSample } from './serverClock'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -134,10 +135,13 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       const tiles = normalizeVenueWallTiles(payload?.tiles)
       if (tiles == null) return
       const p = payload as Partial<DisplayVenueWallSnapshot>
+      /** Latch server-time skew first so the countdown reads the correct anchor on the very next render. */
+      recordServerClockSample(p.serverNowMs ?? null)
       const next: DisplayVenueWallSnapshot = {
         tiles,
         headlineQuestionText: p.headlineQuestionText ?? null,
         answerDeadlineMs: p.answerDeadlineMs ?? null,
+        serverNowMs: typeof p.serverNowMs === 'number' ? p.serverNowMs : undefined,
         lobbyPlayerCount:
           typeof p.lobbyPlayerCount === 'number' ? p.lobbyPlayerCount : 0,
         totalSeatedAtTables:

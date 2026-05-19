@@ -1553,6 +1553,8 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     tiles,
     headlineQuestionText,
     answerDeadlineMs,
+    /** Anchor the client's countdown to server time so a skewed laptop clock doesn't start the 45s timer at 47–48s. */
+    serverNowMs: Date.now(),
     lobbyPlayerCount,
     totalSeatedAtTables,
     showAudienceWelcome: !venueAudienceWelcomeExpired.has(vn),

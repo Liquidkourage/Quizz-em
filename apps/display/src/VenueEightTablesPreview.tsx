@@ -26,6 +26,7 @@ import {
   VENUE_WALL_SEAT_SLOTS,
 } from './venueWallModel'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
+import { nowOnServerClock } from './serverClock'
 
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
@@ -1385,7 +1386,7 @@ export default function VenueEightTablesPreview({
       return
     }
     const tick = () =>
-      setTimerSeconds(Math.max(0, Math.ceil((answerDeadlineMs - Date.now()) / 1000)))
+      setTimerSeconds(Math.max(0, Math.ceil((answerDeadlineMs - nowOnServerClock()) / 1000)))
     tick()
     const id = window.setInterval(tick, 250)
     return () => window.clearInterval(id)

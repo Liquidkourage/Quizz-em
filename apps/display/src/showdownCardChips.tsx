@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import type { ShowdownResultRow } from './showdownDisplay'
 
 export type ShowdownChipSize = 'sm' | 'md' | 'lg'
@@ -34,6 +35,40 @@ function DigitChip({
   )
 }
 
+/** Decimal point glyph that sits between two digit chips (sized to match). */
+function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
+  const dim =
+    size === 'lg'
+      ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
+      : size === 'sm'
+        ? 'h-6 w-2 text-base'
+        : 'h-7 w-2.5 text-lg'
+  return (
+    <span
+      aria-hidden
+      className={`inline-flex items-end justify-center font-mono font-black leading-none text-amber-200 ${dim}`}
+    >
+      .
+    </span>
+  )
+}
+
+/**
+ * Number of leading digits before the decimal point in `submitted`, given the 5 digits
+ * the player picked (in order). Returns `null` for integer answers or unknown layout.
+ */
+function decimalLeadingDigitCount(digits: number[], submitted: number | null): number | null {
+  if (submitted == null || !Number.isFinite(submitted)) return null
+  if (digits.length !== 5) return null
+  const intForm = Number(digits.join(''))
+  if (Math.abs(submitted - intForm) < 1e-9) return null
+  for (let k = 1; k <= 4; k++) {
+    const scaled = submitted * Math.pow(10, k)
+    if (Math.abs(scaled - intForm) < 1e-6) return 5 - k
+  }
+  return null
+}
+
 /** The five digits used to build this player's submitted answer (from answer composition). */
 export function ShowdownFiveCardsUsed({
   row,
@@ -54,23 +89,31 @@ export function ShowdownFiveCardsUsed({
     return <span className="text-[0.6rem] text-white/35">—</span>
   }
 
+  const decimalAfter = decimalLeadingDigitCount(
+    cards.map((c) => c.digit),
+    row.submitted
+  )
+
   const wrapClass =
     size === 'lg'
       ? 'flex flex-nowrap items-center justify-center gap-1'
       : 'flex flex-wrap items-center justify-center gap-0.5'
 
+  const ariaLabelDigits = cards
+    .map((c, i) => (i === decimalAfter ? `. ${c.digit}` : `${c.digit}`))
+    .join(', ')
+
   return (
-    <div
-      className={wrapClass}
-      aria-label={`Five cards used: ${cards.map((c) => c.digit).join(', ')}`}
-    >
+    <div className={wrapClass} aria-label={`Cards used: ${ariaLabelDigits}`}>
       {cards.map((c, i) => (
-        <DigitChip
-          key={i}
-          digit={c.digit}
-          variant={c.source === 'hole' ? 'hole' : 'board'}
-          size={size}
-        />
+        <Fragment key={i}>
+          {i === decimalAfter ? <DecimalDot size={size} /> : null}
+          <DigitChip
+            digit={c.digit}
+            variant={c.source === 'hole' ? 'hole' : 'board'}
+            size={size}
+          />
+        </Fragment>
       ))}
     </div>
   )

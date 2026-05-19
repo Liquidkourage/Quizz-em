@@ -1283,9 +1283,10 @@ function DisplayTableLive({
     const cupholderDistance = Math.sqrt(cupholderX * cupholderX + cupholderY * cupholderY) || 1
     const directionX = cupholderX / cupholderDistance
     const directionY = cupholderY / cupholderDistance
-    let extensionDistance = 142
+    /** Bumped from 142 → 178 so larger HUD cards clear the rim (BTN/SB/BB pucks + chip stacks). */
+    let extensionDistance = 178
     const isCornerPosition = index % 2 === 1
-    extensionDistance = isCornerPosition ? extensionDistance * 1.1 : extensionDistance * 0.9
+    extensionDistance = isCornerPosition ? extensionDistance * 1.05 : extensionDistance * 0.95
     const playerX = cupholderX + directionX * extensionDistance
     const playerY = cupholderY + directionY * extensionDistance
     return {
@@ -1849,7 +1850,7 @@ function DisplayTableLive({
                     heroBettingHud.showCallBubble &&
                     heroBettingHud.callLabel != null ? (
                       <div className="w-full rounded-xl border-2 border-amber-300/55 bg-neutral-950/95 px-5 py-3 text-center shadow-lg ring-2 ring-amber-400/35">
-                        <p className="font-mono text-2xl font-black tabular-nums leading-tight text-amber-50 sm:text-3xl">
+                        <p className="text-2xl font-black uppercase tracking-wide tabular-nums leading-tight text-amber-50 sm:text-3xl">
                           {heroBettingHud.callLabel}
                         </p>
                       </div>

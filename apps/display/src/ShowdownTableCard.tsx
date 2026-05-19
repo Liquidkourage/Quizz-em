@@ -94,8 +94,8 @@ export default function ShowdownTableCard({
 }: ShowdownTableCardProps) {
   const { rows: sorted, winnerKey } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '' && !r.hasFolded)
-  /** Physical seat order for the grid — distance sort alone shuffles seat numbers and looks like random gaps. */
-  const displayRows = [...activeRows].sort((a, b) => a.seat - b.seat)
+  /** Closeness-first reading order — winner top-left, then next-best, etc. */
+  const displayRows = activeRows
   const winnerRow = activeRows.find((r) => winnerKey === `${r.seat}:${r.name}`)
   const gridCols =
     displayRows.length <= 4 ? 2 : displayRows.length <= 6 ? 3 : 4

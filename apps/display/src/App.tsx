@@ -377,11 +377,11 @@ function DisplayTableInfoBar({
         <div className="w-full border border-yellow-600 bg-black/90 px-3 py-3 backdrop-blur-md sm:px-5 sm:py-3.5">
           <div className="grid grid-cols-1 gap-3 text-center sm:grid-cols-3 sm:items-center sm:gap-6">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-white/55 md:text-xs">Table</div>
-              <div className="text-xl font-bold tabular-nums text-yellow-400 sm:text-2xl md:text-3xl">
+              <div className="text-sm font-semibold uppercase tracking-wider text-white/55 md:text-base">Table</div>
+              <div className="text-2xl font-bold tabular-nums text-yellow-400 sm:text-3xl md:text-4xl">
                 {displayTableLabel(gameState.tableId ?? '1')}
               </div>
-              <div className="mt-1 text-[13px] tabular-nums text-white/50 sm:text-sm">
+              <div className="mt-1 text-base tabular-nums text-white/55 sm:text-lg">
                 Blinds ${gameState.smallBlind} / ${gameState.bigBlind}
               </div>
             </div>
@@ -389,15 +389,15 @@ function DisplayTableInfoBar({
             <div className="sm:border-x sm:border-yellow-700/35 sm:py-1">
               {lobby ? (
                 <>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-white/55 md:text-xs">Status</div>
-                  <div className="text-xl font-bold text-yellow-400 sm:text-2xl md:text-3xl">
+                  <div className="text-sm font-semibold uppercase tracking-wider text-white/55 md:text-base">Status</div>
+                  <div className="text-2xl font-bold text-yellow-400 sm:text-3xl md:text-4xl">
                     {displayPhaseLabel(gameState.phase, gameState.round)}
                   </div>
-                  <div className="mt-1 text-[13px] text-white/50 sm:text-sm">{seatedCount} seated</div>
+                  <div className="mt-1 text-base text-white/55 sm:text-lg">{seatedCount} seated</div>
                 </>
               ) : (
                 <>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-white/55 md:text-xs">Pot</div>
+                  <div className="text-sm font-semibold uppercase tracking-wider text-white/55 md:text-base">Pot</div>
                   <div className="font-black tabular-nums text-[1.85rem] text-yellow-400 sm:text-[2.125rem] md:text-4xl">
                     ${potShown.toLocaleString()}
                   </div>
@@ -408,19 +408,19 @@ function DisplayTableInfoBar({
             <div>
               {!lobby ? (
                 <>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-white/55 md:text-xs">
+                  <div className="text-sm font-semibold uppercase tracking-wider text-white/55 md:text-base">
                     Situation
                   </div>
-                  <div className="mt-1 text-balance text-base font-semibold leading-snug text-yellow-400 sm:text-lg md:text-xl">
+                  <div className="mt-1 text-balance text-xl font-semibold leading-snug text-yellow-400 sm:text-2xl md:text-3xl">
                     {venueWallHeroMergedLine(gameState)}
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-white/55 md:text-xs">
+                  <div className="text-sm font-semibold uppercase tracking-wider text-white/55 md:text-base">
                     &nbsp;
                   </div>
-                  <div className="mt-2 text-sm leading-snug text-white/40 sm:text-base">
+                  <div className="mt-2 text-lg leading-snug text-white/55 sm:text-xl">
                     Game flow runs from the host console.
                   </div>
                 </>
@@ -1448,7 +1448,7 @@ function DisplayTableLive({
                       : 'border-yellow-500/25 bg-yellow-950/20'
                   }`}
                 >
-                  <div className="text-sm font-bold uppercase tracking-widest text-white/65">Time left</div>
+                  <div className="text-lg font-bold uppercase tracking-widest text-white/75 sm:text-xl">Time left</div>
                   <motion.div
                     key={answerSecondsLeft ?? 'wait'}
                     className={`tabular-nums text-7xl font-black sm:text-8xl md:text-9xl ${
@@ -1789,10 +1789,10 @@ function DisplayTableLive({
                       : 'relative min-h-[118px] w-[120px] origin-center scale-[1.40625] transform rounded-lg border-2 border-yellow-600 bg-black/90 p-3 text-center shadow-lg backdrop-blur-md'
                   }
                 >
-                  <div className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-yellow-600/85">
+                  <div className="mb-0.5 text-base font-semibold uppercase tracking-wide text-yellow-600/85">
                     Seat {heroDisplayedSeatNumber(player, index + 1)}
                   </div>
-                  <div className="mb-1 text-base font-bold text-yellow-400">{player.name}</div>
+                  <div className="mb-1 text-2xl font-bold leading-tight text-yellow-400">{player.name}</div>
                   <div className="sr-only">${formatHeroStackMoney(player.bankroll)}</div>
                   
                   {/* Player's hand - docked at bottom edge with overlapping cards */}
@@ -1837,26 +1837,26 @@ function DisplayTableLive({
 
                   {/* Player status */}
                   {player.hasFolded && !hideFoldBanner && (
-                    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-red-400 font-bold text-sm">FOLDED</div>
+                    <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-red-400 font-black text-xl tracking-wider">FOLDED</div>
                   )}
                 </div>
                 {(heroBettingHud.showSeatPills && lastBetAct != null) ||
                 (actingHere &&
                   heroBettingHud.showCallBubble &&
                   heroBettingHud.callLabel != null) ? (
-                  <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-2 flex w-max max-w-[min(92vw,14rem)] -translate-x-1/2 flex-col items-center gap-1.5 sm:max-w-[16rem]">
+                  <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-2 flex w-max max-w-[min(92vw,18rem)] -translate-x-1/2 flex-col items-center gap-2 sm:max-w-[20rem]">
                     {actingHere &&
                     heroBettingHud.showCallBubble &&
                     heroBettingHud.callLabel != null ? (
-                      <div className="w-full rounded-lg border border-amber-300/45 bg-neutral-950/95 px-2.5 py-1.5 text-center shadow-md ring-1 ring-amber-400/25">
-                        <p className="font-mono text-xs font-bold tabular-nums leading-snug text-amber-50 sm:text-sm">
+                      <div className="w-full rounded-lg border border-amber-300/45 bg-neutral-950/95 px-3.5 py-2 text-center shadow-md ring-1 ring-amber-400/25">
+                        <p className="font-mono text-lg font-bold tabular-nums leading-snug text-amber-50 sm:text-xl">
                           {heroBettingHud.callLabel}
                         </p>
                       </div>
                     ) : null}
                     {heroBettingHud.showSeatPills && lastBetAct != null ? (
                       <span
-                        className={`inline-flex w-full items-center justify-center rounded-md border px-2.5 py-0.5 text-[11px] font-extrabold tracking-wide shadow-md md:text-xs ${HERO_SEAT_BETTING_ACTION_PILL_CLASS[lastBetAct]}`}
+                        className={`inline-flex w-full items-center justify-center rounded-md border px-3.5 py-1.5 text-xl font-black uppercase tracking-wider shadow-md ${HERO_SEAT_BETTING_ACTION_PILL_CLASS[lastBetAct]}`}
                       >
                         {HERO_SEAT_BETTING_ACTION_LABELS[lastBetAct]}
                       </span>
@@ -1968,7 +1968,7 @@ function DisplayTableLive({
                         draggable={false}
                         className="pointer-events-none h-[3.5rem] w-auto max-w-[5.75rem] shrink-0 select-none object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)] sm:h-[4.1rem] sm:max-w-[6.5rem] md:h-[4.35rem] md:max-w-[7rem]"
                       />
-                      <span className="max-w-[11rem] text-center font-mono text-[1.35rem] font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[12rem] sm:text-[1.55rem] md:text-[1.7rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.96),0_2px_10px_rgba(0,0,0,0.88)]">
+                      <span className="max-w-[13rem] text-center font-mono text-[1.7rem] font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[14rem] sm:text-[2rem] md:text-[2.25rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.96),0_2px_10px_rgba(0,0,0,0.88)]">
                         {formatHeroStackMoney(player.bankroll)}
                       </span>
                     </div>
@@ -1979,7 +1979,7 @@ function DisplayTableLive({
               {/* Pot display - positioned higher */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-36 text-center">
                 <div className="bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 relative overflow-visible">
-                  <div className="text-white text-lg">Pot: <span className="text-yellow-400 font-bold text-4xl">${payoutTick > 0 ? payoutTick : displayGameState.round.pot}</span></div>
+                  <div className="text-white text-2xl">Pot: <span className="text-yellow-400 font-black text-5xl">${payoutTick > 0 ? payoutTick : displayGameState.round.pot}</span></div>
                   {/* Chip flights from pot to winner */}
                   {showdownWinnerId && chipFlights.map(chip => (
                     <motion.div

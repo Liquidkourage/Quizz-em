@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { formatTriviaNumber } from '@qhe/core'
 import { PokerChip } from '@qhe/ui'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
+import { ShowdownFiveCardsUsed, type ShowdownChipSize } from './showdownCardChips'
 import {
   sortShowdownRowsByDistance,
   type ShowdownResultRow,
@@ -24,10 +24,12 @@ function MiniRow({
   row,
   correctAnswer,
   isWinner,
+  chipSize,
 }: {
   row: ShowdownResultRow
   correctAnswer: number | undefined
   isWinner: boolean
+  chipSize: ShowdownChipSize
 }) {
   const hasGuess =
     !row.hasFolded && row.submitted != null && typeof correctAnswer === 'number'
@@ -59,7 +61,7 @@ function MiniRow({
         {isWinner ? <PokerChip size="sm" className="shrink-0 opacity-90" /> : null}
       </div>
 
-      <ShowdownFiveCardsUsed row={row} size="lg" />
+      <ShowdownFiveCardsUsed row={row} size={chipSize} />
 
       <div className="text-center leading-tight">
         <p className="font-mono text-base font-black tabular-nums text-amber-100 sm:text-lg">
@@ -92,13 +94,15 @@ export default function ShowdownTableCard({
   rows,
   className = '',
 }: ShowdownTableCardProps) {
-  const { rows: sorted, winnerKey } = sortShowdownRowsByDistance(rows, correctAnswer)
+  const { rows: sorted, winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '' && !r.hasFolded)
-  /** Closeness-first reading order — winner top-left, then next-best, etc. */
+  /** Closeness-first reading order — winners top-left, then next-best, etc. */
   const displayRows = activeRows
-  const winnerRow = activeRows.find((r) => winnerKey === `${r.seat}:${r.name}`)
+  const winnerRows = activeRows.filter((r) => winnerKeys.has(`${r.seat}:${r.name}`))
   const gridCols =
     displayRows.length <= 4 ? 2 : displayRows.length <= 6 ? 3 : 4
+  /** Five digit chips per seat plus a possible decimal dot — shrink one notch when the row gets narrower (3+ cols) so the chips don't spill out of the tile. */
+  const chipSize: ShowdownChipSize = gridCols >= 3 ? 'md' : 'lg'
   const potShown = typeof pot === 'number' && Number.isFinite(pot) && pot > 0 ? Math.round(pot) : 0
 
   return (
@@ -126,10 +130,14 @@ export default function ShowdownTableCard({
         </div>
       </header>
 
-      {winnerRow ? (
+      {winnerRows.length > 0 ? (
         <div className="flex shrink-0 items-center justify-center gap-1.5 border-b border-amber-500/25 bg-amber-950/30 px-2 py-1.5">
           <PokerChip size="sm" />
-          <p className="min-w-0 truncate text-sm font-black text-amber-50 sm:text-base">{winnerRow.name}</p>
+          <p className="min-w-0 truncate text-sm font-black text-amber-50 sm:text-base">
+            {winnerRows.length === 1
+              ? winnerRows[0]!.name
+              : `Split · ${winnerRows.map((w) => w.name).join(' + ')}`}
+          </p>
         </div>
       ) : null}
 
@@ -149,7 +157,8 @@ export default function ShowdownTableCard({
               key={`${row.seat}:${row.name}`}
               row={row}
               correctAnswer={correctAnswer}
-              isWinner={winnerKey === `${row.seat}:${row.name}`}
+              isWinner={winnerKeys.has(`${row.seat}:${row.name}`)}
+              chipSize={chipSize}
             />
           ))}
         </div>

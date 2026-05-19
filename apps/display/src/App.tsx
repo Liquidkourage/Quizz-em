@@ -807,27 +807,40 @@ function DisplayTableLive({
   }, [displayGameState, socketStateMatchesHero, isEmbedded, venueHeroTile, heroFeltTableId])
 
   // Compute showdown winner id (used for seat glow)
-  const showdownWinnerId = (() => {
+  /** All winners (split-pot aware): every seat sharing the minimum distance to the trivia answer. */
+  const showdownWinnerIds = (() => {
     try {
-      if (displayGameState.phase !== 'showdown') return undefined
+      if (displayGameState.phase !== 'showdown') return [] as string[]
       const correct = displayGameState.round.question?.answer
-      if (typeof correct !== 'number') return undefined
-      let bestId: string | undefined
+      if (typeof correct !== 'number') return []
       let bestDist = Infinity
+      const distById: Record<string, number> = {}
       for (const p of displayGameState.players) {
         const sa = p.submittedAnswer
         if (p.hasFolded || typeof sa !== 'number') continue
         const d = Math.abs(sa - correct)
-        if (d < bestDist) { bestDist = d; bestId = p.id }
+        distById[p.id] = d
+        if (d < bestDist) bestDist = d
       }
-      return bestId
+      if (!Number.isFinite(bestDist)) return []
+      return displayGameState.players
+        .filter((p) => distById[p.id] === bestDist)
+        .map((p) => p.id)
     } catch {
-      return undefined
+      return [] as string[]
     }
   })()
-  const showdownWinnerName = showdownWinnerId
-    ? (displayGameState.players.find(p => p.id === showdownWinnerId)?.name || '')
-    : ''
+  /** First winner — drives the chip-flight animation that targets a single seat. */
+  const showdownWinnerId = showdownWinnerIds[0]
+  const showdownWinnerNames = showdownWinnerIds
+    .map((id) => displayGameState.players.find((p) => p.id === id)?.name ?? '')
+    .filter((n) => n.trim() !== '')
+  const showdownWinnerName =
+    showdownWinnerNames.length === 0
+      ? ''
+      : showdownWinnerNames.length === 1
+        ? showdownWinnerNames[0]!
+        : `Split · ${showdownWinnerNames.join(' + ')}`
 
   // Chips flight animation + payout tick
   const [chipFlights, setChipFlights] = useState<Array<{ id: number; delay: number; ox: number; oy: number; rot: number }>>([])
@@ -1797,8 +1810,8 @@ function DisplayTableLive({
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
               >
-                {/* Winner glow ring */}
-                {showdownWinnerId === player.id && (
+                {/* Winner glow ring — fires for every split-pot winner, not just the first. */}
+                {showdownWinnerIds.includes(player.id) && (
                   <motion.div
                     className="absolute -inset-3 rounded-xl"
                     initial={{ opacity: 0 }}

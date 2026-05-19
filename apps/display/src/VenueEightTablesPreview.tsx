@@ -1104,14 +1104,21 @@ function VenueMosaicTableCard({
         {inShowdown && showdownRows.length > 0 ? (
           hideShowdownResults ? (
             <motion.div className="rounded-lg border border-amber-500/30 bg-amber-950/35 px-2 py-1.5 text-center">
-              <p className="text-[0.6rem] font-bold uppercase tracking-wider text-amber-200/70">Winner</p>
+              <p className="text-[0.6rem] font-bold uppercase tracking-wider text-amber-200/70">
+                {(() => {
+                  const { winnerKeys } = sortShowdownRowsByDistance(showdownRows, showdownAnswer)
+                  return winnerKeys.size > 1 ? 'Split' : 'Winner'
+                })()}
+              </p>
               <p className="truncate text-xs font-black text-amber-50 sm:text-sm">
                 {(() => {
-                  const { winnerKey } = sortShowdownRowsByDistance(showdownRows, showdownAnswer)
-                  const winner = showdownRows.find(
-                    (r) => `${r.seat}:${r.name}` === winnerKey && r.name.trim() !== ''
+                  const { winnerKeys } = sortShowdownRowsByDistance(showdownRows, showdownAnswer)
+                  const winners = showdownRows.filter(
+                    (r) => winnerKeys.has(`${r.seat}:${r.name}`) && r.name.trim() !== ''
                   )
-                  return winner?.name ?? '—'
+                  if (winners.length === 0) return '—'
+                  if (winners.length === 1) return winners[0]!.name
+                  return winners.map((w) => w.name).join(' + ')
                 })()}
               </p>
             </motion.div>

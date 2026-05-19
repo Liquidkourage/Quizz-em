@@ -199,10 +199,23 @@ export function showdownRowsFromGameState(gs: GameState): ShowdownResultRow[] {
   })
 }
 
+const rowKey = (r: { seat: number; name: string }): string => `${r.seat}:${r.name}`
+
+/**
+ * Sort by closeness to the correct answer AND identify every winner
+ * (single closest *or* every seat sharing the closest distance / a positive
+ * chip payout, since a tie splits the pot). Returns both:
+ *   - `winnerKey`: the first winner key (back-compat for single-winner highlights).
+ *   - `winnerKeys`: every winner (split-pot aware) so UI can highlight them all.
+ */
 export function sortShowdownRowsByDistance(
   rows: ShowdownResultRow[],
   correct: number | undefined
-): { rows: ShowdownResultRow[]; winnerKey: string | null } {
+): {
+  rows: ShowdownResultRow[]
+  winnerKey: string | null
+  winnerKeys: ReadonlySet<string>
+} {
   const ranked = rows.map((r) => {
     const has =
       !r.hasFolded && r.submitted != null && typeof correct === 'number'
@@ -210,10 +223,23 @@ export function sortShowdownRowsByDistance(
     return { ...r, distance, has }
   })
   ranked.sort((a, b) => a.distance - b.distance)
-  const winner =
-    ranked.length > 0 && ranked[0]!.distance !== Infinity
-      ? `${ranked[0]!.seat}:${ranked[0]!.name}`
-      : null
+
+  const winners = new Set<string>()
+  /** Trust server-computed payouts first: split pots already award chips to every winner. */
+  const paidRows = ranked.filter(
+    (r) => !r.hasFolded && typeof r.chipPayout === 'number' && r.chipPayout > 0,
+  )
+  if (paidRows.length > 0) {
+    for (const r of paidRows) winners.add(rowKey(r))
+  } else if (ranked.length > 0 && ranked[0]!.distance !== Infinity) {
+    const best = ranked[0]!.distance
+    for (const r of ranked) {
+      if (r.distance === best) winners.add(rowKey(r))
+    }
+  }
+
+  const winnerKey = winners.size > 0 ? (winners.values().next().value as string) : null
+
   return {
     rows: ranked.map(
       ({
@@ -238,7 +264,8 @@ export function sortShowdownRowsByDistance(
         chipPayout,
       })
     ),
-    winnerKey: winner,
+    winnerKey,
+    winnerKeys: winners,
   }
 }
 

@@ -267,7 +267,7 @@ export default function ShowdownResultsPanel({
   compact = false,
   className = '',
 }: ShowdownResultsPanelProps) {
-  const { rows: sorted, winnerKey } = sortShowdownRowsByDistance(rows, correctAnswer)
+  const { rows: sorted, winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '')
   const sharedBoard = activeRows[0]?.communityBoard ?? null
 
@@ -293,7 +293,7 @@ export default function ShowdownResultsPanel({
               key={`${row.seat}:${row.name}`}
               row={row}
               correctAnswer={correctAnswer}
-              isWinner={winnerKey === `${row.seat}:${row.name}`}
+              isWinner={winnerKeys.has(`${row.seat}:${row.name}`)}
               index={idx}
               compact
             />
@@ -361,7 +361,7 @@ export default function ShowdownResultsPanel({
               key={`${row.seat}:${row.name}`}
               row={row}
               correctAnswer={correctAnswer}
-              isWinner={winnerKey === `${row.seat}:${row.name}`}
+              isWinner={winnerKeys.has(`${row.seat}:${row.name}`)}
               index={idx}
               compact={false}
             />

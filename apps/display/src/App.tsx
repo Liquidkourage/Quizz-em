@@ -1748,6 +1748,9 @@ function DisplayTableLive({
             const actingHere = heroBettingHud.acting === index
             const lastBetAct = heroBettingHud.lastActs?.[index] ?? null
             const hideFoldBanner = heroBettingHud.showSeatPills && lastBetAct === 'fold'
+            /** Top-half seats: anchor action/call bubble above the tile so it doesn't sit on BTN/SB/BB pucks. */
+            const { oy: seatCupY } = heroSeatCupOffsets(index, displayGameState.players.length)
+            const bubbleAbove = seatCupY < -8
             return (
               <motion.div 
                 key={player.id} 
@@ -1845,7 +1848,11 @@ function DisplayTableLive({
                 (actingHere &&
                   heroBettingHud.showCallBubble &&
                   heroBettingHud.callLabel != null) ? (
-                  <div className="pointer-events-none absolute left-1/2 top-full z-40 mt-3 flex w-max max-w-[min(96vw,22rem)] -translate-x-1/2 flex-col items-center gap-2 sm:max-w-[24rem]">
+                  <div
+                    className={`pointer-events-none absolute left-1/2 z-40 flex w-max max-w-[min(96vw,22rem)] -translate-x-1/2 flex-col items-center gap-2 sm:max-w-[24rem] ${
+                      bubbleAbove ? 'bottom-full mb-3' : 'top-full mt-3'
+                    }`}
+                  >
                     {actingHere &&
                     heroBettingHud.showCallBubble &&
                     heroBettingHud.callLabel != null ? (

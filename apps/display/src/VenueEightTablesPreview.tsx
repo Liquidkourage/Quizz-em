@@ -276,6 +276,7 @@ const MOSAIC_SEAT_RAIL_INSET_PX = 12
  */
 function mosaicSeatDotPct(
   seatIndex: number,
+  seatCount: number,
   w: number,
   h: number
 ): { leftPct: number; topPct: number } {
@@ -286,8 +287,9 @@ function mosaicSeatDotPct(
   const r = halfH
   const flat = Math.max(0, halfW - r)
   const perimeter = 4 * flat + 2 * Math.PI * r
-  /** Walk clockwise from top center; perimeter wraps so any seat count works. */
-  let s = ((seatIndex / VENUE_SEAT_SLOTS) * perimeter) % perimeter
+  /** Distribute by live seat count so a 6/7-player table doesn't leave a big empty arc. */
+  const denom = seatCount > 0 ? seatCount : VENUE_SEAT_SLOTS
+  let s = ((seatIndex / denom) * perimeter) % perimeter
   if (s < 0) s += perimeter
 
   let lx: number
@@ -709,7 +711,7 @@ function SeatRingWithLabels({
         if (isMosaic && !filled) return null
 
         const seatRim = isMosaic
-          ? mosaicSeatDotPct(i, rimW, rimH)
+          ? mosaicSeatDotPct(i, seatedCount, rimW, rimH)
           : venueSeatRimPct(i, 1, rimW, rimH)
         const chipPos = venueSeatRimPct(i, chipInnerScale, rimW, rimH, 'felt')
         const anchored = labelAnchorsPct[i]

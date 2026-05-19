@@ -25,11 +25,7 @@ import {
   shouldUseVenueShowdownWall,
   VENUE_WALL_SEAT_SLOTS,
 } from './venueWallModel'
-import {
-  capsuleBorderRadiusCss,
-  capsuleBoundaryHitPx,
-  capsuleOuterBoundaryHitPx,
-} from './tableRimGeometry'
+import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
@@ -268,10 +264,15 @@ function seatThetaRad(seatIndex: number): number {
   return (seatIndex / VENUE_SEAT_SLOTS) * 2 * Math.PI - Math.PI / 2
 }
 
+/** Inward walk from outer outline so dot center sits on the amber rail band (px). */
+const MOSAIC_SEAT_RAIL_INSET_PX = 12
+
 /**
- * Mosaic crawl: seat dots on the amber rail at fixed seat indices (0 = top, CCW).
- * Rays start at table center (inside the stadium) — must use **outer** boundary hits;
- * nearest hits sit only ~8px from center on side seats and pile icons on the felt.
+ * Mosaic crawl: seat dots at **equal arc length** around the stadium perimeter, then
+ * walked inward along the surface normal so they land on the amber rail. Equal-angle
+ * spacing on a non-circular shape leaves uneven gaps on the sides — use arc length.
+ *
+ * Seat 0 = top center, advancing clockwise.
  */
 function mosaicSeatDotPct(
   seatIndex: number,
@@ -280,35 +281,52 @@ function mosaicSeatDotPct(
 ): { leftPct: number; topPct: number } {
   const ww = w > 0 ? w : MOSAIC_RING_FALLBACK_W_PX
   const hh = h > 0 ? h : MOSAIC_RING_FALLBACK_H_PX
-  const cx = ww / 2
-  const cy = hh / 2
   const halfW = ww / 2
   const halfH = hh / 2
-  const θ = seatThetaRad(seatIndex)
-  const dx = Math.cos(θ)
-  const dy = Math.sin(θ)
+  const r = halfH
+  const flat = Math.max(0, halfW - r)
+  const perimeter = 4 * flat + 2 * Math.PI * r
+  /** Walk clockwise from top center; perimeter wraps so any seat count works. */
+  let s = ((seatIndex / VENUE_SEAT_SLOTS) * perimeter) % perimeter
+  if (s < 0) s += perimeter
 
-  const outerHit = capsuleOuterBoundaryHitPx(cx, cy, halfW, halfH, dx, dy)
-  if (!outerHit) return { leftPct: 50, topPct: 50 }
+  let lx: number
+  let ly: number
+  let nx: number
+  let ny: number
 
-  const felt = venueFeltBoundsFrac()
-  const feltOuterHit = capsuleOuterBoundaryHitPx(
-    felt.cx * ww,
-    felt.cy * hh,
-    felt.halfW * ww,
-    felt.halfH * hh,
-    dx,
-    dy
-  )
+  if (s <= flat) {
+    lx = s
+    ly = -halfH
+    nx = 0
+    ny = -1
+  } else if ((s -= flat) <= Math.PI * r) {
+    const a = -Math.PI / 2 + s / r
+    lx = flat + r * Math.cos(a)
+    ly = r * Math.sin(a)
+    nx = Math.cos(a)
+    ny = Math.sin(a)
+  } else if ((s -= Math.PI * r) <= 2 * flat) {
+    lx = flat - s
+    ly = halfH
+    nx = 0
+    ny = 1
+  } else if ((s -= 2 * flat) <= Math.PI * r) {
+    const a = Math.PI / 2 + s / r
+    lx = -flat + r * Math.cos(a)
+    ly = r * Math.sin(a)
+    nx = Math.cos(a)
+    ny = Math.sin(a)
+  } else {
+    s -= Math.PI * r
+    lx = -flat + s
+    ly = -halfH
+    nx = 0
+    ny = -1
+  }
 
-  const outerDist = outerHit.t
-  const feltOuterDist = feltOuterHit
-    ? Math.hypot(feltOuterHit.x - cx, feltOuterHit.y - cy)
-    : outerDist * (felt.halfW / 0.5)
-  /** Mid-amber rail between felt outer edge and table outer edge. */
-  const railDist = feltOuterDist + (outerDist - feltOuterDist) * 0.52
-  const x = cx + dx * railDist
-  const y = cy + dy * railDist
+  const x = halfW + lx - nx * MOSAIC_SEAT_RAIL_INSET_PX
+  const y = halfH + ly - ny * MOSAIC_SEAT_RAIL_INSET_PX
   return { leftPct: (x / ww) * 100, topPct: (y / hh) * 100 }
 }
 

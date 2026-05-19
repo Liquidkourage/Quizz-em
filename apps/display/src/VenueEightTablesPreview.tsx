@@ -1570,7 +1570,9 @@ export default function VenueEightTablesPreview({
                   feltTableHint={String(seatingHeroRow.tableNum)}
                   venueHeroTile={seatingHeroRow}
                   variant="embedded"
-                  hideQuestionBanner
+                  hideQuestionBanner={showHeadline}
+                  fallbackQuestionText={headlineQuestionText}
+                  fallbackAnswerDeadlineMs={answerDeadlineMs}
                 />
               </div>
 

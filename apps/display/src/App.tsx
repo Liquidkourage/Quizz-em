@@ -499,6 +499,10 @@ type DisplayTableLiveProps = {
   venueHeroTile?: DisplayVenueTileSnapshot | null
   /** Venue wall shows {@link VenueMultiTableShowdown} — skip single-table overlay on embedded felt. */
   suppressShowdownOverlay?: boolean
+  /** Fallback question text from the venue wall snapshot when the embedded felt’s synthetic state lacks `round.question`. */
+  fallbackQuestionText?: string | null
+  /** Fallback answer deadline (epoch ms) from the wall snapshot — drives the countdown when the felt has no live round. */
+  fallbackAnswerDeadlineMs?: number | null
 }
 
 function DisplayTableLive({
@@ -507,6 +511,8 @@ function DisplayTableLive({
   hideQuestionBanner = false,
   venueHeroTile = null,
   suppressShowdownOverlay = false,
+  fallbackQuestionText = null,
+  fallbackAnswerDeadlineMs = null,
 }: DisplayTableLiveProps) {
   const isEmbedded = variant === 'embedded'
 
@@ -1216,10 +1222,16 @@ function DisplayTableLive({
 
   useEffect(() => {
     const gs = displayGameState
-    const deadline = gs.round?.answerDeadline
+    const liveDeadline = gs.round?.answerDeadline
     const inAnswering = gs.phase === 'answering'
+    const deadline =
+      inAnswering && liveDeadline != null
+        ? liveDeadline
+        : typeof fallbackAnswerDeadlineMs === 'number' && Number.isFinite(fallbackAnswerDeadlineMs)
+          ? fallbackAnswerDeadlineMs
+          : null
 
-    if (!inAnswering || deadline == null) {
+    if (deadline == null) {
       setAnswerSecondsLeft(null)
       return
     }
@@ -1322,7 +1334,28 @@ function DisplayTableLive({
   /** Viewport overlays in fullscreen mode; hero-clipped overlays when embedded. */
   const dockCls = isEmbedded ? 'absolute' : 'fixed'
 
-  const showQuestionStrip = Boolean(displayGameState.round.question) && !hideQuestionBanner
+  /**
+   * Effective question/answer-deadline for the felt's own banner — pull from the live round first,
+   * fall back to the venue-wall headline data when the embedded felt's synthetic state lacks it
+   * (mosaic tile snapshots don't carry the active question until showdown).
+   */
+  const effectiveQuestionText =
+    displayGameState.round.question?.text ??
+    (typeof fallbackQuestionText === 'string' && fallbackQuestionText.trim() !== ''
+      ? fallbackQuestionText.trim()
+      : null)
+  const effectiveAnswerDeadlineMs =
+    (displayGameState.phase === 'answering' &&
+      typeof displayGameState.round.answerDeadline === 'number'
+      ? displayGameState.round.answerDeadline
+      : null) ??
+    (typeof fallbackAnswerDeadlineMs === 'number' && Number.isFinite(fallbackAnswerDeadlineMs)
+      ? fallbackAnswerDeadlineMs
+      : null)
+  const showQuestionStrip =
+    !hideQuestionBanner && (effectiveQuestionText != null || effectiveAnswerDeadlineMs != null)
+  const showQuestionStripTimer =
+    displayGameState.phase === 'answering' || effectiveAnswerDeadlineMs != null
 
   /** Full-bleed game plane under a bottom docked HUD (venue wall hides question banner). */
   const embeddedHudOverlay = isEmbedded && !showQuestionStrip
@@ -1437,11 +1470,11 @@ function DisplayTableLive({
               <div className="min-w-0 flex-1 text-center">
                 <div className="mb-2 text-2xl font-semibold text-white md:text-3xl">🎯 Current question</div>
                 <div className="text-balance text-4xl font-bold leading-snug text-yellow-400 sm:text-5xl md:text-6xl">
-                  {displayGameState.round.question!.text}
+                  {effectiveQuestionText ?? 'Question pending…'}
                 </div>
               </div>
 
-              {displayGameState.phase === 'answering' ? (
+              {showQuestionStripTimer ? (
                 <div
                   className={`flex shrink-0 flex-col items-center justify-center rounded-xl border px-6 py-4 sm:border-l sm:border-t-0 sm:border-yellow-500/35 sm:pl-8 ${
                     typeof answerSecondsLeft === 'number' && answerSecondsLeft <= 10

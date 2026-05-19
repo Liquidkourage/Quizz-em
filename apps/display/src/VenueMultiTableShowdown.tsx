@@ -43,7 +43,7 @@ export default function VenueMultiTableShowdown({ tiles, className = '' }: Venue
 
   return (
     <motion.section
-      className={`relative w-full min-w-0 overflow-hidden rounded-2xl border-2 border-yellow-400/85 bg-black/60 shadow-xl backdrop-blur-md ${className}`}
+      className={`relative w-full min-w-0 overflow-x-hidden rounded-2xl border-2 border-yellow-400/85 bg-black/60 shadow-xl backdrop-blur-md ${className}`}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       aria-label={`Showdown results for ${showdownTiles.length} tables`}
@@ -77,7 +77,7 @@ export default function VenueMultiTableShowdown({ tiles, className = '' }: Venue
       </header>
 
       <div
-        className={`max-h-[min(72dvh,780px)] overflow-y-auto overscroll-y-contain p-3 sm:p-4 ${showdownGridClass(showdownTiles.length)}`}
+        className={`max-h-[min(88dvh,1100px)] overflow-y-auto overscroll-y-contain p-3 sm:p-4 ${showdownGridClass(showdownTiles.length)} items-start`}
       >
         {showdownTiles.map((tile) => (
           <ShowdownTableCard
@@ -86,7 +86,6 @@ export default function VenueMultiTableShowdown({ tiles, className = '' }: Venue
             correctAnswer={showdownCorrectAnswerFromTile(tile)}
             pot={tile.pot}
             rows={showdownRowsFromTile(tile)}
-            className="max-h-[min(480px,52dvh)]"
           />
         ))}
       </div>

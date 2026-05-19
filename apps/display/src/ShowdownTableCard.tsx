@@ -47,13 +47,13 @@ function MiniRow({
     >
       <div className="flex min-w-0 items-center gap-1">
         <span
-          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-[0.65rem] font-black tabular-nums sm:h-7 sm:w-7 sm:text-xs ${
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-xs font-black tabular-nums sm:h-8 sm:w-8 sm:text-sm ${
             isWinner ? 'bg-amber-500/25 text-amber-100' : 'bg-black/40 text-white/70'
           }`}
         >
           {row.seat}
         </span>
-        <p className="min-w-0 flex-1 truncate text-[0.7rem] font-bold leading-tight text-white sm:text-xs">
+        <p className="min-w-0 flex-1 truncate text-xs font-bold leading-tight text-white sm:text-sm">
           {row.name}
         </p>
         {isWinner ? <PokerChip size="sm" className="shrink-0 opacity-90" /> : null}
@@ -62,7 +62,7 @@ function MiniRow({
       <ShowdownFiveCardsUsed row={row} size="lg" />
 
       <div className="text-center leading-tight">
-        <p className="font-mono text-sm font-black tabular-nums text-amber-100 sm:text-base">
+        <p className="font-mono text-base font-black tabular-nums text-amber-100 sm:text-lg">
           {hasGuess ? formatTriviaNumber(row.submitted) : '—'}
         </p>
         {distance != null ? (
@@ -77,7 +77,7 @@ function MiniRow({
       </div>
 
       {row.chipPayout != null && row.chipPayout > 0 ? (
-        <p className="text-center font-mono text-sm font-black tabular-nums text-emerald-300 sm:text-base">
+        <p className="text-center font-mono text-base font-black tabular-nums text-emerald-300 sm:text-lg">
           {formatChipPayout(row.chipPayout)}
         </p>
       ) : null}
@@ -94,12 +94,16 @@ export default function ShowdownTableCard({
 }: ShowdownTableCardProps) {
   const { rows: sorted, winnerKey } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '' && !r.hasFolded)
+  /** Physical seat order for the grid — distance sort alone shuffles seat numbers and looks like random gaps. */
+  const displayRows = [...activeRows].sort((a, b) => a.seat - b.seat)
   const winnerRow = activeRows.find((r) => winnerKey === `${r.seat}:${r.name}`)
+  const gridCols =
+    displayRows.length <= 4 ? 2 : displayRows.length <= 6 ? 3 : 4
   const potShown = typeof pot === 'number' && Number.isFinite(pot) && pot > 0 ? Math.round(pot) : 0
 
   return (
     <motion.article
-      className={`flex min-h-0 flex-col overflow-hidden rounded-xl border border-yellow-600/40 bg-black/50 shadow-lg ${className}`}
+      className={`flex min-h-0 flex-col overflow-visible rounded-xl border border-yellow-600/40 bg-black/50 shadow-lg ${className}`}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -130,12 +134,17 @@ export default function ShowdownTableCard({
       ) : null}
 
       <div
-        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain p-2 sm:p-2.5"
+        className="flex-1 p-2 sm:p-2.5"
         role="group"
         aria-label={`Table ${tableNum} showdown results`}
       >
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-          {activeRows.map((row) => (
+        <div
+          className="grid gap-2 sm:gap-2.5"
+          style={{
+            gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`,
+          }}
+        >
+          {displayRows.map((row) => (
             <MiniRow
               key={`${row.seat}:${row.name}`}
               row={row}

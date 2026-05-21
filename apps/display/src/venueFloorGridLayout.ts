@@ -9,72 +9,56 @@ export function populatedVenueTiles(tiles: DisplayVenueTileSnapshot[]): DisplayV
 /** Max numbered felts the aerial floor targets on one viewport without scroll. */
 export const VENUE_FLOOR_GRID_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
 
-function venueFloorBaseColumns(tableCount: number): number {
-  const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
-  if (n <= 1) return 1
-  if (n <= 4) return 2
-  if (n <= 9) return 3
-  if (n <= 16) return 4
-  return 5
-}
-
-export type VenueFloorHexLayout = {
-  /** How many tables in each honeycomb row (alternating narrow / wide). */
+export type VenueFloorLayout = {
+  /** Always one or two rows: top half / bottom half of the floor. */
   rowSizes: number[]
-  /** Widest row — used for half-cell stagger offset. */
   maxInRow: number
-  gapClass: string
+  /** Vertical space between the two tall rows. */
+  rowGapClass: string
+  /** Horizontal space between felts within a row. */
+  cellGapClass: string
 }
 
 /**
- * Honeycomb row packing: alternate narrow and wide rows (e.g. 4-5-4-5 for 20 tables).
- * Narrow rows are visually offset by half a cell so felts nest like a tournament room.
+ * Two tall rows (top / bottom), tables spaced apart with the bottom row
+ * staggered horizontally. Per-tile nudges add slight in-row repositioning.
  */
-export function venueFloorHexLayout(tableCount: number): VenueFloorHexLayout {
+export function venueFloorLayout(tableCount: number): VenueFloorLayout {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 0) {
-    return { rowSizes: [], maxInRow: 0, gapClass: 'gap-2' }
+    return { rowSizes: [], maxInRow: 0, rowGapClass: 'gap-y-6', cellGapClass: 'gap-4' }
   }
   if (n === 1) {
-    return { rowSizes: [1], maxInRow: 1, gapClass: 'gap-2' }
-  }
-
-  const base = venueFloorBaseColumns(n)
-  const narrow = base
-  const wide = base + 1
-
-  const rowSizes: number[] = []
-  let remaining = n
-  let useWide = false
-
-  while (remaining > 0) {
-    const cap = useWide ? wide : narrow
-    const take = Math.min(cap, remaining)
-    rowSizes.push(take)
-    remaining -= take
-    useWide = !useWide
-  }
-
-  // Merge a trailing singleton into the previous row when possible.
-  if (rowSizes.length >= 2 && rowSizes[rowSizes.length - 1] === 1) {
-    const last = rowSizes.pop()!
-    const prev = rowSizes[rowSizes.length - 1]!
-    if (prev + last <= wide) {
-      rowSizes[rowSizes.length - 1] = prev + last
-    } else {
-      rowSizes.push(last)
+    return {
+      rowSizes: [1],
+      maxInRow: 1,
+      rowGapClass: 'gap-y-6',
+      cellGapClass: 'gap-4 sm:gap-5',
     }
   }
 
+  const top = Math.ceil(n / 2)
+  const bottom = n - top
+  const rowSizes = bottom > 0 ? [top, bottom] : [top]
   const maxInRow = Math.max(...rowSizes, 1)
-  const gapClass =
-    n > 12 ? 'gap-1 sm:gap-1.5' : n > 6 ? 'gap-1.5 sm:gap-2' : 'gap-2 sm:gap-2.5'
 
-  return { rowSizes, maxInRow, gapClass }
+  const cellGapClass =
+    maxInRow > 10
+      ? 'gap-2.5 sm:gap-3 md:gap-4'
+      : maxInRow > 6
+        ? 'gap-3 sm:gap-4 md:gap-5'
+        : 'gap-4 sm:gap-5 md:gap-6'
+
+  const rowGapClass = 'gap-y-6 sm:gap-y-9 md:gap-y-12'
+
+  return { rowSizes, maxInRow, rowGapClass, cellGapClass }
 }
 
-/** Split tiles into honeycomb rows (preserves table order). */
-export function chunkTilesForHexRows<T extends { tableNum: number }>(
+/** @deprecated Use {@link venueFloorLayout}. */
+export const venueFloorHexLayout = venueFloorLayout
+
+/** Split tiles into floor rows (preserves table order). */
+export function chunkTilesForFloorRows<T extends { tableNum: number }>(
   tiles: T[],
   rowSizes: number[]
 ): T[][] {
@@ -87,21 +71,36 @@ export function chunkTilesForHexRows<T extends { tableNum: number }>(
   return rows
 }
 
-/** Narrow honeycomb rows shift right by half a cell width. */
-export function hexRowShouldOffset(rowIndex: number, rowSize: number, maxInRow: number): boolean {
-  return rowIndex % 2 === 0 && rowSize < maxInRow
+/** @deprecated Use {@link chunkTilesForFloorRows}. */
+export const chunkTilesForHexRows = chunkTilesForFloorRows
+
+/** Bottom row shifts right so felts nest between the row above. */
+export function floorRowStaggerTransform(rowIndex: number, rowCount: number): string | undefined {
+  if (rowCount < 2 || rowIndex !== 1) return undefined
+  return 'translateX(var(--venue-floor-stagger))'
+}
+
+/** Subtle zigzag within a row so the line does not read as a rigid strip. */
+export function floorTileNudgeStyle(
+  rowIndex: number,
+  colIndex: number
+): { transform: string } {
+  const rowLift = rowIndex === 0 ? -3 : 4
+  const colWave = ((colIndex % 3) - 1) * 5
+  const zigzag = colIndex % 2 === rowIndex % 2 ? -4 : 4
+  return {
+    transform: `translate(${colWave}px, ${rowLift + zigzag}px)`,
+  }
 }
 
 /**
- * @deprecated Rectangular grid — use {@link venueFloorHexLayout} instead.
+ * @deprecated Rectangular grid — use {@link venueFloorLayout}.
  */
 export function venueFloorGridLayout(tableCount: number): {
   columns: number
   rows: number
   gapClass: string
 } {
-  const { rowSizes, maxInRow, gapClass } = venueFloorHexLayout(tableCount)
-  const columns = maxInRow
-  const rows = rowSizes.length
-  return { columns, rows, gapClass }
+  const { rowSizes, maxInRow, cellGapClass } = venueFloorLayout(tableCount)
+  return { columns: maxInRow, rows: rowSizes.length, gapClass: cellGapClass }
 }

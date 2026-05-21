@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
@@ -18,10 +18,11 @@ import {
 } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
-  chunkTilesForHexRows,
-  hexRowShouldOffset,
+  chunkTilesForFloorRows,
+  floorRowStaggerTransform,
+  floorTileNudgeStyle,
   populatedVenueTiles,
-  venueFloorHexLayout,
+  venueFloorLayout,
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
@@ -1280,10 +1281,11 @@ function VenueAerialFloorGrid({
   skipMountIntro: boolean
 }) {
   const n = tiles.length
-  const { rowSizes, maxInRow, gapClass } = useMemo(() => venueFloorHexLayout(n), [n])
-  const hexRows = useMemo(() => chunkTilesForHexRows(tiles, rowSizes), [tiles, rowSizes])
-  const floorCompact = n > 9
-  const showdownBrief = n > 6
+  const { rowSizes, maxInRow, rowGapClass, cellGapClass } = useMemo(() => venueFloorLayout(n), [n])
+  const floorRows = useMemo(() => chunkTilesForFloorRows(tiles, rowSizes), [tiles, rowSizes])
+  const maxRowCount = Math.max(...rowSizes, 1)
+  const floorCompact = maxRowCount > 8
+  const showdownBrief = maxRowCount > 6
 
   if (n === 0) return null
 
@@ -1332,45 +1334,50 @@ function VenueAerialFloorGrid({
       />
 
       <div
-        className={`relative flex min-h-0 flex-1 flex-col justify-center ${gapClass} py-0.5 sm:py-1`}
-        style={{ perspective: '1400px', transform: 'rotateX(5deg)', transformOrigin: 'center 55%' }}
+        className={`relative flex min-h-0 flex-1 flex-col justify-center px-2 py-1 sm:px-5 sm:py-2 ${rowGapClass}`}
+        style={
+          {
+            perspective: '1400px',
+            transform: 'rotateX(4deg)',
+            transformOrigin: 'center 52%',
+            '--venue-floor-cell': `clamp(4.25rem, calc((100% - ${Math.max(0, maxInRow - 1)} * 1.25rem) / ${maxInRow}), 8.5rem)`,
+            '--venue-floor-stagger':
+              'calc(var(--venue-floor-cell) * 0.5 + clamp(0.5rem, 1.1vw, 1rem))',
+          } as CSSProperties
+        }
       >
-        {hexRows.map((rowTiles, rowIndex) => {
-          const offset = hexRowShouldOffset(rowIndex, rowTiles.length, maxInRow)
-          const rowWidthPct = (rowTiles.length / maxInRow) * 100
-          const halfCellPct = 50 / maxInRow
-
-          return (
-            <div
-              key={rowTiles.map((t) => t.tableNum).join('-')}
-              className="flex min-h-0 w-full flex-1 basis-0 justify-center"
-              style={{
-                paddingLeft: offset ? `${halfCellPct}%` : undefined,
-              }}
-            >
-              <div
-                className={`flex h-full min-h-0 min-w-0 ${gapClass}`}
-                style={{
-                  width: `${rowWidthPct}%`,
-                  maxWidth: `${rowWidthPct}%`,
-                }}
-              >
-                {rowTiles.map((row) => (
-                  <div key={row.tableNum} className="min-h-0 min-w-0 flex-1 basis-0">
-                    <VenueMosaicTableCard
-                      row={row}
-                      isSpotlightThumb={
-                        spotlightTableNum != null && row.tableNum === spotlightTableNum
-                      }
-                      hideShowdownResults={showdownBrief}
-                      floorCompact={floorCompact}
-                    />
-                  </div>
-                ))}
-              </div>
+        {floorRows.map((rowTiles, rowIndex) => (
+          <div
+            key={rowTiles.map((t) => t.tableNum).join('-')}
+            className="flex min-h-0 w-full flex-1 basis-0 items-center justify-center"
+            style={{
+              transform: floorRowStaggerTransform(rowIndex, floorRows.length),
+            }}
+          >
+            <div className={`flex max-w-full items-center justify-center ${cellGapClass}`}>
+              {rowTiles.map((row, colIndex) => (
+                <div
+                  key={row.tableNum}
+                  className="min-h-0 shrink-0"
+                  style={{
+                    width: 'var(--venue-floor-cell)',
+                    maxWidth: 'var(--venue-floor-cell)',
+                    ...floorTileNudgeStyle(rowIndex, colIndex),
+                  }}
+                >
+                  <VenueMosaicTableCard
+                    row={row}
+                    isSpotlightThumb={
+                      spotlightTableNum != null && row.tableNum === spotlightTableNum
+                    }
+                    hideShowdownResults={showdownBrief}
+                    floorCompact={floorCompact}
+                  />
+                </div>
+              ))}
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
     </motion.section>
   )

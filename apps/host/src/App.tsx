@@ -104,37 +104,29 @@ function venueDealLockstepHint(
   return null
 }
 
-/** Venue-wide gate for Deal Community Cards — mirrors server `requireAllSeatedTablesSatisfy`. */
-function venueDealCommunityLockstepHint(
-  rows: HostVenueFeltBeatRow[] | null,
-  host: { phase: GamePhase; bettingRound: number; communityLen: number }
-): string | null {
+/** Round 1, no board — matches server `requireAllSeatedTablesSatisfy` for deal community. */
+function feltPreBoardReady(row: HostVenueFeltBeatRow): boolean {
+  if (row.phase !== 'betting') return false
+  if (row.street === 'Pre-board') return true
+  const sig = row.phaseStrictSig ?? ''
+  const m = /^bet\|(\d+)\|[TF]\|cc(\d+)$/.exec(sig)
+  return m != null && m[1] === '1' && m[2] === '0'
+}
+
+/** Venue-wide gate for Deal Community Cards — uses felt beat, not the host tab’s lagging `gameState`. */
+function venueDealCommunityLockstepHint(rows: HostVenueFeltBeatRow[] | null): string | null {
   if (!rows) return null
   const seated = rows.filter((r) => r.active && r.seated > 0)
   if (seated.length === 0) {
     return 'No seated tables at this venue — assign from lobby or seed rehearsal first.'
   }
-  const notPreBoard = seated.filter(
-    (r) => r.phase !== 'betting' || r.street !== 'Pre-board'
-  )
+  const notPreBoard = seated.filter((r) => !feltPreBoardReady(r))
   if (notPreBoard.length > 0) {
     const nums = notPreBoard
       .map((r) => r.tableNum)
       .sort((a, b) => a - b)
       .join(', ')
     return `Tables ${nums} are not ready for the board (need wagering round 1, no community cards yet). Check Venue felts · beat.`
-  }
-  if (host.phase === 'betting' && host.bettingRound === 1 && host.communityLen < 5) {
-    return null
-  }
-  if (host.phase !== 'betting') {
-    return 'Your control table must be in wagering before dealing the board.'
-  }
-  if (host.bettingRound !== 1) {
-    return 'Your control table is already past round 1 — board may be dealt venue-wide.'
-  }
-  if (host.communityLen >= 5) {
-    return 'Your control table already has a full board.'
   }
   return null
 }
@@ -561,16 +553,14 @@ function HostApp() {
   const communityLen = round.communityCards?.length ?? 0
   const virtualSeatCount = gameState.players.filter(p => p.id.startsWith('vp:')).length
   const atPlayerCap = gameState.players.length >= gameState.maxPlayers
-  const venueCommunityHint = venueDealCommunityLockstepHint(venueFeltBeat, {
-    phase: gameState.phase,
-    bettingRound,
-    communityLen,
-  })
-  const dealCommunityBlocked =
-    gameState.phase !== 'betting' ||
-    bettingRound !== 1 ||
-    communityLen >= 5 ||
-    venueCommunityHint != null
+  const hasVenueFeltBeat =
+    venueFeltBeat != null && venueFeltBeat.some((r) => r.active && r.seated > 0)
+  const venueCommunityHint = venueDealCommunityLockstepHint(venueFeltBeat)
+  const hostPreBoardReady =
+    gameState.phase === 'betting' && bettingRound === 1 && communityLen < 5
+  const dealCommunityBlocked = hasVenueFeltBeat
+    ? venueCommunityHint != null
+    : gameState.phase !== 'betting' || bettingRound !== 1 || communityLen >= 5
   const dealCommunityHint =
     venueCommunityHint ??
     (dealCommunityBlocked
@@ -584,6 +574,13 @@ function HostApp() {
       : (round as { isBettingOpen?: boolean }).isBettingOpen
         ? 'Will close wagering round 1 + deal the board on every seated table in one click.'
         : null)
+  const dealCommunityHostStaleNote =
+    hasVenueFeltBeat && venueCommunityHint == null && !hostPreBoardReady ? (
+      <p className="text-sm text-cyan-200/85">
+        Venue felts are ready for the board. Your control table ({gameState.tableId ?? '1'}) may be
+        behind the mosaic — deal still runs on every seated table.
+      </p>
+    ) : null
 
   const startAnswerBlocked =
     gameState.phase !== 'betting' ||
@@ -1682,6 +1679,7 @@ function HostApp() {
                   {dealCommunityHint}
                 </p>
               )}
+              {dealCommunityHostStaleNote}
                 </div>
                 <div className="flex flex-col gap-3 sm:col-span-2">
                   <div className="flex flex-wrap items-end gap-3 rounded-lg border border-purple-400/30 bg-purple-950/25 px-4 py-3">

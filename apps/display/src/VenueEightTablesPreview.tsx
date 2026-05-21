@@ -34,6 +34,7 @@ import { nowOnServerClock } from './serverClock'
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
 /** Stacking inside each mini felt ({@link SeatRingWithLabels}): name + bankroll beside name always top; then center hint, badges, pile, rim. */
+const SEAT_LAYER_FELT_POT = 'z-[108]'
 const SEAT_LAYER_DOT = 'z-[20]'
 const SEAT_LAYER_FELT_CHIP_PILE = 'z-[115]'
 const SEAT_LAYER_BLIND_OUT = 'z-[117]'
@@ -66,8 +67,8 @@ function formatVenueBankroll(amount: number): string {
   return `$${Math.max(0, n).toLocaleString()}`
 }
 
-/** Yellow pot readout on floor tiles — pulses when the venue snapshot posts a new amount. */
-function VenueFloorPotAmount({
+/** Pot dollars — pulses when the venue snapshot posts a new amount. */
+function VenuePotAmount({
   amount,
   className,
   prefersReducedMotion,
@@ -78,10 +79,10 @@ function VenueFloorPotAmount({
 }) {
   const label = formatVenueBankroll(amount)
   if (prefersReducedMotion) {
-    return <dd className={className}>{label}</dd>
+    return <span className={className}>{label}</span>
   }
   return (
-    <motion.dd
+    <motion.span
       key={label}
       className={className}
       initial={{ scale: 1.12, opacity: 0.72 }}
@@ -89,7 +90,51 @@ function VenueFloorPotAmount({
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
     >
       {label}
-    </motion.dd>
+    </motion.span>
+  )
+}
+
+/** Hero pot readout centered on the green felt (venue floor mosaic). */
+function VenueFeltCenterPot({
+  amount,
+  dimmed,
+  prefersReducedMotion,
+}: {
+  amount: number
+  dimmed: boolean
+  prefersReducedMotion: boolean
+}) {
+  const feltBounds = venueFeltBoundsFrac()
+  return (
+    <div
+      className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
+      aria-hidden={dimmed && amount <= 0}
+    >
+      <div
+        className="flex max-w-[72%] flex-col items-center justify-center text-center"
+        style={{
+          position: 'absolute',
+          left: `${feltBounds.cx * 100}%`,
+          top: `${feltBounds.cy * 100}%`,
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        <span
+          className={`mb-0.5 text-[0.45rem] font-black uppercase tracking-[0.2em] sm:text-[0.5rem] ${
+            dimmed && amount <= 0 ? 'text-yellow-200/25' : 'text-yellow-200/60'
+          }`}
+        >
+          Pot
+        </span>
+        <VenuePotAmount
+          amount={amount}
+          prefersReducedMotion={prefersReducedMotion}
+          className={`block font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] text-[clamp(1rem,8cqw,2.1rem)] ${
+            dimmed && amount <= 0 ? 'text-yellow-300/35' : 'text-yellow-300'
+          }`}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -568,6 +613,8 @@ function SeatRingWithLabels({
   seatLastBettingAction: seatLastBettingActionIn,
   actingCallAmount,
   mosaicFluidWidth = false,
+  feltCenterPot,
+  feltCenterPotDimmed = false,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -591,6 +638,10 @@ function SeatRingWithLabels({
   seatLastBettingAction?: (SeatBettingAction | null)[]
   /** Active seat only: chips to call (venue snapshot). */
   actingCallAmount?: number | null
+  /** Venue floor: whole-dollar pot drawn large on the felt center. */
+  feltCenterPot?: number
+  /** Fade the center pot during lobby / question before blinds post. */
+  feltCenterPotDimmed?: boolean
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
@@ -681,8 +732,10 @@ function SeatRingWithLabels({
         )
       : railBorderRadius
 
+  const showFeltCenterPot = isMosaic && feltCenterPot != null
+
   return (
-    <div ref={ringElRef} className={`relative overflow-visible ${wrap}`}>
+    <div ref={ringElRef} className={`@container relative overflow-visible ${wrap}`}>
       <div
         className={`absolute border-amber-700/90 shadow-md ${
           size === 'lg'
@@ -719,6 +772,13 @@ function SeatRingWithLabels({
             `,
         }}
       />
+      {showFeltCenterPot ? (
+        <VenueFeltCenterPot
+          amount={feltCenterPot}
+          dimmed={feltCenterPotDimmed}
+          prefersReducedMotion={prefersReducedMotion}
+        />
+      ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         const filled = i < seatedCount
         if (isMosaic && !filled) return null
@@ -1033,7 +1093,7 @@ function VenueMosaicTableCard({
         data-spotlight-tile={tn}
         role="group"
         aria-current={spotlight ? 'true' : undefined}
-        aria-label={`Table ${tn}, venue floor`}
+        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}, venue floor`}
         className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
           floorHoneycomb ? 'h-auto overflow-visible' : 'h-full min-h-0 overflow-hidden'
         } ${
@@ -1075,6 +1135,8 @@ function VenueMosaicTableCard({
             showSeatBettingActions={false}
             seatLastBettingAction={seatLastBettingAction}
             actingCallAmount={row.actingCallAmount}
+            feltCenterPot={pot}
+            feltCenterPotDimmed={ph === 'lobby' || ph === 'question'}
           />
         </div>
 
@@ -1125,12 +1187,7 @@ function VenueMosaicTableCard({
             <>
               <div className="flex min-w-0 items-baseline gap-1.5">
                 <dt className="sr-only">Pot</dt>
-                <VenueFloorPotAmount
-                  amount={pot}
-                  prefersReducedMotion={prefersReducedMotion}
-                  className="font-mono font-bold tabular-nums text-yellow-300"
-                />
-                <span className="text-white/35">·</span>
+                <dd className="sr-only">{formatVenueBankroll(pot)}</dd>
                 <dt className="sr-only">Chips on table</dt>
                 <dd className="truncate font-mono font-semibold tabular-nums text-casino-emerald/90">
                   {formatVenueBankroll(totalChips)}
@@ -1148,11 +1205,13 @@ function VenueMosaicTableCard({
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="font-semibold text-white/65">Pot</dt>
-                <VenueFloorPotAmount
-                  amount={pot}
-                  prefersReducedMotion={prefersReducedMotion}
-                  className="font-mono font-bold tabular-nums text-yellow-300"
-                />
+                <dd className="font-mono font-bold tabular-nums text-yellow-300">
+                  <VenuePotAmount
+                    amount={pot}
+                    prefersReducedMotion={prefersReducedMotion}
+                    className="font-mono font-bold tabular-nums text-yellow-300"
+                  />
+                </dd>
               </div>
               {mosaicPotSubtitle != null ? (
                 <div className="rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">

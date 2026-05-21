@@ -7,6 +7,7 @@ import {
   onDisplayVenueSnapshot,
   subscribeDisplayLayoutLocal,
 } from '@qhe/net'
+import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { readUrlLayoutBootstrap } from './displayUrlParams'
 import AudienceWelcomeWall from './AudienceWelcomeWall.tsx'
 import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
@@ -26,7 +27,7 @@ function normalizeVenueWallTiles(
       typeof t.tableNum === 'number' &&
       Number.isInteger(t.tableNum) &&
       t.tableNum >= 1 &&
-      t.tableNum <= 8
+      t.tableNum <= VENUE_NUMBERED_TABLE_MAX
     ) {
       byNum.set(t.tableNum, t)
     }
@@ -88,7 +89,9 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     const hostFocus = layout.focusTable
     const derived = featuredWatch.featuredTableNum
     const effectiveFocus =
-      hostFocus != null && hostFocus >= 1 && hostFocus <= 8 ? hostFocus : derived ?? null
+      hostFocus != null && hostFocus >= 1 && hostFocus <= VENUE_NUMBERED_TABLE_MAX
+        ? hostFocus
+        : derived ?? null
     const tableForHello = effectiveFocus != null ? String(effectiveFocus) : '1'
 
     function handleDisplayLayout(next: DisplayLayoutPayload) {

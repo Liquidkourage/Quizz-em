@@ -34,6 +34,10 @@ import {
   playerAllIn,
   SAMPLE_QUESTIONS,
   buildDisplayPreviewGameState,
+  VENUE_NUMBERED_TABLE_MAX,
+  VENUE_WALL_SEAT_SLOTS,
+  rehearsalSeatDisplayName,
+  rehearsalVenueTableRosterSizes,
   displayActingSeatIndex,
   displayBlindSeatIndices,
   chipsRequiredToCall,
@@ -854,12 +858,12 @@ const venueDisplayLayouts = new Map<string, DisplayLayoutPayload>()
 function normalizeDisplayFocusTable(raw: unknown): number | null {
   if (raw == null) return null
   if (typeof raw === 'number' && Number.isInteger(raw)) {
-    if (raw >= 1 && raw <= 8) return raw
+    if (raw >= 1 && raw <= VENUE_NUMBERED_TABLE_MAX) return raw
     return null
   }
   if (typeof raw === 'string') {
     const n = Number.parseInt(raw.trim(), 10)
-    if (Number.isInteger(n) && n >= 1 && n <= 8) return n
+    if (Number.isInteger(n) && n >= 1 && n <= VENUE_NUMBERED_TABLE_MAX) return n
     return null
   }
   return null
@@ -881,7 +885,7 @@ function coerceDisplayLayoutPayload(raw: unknown): DisplayLayoutPayload {
     const n = Number.parseInt(String(tid), 10)
     return {
       layout: 'venueWall',
-      focusTable: Number.isInteger(n) && n >= 1 && n <= 8 ? n : null,
+      focusTable: Number.isInteger(n) && n >= 1 && n <= VENUE_NUMBERED_TABLE_MAX ? n : null,
     }
   }
   if (o.layout === 'venueWall') {
@@ -902,7 +906,7 @@ function resolveDisplayLayoutForHello(venueCode: string, data: ClientHello): Dis
   }
   const tid = normalizeTableId(data.tableId ?? '1')
   const n = Number.parseInt(String(tid), 10)
-  const focus = Number.isInteger(n) && n >= 1 && n <= 8 ? n : null
+  const focus = Number.isInteger(n) && n >= 1 && n <= VENUE_NUMBERED_TABLE_MAX ? n : null
   return { layout: 'venueWall', focusTable: focus }
 }
 
@@ -961,7 +965,7 @@ function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, data: Cl
     layout.focusTable != null &&
     Number.isInteger(layout.focusTable) &&
     layout.focusTable >= 1 &&
-    layout.focusTable <= 8
+    layout.focusTable <= VENUE_NUMBERED_TABLE_MAX
       ? String(layout.focusTable)
       : null
 
@@ -993,7 +997,7 @@ function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, data: Cl
     const tid = normalizeTableId(sessionTableIdRaw)
     const tidN = Number.parseInt(String(tid), 10)
     const synthetic =
-      Number.isInteger(tidN) && tidN >= 1 && tidN <= 8
+      Number.isInteger(tidN) && tidN >= 1 && tidN <= VENUE_NUMBERED_TABLE_MAX
         ? buildDisplayPreviewGameState(normalizeVenueCode(vn), tid)
         : createEmptyGame(vn, '', tid)
     socket.emit('ack', { ok: true, message: 'Connected successfully' } satisfies ServerAck)
@@ -1107,7 +1111,7 @@ function allTableSessionsInVenue(venueCode: string): string[] {
 }
 
 /** Seats labeled on the public venue-wall mosaic (matches felt chair count in UI). */
-const VENUE_WALL_SEAT_COUNT = 8
+const VENUE_WALL_SEAT_COUNT = VENUE_WALL_SEAT_SLOTS
 
 /** Seats wired into the venue wall / welcome mosaic (human + rehearsal CPU vp:*). */
 function welcomeWallSeatCount(gs: GameState): number {
@@ -1259,7 +1263,7 @@ function pickVenueHeadlineGameState(venueCode: string): GameState | null {
   const vn = normalizeVenueCode(venueCode)
 
   function firstSeated(predicate: (gs: GameState) => boolean): GameState | null {
-    for (let n = 1; n <= 8; n++) {
+    for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
       const key = tableSessionKey(vn, String(n))
       const gs = rooms.get(key)
       if (gs != null && gs.players.length > 0 && predicate(gs)) return gs
@@ -1290,7 +1294,7 @@ function pickVenueHeadlineGameState(venueCode: string): GameState | null {
   )
   if (post) return post
 
-  for (let n = 1; n <= 8; n++) {
+  for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
     const key = tableSessionKey(vn, String(n))
     const gs = rooms.get(key)
     if (gs != null && gs.players.length > 0) return gs
@@ -1301,7 +1305,7 @@ function pickVenueHeadlineGameState(venueCode: string): GameState | null {
 function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenueFeltBeatRow[] } {
   const vn = normalizeVenueCode(vnRaw)
   const felts: HostVenueFeltBeatRow[] = []
-  for (let n = 1; n <= 8; n++) {
+  for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
     const key = tableSessionKey(vn, String(n))
     const gs = rooms.get(key) as GameState | undefined
     if (!gs) {
@@ -1802,7 +1806,10 @@ io.on('connection', (socket) => {
       }
       const nextLayout = parseDisplaySetLayoutPayload(payload)
       if (!nextLayout) {
-        socket.emit('toast', 'Invalid TV layout (send venue wall + optional focus table 1–8).')
+        socket.emit(
+          'toast',
+          `Invalid TV layout (send venue wall + optional focus table 1–${VENUE_NUMBERED_TABLE_MAX}).`,
+        )
         return
       }
       venueDisplayLayouts.set(normalizeVenueCode(gsCtl.code), nextLayout)
@@ -2455,7 +2462,8 @@ io.on('connection', (socket) => {
           }
           const hostIdSnap = lobbyGs.hostId
           const N = roster.length
-          const tableCount = computeOptimalTableCount(N, lobbyGs.maxPlayers, lobbyGs.minPlayers)
+          let tableCount = computeOptimalTableCount(N, lobbyGs.maxPlayers, lobbyGs.minPlayers)
+          tableCount = Math.min(tableCount, VENUE_NUMBERED_TABLE_MAX)
           const sizes = splitIntoTableSizes(N, tableCount)
           const shuffled = shuffle(roster)
           let offset = 0
@@ -2510,6 +2518,64 @@ io.on('connection', (socket) => {
             `Seated ${N} players randomly across ${tableCount} tables (${sizes.join(', ')}). You are now on table 1.`
           )
           markVenueShowStarted(lobbyGs.code)
+          gameState = rooms.get(t1Key)!
+          break
+        }
+
+        case 'seedRehearsalVenue': {
+          if (!isLobbySessionKey(sessionKey)) {
+            socket.emit(
+              'toast',
+              'Run “Seed 20-table rehearsal” from the lobby session (join host as table LOBBY).',
+            )
+            break
+          }
+          if (!assertVenueHost(socket, gameState)) break
+          const vn = normalizeVenueCode(gameState.code)
+          const hostIdSnap = gameState.hostId
+          const sizes = rehearsalVenueTableRosterSizes()
+          for (const tk of allTableSessionsInVenue(vn)) {
+            rooms.delete(tk)
+          }
+          let globalSeat = 0
+          let totalBots = 0
+          for (let ti = 0; ti < sizes.length; ti++) {
+            const tid = String(ti + 1)
+            const tk = tableSessionKey(vn, tid)
+            let gsNew = createEmptyGame(vn, hostIdSnap, tid)
+            gsNew = {
+              ...gsNew,
+              smallBlind: gameState.smallBlind,
+              bigBlind: gameState.bigBlind,
+              maxPlayers: VENUE_WALL_SEAT_SLOTS,
+            }
+            const seatN = sizes[ti]!
+            for (let si = 0; si < seatN; si++) {
+              gsNew = addPlayer(
+                gsNew,
+                `vp:rehearsal:${tid}:${si}`,
+                rehearsalSeatDisplayName(globalSeat),
+              )
+              globalSeat++
+            }
+            totalBots += seatN
+            rooms.set(tk, gsNew)
+            emitVenueTableState(tk, gsNew)
+          }
+          const t1Key = tableSessionKey(vn, '1')
+          const hostSock = io.sockets.sockets.get(hostIdSnap)
+          if (hostSock) {
+            hostSock.leave(sessionKey)
+            hostSock.join(t1Key)
+            ;(hostSock.data as { sessionKey?: string }).sessionKey = t1Key
+          }
+          markVenueShowStarted(vn)
+          venueAudienceWelcomeExpired.add(vn)
+          emitDisplayVenueSnapshotNow(vn)
+          socket.emit(
+            'toast',
+            `Rehearsal: ${VENUE_NUMBERED_TABLE_MAX} tables, ${totalBots} CPUs (${sizes.join(', ')} per table). Host on table 1.`,
+          )
           gameState = rooms.get(t1Key)!
           break
         }

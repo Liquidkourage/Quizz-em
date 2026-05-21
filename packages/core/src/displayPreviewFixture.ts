@@ -1,4 +1,5 @@
 import type { GameState, NumericCard, PlayerState, Question } from './index'
+import { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
 
 /** Shared copy for venue-wall tiles and seeded read-only display sessions (before any host mutates that table). */
 export const DISPLAY_PREVIEW_DEMO_QUESTION_TEXT =
@@ -12,17 +13,21 @@ export const DISPLAY_PREVIEW_SYNCED_PHASE = 'answering' as const
 export const DISPLAY_PREVIEW_SYNCED_SUBTITLE =
   'Shared deadline when answering — countdown is identical venue-wide.'
 
-/** Per-table snapshot: occupied seats (of 8) and local pot shown on venue wall tiles. */
-export const DISPLAY_PREVIEW_TABLES = [
-  { seated: 8, pot: 920 },
-  { seated: 6, pot: 640 },
-  { seated: 7, pot: 880 },
-  { seated: 5, pot: 400 },
-  { seated: 8, pot: 1100 },
-  { seated: 6, pot: 520 },
-  { seated: 7, pot: 760 },
-  { seated: 8, pot: 1340 },
-] as const
+/** Deterministic seated count 5–8 for rehearsal / offline wall previews (tableNum is 1-based). */
+export function rehearsalSeatedCountForTable(tableNum: number): number {
+  const i = Math.max(0, Math.floor(tableNum) - 1)
+  const pattern = [6, 7, 5, 8] as const
+  return pattern[i % pattern.length]!
+}
+
+/** Per-table snapshot: occupied seats (of 8) and local pot — {@link VENUE_NUMBERED_TABLE_MAX} felts. */
+export const DISPLAY_PREVIEW_TABLES = Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, i) => {
+  const tableNum = i + 1
+  return {
+    seated: rehearsalSeatedCountForTable(tableNum),
+    pot: 380 + ((i * 67) % 980),
+  }
+}) as ReadonlyArray<{ readonly seated: number; readonly pot: number }>
 
 /** First names cycle for rehearsal CPUs and venue-wall previews (paired with surnames for initials). */
 const REHEARSAL_FIRST = [
@@ -76,18 +81,26 @@ export function rehearsalSeatDisplayName(seatIndex: number): string {
   return `${first} ${L}.`
 }
 
-/** First eight seat labels in venue-wall preview tiles — matches `rehearsalSeatDisplayName(0..7)`. */
-export const DISPLAY_PREVIEW_NAMES: readonly string[] = Array.from({ length: 8 }, (_, i) =>
-  rehearsalSeatDisplayName(i)
+/** Seat labels for table 1 in venue-wall preview — matches `rehearsalSeatDisplayName(0..7)`. */
+export const DISPLAY_PREVIEW_NAMES: readonly string[] = Array.from(
+  { length: VENUE_WALL_SEAT_SLOTS },
+  (_, i) => rehearsalSeatDisplayName(i)
 )
 
 export const DISPLAY_PREVIEW_BANKROLLS = [
   1200, 850, 1100, 950, 1350, 700, 1600, 900,
 ] as const
 
+/** Roster size per numbered table for the live rehearsal seed (tables 1…{@link VENUE_NUMBERED_TABLE_MAX}). */
+export function rehearsalVenueTableRosterSizes(): readonly number[] {
+  return Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, i) =>
+    rehearsalSeatedCountForTable(i + 1)
+  )
+}
+
 export function normalizeDisplayPreviewTableNum(tableId: string): number {
   const n = Number.parseInt(String(tableId).trim(), 10)
-  if (!Number.isInteger(n) || n < 1 || n > 8) return 1
+  if (!Number.isInteger(n) || n < 1 || n > VENUE_NUMBERED_TABLE_MAX) return 1
   return n
 }
 
@@ -105,10 +118,11 @@ export function buildDisplayPreviewGameState(code: string, rawTableId: string): 
 
   const players: PlayerState[] = []
   for (let i = 0; i < snap.seated; i++) {
+    const globalSeat = idx * VENUE_WALL_SEAT_SLOTS + i
     players.push({
       id: `vp:preview:${tableId}:${i}`,
-      name: rehearsalSeatDisplayName(i),
-      bankroll: DISPLAY_PREVIEW_BANKROLLS[i % DISPLAY_PREVIEW_BANKROLLS.length],
+      name: rehearsalSeatDisplayName(globalSeat),
+      bankroll: DISPLAY_PREVIEW_BANKROLLS[i % DISPLAY_PREVIEW_BANKROLLS.length]!,
       hand: [digit(i + 3), digit(i + 7)],
       hasFolded: false,
       isAllIn: false,

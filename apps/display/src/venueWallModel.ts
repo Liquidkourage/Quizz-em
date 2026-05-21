@@ -2,12 +2,13 @@ import {
   DISPLAY_PREVIEW_BANKROLLS,
   DISPLAY_PREVIEW_SYNCED_PHASE,
   DISPLAY_PREVIEW_TABLES,
+  VENUE_WALL_SEAT_SLOTS,
   displayBlindSeatIndices,
   rehearsalSeatDisplayName,
 } from '@qhe/core'
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot } from '@qhe/net'
 
-export const VENUE_WALL_SEAT_SLOTS = 8 as const
+export { VENUE_WALL_SEAT_SLOTS }
 
 /** Pre-start crawl: hero table advances on this cadence while every live snapshot tile is lobby. */
 export const SEATING_SPOTLIGHT_CYCLE_SEC = 10

@@ -1,5 +1,7 @@
+import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+
 /** Max numbered felts the venue wall grid is designed to fit on one TV without scrolling. */
-export const SHOWDOWN_WALL_MAX_TABLES = 20
+export const SHOWDOWN_WALL_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
 
 export type ShowdownWallDensity = 'full' | 'compact' | 'micro'
 

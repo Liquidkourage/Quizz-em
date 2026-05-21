@@ -1,4 +1,5 @@
 ﻿import { z } from 'zod'
+import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import type { GameState, Question, Setlist, SeatBettingAction } from '@qhe/core'
 
 export type { GameState, Question, Setlist, SeatBettingAction }
@@ -19,7 +20,7 @@ export type ClientRole = z.infer<typeof ClientRole>
 /** Host-driven `/display` mode: mosaic shell always; `focusTable` spotlights one felt or null for overview. */
 export type DisplayLayoutPayload = { layout: 'venueWall'; focusTable: number | null }
 
-/** Mosaic row for `/display` venue wall — derived live from tables 1–8 sessions. */
+/** Mosaic row for `/display` venue wall — derived live from numbered table sessions (1…N). */
 export type DisplayVenueTileSnapshot = {
   tableNum: number
   seated: number
@@ -101,7 +102,7 @@ export type DisplayVenueWallSnapshot = {
   serverNowMs?: number
   /** Humans in lobby pool (`LOBBY` session); 0 before anyone joins lobby. */
   lobbyPlayerCount: number
-  /** Sum of seated humans across numbered tables (1–8). */
+  /** Sum of seated humans across numbered tables. */
   totalSeatedAtTables: number
   /**
    * Public TV briefing: false after host **Assign from lobby** (or **Start Game** fallback for single-table flows),
@@ -115,7 +116,7 @@ export type HostVenueGameplayHintsPayload = {
   livelyTableNums: number[]
 }
 
-/** Host-only: one row per felt 1–8 for lockstep alignment (updates with venue wall refresh). */
+/** Host-only: one row per numbered felt for lockstep alignment (updates with venue wall refresh). */
 export type HostVenueFeltBeatRow = {
   tableNum: number
   /** False when no `VENUE:N` session exists yet. */
@@ -146,8 +147,8 @@ export const ClientHello = z.object({
   hostSecret: z.string().optional(),
   /** Display: URL / bootstrap hint when server has no persisted layout yet */
   displayVenueWall: z.boolean().optional(),
-  /** Display: spotlight felt 1–8 for venue wall */
-  displayFocusTable: z.number().int().min(1).max(8).nullable().optional(),
+  /** Display: spotlight felt 1…{@link VENUE_NUMBERED_TABLE_MAX} for venue wall */
+  displayFocusTable: z.number().int().min(1).max(VENUE_NUMBERED_TABLE_MAX).nullable().optional(),
   /** Display: pairing mode — no venue yet; server shows a short code for the host */
   displayAwaitPairing: z.boolean().optional(),
 })

@@ -15,6 +15,7 @@ import {
   adminSetBlinds,
   addVirtualPlayers,
   clearVirtualPlayers,
+  seedRehearsalVenue,
   assignTablesFromLobby,
   displaySetLayout,
   pairDisplayWithHost,
@@ -34,7 +35,7 @@ import {
 } from '@qhe/net'
 import type { GameState, GamePhase, Question } from '@qhe/core'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID } from '@qhe/core'
+import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
 
 const HOST_TABS = [
@@ -78,7 +79,7 @@ function clampVenueAnswerWindow(v: number): number {
   return Math.min(300, Math.max(15, Math.floor(Number.isFinite(v) ? v : 45)))
 }
 
-/** Full-venue 1–8 strip; updates from `hostVenueFeltBeat`. */
+/** Full-venue felt strip; updates from `hostVenueFeltBeat`. */
 function HostVenueFeltBeatStrip({
   rows,
   hostTableId,
@@ -580,7 +581,10 @@ function HostApp() {
                   onChange={(e) => setHostTableId(e.target.value)}
                   className="max-w-[14rem] rounded-lg border border-white/20 bg-zinc-950 py-2 pl-2 pr-8 text-base text-white [color-scheme:dark] sm:max-w-xs"
                 >
-                  {[LOBBY_TABLE_ID, '1', '2', '3', '4', '5', '6', '7', '8'].map((v) => (
+                  {[
+                    LOBBY_TABLE_ID,
+                    ...Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, i) => String(i + 1)),
+                  ].map((v) => (
                     <option key={v} value={v} className="bg-zinc-950 text-white">
                       {v === LOBBY_TABLE_ID ? 'Lobby pool' : `Table ${v}`}
                     </option>
@@ -1381,6 +1385,24 @@ function HostApp() {
                   <span className="font-semibold text-casino-gold">{gameState.players.length}</span> filled (
                   <span className="font-semibold text-casino-gold">{virtualSeatCount}</span> CPU).
                 </p>
+                {(gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby' ? (
+                  <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
+                    <p className="text-sm text-amber-100/90 leading-relaxed">
+                      <strong className="text-amber-50">20-table rehearsal</strong> seeds every felt with{' '}
+                      <span className="font-semibold text-casino-gold">5–8 CPUs</span> (pattern 6, 7, 5, 8…) — about{' '}
+                      <span className="font-semibold text-casino-gold">130</span> bots venue-wide. Skips the lobby pool; host lands on
+                      table 1. Use the venue wall / full-screen showdown to stress-test layout.
+                    </p>
+                    <NeonButton
+                      variant="gold"
+                      size="small"
+                      className="mt-3"
+                      onClick={() => seedRehearsalVenue()}
+                    >
+                      Seed {VENUE_NUMBERED_TABLE_MAX}-table rehearsal
+                    </NeonButton>
+                  </div>
+                ) : null}
                 <div className="flex flex-wrap gap-2 items-center">
                   <div
                     className="flex flex-wrap gap-1.5 rounded-lg border border-white/20 bg-black/40 p-1"
@@ -1796,7 +1818,7 @@ function HostApp() {
             </p>
             <div className="flex flex-wrap items-start justify-center gap-x-2 gap-y-6 py-3">
               <NeonButton variant="emerald" onClick={() => displaySetLayout({ layout: 'venueWall', focusTable: null })}>
-                All 8 felts
+                All {VENUE_NUMBERED_TABLE_MAX} felts
               </NeonButton>
               <span className="mx-2 text-xs text-white/40">Spotlight (live felt)</span>
               {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => {
@@ -1839,8 +1861,8 @@ function HostApp() {
               })}
             </div>
             <p className="mt-4 text-center text-[12px] leading-relaxed text-white/48">
-              Spotlight zooms one table&apos;s live game full-screen · <strong className="text-white/65">All 8 felts</strong> restores the mosaic.{' '}
-              <code className="rounded bg-white/10 px-1 font-mono text-[11px] text-white/80">/display?table=N</code> (N = 1–8) matches spotlight.
+              Spotlight zooms one table&apos;s live game full-screen · <strong className="text-white/65">All {VENUE_NUMBERED_TABLE_MAX} felts</strong> restores the mosaic.{' '}
+              <code className="rounded bg-white/10 px-1 font-mono text-[11px] text-white/80">/display?table=N</code> (N = 1–{VENUE_NUMBERED_TABLE_MAX}) matches spotlight.
             </p>
           </div>
         </Card>

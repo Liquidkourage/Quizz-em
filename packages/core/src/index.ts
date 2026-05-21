@@ -1272,4 +1272,7 @@ export {
   buildDisplayPreviewGameState,
   normalizeDisplayPreviewTableNum,
   rehearsalSeatDisplayName,
+  rehearsalSeatedCountForTable,
+  rehearsalVenueTableRosterSizes,
 } from './displayPreviewFixture'
+export { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'

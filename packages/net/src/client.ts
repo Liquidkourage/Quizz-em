@@ -1,6 +1,7 @@
 ﻿/// <reference path="./vite-import-meta.d.ts" />
 
 import { io, Socket } from 'socket.io-client'
+import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import type {
   GameState,
   ClientHello,
@@ -26,7 +27,7 @@ function isDisplayLayoutPayloadLocal(v: unknown): v is DisplayLayoutPayload {
     typeof o.focusTable === 'number' &&
     Number.isInteger(o.focusTable) &&
     o.focusTable >= 1 &&
-    o.focusTable <= 8
+    o.focusTable <= VENUE_NUMBERED_TABLE_MAX
   )
 }
 
@@ -543,6 +544,12 @@ export function addVirtualPlayers(count = 2) {
 export function clearVirtualPlayers() {
   if (!socket) return
   socket.emit('action', { type: 'clearVirtualPlayers' })
+}
+
+/** Host-only (lobby): seed tables 1…N with 5–8 CPUs each for full-venue rehearsal. */
+export function seedRehearsalVenue() {
+  if (!socket) return
+  socket.emit('action', { type: 'seedRehearsalVenue' })
 }
 
 /** Host-only: where TVs should point (venue wall vs single felt). */

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
   displayBettingPhaseLabel,
+  formatTriviaNumber,
   isVenueTileWageringPaused,
   venueTileActingSeatIndex,
 } from '@qhe/core'
@@ -11,6 +12,7 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAct
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
+import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import {
   showdownCorrectAnswerFromTile,
   showdownRowsFromTile,
@@ -1028,8 +1030,8 @@ function SeatRingWithLabels({
   )
 }
 
-/** Compact floor tile — overlaid on felt so the checkerboard row height stays fixed. */
-function VenueFloorWinnerBadge({
+/** Compact floor tile — winning answer on the felt (overlay; does not grow the card). */
+function VenueFloorShowdownOverlay({
   rows,
   correctAnswer,
 }: {
@@ -1038,28 +1040,47 @@ function VenueFloorWinnerBadge({
 }) {
   const { winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const winners = rows.filter(
-    (r) => winnerKeys.has(`${r.seat}:${r.name}`) && r.name.trim() !== ''
+    (r) =>
+      winnerKeys.has(`${r.seat}:${r.name}`) &&
+      r.name.trim() !== '' &&
+      !r.hasFolded
   )
-  const label = winnerKeys.size > 1 ? 'Split' : 'Winner'
-  const names =
-    winners.length === 0
-      ? '—'
-      : winners.length === 1
-        ? winners[0]!.name
-        : winners.map((w) => w.name).join(' + ')
+  const label = winners.length > 1 ? 'Split winners' : 'Winner'
+  const shown = winners.slice(0, 2)
+
+  if (shown.length === 0) return null
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-[6%] bottom-[10%] z-[125] flex justify-center"
-      aria-label={`${label}: ${names}`}
+      className="pointer-events-none absolute inset-[6%] z-[125] flex items-center justify-center"
+      role="group"
+      aria-label={`${label}: ${shown.map((w) => w.name).join(', ')}`}
     >
-      <div className="max-w-full rounded-md border border-amber-400/55 bg-black/88 px-1.5 py-0.5 text-center shadow-[0_4px_14px_rgba(0,0,0,0.75)] backdrop-blur-sm">
-        <p className="text-[0.5rem] font-bold uppercase leading-none tracking-wider text-amber-200/75 sm:text-[0.55rem]">
+      <div className="flex max-w-full flex-col items-center gap-1 rounded-lg border border-amber-400/65 bg-black/92 px-2 py-1.5 text-center shadow-[0_6px_20px_rgba(0,0,0,0.85)] backdrop-blur-sm">
+        <p className="text-[0.5rem] font-bold uppercase leading-none tracking-[0.18em] text-amber-200/80 sm:text-[0.55rem]">
           {label}
         </p>
-        <p className="truncate text-[0.65rem] font-black leading-tight text-amber-50 sm:text-xs">
-          {names}
-        </p>
+        {shown.map((w) => (
+          <div
+            key={`${w.seat}:${w.name}`}
+            className="flex w-full min-w-0 flex-col items-center gap-0.5 border-t border-amber-500/25 pt-1 first:border-t-0 first:pt-0"
+          >
+            <p className="max-w-full truncate text-[0.65rem] font-black leading-tight text-amber-50 sm:text-xs">
+              {w.name}
+            </p>
+            <ShowdownFiveCardsUsed row={w} size="xs" />
+            {w.submitted != null && typeof correctAnswer === 'number' ? (
+              <p className="font-mono text-[0.55rem] font-bold tabular-nums leading-none text-amber-100/90 sm:text-[0.6rem]">
+                {formatTriviaNumber(w.submitted)}
+              </p>
+            ) : null}
+          </div>
+        ))}
+        {winners.length > 2 ? (
+          <p className="text-[0.5rem] font-semibold text-amber-200/65">
+            +{winners.length - 2} more
+          </p>
+        ) : null}
       </div>
     </div>
   )
@@ -1189,11 +1210,11 @@ function VenueMosaicTableCard({
             showSeatBettingActions={false}
             seatLastBettingAction={seatLastBettingAction}
             actingCallAmount={row.actingCallAmount}
-            feltCenterPot={pot}
+            feltCenterPot={inShowdown && showdownBrief ? undefined : pot}
             feltCenterPotDimmed={ph === 'lobby' || ph === 'question'}
           />
           {inShowdown && showdownBrief && showdownRows.length > 0 ? (
-            <VenueFloorWinnerBadge rows={showdownRows} correctAnswer={showdownAnswer} />
+            <VenueFloorShowdownOverlay rows={showdownRows} correctAnswer={showdownAnswer} />
           ) : null}
         </div>
 

@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import type { ShowdownResultRow } from './showdownDisplay'
 
-export type ShowdownChipSize = 'sm' | 'md' | 'lg'
+export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg'
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
@@ -17,9 +17,11 @@ function DigitChip({
   const dim =
     size === 'lg'
       ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
-      : size === 'sm'
-        ? 'h-6 min-w-[1.125rem] px-0.5 text-[0.65rem]'
-        : 'h-7 min-w-[1.35rem] px-1 text-xs'
+      : size === 'xs'
+        ? 'h-5 min-w-[0.95rem] px-0.5 text-[0.55rem]'
+        : size === 'sm'
+          ? 'h-6 min-w-[1.125rem] px-0.5 text-[0.65rem]'
+          : 'h-7 min-w-[1.35rem] px-1 text-xs'
   const styles: Record<DigitChipVariant, string> = {
     hole: 'border-amber-400/85 bg-amber-950/90 text-amber-50 shadow-[0_0_8px_rgba(251,191,36,0.35)]',
     board:
@@ -40,9 +42,11 @@ function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
   const dim =
     size === 'lg'
       ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
-      : size === 'sm'
-        ? 'h-6 w-2 text-base'
-        : 'h-7 w-2.5 text-lg'
+      : size === 'xs'
+        ? 'h-5 w-1.5 text-sm'
+        : size === 'sm'
+          ? 'h-6 w-2 text-base'
+          : 'h-7 w-2.5 text-lg'
   return (
     <span
       aria-hidden

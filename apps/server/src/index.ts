@@ -1136,7 +1136,7 @@ function tableNumFromSessionKey(venueCode: string, sessionKey: string): number |
   const rest = sessionKey.slice(pref.length)
   if (rest === LOBBY_TABLE_ID) return null
   const n = Number.parseInt(rest, 10)
-  if (!Number.isInteger(n) || n < 1 || n > 8 || String(n) !== rest) return null
+  if (!Number.isInteger(n) || n < 1 || n > VENUE_NUMBERED_TABLE_MAX || String(n) !== rest) return null
   return n
 }
 

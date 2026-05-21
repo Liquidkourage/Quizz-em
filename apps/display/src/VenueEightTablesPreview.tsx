@@ -17,7 +17,12 @@ import {
   sortShowdownRowsByDistance,
 } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
-import { populatedVenueTiles, venueFloorGridLayout } from './venueFloorGridLayout'
+import {
+  chunkTilesForHexRows,
+  hexRowShouldOffset,
+  populatedVenueTiles,
+  venueFloorHexLayout,
+} from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
 
@@ -1275,7 +1280,8 @@ function VenueAerialFloorGrid({
   skipMountIntro: boolean
 }) {
   const n = tiles.length
-  const { columns, rows, gapClass } = useMemo(() => venueFloorGridLayout(n), [n])
+  const { rowSizes, maxInRow, gapClass } = useMemo(() => venueFloorHexLayout(n), [n])
+  const hexRows = useMemo(() => chunkTilesForHexRows(tiles, rowSizes), [tiles, rowSizes])
   const floorCompact = n > 9
   const showdownBrief = n > 6
 
@@ -1302,34 +1308,69 @@ function VenueAerialFloorGrid({
       ) : null}
 
       <div
-        className="pointer-events-none absolute inset-x-0 top-[18%] bottom-[8%] opacity-[0.14]"
+        className="pointer-events-none absolute inset-x-0 top-[16%] bottom-[6%] opacity-[0.12]"
         aria-hidden
         style={{
-          backgroundImage:
-            'radial-gradient(ellipse 80% 55% at 50% 42%, rgba(251,191,36,0.35) 0%, transparent 72%)',
+          backgroundImage: `
+            radial-gradient(circle at 50% 45%, rgba(251,191,36,0.28) 0%, transparent 58%),
+            repeating-linear-gradient(
+              60deg,
+              transparent,
+              transparent 42px,
+              rgba(255,255,255,0.02) 42px,
+              rgba(255,255,255,0.02) 43px
+            ),
+            repeating-linear-gradient(
+              -60deg,
+              transparent,
+              transparent 42px,
+              rgba(255,255,255,0.02) 42px,
+              rgba(255,255,255,0.02) 43px
+            )
+          `,
         }}
       />
 
       <div
-        className={`relative grid min-h-0 flex-1 ${gapClass}`}
-        style={{
-          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-          perspective: '1200px',
-        }}
+        className={`relative flex min-h-0 flex-1 flex-col justify-center ${gapClass} py-0.5 sm:py-1`}
+        style={{ perspective: '1400px', transform: 'rotateX(5deg)', transformOrigin: 'center 55%' }}
       >
-        {tiles.map((row) => (
-          <div key={row.tableNum} className="min-h-0 min-w-0" style={{ transform: 'rotateX(4deg)' }}>
-            <VenueMosaicTableCard
-              row={row}
-              isSpotlightThumb={
-                spotlightTableNum != null && row.tableNum === spotlightTableNum
-              }
-              hideShowdownResults={showdownBrief}
-              floorCompact={floorCompact}
-            />
-          </div>
-        ))}
+        {hexRows.map((rowTiles, rowIndex) => {
+          const offset = hexRowShouldOffset(rowIndex, rowTiles.length, maxInRow)
+          const rowWidthPct = (rowTiles.length / maxInRow) * 100
+          const halfCellPct = 50 / maxInRow
+
+          return (
+            <div
+              key={rowTiles.map((t) => t.tableNum).join('-')}
+              className="flex min-h-0 w-full flex-1 basis-0 justify-center"
+              style={{
+                paddingLeft: offset ? `${halfCellPct}%` : undefined,
+              }}
+            >
+              <div
+                className={`flex h-full min-h-0 min-w-0 ${gapClass}`}
+                style={{
+                  width: `${rowWidthPct}%`,
+                  maxWidth: `${rowWidthPct}%`,
+                }}
+              >
+                {rowTiles.map((row) => (
+                  <div key={row.tableNum} className="min-h-0 min-w-0 flex-1 basis-0">
+                    <VenueMosaicTableCard
+                      row={row}
+                      isSpotlightThumb={
+                        spotlightTableNum != null && row.tableNum === spotlightTableNum
+                      }
+                      hideShowdownResults={showdownBrief}
+                      floorCompact={floorCompact}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </motion.section>
   )

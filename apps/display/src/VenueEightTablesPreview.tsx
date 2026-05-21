@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
@@ -9,38 +9,19 @@ import {
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAction } from '@qhe/net'
 
 import seatChipStackImg from './assets/seat-chip-stack.png'
-import DisplayTableLive from './App.tsx'
 import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
-import VenueMultiTableShowdown from './VenueMultiTableShowdown'
 import {
   showdownCorrectAnswerFromTile,
   showdownRowsFromTile,
   sortShowdownRowsByDistance,
 } from './showdownDisplay'
-import {
-  buildVenueWallTileRows,
-  SEATING_SPOTLIGHT_CYCLE_SEC,
-  SHOWDOWN_SPOTLIGHT_CYCLE_SEC,
-  shouldUseVenueShowdownWall,
-  VENUE_WALL_SEAT_SLOTS,
-} from './venueWallModel'
+import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { populatedVenueTiles, venueFloorGridLayout } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
 
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
-
-/** Same diamond floor as {@link DisplayTableLive} — keeps felt + tour chrome visually one panel. */
-const VENUE_HERO_CARPET_STYLE: CSSProperties = {
-  backgroundImage: `
-      radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.3) 3px, transparent 3px),
-      radial-gradient(circle at 75% 75%, rgba(160, 82, 45, 0.3) 3px, transparent 3px),
-      linear-gradient(45deg, transparent 48%, rgba(139, 69, 19, 0.15) 49%, rgba(139, 69, 19, 0.15) 51%, transparent 52%),
-      linear-gradient(-45deg, transparent 48%, rgba(160, 82, 45, 0.15) 49%, rgba(160, 82, 45, 0.15) 51%, transparent 52%)
-    `,
-  backgroundSize: '40px 40px, 40px 40px, 80px 80px, 80px 80px',
-  backgroundPosition: '0 0, 20px 20px, 0 0, 0 0',
-}
 
 /** Stacking inside each mini felt ({@link SeatRingWithLabels}): name + bankroll beside name always top; then center hint, badges, pile, rim. */
 const SEAT_LAYER_DOT = 'z-[20]'
@@ -52,21 +33,10 @@ const SEAT_LAYER_NAME_CLUSTER = 'z-[120]'
 /** Fixed crawl strips (Players + All tables): keep widths and page padding in sync */
 const VENUE_CRAWL_STRIP_CLASS = 'w-80 sm:w-[22rem] lg:w-96'
 
-/** Mirror {@link VENUE_CRAWL_STRIP_CLASS} for main shell horizontal padding when crawls mount */
-const VENUE_CRAWL_PL_CLASS = 'pl-80 sm:pl-[22rem] lg:pl-96'
+/** Mirror {@link VENUE_CRAWL_STRIP_CLASS} for main shell padding when the stacks leaderboard mounts */
 const VENUE_CRAWL_PR_CLASS = 'pr-80 sm:pr-[22rem] lg:pr-96'
 
-/** Matches fixed aside edges — constrain full-bleed footers/tour dock to center column only. */
-const VENUE_CENTER_BAND_LEFT_EDGE = 'left-80 sm:left-[22rem] lg:left-96'
-const VENUE_CENTER_BAND_RIGHT_EDGE = 'right-80 sm:right-[22rem] lg:right-96'
-
-/** Venue hero center column: ~10% smaller than legacy layout so side crawls + table read cleaner together. */
-const VENUE_HERO_MAIN_MAX_W = 'max-w-[1440px]' // ×0.9 of 1600px
-/** Embedded {@link DisplayTableLive} viewport height; keep in sync with {@link VENUE_HERO_FELT_MIN_H}. */
-const VENUE_HERO_FELT_VPORT_H = 'h-[min(76.5dvh,846px)]' // ×0.9 of min(85dvh,940px)
-const VENUE_HERO_FELT_MIN_H = 'min-h-[min(360px,43.2dvh)]' // ×0.9 of min(400px,48dvh)
-
-/** Pre-start seating tour: one table hero + thumbnails; seconds per table. */
+/** Pre-start seating tour: highlight rotates across populated felts on the aerial floor. */
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false)
@@ -972,14 +942,17 @@ function phaseAccent(ph: string) {
 type VenueMosaicTableCardProps = {
   row: DisplayVenueTileSnapshot
   isSpotlightThumb?: boolean
-  /** Center wall shows full results — crawl tiles only need a winner line. */
+  /** Winner line only (dense floor with many tables). */
   hideShowdownResults?: boolean
+  /** Aerial floor: tighter chrome, no per-seat scroll list. */
+  floorCompact?: boolean
 }
 
 function VenueMosaicTableCard({
   row,
   isSpotlightThumb,
   hideShowdownResults = false,
+  floorCompact = false,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1003,6 +976,7 @@ function VenueMosaicTableCard({
 
   const spotlight = isSpotlightThumb === true
   const totalChips = totalChipsFromSeats(seatNames, seatBankrolls)
+  const showdownBrief = hideShowdownResults || floorCompact
   const cardShell = spotlight
     ? 'rounded-xl border-2 border-amber-400/70 bg-black/65 shadow-[0_0_32px_rgba(251,191,36,0.22)] ring-2 ring-amber-400/35'
     : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
@@ -1012,12 +986,20 @@ function VenueMosaicTableCard({
         data-spotlight-tile={tn}
         role="group"
         aria-current={spotlight ? 'true' : undefined}
-        aria-label={`Table ${tn}, mosaic tile`}
-        className={`flex w-full min-w-0 flex-col gap-1.5 overflow-visible p-2 backdrop-blur-md sm:gap-2 sm:p-2.5 ${cardShell}`}
+        aria-label={`Table ${tn}, venue floor`}
+        className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden backdrop-blur-md ${
+          floorCompact ? 'gap-0.5 p-1 sm:gap-1 sm:p-1.5' : 'gap-1.5 overflow-visible p-2 sm:gap-2 sm:p-2.5'
+        } ${cardShell}`}
       >
-        <div className="flex shrink-0 items-start justify-between gap-2">
+        <div className="flex shrink-0 items-start justify-between gap-1">
           <div className="min-w-0">
-            <div className="text-2xl font-black tabular-nums leading-none text-yellow-400">Table {tn}</div>
+            <div
+              className={`font-black tabular-nums leading-none text-yellow-400 ${
+                floorCompact ? 'text-base sm:text-lg' : 'text-2xl'
+              }`}
+            >
+              {tn}
+            </div>
           </div>
           <span
             className={`max-w-[min(9rem,46%)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
@@ -1026,7 +1008,11 @@ function VenueMosaicTableCard({
           </span>
         </div>
 
-        <div className="relative z-[1] flex shrink-0 justify-center overflow-visible">
+        <div
+          className={`relative z-[1] flex min-h-0 flex-1 shrink justify-center overflow-hidden ${
+            floorCompact ? 'scale-[0.92] sm:scale-95' : 'overflow-visible'
+          }`}
+        >
           <SeatRingWithLabels
             ringMode="mosaic"
             seatedCount={seats}
@@ -1041,7 +1027,7 @@ function VenueMosaicTableCard({
           />
         </div>
 
-        {seats > 0 ? (
+        {seats > 0 && !floorCompact ? (
           <ul className="max-h-[5.5rem] space-y-0.5 overflow-y-auto border-t border-white/10 pt-1.5 text-[0.7rem] leading-snug text-white/88">
             {Array.from({ length: seats }, (_, i) => {
               const name = seatNames[i]?.trim() ?? ''
@@ -1077,32 +1063,55 @@ function VenueMosaicTableCard({
           </ul>
         ) : null}
 
-        <dl className="min-w-0 space-y-1 border-t border-white/10 pt-1.5 text-[0.6875rem] leading-snug text-white/88 sm:text-sm">
-          <div className="flex justify-between gap-2">
-            <dt className="font-semibold text-white/65">Occupied</dt>
-            <dd className="font-mono font-bold tabular-nums text-casino-emerald">
-              {seats} / 8
-            </dd>
-          </div>
-          <div className="flex justify-between gap-2">
-            <dt className="font-semibold text-white/65">Pot</dt>
-            <dd className="font-mono font-bold tabular-nums text-yellow-300">${pot.toLocaleString()}</dd>
-          </div>
-          {mosaicPotSubtitle != null ? (
-            <div className="rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
-              <p className="min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs">
-                {mosaicPotSubtitle}
-              </p>
-            </div>
-          ) : null}
-          <div className="flex justify-between gap-2">
-            <dt className="font-semibold text-white/65">Chips on table</dt>
-            <dd className="font-mono font-bold tabular-nums text-white/90">{formatVenueBankroll(totalChips)}</dd>
-          </div>
+        <dl
+          className={`min-w-0 shrink-0 border-t border-white/10 text-white/88 ${
+            floorCompact
+              ? 'flex items-center justify-between gap-2 px-0.5 pt-0.5 text-[0.6rem] leading-none sm:text-[0.65rem]'
+              : 'space-y-1 pt-1.5 text-[0.6875rem] leading-snug sm:text-sm'
+          }`}
+        >
+          {floorCompact ? (
+            <>
+              <div className="flex min-w-0 items-baseline gap-1.5">
+                <dt className="sr-only">Pot</dt>
+                <dd className="font-mono font-bold tabular-nums text-yellow-300">${pot.toLocaleString()}</dd>
+                <span className="text-white/35">·</span>
+                <dt className="sr-only">Chips on table</dt>
+                <dd className="truncate font-mono font-semibold tabular-nums text-casino-emerald/90">
+                  {formatVenueBankroll(totalChips)}
+                </dd>
+              </div>
+              <dd className="shrink-0 font-mono text-[0.55rem] tabular-nums text-white/45">{seats}p</dd>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-between gap-2">
+                <dt className="font-semibold text-white/65">Occupied</dt>
+                <dd className="font-mono font-bold tabular-nums text-casino-emerald">
+                  {seats} / 8
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="font-semibold text-white/65">Pot</dt>
+                <dd className="font-mono font-bold tabular-nums text-yellow-300">${pot.toLocaleString()}</dd>
+              </div>
+              {mosaicPotSubtitle != null ? (
+                <div className="rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
+                  <p className="min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs">
+                    {mosaicPotSubtitle}
+                  </p>
+                </div>
+              ) : null}
+              <div className="flex justify-between gap-2">
+                <dt className="font-semibold text-white/65">Chips on table</dt>
+                <dd className="font-mono font-bold tabular-nums text-white/90">{formatVenueBankroll(totalChips)}</dd>
+              </div>
+            </>
+          )}
         </dl>
 
         {inShowdown && showdownRows.length > 0 ? (
-          hideShowdownResults ? (
+          showdownBrief ? (
             <motion.div className="rounded-lg border border-amber-500/30 bg-amber-950/35 px-2 py-1.5 text-center">
               <p className="text-[0.6rem] font-bold uppercase tracking-wider text-amber-200/70">
                 {(() => {
@@ -1254,111 +1263,75 @@ function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) 
   )
 }
 
-/** Fixed left strip — same width/height treatment as {@link VenueScrollingRoster}. */
-function VenueAllTablesCrawl({
+function VenueAerialFloorGrid({
   tiles,
   spotlightTableNum,
-  prefersReducedMotion,
-  hideShowdownResults = false,
+  showHeadline,
+  skipMountIntro,
 }: {
   tiles: DisplayVenueTileSnapshot[]
-  spotlightTableNum: number
-  prefersReducedMotion: boolean
-  hideShowdownResults?: boolean
+  spotlightTableNum: number | null
+  showHeadline: boolean
+  skipMountIntro: boolean
 }) {
-  const durationSec = Math.max(36, Math.min(120, Math.max(1, tiles.length) * 8))
-  const doubled = useMemo(() => [...tiles, ...tiles], [tiles])
+  const n = tiles.length
+  const { columns, rows, gapClass } = useMemo(() => venueFloorGridLayout(n), [n])
+  const floorCompact = n > 9
+  const showdownBrief = n > 6
 
-  const viewportRef = useRef<HTMLDivElement>(null)
-  const measureRef = useRef<HTMLDivElement>(null)
-  const [allTablesFit, setAllTablesFit] = useState(true)
-
-  const recalcFit = useCallback(() => {
-    const vp = viewportRef.current
-    const ms = measureRef.current
-    if (!vp || !ms) return
-    setAllTablesFit(ms.scrollHeight <= vp.clientHeight + 2)
-  }, [tiles, spotlightTableNum])
-
-  useLayoutEffect(() => {
-    recalcFit()
-  }, [recalcFit])
-
-  useEffect(() => {
-    const vp = viewportRef.current
-    if (!vp || typeof ResizeObserver === 'undefined') return
-    const ro = new ResizeObserver(() => recalcFit())
-    ro.observe(vp)
-    window.addEventListener('resize', recalcFit)
-    return () => {
-      ro.disconnect()
-      window.removeEventListener('resize', recalcFit)
-    }
-  }, [recalcFit])
-
-  const showCrawlAnimation = !prefersReducedMotion && !allTablesFit
-  const edgeFadeMask =
-    !allTablesFit
-      ? {
-          maskImage:
-            'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
-          WebkitMaskImage:
-            'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
-        }
-      : undefined
-
-  const tableRow = (row: (typeof tiles)[0], key: string) => (
-    <VenueMosaicTableCard
-      key={key}
-      row={row}
-      isSpotlightThumb={row.tableNum === spotlightTableNum}
-      hideShowdownResults={hideShowdownResults}
-    />
-  )
+  if (n === 0) return null
 
   return (
-    <aside
-      className={`fixed inset-y-0 left-0 z-20 flex flex-col border-r border-yellow-600/50 bg-slate-950/94 shadow-[8px_0_28px_rgba(0,0,0,0.4)] backdrop-blur-md ${VENUE_CRAWL_STRIP_CLASS}`}
-      aria-label="All tables"
+    <motion.section
+      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}`}
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
     >
-      <div className="shrink-0 border-b border-white/10 px-3 py-3.5 sm:px-4 sm:py-4">
-        <h2 className="text-2xl font-bold leading-none tracking-tight text-white/92 sm:text-3xl">
-          All tables
-        </h2>
-      </div>
-      <div
-        ref={viewportRef}
-        className="relative min-h-0 flex-1 overflow-hidden px-2 py-1.5 sm:px-3 sm:py-2"
-        style={edgeFadeMask}
-      >
-        {/* Off-screen column: height must match visible copy so we know if everything fits */}
-        <div
-          className="pointer-events-none absolute left-0 right-0 top-0 -z-10 opacity-0"
-          aria-hidden
-        >
-          <div ref={measureRef} className="flex flex-col gap-3">
-            {tiles.map((row) => tableRow(row, `measure-${row.tableNum}`))}
+      {!showHeadline ? (
+        <div className="mb-1.5 flex shrink-0 items-center justify-between gap-3 px-1 sm:mb-2">
+          <div className="w-[clamp(5rem,min(18vw,8rem),9rem)] shrink-0">
+            <div className="w-full shadow-black/60 drop-shadow-lg" style={{ aspectRatio: '958 / 592' }}>
+              <QuizzEmWordmark layout="fill" />
+            </div>
           </div>
+          <p className="text-right text-[0.65rem] font-bold uppercase tracking-[0.2em] text-amber-200/75 sm:text-xs">
+            Venue floor · {n} table{n === 1 ? '' : 's'}
+          </p>
         </div>
+      ) : null}
 
-        {prefersReducedMotion ? (
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-y-contain py-1">
-            {tiles.map((row) => tableRow(row, `a11y-${row.tableNum}`))}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-[18%] bottom-[8%] opacity-[0.14]"
+        aria-hidden
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse 80% 55% at 50% 42%, rgba(251,191,36,0.35) 0%, transparent 72%)',
+        }}
+      />
+
+      <div
+        className={`relative grid min-h-0 flex-1 ${gapClass}`}
+        style={{
+          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+          perspective: '1200px',
+        }}
+      >
+        {tiles.map((row) => (
+          <div key={row.tableNum} className="min-h-0 min-w-0" style={{ transform: 'rotateX(4deg)' }}>
+            <VenueMosaicTableCard
+              row={row}
+              isSpotlightThumb={
+                spotlightTableNum != null && row.tableNum === spotlightTableNum
+              }
+              hideShowdownResults={showdownBrief}
+              floorCompact={floorCompact}
+            />
           </div>
-        ) : showCrawlAnimation ? (
-          <div
-            className="venue-roster-animate flex flex-col gap-3"
-            style={{ ['--venue-roster-secs' as string]: `${durationSec}s` }}
-          >
-            {doubled.map((row, idx) => tableRow(row, `crawl-${row.tableNum}-${idx}`))}
-          </div>
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col justify-center gap-3 py-1">
-            {tiles.map((row) => tableRow(row, `fit-${row.tableNum}`))}
-          </div>
-        )}
+        ))}
       </div>
-    </aside>
+    </motion.section>
   )
 }
 
@@ -1373,8 +1346,8 @@ type VenueEightTablesPreviewProps = {
 }
 
 /**
- * Venue wall shell: venue headline plus **embedded** live felt (`DisplayTableLive`), crawl strips, and roster chrome.
- * Hero selection is driven by **`useVenueWallFeaturedWatch`** so the UI matches **`displayFocusTable`** pairing.
+ * Venue wall: aerial floor grid (every populated table at once) plus stacks leaderboard strip.
+ * Spotlight / host focus highlights one felt on the grid via **`useVenueWallFeaturedWatch`**.
  */
 export default function VenueEightTablesPreview({
   wall,
@@ -1400,44 +1373,22 @@ export default function VenueEightTablesPreview({
   }, [answerDeadlineMs])
 
   const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
-  const useShowdownWall = shouldUseVenueShowdownWall(tileRows)
+  const floorTiles = useMemo(() => populatedVenueTiles(tileRows), [tileRows])
 
   const hasLiveWall = wall != null && wall.tiles != null && wall.tiles.length > 0
   const showHeadline =
     hasLiveWall && (headlineQuestionText != null || answerDeadlineMs != null)
 
-  const seatingHeroRow = useMemo(() => {
-    const n = featuredWatch.featuredTableNum
-    if (tileRows.length === 0) return undefined
-    if (n == null) return tileRows[0]
-    return tileRows.find((t) => t.tableNum === n) ?? tileRows[0]
-  }, [tileRows, featuredWatch.featuredTableNum])
-
   const showRotatingTour = featuredWatch.showRotatingTour
-  const seatingCycleProgress = featuredWatch.seatingCycleProgress
   const seatingTourIndex = featuredWatch.seatingTourIndex
-  const showShowdownTour = featuredWatch.showShowdownTour
-  const showdownCycleProgress = featuredWatch.showdownCycleProgress
-  const showdownTourIndex = featuredWatch.showdownTourIndex
-  const showdownTableCount = tileRows.filter((t) => t.phase === 'showdown').length
+  const spotlightTableNum = featuredWatch.featuredTableNum
 
   const showRoster = rosterRowsFromTiles(tileRows).length > 0
 
-  /** Reserve space for the fixed **All tables** crawl whenever numbered tiles render. */
-  const padLeftForTablesCrawl = tileRows.length > 0
-
-  const dockSeatingTourProgress =
-    showRotatingTour && !prefersReducedMotion && tileRows.length > 1
-  const dockShowdownTourProgress =
-    showShowdownTour && !prefersReducedMotion && showdownTableCount > 1
-  const dockTourProgress = dockSeatingTourProgress || dockShowdownTourProgress
-
   return (
     <div
-      className={`relative min-h-screen overflow-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white ${
-        padLeftForTablesCrawl ? VENUE_CRAWL_PL_CLASS : ''
-      } ${showRoster ? VENUE_CRAWL_PR_CLASS : ''}${
-        dockTourProgress ? ' pb-[calc(7.75rem+env(safe-area-inset-bottom,0px))]' : ''
+      className={`relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white ${
+        showRoster ? VENUE_CRAWL_PR_CLASS : ''
       }`}
     >
       <div className="pointer-events-none absolute inset-0 opacity-35">
@@ -1454,10 +1405,8 @@ export default function VenueEightTablesPreview({
       </div>
 
       <main
-        className={`relative z-10 mx-auto w-full ${VENUE_HERO_MAIN_MAX_W} pb-12 ${
-          showHeadline && seatingHeroRow ? 'pt-0' : 'pt-2 sm:pt-3'
-        } ${
-          seatingHeroRow && (padLeftForTablesCrawl || showRoster) ? 'px-0 sm:px-0' : 'px-4 sm:px-6'
+        className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 pb-3 sm:px-4 sm:pb-4 ${
+          showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'
         }`}
       >
         {wall != null && tileRows.length === 0 ? (
@@ -1473,27 +1422,20 @@ export default function VenueEightTablesPreview({
               Guests can keep joining from the briefing screen until seating runs.
             </p>
           </motion.div>
-        ) : seatingHeroRow ? (
+        ) : floorTiles.length > 0 ? (
           <section
-            aria-label={
-              useShowdownWall
-                ? 'Venue showdown wall; all tables in reveal'
-                : showShowdownTour
-                  ? 'Showdown tour; full results on each felt in focus'
-                  : showRotatingTour
-                    ? 'Seating spotlight tour; live felt in focus'
-                    : 'Venue floor featured table'
-            }
-            className="mx-auto flex w-full max-w-none flex-col gap-2 overflow-visible sm:gap-3"
+            aria-label="Venue floor — all populated tables"
+            className="flex min-h-0 flex-1 flex-col gap-1.5 sm:gap-2"
           >
             <p className="sr-only" aria-live="polite" aria-atomic="true">
-              Featured table {seatingHeroRow.tableNum}
+              {spotlightTableNum != null
+                ? `Spotlight table ${spotlightTableNum}`
+                : 'Venue floor'}
             </p>
 
-            {/* Headline: sticky top of center column; wordmark + question use full band between side crawls. */}
             {showHeadline ? (
               <motion.div
-                className="sticky top-0 z-[45] mb-2 flex w-full min-w-0 items-stretch gap-2.5 rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 py-2 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:gap-4 sm:px-4 sm:py-2.5 md:gap-5 md:px-5 md:py-3"
+                className="sticky top-0 z-[45] shrink-0 flex w-full min-w-0 items-stretch gap-2.5 rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 py-2 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:gap-4 sm:px-4 sm:py-2.5 md:gap-5 md:px-5 md:py-3"
                 style={{
                   paddingTop: 'max(0.35rem, env(safe-area-inset-top, 0px))',
                 }}
@@ -1544,182 +1486,38 @@ export default function VenueEightTablesPreview({
               </motion.div>
             ) : null}
 
-            {useShowdownWall ? (
-              <p className="sr-only" aria-live="polite">
-                Full-screen venue showdown — {tileRows.filter((t) => t.phase === 'showdown').length}{' '}
-                tables in reveal.
-              </p>
-            ) : (
-            <motion.article
-              className="relative w-full overflow-hidden rounded-2xl border-2 border-yellow-400/85 bg-black/55 shadow-xl backdrop-blur-md"
-              initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {!showHeadline ? (
-                <div className="pointer-events-none absolute left-3 top-2 z-30 w-[clamp(7.5rem,min(26vw,10rem),12rem)] sm:left-5 sm:top-3 sm:w-[clamp(8.5rem,min(24vw,11rem),13rem)]">
-                  <div className="w-full shadow-black/70 drop-shadow-xl" style={{ aspectRatio: '958 / 592' }}>
-                    <QuizzEmWordmark layout="fill" />
-                  </div>
-                </div>
-              ) : null}
+            <VenueAerialFloorGrid
+              tiles={floorTiles}
+              spotlightTableNum={spotlightTableNum}
+              showHeadline={showHeadline}
+              skipMountIntro={skipMountIntro}
+            />
 
-              {/* Live felt fills this slot; viewport bottom dock is sibling to `<main>` (padding on shell), not padded inside embed. */}
-              <div
-                className={`relative z-10 box-border flex ${VENUE_HERO_FELT_VPORT_H} ${VENUE_HERO_FELT_MIN_H} w-full min-w-0 shrink-0 overflow-hidden rounded-2xl border border-yellow-700/45`}
+            {showRotatingTour && spotlightTableNum != null ? (
+              <p
+                className="shrink-0 text-center text-xs text-white/50 sm:text-sm"
+                aria-live="polite"
               >
-                <DisplayTableLive
-                  key={seatingHeroRow.tableNum}
-                  feltTableHint={String(seatingHeroRow.tableNum)}
-                  venueHeroTile={seatingHeroRow}
-                  variant="embedded"
-                  hideQuestionBanner={showHeadline}
-                  fallbackQuestionText={headlineQuestionText}
-                  fallbackAnswerDeadlineMs={answerDeadlineMs}
-                />
-              </div>
-
-              {!dockTourProgress ? (
-                <div className="relative z-20 overflow-hidden border-t border-yellow-700/40 px-4 py-3 pb-4 sm:px-5 sm:py-4">
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-                  <div className="pointer-events-none absolute inset-0 opacity-55">
-                    <div className="h-full w-full" style={VENUE_HERO_CARPET_STYLE} />
-                  </div>
-                  <div className="relative z-10 space-y-2 sm:space-y-3">
-                    <p className="text-center text-sm text-white/50 sm:text-base md:text-lg">
-                      {showShowdownTour ? (
-                        prefersReducedMotion ? (
-                          `Showdown — Table ${seatingHeroRow.tableNum} (auto-rotation off: reduced motion)`
-                        ) : (
-                          `Showdown tour · Table ${seatingHeroRow.tableNum} · ${showdownTourIndex + 1} of ${showdownTableCount}`
-                        )
-                      ) : showRotatingTour ? (
-                        prefersReducedMotion ? (
-                          `Seating spotlight — Table ${seatingHeroRow.tableNum} (auto-rotation off: reduced motion)`
-                        ) : (
-                          `Rotating seating · Table ${seatingHeroRow.tableNum} · ${seatingTourIndex + 1} of ${tileRows.length}`
-                        )
-                      ) : (
-                        `Featured table · Table ${seatingHeroRow.tableNum}`
-                      )}
-                    </p>
-                  </div>
-                </div>
-              ) : null}
-            </motion.article>
-            )}
+                {prefersReducedMotion
+                  ? `Seating spotlight — Table ${spotlightTableNum}`
+                  : `Seating spotlight — Table ${spotlightTableNum} · ${seatingTourIndex + 1} of ${tileRows.length}`}
+              </p>
+            ) : null}
           </section>
+        ) : tileRows.length > 0 ? (
+          <motion.div
+            className="rounded-2xl border border-yellow-700/35 bg-black/55 p-8 text-center shadow-xl backdrop-blur-md sm:p-10"
+            initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <p className="text-2xl font-semibold text-white/90 sm:text-3xl">
+              Tables are open — waiting for players to sit.
+            </p>
+          </motion.div>
         ) : null}
       </main>
 
-      {seatingHeroRow && dockShowdownTourProgress ? (
-        <motion.div
-          className={`fixed bottom-0 z-[60] border-t border-yellow-500/55 bg-black/90 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-md ${
-            padLeftForTablesCrawl ? VENUE_CENTER_BAND_LEFT_EDGE : 'left-0'
-          } ${showRoster ? VENUE_CENTER_BAND_RIGHT_EDGE : 'right-0'}`}
-          role="region"
-          aria-label="Showdown tour across tables"
-        >
-          <div className="w-full px-4 sm:px-5 md:px-6">
-            <div className="mx-auto w-full max-w-3xl">
-              <p
-                className="mb-3 text-center text-xs text-yellow-100/80 sm:text-sm md:text-base"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                Showdown · Table {seatingHeroRow.tableNum} · {showdownTourIndex + 1} of{' '}
-                {showdownTableCount} — compact results on every tile in All tables
-              </p>
-              <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs text-white/50 sm:text-sm">
-                <span className="font-semibold uppercase tracking-wider text-white/45">
-                  Next felt
-                </span>
-                <span className="font-mono tabular-nums text-amber-200/90">
-                  {Math.max(
-                    0,
-                    Math.ceil((1 - showdownCycleProgress) * SHOWDOWN_SPOTLIGHT_CYCLE_SEC)
-                  )}
-                  s
-                </span>
-              </div>
-              <div
-                className="h-2.5 w-full overflow-hidden rounded-full bg-white/10"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(showdownCycleProgress * 100)}
-                aria-label="Showdown tour progress until the next table"
-              >
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-yellow-700/95 to-yellow-300/95"
-                  style={{ width: `${showdownCycleProgress * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      ) : null}
-      {seatingHeroRow && dockSeatingTourProgress ? (
-        <div
-          className={`fixed bottom-0 z-[60] border-t border-yellow-700/50 bg-black/90 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-3 backdrop-blur-md ${
-            padLeftForTablesCrawl ? VENUE_CENTER_BAND_LEFT_EDGE : 'left-0'
-          } ${showRoster ? VENUE_CENTER_BAND_RIGHT_EDGE : 'right-0'}`}
-          role="region"
-          aria-label="Seating spotlight tour"
-        >
-          <div className="w-full px-4 sm:px-5 md:px-6">
-            <div className="mx-auto w-full max-w-3xl">
-              <p
-                className="mb-3 text-center text-xs text-white/55 sm:text-sm md:text-base"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                Rotating seating · Table {seatingHeroRow.tableNum} · {seatingTourIndex + 1} of{' '}
-                {tileRows.length}
-              </p>
-              <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs text-white/50 sm:text-sm">
-                <span className="font-semibold uppercase tracking-wider text-white/45">
-                  Next table
-                </span>
-                <span className="font-mono tabular-nums text-amber-200/90">
-                  {Math.max(
-                    0,
-                    Math.ceil((1 - seatingCycleProgress) * SEATING_SPOTLIGHT_CYCLE_SEC)
-                  )}
-                  s
-                </span>
-              </div>
-              <div
-                className="h-2.5 w-full overflow-hidden rounded-full bg-white/10"
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(seatingCycleProgress * 100)}
-                aria-label="Seating tour progress until the next table"
-              >
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-700/95 to-amber-300/95"
-                  style={{ width: `${seatingCycleProgress * 100}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
-      {tileRows.length > 0 && seatingHeroRow ? (
-        <VenueAllTablesCrawl
-          tiles={tileRows}
-          spotlightTableNum={seatingHeroRow.tableNum}
-          prefersReducedMotion={prefersReducedMotion}
-          hideShowdownResults={useShowdownWall}
-        />
-      ) : null}
       {showRoster ? <VenueScrollingRoster tiles={tileRows} /> : null}
-      {useShowdownWall ? (
-        <VenueMultiTableShowdown
-          tiles={tileRows}
-          headlineQuestionText={headlineQuestionText}
-        />
-      ) : null}
     </div>
   )
 }

@@ -46,8 +46,8 @@ type DisplayRouterProps = {
 }
 
 /**
- * Host-driven `displayLayout` plus venue snapshot. **`VenueEightTablesPreview`** (mosaic + optional spotlight hero);
- * live **`GameState`** for the featured table renders **inside** the hero when focused (`embedded` **`DisplayTableLive`**).
+ * Host-driven `displayLayout` plus venue snapshot. **`VenueEightTablesPreview`** — aerial floor grid of all
+ * populated tables and a stacks leaderboard strip (no single-table hero).
  */
 export default function DisplayRouter({ venueCode, pairingBootstrap = false }: DisplayRouterProps) {
   const [layout, setLayout] = useState<DisplayLayoutPayload>(() => {

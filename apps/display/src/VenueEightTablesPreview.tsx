@@ -21,11 +21,12 @@ import {
   chunkTilesForHexRows,
   hexRowShouldOffset,
   populatedVenueTiles,
-  venueFloorCellWidthCss,
+  VENUE_FLOOR_CELL_GAP_REM,
   venueFloorCompact,
   venueFloorHexLayout,
-  venueFloorHexRowOffsetCss,
+  venueFloorHexRowInsetCss,
   venueFloorShowdownBrief,
+  venueFloorUniformCellWidthCss,
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
@@ -1296,11 +1297,14 @@ function VenueAerialFloorGrid({
   skipMountIntro: boolean
 }) {
   const n = tiles.length
-  const { rowSizes, maxInRow, rowGapClass, cellGapClass } = useMemo(() => venueFloorHexLayout(n), [n])
+  const { rowSizes, maxInRow } = useMemo(() => venueFloorHexLayout(n), [n])
   const hexRows = useMemo(() => chunkTilesForHexRows(tiles, rowSizes), [tiles, rowSizes])
   const floorCompact = venueFloorCompact(maxInRow)
   const showdownBrief = venueFloorShowdownBrief(maxInRow)
-  const cellWidth = useMemo(() => venueFloorCellWidthCss(maxInRow), [maxInRow])
+  const cellWidth = useMemo(
+    () => venueFloorUniformCellWidthCss(maxInRow, VENUE_FLOOR_CELL_GAP_REM),
+    [maxInRow]
+  )
 
   if (n === 0) return null
 
@@ -1349,49 +1353,52 @@ function VenueAerialFloorGrid({
       />
 
       <div
-        className={`relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto overflow-x-hidden px-3 py-2 sm:px-5 sm:py-3 ${rowGapClass}`}
+        className="relative flex min-h-0 w-full flex-1 flex-col justify-evenly overflow-hidden px-1 py-2 sm:px-2 sm:py-3"
         style={
           {
+            minHeight: 'min(76dvh, 840px)',
             perspective: '1400px',
-            transform: 'rotateX(4deg)',
-            transformOrigin: 'center 52%',
+            transform: 'rotateX(3deg)',
+            transformOrigin: 'center 50%',
+            '--venue-floor-gap': `${VENUE_FLOOR_CELL_GAP_REM}rem`,
             '--venue-floor-cell': cellWidth,
           } as CSSProperties
         }
       >
         {hexRows.map((rowTiles, rowIndex) => {
           const offset = hexRowShouldOffset(rowIndex, rowTiles.length, maxInRow)
+          const inset = offset ? venueFloorHexRowInsetCss() : undefined
 
           return (
             <div
               key={rowTiles.map((t) => t.tableNum).join('-')}
-              className="flex w-full shrink-0 justify-center"
+              className="flex w-full shrink-0 items-start justify-between"
               style={{
-                paddingLeft: offset ? venueFloorHexRowOffsetCss() : undefined,
+                paddingLeft: inset,
+                paddingRight: inset,
               }}
             >
-              <div className={`flex max-w-full shrink-0 items-start justify-center ${cellGapClass}`}>
-                {rowTiles.map((row) => (
-                  <div
-                    key={row.tableNum}
-                    className="h-auto shrink-0"
-                    style={{
-                      width: 'var(--venue-floor-cell)',
-                      maxWidth: 'var(--venue-floor-cell)',
-                    }}
-                  >
-                    <VenueMosaicTableCard
-                      row={row}
-                      isSpotlightThumb={
-                        spotlightTableNum != null && row.tableNum === spotlightTableNum
-                      }
-                      hideShowdownResults={showdownBrief}
-                      floorCompact={floorCompact}
-                      floorHoneycomb
-                    />
-                  </div>
-                ))}
-              </div>
+              {rowTiles.map((row) => (
+                <div
+                  key={row.tableNum}
+                  className="h-auto shrink-0 grow-0 basis-auto"
+                  style={{
+                    width: 'var(--venue-floor-cell)',
+                    maxWidth: 'var(--venue-floor-cell)',
+                    minWidth: 0,
+                  }}
+                >
+                  <VenueMosaicTableCard
+                    row={row}
+                    isSpotlightThumb={
+                      spotlightTableNum != null && row.tableNum === spotlightTableNum
+                    }
+                    hideShowdownResults={showdownBrief}
+                    floorCompact={floorCompact}
+                    floorHoneycomb
+                  />
+                </div>
+              ))}
             </div>
           )
         })}

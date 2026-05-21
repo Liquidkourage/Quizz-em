@@ -8,6 +8,9 @@ export function populatedVenueTiles(tiles: DisplayVenueTileSnapshot[]): DisplayV
 
 export const VENUE_FLOOR_GRID_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
 
+/** Horizontal gap between felts in a row (rem) — keep modest so tiles can grow. */
+export const VENUE_FLOOR_CELL_GAP_REM = 0.6
+
 function venueFloorBaseColumns(tableCount: number): number {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 1) return 1
@@ -20,10 +23,6 @@ function venueFloorBaseColumns(tableCount: number): number {
 export type VenueFloorHexLayout = {
   rowSizes: number[]
   maxInRow: number
-  /** Gap between honeycomb rows. */
-  rowGapClass: string
-  /** Gap between felts within a row. */
-  cellGapClass: string
 }
 
 /**
@@ -33,10 +32,10 @@ export type VenueFloorHexLayout = {
 export function venueFloorHexLayout(tableCount: number): VenueFloorHexLayout {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 0) {
-    return { rowSizes: [], maxInRow: 0, rowGapClass: 'gap-y-4', cellGapClass: 'gap-3' }
+    return { rowSizes: [], maxInRow: 0 }
   }
   if (n === 1) {
-    return { rowSizes: [1], maxInRow: 1, rowGapClass: 'gap-y-4', cellGapClass: 'gap-4 sm:gap-5' }
+    return { rowSizes: [1], maxInRow: 1 }
   }
 
   const base = venueFloorBaseColumns(n)
@@ -66,18 +65,7 @@ export function venueFloorHexLayout(tableCount: number): VenueFloorHexLayout {
   }
 
   const maxInRow = Math.max(...rowSizes, 1)
-
-  /** Generous spacing — room to breathe even at 20 tables. */
-  const cellGapClass =
-    maxInRow > 10
-      ? 'gap-2.5 sm:gap-3.5 md:gap-4'
-      : maxInRow > 6
-        ? 'gap-3 sm:gap-4 md:gap-5'
-        : 'gap-4 sm:gap-5 md:gap-6'
-
-  const rowGapClass = 'gap-y-3 sm:gap-y-4 md:gap-y-5'
-
-  return { rowSizes, maxInRow, rowGapClass, cellGapClass }
+  return { rowSizes, maxInRow }
 }
 
 export function chunkTilesForHexRows<T extends { tableNum: number }>(
@@ -93,7 +81,7 @@ export function chunkTilesForHexRows<T extends { tableNum: number }>(
   return rows
 }
 
-/** Narrow honeycomb rows shift right by half a cell width. */
+/** Narrow honeycomb rows shift right by half a cell. */
 export function hexRowShouldOffset(rowIndex: number, rowSize: number, maxInRow: number): boolean {
   return rowIndex % 2 === 0 && rowSize < maxInRow
 }
@@ -102,19 +90,24 @@ export function venueFloorShowdownBrief(maxInRow: number): boolean {
   return maxInRow > 5
 }
 
-/** Honeycomb tiles: compact chrome once a row has several felts. */
 export function venueFloorCompact(maxInRow: number): boolean {
   return maxInRow >= 5
 }
 
-/** Felt card width — wide enough that tiles stay poker-shaped, not tall strips. */
-export function venueFloorCellWidthCss(maxInRow: number): string {
+/**
+ * One felt width for the whole floor — sized for the busiest row so every table
+ * is as large as possible while sharing a consistent scale.
+ */
+export function venueFloorUniformCellWidthCss(
+  maxInRow: number,
+  gapRem: number = VENUE_FLOOR_CELL_GAP_REM
+): string {
   const cols = Math.max(1, maxInRow)
-  const gapsRem = Math.max(0, cols - 1) * 1.25
-  return `clamp(8rem, calc((100% - ${gapsRem}rem) / ${cols}), 12.5rem)`
+  const gaps = Math.max(0, cols - 1) * gapRem
+  return `calc((100% - ${gaps}rem) / ${cols})`
 }
 
-/** Half-cell honeycomb offset for narrow rows. */
-export function venueFloorHexRowOffsetCss(): string {
-  return 'calc((var(--venue-floor-cell) + 1.25rem) * 0.5)'
+/** Symmetric inset on offset honeycomb rows (half cell + half gap). */
+export function venueFloorHexRowInsetCss(): string {
+  return 'calc((var(--venue-floor-cell) + var(--venue-floor-gap)) / 2)'
 }

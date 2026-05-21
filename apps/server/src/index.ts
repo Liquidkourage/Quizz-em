@@ -1254,6 +1254,37 @@ function requireVenueLockstepTables(
   return rows
 }
 
+/**
+ * Every seated table must satisfy `predicate` (no signature match).
+ * Use when the action normalizes per-table differences (e.g. auto-close round 1 before dealing the board).
+ */
+function requireAllSeatedTablesSatisfy(
+  socket: Socket,
+  venueCode: string,
+  predicate: (gs: GameState) => boolean,
+  readinessHint: string
+): { tk: string; n: number; gs: GameState }[] | null {
+  const rows = venuePlayableSnapshots(venueCode)
+  if (rows.length === 0) {
+    socket.emit('toast', 'No playable tables yet — assign the lobby first.')
+    return null
+  }
+  const bad = rows.filter((r) => !predicate(r.gs))
+  if (bad.length > 0) {
+    const nums = bad
+      .map((r) => (Number.isFinite(r.n) ? String(r.n) : '?'))
+      .sort((a, b) => Number(a) - Number(b))
+      .join(', ')
+    const sample = humanReadableStrictState(bad[0]!.gs)
+    socket.emit(
+      'toast',
+      `Tables ${nums} must ${readinessHint} (e.g. ${sample}). Close wagering round 1 on stragglers or align the venue, then try again.`,
+    )
+    return null
+  }
+  return rows
+}
+
 /** Phases where the current hand’s `round.question` should drive the shared venue-wall headline strip. */
 const VENUE_WALL_HEADLINE_PHASES = new Set<string>([
   'question',
@@ -2144,7 +2175,7 @@ io.on('connection', (socket) => {
 
         case 'dealCommunityCards': {
           if (!assertVenueHost(socket, gameState)) break
-          const lockBoard = requireVenueLockstepTables(
+          const lockBoard = requireAllSeatedTablesSatisfy(
             socket,
             gameState.code,
             (gs) =>

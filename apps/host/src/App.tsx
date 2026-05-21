@@ -104,6 +104,41 @@ function venueDealLockstepHint(
   return null
 }
 
+/** Venue-wide gate for Deal Community Cards — mirrors server `requireAllSeatedTablesSatisfy`. */
+function venueDealCommunityLockstepHint(
+  rows: HostVenueFeltBeatRow[] | null,
+  host: { phase: GamePhase; bettingRound: number; communityLen: number }
+): string | null {
+  if (!rows) return null
+  const seated = rows.filter((r) => r.active && r.seated > 0)
+  if (seated.length === 0) {
+    return 'No seated tables at this venue — assign from lobby or seed rehearsal first.'
+  }
+  const notPreBoard = seated.filter(
+    (r) => r.phase !== 'betting' || r.street !== 'Pre-board'
+  )
+  if (notPreBoard.length > 0) {
+    const nums = notPreBoard
+      .map((r) => r.tableNum)
+      .sort((a, b) => a - b)
+      .join(', ')
+    return `Tables ${nums} are not ready for the board (need wagering round 1, no community cards yet). Check Venue felts · beat.`
+  }
+  if (host.phase === 'betting' && host.bettingRound === 1 && host.communityLen < 5) {
+    return null
+  }
+  if (host.phase !== 'betting') {
+    return 'Your control table must be in wagering before dealing the board.'
+  }
+  if (host.bettingRound !== 1) {
+    return 'Your control table is already past round 1 — board may be dealt venue-wide.'
+  }
+  if (host.communityLen >= 5) {
+    return 'Your control table already has a full board.'
+  }
+  return null
+}
+
 /** Match server clamp in apps/server venue-answer-window-settings. */
 function clampVenueAnswerWindow(v: number): number {
   return Math.min(300, Math.max(15, Math.floor(Number.isFinite(v) ? v : 45)))
@@ -526,21 +561,29 @@ function HostApp() {
   const communityLen = round.communityCards?.length ?? 0
   const virtualSeatCount = gameState.players.filter(p => p.id.startsWith('vp:')).length
   const atPlayerCap = gameState.players.length >= gameState.maxPlayers
+  const venueCommunityHint = venueDealCommunityLockstepHint(venueFeltBeat, {
+    phase: gameState.phase,
+    bettingRound,
+    communityLen,
+  })
   const dealCommunityBlocked =
     gameState.phase !== 'betting' ||
     bettingRound !== 1 ||
-    communityLen >= 5
-  const dealCommunityHint = dealCommunityBlocked
-    ? gameState.phase !== 'betting'
-      ? 'Available during wagering (betting phase).'
-      : bettingRound !== 1
-        ? 'Board already dealt — you are in wagering round 2.'
-        : communityLen >= 5
-          ? 'Board is already complete.'
-          : ''
-    : (round as { isBettingOpen?: boolean }).isBettingOpen
-      ? 'Will close wagering round 1 + deal the board in one click.'
-      : null
+    communityLen >= 5 ||
+    venueCommunityHint != null
+  const dealCommunityHint =
+    venueCommunityHint ??
+    (dealCommunityBlocked
+      ? gameState.phase !== 'betting'
+        ? 'Available during wagering (betting phase).'
+        : bettingRound !== 1
+          ? 'Board already dealt — you are in wagering round 2.'
+          : communityLen >= 5
+            ? 'Board is already complete.'
+            : ''
+      : (round as { isBettingOpen?: boolean }).isBettingOpen
+        ? 'Will close wagering round 1 + deal the board on every seated table in one click.'
+        : null)
 
   const startAnswerBlocked =
     gameState.phase !== 'betting' ||

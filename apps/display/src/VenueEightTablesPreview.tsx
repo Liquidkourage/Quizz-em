@@ -1052,36 +1052,45 @@ function VenueFloorShowdownOverlay({
 
   return (
     <div
-      className="pointer-events-none absolute inset-[6%] z-[125] flex items-center justify-center"
+      className="pointer-events-none absolute inset-0 z-[125] flex flex-col overflow-hidden rounded-[inherit] bg-black/78 backdrop-blur-[1px]"
       role="group"
       aria-label={`${label}: ${shown.map((w) => w.name).join(', ')}`}
     >
-      <div className="flex max-w-full flex-col items-center gap-1 rounded-lg border border-amber-400/65 bg-black/92 px-2 py-1.5 text-center shadow-[0_6px_20px_rgba(0,0,0,0.85)] backdrop-blur-sm">
-        <p className="text-[0.5rem] font-bold uppercase leading-none tracking-[0.18em] text-amber-200/80 sm:text-[0.55rem]">
-          {label}
-        </p>
-        {shown.map((w) => (
-          <div
-            key={`${w.seat}:${w.name}`}
-            className="flex w-full min-w-0 flex-col items-center gap-0.5 border-t border-amber-500/25 pt-1 first:border-t-0 first:pt-0"
-          >
-            <p className="max-w-full truncate text-[0.65rem] font-black leading-tight text-amber-50 sm:text-xs">
+      {shown.map((w, winnerIndex) => (
+        <div
+          key={`${w.seat}:${w.name}`}
+          className={`flex min-h-0 flex-col items-stretch ${
+            shown.length > 1 ? 'flex-1' : 'h-full'
+          } ${winnerIndex > 0 ? 'border-t border-amber-500/30' : ''}`}
+        >
+          <div className="flex shrink-0 flex-col items-center gap-0.5 px-[6%] pb-0.5 pt-[5%] text-center">
+            {winnerIndex === 0 ? (
+              <p className="text-[0.45rem] font-bold uppercase leading-none tracking-[0.2em] text-amber-200/75 sm:text-[0.5rem]">
+                {label}
+              </p>
+            ) : null}
+            <p className="max-w-full truncate text-[0.55rem] font-black leading-tight text-amber-50 sm:text-[0.65rem]">
               {w.name}
             </p>
-            <ShowdownFiveCardsUsed row={w} size="xs" />
             {w.submitted != null && typeof correctAnswer === 'number' ? (
-              <p className="font-mono text-[0.55rem] font-bold tabular-nums leading-none text-amber-100/90 sm:text-[0.6rem]">
+              <p className="font-mono text-[0.5rem] font-bold tabular-nums leading-none text-amber-100/85 sm:text-[0.55rem]">
                 {formatTriviaNumber(w.submitted)}
               </p>
             ) : null}
           </div>
-        ))}
-        {winners.length > 2 ? (
-          <p className="text-[0.5rem] font-semibold text-amber-200/65">
-            +{winners.length - 2} more
-          </p>
-        ) : null}
-      </div>
+          <div
+            className="@container flex min-h-0 w-full flex-1 items-center justify-center px-[4%] pb-[6%]"
+            style={{ containerType: 'size' }}
+          >
+            <ShowdownFiveCardsUsed row={w} size="floor" />
+          </div>
+        </div>
+      ))}
+      {winners.length > 2 ? (
+        <p className="shrink-0 py-0.5 text-center text-[0.45rem] font-semibold text-amber-200/70">
+          +{winners.length - 2} more
+        </p>
+      ) : null}
     </div>
   )
 }

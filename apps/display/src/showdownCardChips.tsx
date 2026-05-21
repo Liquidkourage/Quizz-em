@@ -1,7 +1,7 @@
-import { Fragment } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import type { ShowdownResultRow } from './showdownDisplay'
 
-export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg'
+export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor'
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
@@ -15,13 +15,15 @@ function DigitChip({
   size?: ShowdownChipSize
 }) {
   const dim =
-    size === 'lg'
-      ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
-      : size === 'xs'
-        ? 'h-5 min-w-[0.95rem] px-0.5 text-[0.55rem]'
-        : size === 'sm'
-          ? 'h-6 min-w-[1.125rem] px-0.5 text-[0.65rem]'
-          : 'h-7 min-w-[1.35rem] px-1 text-xs'
+    size === 'floor'
+      ? 'h-[var(--showdown-chip-h)] min-w-[var(--showdown-chip-h)] border-[2px] px-[0.12em] text-[length:var(--showdown-chip-font)] shadow-[0_0_12px_rgba(0,0,0,0.45)]'
+      : size === 'lg'
+        ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
+        : size === 'xs'
+          ? 'h-5 min-w-[0.95rem] px-0.5 text-[0.55rem]'
+          : size === 'sm'
+            ? 'h-6 min-w-[1.125rem] px-0.5 text-[0.65rem]'
+            : 'h-7 min-w-[1.35rem] px-1 text-xs'
   const styles: Record<DigitChipVariant, string> = {
     hole: 'border-amber-400/85 bg-amber-950/90 text-amber-50 shadow-[0_0_8px_rgba(251,191,36,0.35)]',
     board:
@@ -40,13 +42,15 @@ function DigitChip({
 /** Decimal point glyph that sits between two digit chips (sized to match). */
 function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
   const dim =
-    size === 'lg'
-      ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
-      : size === 'xs'
-        ? 'h-5 w-1.5 text-sm'
-        : size === 'sm'
-          ? 'h-6 w-2 text-base'
-          : 'h-7 w-2.5 text-lg'
+    size === 'floor'
+      ? 'h-[var(--showdown-chip-h)] w-[0.35em] text-[length:var(--showdown-chip-font)]'
+      : size === 'lg'
+        ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
+        : size === 'xs'
+          ? 'h-5 w-1.5 text-sm'
+          : size === 'sm'
+            ? 'h-6 w-2 text-base'
+            : 'h-7 w-2.5 text-lg'
   return (
     <span
       aria-hidden
@@ -99,16 +103,30 @@ export function ShowdownFiveCardsUsed({
   )
 
   const wrapClass =
-    size === 'lg'
-      ? 'flex flex-nowrap items-center justify-center gap-1'
-      : 'flex flex-wrap items-center justify-center gap-0.5'
+    size === 'floor'
+      ? 'flex h-full w-full max-h-full flex-nowrap items-center justify-center gap-[0.35em]'
+      : size === 'lg'
+        ? 'flex flex-nowrap items-center justify-center gap-1'
+        : 'flex flex-wrap items-center justify-center gap-0.5'
+
+  const floorChipVars =
+    size === 'floor'
+      ? ({
+          ['--showdown-chip-h' as string]: 'min(78cqh, 17.5cqw)',
+          ['--showdown-chip-font' as string]: 'min(62cqh, 14cqw)',
+        } satisfies CSSProperties)
+      : undefined
 
   const ariaLabelDigits = cards
     .map((c, i) => (i === decimalAfter ? `. ${c.digit}` : `${c.digit}`))
     .join(', ')
 
   return (
-    <div className={wrapClass} aria-label={`Cards used: ${ariaLabelDigits}`}>
+    <div
+      className={wrapClass}
+      style={floorChipVars}
+      aria-label={`Cards used: ${ariaLabelDigits}`}
+    >
       {cards.map((c, i) => (
         <Fragment key={i}>
           {i === decimalAfter ? <DecimalDot size={size} /> : null}

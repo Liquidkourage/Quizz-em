@@ -17,14 +17,14 @@ import {
   sortShowdownRowsByDistance,
 } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
-import { populatedVenueTiles } from './venueFloorGridLayout'
 import {
-  venueFloorAnchorForTable,
+  chunkTilesForHexRows,
+  hexRowShouldOffset,
+  populatedVenueTiles,
   venueFloorCompact,
+  venueFloorHexLayout,
   venueFloorShowdownBrief,
-  venueFloorTileTransform,
-  venueFloorTileWidthCss,
-} from './venueFloorCanvas'
+} from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
 
@@ -1270,7 +1270,7 @@ function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) 
   )
 }
 
-function VenueAerialFloorCanvas({
+function VenueAerialFloorGrid({
   tiles,
   spotlightTableNum,
   showHeadline,
@@ -1282,15 +1282,16 @@ function VenueAerialFloorCanvas({
   skipMountIntro: boolean
 }) {
   const n = tiles.length
-  const tileWidth = useMemo(() => venueFloorTileWidthCss(n), [n])
-  const floorCompact = venueFloorCompact(n)
-  const showdownBrief = venueFloorShowdownBrief(n)
+  const { rowSizes, maxInRow, rowGapClass, cellGapClass } = useMemo(() => venueFloorHexLayout(n), [n])
+  const hexRows = useMemo(() => chunkTilesForHexRows(tiles, rowSizes), [tiles, rowSizes])
+  const floorCompact = venueFloorCompact(maxInRow)
+  const showdownBrief = venueFloorShowdownBrief(maxInRow)
 
   if (n === 0) return null
 
   return (
     <motion.section
-      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'} on canvas`}
+      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, honeycomb`}
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
       initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -1309,67 +1310,83 @@ function VenueAerialFloorCanvas({
       ) : null}
 
       <div
-        className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-yellow-800/30 shadow-[inset_0_0_80px_rgba(0,0,0,0.45)]"
+        className="pointer-events-none absolute inset-x-0 top-[14%] bottom-[5%] opacity-[0.12]"
+        aria-hidden
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 50% 45%, rgba(251,191,36,0.28) 0%, transparent 58%),
+            repeating-linear-gradient(
+              60deg,
+              transparent,
+              transparent 42px,
+              rgba(255,255,255,0.02) 42px,
+              rgba(255,255,255,0.02) 43px
+            ),
+            repeating-linear-gradient(
+              -60deg,
+              transparent,
+              transparent 42px,
+              rgba(255,255,255,0.02) 42px,
+              rgba(255,255,255,0.02) 43px
+            )
+          `,
+        }}
+      />
+
+      <div
+        className={`relative flex min-h-0 flex-1 flex-col justify-center px-3 py-2 sm:px-6 sm:py-3 ${rowGapClass}`}
         style={
           {
-            perspective: '1500px',
-            transform: 'rotateX(5deg)',
-            transformOrigin: 'center 56%',
+            perspective: '1400px',
+            transform: 'rotateX(4deg)',
+            transformOrigin: 'center 52%',
+            '--venue-floor-cell': `clamp(3.75rem, calc((100% - ${Math.max(0, maxInRow - 1)} * 1.75rem) / ${maxInRow}), 7.75rem)`,
           } as CSSProperties
         }
       >
-        <div
-          className="pointer-events-none absolute inset-0 opacity-90"
-          aria-hidden
-          style={{
-            background: `
-              radial-gradient(ellipse 85% 70% at 48% 42%, rgba(251,191,36,0.14) 0%, transparent 62%),
-              radial-gradient(ellipse 120% 90% at 50% 50%, rgba(15,23,42,0.2) 0%, rgba(2,6,23,0.85) 100%)
-            `,
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-[4%] rounded-[2rem] opacity-40"
-          aria-hidden
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 25% 25%, rgba(139, 69, 19, 0.22) 2px, transparent 2px),
-              linear-gradient(45deg, transparent 47%, rgba(160, 82, 45, 0.08) 50%, transparent 53%)
-            `,
-            backgroundSize: '36px 36px, 56px 56px',
-          }}
-        />
+        {hexRows.map((rowTiles, rowIndex) => {
+          const offset = hexRowShouldOffset(rowIndex, rowTiles.length, maxInRow)
+          const rowWidthPct = (rowTiles.length / maxInRow) * 100
+          const halfCellPct = 50 / maxInRow
 
-        <div className="relative h-full min-h-[min(52dvh,520px)] w-full sm:min-h-[min(58dvh,600px)]">
-          {tiles.map((row) => {
-            const anchor = venueFloorAnchorForTable(row.tableNum)
-            if (anchor == null) return null
-            const spotlight =
-              spotlightTableNum != null && row.tableNum === spotlightTableNum
-
-            return (
+          return (
+            <div
+              key={rowTiles.map((t) => t.tableNum).join('-')}
+              className="flex min-h-0 w-full flex-1 basis-0 items-center justify-center"
+              style={{
+                paddingLeft: offset ? `${halfCellPct}%` : undefined,
+              }}
+            >
               <div
-                key={row.tableNum}
-                className="absolute min-h-0 min-w-0"
+                className={`flex h-full min-h-0 max-w-full items-center justify-center ${cellGapClass}`}
                 style={{
-                  left: `${anchor.leftPct}%`,
-                  top: `${anchor.topPct}%`,
-                  width: tileWidth,
-                  maxWidth: tileWidth,
-                  zIndex: spotlight ? 40 : 10 + row.tableNum,
-                  transform: venueFloorTileTransform(anchor),
+                  width: `${rowWidthPct}%`,
+                  maxWidth: `${rowWidthPct}%`,
                 }}
               >
-                <VenueMosaicTableCard
-                  row={row}
-                  isSpotlightThumb={spotlight}
-                  hideShowdownResults={showdownBrief}
-                  floorCompact={floorCompact}
-                />
+                {rowTiles.map((row) => (
+                  <div
+                    key={row.tableNum}
+                    className="min-h-0 shrink-0"
+                    style={{
+                      width: 'var(--venue-floor-cell)',
+                      maxWidth: 'var(--venue-floor-cell)',
+                    }}
+                  >
+                    <VenueMosaicTableCard
+                      row={row}
+                      isSpotlightThumb={
+                        spotlightTableNum != null && row.tableNum === spotlightTableNum
+                      }
+                      hideShowdownResults={showdownBrief}
+                      floorCompact={floorCompact}
+                    />
+                  </div>
+                ))}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )
+        })}
       </div>
     </motion.section>
   )
@@ -1386,7 +1403,7 @@ type VenueEightTablesPreviewProps = {
 }
 
 /**
- * Venue wall: aerial floor canvas (every populated table at fixed organic positions) plus stacks strip.
+ * Venue wall: honeycomb aerial floor (all populated tables) plus stacks leaderboard strip.
  * Spotlight / host focus highlights one felt on the grid via **`useVenueWallFeaturedWatch`**.
  */
 export default function VenueEightTablesPreview({
@@ -1526,7 +1543,7 @@ export default function VenueEightTablesPreview({
               </motion.div>
             ) : null}
 
-            <VenueAerialFloorCanvas
+            <VenueAerialFloorGrid
               tiles={floorTiles}
               spotlightTableNum={spotlightTableNum}
               showHeadline={showHeadline}

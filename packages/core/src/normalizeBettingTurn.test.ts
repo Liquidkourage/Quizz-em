@@ -28,6 +28,7 @@ describe('normalizeBettingTurn', () => {
     let gs = createEmptyGame('T', '', '1')
     gs = dealInitialCards({
       ...gs,
+      phase: 'question',
       players: [
         { id: 'a', name: 'A', bankroll: 0, hand: [{ digit: 1 }, { digit: 2 }], hasFolded: false, isAllIn: true },
         { id: 'b', name: 'B', bankroll: 500, hand: [{ digit: 3 }, { digit: 4 }], hasFolded: false, isAllIn: false },
@@ -53,6 +54,7 @@ describe('normalizeBettingTurn', () => {
     let gs = createEmptyGame('T', '', '1')
     gs = dealInitialCards({
       ...gs,
+      phase: 'question',
       players: [
         { id: 'vp:1', name: 'A', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
         { id: 'vp:2', name: 'B', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },

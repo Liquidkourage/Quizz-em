@@ -74,6 +74,36 @@ function hostPlayerLabel(raw: string): string {
   return L ? `${first} ${L}.` : first
 }
 
+/** Venue-wide gate for Deal Initial Cards — mirrors server `requireVenueLockstepTables`. */
+function venueDealLockstepHint(
+  rows: HostVenueFeltBeatRow[] | null,
+  hostPhase: GamePhase
+): string | null {
+  if (!rows) return null
+  const seated = rows.filter((r) => r.active && r.seated > 0)
+  if (seated.length === 0) {
+    return 'No seated tables at this venue — assign from lobby or seed rehearsal before dealing.'
+  }
+  const sigs = new Set(
+    seated.map((r) => r.phaseStrictSig).filter((s): s is string => s != null && s !== '')
+  )
+  if (sigs.size > 1) {
+    return 'Tables are out of sync — check Venue felts · beat (amber borders), align every seated felt, then deal again.'
+  }
+  const collective = seated[0]?.phase
+  if (collective !== 'question') {
+    const label =
+      collective === 'inactive'
+        ? 'inactive'
+        : HOST_PHASE_LABEL[collective as GamePhase] ?? collective
+    if (hostPhase === 'question' && collective !== 'question') {
+      return `Your control table is in deal setup, but other seated felts are still “${label}”. Run Start Game venue-wide, then deal.`
+    }
+    return `Every seated table must be in deal setup before hole cards (venue is on “${label}”).`
+  }
+  return null
+}
+
 /** Match server clamp in apps/server venue-answer-window-settings. */
 function clampVenueAnswerWindow(v: number): number {
   return Math.min(300, Math.max(15, Math.floor(Number.isFinite(v) ? v : 45)))
@@ -450,8 +480,11 @@ function HostApp() {
   }
 
   // Engine only cares about phase ("question" → deal → "betting"). Trivia is optional UI-side.
-  const dealInitialBlocked = gameState.phase !== 'question'
-  const dealInitialHint: string | null = dealInitialBlocked
+  const venueDealHint = venueDealLockstepHint(venueFeltBeat, gameState.phase)
+  const dealInitialBlocked = gameState.phase !== 'question' || venueDealHint != null
+  const dealInitialHint: string | null =
+    venueDealHint ??
+    (dealInitialBlocked
     ? (() => {
         const p = gameState.phase
         if (p === 'lobby')
@@ -480,7 +513,7 @@ function HostApp() {
         }
         return `Initial deal happens only while phase is “question” (yours: "${p}").`
       })()
-    : null
+    : null)
   const triviaOptionalNote =
     !dealInitialBlocked && !gameState.round?.question ? (
       <p className="text-sm text-amber-200/80">

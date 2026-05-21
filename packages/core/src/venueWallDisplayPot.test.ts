@@ -18,6 +18,16 @@ describe('venueWallDisplayPot', () => {
     expect(venueWallDisplayPot(gs)).toBe(0)
   })
 
+  it('is a no-op outside question setup', () => {
+    let gs = createEmptyGame('V1', 'h1')
+    gs = addPlayer(gs, 'a', 'Alice')
+    gs = addPlayer(gs, 'b', 'Bob')
+    gs = { ...gs, phase: 'betting' }
+    const dealt = dealInitialCards(gs)
+    expect(dealt).toBe(gs)
+    expect(dealt.phase).toBe('betting')
+  })
+
   it('reflects posted blinds after dealInitialCards', () => {
     let gs = createEmptyGame('V1', 'h1')
     gs = { ...gs, smallBlind: 10, bigBlind: 20 }

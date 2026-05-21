@@ -1111,6 +1111,14 @@ function allTableSessionsInVenue(venueCode: string): string[] {
   return allVenueSessionKeys(venueCode).filter(k => !isLobbySessionKey(k))
 }
 
+/** Numbered felts with at least one seated player — lockstep host cues ignore empty sessions. */
+function allSeatedTableSessionsInVenue(venueCode: string): string[] {
+  return allTableSessionsInVenue(venueCode).filter((tk) => {
+    const gs = rooms.get(tk)
+    return gs != null && gs.players.length > 0
+  })
+}
+
 /** Seats labeled on the public venue-wall mosaic (matches felt chair count in UI). */
 const VENUE_WALL_SEAT_COUNT = VENUE_WALL_SEAT_SLOTS
 
@@ -1181,11 +1189,11 @@ function humanReadableStrictState(gs: GameState): string {
 
 function venuePlayableSnapshots(venueCode: string): { tk: string; n: number; gs: GameState }[] {
   const vn = normalizeVenueCode(venueCode)
-  const playable = allTableSessionsInVenue(vn)
+  const playable = allSeatedTableSessionsInVenue(vn)
   const out: { tk: string; n: number; gs: GameState }[] = []
   for (const tk of playable) {
     const gs = rooms.get(tk)
-    if (!gs) continue
+    if (!gs || gs.players.length === 0) continue
     const tn = tableNumFromSessionKey(vn, tk)
     out.push({ tk, n: tn ?? NaN, gs })
   }
@@ -1661,7 +1669,7 @@ function drainCpuVpSessionChain(sessionKey: string) {
 }
 
 function applyQuestionToAllPlayable(venueCode: string, picked: Question) {
-  const playable = allTableSessionsInVenue(venueCode)
+  const playable = allSeatedTableSessionsInVenue(venueCode)
   for (const tk of playable) {
     let gs = rooms.get(tk)
     gs = setQuestion(gs, picked)
@@ -1773,6 +1781,11 @@ io.on('connection', (socket) => {
 
     if (role === 'host') {
       gameState = { ...gameState, hostId: socket.id }
+      const vn = normalizeVenueCode(venueCode)
+      for (const tk of allVenueSessionKeys(vn)) {
+        const gs = rooms.get(tk)
+        if (gs) rooms.set(tk, { ...gs, hostId: socket.id })
+      }
     }
 
     if (role === 'player') {

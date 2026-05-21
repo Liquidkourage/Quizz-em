@@ -443,6 +443,7 @@ export function pickRandomQuestion(bank: Question[]): Question | undefined {
 
 /** Hole cards only + blinds; first wagering round (no community yet). */
 export function dealInitialCards(state: GameState): GameState {
+  if (state.phase !== 'question' || state.players.length === 0) return state;
   const updatedPlayers = state.players.map((player) => ({
     ...player,
     hand: [dealCard(), dealCard()],

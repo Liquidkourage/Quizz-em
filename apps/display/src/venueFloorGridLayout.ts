@@ -8,10 +8,14 @@ export function populatedVenueTiles(tiles: DisplayVenueTileSnapshot[]): DisplayV
 
 export const VENUE_FLOOR_GRID_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
 
-/** Horizontal gap between felts in a row (rem) — keep modest so tiles can grow. */
-export const VENUE_FLOOR_CELL_GAP_REM = 0.6
+/** Aisle gap between banquet rows (rem). */
+export const VENUE_FLOOR_ROW_GAP_REM = 1.1
 
-function venueFloorBaseColumns(tableCount: number): number {
+/** Gap between tables in a row (rem). */
+export const VENUE_FLOOR_CELL_GAP_REM = 0.75
+
+/** Columns for a uniform banquet checkerboard (same count every full row). */
+export function venueBanquetColumns(tableCount: number): number {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 1) return 1
   if (n <= 4) return 2
@@ -20,94 +24,65 @@ function venueFloorBaseColumns(tableCount: number): number {
   return 5
 }
 
-export type VenueFloorHexLayout = {
-  rowSizes: number[]
-  maxInRow: number
+export type VenueBanquetLayout = {
+  columns: number
+  rowCount: number
 }
 
-/**
- * Honeycomb packing: alternate narrow / wide rows (e.g. 4-5-4-5 for 20 tables).
- * Narrow rows offset by half a cell so felts nest between the row above/below.
- */
-export function venueFloorHexLayout(tableCount: number): VenueFloorHexLayout {
+export function venueBanquetLayout(tableCount: number): VenueBanquetLayout {
+  const columns = venueBanquetColumns(tableCount)
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
-  if (n <= 0) {
-    return { rowSizes: [], maxInRow: 0 }
-  }
-  if (n === 1) {
-    return { rowSizes: [1], maxInRow: 1 }
-  }
-
-  const base = venueFloorBaseColumns(n)
-  const narrow = base
-  const wide = base + 1
-
-  const rowSizes: number[] = []
-  let remaining = n
-  let useWide = false
-
-  while (remaining > 0) {
-    const cap = useWide ? wide : narrow
-    const take = Math.min(cap, remaining)
-    rowSizes.push(take)
-    remaining -= take
-    useWide = !useWide
-  }
-
-  if (rowSizes.length >= 2 && rowSizes[rowSizes.length - 1] === 1) {
-    const last = rowSizes.pop()!
-    const prev = rowSizes[rowSizes.length - 1]!
-    if (prev + last <= wide) {
-      rowSizes[rowSizes.length - 1] = prev + last
-    } else {
-      rowSizes.push(last)
-    }
-  }
-
-  const maxInRow = Math.max(...rowSizes, 1)
-  return { rowSizes, maxInRow }
+  const rowCount = n <= 0 ? 0 : Math.ceil(n / columns)
+  return { columns, rowCount }
 }
 
-export function chunkTilesForHexRows<T extends { tableNum: number }>(
+/** Slice tables into equal-width banquet rows (last row may be short — pad in UI). */
+export function chunkTilesIntoBanquetRows<T>(
   tiles: T[],
-  rowSizes: number[]
+  columns: number
 ): T[][] {
+  const cols = Math.max(1, columns)
   const rows: T[][] = []
-  let i = 0
-  for (const size of rowSizes) {
-    rows.push(tiles.slice(i, i + size))
-    i += size
+  for (let i = 0; i < tiles.length; i += cols) {
+    rows.push(tiles.slice(i, i + cols))
   }
   return rows
 }
 
-/** Narrow honeycomb rows shift right by half a cell. */
-export function hexRowShouldOffset(rowIndex: number, rowSize: number, maxInRow: number): boolean {
-  return rowIndex % 2 === 0 && rowSize < maxInRow
+/** Odd rows shift right by half a column — brick / checkerboard banquet aisles. */
+export function banquetRowIsCheckerOffset(rowIndex: number): boolean {
+  return rowIndex % 2 === 1
 }
 
-export function venueFloorShowdownBrief(maxInRow: number): boolean {
-  return maxInRow > 5
+/** Half-column shift for staggered rows (% of row width). */
+export function banquetRowOffsetCss(columns: number): string {
+  const cols = Math.max(1, columns)
+  return `calc(50% / ${cols})`
 }
 
-export function venueFloorCompact(maxInRow: number): boolean {
-  return maxInRow >= 5
+export function venueFloorShowdownBrief(columns: number): boolean {
+  return columns > 4
 }
 
-/**
- * One felt width for the whole floor — sized for the busiest row so every table
- * is as large as possible while sharing a consistent scale.
- */
-export function venueFloorUniformCellWidthCss(
-  maxInRow: number,
-  gapRem: number = VENUE_FLOOR_CELL_GAP_REM
-): string {
-  const cols = Math.max(1, maxInRow)
-  const gaps = Math.max(0, cols - 1) * gapRem
-  return `calc((100% - ${gaps}rem) / ${cols})`
+export function venueFloorCompact(columns: number): boolean {
+  return columns >= 4
 }
 
-/** Symmetric inset on offset honeycomb rows (half cell + half gap). */
-export function venueFloorHexRowInsetCss(): string {
-  return 'calc((var(--venue-floor-cell) + var(--venue-floor-gap)) / 2)'
+/** @deprecated Use {@link venueBanquetLayout}. */
+export function venueFloorHexLayout(tableCount: number): {
+  rowSizes: number[]
+  maxInRow: number
+} {
+  const { columns, rowCount } = venueBanquetLayout(tableCount)
+  const rowSizes = Array.from({ length: rowCount }, () => columns)
+  return { rowSizes, maxInRow: columns }
+}
+
+/** @deprecated Use {@link chunkTilesIntoBanquetRows}. */
+export function chunkTilesForHexRows<T>(
+  tiles: T[],
+  rowSizes: number[]
+): T[][] {
+  const columns = rowSizes[0] ?? 1
+  return chunkTilesIntoBanquetRows(tiles, columns)
 }

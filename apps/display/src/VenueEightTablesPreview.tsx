@@ -18,15 +18,15 @@ import {
 } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
-  chunkTilesForHexRows,
-  hexRowShouldOffset,
+  banquetRowIsCheckerOffset,
+  banquetRowOffsetCss,
+  chunkTilesIntoBanquetRows,
   populatedVenueTiles,
   VENUE_FLOOR_CELL_GAP_REM,
+  VENUE_FLOOR_ROW_GAP_REM,
+  venueBanquetLayout,
   venueFloorCompact,
-  venueFloorHexLayout,
-  venueFloorHexRowInsetCss,
   venueFloorShowdownBrief,
-  venueFloorUniformCellWidthCss,
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
@@ -1297,20 +1297,16 @@ function VenueAerialFloorGrid({
   skipMountIntro: boolean
 }) {
   const n = tiles.length
-  const { rowSizes, maxInRow } = useMemo(() => venueFloorHexLayout(n), [n])
-  const hexRows = useMemo(() => chunkTilesForHexRows(tiles, rowSizes), [tiles, rowSizes])
-  const floorCompact = venueFloorCompact(maxInRow)
-  const showdownBrief = venueFloorShowdownBrief(maxInRow)
-  const cellWidth = useMemo(
-    () => venueFloorUniformCellWidthCss(maxInRow, VENUE_FLOOR_CELL_GAP_REM),
-    [maxInRow]
-  )
+  const { columns, rowCount } = useMemo(() => venueBanquetLayout(n), [n])
+  const banquetRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
+  const floorCompact = venueFloorCompact(columns)
+  const showdownBrief = venueFloorShowdownBrief(columns)
 
   if (n === 0) return null
 
   return (
     <motion.section
-      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, honeycomb`}
+      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, banquet checkerboard`}
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
       initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -1353,52 +1349,62 @@ function VenueAerialFloorGrid({
       />
 
       <div
-        className="relative flex min-h-0 w-full flex-1 flex-col justify-evenly overflow-hidden px-1 py-2 sm:px-2 sm:py-3"
+        className="relative grid min-h-0 w-full flex-1 overflow-hidden px-2 py-2 sm:px-3 sm:py-3"
         style={
           {
             minHeight: 'min(76dvh, 840px)',
+            gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
+            gap: `${VENUE_FLOOR_ROW_GAP_REM}rem`,
             perspective: '1400px',
             transform: 'rotateX(3deg)',
             transformOrigin: 'center 50%',
-            '--venue-floor-gap': `${VENUE_FLOOR_CELL_GAP_REM}rem`,
-            '--venue-floor-cell': cellWidth,
+            alignContent: 'space-evenly',
           } as CSSProperties
         }
       >
-        {hexRows.map((rowTiles, rowIndex) => {
-          const offset = hexRowShouldOffset(rowIndex, rowTiles.length, maxInRow)
-          const inset = offset ? venueFloorHexRowInsetCss() : undefined
+        {banquetRows.map((rowTiles, rowIndex) => {
+          const checkerOffset = banquetRowIsCheckerOffset(rowIndex)
+          const rowOffset = banquetRowOffsetCss(columns)
 
           return (
             <div
-              key={rowTiles.map((t) => t.tableNum).join('-')}
-              className="flex w-full shrink-0 items-start justify-between"
+              key={rowTiles.map((t) => t.tableNum).join('-') || `row-${rowIndex}`}
+              className="grid min-h-0 w-full min-w-0 items-start"
               style={{
-                paddingLeft: inset,
-                paddingRight: inset,
+                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+                gap: `${VENUE_FLOOR_CELL_GAP_REM}rem`,
+                marginLeft: checkerOffset ? rowOffset : undefined,
+                width: checkerOffset ? `calc(100% - ${rowOffset})` : '100%',
               }}
             >
-              {rowTiles.map((row) => (
-                <div
-                  key={row.tableNum}
-                  className="h-auto shrink-0 grow-0 basis-auto"
-                  style={{
-                    width: 'var(--venue-floor-cell)',
-                    maxWidth: 'var(--venue-floor-cell)',
-                    minWidth: 0,
-                  }}
-                >
-                  <VenueMosaicTableCard
-                    row={row}
-                    isSpotlightThumb={
-                      spotlightTableNum != null && row.tableNum === spotlightTableNum
-                    }
-                    hideShowdownResults={showdownBrief}
-                    floorCompact={floorCompact}
-                    floorHoneycomb
-                  />
-                </div>
-              ))}
+              {Array.from({ length: columns }, (_, colIndex) => {
+                const row = rowTiles[colIndex]
+                if (row == null) {
+                  return (
+                    <div
+                      key={`pad-${rowIndex}-${colIndex}`}
+                      className="min-w-0"
+                      aria-hidden
+                    >
+                      <div className="w-full" style={{ aspectRatio: '8 / 5' }} />
+                    </div>
+                  )
+                }
+
+                return (
+                  <div key={row.tableNum} className="min-h-0 min-w-0 w-full">
+                    <VenueMosaicTableCard
+                      row={row}
+                      isSpotlightThumb={
+                        spotlightTableNum != null && row.tableNum === spotlightTableNum
+                      }
+                      hideShowdownResults={showdownBrief}
+                      floorCompact={floorCompact}
+                      floorHoneycomb
+                    />
+                  </div>
+                )
+              })}
             </div>
           )
         })}
@@ -1418,7 +1424,7 @@ type VenueEightTablesPreviewProps = {
 }
 
 /**
- * Venue wall: honeycomb aerial floor (all populated tables) plus stacks leaderboard strip.
+ * Venue wall: banquet checkerboard floor (uniform tables) plus stacks leaderboard strip.
  * Spotlight / host focus highlights one felt on the grid via **`useVenueWallFeaturedWatch`**.
  */
 export default function VenueEightTablesPreview({

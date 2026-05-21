@@ -1545,16 +1545,10 @@ export default function VenueEightTablesPreview({
             ) : null}
 
             {useShowdownWall ? (
-              <>
-                {!showHeadline ? (
-                  <motion.div className="pointer-events-none mb-2 w-[clamp(7.5rem,min(26vw,10rem),12rem)] sm:mb-3 sm:w-[clamp(8.5rem,min(24vw,11rem),13rem)]">
-                    <div className="w-full shadow-black/70 drop-shadow-xl" style={{ aspectRatio: '958 / 592' }}>
-                      <QuizzEmWordmark layout="fill" />
-                    </div>
-                  </motion.div>
-                ) : null}
-                <VenueMultiTableShowdown tiles={tileRows} />
-              </>
+              <p className="sr-only" aria-live="polite">
+                Full-screen venue showdown — {tileRows.filter((t) => t.phase === 'showdown').length}{' '}
+                tables in reveal.
+              </p>
             ) : (
             <motion.article
               className="relative w-full overflow-hidden rounded-2xl border-2 border-yellow-400/85 bg-black/55 shadow-xl backdrop-blur-md"
@@ -1720,6 +1714,12 @@ export default function VenueEightTablesPreview({
         />
       ) : null}
       {showRoster ? <VenueScrollingRoster tiles={tileRows} /> : null}
+      {useShowdownWall ? (
+        <VenueMultiTableShowdown
+          tiles={tileRows}
+          headlineQuestionText={headlineQuestionText}
+        />
+      ) : null}
     </div>
   )
 }

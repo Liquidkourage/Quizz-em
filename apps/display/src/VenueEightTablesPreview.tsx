@@ -66,6 +66,33 @@ function formatVenueBankroll(amount: number): string {
   return `$${Math.max(0, n).toLocaleString()}`
 }
 
+/** Yellow pot readout on floor tiles — pulses when the venue snapshot posts a new amount. */
+function VenueFloorPotAmount({
+  amount,
+  className,
+  prefersReducedMotion,
+}: {
+  amount: number
+  className: string
+  prefersReducedMotion: boolean
+}) {
+  const label = formatVenueBankroll(amount)
+  if (prefersReducedMotion) {
+    return <dd className={className}>{label}</dd>
+  }
+  return (
+    <motion.dd
+      key={label}
+      className={className}
+      initial={{ scale: 1.12, opacity: 0.72 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {label}
+    </motion.dd>
+  )
+}
+
 /** Toward-table-center hint by the acting seat: call amount only (active player only). */
 function formatActingCallHint(amount: number): string {
   if (amount <= 0) return 'No call to match'
@@ -963,6 +990,7 @@ type VenueMosaicTableCardProps = {
   floorCompact?: boolean
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
+  prefersReducedMotion?: boolean
 }
 
 function VenueMosaicTableCard({
@@ -971,10 +999,11 @@ function VenueMosaicTableCard({
   hideShowdownResults = false,
   floorCompact = false,
   floorHoneycomb = false,
+  prefersReducedMotion = false,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
-  const pot = row.pot
+  const pot = Math.max(0, Math.floor(Number.isFinite(row.pot) ? row.pot : 0))
   const ph = row.phase
   const seatNames = padSeatNames(row.seatNames)
   const seatBankrolls = padSeatBankrolls(row.seatBankrolls)
@@ -1096,7 +1125,11 @@ function VenueMosaicTableCard({
             <>
               <div className="flex min-w-0 items-baseline gap-1.5">
                 <dt className="sr-only">Pot</dt>
-                <dd className="font-mono font-bold tabular-nums text-yellow-300">${pot.toLocaleString()}</dd>
+                <VenueFloorPotAmount
+                  amount={pot}
+                  prefersReducedMotion={prefersReducedMotion}
+                  className="font-mono font-bold tabular-nums text-yellow-300"
+                />
                 <span className="text-white/35">·</span>
                 <dt className="sr-only">Chips on table</dt>
                 <dd className="truncate font-mono font-semibold tabular-nums text-casino-emerald/90">
@@ -1115,7 +1148,11 @@ function VenueMosaicTableCard({
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="font-semibold text-white/65">Pot</dt>
-                <dd className="font-mono font-bold tabular-nums text-yellow-300">${pot.toLocaleString()}</dd>
+                <VenueFloorPotAmount
+                  amount={pot}
+                  prefersReducedMotion={prefersReducedMotion}
+                  className="font-mono font-bold tabular-nums text-yellow-300"
+                />
               </div>
               {mosaicPotSubtitle != null ? (
                 <div className="rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
@@ -1290,11 +1327,13 @@ function VenueAerialFloorGrid({
   spotlightTableNum,
   showHeadline,
   skipMountIntro,
+  prefersReducedMotion,
 }: {
   tiles: DisplayVenueTileSnapshot[]
   spotlightTableNum: number | null
   showHeadline: boolean
   skipMountIntro: boolean
+  prefersReducedMotion: boolean
 }) {
   const n = tiles.length
   const { columns, rowCount } = useMemo(() => venueBanquetLayout(n), [n])
@@ -1404,6 +1443,7 @@ function VenueAerialFloorGrid({
                       hideShowdownResults={showdownBrief}
                       floorCompact={floorCompact}
                       floorHoneycomb
+                      prefersReducedMotion={prefersReducedMotion}
                     />
                   </div>
                 )
@@ -1572,6 +1612,7 @@ export default function VenueEightTablesPreview({
               spotlightTableNum={spotlightTableNum}
               showHeadline={showHeadline}
               skipMountIntro={skipMountIntro}
+              prefersReducedMotion={prefersReducedMotion}
             />
 
             {showRotatingTour && spotlightTableNum != null ? (

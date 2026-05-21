@@ -16,6 +16,9 @@ describe('setQuestion', () => {
     expect(next.phase).toBe('question')
     expect(next.round.question).toEqual(q)
     expect(next.round.communityCards).toEqual([])
+    expect(next.round.pot).toBe(0)
+    expect(next.round.playerBets).toEqual({})
+    expect(next.round.handContributions).toEqual({})
   })
 })
 

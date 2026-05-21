@@ -405,9 +405,25 @@ export const SAMPLE_QUESTIONS: ReadonlyArray<{ id: string; text: string; answer:
   { id: 'q5', text: 'What is the average distance from Earth to the Moon in km?', answer: 384400, category: 'Astronomy', difficulty: 3 },
 ];
 
+/** Reset wagering fields when a new trivia beat starts (before cards / blinds). */
+function roundStateForQuestionSetup(round: RoundState): RoundState {
+  return {
+    ...round,
+    communityCards: [],
+    pot: 0,
+    currentBet: 0,
+    currentPlayerIndex: -1,
+    isBettingOpen: false,
+    playerBets: {},
+    handContributions: {},
+    bettingRound: 1,
+    lastSeatBettingAction: undefined,
+  };
+}
+
 // Game flow functions
 export function startGame(state: GameState): GameState {
-  return { ...state, phase: 'question' };
+  return { ...state, phase: 'question', round: roundStateForQuestionSetup(state.round) };
 }
 
 /** Sets the active round question (synced to tables by the server). */
@@ -415,11 +431,7 @@ export function setQuestion(state: GameState, question: Question): GameState {
   return {
     ...state,
     phase: 'question',
-    round: {
-      ...state.round,
-      question,
-      communityCards: [],
-    },
+    round: { ...roundStateForQuestionSetup(state.round), question },
   };
 }
 
@@ -547,6 +559,35 @@ export function buildSidePotSettlement(
  * Seat indices for dealer + blinds mapped to contiguous `players[0 .. n-1]`, identical to `{@link dealInitialCards}` modulo math.
  * Use on venue-wall displays with `seatNames[]` indexed the same way; null when absent (no players / one player has no blinds).
  */
+/**
+ * Whole-dollar pot for venue-wall tiles — mirrors {@link RoundState.pot} once blinds/bets post,
+ * with a defensive fallback to total {@link RoundState.handContributions} when the engine pot reads 0 mid-hand.
+ */
+export function venueWallDisplayPot(state: GameState): number {
+  const raw = state.round.pot ?? 0;
+  const pot = Math.max(0, Math.floor(Number.isFinite(raw) ? raw : 0));
+  if (pot > 0) return pot;
+
+  const phase = state.phase;
+  if (
+    phase !== 'betting' &&
+    phase !== 'answering' &&
+    phase !== 'reveal' &&
+    phase !== 'showdown' &&
+    phase !== 'payout'
+  ) {
+    return 0;
+  }
+
+  const hc = state.round.handContributions;
+  if (hc == null) return 0;
+  let sum = 0;
+  for (const v of Object.values(hc)) {
+    if (typeof v === 'number' && Number.isFinite(v)) sum += Math.max(0, Math.floor(v));
+  }
+  return sum;
+}
+
 export function displayBlindSeatIndices(
   seatedPlayerCount: number,
   dealerIndex: number

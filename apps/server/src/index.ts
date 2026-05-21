@@ -44,6 +44,7 @@ import {
   pctOfStackToCall,
   normalizeBettingTurn,
   previewChipPayoutByPlayerId,
+  venueWallDisplayPot,
 } from '@qhe/core'
 import type { Question, GameState } from '@qhe/core'
 import type { 
@@ -1499,7 +1500,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     tiles.push({
       tableNum: n,
       seated,
-      pot: gs.round.pot ?? 0,
+      pot: venueWallDisplayPot(gs),
       phase: gs.phase,
       seatNames,
       seatBankrolls,

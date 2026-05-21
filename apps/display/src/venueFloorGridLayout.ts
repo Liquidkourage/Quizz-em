@@ -8,13 +8,19 @@ export function populatedVenueTiles(tiles: DisplayVenueTileSnapshot[]): DisplayV
 
 export const VENUE_FLOOR_GRID_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
 
-/** Aisle gap between banquet rows (rem). */
-export const VENUE_FLOOR_ROW_GAP_REM = 1.1
+/**
+ * Canonical venue floor: **A1 classic half-stagger** (banquet checkerboard).
+ * 5×4 @ 20 tables; odd rows offset by half a column; uniform table size.
+ */
+export const VENUE_FLOOR_LAYOUT_A1 = 'checkerboard-half-stagger' as const
 
-/** Gap between tables in a row (rem). */
-export const VENUE_FLOOR_CELL_GAP_REM = 0.75
+/** Aisle gap between checkerboard rows (rem) — A1 baseline, not A2 “generous”. */
+export const VENUE_FLOOR_ROW_GAP_REM = 1
 
-/** Columns for a uniform banquet checkerboard (same count every full row). */
+/** Gap between tables within a row (rem). */
+export const VENUE_FLOOR_CELL_GAP_REM = 0.7
+
+/** Columns for A1 — same count on every full row (5 when 17–20 tables). */
 export function venueBanquetColumns(tableCount: number): number {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 1) return 1
@@ -49,7 +55,7 @@ export function chunkTilesIntoBanquetRows<T>(
   return rows
 }
 
-/** Odd rows shift right by half a column — brick / checkerboard banquet aisles. */
+/** A1: odd-index rows (2nd, 4th, …) shift right by half a column width. */
 export function banquetRowIsCheckerOffset(rowIndex: number): boolean {
   return rowIndex % 2 === 1
 }

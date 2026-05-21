@@ -1306,7 +1306,7 @@ function VenueAerialFloorGrid({
 
   return (
     <motion.section
-      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, banquet checkerboard`}
+      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, checkerboard half-stagger`}
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
       initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -1424,7 +1424,7 @@ type VenueEightTablesPreviewProps = {
 }
 
 /**
- * Venue wall: banquet checkerboard floor (uniform tables) plus stacks leaderboard strip.
+ * Venue wall: A1 checkerboard floor (5×4 half-stagger, uniform tables) plus stacks strip.
  * Spotlight / host focus highlights one felt on the grid via **`useVenueWallFeaturedWatch`**.
  */
 export default function VenueEightTablesPreview({

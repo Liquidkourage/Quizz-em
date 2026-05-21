@@ -15,6 +15,7 @@ import {
   showdownCorrectAnswerFromTile,
   showdownRowsFromTile,
   sortShowdownRowsByDistance,
+  type ShowdownResultRow,
 } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
@@ -613,6 +614,7 @@ function SeatRingWithLabels({
   seatLastBettingAction: seatLastBettingActionIn,
   actingCallAmount,
   mosaicFluidWidth = false,
+  mosaicFillHeight = false,
   feltCenterPot,
   feltCenterPotDimmed = false,
 }: {
@@ -624,6 +626,8 @@ function SeatRingWithLabels({
   ringMode?: 'mosaic' | 'full'
   /** Honeycomb floor: ring scales with tile width (no fixed 8.75rem height). */
   mosaicFluidWidth?: boolean
+  /** Checkerboard cell: shrink-wrap felt inside flex row without growing the card. */
+  mosaicFillHeight?: boolean
   /** Spotlight hero: draw mini chip stack + bankroll on the felt by each seated player. */
   feltSeatStacks?: boolean
   /** Dealer / blind roles (indexes match `seatNames`). Null when unsupported or omitted by server snapshot. */
@@ -659,7 +663,9 @@ function SeatRingWithLabels({
   /** Mosaic crawl — stadium capsule, narrower than crawl column so dots read on the rail. */
   const mdRing = isMosaic
     ? mosaicFluidWidth
-      ? 'relative mx-auto aspect-[8/5] h-auto w-full max-w-none shrink-0'
+      ? mosaicFillHeight
+        ? 'relative mx-auto aspect-[8/5] h-full max-h-full w-full min-h-0 max-w-full'
+        : 'relative mx-auto aspect-[8/5] h-auto w-full max-w-none shrink-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
@@ -1022,6 +1028,43 @@ function SeatRingWithLabels({
   )
 }
 
+/** Compact floor tile — overlaid on felt so the checkerboard row height stays fixed. */
+function VenueFloorWinnerBadge({
+  rows,
+  correctAnswer,
+}: {
+  rows: ShowdownResultRow[]
+  correctAnswer: number | undefined
+}) {
+  const { winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
+  const winners = rows.filter(
+    (r) => winnerKeys.has(`${r.seat}:${r.name}`) && r.name.trim() !== ''
+  )
+  const label = winnerKeys.size > 1 ? 'Split' : 'Winner'
+  const names =
+    winners.length === 0
+      ? '—'
+      : winners.length === 1
+        ? winners[0]!.name
+        : winners.map((w) => w.name).join(' + ')
+
+  return (
+    <div
+      className="pointer-events-none absolute inset-x-[6%] bottom-[10%] z-[125] flex justify-center"
+      aria-label={`${label}: ${names}`}
+    >
+      <div className="max-w-full rounded-md border border-amber-400/55 bg-black/88 px-1.5 py-0.5 text-center shadow-[0_4px_14px_rgba(0,0,0,0.75)] backdrop-blur-sm">
+        <p className="text-[0.5rem] font-bold uppercase leading-none tracking-wider text-amber-200/75 sm:text-[0.55rem]">
+          {label}
+        </p>
+        <p className="truncate text-[0.65rem] font-black leading-tight text-amber-50 sm:text-xs">
+          {names}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 function phaseLabel(ph: string) {
   if (ph === 'lobby') return 'Lobby'
   if (ph === 'question') return 'Question setup'
@@ -1095,7 +1138,11 @@ function VenueMosaicTableCard({
         aria-current={spotlight ? 'true' : undefined}
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}, venue floor`}
         className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
-          floorHoneycomb ? 'h-auto overflow-visible' : 'h-full min-h-0 overflow-hidden'
+          floorHoneycomb && floorCompact
+            ? 'h-full min-h-0 overflow-hidden'
+            : floorHoneycomb
+              ? 'h-auto overflow-visible'
+              : 'h-full min-h-0 overflow-hidden'
         } ${
           floorCompact ? 'gap-0.5 p-1 sm:gap-1 sm:p-1.5' : 'gap-1.5 overflow-visible p-2 sm:gap-2 sm:p-2.5'
         } ${cardShell}`}
@@ -1118,14 +1165,21 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`relative z-[1] flex w-full shrink-0 justify-center ${
-            floorHoneycomb ? 'overflow-visible' : 'min-h-0 flex-1 overflow-hidden'
-          } ${floorCompact ? 'scale-[0.92] sm:scale-95' : ''}`}
-          style={floorHoneycomb ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined}
+          className={`relative z-[1] flex w-full justify-center ${
+            floorHoneycomb && floorCompact
+              ? 'min-h-0 flex-1 overflow-hidden'
+              : floorHoneycomb
+                ? 'shrink-0 overflow-visible'
+                : 'min-h-0 flex-1 overflow-hidden'
+          } ${floorCompact && !floorHoneycomb ? 'scale-[0.92] sm:scale-95' : ''}`}
+          style={
+            floorHoneycomb && !floorCompact ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined
+          }
         >
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb}
+            mosaicFillHeight={floorHoneycomb && floorCompact}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}
@@ -1138,6 +1192,9 @@ function VenueMosaicTableCard({
             feltCenterPot={pot}
             feltCenterPotDimmed={ph === 'lobby' || ph === 'question'}
           />
+          {inShowdown && showdownBrief && showdownRows.length > 0 ? (
+            <VenueFloorWinnerBadge rows={showdownRows} correctAnswer={showdownAnswer} />
+          ) : null}
         </div>
 
         {seats > 0 && !floorCompact ? (
@@ -1228,42 +1285,20 @@ function VenueMosaicTableCard({
           )}
         </dl>
 
-        {inShowdown && showdownRows.length > 0 ? (
-          showdownBrief ? (
-            <motion.div className="rounded-lg border border-amber-500/30 bg-amber-950/35 px-2 py-1.5 text-center">
-              <p className="text-[0.6rem] font-bold uppercase tracking-wider text-amber-200/70">
-                {(() => {
-                  const { winnerKeys } = sortShowdownRowsByDistance(showdownRows, showdownAnswer)
-                  return winnerKeys.size > 1 ? 'Split' : 'Winner'
-                })()}
-              </p>
-              <p className="truncate text-xs font-black text-amber-50 sm:text-sm">
-                {(() => {
-                  const { winnerKeys } = sortShowdownRowsByDistance(showdownRows, showdownAnswer)
-                  const winners = showdownRows.filter(
-                    (r) => winnerKeys.has(`${r.seat}:${r.name}`) && r.name.trim() !== ''
-                  )
-                  if (winners.length === 0) return '—'
-                  if (winners.length === 1) return winners[0]!.name
-                  return winners.map((w) => w.name).join(' + ')
-                })()}
-              </p>
-            </motion.div>
-          ) : (
-            <div
-              className="rounded-lg p-1"
-              style={{
-                background: 'linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%)',
-                boxShadow: 'inset 0 1px 0 rgba(255,220,160,0.1)',
-              }}
-            >
-              <ShowdownResultsPanel
-                compact
-                correctAnswer={showdownAnswer}
-                rows={showdownRows}
-              />
-            </div>
-          )
+        {inShowdown && showdownRows.length > 0 && !showdownBrief ? (
+          <div
+            className="rounded-lg p-1"
+            style={{
+              background: 'linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%)',
+              boxShadow: 'inset 0 1px 0 rgba(255,220,160,0.1)',
+            }}
+          >
+            <ShowdownResultsPanel
+              compact
+              correctAnswer={showdownAnswer}
+              rows={showdownRows}
+            />
+          </div>
         ) : null}
       </article>
   )
@@ -1450,13 +1485,11 @@ function VenueAerialFloorGrid({
         className="relative grid min-h-0 w-full flex-1 overflow-hidden px-4 py-3 sm:px-6 sm:py-4"
         style={
           {
-            minHeight: 'min(76dvh, 840px)',
             gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
             gap: `${VENUE_FLOOR_ROW_GAP_REM}rem`,
             perspective: '1400px',
             transform: 'rotateX(3deg)',
             transformOrigin: 'center 50%',
-            alignContent: 'space-evenly',
           } as CSSProperties
         }
       >
@@ -1466,7 +1499,7 @@ function VenueAerialFloorGrid({
           return (
             <div
               key={rowTiles.map((t) => t.tableNum).join('-') || `row-${rowIndex}`}
-              className="grid min-h-0 w-full min-w-0 items-start"
+              className="grid h-full min-h-0 w-full min-w-0 items-stretch overflow-hidden"
               style={{
                 gridTemplateColumns: `repeat(${trackCount}, minmax(0, 1fr))`,
                 gap: `${VENUE_FLOOR_CELL_GAP_REM}rem`,
@@ -1491,7 +1524,7 @@ function VenueAerialFloorGrid({
                 return (
                   <div
                     key={row.tableNum}
-                    className="min-h-0 min-w-0 w-full"
+                    className="flex min-h-0 min-w-0 w-full flex-col"
                     style={{ gridColumn }}
                   >
                     <VenueMosaicTableCard

@@ -56,11 +56,12 @@ export function chunkTilesIntoBanquetRows<T>(
 }
 
 /**
- * A1 checkerboard uses 2 grid tracks per table so odd rows start on track 2 (½-table shift).
- * @see banquetCheckerboardGridColumn
+ * A1 checkerboard: 2 tracks per table; odd rows start on track 2 so the last table
+ * needs one extra track (e.g. 5 tables ⇒ 11 tracks, not 10 — otherwise 10 / span 2 clips).
  */
 export function banquetCheckerboardTrackCount(columns: number): number {
-  return Math.max(2, columns * 2)
+  const cols = Math.max(1, columns)
+  return cols * 2 + 1
 }
 
 /**

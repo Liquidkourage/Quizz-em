@@ -18,8 +18,8 @@ import {
 } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
-  banquetRowIsCheckerOffset,
-  banquetRowOffsetCss,
+  banquetCheckerboardGridColumn,
+  banquetCheckerboardTrackCount,
   chunkTilesIntoBanquetRows,
   populatedVenueTiles,
   VENUE_FLOOR_CELL_GAP_REM,
@@ -1363,27 +1363,26 @@ function VenueAerialFloorGrid({
         }
       >
         {banquetRows.map((rowTiles, rowIndex) => {
-          const checkerOffset = banquetRowIsCheckerOffset(rowIndex)
-          const rowOffset = banquetRowOffsetCss(columns)
+          const trackCount = banquetCheckerboardTrackCount(columns)
 
           return (
             <div
               key={rowTiles.map((t) => t.tableNum).join('-') || `row-${rowIndex}`}
               className="grid min-h-0 w-full min-w-0 items-start"
               style={{
-                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${trackCount}, minmax(0, 1fr))`,
                 gap: `${VENUE_FLOOR_CELL_GAP_REM}rem`,
-                marginLeft: checkerOffset ? rowOffset : undefined,
-                width: checkerOffset ? `calc(100% - ${rowOffset})` : '100%',
               }}
             >
               {Array.from({ length: columns }, (_, colIndex) => {
                 const row = rowTiles[colIndex]
+                const gridColumn = banquetCheckerboardGridColumn(rowIndex, colIndex)
                 if (row == null) {
                   return (
                     <div
                       key={`pad-${rowIndex}-${colIndex}`}
                       className="min-w-0"
+                      style={{ gridColumn }}
                       aria-hidden
                     >
                       <div className="w-full" style={{ aspectRatio: '8 / 5' }} />
@@ -1392,7 +1391,11 @@ function VenueAerialFloorGrid({
                 }
 
                 return (
-                  <div key={row.tableNum} className="min-h-0 min-w-0 w-full">
+                  <div
+                    key={row.tableNum}
+                    className="min-h-0 min-w-0 w-full"
+                    style={{ gridColumn }}
+                  >
                     <VenueMosaicTableCard
                       row={row}
                       isSpotlightThumb={

@@ -55,12 +55,29 @@ export function chunkTilesIntoBanquetRows<T>(
   return rows
 }
 
-/** A1: odd-index rows (2nd, 4th, …) shift right by half a column width. */
+/**
+ * A1 checkerboard uses 2 grid tracks per table so odd rows start on track 2 (½-table shift).
+ * @see banquetCheckerboardGridColumn
+ */
+export function banquetCheckerboardTrackCount(columns: number): number {
+  return Math.max(2, columns * 2)
+}
+
+/**
+ * `grid-column` for table `colIndex` in `rowIndex` (1-based line / span 2).
+ * Even rows: 1, 3, 5… — odd rows: 2, 4, 6…
+ */
+export function banquetCheckerboardGridColumn(rowIndex: number, colIndex: number): string {
+  const start = rowIndex % 2 === 1 ? colIndex * 2 + 2 : colIndex * 2 + 1
+  return `${start} / span 2`
+}
+
+/** @deprecated Margin-based stagger did not render; use {@link banquetCheckerboardGridColumn}. */
 export function banquetRowIsCheckerOffset(rowIndex: number): boolean {
   return rowIndex % 2 === 1
 }
 
-/** Half-column shift for staggered rows (% of row width). */
+/** @deprecated */
 export function banquetRowOffsetCss(columns: number): string {
   const cols = Math.max(1, columns)
   return `calc(50% / ${cols})`

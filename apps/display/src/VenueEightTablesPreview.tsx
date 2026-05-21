@@ -1349,7 +1349,7 @@ function VenueAerialFloorGrid({
       />
 
       <div
-        className="relative grid min-h-0 w-full flex-1 overflow-hidden px-2 py-2 sm:px-3 sm:py-3"
+        className="relative grid min-h-0 w-full flex-1 overflow-hidden px-4 py-3 sm:px-6 sm:py-4"
         style={
           {
             minHeight: 'min(76dvh, 840px)',

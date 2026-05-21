@@ -21,8 +21,10 @@ import {
   chunkTilesForHexRows,
   hexRowShouldOffset,
   populatedVenueTiles,
+  venueFloorCellWidthCss,
   venueFloorCompact,
   venueFloorHexLayout,
+  venueFloorHexRowOffsetCss,
   venueFloorShowdownBrief,
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
@@ -537,6 +539,7 @@ function SeatRingWithLabels({
   showSeatBettingActions = false,
   seatLastBettingAction: seatLastBettingActionIn,
   actingCallAmount,
+  mosaicFluidWidth = false,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -544,6 +547,8 @@ function SeatRingWithLabels({
   size?: 'md' | 'lg'
   /** `mosaic` = rail + seat dots only (crawl tiles); `full` = names, actions, and felt stacks. */
   ringMode?: 'mosaic' | 'full'
+  /** Honeycomb floor: ring scales with tile width (no fixed 8.75rem height). */
+  mosaicFluidWidth?: boolean
   /** Spotlight hero: draw mini chip stack + bankroll on the felt by each seated player. */
   feltSeatStacks?: boolean
   /** Dealer / blind roles (indexes match `seatNames`). Null when unsupported or omitted by server snapshot. */
@@ -574,7 +579,9 @@ function SeatRingWithLabels({
     'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
   /** Mosaic crawl — stadium capsule, narrower than crawl column so dots read on the rail. */
   const mdRing = isMosaic
-    ? 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
+    ? mosaicFluidWidth
+      ? 'relative mx-auto aspect-[8/5] h-auto w-full max-w-none shrink-0'
+      : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
   const dot = isMosaic
@@ -953,6 +960,8 @@ type VenueMosaicTableCardProps = {
   hideShowdownResults?: boolean
   /** Aerial floor: tighter chrome, no per-seat scroll list. */
   floorCompact?: boolean
+  /** Honeycomb floor — do not stretch card height to fill a row slot. */
+  floorHoneycomb?: boolean
 }
 
 function VenueMosaicTableCard({
@@ -960,6 +969,7 @@ function VenueMosaicTableCard({
   isSpotlightThumb,
   hideShowdownResults = false,
   floorCompact = false,
+  floorHoneycomb = false,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -994,7 +1004,9 @@ function VenueMosaicTableCard({
         role="group"
         aria-current={spotlight ? 'true' : undefined}
         aria-label={`Table ${tn}, venue floor`}
-        className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden backdrop-blur-md ${
+        className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
+          floorHoneycomb ? 'h-auto overflow-visible' : 'h-full min-h-0 overflow-hidden'
+        } ${
           floorCompact ? 'gap-0.5 p-1 sm:gap-1 sm:p-1.5' : 'gap-1.5 overflow-visible p-2 sm:gap-2 sm:p-2.5'
         } ${cardShell}`}
       >
@@ -1016,12 +1028,14 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`relative z-[1] flex min-h-0 flex-1 shrink justify-center overflow-hidden ${
-            floorCompact ? 'scale-[0.92] sm:scale-95' : 'overflow-visible'
-          }`}
+          className={`relative z-[1] flex w-full shrink-0 justify-center ${
+            floorHoneycomb ? 'overflow-visible' : 'min-h-0 flex-1 overflow-hidden'
+          } ${floorCompact ? 'scale-[0.92] sm:scale-95' : ''}`}
+          style={floorHoneycomb ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined}
         >
           <SeatRingWithLabels
             ringMode="mosaic"
+            mosaicFluidWidth={floorHoneycomb}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}
@@ -1286,6 +1300,7 @@ function VenueAerialFloorGrid({
   const hexRows = useMemo(() => chunkTilesForHexRows(tiles, rowSizes), [tiles, rowSizes])
   const floorCompact = venueFloorCompact(maxInRow)
   const showdownBrief = venueFloorShowdownBrief(maxInRow)
+  const cellWidth = useMemo(() => venueFloorCellWidthCss(maxInRow), [maxInRow])
 
   if (n === 0) return null
 
@@ -1334,40 +1349,32 @@ function VenueAerialFloorGrid({
       />
 
       <div
-        className={`relative flex min-h-0 flex-1 flex-col justify-center px-3 py-2 sm:px-6 sm:py-3 ${rowGapClass}`}
+        className={`relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto overflow-x-hidden px-3 py-2 sm:px-5 sm:py-3 ${rowGapClass}`}
         style={
           {
             perspective: '1400px',
             transform: 'rotateX(4deg)',
             transformOrigin: 'center 52%',
-            '--venue-floor-cell': `clamp(3.75rem, calc((100% - ${Math.max(0, maxInRow - 1)} * 1.75rem) / ${maxInRow}), 7.75rem)`,
+            '--venue-floor-cell': cellWidth,
           } as CSSProperties
         }
       >
         {hexRows.map((rowTiles, rowIndex) => {
           const offset = hexRowShouldOffset(rowIndex, rowTiles.length, maxInRow)
-          const rowWidthPct = (rowTiles.length / maxInRow) * 100
-          const halfCellPct = 50 / maxInRow
 
           return (
             <div
               key={rowTiles.map((t) => t.tableNum).join('-')}
-              className="flex min-h-0 w-full flex-1 basis-0 items-center justify-center"
+              className="flex w-full shrink-0 justify-center"
               style={{
-                paddingLeft: offset ? `${halfCellPct}%` : undefined,
+                paddingLeft: offset ? venueFloorHexRowOffsetCss() : undefined,
               }}
             >
-              <div
-                className={`flex h-full min-h-0 max-w-full items-center justify-center ${cellGapClass}`}
-                style={{
-                  width: `${rowWidthPct}%`,
-                  maxWidth: `${rowWidthPct}%`,
-                }}
-              >
+              <div className={`flex max-w-full shrink-0 items-start justify-center ${cellGapClass}`}>
                 {rowTiles.map((row) => (
                   <div
                     key={row.tableNum}
-                    className="min-h-0 shrink-0"
+                    className="h-auto shrink-0"
                     style={{
                       width: 'var(--venue-floor-cell)',
                       maxWidth: 'var(--venue-floor-cell)',
@@ -1380,6 +1387,7 @@ function VenueAerialFloorGrid({
                       }
                       hideShowdownResults={showdownBrief}
                       floorCompact={floorCompact}
+                      floorHoneycomb
                     />
                   </div>
                 ))}

@@ -99,9 +99,22 @@ export function hexRowShouldOffset(rowIndex: number, rowSize: number, maxInRow: 
 }
 
 export function venueFloorShowdownBrief(maxInRow: number): boolean {
-  return maxInRow > 6
+  return maxInRow > 5
 }
 
+/** Honeycomb tiles: compact chrome once a row has several felts. */
 export function venueFloorCompact(maxInRow: number): boolean {
-  return maxInRow > 8
+  return maxInRow >= 5
+}
+
+/** Felt card width — wide enough that tiles stay poker-shaped, not tall strips. */
+export function venueFloorCellWidthCss(maxInRow: number): string {
+  const cols = Math.max(1, maxInRow)
+  const gapsRem = Math.max(0, cols - 1) * 1.25
+  return `clamp(8rem, calc((100% - ${gapsRem}rem) / ${cols}), 12.5rem)`
+}
+
+/** Half-cell honeycomb offset for narrow rows. */
+export function venueFloorHexRowOffsetCss(): string {
+  return 'calc((var(--venue-floor-cell) + 1.25rem) * 0.5)'
 }

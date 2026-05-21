@@ -735,8 +735,8 @@ function HostApp() {
               transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
             />
             <div className="relative px-4 py-4 sm:px-5 sm:py-5">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex flex-col gap-4">
+                <div className="flex min-w-0 flex-col gap-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="relative inline-flex h-3 w-3 shrink-0">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-75" />
@@ -746,27 +746,60 @@ function HostApp() {
                       Action on the floor
                     </span>
                   </div>
-                  <p className="text-lg font-bold leading-snug text-white sm:text-xl">
-                    Table{livelyGameplayTableNums.length !== 1 ? 's' : ''}{' '}
-                    <span className="font-mono tabular-nums tracking-tight text-amber-100">
-                      {livelyGameplayTableNums.join(', ')}
-                    </span>{' '}
-                    <span className="font-semibold text-white/85">
-                      {livelyGameplayTableNums.length !== 1 ? 'have' : 'has'} play in motion — spotlight one on the TVs.
-                    </span>
+                  <p className="text-base font-semibold leading-snug text-white/90 sm:text-lg">
+                    {livelyGameplayTableNums.length === 1 ? (
+                      <>
+                        Table{' '}
+                        <span className="font-mono font-bold tabular-nums text-amber-100">
+                          {livelyGameplayTableNums[0]}
+                        </span>{' '}
+                        has play in motion.
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-mono font-bold tabular-nums text-amber-100">
+                          {livelyGameplayTableNums.length}
+                        </span>{' '}
+                        tables have play in motion — pick a felt for the venue TVs below.
+                      </>
+                    )}
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                {livelyGameplayTableNums.length > 6 ? (
+                  <div
+                    className="flex max-h-[4.5rem] flex-wrap gap-1.5 overflow-y-auto overscroll-y-contain rounded-lg border border-amber-500/25 bg-black/35 px-2 py-2"
+                    aria-label="Tables with live action"
+                  >
+                    {livelyGameplayTableNums.map((n) => (
+                      <span
+                        key={n}
+                        className="rounded-md border border-amber-400/35 bg-amber-950/50 px-2 py-0.5 font-mono text-sm font-bold tabular-nums text-amber-100"
+                      >
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-mono text-sm font-bold tabular-nums text-amber-100/90">
+                    Tables {livelyGameplayTableNums.join(', ')}
+                  </p>
+                )}
+                <div
+                  className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10"
+                  role="group"
+                  aria-label="Spotlight table on venue TVs"
+                >
                   {livelyGameplayTableNums.map((n) => (
                     <NeonButton
                       key={n}
                       variant="gold"
                       size="small"
                       type="button"
+                      className="min-w-0 px-2 text-sm"
                       title={`Send every paired TV to Table ${n} (full felt)`}
                       onClick={() => displaySetLayout({ layout: 'venueWall', focusTable: n })}
                     >
-                      TV → {n}
+                      TV {n}
                     </NeonButton>
                   ))}
                 </div>

@@ -29,12 +29,12 @@ export function showdownWallLayout(tableCount: number): {
 
   const rows = Math.ceil(n / columns)
 
+  /** Keep readable player grids on every table — avoid one-line micro rows up to 20 felts. */
   let density: ShowdownWallDensity
   if (n <= 6) density = 'full'
-  else if (n <= 12) density = 'compact'
-  else density = 'micro'
+  else density = 'compact'
 
-  const gapClass = density === 'micro' ? 'gap-1' : density === 'compact' ? 'gap-1.5' : 'gap-2 sm:gap-2.5'
+  const gapClass = density === 'compact' ? 'gap-1.5 sm:gap-2' : 'gap-2 sm:gap-2.5'
 
   return { columns, rows, density, gapClass }
 }

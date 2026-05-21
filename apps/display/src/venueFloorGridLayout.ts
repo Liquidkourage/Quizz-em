@@ -18,7 +18,7 @@ export const VENUE_FLOOR_LAYOUT_A1 = 'checkerboard-half-stagger' as const
 export const VENUE_FLOOR_ROW_GAP_REM = 1
 
 /** Gap between tables within a row (rem). */
-export const VENUE_FLOOR_CELL_GAP_REM = 0.7
+export const VENUE_FLOOR_CELL_GAP_REM = 1.05
 
 /** Columns for A1 — same count on every full row (5 when 17–20 tables). */
 export function venueBanquetColumns(tableCount: number): number {

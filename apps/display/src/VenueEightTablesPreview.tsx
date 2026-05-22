@@ -33,6 +33,11 @@ import {
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
+import {
+  displayTextWrap,
+  fitDisplayNameClasses,
+  longestTrimmedLength,
+} from './displayTextFit'
 
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
@@ -472,7 +477,7 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot): string {
 function mosaicPhaseCornerTypography(row: DisplayVenueTileSnapshot): string {
   if (isVenueTileWageringPaused(row) && row.seated >= 2)
     return 'font-bold leading-snug normal-case whitespace-normal hyphens-none'
-  return 'font-bold uppercase leading-tight truncate'
+  return `font-bold uppercase leading-tight ${displayTextWrap}`
 }
 
 
@@ -968,7 +973,7 @@ function SeatRingWithLabels({
                 }}
               >
                 <span
-                  className={`block max-w-full truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
+                  className={`block max-w-full ${displayTextWrap} ${fitDisplayNameClasses(raw.trim().length, size === 'lg' ? 'venueSeatLg' : 'venueSeatMd')} ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
                 >
                   {raw}
                 </span>
@@ -978,7 +983,7 @@ function SeatRingWithLabels({
                     <>
                       {showMonoStackUnderName ? (
                         <span
-                          className={`mt-0.5 block max-w-full truncate font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
+                          className={`mt-0.5 block max-w-full font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
                             isFolded ? 'text-white/40' : 'text-casino-emerald'
                           }`}
                         >
@@ -1012,7 +1017,7 @@ function SeatRingWithLabels({
                 ) : null}
                 {lastBetAct != null ? (
                   <span
-                    className={`max-w-full truncate border-2 px-1.5 py-0.5 font-black uppercase leading-tight tracking-wide shadow-md ${
+                    className={`max-w-full whitespace-nowrap border-2 px-1.5 py-0.5 font-black uppercase leading-tight tracking-wide shadow-md ${
                       size === 'lg'
                         ? 'text-sm sm:text-base md:text-lg'
                         : 'text-[0.7rem] sm:text-xs md:text-sm'
@@ -1069,7 +1074,9 @@ function VenueFloorShowdownOverlay({
                 {label}
               </p>
             ) : null}
-            <p className="max-w-full truncate text-[0.55rem] font-black leading-tight text-amber-50 sm:text-[0.65rem]">
+            <p
+              className={`max-w-full ${displayTextWrap} text-[0.55rem] font-black leading-tight text-amber-50 sm:text-[0.65rem] ${fitDisplayNameClasses(w.name.trim().length, 'venueFloorWinner')}`}
+            >
               {w.name}
             </p>
             {w.submitted != null && typeof correctAnswer === 'number' ? (
@@ -1153,6 +1160,12 @@ function VenueMosaicTableCard({
     seatNames,
     actingCallAmount: row.actingCallAmount,
   })
+  const phaseCornerLabel = mosaicPhaseLabel(row)
+  const cardLabelMaxLen = longestTrimmedLength([
+    ...seatNames,
+    ...showdownRows.map((r) => r.name),
+    phaseCornerLabel,
+  ])
 
   const spotlight = isSpotlightThumb === true
   const totalChips = totalChipsFromSeats(seatNames, seatBankrolls)
@@ -1188,9 +1201,9 @@ function VenueMosaicTableCard({
             </div>
           </div>
           <span
-            className={`max-w-[min(9rem,46%)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
+            className={`max-w-[min(9rem,46%)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${fitDisplayNameClasses(cardLabelMaxLen, 'venuePhasePill')} ${mosaicPhaseAccent(row)}`}
           >
-            {mosaicPhaseLabel(row)}
+            {phaseCornerLabel}
           </span>
         </div>
 
@@ -1238,7 +1251,7 @@ function VenueMosaicTableCard({
               return (
                 <li key={i} className="flex min-w-0 items-center justify-between gap-1">
                   <span
-                    className={`min-w-0 truncate ${folded ? 'text-white/45 line-through' : onClock ? 'font-bold text-amber-200' : ''}`}
+                    className={`min-w-0 ${displayTextWrap} ${fitDisplayNameClasses(name.length, 'venueSeatList')} ${folded ? 'text-white/45 line-through' : onClock ? 'font-bold text-amber-200' : ''}`}
                   >
                     {name}
                   </span>
@@ -1276,7 +1289,7 @@ function VenueMosaicTableCard({
                 <dt className="sr-only">Pot</dt>
                 <dd className="sr-only">{formatVenueBankroll(pot)}</dd>
                 <dt className="sr-only">Chips on table</dt>
-                <dd className="truncate font-mono font-semibold tabular-nums text-casino-emerald/90">
+                <dd className="font-mono font-semibold tabular-nums text-casino-emerald/90">
                   {formatVenueBankroll(totalChips)}
                 </dd>
               </div>
@@ -1302,7 +1315,9 @@ function VenueMosaicTableCard({
               </div>
               {mosaicPotSubtitle != null ? (
                 <div className="rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
-                  <p className="min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs">
+                  <p
+                    className={`min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs ${displayTextWrap} ${fitDisplayNameClasses(mosaicPotSubtitle.length, 'venueSeatList')}`}
+                  >
                     {mosaicPotSubtitle}
                   </p>
                 </div>
@@ -1427,11 +1442,13 @@ function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) 
               className="w-full min-w-0 border-b border-white/[0.08] py-3 sm:py-3.5"
               aria-label={`${r.name}, ${formatVenueBankroll(r.bankroll)}, Table ${r.tableNum} seat ${r.seatNum}`}
             >
-              <div className="w-full min-w-0 truncate text-xl font-bold leading-[1.15] text-white/95 sm:text-2xl md:text-3xl">
+              <div
+                className={`w-full min-w-0 ${displayTextWrap} text-xl font-bold leading-[1.15] text-white/95 sm:text-2xl md:text-3xl ${fitDisplayNameClasses(r.name.trim().length, 'venueRosterName')}`}
+              >
                 {r.name}
               </div>
               <div className="mt-1 flex w-full min-w-0 items-baseline justify-between gap-2">
-                <span className="min-w-0 flex-1 truncate font-mono text-sm font-bold tabular-nums tracking-tight text-yellow-400/92 sm:text-base">
+                <span className="min-w-0 flex-1 font-mono text-sm font-bold tabular-nums tracking-tight text-yellow-400/92 sm:text-base">
                   Table {r.tableNum} · Seat {r.seatNum}
                 </span>
                 <span className="shrink-0 text-right font-mono text-lg font-bold tabular-nums leading-none text-casino-emerald sm:text-xl">

@@ -8,6 +8,7 @@ import {
 } from './showdownDisplay'
 import type { ShowdownWallDensity } from './showdownWallLayout'
 import { SHOWDOWN_FELT_STYLE } from './showdownTheme'
+import { displayTextWrap, fitDisplayNameClasses } from './displayTextFit'
 
 type ShowdownTableCardProps = {
   tableNum: number
@@ -63,9 +64,12 @@ function PlayerResultTile({
           {row.seat}
         </span>
         <p
-          className={`min-w-0 flex-1 truncate font-bold leading-tight text-white ${
+          className={`min-w-0 flex-1 ${displayTextWrap} font-bold leading-tight text-white ${
             compact ? 'text-xs' : 'text-sm sm:text-base'
-          }`}
+          } ${fitDisplayNameClasses(
+            row.name.trim().length,
+            compact ? 'showdownPlayerCompact' : 'showdownPlayerFull'
+          )}`}
         >
           {row.name}
         </p>
@@ -136,6 +140,10 @@ export default function ShowdownTableCard({
   const activeRows = sorted.filter((r) => r.name.trim() !== '' && !r.hasFolded)
   const displayRows = activeRows
   const winnerRows = activeRows.filter((r) => winnerKeys.has(`${r.seat}:${r.name}`))
+  const winnerBannerText =
+    winnerRows.length === 1
+      ? winnerRows[0]!.name
+      : `Split · ${winnerRows.map((w) => w.name).join(' · ')}`
   const compact = density === 'compact'
   const playerCols = playerGridColumns(displayRows.length, density)
   const potShown = typeof pot === 'number' && Number.isFinite(pot) && pot > 0 ? Math.round(pot) : 0
@@ -188,13 +196,14 @@ export default function ShowdownTableCard({
         >
           {!compact ? <PokerChip size="sm" /> : null}
           <p
-            className={`min-w-0 truncate text-center font-black uppercase tracking-wide text-amber-50 ${
+            className={`min-w-0 ${displayTextWrap} text-center font-black uppercase tracking-wide text-amber-50 ${
               compact ? 'text-[0.6rem]' : 'text-sm sm:text-base'
-            }`}
+            } ${fitDisplayNameClasses(
+              winnerBannerText.length,
+              compact ? 'showdownWinnerBarCompact' : 'showdownWinnerBarFull'
+            )}`}
           >
-            {winnerRows.length === 1
-              ? winnerRows[0]!.name
-              : `Split · ${winnerRows.map((w) => w.name).join(' · ')}`}
+            {winnerBannerText}
           </p>
         </div>
       ) : null}

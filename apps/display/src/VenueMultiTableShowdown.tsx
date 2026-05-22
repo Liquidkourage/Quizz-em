@@ -11,6 +11,7 @@ import {
 } from './showdownDisplay'
 import { showdownWallLayout } from './showdownWallLayout'
 import { SHOWDOWN_FELT_STYLE } from './showdownTheme'
+import { displayTextWrap, fitHeadlineQuestionClasses } from './displayTextFit'
 
 type VenueMultiTableShowdownProps = {
   tiles: DisplayVenueTileSnapshot[]
@@ -77,13 +78,17 @@ export default function VenueMultiTableShowdown({
           <p className="text-[0.6rem] font-bold uppercase tracking-[0.22em] text-amber-200/75 sm:text-xs">
             Venue showdown
           </p>
-          <h2 className="truncate text-lg font-black uppercase tracking-wide text-white sm:text-xl md:text-2xl">
+          <h2
+            className={`${displayTextWrap} text-lg font-black uppercase tracking-wide text-white sm:text-xl md:text-2xl`}
+          >
             {showdownTiles.length === 1
               ? `Table ${showdownTiles[0]!.tableNum}`
               : `${showdownTiles.length} tables`}
           </h2>
           {headlineQuestionText ? (
-            <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-white/65 sm:text-sm">
+            <p
+              className={`mt-0.5 ${displayTextWrap} text-white/65 ${fitHeadlineQuestionClasses(headlineQuestionText.trim().length)}`}
+            >
               {headlineQuestionText}
             </p>
           ) : null}

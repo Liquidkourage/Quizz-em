@@ -1207,7 +1207,7 @@ function VenueMosaicTableCard({
   const wageringLive = isMosaicWageringLive(row)
 
   const cardShell = betsInPaused
-    ? 'rounded-xl border-0 bg-transparent shadow-none ring-0'
+    ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
     : wageringLive
       ? 'rounded-xl border-2 border-amber-500/70 bg-black/55 shadow-[0_0_22px_rgba(251,191,36,0.28)] ring-1 ring-amber-400/25'
       : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
@@ -1217,7 +1217,7 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${betsInPaused ? ', no more bets' : ''}, venue floor`}
-        className={`flex w-full min-w-0 flex-col ${betsInPaused ? '' : 'backdrop-blur-md'} ${
+        className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
           floorHoneycomb && floorCompact
             ? 'h-full min-h-0 overflow-hidden'
             : floorHoneycomb

@@ -1,3 +1,4 @@
+import { formatTriviaNumber } from '@qhe/core'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import {
   pickShowdownFloorChipRow,
@@ -33,6 +34,7 @@ export type FloorShowdownCtx = {
   splitWin: boolean
   ariaLabel: string
   sidePotLines: ShowdownSidePotLine[] | null
+  correctAnswer: number | undefined
 }
 
 function formatPot(amount: number): string {
@@ -73,6 +75,10 @@ function buildCtx(
     sidePotLines != null
       ? sidePotLines.map((l) => `${l.label} ${formatPot(l.amount)} ${l.name}`).join(', ')
       : null
+  const answerLabel =
+    typeof correctAnswer === 'number' && Number.isFinite(correctAnswer)
+      ? `Correct answer ${formatTriviaNumber(correctAnswer)}. `
+      : ''
 
   return {
     pot: displayPot,
@@ -83,12 +89,13 @@ function buildCtx(
     extraWinners,
     splitWin: displaySplit,
     sidePotLines,
+    correctAnswer,
     ariaLabel:
       layerSummary != null
-        ? `Side pots: ${layerSummary}`
+        ? `${answerLabel}Side pots: ${layerSummary}`
         : displaySplit
-          ? `${label}: ${winners.map((w) => w.name).join(', ')}. ${formatPot(displayPot)} each`
-          : `${label}: ${winners.map((w) => w.name).join(', ')}. Pot ${formatPot(displayPot)}`,
+          ? `${answerLabel}${label}: ${winners.map((w) => w.name).join(', ')}. ${formatPot(displayPot)} each`
+          : `${answerLabel}${label}: ${winners.map((w) => w.name).join(', ')}. Pot ${formatPot(displayPot)}`,
   }
 }
 
@@ -168,14 +175,41 @@ function FloorPotBlock(ctx: FloorShowdownCtx) {
   return <HeroPot pot={ctx.pot} splitWin={ctx.splitWin} />
 }
 
+const FLOOR_ANSWER_LABEL =
+  'font-bold uppercase tracking-[0.14em] text-emerald-300/75 text-[clamp(0.42rem,3.8cqw,0.55rem)]'
+const FLOOR_ANSWER_VALUE =
+  'font-mono font-black tabular-nums leading-none text-emerald-100 text-[clamp(0.72rem,7.2cqw,1.2rem)]'
+const FLOOR_ANSWER_VALUE_COMPACT =
+  'font-mono font-black tabular-nums leading-none text-emerald-100 text-[clamp(0.62rem,6.2cqw,1.05rem)]'
+
+function FloorCorrectAnswer({
+  answer,
+  compact = false,
+}: {
+  answer: number | undefined
+  compact?: boolean
+}) {
+  if (typeof answer !== 'number' || !Number.isFinite(answer)) return null
+  return (
+    <div className="flex shrink-0 flex-col items-center gap-px pb-0.5 text-center">
+      <span className={FLOOR_ANSWER_LABEL}>Answer</span>
+      <span className={compact ? FLOOR_ANSWER_VALUE_COMPACT : FLOOR_ANSWER_VALUE}>
+        {formatTriviaNumber(answer)}
+      </span>
+    </div>
+  )
+}
+
 function ShowdownStack({ ctx, className = '' }: { ctx: FloorShowdownCtx; className?: string }) {
-  if (ctx.sidePotLines != null) {
+  const sidePot = ctx.sidePotLines != null
+  if (sidePot) {
     return (
       <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
-        <div className="flex w-full min-h-0 flex-1 items-stretch justify-center overflow-hidden pb-2">
+        <div className="flex w-full min-h-0 flex-1 items-stretch justify-center overflow-hidden pb-1">
           {FloorPotBlock(ctx)}
         </div>
-        <div className="flex w-full shrink-0 items-end justify-center pb-1.5 pt-0.5">
+        <div className="flex w-full shrink-0 flex-col items-center gap-0.5 pb-1.5 pt-0.5">
+          <FloorCorrectAnswer answer={ctx.correctAnswer} compact />
           {GuessBlock(ctx)}
         </div>
       </div>
@@ -188,7 +222,8 @@ function ShowdownStack({ ctx, className = '' }: { ctx: FloorShowdownCtx; classNa
         <WinnerBlock ctx={ctx} layout="line" />
       </div>
       <div className="w-full shrink-0 py-2.5">{FloorPotBlock(ctx)}</div>
-      <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-2">
+      <div className="flex w-full min-h-0 flex-1 flex-col items-center justify-start overflow-hidden gap-1 pt-1">
+        <FloorCorrectAnswer answer={ctx.correctAnswer} />
         {GuessBlock(ctx)}
       </div>
     </div>

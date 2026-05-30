@@ -174,18 +174,31 @@ function VariantBadge({ ctx }: { ctx: FloorShowdownCtx }) {
   )
 }
 
-function HeroPot({ pot, className = '' }: { pot: number; className?: string }) {
+function HeroPot({
+  pot,
+  splitWin = false,
+  className = '',
+}: {
+  pot: number
+  splitWin?: boolean
+  className?: string
+}) {
   return (
     <div className={`text-center ${className}`}>
       <p className={POT_AMOUNT}>{formatPot(pot)}</p>
+      {splitWin ? (
+        <p className="mt-1 font-bold uppercase tracking-[0.22em] text-yellow-200/90 text-[clamp(0.48rem,4.5cqw,0.68rem)]">
+          each
+        </p>
+      ) : null}
     </div>
   )
 }
 
-function PotChip({ pot }: { pot: number }) {
+function PotChip({ pot, splitWin = false }: { pot: number; splitWin?: boolean }) {
   return (
     <div className="inline-flex flex-col items-center rounded-xl border-2 border-yellow-500/55 bg-gradient-to-b from-yellow-900/90 via-amber-950/92 to-black/90 px-3 py-2 shadow-[0_8px_28px_rgba(0,0,0,0.6)]">
-      <HeroPot pot={pot} />
+      <HeroPot pot={pot} splitWin={splitWin} />
     </div>
   )
 }
@@ -242,13 +255,17 @@ function ShowdownStack({
 }) {
   return (
     <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
-      <div className="flex w-full min-h-0 flex-1 items-end justify-center pb-0.5">
+      <div className="flex w-full min-h-0 flex-1 items-end justify-center pb-2">
         <WinnerBlock ctx={ctx} layout={winnerLayout} />
       </div>
-      <div className="w-full shrink-0 py-1">
-        {potStyle === 'chip' ? <PotChip pot={ctx.pot} /> : <HeroPot pot={ctx.pot} />}
+      <div className="w-full shrink-0 py-2.5">
+        {potStyle === 'chip' ? (
+          <PotChip pot={ctx.pot} splitWin={ctx.splitWin} />
+        ) : (
+          <HeroPot pot={ctx.pot} splitWin={ctx.splitWin} />
+        )}
       </div>
-      <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-0.5">
+      <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-2">
         {GuessBlock(ctx)}
       </div>
     </div>
@@ -267,7 +284,7 @@ function SplitPotRibbon() {
 
 function MarqueeBulbs() {
   return (
-    <div className="flex shrink-0 justify-center gap-1 py-1">
+    <div className="flex shrink-0 justify-center gap-1 py-1.5">
       {Array.from({ length: 5 }, (_, i) => (
         <span
           key={i}
@@ -283,9 +300,9 @@ function MarqueeBulbs() {
 function renderVariant(ctx: FloorShowdownCtx): ReactNode {
   if (ctx.variantId !== 8) return null
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
+    <div className="flex min-h-0 flex-1 flex-col px-2.5 py-3">
       <MarqueeBulbs />
-      <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" />
+      <ShowdownStack ctx={ctx} winnerLayout="line" className="min-h-0 flex-1 justify-center" />
     </div>
   )
 }

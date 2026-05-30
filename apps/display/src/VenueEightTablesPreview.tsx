@@ -12,16 +12,11 @@ import seatChipStackImg from './assets/seat-chip-stack.png'
 import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { readShowdownLabFromUrl } from './displayUrlParams'
-import {
-  buildFloorShowdownPresentation,
-  VenueFeltWinningGuessByVariant,
-} from './VenueFloorShowdownOverlay'
+import { buildFloorShowdownPresentation } from './VenueFloorShowdownOverlay'
 import {
   resolveFloorShowdownData,
-  venueFloorShowdownVariantForTable,
   VenueFloorShowdownByVariant,
   VenueFloorShowdownVariantStyles,
-  type VenueFloorShowdownVariantId,
 } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
@@ -555,9 +550,6 @@ function SeatRingWithLabels({
   feltCenterPotDimmed = false,
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
   winnerSeatIndexes = null,
-  feltCenterWinningGuess = null,
-  feltWinningGuessVariant = null,
-  feltWinningGuessSplit = false,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -588,9 +580,6 @@ function SeatRingWithLabels({
   /** Fade the center pot during lobby / question before blinds post. */
   feltCenterPotDimmed?: boolean
   winnerSeatIndexes?: ReadonlySet<number> | null
-  feltCenterWinningGuess?: string | null
-  feltWinningGuessVariant?: VenueFloorShowdownVariantId | null
-  feltWinningGuessSplit?: boolean
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
@@ -728,13 +717,6 @@ function SeatRingWithLabels({
           amount={feltCenterPot}
           dimmed={feltCenterPotDimmed}
           prefersReducedMotion={prefersReducedMotion}
-        />
-      ) : null}
-      {isMosaic && feltCenterWinningGuess && feltWinningGuessVariant != null ? (
-        <VenueFeltWinningGuessByVariant
-          guess={feltCenterWinningGuess}
-          variantId={feltWinningGuessVariant}
-          splitWin={feltWinningGuessSplit}
         />
       ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
@@ -1061,7 +1043,6 @@ function VenueMosaicTableCard({
     if (!showFloorShowdownOverlay) return null
     return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
   }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
-  const floorVariantId = venueFloorShowdownVariantForTable(tn)
   const winnerSeatIndexes = showFloorShowdownOverlay
     ? floorShowdownPresentation?.winnerSeatIndexes ?? null
     : null
@@ -1089,10 +1070,13 @@ function VenueMosaicTableCard({
             : floorHoneycomb
               ? 'h-auto overflow-visible'
               : 'h-full min-h-0 overflow-hidden'
-        } ${
-          floorCompact ? 'gap-0.5 p-1 sm:gap-1 sm:p-1.5' : 'gap-1.5 overflow-visible p-2 sm:gap-2 sm:p-2.5'
-        } ${cardShell}`}
+        } ${floorCompact ? 'p-1 sm:p-1.5' : 'overflow-visible p-2 sm:p-2.5'} relative ${cardShell}`}
       >
+        <div
+          className={`flex min-h-0 min-w-0 flex-1 flex-col ${
+            floorCompact ? 'gap-0.5' : 'gap-1.5 sm:gap-2'
+          } ${showFloorShowdownOverlay ? 'opacity-25' : ''}`}
+        >
         <div className="flex shrink-0 items-start justify-between gap-1">
           <div className="min-w-0">
             <div
@@ -1138,24 +1122,7 @@ function VenueMosaicTableCard({
             feltCenterPot={showFloorShowdownOverlay ? undefined : pot}
             feltCenterPotDimmed={ph === 'lobby' || ph === 'question'}
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
-            feltCenterWinningGuess={
-              showFloorShowdownOverlay ? floorShowdownPresentation?.guess ?? null : null
-            }
-            feltWinningGuessVariant={showFloorShowdownOverlay ? floorVariantId : null}
-            feltWinningGuessSplit={
-              showFloorShowdownOverlay
-                ? (floorShowdownPresentation?.winners.length ?? 0) > 1
-                : false
-            }
           />
-          {showFloorShowdownOverlay ? (
-            <VenueFloorShowdownByVariant
-              tableNum={tn}
-              rows={floorShowdownRows}
-              correctAnswer={floorShowdownAnswer}
-              labMode={showdownLab}
-            />
-          ) : null}
         </div>
 
         {seats > 0 && !floorCompact ? (
@@ -1260,6 +1227,17 @@ function VenueMosaicTableCard({
               rows={liveShowdownRows}
             />
           </div>
+        ) : null}
+        </div>
+
+        {showFloorShowdownOverlay ? (
+          <VenueFloorShowdownByVariant
+            tableNum={tn}
+            pot={pot}
+            rows={floorShowdownRows}
+            correctAnswer={floorShowdownAnswer}
+            labMode={showdownLab}
+          />
         ) : null}
       </article>
   )

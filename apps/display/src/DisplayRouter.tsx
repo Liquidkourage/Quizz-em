@@ -144,6 +144,11 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
         tiles,
         headlineQuestionText: p.headlineQuestionText ?? null,
         answerDeadlineMs: p.answerDeadlineMs ?? null,
+        headlineTableNum:
+          typeof p.headlineTableNum === 'number' && Number.isFinite(p.headlineTableNum)
+            ? Math.floor(p.headlineTableNum)
+            : null,
+        headlinePhase: typeof p.headlinePhase === 'string' ? p.headlinePhase : null,
         serverNowMs: typeof p.serverNowMs === 'number' ? p.serverNowMs : undefined,
         lobbyPlayerCount:
           typeof p.lobbyPlayerCount === 'number' ? p.lobbyPlayerCount : 0,

@@ -93,6 +93,10 @@ export type DisplayVenueWallSnapshot = {
   headlineQuestionText: string | null
   /** Server epoch ms when a trivia-visible felt is in `answering` with `answerDeadline`; cleared outside that window. */
   answerDeadlineMs: number | null
+  /** Numbered felt driving `headlineQuestionText` / `answerDeadlineMs` (lowest table in the hottest phase bucket). */
+  headlineTableNum?: number | null
+  /** Core phase of the headline felt when a shared strip is active. */
+  headlinePhase?: string | null
   /**
    * Server epoch ms captured at the instant this snapshot was emitted.
    * The display uses (clientReceivedMs - serverNowMs) to cancel client-clock skew when rendering countdowns

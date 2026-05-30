@@ -1299,14 +1299,14 @@ const VENUE_WALL_HEADLINE_PHASES = new Set<string>([
  * Prefer the most “interesting” numbered felt for the shared TV headline bar:
  * answering (with deadline) → question setup → wagering (same question persists) → showdown family → fallback first seated table (may be lobby).
  */
-function pickVenueHeadlineGameState(venueCode: string): GameState | null {
+function pickVenueHeadlineSource(venueCode: string): { gs: GameState; tableNum: number } | null {
   const vn = normalizeVenueCode(venueCode)
 
-  function firstSeated(predicate: (gs: GameState) => boolean): GameState | null {
+  function firstSeated(predicate: (gs: GameState) => boolean): { gs: GameState; tableNum: number } | null {
     for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
       const key = tableSessionKey(vn, String(n))
       const gs = rooms.get(key)
-      if (gs != null && gs.players.length > 0 && predicate(gs)) return gs
+      if (gs != null && gs.players.length > 0 && predicate(gs)) return { gs, tableNum: n }
     }
     return null
   }
@@ -1337,7 +1337,7 @@ function pickVenueHeadlineGameState(venueCode: string): GameState | null {
   for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
     const key = tableSessionKey(vn, String(n))
     const gs = rooms.get(key)
-    if (gs != null && gs.players.length > 0) return gs
+    if (gs != null && gs.players.length > 0) return { gs, tableNum: n }
   }
   return null
 }
@@ -1578,10 +1578,15 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     })
   }
 
-  const headlineGs = pickVenueHeadlineGameState(vn)
+  const headlineSource = pickVenueHeadlineSource(vn)
+  const headlineGs = headlineSource?.gs ?? null
   let headlineQuestionText: string | null = null
   let answerDeadlineMs: number | null = null
+  let headlineTableNum: number | null = null
+  let headlinePhase: string | null = null
   if (headlineGs != null && VENUE_WALL_HEADLINE_PHASES.has(headlineGs.phase)) {
+    headlineTableNum = headlineSource?.tableNum ?? null
+    headlinePhase = headlineGs.phase
     const q = headlineGs.round?.question
     if (q != null && typeof q.text === 'string' && q.text.trim() !== '') {
       headlineQuestionText = q.text.trim()
@@ -1599,6 +1604,8 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     tiles,
     headlineQuestionText,
     answerDeadlineMs,
+    headlineTableNum,
+    headlinePhase,
     /** Anchor the client's countdown to server time so a skewed laptop clock doesn't start the 45s timer at 47–48s. */
     serverNowMs: Date.now(),
     lobbyPlayerCount,

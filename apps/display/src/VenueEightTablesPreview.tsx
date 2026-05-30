@@ -18,7 +18,7 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
-import { buildVenueWallTileRows, showdownTableNums, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, resolveVenueHeadlineSource, showdownTableNums, venueHeadlineDivergenceNote, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   banquetCheckerboardGridColumn,
   banquetCheckerboardTrackCount,
@@ -1744,6 +1744,7 @@ export default function VenueEightTablesPreview({
   const prefersReducedMotion = usePrefersReducedMotion()
   const headlineQuestionText = wall?.headlineQuestionText ?? null
   const answerDeadlineMs = wall?.answerDeadlineMs ?? null
+  const inAnsweringCountdown = answerDeadlineMs != null
 
   useEffect(() => {
     if (answerDeadlineMs == null) {
@@ -1773,6 +1774,16 @@ export default function VenueEightTablesPreview({
   const headlineQuestionDisplay = inVenueShowdown
     ? venueShowdownQuestionText
     : headlineQuestionText
+  const headlineSource = useMemo(
+    () => resolveVenueHeadlineSource(wall, tileRows),
+    [wall, tileRows]
+  )
+  const headlineDivergenceNote = useMemo(
+    () => venueHeadlineDivergenceNote(tileRows, headlineSource.phase),
+    [tileRows, headlineSource.phase]
+  )
+  const headlinePhaseLabel =
+    headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
 
   const spotlightTableNum = featuredWatch.featuredTableNum
 
@@ -1849,12 +1860,28 @@ export default function VenueEightTablesPreview({
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div className="min-w-0 flex-1">
+                    {headlineSource.tableNum != null && headlinePhaseLabel ? (
+                      <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-yellow-100/95 sm:text-xs">
+                          Table {headlineSource.tableNum} · {headlinePhaseLabel}
+                        </span>
+                        {headlineDivergenceNote ? (
+                          <span className="text-[10px] font-medium leading-snug text-white/55 sm:text-xs">
+                            {headlineDivergenceNote}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
                     {headlineQuestionDisplay ? (
                       <p className="text-balance text-left text-lg font-bold leading-snug tracking-tight text-yellow-400 sm:text-xl sm:leading-snug md:text-2xl md:leading-snug lg:text-[1.75rem] xl:text-[2rem] 2xl:text-[2.15rem]">
                         {headlineQuestionDisplay}
                       </p>
                     ) : inVenueShowdown ? (
                       <p className="sr-only">Showdown in progress.</p>
+                    ) : inAnsweringCountdown ? (
+                      <p className="text-left text-lg font-bold leading-snug tracking-tight text-cyan-200 sm:text-xl md:text-2xl">
+                        Answer on your phone now
+                      </p>
                     ) : (
                       <p className="sr-only">Answering in progress.</p>
                     )}
@@ -1871,20 +1898,20 @@ export default function VenueEightTablesPreview({
                         {formatTriviaNumber(venueShowdownAnswer)}
                       </div>
                     </div>
-                  ) : answerDeadlineMs != null && typeof timerSeconds === 'number' ? (
+                  ) : inAnsweringCountdown && typeof timerSeconds === 'number' ? (
                     <div
-                      className={`flex shrink-0 flex-row items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 sm:flex-col sm:px-3 sm:py-2 sm:tabular-nums ${
+                      className={`flex shrink-0 flex-col items-stretch justify-center gap-1.5 rounded-lg border px-2 py-1.5 sm:min-w-[7.5rem] sm:px-3 sm:py-2 ${
                         timerSeconds <= 10
-                          ? 'border-amber-400/55 bg-amber-950/45 shadow-[0_0_20px_rgba(251,191,36,0.1)]'
-                          : 'border-amber-600/35 bg-amber-950/25'
+                          ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_20px_rgba(34,211,238,0.12)]'
+                          : 'border-cyan-600/35 bg-cyan-950/25'
                       }`}
                       aria-live="polite"
-                      aria-label={`Time remaining ${timerSeconds} seconds`}
+                      aria-label={`Answer on your phone, ${timerSeconds} seconds remaining`}
                     >
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-white/50 sm:hidden">
-                        Time
+                      <span className="text-center text-[10px] font-black uppercase leading-tight tracking-wide text-cyan-100/90 sm:text-xs">
+                        Answer on your phone
                       </span>
-                      <div className="font-mono text-2xl font-black tracking-tight text-amber-200 sm:text-4xl md:text-5xl xl:text-6xl">
+                      <div className="text-center font-mono text-2xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-4xl md:text-5xl xl:text-6xl">
                         {timerSeconds}s
                       </div>
                     </div>

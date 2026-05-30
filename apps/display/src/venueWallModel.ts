@@ -77,6 +77,61 @@ export function showdownTableNums(tileRows: DisplayVenueTileSnapshot[]): number[
   return tileRows.filter((t) => t.phase === 'showdown').map((t) => t.tableNum)
 }
 
+/** Human label for venue-wall headline phase chips. */
+export function venueWallPhaseLabel(ph: string): string {
+  if (ph === 'lobby') return 'Lobby'
+  if (ph === 'question') return 'Question setup'
+  if (ph === 'betting') return 'Wagering'
+  if (ph === 'answering') return 'Answering'
+  if (ph === 'reveal') return 'Reveal'
+  if (ph === 'showdown') return 'Showdown'
+  if (ph === 'payout') return 'Payout'
+  if (ph === 'intermission') return 'Break'
+  return ph
+}
+
+/** Which numbered felt drives the sticky headline strip (server field with tile fallback). */
+export function resolveVenueHeadlineSource(
+  wall: DisplayVenueWallSnapshot | null,
+  tileRows: DisplayVenueTileSnapshot[]
+): { tableNum: number | null; phase: string | null } {
+  if (
+    wall?.headlineTableNum != null &&
+    typeof wall.headlineTableNum === 'number' &&
+    Number.isFinite(wall.headlineTableNum)
+  ) {
+    return {
+      tableNum: Math.floor(wall.headlineTableNum),
+      phase: typeof wall.headlinePhase === 'string' ? wall.headlinePhase : null,
+    }
+  }
+  const answering = tileRows.find((t) => t.phase === 'answering' && t.seated >= 2)
+  if (answering) return { tableNum: answering.tableNum, phase: 'answering' }
+  const idx = floorFeaturedTileIndex(tileRows)
+  const t = tileRows[idx]
+  return t != null ? { tableNum: t.tableNum, phase: t.phase } : { tableNum: null, phase: null }
+}
+
+/** Secondary headline note when populated felts are on different steps. */
+export function venueHeadlineDivergenceNote(
+  tileRows: DisplayVenueTileSnapshot[],
+  headlinePhase: string | null
+): string | null {
+  if (headlinePhase == null) return null
+  const active = tileRows.filter((t) => t.seated >= 2)
+  if (active.length <= 1) return null
+
+  if (headlinePhase === 'answering') {
+    const wagering = active.filter((t) => t.phase === 'betting' && t.isBettingOpen === true).length
+    if (wagering > 0) return `${wagering} table${wagering === 1 ? '' : 's'} still wagering`
+  }
+  if (headlinePhase === 'betting') {
+    const answering = active.filter((t) => t.phase === 'answering').length
+    if (answering > 0) return `${answering} table${answering === 1 ? '' : 's'} answering`
+  }
+  return null
+}
+
 /** Legacy full-screen grid — mosaic tile overlays are production. */
 export function shouldUseVenueShowdownWall(_tileRows: DisplayVenueTileSnapshot[]): boolean {
   return false

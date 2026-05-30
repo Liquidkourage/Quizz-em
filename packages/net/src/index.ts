@@ -12,6 +12,21 @@ export type HostLibrarySnapshot = {
   activeSetlistNextIndex: number
   /** Default trivia answer countdown for this venue (seconds). Omitted by older servers. */
   answerWindowSeconds?: number
+  /** Venue-wide blind schedule + current level. Omitted by older servers. */
+  venueBlinds?: VenueBlindsSnapshot
+}
+
+/** Host library + venue wall: persisted blind levels for a venue. */
+export type VenueBlindsSnapshot = {
+  smallBlind: number
+  bigBlind: number
+  blindLevelIndex: number
+  blindLevelCount: number
+  handsPerBlindLevel: number
+  handsAtCurrentLevel: number
+  /** Null when at the top level in the schedule. */
+  handsUntilNextLevel: number | null
+  levels: { smallBlind: number; bigBlind: number }[]
 }
 
 export const ClientRole = z.enum(['host', 'player', 'display'])
@@ -45,6 +60,11 @@ export type DisplayVenueTileSnapshot = {
   isBettingOpen?: boolean | null
   /** 1 = pre-board, 2 = post-board. Omitted by older servers. */
   bettingRound?: number | null
+  /** Effective SB/BB for this table (venue default or table override). Omitted by older servers. */
+  smallBlind?: number
+  bigBlind?: number
+  /** True when this table uses custom blinds instead of the venue default. */
+  blindsTableOverride?: boolean
   /** Parallel to `seatNames`: true when that roster seat has folded this hand. Omitted by older servers. */
   seatFolded?: boolean[]
   /** This wagering street only: last check / call / raise / fold / all-in per seat. Omitted by older servers. */
@@ -97,6 +117,14 @@ export type DisplayVenueWallSnapshot = {
   headlineTableNum?: number | null
   /** Core phase of the headline felt when a shared strip is active. */
   headlinePhase?: string | null
+  /** Venue-wide blind amounts (lowest table override excluded — see per-tile fields). */
+  venueSmallBlind?: number | null
+  venueBigBlind?: number | null
+  /** 1-based level index in the venue blind schedule. */
+  blindLevelNumber?: number | null
+  blindLevelCount?: number | null
+  /** Hands remaining before the venue auto-advances to the next blind level; null at max level. */
+  handsUntilNextBlindLevel?: number | null
   /**
    * Server epoch ms captured at the instant this snapshot was emitted.
    * The display uses (clientReceivedMs - serverNowMs) to cancel client-clock skew when rendering countdowns

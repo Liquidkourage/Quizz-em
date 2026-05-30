@@ -424,6 +424,49 @@ export function setVenueAnswerWindowSeconds(seconds: number, callback?: (ack: Se
   if (callback) socket.once('ack', callback)
 }
 
+/** Host-only: set venue-wide SB/BB (clears per-table overrides) and persist. */
+export function setVenueBlinds(smallBlind: number, bigBlind: number, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'setVenueBlinds', payload: { smallBlind, bigBlind } })
+  if (callback) socket.once('ack', callback)
+}
+
+/** Host-only: override blinds on one numbered table; persists until cleared or venue-wide set. */
+export function setTableBlinds(
+  tableNum: number,
+  smallBlind: number,
+  bigBlind: number,
+  callback?: (ack: ServerAck) => void,
+) {
+  if (!socket) return
+  socket.emit('action', {
+    type: 'setTableBlinds',
+    payload: { tableNum, smallBlind, bigBlind },
+  })
+  if (callback) socket.once('ack', callback)
+}
+
+/** Host-only: revert one table to venue-wide blind amounts. */
+export function clearTableBlinds(tableNum: number, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'clearTableBlinds', payload: { tableNum } })
+  if (callback) socket.once('ack', callback)
+}
+
+/** Host-only: configure auto level-up schedule (hands per level + optional level ladder). */
+export function setVenueBlindStructure(
+  handsPerBlindLevel: number,
+  levels?: { smallBlind: number; bigBlind: number }[],
+  callback?: (ack: ServerAck) => void,
+) {
+  if (!socket) return
+  socket.emit('action', {
+    type: 'setVenueBlindStructure',
+    payload: { handsPerBlindLevel, levels },
+  })
+  if (callback) socket.once('ack', callback)
+}
+
 // Player actions
 export function bet(amount: number, callback?: (ack: ServerAck) => void) {
   if (!socket) return

@@ -680,6 +680,11 @@ function PlayerApp() {
             <div className="text-center mb-6">
               <div className="text-sm text-white/80">Bankroll</div>
               <div className="text-3xl font-bold text-casino-gold">${currentPlayer?.bankroll || 0}</div>
+              {gameState.phase !== 'lobby' && currentPlayer && inChipContest(currentPlayer) ? (
+                <div className="mt-2 text-sm font-semibold tabular-nums text-white/70">
+                  Blinds ${gameState.smallBlind} / ${gameState.bigBlind}
+                </div>
+              ) : null}
               <div className="mt-2 text-sm text-white/70">
                 Trivia points <span className="font-semibold text-casino-emerald">{currentPlayer?.answerPoints ?? 0}</span>
               </div>

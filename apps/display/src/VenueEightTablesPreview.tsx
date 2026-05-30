@@ -18,7 +18,7 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
-import { buildVenueWallTileRows, resolveVenueHeadlineSource, showdownTableNums, venueHeadlineDivergenceNote, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, resolveVenueHeadlineSource, showdownTableNums, venueHeadlineDivergenceNote, venueWallBlindsLine, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   banquetCheckerboardGridColumn,
   banquetCheckerboardTrackCount,
@@ -1293,6 +1293,20 @@ function VenueMosaicTableCard({
             >
               {tn}
             </div>
+            {typeof row.smallBlind === 'number' &&
+            typeof row.bigBlind === 'number' &&
+            row.smallBlind > 0 &&
+            row.bigBlind > 0 ? (
+              <div
+                className={`font-mono font-bold tabular-nums leading-none text-white/55 ${
+                  floorCompact ? 'mt-0.5 text-[8px] sm:text-[9px]' : 'mt-1 text-[10px] sm:text-xs'
+                }`}
+                title={row.blindsTableOverride ? 'Custom blinds for this table' : 'Venue blinds'}
+              >
+                ${row.smallBlind}/${row.bigBlind}
+                {row.blindsTableOverride ? '*' : ''}
+              </div>
+            ) : null}
           </div>
           {!betsInPaused ? (
             <span
@@ -1784,6 +1798,7 @@ export default function VenueEightTablesPreview({
   )
   const headlinePhaseLabel =
     headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
+  const venueBlindsLine = useMemo(() => venueWallBlindsLine(wall), [wall])
 
   const spotlightTableNum = featuredWatch.featuredTableNum
 
@@ -1860,6 +1875,11 @@ export default function VenueEightTablesPreview({
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div className="min-w-0 flex-1">
+                    {venueBlindsLine ? (
+                      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-amber-200/90 sm:text-xs">
+                        {venueBlindsLine}
+                      </p>
+                    ) : null}
                     {headlineSource.tableNum != null && headlinePhaseLabel ? (
                       <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                         <span className="inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-yellow-100/95 sm:text-xs">

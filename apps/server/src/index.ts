@@ -22,7 +22,6 @@ import {
   isSubmittedAnswerComposableFromDeal,
   adminCloseBetting,
   adminAdvanceTurn,
-  adminSetBlinds,
   computeOptimalTableCount,
   splitIntoTableSizes,
   shuffle,
@@ -93,6 +92,17 @@ import {
   ANSWER_WINDOW_MIN_SEC,
   ANSWER_WINDOW_MAX_SEC,
 } from './venue-answer-window-settings'
+import {
+  applyEffectiveBlindsToGameState,
+  clearTableBlindsOverride,
+  effectiveBlindsForSessionKey,
+  hostLibraryBlindsPayload,
+  loadVenueBlindSettingsFromDisk,
+  recordVenueHandCompleted,
+  setTableBlindsOverride,
+  setVenueBlindStructurePersist,
+  setVenueBlindsPersist,
+} from './venue-blind-settings'
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
@@ -1049,6 +1059,20 @@ async function buildHostLibraryPayload(venueCode: string) {
     activeSetlistId: ph.setlistId,
     activeSetlistNextIndex: ph.nextIndex,
     answerWindowSeconds: getVenueAnswerWindowSeconds(k),
+    venueBlinds: hostLibraryBlindsPayload(k),
+  }
+}
+
+/** Push persisted venue blinds onto every session (respects per-table overrides). */
+function syncVenueBlindsToAllSessions(vn: string) {
+  for (const tk of allVenueSessionKeys(vn)) {
+    const gs = rooms.get(tk)
+    if (!gs) continue
+    const next = applyEffectiveBlindsToGameState(gs, vn, tk)
+    if (next.smallBlind !== gs.smallBlind || next.bigBlind !== gs.bigBlind) {
+      rooms.set(tk, next)
+      io.to(tk).emit('state', next)
+    }
   }
 }
 
@@ -1479,6 +1503,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
         gs.phase === 'answering' ||
         gs.phase === 'reveal' ||
         gs.phase === 'showdown')
+    const blindEff = effectiveBlindsForSessionKey(vn, key)
     const seatHoleDigits = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
       const p = gs.players[i]
       if (p == null || p.hasFolded || p.hand.length < 2) return null
@@ -1574,9 +1599,14 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
         gs.phase === 'betting' && gs.round.isBettingOpen === true
           ? displayActingSeatIndex(gs.phase, seated, gs.round)
           : null,
+      smallBlind: blindEff.smallBlind,
+      bigBlind: blindEff.bigBlind,
+      ...(blindEff.isTableOverride ? { blindsTableOverride: true } : {}),
       ...(interestingAction ? { interestingAction: true } : {}),
     })
   }
+
+  const blindsSnap = hostLibraryBlindsPayload(vn)
 
   const headlineSource = pickVenueHeadlineSource(vn)
   const headlineGs = headlineSource?.gs ?? null
@@ -1606,6 +1636,11 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     answerDeadlineMs,
     headlineTableNum,
     headlinePhase,
+    venueSmallBlind: blindsSnap.smallBlind,
+    venueBigBlind: blindsSnap.bigBlind,
+    blindLevelNumber: blindsSnap.blindLevelIndex + 1,
+    blindLevelCount: blindsSnap.blindLevelCount,
+    handsUntilNextBlindLevel: blindsSnap.handsUntilNextLevel,
     /** Anchor the client's countdown to server time so a skewed laptop clock doesn't start the 45s timer at 47–48s. */
     serverNowMs: Date.now(),
     lobbyPlayerCount,
@@ -1815,7 +1850,11 @@ io.on('connection', (socket) => {
 
     let gameState = rooms.get(helloSessionKey)
     if (!gameState) {
-      gameState = createEmptyGame(venueCode, '', tableId)
+      gameState = applyEffectiveBlindsToGameState(
+        createEmptyGame(venueCode, '', tableId),
+        venueCode,
+        helloSessionKey,
+      )
       rooms.set(helloSessionKey, gameState)
     }
 
@@ -2365,16 +2404,116 @@ io.on('connection', (socket) => {
           break
         case 'adminSetBlinds': {
           if (!assertVenueHost(socket, gameState)) break
-          const { smallBlind, bigBlind } = payload as any
-          const sb = Number(smallBlind)
-          const bb = Number(bigBlind)
-          for (const tk of allVenueSessionKeys(gameState.code)) {
-            let gs = rooms.get(tk)
-            gs = adminSetBlinds(gs, sb, bb)
-            rooms.set(tk, gs)
-            emitVenueTableState(tk, gs)
+          const { smallBlind, bigBlind } = payload as { smallBlind?: unknown; bigBlind?: unknown }
+          const vn = normalizeVenueCode(gameState.code)
+          setVenueBlindsPersist(vn, Number(smallBlind), Number(bigBlind))
+          syncVenueBlindsToAllSessions(vn)
+          for (const tk of allVenueSessionKeys(vn)) {
+            const gs = rooms.get(tk)
+            if (gs) emitVenueTableState(tk, gs)
           }
-          socket.emit('toast', `Blinds synced: SB ${sb}, BB ${bb}`)
+          await emitHostLibrary(vn)
+          emitDisplayVenueSnapshotNow(vn)
+          const snap = hostLibraryBlindsPayload(vn)
+          socket.emit('toast', `Venue blinds synced: $${snap.smallBlind} / $${snap.bigBlind}`)
+          gameState = rooms.get(sessionKey)!
+          break
+        }
+
+        case 'setVenueBlinds': {
+          if (!assertVenueHost(socket, gameState)) break
+          const vn = normalizeVenueCode(gameState.code)
+          const sb = Number((payload as { smallBlind?: unknown })?.smallBlind)
+          const bb = Number((payload as { bigBlind?: unknown })?.bigBlind)
+          setVenueBlindsPersist(vn, sb, bb)
+          syncVenueBlindsToAllSessions(vn)
+          for (const tk of allVenueSessionKeys(vn)) {
+            const gs = rooms.get(tk)
+            if (gs) emitVenueTableState(tk, gs)
+          }
+          await emitHostLibrary(vn)
+          emitDisplayVenueSnapshotNow(vn)
+          const snap = hostLibraryBlindsPayload(vn)
+          socket.emit('toast', `Venue blinds saved: $${snap.smallBlind} / $${snap.bigBlind}`)
+          gameState = rooms.get(sessionKey)!
+          break
+        }
+
+        case 'setTableBlinds': {
+          if (!assertVenueHost(socket, gameState)) break
+          const vn = normalizeVenueCode(gameState.code)
+          const tableNum = Math.floor(Number((payload as { tableNum?: unknown })?.tableNum))
+          const sb = Number((payload as { smallBlind?: unknown })?.smallBlind)
+          const bb = Number((payload as { bigBlind?: unknown })?.bigBlind)
+          if (!Number.isFinite(tableNum) || tableNum < 1 || tableNum > VENUE_NUMBERED_TABLE_MAX) {
+            socket.emit('toast', `Table number must be 1–${VENUE_NUMBERED_TABLE_MAX}.`)
+            break
+          }
+          const tid = String(tableNum)
+          const tk = tableSessionKey(vn, tid)
+          const pair = setTableBlindsOverride(vn, tid, sb, bb)
+          const gs = rooms.get(tk)
+          if (gs) {
+            const next = applyEffectiveBlindsToGameState(gs, vn, tk)
+            rooms.set(tk, next)
+            emitVenueTableState(tk, next)
+          }
+          emitDisplayVenueSnapshotNow(vn)
+          socket.emit('toast', `Table ${tableNum} blinds: $${pair.smallBlind} / $${pair.bigBlind}`)
+          gameState = rooms.get(sessionKey)!
+          break
+        }
+
+        case 'clearTableBlinds': {
+          if (!assertVenueHost(socket, gameState)) break
+          const vn = normalizeVenueCode(gameState.code)
+          const tableNum = Math.floor(Number((payload as { tableNum?: unknown })?.tableNum))
+          if (!Number.isFinite(tableNum) || tableNum < 1 || tableNum > VENUE_NUMBERED_TABLE_MAX) {
+            socket.emit('toast', `Table number must be 1–${VENUE_NUMBERED_TABLE_MAX}.`)
+            break
+          }
+          const tid = String(tableNum)
+          const tk = tableSessionKey(vn, tid)
+          clearTableBlindsOverride(vn, tid)
+          const gs = rooms.get(tk)
+          if (gs) {
+            const next = applyEffectiveBlindsToGameState(gs, vn, tk)
+            rooms.set(tk, next)
+            emitVenueTableState(tk, next)
+          }
+          emitDisplayVenueSnapshotNow(vn)
+          const snap = hostLibraryBlindsPayload(vn)
+          socket.emit('toast', `Table ${tableNum} reverted to venue blinds ($${snap.smallBlind} / $${snap.bigBlind})`)
+          gameState = rooms.get(sessionKey)!
+          break
+        }
+
+        case 'setVenueBlindStructure': {
+          if (!assertVenueHost(socket, gameState)) break
+          const vn = normalizeVenueCode(gameState.code)
+          const rawHands = Number((payload as { handsPerBlindLevel?: unknown })?.handsPerBlindLevel)
+          const rawLevels = (payload as { levels?: unknown })?.levels
+          let levels: { smallBlind: number; bigBlind: number }[] | undefined
+          if (Array.isArray(rawLevels) && rawLevels.length > 0) {
+            levels = rawLevels
+              .map((l) => {
+                if (l == null || typeof l !== 'object') return null
+                const o = l as { smallBlind?: unknown; bigBlind?: unknown }
+                return {
+                  smallBlind: Number(o.smallBlind),
+                  bigBlind: Number(o.bigBlind),
+                }
+              })
+              .filter((x): x is { smallBlind: number; bigBlind: number } => x != null)
+          }
+          const snap = setVenueBlindStructurePersist(vn, rawHands, levels)
+          syncVenueBlindsToAllSessions(vn)
+          await emitHostLibrary(vn)
+          emitDisplayVenueSnapshotNow(vn)
+          socket.emit(
+            'toast',
+            `Blind structure: level every ${snap.handsPerBlindLevel} hand(s), ${snap.levels.length} levels, now $${snap.smallBlind}/$${snap.bigBlind}`,
+          )
           gameState = rooms.get(sessionKey)!
           break
         }
@@ -2461,7 +2600,13 @@ io.on('connection', (socket) => {
             rooms.set(tk, next)
             emitVenueTableState(tk, next)
           }
+          const vnEnd = normalizeVenueCode(gameState.code)
+          const levelMsg = recordVenueHandCompleted(vnEnd)
+          syncVenueBlindsToAllSessions(vnEnd)
+          await emitHostLibrary(vnEnd)
+          emitDisplayVenueSnapshotNow(vnEnd)
           socket.emit('toast', `Round cleared — lobby on all ${lockEnd.length} felts at this venue.`)
+          if (levelMsg) socket.emit('toast', levelMsg)
           gameState = rooms.get(sessionKey)!
           break
         }
@@ -2475,11 +2620,15 @@ io.on('connection', (socket) => {
             io.to(tk).emit('toast', 'Venue reset — use the lobby link to rejoin.')
             rooms.delete(tk)
           }
-          const freshLobby = {
-            ...createEmptyGame(vn, hostIdSnap, LOBBY_TABLE_ID),
-            smallBlind: gameState.smallBlind,
-            bigBlind: gameState.bigBlind,
-          }
+          const freshLobby = applyEffectiveBlindsToGameState(
+            {
+              ...createEmptyGame(vn, hostIdSnap, LOBBY_TABLE_ID),
+              smallBlind: gameState.smallBlind,
+              bigBlind: gameState.bigBlind,
+            },
+            vn,
+            lobbyKey,
+          )
           rooms.set(lobbyKey, freshLobby)
           const hostSock = io.sockets.sockets.get(hostIdSnap)
           if (hostSock) {
@@ -2532,13 +2681,16 @@ io.on('connection', (socket) => {
             offset += sizes[ti]
             const tid = String(ti + 1)
             const tk = tableSessionKey(lobbyGs.code, tid)
-            let gsNew = createEmptyGame(lobbyGs.code, hostIdSnap, tid)
-            gsNew = {
-              ...gsNew,
-              smallBlind: lobbyGs.smallBlind,
-              bigBlind: lobbyGs.bigBlind,
-              players: slice,
-            }
+            let gsNew = applyEffectiveBlindsToGameState(
+              {
+                ...createEmptyGame(lobbyGs.code, hostIdSnap, tid),
+                smallBlind: lobbyGs.smallBlind,
+                bigBlind: lobbyGs.bigBlind,
+                players: slice,
+              },
+              lobbyGs.code,
+              tk,
+            )
             /** Humans expect lobby after assign until the host starts play — VP auto-run skips unless the table is CPU-only. */
             if (tableIsCpuOnly(gsNew)) {
               gsNew = runVirtualPlayerSimulation(gsNew)
@@ -2557,11 +2709,15 @@ io.on('connection', (socket) => {
             emitVenueTableState(tk, gsNew)
           }
 
-          const emptyLobby = {
-            ...createEmptyGame(normalizeVenueCode(lobbyGs.code), hostIdSnap, LOBBY_TABLE_ID),
-            smallBlind: lobbyGs.smallBlind,
-            bigBlind: lobbyGs.bigBlind,
-          }
+          const emptyLobby = applyEffectiveBlindsToGameState(
+            {
+              ...createEmptyGame(normalizeVenueCode(lobbyGs.code), hostIdSnap, LOBBY_TABLE_ID),
+              smallBlind: lobbyGs.smallBlind,
+              bigBlind: lobbyGs.bigBlind,
+            },
+            normalizeVenueCode(lobbyGs.code),
+            lobbyKey,
+          )
           rooms.set(lobbyKey, emptyLobby)
           io.to(lobbyKey).emit('state', emptyLobby)
 
@@ -2602,13 +2758,16 @@ io.on('connection', (socket) => {
           for (let ti = 0; ti < sizes.length; ti++) {
             const tid = String(ti + 1)
             const tk = tableSessionKey(vn, tid)
-            let gsNew = createEmptyGame(vn, hostIdSnap, tid)
-            gsNew = {
-              ...gsNew,
-              smallBlind: gameState.smallBlind,
-              bigBlind: gameState.bigBlind,
-              maxPlayers: VENUE_WALL_SEAT_SLOTS,
-            }
+            let gsNew = applyEffectiveBlindsToGameState(
+              {
+                ...createEmptyGame(vn, hostIdSnap, tid),
+                smallBlind: gameState.smallBlind,
+                bigBlind: gameState.bigBlind,
+                maxPlayers: VENUE_WALL_SEAT_SLOTS,
+              },
+              vn,
+              tk,
+            )
             const seatN = sizes[ti]!
             for (let si = 0; si < seatN; si++) {
               gsNew = addPlayer(
@@ -2868,8 +3027,12 @@ async function bootstrap(): Promise<void> {
   console.log(`📚 Venue libraries: ${dbMode}`)
   initAnswerWindowEnvDefault()
   loadVenueAnswerWindowSettingsFromDisk()
+  loadVenueBlindSettingsFromDisk()
   console.log(
     '⏱️ Trivia answer window: default from ANSWER_WINDOW_SECONDS (see server); venue overrides in data/venue-answer-settings.json.',
+  )
+  console.log(
+    '💰 Venue blinds: defaults 10/20 with level schedule; overrides in data/venue-blind-settings.json.',
   )
 
   httpServer.listen(PORT, HOST, () => {

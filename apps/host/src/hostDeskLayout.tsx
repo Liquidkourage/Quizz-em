@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NeonButton } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
-import type { HostVenueFeltBeatRow } from '@qhe/net'
+import type { HostVenueFeltBeatRow, VenueBlindsSnapshot } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID } from '@qhe/core'
 import { adminCloseBetting } from '@qhe/net'
 
@@ -211,6 +211,20 @@ export function hostRunOfShowHeadline(gameState: GameState): { title: string; de
     return {
       title: 'Showdown — end the round',
       detail: 'Payout runs when you end the round. Then start the next hand from step 1.',
+    }
+  }
+
+  if (stepId === 'start' && phase === 'lobby') {
+    return {
+      title: current.label,
+      detail: `Blinds $${gameState.smallBlind} / $${gameState.bigBlind} on this felt — confirm amounts below before dealing.`,
+    }
+  }
+
+  if (stepId === 'deal-holes') {
+    return {
+      title: current.label,
+      detail: `Posts $${gameState.smallBlind} / $${gameState.bigBlind} blinds, then deals hole cards.`,
     }
   }
 
@@ -735,5 +749,125 @@ export function HostPublicTvsPanel({
         })}
       </div>
     </HostCollapsible>
+  )
+}
+
+export function formatVenueBlindsSummary(
+  blinds: Pick<
+    VenueBlindsSnapshot,
+    'smallBlind' | 'bigBlind' | 'blindLevelIndex' | 'blindLevelCount' | 'handsUntilNextLevel'
+  >,
+): string {
+  let line = `$${blinds.smallBlind} / $${blinds.bigBlind}`
+  line += ` · Level ${blinds.blindLevelIndex + 1}/${blinds.blindLevelCount}`
+  if (blinds.handsUntilNextLevel != null) {
+    line += ` · ${blinds.handsUntilNextLevel} hand(s) to next level`
+  }
+  return line
+}
+
+export function HostBlindsControls({
+  venueSmallBlind,
+  venueBigBlind,
+  handsPerBlindLevel,
+  blindLevelSummary,
+  tableNum,
+  hostTableId,
+  onVenueSmallBlindChange,
+  onVenueBigBlindChange,
+  onHandsPerLevelChange,
+  onSaveVenueBlinds,
+  onSaveBlindStructure,
+  onSaveTableBlinds,
+  onClearTableBlinds,
+  showTableOverride = true,
+  compact = false,
+}: {
+  venueSmallBlind: number
+  venueBigBlind: number
+  handsPerBlindLevel: number
+  blindLevelSummary: string | null
+  tableNum: number
+  hostTableId: string
+  onVenueSmallBlindChange: (n: number) => void
+  onVenueBigBlindChange: (n: number) => void
+  onHandsPerLevelChange: (n: number) => void
+  onSaveVenueBlinds: () => void
+  onSaveBlindStructure: () => void
+  onSaveTableBlinds: () => void
+  onClearTableBlinds: () => void
+  showTableOverride?: boolean
+  compact?: boolean
+}) {
+  const inputClass = compact
+    ? 'w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white'
+    : 'w-full rounded-lg border border-white/20 bg-white/10 p-3 text-white backdrop-blur-md focus:border-casino-emerald focus:outline-none'
+
+  return (
+    <div
+      className={`space-y-3 rounded-lg border border-amber-400/30 bg-amber-950/20 ${compact ? 'px-3 py-2' : 'px-3 py-3'}`}
+    >
+      {blindLevelSummary ? (
+        <p className="text-xs leading-snug text-amber-100/85">
+          Venue blinds: <span className="font-semibold tabular-nums text-amber-50">{blindLevelSummary}</span>
+        </p>
+      ) : null}
+      <div className={`flex flex-wrap items-end gap-2 ${compact ? '' : 'md:grid md:grid-cols-3 md:items-end md:gap-3'}`}>
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] font-semibold uppercase tracking-wide text-white/48">Small blind</label>
+          <input
+            type="number"
+            min={1}
+            value={venueSmallBlind}
+            onChange={(e) => onVenueSmallBlindChange(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] font-semibold uppercase tracking-wide text-white/48">Big blind</label>
+          <input
+            type="number"
+            min={1}
+            value={venueBigBlind}
+            onChange={(e) => onVenueBigBlindChange(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <NeonButton variant="gold" size={compact ? 'small' : 'normal'} type="button" onClick={onSaveVenueBlinds}>
+          Save venue blinds
+        </NeonButton>
+      </div>
+      <div className="flex flex-wrap items-end gap-2 border-t border-white/10 pt-2">
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] font-semibold uppercase tracking-wide text-white/48">
+            Level up every (hands)
+          </label>
+          <input
+            type="number"
+            min={1}
+            max={50}
+            value={handsPerBlindLevel}
+            onChange={(e) => onHandsPerLevelChange(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <NeonButton variant="blue" size={compact ? 'small' : 'normal'} type="button" onClick={onSaveBlindStructure}>
+          Save schedule
+        </NeonButton>
+      </div>
+      {showTableOverride ? (
+        <div className="flex flex-wrap items-end gap-2 border-t border-white/10 pt-2">
+          <p className="w-full text-[10px] font-semibold uppercase tracking-wide text-white/48">
+            Per-table override (table {tableNum})
+          </p>
+          <NeonButton variant="emerald" size={compact ? 'small' : 'normal'} type="button" onClick={onSaveTableBlinds}>
+            Use current SB/BB on table {tableNum}
+          </NeonButton>
+          <NeonButton variant="gold" size={compact ? 'small' : 'normal'} type="button" onClick={onClearTableBlinds}>
+            Revert table {hostTableId !== LOBBY_TABLE_ID ? hostTableId : tableNum} to venue
+          </NeonButton>
+        </div>
+      ) : null}
+    </div>
   )
 }

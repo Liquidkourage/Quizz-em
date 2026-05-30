@@ -149,6 +149,26 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
             ? Math.floor(p.headlineTableNum)
             : null,
         headlinePhase: typeof p.headlinePhase === 'string' ? p.headlinePhase : null,
+        venueSmallBlind:
+          typeof p.venueSmallBlind === 'number' && Number.isFinite(p.venueSmallBlind)
+            ? Math.floor(p.venueSmallBlind)
+            : null,
+        venueBigBlind:
+          typeof p.venueBigBlind === 'number' && Number.isFinite(p.venueBigBlind)
+            ? Math.floor(p.venueBigBlind)
+            : null,
+        blindLevelNumber:
+          typeof p.blindLevelNumber === 'number' && Number.isFinite(p.blindLevelNumber)
+            ? Math.floor(p.blindLevelNumber)
+            : null,
+        blindLevelCount:
+          typeof p.blindLevelCount === 'number' && Number.isFinite(p.blindLevelCount)
+            ? Math.floor(p.blindLevelCount)
+            : null,
+        handsUntilNextBlindLevel:
+          typeof p.handsUntilNextBlindLevel === 'number' && Number.isFinite(p.handsUntilNextBlindLevel)
+            ? Math.floor(p.handsUntilNextBlindLevel)
+            : null,
         serverNowMs: typeof p.serverNowMs === 'number' ? p.serverNowMs : undefined,
         lobbyPlayerCount:
           typeof p.lobbyPlayerCount === 'number' ? p.lobbyPlayerCount : 0,

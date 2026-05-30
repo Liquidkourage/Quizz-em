@@ -12,14 +12,17 @@ import {
   startAnswering,
   adminAdvanceTurn,
   adminCloseBetting,
-  adminSetBlinds,
   addVirtualPlayers,
   clearVirtualPlayers,
+  clearTableBlinds,
   seedRehearsalVenue,
   assignTablesFromLobby,
   displaySetLayout,
   pairDisplayWithHost,
   setVenueAnswerWindowSeconds,
+  setVenueBlinds,
+  setVenueBlindStructure,
+  setTableBlinds,
   setQuestion as pushQuestionToVenue,
   questionBankAdd,
   questionBankUpdate,
@@ -42,11 +45,13 @@ import {
   HostCollapsible,
   HostLiveStatusLine,
   HostPhaseDock,
+  HostBlindsControls,
   HostPublicTvsPanel,
   HostRunOfShowPanel,
   HostVenueFeltBeatStrip,
   buildHostPhaseDockItems,
   buildHostRunOfShowSteps,
+  formatVenueBlindsSummary,
   hostRunOfShowHeadline,
   resolveRunOfShowCurrentStepId,
 } from './hostDeskLayout'
@@ -185,6 +190,10 @@ function HostApp() {
   const [tvPairCode, setTvPairCode] = useState('')
   const [livelyGameplayTableNums, setLivelyGameplayTableNums] = useState<number[]>([])
   const [answerWindowSeconds, setAnswerWindowSeconds] = useState(45)
+  const [venueSmallBlind, setVenueSmallBlind] = useState(10)
+  const [venueBigBlind, setVenueBigBlind] = useState(20)
+  const [handsPerBlindLevel, setHandsPerBlindLevel] = useState(3)
+  const [blindLevelSummary, setBlindLevelSummary] = useState<string | null>(null)
   const [venueFeltBeat, setVenueFeltBeat] = useState<HostVenueFeltBeatRow[] | null>(null)
 
   const viteHostSecret =
@@ -232,6 +241,12 @@ function HostApp() {
       setActiveSetlistNextIndex(snap.activeSetlistNextIndex)
       if (typeof snap.answerWindowSeconds === 'number' && Number.isFinite(snap.answerWindowSeconds)) {
         setAnswerWindowSeconds(clampVenueAnswerWindow(snap.answerWindowSeconds))
+      }
+      if (snap.venueBlinds) {
+        setVenueSmallBlind(Math.max(1, Math.floor(snap.venueBlinds.smallBlind)))
+        setVenueBigBlind(Math.max(1, Math.floor(snap.venueBlinds.bigBlind)))
+        setHandsPerBlindLevel(Math.max(1, Math.floor(snap.venueBlinds.handsPerBlindLevel)))
+        setBlindLevelSummary(formatVenueBlindsSummary(snap.venueBlinds))
       }
     })
     return off
@@ -511,6 +526,47 @@ function HostApp() {
   const runOfShowSteps = buildHostRunOfShowSteps(gameState)
   const runOfShowHeadline = hostRunOfShowHeadline(gameState)
   const currentRunStepId = resolveRunOfShowCurrentStepId(gameState)
+  const hostTableNum = (() => {
+    const raw = gameState.tableId ?? '1'
+    if (raw === LOBBY_TABLE_ID) return 1
+    const n = Number.parseInt(String(raw), 10)
+    return Number.isFinite(n) && n >= 1 ? n : 1
+  })()
+  const showRunOfShowBlinds =
+    currentRunStepId === 'start' ||
+    currentRunStepId === 'deal-holes' ||
+    (currentRunStepId === 'assign' &&
+      gameState.phase === 'lobby' &&
+      (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
+      gameState.players.length > 0)
+
+  const saveVenueBlinds = () => {
+    setVenueBlinds(Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
+  }
+  const saveBlindStructure = () => {
+    setVenueBlindStructure(Math.max(1, Math.min(50, handsPerBlindLevel)))
+  }
+  const saveTableBlindsOverride = () => {
+    setTableBlinds(hostTableNum, Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
+  }
+  const clearTableBlindsOverride = () => {
+    clearTableBlinds(hostTableNum)
+  }
+  const hostBlindsControlProps = {
+    venueSmallBlind,
+    venueBigBlind,
+    handsPerBlindLevel,
+    blindLevelSummary,
+    tableNum: hostTableNum,
+    hostTableId: gameState.tableId ?? '1',
+    onVenueSmallBlindChange: setVenueSmallBlind,
+    onVenueBigBlindChange: setVenueBigBlind,
+    onHandsPerLevelChange: setHandsPerBlindLevel,
+    onSaveVenueBlinds: saveVenueBlinds,
+    onSaveBlindStructure: saveBlindStructure,
+    onSaveTableBlinds: saveTableBlindsOverride,
+    onClearTableBlinds: clearTableBlindsOverride,
+  }
 
   return (
     <div className="host-root min-h-screen bg-casino-gradient relative overflow-hidden">
@@ -1156,6 +1212,10 @@ function HostApp() {
             <p className="text-sm text-white/58">Waiting for players to join the lobby…</p>
           ) : null}
 
+          {showRunOfShowBlinds ? (
+            <HostBlindsControls {...hostBlindsControlProps} compact showTableOverride={false} />
+          ) : null}
+
           {currentRunStepId === 'question' ? (
             <div className="space-y-2">
               <div className="flex flex-wrap gap-2">
@@ -1338,37 +1398,7 @@ function HostApp() {
                 Close betting
               </NeonButton>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-              <div>
-                <div className="text-base text-white/85 mb-1">Small blind</div>
-                <input
-                  type="number"
-                  defaultValue={gameState.smallBlind}
-                  id="sb-input"
-                  className="w-full p-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white focus:border-casino-emerald focus:outline-none"
-                />
-              </div>
-              <div>
-                <div className="text-base text-white/85 mb-1">Big blind</div>
-                <input
-                  type="number"
-                  defaultValue={gameState.bigBlind}
-                  id="bb-input"
-                  className="w-full p-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white focus:border-casino-emerald focus:outline-none"
-                />
-              </div>
-              <NeonButton
-                variant="emerald"
-                size="normal"
-                onClick={() => {
-                  const sb = Number((document.getElementById('sb-input') as HTMLInputElement)?.value || gameState.smallBlind)
-                  const bb = Number((document.getElementById('bb-input') as HTMLInputElement)?.value || gameState.bigBlind)
-                  adminSetBlinds(sb, bb)
-                }}
-              >
-                Set blinds
-              </NeonButton>
-            </div>
+            <HostBlindsControls {...hostBlindsControlProps} />
             <NeonButton variant="gold" size="normal" onClick={handleNewGame} className="w-full">
               New game (hard reset — clears all tables)
             </NeonButton>

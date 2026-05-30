@@ -112,7 +112,6 @@ export function resolveVenueHeadlineSource(
   return t != null ? { tableNum: t.tableNum, phase: t.phase } : { tableNum: null, phase: null }
 }
 
-/** Secondary headline note when populated felts are on different steps. */
 export function venueHeadlineDivergenceNote(
   tileRows: DisplayVenueTileSnapshot[],
   headlinePhase: string | null
@@ -130,6 +129,27 @@ export function venueHeadlineDivergenceNote(
     if (answering > 0) return `${answering} table${answering === 1 ? '' : 's'} answering`
   }
   return null
+}
+
+/** Sticky headline strip: venue-wide blind amounts + level schedule. */
+export function venueWallBlindsLine(wall: DisplayVenueWallSnapshot | null): string | null {
+  if (wall == null) return null
+  const sb = wall.venueSmallBlind
+  const bb = wall.venueBigBlind
+  if (sb == null || bb == null || !Number.isFinite(sb) || !Number.isFinite(bb)) return null
+  let line = `Blinds $${Math.floor(sb)} / $${Math.floor(bb)}`
+  if (
+    wall.blindLevelNumber != null &&
+    wall.blindLevelCount != null &&
+    Number.isFinite(wall.blindLevelNumber) &&
+    Number.isFinite(wall.blindLevelCount)
+  ) {
+    line += ` · Level ${Math.floor(wall.blindLevelNumber)}/${Math.floor(wall.blindLevelCount)}`
+  }
+  if (wall.handsUntilNextBlindLevel != null && Number.isFinite(wall.handsUntilNextBlindLevel)) {
+    line += ` · ${Math.floor(wall.handsUntilNextBlindLevel)} hand(s) to next level`
+  }
+  return line
 }
 
 /** Legacy full-screen grid — mosaic tile overlays are production. */

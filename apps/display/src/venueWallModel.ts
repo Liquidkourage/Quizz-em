@@ -10,9 +10,6 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot } from '@qhe/ne
 
 export { VENUE_WALL_SEAT_SLOTS }
 
-/** Pre-start crawl: hero table advances on this cadence while every live snapshot tile is lobby. */
-export const SEATING_SPOTLIGHT_CYCLE_SEC = 10
-
 /** During venue-wide showdown, rotate the hero felt so each table gets the full overlay. */
 export const SHOWDOWN_SPOTLIGHT_CYCLE_SEC = 14
 
@@ -44,7 +41,7 @@ export function buildVenueWallTileRows(wall: DisplayVenueWallSnapshot | null): D
   })
 }
 
-/** When lobby tour timer is off, hero follows lowest tableNum among the hottest phase bucket. */
+/** Hero follows lowest tableNum among the hottest phase bucket when no host pin. */
 export function floorFeaturedTileIndex(tileRows: DisplayVenueTileSnapshot[]): number {
   if (tileRows.length === 0) return 0
   const rank: Record<string, number> = {
@@ -74,16 +71,6 @@ export function floorFeaturedTileIndex(tileRows: DisplayVenueTileSnapshot[]): nu
 
 export function venueWallHasLiveTiles(wall: DisplayVenueWallSnapshot | null): boolean {
   return wall != null && wall.tiles != null && wall.tiles.length > 0
-}
-
-/** True while every numbered tile snapshot is lobby, or rehearsal preview without live snapshot rows. */
-export function shouldRotateLobbyTour(
-  tileRows: DisplayVenueTileSnapshot[],
-  hasLiveWall: boolean
-): boolean {
-  if (tileRows.length === 0) return false
-  if (!hasLiveWall) return true
-  return tileRows.every((t) => t.phase === 'lobby')
 }
 
 export function showdownTableNums(tileRows: DisplayVenueTileSnapshot[]): number[] {

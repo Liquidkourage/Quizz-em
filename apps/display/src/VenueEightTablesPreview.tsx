@@ -54,7 +54,6 @@ const VENUE_CRAWL_STRIP_CLASS = 'w-56 sm:w-60 lg:w-64'
 /** Mirror {@link VENUE_CRAWL_STRIP_CLASS} for main shell padding when the stacks leaderboard mounts */
 const VENUE_CRAWL_PR_CLASS = 'pr-56 sm:pr-60 lg:pr-64'
 
-/** Pre-start seating tour: highlight rotates across populated felts on the aerial floor. */
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false)
@@ -1542,8 +1541,6 @@ export default function VenueEightTablesPreview({
   const showHeadline =
     hasLiveWall && (headlineQuestionText != null || answerDeadlineMs != null)
 
-  const showRotatingTour = featuredWatch.showRotatingTour
-  const seatingTourIndex = featuredWatch.seatingTourIndex
   const spotlightTableNum = featuredWatch.featuredTableNum
 
   const showRoster = rosterRowsFromTiles(tileRows).length > 0
@@ -1669,17 +1666,6 @@ export default function VenueEightTablesPreview({
               prefersReducedMotion={prefersReducedMotion}
               showdownLab={showdownLab}
             />
-
-            {showRotatingTour && spotlightTableNum != null ? (
-              <p
-                className="shrink-0 text-center text-xs text-white/50 sm:text-sm"
-                aria-live="polite"
-              >
-                {prefersReducedMotion
-                  ? `Seating spotlight — Table ${spotlightTableNum}`
-                  : `Seating spotlight — Table ${spotlightTableNum} · ${seatingTourIndex + 1} of ${tileRows.length}`}
-              </p>
-            ) : null}
           </section>
         ) : tileRows.length > 0 ? (
           <motion.div

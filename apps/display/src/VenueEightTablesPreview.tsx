@@ -95,26 +95,21 @@ function VenuePotAmount({
   )
 }
 
-/** Pot amount + community board — stacked on felt center, shifted upward. */
+/** Community board + bets-in ribbon — centered on felt (pot lives above the table). */
 function VenueMosaicFeltCenterStack({
-  amount,
-  dimmed,
   communityDigits,
-  prefersReducedMotion,
   betsInPaused = false,
 }: {
-  amount: number
-  dimmed: boolean
   communityDigits: number[]
-  prefersReducedMotion: boolean
   betsInPaused?: boolean
 }) {
   const feltBounds = venueFeltBoundsFrac()
   const hasCommunity = communityDigits.length > 0
+  if (!betsInPaused && !hasCommunity) return null
   return (
     <div
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
-      aria-hidden={dimmed && amount <= 0 && !hasCommunity}
+      aria-hidden={!betsInPaused && !hasCommunity}
     >
       <div
         className="flex max-w-[92%] flex-col items-center justify-center gap-[2px] text-center sm:gap-0.5"
@@ -125,20 +120,13 @@ function VenueMosaicFeltCenterStack({
           transform: 'translate(-50%, -50%)',
         }}
       >
-        <VenuePotAmount
-          amount={amount}
-          prefersReducedMotion={prefersReducedMotion}
-          className={`block font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] text-[clamp(0.85rem,7.5cqw,1.75rem)] ${
-            dimmed && amount <= 0 ? 'text-yellow-300/35' : 'text-yellow-300'
-          }`}
-        />
         {betsInPaused ? (
-          <span className="mt-1 w-[min(100%,5.5rem)] rounded-sm bg-emerald-400 px-2 py-0.5 text-center text-[clamp(0.45rem,2.9cqw,0.68rem)] font-black uppercase leading-none tracking-[0.14em] text-black shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
+          <span className="w-[min(100%,5.5rem)] rounded-sm bg-emerald-400 px-2 py-0.5 text-center text-[clamp(0.45rem,2.9cqw,0.68rem)] font-black uppercase leading-none tracking-[0.14em] text-black shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
             Bets in
           </span>
         ) : null}
         {hasCommunity ? (
-          <div className="mt-0.5 flex items-center justify-center gap-[2px] sm:gap-0.5">
+          <div className={`flex items-center justify-center gap-[2px] sm:gap-0.5 ${betsInPaused ? 'mt-0.5' : ''}`}>
             {communityDigits.map((digit, i) => (
               <MosaicDigitCard key={`${i}-${digit}`} digit={digit} size="community" />
             ))}
@@ -679,8 +667,6 @@ function SeatRingWithLabels({
   actingCallAmount,
   mosaicFluidWidth = false,
   mosaicFillHeight = false,
-  feltCenterPot,
-  feltCenterPotDimmed = false,
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
   winnerSeatIndexes = null,
   /** Mosaic: hole-card digits per physical seat (parallel to seatNames). */
@@ -717,10 +703,6 @@ function SeatRingWithLabels({
   seatLastBettingAction?: (SeatBettingAction | null)[]
   /** Active seat only: chips to call (venue snapshot). */
   actingCallAmount?: number | null
-  /** Venue floor: whole-dollar pot drawn large on the felt center. */
-  feltCenterPot?: number
-  /** Fade the center pot during lobby / question before blinds post. */
-  feltCenterPotDimmed?: boolean
   winnerSeatIndexes?: ReadonlySet<number> | null
   seatHoleDigits?: (readonly [number, number] | null)[]
   communityDigits?: number[]
@@ -823,7 +805,8 @@ function SeatRingWithLabels({
         )
       : railBorderRadius
 
-  const showFeltCenterPot = isMosaic && feltCenterPot != null
+  const showFeltBoardCenter =
+    isMosaic && (betsInPaused || communityDigits.length > 0)
 
   return (
     <div ref={ringElRef} className={`@container relative overflow-visible ${wrap}`}>
@@ -882,12 +865,9 @@ function SeatRingWithLabels({
           aria-hidden
         />
       ) : null}
-      {showFeltCenterPot ? (
+      {showFeltBoardCenter ? (
         <VenueMosaicFeltCenterStack
-          amount={feltCenterPot}
-          dimmed={feltCenterPotDimmed}
           communityDigits={communityDigits}
-          prefersReducedMotion={prefersReducedMotion}
           betsInPaused={betsInPaused}
         />
       ) : null}
@@ -1317,6 +1297,29 @@ function VenueMosaicTableCard({
           ) : null}
         </div>
 
+        {!showFloorShowdownOverlay ? (
+          <div
+            className={`flex shrink-0 justify-center ${floorCompact ? '-mt-0.5 pb-0' : 'pb-0.5'}`}
+            aria-label={`Pot ${formatVenueBankroll(pot)}`}
+          >
+            <VenuePotAmount
+              amount={pot}
+              prefersReducedMotion={prefersReducedMotion}
+              className={`font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] ${
+                floorCompact
+                  ? 'text-[clamp(0.62rem,3.4cqw,0.95rem)]'
+                  : 'text-[clamp(0.8rem,4.5cqw,1.25rem)]'
+              } ${
+                ph === 'lobby' || ph === 'question'
+                  ? pot > 0
+                    ? 'text-yellow-300/70'
+                    : 'text-yellow-300/35'
+                  : 'text-yellow-300'
+              }`}
+            />
+          </div>
+        ) : null}
+
         <div
           className={`@container relative z-[1] flex w-full justify-center ${
             floorHoneycomb && floorCompact
@@ -1342,8 +1345,6 @@ function VenueMosaicTableCard({
             showSeatBettingActions={false}
             seatLastBettingAction={seatLastBettingAction}
             actingCallAmount={row.actingCallAmount}
-            feltCenterPot={showFloorShowdownOverlay ? undefined : pot}
-            feltCenterPotDimmed={ph === 'lobby' || ph === 'question'}
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
             seatHoleDigits={row.seatHoleDigits}
             communityDigits={row.communityDigits}
@@ -1399,8 +1400,6 @@ function VenueMosaicTableCard({
           {floorCompact ? (
             <>
               <div className="flex min-w-0 items-baseline gap-1.5">
-                <dt className="sr-only">Pot</dt>
-                <dd className="sr-only">{formatVenueBankroll(pot)}</dd>
                 <dt className="sr-only">Chips on table</dt>
                 <dd className="truncate font-mono font-semibold tabular-nums text-casino-emerald/90">
                   {formatVenueBankroll(totalChips)}
@@ -1414,16 +1413,6 @@ function VenueMosaicTableCard({
                 <dt className="font-semibold text-white/65">Occupied</dt>
                 <dd className="font-mono font-bold tabular-nums text-casino-emerald">
                   {seats} / 8
-                </dd>
-              </div>
-              <div className="flex justify-between gap-2">
-                <dt className="font-semibold text-white/65">Pot</dt>
-                <dd className="font-mono font-bold tabular-nums text-yellow-300">
-                  <VenuePotAmount
-                    amount={pot}
-                    prefersReducedMotion={prefersReducedMotion}
-                    className="font-mono font-bold tabular-nums text-yellow-300"
-                  />
                 </dd>
               </div>
               {mosaicPotSubtitle != null ? (

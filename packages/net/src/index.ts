@@ -245,7 +245,7 @@ export interface ServerToClientEvents {
   state: (state: GameState) => void
   toast: (message: string) => void
   ack: (ack: ServerAck) => void
-  dealingCards: () => void
+  dealingCards: (payload?: { tableNum: number }) => void
   dealingCommunityCards: (payload?: { tableNum: number }) => void
   seated: (info: { tableId: string }) => void
   /** Sent only to sockets in HOST:{venue} — bank, setlists, active rundown */

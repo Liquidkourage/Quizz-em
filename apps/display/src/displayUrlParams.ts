@@ -1,4 +1,5 @@
 import type { DisplayLayoutPayload } from '@qhe/net'
+import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 
 /** `room=` present — bypass pairing; omit or blank → pairing screen unless already handed off */
 export function readDisplayRoomFromUrl(): string | null {
@@ -13,18 +14,18 @@ export function readDisplayVenueCode(): string {
   return new URLSearchParams(window.location.search).get('room')?.trim().toUpperCase() || 'HOST01'
 }
 
-/** Fallback table id when layout does not pin a felt (e.g. demo shell). Honors `?table=1`–`8`. */
+/** Fallback table id when layout does not pin a felt (e.g. demo shell). Honors `?table=1`–`N`. */
 export function readDisplayTableIdFromUrl(): string {
   if (typeof window === 'undefined') return '1'
   const tableParam = new URLSearchParams(window.location.search).get('table')?.trim()
   if (tableParam) {
     const n = Number(tableParam)
-    if (Number.isInteger(n) && n >= 1 && n <= 8) return String(n)
+    if (Number.isInteger(n) && n >= 1 && n <= VENUE_NUMBERED_TABLE_MAX) return String(n)
   }
   return '1'
 }
 
-/** Initial layout before the first `displayLayout` from the server. `?table=N` (1–8) opens in spotlight. */
+/** Initial layout before the first `displayLayout` from the server. `?table=N` opens in table spotlight. */
 export function readUrlLayoutBootstrap(): DisplayLayoutPayload {
   if (typeof window === 'undefined') {
     return { layout: 'venueWall', focusTable: null }
@@ -32,7 +33,7 @@ export function readUrlLayoutBootstrap(): DisplayLayoutPayload {
   const tableParam = new URLSearchParams(window.location.search).get('table')?.trim()
   if (tableParam) {
     const n = Number(tableParam)
-    if (Number.isInteger(n) && n >= 1 && n <= 8) {
+    if (Number.isInteger(n) && n >= 1 && n <= VENUE_NUMBERED_TABLE_MAX) {
       return { layout: 'venueWall', focusTable: n }
     }
   }

@@ -2159,6 +2159,12 @@ io.on('connection', (socket) => {
             gs = dealInitialCards(gs)
             rooms.set(tk, gs)
             io.to(tk).emit('dealingCards')
+            const holeTableNum = tableNumFromSessionKey(gs.code, tk)
+            if (holeTableNum != null) {
+              io.to(displayVenueRoom(normalizeVenueCode(gs.code))).emit('dealingCards', {
+                tableNum: holeTableNum,
+              })
+            }
             emitVenueTableState(tk, gs)
             if (tableIsCpuOnly(gs)) {
               enqueueCpuOnlyVpDrain(tk)

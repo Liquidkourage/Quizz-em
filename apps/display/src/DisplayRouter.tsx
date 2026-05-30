@@ -10,6 +10,7 @@ import {
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { readUrlLayoutBootstrap } from './displayUrlParams'
 import AudienceWelcomeWall from './AudienceWelcomeWall.tsx'
+import DisplayTableLive from './App.tsx'
 import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
 import { useVenueWallFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import { recordServerClockSample } from './serverClock'
@@ -164,7 +165,20 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   }, [onVenueWallLayout, audienceBriefing, venueWall])
 
   const showBriefingHero = audienceBriefing
-  const showVenueMosaicShell = onVenueWallLayout && !audienceBriefing
+  const spotlightTable = (() => {
+    const ft = layout.focusTable
+    if (ft != null && Number.isInteger(ft) && ft >= 1 && ft <= VENUE_NUMBERED_TABLE_MAX) {
+      return ft
+    }
+    return null
+  })()
+  const venueHeroTile =
+    spotlightTable != null
+      ? venueWall?.tiles?.find((t) => t.tableNum === spotlightTable) ?? null
+      : null
+  const showTableSpotlight = onVenueWallLayout && !audienceBriefing && spotlightTable != null
+  const showVenueMosaicShell =
+    onVenueWallLayout && !audienceBriefing && spotlightTable == null
 
   return (
     <AnimatePresence mode="sync">
@@ -179,6 +193,25 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
           <AudienceWelcomeWall venueCode={venueCode} wall={venueWall} />
+        </motion.div>
+      )}
+      {showTableSpotlight && (
+        <motion.div
+          key={`table-spotlight-${spotlightTable}`}
+          className="relative z-10 min-h-screen w-full bg-slate-950"
+          role="presentation"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <DisplayTableLive
+            feltTableHint={String(spotlightTable)}
+            variant="fullscreen"
+            venueHeroTile={venueHeroTile}
+            fallbackQuestionText={venueWall?.headlineQuestionText ?? null}
+            fallbackAnswerDeadlineMs={venueWall?.answerDeadlineMs ?? null}
+          />
         </motion.div>
       )}
       {showVenueMosaicShell && (

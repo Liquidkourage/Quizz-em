@@ -141,7 +141,7 @@ export function onToast(callback: (message: string) => void) {
   }
 }
 
-export function onDealingCards(callback: () => void) {
+export function onDealingCards(callback: (payload?: { tableNum: number }) => void) {
   if (!socket) return () => {}
 
   socket.on('dealingCards', callback)

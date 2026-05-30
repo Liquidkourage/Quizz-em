@@ -980,10 +980,10 @@ function DisplayTableLive({
     cards.forEach((card, index) => {
       window.setTimeout(() => {
         setDealingCards((prev) => [...prev, card])
-      }, index * 200)
+      }, index * 130)
     })
 
-    const endMs = cards.length * 200 + 1000
+    const endMs = cards.length * 130 + 750
     const dealtSnapshot = cards.reduce<Record<number, NumericCard[]>>((acc, c) => {
       const row = acc[c.playerIndex] ?? []
       row[c.cardIndex] = { digit: c.digit as NumericCard['digit'] }
@@ -1082,10 +1082,10 @@ function DisplayTableLive({
       flightCards.forEach((card, index) => {
         scheduleCommunityDealTimer(() => {
           setDealingCommunityCards((prev) => [...prev, card])
-        }, index * 200)
+        }, index * 160)
       })
 
-      const revealAtMs = flightCards.length * 200 + 500
+      const revealAtMs = flightCards.length * 160 + 420
       scheduleCommunityDealTimer(() => {
         setDealingCommunityCards((prev) => prev.map((c) => ({ ...c, isRevealed: true })))
       }, revealAtMs)
@@ -1096,7 +1096,7 @@ function DisplayTableLive({
         setShowDeck(false)
         setHasDealtCommunityCards(true)
         communityDealAnimationRequestedRef.current = false
-      }, revealAtMs + 1000)
+      }, revealAtMs + 800)
 
       return true
     },
@@ -1154,7 +1154,14 @@ function DisplayTableLive({
 
   useEffect(() => {
     const tid = feltTableHint.trim()
-    const unsubscribe = onDealingCards(() => {
+    const unsubscribe = onDealingCards((payload) => {
+      if (
+        payload?.tableNum != null &&
+        tid !== '' &&
+        String(payload.tableNum) !== tid
+      ) {
+        return
+      }
       if (midJoinHoleRevealTimerRef.current) {
         window.clearTimeout(midJoinHoleRevealTimerRef.current)
         midJoinHoleRevealTimerRef.current = null
@@ -1648,14 +1655,14 @@ function DisplayTableLive({
                         rotate: 0,
                       }}
                       transition={{
-                        duration: 0.9,
+                        duration: 0.65,
                         ease: [0.22, 1, 0.36, 1],
                       }}
                     >
                       <NumericPlayingCard
                         digit={dealingCard.digit}
                         variant="cyan"
-                        size="normal"
+                        size="small"
                         faceDown={true}
                         backDesign="star"
                         style="neon"
@@ -2066,8 +2073,9 @@ function DisplayTableLive({
                       ? sharedCommunityCards
                       : []
                 const showCommunityStatic =
-                  !isDealingCommunity && layoutCards.length > 0
+                  !isDealingCommunity && layoutCards.length > 0 && hasDealtCommunityCards
 
+                if (!hasDealtCommunityCards && !isDealingCommunity) return null
                 if (layoutCards.length === 0) return null
 
                 const cardWidth = COMMUNITY_CARD_SLOT_W_PX

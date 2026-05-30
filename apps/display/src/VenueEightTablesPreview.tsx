@@ -120,7 +120,7 @@ function VenueMosaicFeltCenterStack({
         style={{
           position: 'absolute',
           left: `${feltBounds.cx * 100}%`,
-          top: `calc(${feltBounds.cy * 100}% - 9%)`,
+          top: `calc(${feltBounds.cy * 100}% - 4%)`,
           transform: 'translate(-50%, -50%)',
         }}
       >

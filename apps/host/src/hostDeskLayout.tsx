@@ -428,7 +428,7 @@ export function HostActionFloorBanner({
             size="small"
             type="button"
             className="!px-2 !py-1 text-xs"
-            title={`Spotlight Table ${n} on venue TVs`}
+            title={`Highlight Table ${n} on the venue wall`}
             onClick={() => onSpotlight(n)}
           >
             TV {n}
@@ -455,14 +455,14 @@ export function HostPublicTvsPanel({
   return (
     <HostCollapsible summary="Public TVs & routing" className="mb-4">
       <p className="mb-3 text-xs leading-snug text-white/50">
-        Pair displays in Setup below, then route every paired TV on{' '}
-        <span className="font-mono text-white/65">{venueCode}</span>.
+        Pair displays in Setup below. During a round the venue wall always shows every table;{' '}
+        <strong className="text-white/70">Highlight</strong> pins the amber ring on one felt.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <NeonButton variant="emerald" size="small" onClick={onVenueWall}>
-          All {tableMax} felts
+          Clear highlight
         </NeonButton>
-        <span className="text-[10px] uppercase tracking-wide text-white/35">Spotlight</span>
+        <span className="text-[10px] uppercase tracking-wide text-white/35">Highlight</span>
         {Array.from({ length: Math.min(20, tableMax) }, (_, i) => i + 1).map((n) => {
           const lively = livelyTableNums.includes(n)
           return (

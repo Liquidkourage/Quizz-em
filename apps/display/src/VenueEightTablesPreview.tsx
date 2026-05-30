@@ -275,6 +275,27 @@ function MosaicDigitCard({
   )
 }
 
+/** Two face-down hole cards — bottom card peeking out from under the top card. */
+function MosaicHoleCardPair() {
+  return (
+    <div
+      className="relative shrink-0"
+      style={{
+        width: 'clamp(1.05rem, 7.4cqw, 1.68rem)',
+        height: 'clamp(1.05rem, 7.1cqw, 1.62rem)',
+      }}
+      aria-hidden
+    >
+      <span className="absolute bottom-0 left-0 z-[1] -rotate-[10deg] origin-[90%_100%]">
+        <MosaicDigitCard faceDown />
+      </span>
+      <span className="absolute bottom-[18%] left-[32%] z-[2] rotate-[8deg] origin-[10%_100%] shadow-[0_1px_3px_rgba(0,0,0,0.55)]">
+        <MosaicDigitCard faceDown />
+      </span>
+    </div>
+  )
+}
+
 function mosaicSeatInwardPct(
   seatIndex: number,
   seatCount: number,
@@ -927,7 +948,7 @@ function SeatRingWithLabels({
               const holePos = mosaicSeatInwardPct(i, seatedCount, rimW, rimH)
               return (
                 <div
-                  className={`pointer-events-none absolute flex -space-x-px ${SEAT_LAYER_FELT_HOLE}`}
+                  className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
                   style={{
                     left: `${holePos.leftPct}%`,
                     top: `${holePos.topPct}%`,
@@ -935,8 +956,7 @@ function SeatRingWithLabels({
                   }}
                   aria-label="Two hole cards"
                 >
-                  <MosaicDigitCard faceDown />
-                  <MosaicDigitCard faceDown />
+                  <MosaicHoleCardPair />
                 </div>
               )
             })() : null}

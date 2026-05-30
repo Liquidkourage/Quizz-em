@@ -412,22 +412,33 @@ export function PotDetailLines({
   return <ShowdownPotWinnerList lines={lines} />
 }
 
+/** Shared banner label scale for mosaic tiles (@container on overlay parent). */
+export const SHOWDOWN_RIBBON_BAR = 'shrink-0 py-1.5 text-center'
+export const SHOWDOWN_RIBBON_LABEL =
+  'font-black uppercase leading-none tracking-[0.16em] text-[clamp(0.62rem,6.8cqw,1.05rem)]'
+
 export function SidePotRibbon() {
   return (
-    <div className="shrink-0 bg-cyan-900/90 py-0.5 text-center">
-      <p className="text-[clamp(0.45rem,4.2cqw,0.62rem)] font-black uppercase tracking-widest text-cyan-100">
-        Side pot
-      </p>
+    <div className={`${SHOWDOWN_RIBBON_BAR} bg-cyan-900/90`}>
+      <p className={`${SHOWDOWN_RIBBON_LABEL} text-cyan-100`}>Side pot</p>
     </div>
   )
 }
 
 export function WinnerRibbon() {
   return (
-    <div className="shrink-0 bg-amber-900/92 py-0.5 text-center">
-      <p className="text-[clamp(0.45rem,4.2cqw,0.62rem)] font-black uppercase tracking-widest text-amber-100">
-        Winner
-      </p>
+    <div className={`${SHOWDOWN_RIBBON_BAR} bg-amber-900/92`}>
+      <p className={`${SHOWDOWN_RIBBON_LABEL} text-amber-100`}>Winner</p>
+    </div>
+  )
+}
+
+export function SplitPotRibbon() {
+  return (
+    <div
+      className={`${SHOWDOWN_RIBBON_BAR} bg-gradient-to-r from-rose-700/95 via-amber-600/95 to-rose-700/95`}
+    >
+      <p className={`${SHOWDOWN_RIBBON_LABEL} text-white`}>Split pot</p>
     </div>
   )
 }

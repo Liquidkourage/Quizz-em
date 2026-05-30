@@ -13,6 +13,7 @@ import {
   sidePotLabStyleForTable,
   SidePotLabBadge,
   SidePotRibbon,
+  SplitPotRibbon,
   WinnerRibbon,
   ShowdownPotWinnerList,
   synthesizeSidePotLabRows,
@@ -358,16 +359,6 @@ function ShowdownStack({
       <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-2">
         {GuessBlock(ctx)}
       </div>
-    </div>
-  )
-}
-
-function SplitPotRibbon() {
-  return (
-    <div className="shrink-0 bg-gradient-to-r from-rose-700/95 via-amber-600/95 to-rose-700/95 py-1 text-center">
-      <p className="text-[clamp(0.5rem,5cqw,0.7rem)] font-black uppercase tracking-widest text-white">
-        Split pot
-      </p>
     </div>
   )
 }

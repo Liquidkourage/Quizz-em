@@ -252,18 +252,19 @@ export type ShowdownSidePotLine = {
   name: string
 }
 
+/** Equal side columns so the amount column sits on the tile’s horizontal center. */
 const POT_LAYER_ROW =
-  'grid w-full max-w-full min-w-0 flex-1 grid-cols-[minmax(2.75em,auto)_auto_minmax(0,1fr)] items-baseline gap-x-[clamp(0.2rem,1.6cqw,0.4rem)] px-0.5'
+  'grid w-full max-w-full min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-baseline gap-x-[clamp(0.15rem,1.2cqw,0.35rem)] px-0.5'
 const POT_LAYER_TAG =
-  'justify-self-end font-black uppercase tracking-[0.1em] text-[clamp(0.42rem,3.8cqw,0.58rem)]'
+  'justify-self-end pr-[0.15em] font-black uppercase tracking-[0.1em] text-[clamp(0.5rem,4.6cqw,0.72rem)]'
 const POT_LAYER_AMOUNT_MAIN =
-  'justify-self-center font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(0.95rem,10.5cqw,2.1rem)]'
+  'justify-self-center text-center font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.1rem,12cqw,2.45rem)]'
 const POT_LAYER_AMOUNT_SIDE =
-  'justify-self-center font-mono font-black tabular-nums leading-none text-yellow-300/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] text-[clamp(0.88rem,9.2cqw,1.85rem)]'
+  'justify-self-center text-center font-mono font-black tabular-nums leading-none text-yellow-300/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] text-[clamp(1rem,10.8cqw,2.15rem)]'
 const POT_LAYER_AMOUNT_RETURN =
-  'justify-self-center font-mono font-bold tabular-nums leading-none text-white/70 text-[clamp(0.72rem,7cqw,1.25rem)]'
+  'justify-self-center text-center font-mono font-bold tabular-nums leading-none text-white/75 text-[clamp(0.82rem,8.2cqw,1.45rem)]'
 const POT_LAYER_NAME =
-  'min-w-0 justify-self-start truncate font-bold leading-tight text-amber-50 text-[clamp(0.55rem,5.8cqw,0.95rem)]'
+  'min-w-0 justify-self-start pl-[0.15em] truncate font-bold leading-tight text-amber-50 text-[clamp(0.62rem,6.5cqw,1.08rem)]'
 
 function PotLayerRow({
   line,

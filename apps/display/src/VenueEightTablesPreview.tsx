@@ -286,10 +286,10 @@ function MosaicHoleCardPair() {
       }}
       aria-hidden
     >
-      <span className="absolute bottom-0 left-0 z-[1] -rotate-[10deg] origin-[90%_100%]">
+      <span className="absolute bottom-0 left-0 z-[1] -rotate-[3deg] origin-[85%_100%]">
         <MosaicDigitCard faceDown />
       </span>
-      <span className="absolute bottom-[18%] left-[32%] z-[2] rotate-[8deg] origin-[10%_100%] shadow-[0_1px_3px_rgba(0,0,0,0.55)]">
+      <span className="absolute bottom-[12%] left-[30%] z-[2] rotate-[3deg] origin-[15%_100%] shadow-[0_1px_3px_rgba(0,0,0,0.55)]">
         <MosaicDigitCard faceDown />
       </span>
     </div>

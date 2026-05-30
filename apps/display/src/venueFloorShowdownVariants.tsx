@@ -8,22 +8,16 @@ import {
   type ShowdownResultRow,
 } from './showdownDisplay'
 
-export type VenueFloorShowdownVariantId = 1 | 5 | 17
+export type VenueFloorShowdownVariantId = 8
 
-/** Production floor showdown shells (picked from lab). */
-export const VENUE_FLOOR_SHOWDOWN_VARIANTS: readonly VenueFloorShowdownVariantId[] = [1, 5, 17]
-
-export const VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT = VENUE_FLOOR_SHOWDOWN_VARIANTS.length
+export const VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT = 1
 
 export const VENUE_FLOOR_SHOWDOWN_VARIANT_NAMES: Record<VenueFloorShowdownVariantId, string> = {
-  1: 'Center stack',
-  5: 'Cyan frame',
-  17: 'Split ribbon + wash',
+  8: 'Marquee bulbs',
 }
 
-export function venueFloorShowdownVariantForTable(tableNum: number): VenueFloorShowdownVariantId {
-  const i = (Math.max(1, Math.floor(tableNum)) - 1) % VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT
-  return VENUE_FLOOR_SHOWDOWN_VARIANTS[i]!
+export function venueFloorShowdownVariantForTable(_tableNum: number): VenueFloorShowdownVariantId {
+  return 8
 }
 
 export type FloorShowdownCtx = {
@@ -85,14 +79,22 @@ export function synthesizeLabShowdownRows(tile: DisplayVenueTileSnapshot): {
   rows: ShowdownResultRow[]
   correctAnswer: number
 } {
-  const board = [4, 0, 2, 5, 6] as const
+  const board = [4, 0, 0, 0, 1] as const
   const correctAnswer = 40
   const names = (tile.seatNames ?? []).map((n) => (typeof n === 'string' ? n.trim() : ''))
   const seated = names.filter((n) => n.length > 0)
   const splitDemo = tile.tableNum >= 11 && tile.tableNum <= 20
   const rosterLen = Math.max(seated.length, splitDemo ? 2 : 1)
   const winnerSeats = splitDemo ? [0, 1] : [0]
-  const winningSubmitted = 40 + (tile.tableNum % 7) * 0.001
+  /** 40.001 — five board digits with a decimal so lab always shows the dot. */
+  const winningSubmitted = 40.001
+  const winningComposition = [
+    { source: 'community' as const, index: 0 },
+    { source: 'community' as const, index: 1 },
+    { source: 'community' as const, index: 2 },
+    { source: 'community' as const, index: 3 },
+    { source: 'community' as const, index: 4 },
+  ]
 
   const rows: ShowdownResultRow[] = []
   for (let i = 0; i < rosterLen; i++) {
@@ -103,22 +105,28 @@ export function synthesizeLabShowdownRows(tile: DisplayVenueTileSnapshot): {
         : `Table ${tile.tableNum} · Seat ${i + 1}`)
     if (!name) continue
     const holes: [number, number] = [(i + 2) % 10, (i + 4) % 10]
-    const composition = [
-      { source: 'community' as const, index: 0 },
-      { source: 'community' as const, index: 1 },
-      { source: 'hole' as const, index: 0 },
-      { source: 'community' as const, index: 2 },
-      { source: 'community' as const, index: 3 },
-    ]
+    const isWinner = winnerSeats.includes(i)
     rows.push({
       seat: i + 1,
       name,
       holes,
-      submitted: winnerSeats.includes(i) ? winningSubmitted : winningSubmitted + 3.5,
+      submitted: isWinner ? winningSubmitted : 43.521,
       hasFolded: false,
       communityBoard: [...board],
       answerCommunityIndices: [0, 1, 2, 3],
-      answerCards: cardsUsedFromComposition(composition, holes, board),
+      answerCards: cardsUsedFromComposition(
+        isWinner
+          ? winningComposition
+          : [
+              { source: 'community' as const, index: 0 },
+              { source: 'community' as const, index: 1 },
+              { source: 'hole' as const, index: 0 },
+              { source: 'community' as const, index: 2 },
+              { source: 'community' as const, index: 4 },
+            ],
+        holes,
+        board
+      ),
       chipPayout: winnerSeats.includes(i) ? 60 : null,
     })
   }
@@ -146,12 +154,8 @@ export function resolveFloorShowdownData(
  * Floor showdown type scale (@container on overlay). Visual hierarchy:
  * 1 winner names (largest) → 2 pot amount → 3 five digit cards (winning hand).
  */
-const WINNER_LABEL =
-  'font-bold uppercase tracking-[0.16em] text-amber-200/90 text-[clamp(0.5rem,4cqw,0.65rem)]'
 const WINNER_NAME =
   'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1rem,12cqw,2.15rem)]'
-const POT_LABEL =
-  'font-black uppercase tracking-[0.28em] text-yellow-200/80 text-[clamp(0.45rem,3.5cqw,0.58rem)]'
 const POT_AMOUNT =
   'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.05rem,11cqw,2.4rem)]'
 
@@ -170,7 +174,6 @@ function VariantBadge({ ctx }: { ctx: FloorShowdownCtx }) {
 function HeroPot({ pot, className = '' }: { pot: number; className?: string }) {
   return (
     <div className={`text-center ${className}`}>
-      <p className={POT_LABEL}>Pot</p>
       <p className={POT_AMOUNT}>{formatPot(pot)}</p>
     </div>
   )
@@ -188,7 +191,6 @@ function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?:
   if (layout === 'line') {
     return (
       <div className="min-w-0 text-center">
-        <p className={WINNER_LABEL}>{ctx.label}</p>
         <p className={`${WINNER_NAME} truncate`}>
           {ctx.winners.map((w) => w.name).join(' · ')}
           {ctx.extraWinners > 0 ? ` +${ctx.extraWinners}` : ''}
@@ -198,7 +200,6 @@ function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?:
   }
   return (
     <div className="flex min-w-0 flex-col items-center gap-1">
-      <p className={WINNER_LABEL}>{ctx.label}</p>
       <div className="flex max-w-full flex-wrap justify-center gap-1">
         {ctx.namePills.map((w) => (
           <span
@@ -230,7 +231,7 @@ function ShowdownStack({
   winnerLayout = 'line',
   potStyle = 'hero',
   className = '',
-  gapClass = 'gap-2',
+  gapClass = 'gap-1',
 }: {
   ctx: FloorShowdownCtx
   winnerLayout?: WinnerLayout
@@ -243,7 +244,7 @@ function ShowdownStack({
       <div className="w-full max-w-full shrink-0 flex-[1]">
         <WinnerBlock ctx={ctx} layout={winnerLayout} />
       </div>
-      <div className="w-full shrink-0 flex-none">
+      <div className="w-full shrink-0 flex-none -mt-1">
         {potStyle === 'chip' ? <PotChip pot={ctx.pot} /> : <HeroPot pot={ctx.pot} />}
       </div>
       <div className="flex w-full min-h-0 max-h-[42%] shrink-0 items-center justify-center overflow-hidden py-0.5">
@@ -263,34 +264,29 @@ function SplitPotRibbon() {
   )
 }
 
+function MarqueeBulbs() {
+  return (
+    <div className="flex shrink-0 justify-center gap-1 py-1">
+      {Array.from({ length: 5 }, (_, i) => (
+        <span
+          key={i}
+          className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(252,211,77,0.9)] motion-safe:animate-[venue-bulb_1.4s_ease-in-out_infinite]"
+          style={{ animationDelay: `${i * 0.1}s` }}
+          aria-hidden
+        />
+      ))}
+    </div>
+  )
+}
+
 function renderVariant(ctx: FloorShowdownCtx): ReactNode {
-  switch (ctx.variantId) {
-    case 1:
-      return (
-        <div className="flex min-h-0 flex-1 px-3 py-3">
-          <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" gapClass="gap-2" />
-        </div>
-      )
-    case 5:
-      return (
-        <div className="m-2 flex min-h-0 flex-1 rounded-lg border border-cyan-500/40 bg-black/50 p-2">
-          <ShowdownStack ctx={ctx} className="flex-1 justify-center" />
-        </div>
-      )
-    case 17:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <ShowdownStack
-            ctx={ctx}
-            winnerLayout="line"
-            className="flex-1 justify-center bg-gradient-to-b from-yellow-950/35 to-transparent px-3 py-3"
-            gapClass="gap-3"
-          />
-        </div>
-      )
-    default:
-      return null
-  }
+  if (ctx.variantId !== 8) return null
+  return (
+    <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
+      <MarqueeBulbs />
+      <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" gapClass="gap-1" />
+    </div>
+  )
 }
 
 export function VenueFloorShowdownByVariant({
@@ -320,5 +316,16 @@ export function VenueFloorShowdownByVariant({
       {ctx.splitWin ? <SplitPotRibbon /> : null}
       {renderVariant(ctx)}
     </div>
+  )
+}
+
+export function VenueFloorShowdownVariantStyles() {
+  return (
+    <style>{`
+      @keyframes venue-bulb {
+        0%, 100% { opacity: 0.45; transform: scale(0.85); }
+        50% { opacity: 1; transform: scale(1.05); }
+      }
+    `}</style>
   )
 }

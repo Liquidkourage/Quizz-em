@@ -63,9 +63,7 @@ export function GuessNumberCard({
 }
 
 const VARIANT_TONE: Record<VenueFloorShowdownVariantId, GuessCardTone> = {
-  1: 'amber',
-  5: 'cyan',
-  17: 'rose',
+  8: 'amber',
 }
 
 export function WinningGuessCard({
@@ -79,7 +77,7 @@ export function WinningGuessCard({
   splitWin?: boolean
   size?: 'sm' | 'md' | 'lg' | 'xl'
 }) {
-  const tone = variantId === 17 && splitWin ? 'rose' : VARIANT_TONE[variantId]
+  const tone = VARIANT_TONE[variantId]
   const textClass =
     tone === 'cream'
       ? 'text-amber-950'
@@ -95,7 +93,7 @@ export function WinningGuessCard({
                 ? 'text-white'
                 : 'text-amber-50'
 
-  if (variantId === 1) {
+  if (variantId === 8) {
     return (
       <GuessNumberCard tone="gold" size={size}>
         <span

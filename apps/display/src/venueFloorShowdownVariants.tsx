@@ -7,6 +7,22 @@ import {
   sortShowdownRowsByDistance,
   type ShowdownResultRow,
 } from './showdownDisplay'
+import {
+  isSidePotLabTable,
+  PotDetailLines,
+  PotLadderBars,
+  PotLayerRows,
+  PotReturnNote,
+  sidePotLabDisplay,
+  sidePotLabStyleForTable,
+  SidePotLabBadge,
+  SidePotRibbon,
+  SIDE_POT_LAB_SCENARIO,
+  synthesizeSidePotLabRows,
+  type SidePotLabDisplay,
+  type SidePotLabStyleId,
+  SIDE_POT_LAB_STYLE_NAMES,
+} from './venueFloorSidePotLab'
 
 export type VenueFloorShowdownVariantId = 8
 
@@ -32,6 +48,9 @@ export type FloorShowdownCtx = {
   extraWinners: number
   splitWin: boolean
   ariaLabel: string
+  sidePotLabStyle: SidePotLabStyleId | null
+  sidePotLab: SidePotLabDisplay | null
+  winnerLine: string | null
 }
 
 function formatPot(amount: number): string {
@@ -60,21 +79,33 @@ function buildCtx(
   const label = winners.length > 1 ? 'Split winners' : 'Winner'
   const namePills = winners.slice(0, 4)
   const extraWinners = winners.length - namePills.length
+  const sidePotLabStyle = sidePotLabStyleForTable(tableNum, labMode)
+  const sidePotLab =
+    sidePotLabStyle != null ? sidePotLabDisplay(sidePotLabStyle, rows) : null
+  const displayPot = sidePotLab?.pot ?? pot
+  const displaySplit = sidePotLab?.splitWin ?? winners.length > 1
+  const winnerLine = sidePotLab?.winnerLine ?? null
+
   return {
     variantId,
     tableNum,
     labMode,
-    pot,
+    pot: displayPot,
     label,
     winners,
     chipRow,
     namePills,
     extraWinners,
-    splitWin: winners.length > 1,
+    splitWin: displaySplit,
+    sidePotLabStyle,
+    sidePotLab,
+    winnerLine,
     ariaLabel:
-      winners.length > 1
-        ? `${label}: ${winners.map((w) => w.name).join(', ')}. ${formatPot(pot)} each`
-        : `${label}: ${winners.map((w) => w.name).join(', ')}. Pot ${formatPot(pot)}`,
+      sidePotLab != null
+        ? `${SIDE_POT_LAB_STYLE_NAMES[sidePotLabStyle!]}: ${sidePotLab.winnerLine || 'layer breakdown'}. ${formatPot(displayPot)}${displaySplit ? ' each' : ''}`
+        : displaySplit
+          ? `${label}: ${winners.map((w) => w.name).join(', ')}. ${formatPot(displayPot)} each`
+          : `${label}: ${winners.map((w) => w.name).join(', ')}. Pot ${formatPot(displayPot)}`,
   }
 }
 
@@ -83,6 +114,18 @@ export function synthesizeLabShowdownRows(tile: DisplayVenueTileSnapshot): {
   correctAnswer: number
 } {
   const board = [4, 0, 0, 0, 1] as const
+  const winningComposition = [
+    { source: 'community' as const, index: 0 },
+    { source: 'community' as const, index: 1 },
+    { source: 'community' as const, index: 2 },
+    { source: 'community' as const, index: 3 },
+    { source: 'community' as const, index: 4 },
+  ]
+
+  if (isSidePotLabTable(tile.tableNum, true)) {
+    return synthesizeSidePotLabRows(tile, winningComposition, board)
+  }
+
   const correctAnswer = 40
   const names = (tile.seatNames ?? []).map((n) => (typeof n === 'string' ? n.trim() : ''))
   const seated = names.filter((n) => n.length > 0)
@@ -91,13 +134,6 @@ export function synthesizeLabShowdownRows(tile: DisplayVenueTileSnapshot): {
   const winnerSeats = splitDemo ? [0, 1] : [0]
   /** 40.001 — five board digits with a decimal so lab always shows the dot. */
   const winningSubmitted = 40.001
-  const winningComposition = [
-    { source: 'community' as const, index: 0 },
-    { source: 'community' as const, index: 1 },
-    { source: 'community' as const, index: 2 },
-    { source: 'community' as const, index: 3 },
-    { source: 'community' as const, index: 4 },
-  ]
 
   const rows: ShowdownResultRow[] = []
   for (let i = 0; i < rosterLen; i++) {
@@ -164,6 +200,9 @@ const POT_AMOUNT =
 
 function VariantBadge({ ctx }: { ctx: FloorShowdownCtx }) {
   if (!ctx.labMode) return null
+  if (ctx.sidePotLabStyle != null) {
+    return <SidePotLabBadge style={ctx.sidePotLabStyle} />
+  }
   return (
     <span
       className="absolute right-1 top-1 z-[10] rounded border border-white/25 bg-black/85 px-1 py-px font-mono text-[0.42rem] font-bold tabular-nums text-white/75"
@@ -177,19 +216,31 @@ function VariantBadge({ ctx }: { ctx: FloorShowdownCtx }) {
 function HeroPot({
   pot,
   splitWin = false,
+  subline,
   className = '',
 }: {
   pot: number
   splitWin?: boolean
+  subline?: string
   className?: string
 }) {
+  if (pot <= 0 && subline) {
+    return null
+  }
   return (
-    <div className={`flex items-baseline justify-center gap-[0.35em] ${className}`}>
-      <p className={POT_AMOUNT}>{formatPot(pot)}</p>
-      {splitWin ? (
-        <span className="shrink-0 font-bold uppercase tracking-[0.18em] text-yellow-200/90 text-[clamp(0.48rem,4.5cqw,0.68rem)]">
-          each
-        </span>
+    <div className={`text-center ${className}`}>
+      {pot > 0 ? (
+        <div className="flex items-baseline justify-center gap-[0.35em]">
+          <p className={POT_AMOUNT}>{formatPot(pot)}</p>
+          {splitWin ? (
+            <span className="shrink-0 font-bold uppercase tracking-[0.18em] text-yellow-200/90 text-[clamp(0.48rem,4.5cqw,0.68rem)]">
+              each
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+      {subline ? (
+        <p className="mt-0.5 text-[clamp(0.42rem,3.8cqw,0.58rem)] font-medium text-white/55">{subline}</p>
       ) : null}
     </div>
   )
@@ -204,6 +255,13 @@ function PotChip({ pot, splitWin = false }: { pot: number; splitWin?: boolean })
 }
 
 function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?: 'pills' | 'line' }) {
+  if (ctx.winnerLine != null && ctx.winnerLine.length > 0) {
+    return (
+      <div className="min-w-0 text-center">
+        <p className={`${WINNER_NAME} truncate`}>{ctx.winnerLine}</p>
+      </div>
+    )
+  }
   if (layout === 'line') {
     return (
       <div className="min-w-0 text-center">
@@ -238,6 +296,42 @@ function GuessBlock(ctx: FloorShowdownCtx) {
   return <ShowdownFiveCardsUsed row={ctx.chipRow} size="floor" />
 }
 
+function FloorPotBlock(ctx: FloorShowdownCtx) {
+  const lab = ctx.sidePotLab
+  if (lab == null) {
+    return <HeroPot pot={ctx.pot} splitWin={ctx.splitWin} />
+  }
+
+  const style = ctx.sidePotLabStyle!
+  if (style === 'G') {
+    return null
+  }
+  if (style === 'E') {
+    return (
+      <div className="flex w-full flex-col items-center gap-1">
+        <PotLadderBars layers={lab.layers} />
+      </div>
+    )
+  }
+  if (style === 'C') {
+    return (
+      <div className="flex w-full flex-col items-center gap-1">
+        <HeroPot pot={lab.pot} splitWin={lab.splitWin} subline={lab.potSubline} />
+        <PotLayerRows layers={lab.layers} />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex w-full flex-col items-center gap-0.5">
+      <HeroPot pot={lab.pot} splitWin={lab.splitWin} subline={lab.potSubline} />
+      {style === 'F' && lab.potReturn ? (
+        <PotReturnNote name={lab.potReturn.name} amount={lab.potReturn.amount} />
+      ) : null}
+    </div>
+  )
+}
+
 type WinnerLayout = 'pills' | 'line'
 type PotStyle = 'hero' | 'chip'
 
@@ -253,6 +347,27 @@ function ShowdownStack({
   potStyle?: PotStyle
   className?: string
 }) {
+  if (ctx.sidePotLabStyle === 'G') {
+    return (
+      <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
+        <div className="flex w-full min-h-0 flex-[1.2] flex-col items-center justify-center py-2">
+          <PotDetailLines
+            scenario={SIDE_POT_LAB_SCENARIO}
+            mainName={ctx.chipRow?.name ?? ctx.winners[0]?.name}
+            sideName={
+              ctx.winners.find((w) => w.chipPayout === SIDE_POT_LAB_SCENARIO.side && w.submitted !== 42)
+                ?.name
+            }
+            returnName={ctx.winners.find((w) => w.chipPayout === SIDE_POT_LAB_SCENARIO.returnAmount)?.name}
+          />
+        </div>
+        <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-1">
+          {GuessBlock(ctx)}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
       <div className="flex w-full min-h-0 flex-1 items-end justify-center pb-2">
@@ -262,7 +377,7 @@ function ShowdownStack({
         {potStyle === 'chip' ? (
           <PotChip pot={ctx.pot} splitWin={ctx.splitWin} />
         ) : (
-          <HeroPot pot={ctx.pot} splitWin={ctx.splitWin} />
+          FloorPotBlock(ctx)
         )}
       </div>
       <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-2">
@@ -315,7 +430,8 @@ export function VenueFloorShowdownByVariant({
       aria-label={ctx.ariaLabel}
     >
       <VariantBadge ctx={ctx} />
-      {ctx.splitWin ? <SplitPotRibbon /> : null}
+      {ctx.sidePotLab?.showSidePotRibbon ? <SidePotRibbon /> : null}
+      {ctx.splitWin && !ctx.sidePotLab?.showSidePotRibbon ? <SplitPotRibbon /> : null}
       {renderVariant(ctx)}
     </div>
   )

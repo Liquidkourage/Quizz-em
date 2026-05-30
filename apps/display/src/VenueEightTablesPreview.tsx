@@ -1651,8 +1651,9 @@ export default function VenueEightTablesPreview({
                   Showdown lab
                 </span>
                 {' — '}
-                Layout #08 (marquee bulbs). Hover badge for shell name. Remove{' '}
-                <span className="font-mono text-amber-200">?showdownLab=1</span> to exit.
+                Tables 1–7: side-pot styles A–G. 8–10: single winner. 11–20: split pot. Hover
+                badges for labels. Remove <span className="font-mono text-amber-200">?showdownLab=1</span>{' '}
+                to exit.
               </p>
             ) : null}
 

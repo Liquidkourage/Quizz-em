@@ -77,9 +77,9 @@ export function showdownTableNums(tileRows: DisplayVenueTileSnapshot[]): number[
   return tileRows.filter((t) => t.phase === 'showdown').map((t) => t.tableNum)
 }
 
-/** Full-screen showdown portal when any table is in showdown. */
-export function shouldUseVenueShowdownWall(tileRows: DisplayVenueTileSnapshot[]): boolean {
-  return showdownTableNums(tileRows).length > 0
+/** Legacy full-screen grid — mosaic tile overlays are production. */
+export function shouldUseVenueShowdownWall(_tileRows: DisplayVenueTileSnapshot[]): boolean {
+  return false
 }
 
 /** Multiple felts in showdown with no host pin — cycle hero so TV shows each full overlay. */

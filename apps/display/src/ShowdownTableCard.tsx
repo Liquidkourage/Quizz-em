@@ -161,9 +161,6 @@ export default function ShowdownTableCard({
           {tableNum}
         </p>
         <div className="min-w-0 text-right leading-tight">
-          <p className="text-[0.5rem] font-bold uppercase tracking-wider text-amber-200/70 sm:text-[0.55rem]">
-            Answer
-          </p>
           <p
             className={`font-mono font-black tabular-nums text-amber-100 ${
               compact ? 'text-sm' : 'text-lg sm:text-xl'

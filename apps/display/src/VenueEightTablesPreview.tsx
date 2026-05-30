@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
   displayBettingPhaseLabel,
+  formatTriviaNumber,
   isVenueTileWageringPaused,
   venueTileActingSeatIndex,
 } from '@qhe/core'
@@ -18,8 +19,7 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
-import VenueMultiTableShowdown from './VenueMultiTableShowdown'
-import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS, shouldUseVenueShowdownWall } from './venueWallModel'
+import { buildVenueWallTileRows, showdownTableNums, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   banquetCheckerboardGridColumn,
   banquetCheckerboardTrackCount,
@@ -1003,7 +1003,6 @@ type VenueMosaicTableCardProps = {
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
   prefersReducedMotion?: boolean
-  venueShowdownWallActive?: boolean
 }
 
 function VenueMosaicTableCard({
@@ -1013,7 +1012,6 @@ function VenueMosaicTableCard({
   floorCompact = false,
   floorHoneycomb = false,
   prefersReducedMotion = false,
-  venueShowdownWallActive = false,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1031,7 +1029,7 @@ function VenueMosaicTableCard({
   const floorShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
   const floorShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
   const showFloorShowdownOverlay =
-    !venueShowdownWallActive && showdownBrief && inShowdown && floorShowdownRows.length > 0
+    showdownBrief && inShowdown && floorShowdownRows.length > 0
   const floorShowdownPresentation = useMemo(() => {
     if (!showFloorShowdownOverlay) return null
     return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
@@ -1259,6 +1257,30 @@ function comparePlayersByFirstNameThenFullName(a: { name: string }, b: { name: s
   return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
 }
 
+function venueShowdownQuestionFromTiles(
+  tileRows: DisplayVenueTileSnapshot[],
+  wallQuestion: string | null
+): string | null {
+  if (wallQuestion?.trim()) return wallQuestion.trim()
+  for (const t of tileRows) {
+    if (t.phase === 'showdown') {
+      const qt = t.showdownQuestionText
+      if (typeof qt === 'string' && qt.trim()) return qt.trim()
+    }
+  }
+  return null
+}
+
+function venueShowdownAnswerFromTiles(tileRows: DisplayVenueTileSnapshot[]): number | undefined {
+  for (const t of tileRows) {
+    if (t.phase === 'showdown') {
+      const a = showdownCorrectAnswerFromTile(t)
+      if (a != null) return a
+    }
+  }
+  return undefined
+}
+
 function rosterRowsFromTiles(
   tiles: DisplayVenueTileSnapshot[]
 ): { name: string; tableNum: number; seatNum: number; bankroll: number }[] {
@@ -1356,14 +1378,12 @@ function VenueAerialFloorGrid({
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
-  venueShowdownWallActive = false,
 }: {
   tiles: DisplayVenueTileSnapshot[]
   spotlightTableNum: number | null
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
-  venueShowdownWallActive?: boolean
 }) {
   const n = tiles.length
   const { columns, rowCount } = useMemo(() => venueBanquetLayout(n), [n])
@@ -1469,7 +1489,6 @@ function VenueAerialFloorGrid({
                       floorCompact={floorCompact}
                       floorHoneycomb
                       prefersReducedMotion={prefersReducedMotion}
-                      venueShowdownWallActive={venueShowdownWallActive}
                     />
                   </div>
                 )
@@ -1520,11 +1539,20 @@ export default function VenueEightTablesPreview({
 
   const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
   const floorTiles = useMemo(() => populatedVenueTiles(tileRows), [tileRows])
-  const showVenueShowdownWall = useMemo(() => shouldUseVenueShowdownWall(tileRows), [tileRows])
+  const inVenueShowdown = useMemo(() => showdownTableNums(tileRows).length > 0, [tileRows])
+  const venueShowdownAnswer = useMemo(() => venueShowdownAnswerFromTiles(tileRows), [tileRows])
+  const venueShowdownQuestionText = useMemo(
+    () => venueShowdownQuestionFromTiles(tileRows, headlineQuestionText),
+    [tileRows, headlineQuestionText]
+  )
 
   const hasLiveWall = wall != null && wall.tiles != null && wall.tiles.length > 0
   const showHeadline =
-    hasLiveWall && (headlineQuestionText != null || answerDeadlineMs != null)
+    hasLiveWall &&
+    (headlineQuestionText != null || answerDeadlineMs != null || inVenueShowdown)
+  const headlineQuestionDisplay = inVenueShowdown
+    ? venueShowdownQuestionText
+    : headlineQuestionText
 
   const spotlightTableNum = featuredWatch.featuredTableNum
 
@@ -1601,15 +1629,29 @@ export default function VenueEightTablesPreview({
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div className="min-w-0 flex-1">
-                    {headlineQuestionText ? (
+                    {headlineQuestionDisplay ? (
                       <p className="text-balance text-left text-lg font-bold leading-snug tracking-tight text-yellow-400 sm:text-xl sm:leading-snug md:text-2xl md:leading-snug lg:text-[1.75rem] xl:text-[2rem] 2xl:text-[2.15rem]">
-                        {headlineQuestionText}
+                        {headlineQuestionDisplay}
                       </p>
+                    ) : inVenueShowdown ? (
+                      <p className="sr-only">Showdown in progress.</p>
                     ) : (
                       <p className="sr-only">Answering in progress.</p>
                     )}
                   </div>
-                  {answerDeadlineMs != null && typeof timerSeconds === 'number' ? (
+                  {inVenueShowdown && venueShowdownAnswer != null ? (
+                    <div
+                      className="flex shrink-0 flex-row items-center justify-center gap-1.5 rounded-lg border border-amber-400/55 bg-amber-950/45 px-2 py-1.5 shadow-[0_0_20px_rgba(251,191,36,0.1)] sm:flex-col sm:px-3 sm:py-2"
+                      aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
+                    >
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-200/70 sm:text-xs">
+                        Correct answer
+                      </span>
+                      <div className="font-mono text-2xl font-black tracking-tight text-amber-100 sm:text-4xl md:text-5xl xl:text-6xl">
+                        {formatTriviaNumber(venueShowdownAnswer)}
+                      </div>
+                    </div>
+                  ) : answerDeadlineMs != null && typeof timerSeconds === 'number' ? (
                     <div
                       className={`flex shrink-0 flex-row items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 sm:flex-col sm:px-3 sm:py-2 sm:tabular-nums ${
                         timerSeconds <= 10
@@ -1637,7 +1679,6 @@ export default function VenueEightTablesPreview({
               showHeadline={showHeadline}
               skipMountIntro={skipMountIntro}
               prefersReducedMotion={prefersReducedMotion}
-              venueShowdownWallActive={showVenueShowdownWall}
             />
           </section>
         ) : tileRows.length > 0 ? (
@@ -1654,10 +1695,6 @@ export default function VenueEightTablesPreview({
       </main>
 
       {showRoster ? <VenueScrollingRoster tiles={tileRows} /> : null}
-
-      {showVenueShowdownWall ? (
-        <VenueMultiTableShowdown tiles={tileRows} headlineQuestionText={headlineQuestionText} />
-      ) : null}
     </div>
   )
 }

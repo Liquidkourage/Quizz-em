@@ -1181,7 +1181,6 @@ function phaseAccent(ph: string) {
 
 type VenueMosaicTableCardProps = {
   row: DisplayVenueTileSnapshot
-  isSpotlightThumb?: boolean
   /** Winner line only (dense floor with many tables). */
   hideShowdownResults?: boolean
   /** Aerial floor: tighter chrome, no per-seat scroll list. */
@@ -1193,7 +1192,6 @@ type VenueMosaicTableCardProps = {
 
 function VenueMosaicTableCard({
   row,
-  isSpotlightThumb,
   hideShowdownResults = false,
   floorCompact = false,
   floorHoneycomb = false,
@@ -1235,21 +1233,17 @@ function VenueMosaicTableCard({
   const betsInPaused = ph === 'betting' && isMosaicBetsIn(row)
   const wageringLive = isMosaicWageringLive(row)
 
-  const spotlight = isSpotlightThumb === true
   const totalChips = totalChipsFromSeats(seatNames, seatBankrolls)
-  const cardShell = spotlight
-    ? 'rounded-xl border-2 border-amber-400/70 bg-black/65 shadow-[0_0_32px_rgba(251,191,36,0.22)] ring-2 ring-amber-400/35'
-    : betsInPaused
-      ? 'rounded-xl border-0 bg-transparent shadow-none ring-0'
-      : wageringLive
-        ? 'rounded-xl border-2 border-amber-500/70 bg-black/55 shadow-[0_0_22px_rgba(251,191,36,0.28)] ring-1 ring-amber-400/25'
-        : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
+  const cardShell = betsInPaused
+    ? 'rounded-xl border-0 bg-transparent shadow-none ring-0'
+    : wageringLive
+      ? 'rounded-xl border-2 border-amber-500/70 bg-black/55 shadow-[0_0_22px_rgba(251,191,36,0.28)] ring-1 ring-amber-400/25'
+      : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
 
   return (
       <article
-        data-spotlight-tile={tn}
+        data-table-tile={tn}
         role="group"
-        aria-current={spotlight ? 'true' : undefined}
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${betsInPaused ? ', bets in' : ''}, venue floor`}
         className={`flex w-full min-w-0 flex-col ${betsInPaused ? '' : 'backdrop-blur-md'} ${
           floorHoneycomb && floorCompact
@@ -1259,6 +1253,28 @@ function VenueMosaicTableCard({
               : 'h-full min-h-0 overflow-hidden'
         } ${floorCompact ? 'p-1 sm:p-1.5' : 'overflow-visible p-2 sm:p-2.5'} relative ${cardShell}`}
       >
+        {!showFloorShowdownOverlay ? (
+          <div
+            className={`flex w-full shrink-0 justify-center ${floorCompact ? 'pb-0.5' : 'pb-1'}`}
+            aria-label={`Pot ${formatVenueBankroll(pot)}`}
+          >
+            <VenuePotAmount
+              amount={pot}
+              prefersReducedMotion={prefersReducedMotion}
+              className={`font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${
+                floorCompact
+                  ? 'text-[clamp(1rem,5.5cqw,1.65rem)] sm:text-[clamp(1.05rem,5.8cqw,1.75rem)]'
+                  : 'text-[clamp(1.15rem,6.5cqw,2.15rem)] sm:text-[clamp(1.25rem,7cqw,2.35rem)]'
+              } ${
+                ph === 'lobby' || ph === 'question'
+                  ? pot > 0
+                    ? 'text-yellow-300/75'
+                    : 'text-yellow-300/40'
+                  : 'text-yellow-300'
+              }`}
+            />
+          </div>
+        ) : null}
         <div
           className={`flex min-h-0 min-w-0 flex-1 flex-col ${
             floorCompact ? 'gap-0.5' : 'gap-1.5 sm:gap-2'
@@ -1296,29 +1312,6 @@ function VenueMosaicTableCard({
             </span>
           ) : null}
         </div>
-
-        {!showFloorShowdownOverlay ? (
-          <div
-            className={`flex shrink-0 justify-center ${floorCompact ? '-mt-0.5 pb-0' : 'pb-0.5'}`}
-            aria-label={`Pot ${formatVenueBankroll(pot)}`}
-          >
-            <VenuePotAmount
-              amount={pot}
-              prefersReducedMotion={prefersReducedMotion}
-              className={`font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] ${
-                floorCompact
-                  ? 'text-[clamp(0.62rem,3.4cqw,0.95rem)]'
-                  : 'text-[clamp(0.8rem,4.5cqw,1.25rem)]'
-              } ${
-                ph === 'lobby' || ph === 'question'
-                  ? pot > 0
-                    ? 'text-yellow-300/70'
-                    : 'text-yellow-300/35'
-                  : 'text-yellow-300'
-              }`}
-            />
-          </div>
-        ) : null}
 
         <div
           className={`@container relative z-[1] flex w-full justify-center ${
@@ -1597,13 +1590,11 @@ function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) 
 
 function VenueAerialFloorGrid({
   tiles,
-  spotlightTableNum,
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
 }: {
   tiles: DisplayVenueTileSnapshot[]
-  spotlightTableNum: number | null
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
@@ -1705,9 +1696,6 @@ function VenueAerialFloorGrid({
                   >
                     <VenueMosaicTableCard
                       row={row}
-                      isSpotlightThumb={
-                        spotlightTableNum != null && row.tableNum === spotlightTableNum
-                      }
                       hideShowdownResults={showdownBrief}
                       floorCompact={floorCompact}
                       floorHoneycomb
@@ -1736,12 +1724,11 @@ type VenueEightTablesPreviewProps = {
 
 /**
  * Venue wall: A1 checkerboard floor (5×4 half-stagger, uniform tables) plus stacks strip.
- * Spotlight / host focus highlights one felt on the grid via **`useVenueWallFeaturedWatch`**.
  */
 export default function VenueEightTablesPreview({
   wall,
   skipMountIntro = false,
-  featuredWatch,
+  featuredWatch: _featuredWatch,
 }: VenueEightTablesPreviewProps) {
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -1789,8 +1776,6 @@ export default function VenueEightTablesPreview({
     headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
   const venueBlindsHeadline = useMemo(() => venueWallBlindsHeadline(wall), [wall])
 
-  const spotlightTableNum = featuredWatch.featuredTableNum
-
   const showRoster = rosterRowsFromTiles(tileRows).length > 0
 
   return (
@@ -1836,9 +1821,7 @@ export default function VenueEightTablesPreview({
             className="flex min-h-0 flex-1 flex-col gap-1.5 sm:gap-2"
           >
             <p className="sr-only" aria-live="polite" aria-atomic="true">
-              {spotlightTableNum != null
-                ? `Spotlight table ${spotlightTableNum}`
-                : 'Venue floor'}
+              Venue floor
             </p>
 
             {showHeadline ? (
@@ -1950,7 +1933,6 @@ export default function VenueEightTablesPreview({
 
             <VenueAerialFloorGrid
               tiles={floorTiles}
-              spotlightTableNum={spotlightTableNum}
               showHeadline={showHeadline}
               skipMountIntro={skipMountIntro}
               prefersReducedMotion={prefersReducedMotion}

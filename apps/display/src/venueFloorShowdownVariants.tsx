@@ -102,21 +102,22 @@ export function synthesizeLabShowdownRows(tile: DisplayVenueTileSnapshot): {
   const correctAnswer = 40
   const names = (tile.seatNames ?? []).map((n) => (typeof n === 'string' ? n.trim() : ''))
   const seated = names.filter((n) => n.length > 0)
-  const splitDemo = tile.tableNum === 13 || tile.tableNum === 14 || tile.tableNum === 16
-  const winnerSeats = splitDemo
-    ? seated.slice(0, 2).map((_, i) => i)
-    : [0]
-  if (winnerSeats.length === 0) {
-    winnerSeats.push(0)
-    names[0] = `Table ${tile.tableNum} winner`
-  }
+  /** Lab: tables 11–20 preview split-pot UI (two tied winners). */
+  const splitDemo = tile.tableNum >= 11 && tile.tableNum <= 20
+  const rosterLen = Math.max(seated.length, splitDemo ? 2 : 1)
+  const winnerSeats = splitDemo ? [0, 1] : [0]
+  const winningSubmitted = 40 + (tile.tableNum % 7) * 0.001
 
   const rows: ShowdownResultRow[] = []
-  for (let i = 0; i < Math.max(seated.length, 1); i++) {
-    const name = seated[i] ?? names[i] ?? `Seat ${i + 1}`
+  for (let i = 0; i < rosterLen; i++) {
+    const name =
+      seated[i] ??
+      (splitDemo && i === 1
+        ? `Split · Table ${tile.tableNum}`
+        : `Table ${tile.tableNum} · Seat ${i + 1}`)
     if (!name) continue
     const holes: [number, number] = [(i + 2) % 10, (i + 4) % 10]
-    const submitted = 40 + (tile.tableNum % 7) * 0.001 + i * 0.111
+    const submitted = winnerSeats.includes(i) ? winningSubmitted : winningSubmitted + 3.5 + i * 0.1
     const composition = [
       { source: 'community' as const, index: 0 },
       { source: 'community' as const, index: 1 },
@@ -133,7 +134,7 @@ export function synthesizeLabShowdownRows(tile: DisplayVenueTileSnapshot): {
       communityBoard: [...board],
       answerCommunityIndices: [0, 1, 2, 3],
       answerCards: cardsUsedFromComposition(composition, holes, board),
-      chipPayout: winnerSeats.includes(i) ? 120 : null,
+      chipPayout: winnerSeats.includes(i) ? 60 : null,
     })
   }
   return { rows, correctAnswer }

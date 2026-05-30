@@ -40,11 +40,17 @@ export default function VenueMultiTableShowdown({
   const firstAnswer = showdownTiles[0]
     ? showdownCorrectAnswerFromTile(showdownTiles[0])
     : undefined
-  const sharedAnswer = showdownTiles.every(
+  const allSameAnswer = showdownTiles.every(
     (t) => showdownCorrectAnswerFromTile(t) === firstAnswer
   )
-    ? firstAnswer
-    : undefined
+  const headerAnswer =
+    typeof firstAnswer === 'number' && Number.isFinite(firstAnswer) && allSameAnswer
+      ? firstAnswer
+      : showdownTiles.length === 1
+        ? firstAnswer
+        : showdownTiles
+            .map((t) => showdownCorrectAnswerFromTile(t))
+            .find((a) => typeof a === 'number' && Number.isFinite(a))
 
   const { columns, rows, density, gapClass } = showdownWallLayout(showdownTiles.length)
 
@@ -88,17 +94,17 @@ export default function VenueMultiTableShowdown({
             </p>
           ) : null}
         </div>
-        {sharedAnswer != null ? (
-          <div className="shrink-0 text-right">
-            <p className="text-[0.55rem] font-bold uppercase tracking-wider text-white/45 sm:text-xs">
-              Correct
+        {typeof headerAnswer === 'number' && Number.isFinite(headerAnswer) ? (
+          <div className="shrink-0 rounded-xl border border-amber-400/45 bg-black/35 px-3 py-2 text-right sm:px-4 sm:py-2.5">
+            <p className="text-[0.55rem] font-bold uppercase tracking-[0.18em] text-amber-200/80 sm:text-xs">
+              Correct answer
             </p>
-            <p className="font-mono text-2xl font-black tabular-nums text-amber-100 sm:text-3xl md:text-4xl">
-              {formatTriviaNumber(sharedAnswer)}
+            <p className="font-mono text-3xl font-black tabular-nums leading-none text-amber-100 sm:text-4xl md:text-5xl">
+              {formatTriviaNumber(headerAnswer)}
             </p>
           </div>
         ) : (
-          <p className="shrink-0 text-xs text-white/50 sm:text-sm">Per-table answers</p>
+          <p className="shrink-0 text-xs text-white/50 sm:text-sm">Answer on each table</p>
         )}
       </header>
 

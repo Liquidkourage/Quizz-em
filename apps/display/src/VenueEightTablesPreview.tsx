@@ -18,7 +18,8 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
-import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import VenueMultiTableShowdown from './VenueMultiTableShowdown'
+import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS, shouldUseVenueShowdownWall } from './venueWallModel'
 import {
   banquetCheckerboardGridColumn,
   banquetCheckerboardTrackCount,
@@ -1002,6 +1003,7 @@ type VenueMosaicTableCardProps = {
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
   prefersReducedMotion?: boolean
+  venueShowdownWallActive?: boolean
 }
 
 function VenueMosaicTableCard({
@@ -1011,6 +1013,7 @@ function VenueMosaicTableCard({
   floorCompact = false,
   floorHoneycomb = false,
   prefersReducedMotion = false,
+  venueShowdownWallActive = false,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1028,7 +1031,7 @@ function VenueMosaicTableCard({
   const floorShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
   const floorShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
   const showFloorShowdownOverlay =
-    showdownBrief && inShowdown && floorShowdownRows.length > 0
+    !venueShowdownWallActive && showdownBrief && inShowdown && floorShowdownRows.length > 0
   const floorShowdownPresentation = useMemo(() => {
     if (!showFloorShowdownOverlay) return null
     return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
@@ -1353,12 +1356,14 @@ function VenueAerialFloorGrid({
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
+  venueShowdownWallActive = false,
 }: {
   tiles: DisplayVenueTileSnapshot[]
   spotlightTableNum: number | null
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
+  venueShowdownWallActive?: boolean
 }) {
   const n = tiles.length
   const { columns, rowCount } = useMemo(() => venueBanquetLayout(n), [n])
@@ -1464,6 +1469,7 @@ function VenueAerialFloorGrid({
                       floorCompact={floorCompact}
                       floorHoneycomb
                       prefersReducedMotion={prefersReducedMotion}
+                      venueShowdownWallActive={venueShowdownWallActive}
                     />
                   </div>
                 )
@@ -1514,6 +1520,7 @@ export default function VenueEightTablesPreview({
 
   const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
   const floorTiles = useMemo(() => populatedVenueTiles(tileRows), [tileRows])
+  const showVenueShowdownWall = useMemo(() => shouldUseVenueShowdownWall(tileRows), [tileRows])
 
   const hasLiveWall = wall != null && wall.tiles != null && wall.tiles.length > 0
   const showHeadline =
@@ -1630,6 +1637,7 @@ export default function VenueEightTablesPreview({
               showHeadline={showHeadline}
               skipMountIntro={skipMountIntro}
               prefersReducedMotion={prefersReducedMotion}
+              venueShowdownWallActive={showVenueShowdownWall}
             />
           </section>
         ) : tileRows.length > 0 ? (
@@ -1646,6 +1654,10 @@ export default function VenueEightTablesPreview({
       </main>
 
       {showRoster ? <VenueScrollingRoster tiles={tileRows} /> : null}
+
+      {showVenueShowdownWall ? (
+        <VenueMultiTableShowdown tiles={tileRows} headlineQuestionText={headlineQuestionText} />
+      ) : null}
     </div>
   )
 }

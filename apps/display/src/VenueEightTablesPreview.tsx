@@ -1253,28 +1253,6 @@ function VenueMosaicTableCard({
               : 'h-full min-h-0 overflow-hidden'
         } ${floorCompact ? 'p-1 sm:p-1.5' : 'overflow-visible p-2 sm:p-2.5'} relative ${cardShell}`}
       >
-        {!showFloorShowdownOverlay ? (
-          <div
-            className={`flex w-full shrink-0 justify-center ${floorCompact ? 'pb-0.5' : 'pb-1'}`}
-            aria-label={`Pot ${formatVenueBankroll(pot)}`}
-          >
-            <VenuePotAmount
-              amount={pot}
-              prefersReducedMotion={prefersReducedMotion}
-              className={`font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${
-                floorCompact
-                  ? 'text-[clamp(1rem,5.5cqw,1.65rem)] sm:text-[clamp(1.05rem,5.8cqw,1.75rem)]'
-                  : 'text-[clamp(1.15rem,6.5cqw,2.15rem)] sm:text-[clamp(1.25rem,7cqw,2.35rem)]'
-              } ${
-                ph === 'lobby' || ph === 'question'
-                  ? pot > 0
-                    ? 'text-yellow-300/75'
-                    : 'text-yellow-300/40'
-                  : 'text-yellow-300'
-              }`}
-            />
-          </div>
-        ) : null}
         <div
           className={`flex min-h-0 min-w-0 flex-1 flex-col ${
             floorCompact ? 'gap-0.5' : 'gap-1.5 sm:gap-2'
@@ -1282,6 +1260,28 @@ function VenueMosaicTableCard({
         >
         <div className="flex shrink-0 items-start justify-between gap-1">
           <div className="min-w-0">
+            {!showFloorShowdownOverlay ? (
+              <div
+                className={floorCompact ? 'pb-0.5' : 'pb-1'}
+                aria-label={`Pot ${formatVenueBankroll(pot)}`}
+              >
+                <VenuePotAmount
+                  amount={pot}
+                  prefersReducedMotion={prefersReducedMotion}
+                  className={`font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${
+                    floorCompact
+                      ? 'text-[clamp(1rem,5.5cqw,1.65rem)] sm:text-[clamp(1.05rem,5.8cqw,1.75rem)]'
+                      : 'text-[clamp(1.15rem,6.5cqw,2.15rem)] sm:text-[clamp(1.25rem,7cqw,2.35rem)]'
+                  } ${
+                    ph === 'lobby' || ph === 'question'
+                      ? pot > 0
+                        ? 'text-yellow-300/75'
+                        : 'text-yellow-300/40'
+                      : 'text-yellow-300'
+                  }`}
+                />
+              </div>
+            ) : null}
             <div
               className={`font-black tabular-nums leading-none text-yellow-400 ${
                 floorCompact ? 'text-base sm:text-lg' : 'text-2xl'

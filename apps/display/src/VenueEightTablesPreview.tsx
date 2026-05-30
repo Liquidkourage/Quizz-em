@@ -95,21 +95,14 @@ function VenuePotAmount({
   )
 }
 
-/** Community board + bets-in ribbon — centered on felt (pot lives above the table). */
-function VenueMosaicFeltCenterStack({
-  communityDigits,
-  betsInPaused = false,
-}: {
-  communityDigits: number[]
-  betsInPaused?: boolean
-}) {
+/** Community board — centered on felt. */
+function VenueMosaicFeltCenterStack({ communityDigits }: { communityDigits: number[] }) {
   const feltBounds = venueFeltBoundsFrac()
-  const hasCommunity = communityDigits.length > 0
-  if (!betsInPaused && !hasCommunity) return null
+  if (communityDigits.length === 0) return null
   return (
     <div
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
-      aria-hidden={!betsInPaused && !hasCommunity}
+      aria-hidden={communityDigits.length === 0}
     >
       <div
         className="flex max-w-[92%] flex-col items-center justify-center gap-[2px] text-center sm:gap-0.5"
@@ -120,18 +113,11 @@ function VenueMosaicFeltCenterStack({
           transform: 'translate(-50%, -50%)',
         }}
       >
-        {betsInPaused ? (
-          <span className="w-[min(100%,5.5rem)] rounded-sm bg-emerald-400 px-2 py-0.5 text-center text-[clamp(0.45rem,2.9cqw,0.68rem)] font-black uppercase leading-none tracking-[0.14em] text-black shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
-            Bets in
-          </span>
-        ) : null}
-        {hasCommunity ? (
-          <div className={`flex items-center justify-center gap-[2px] sm:gap-0.5 ${betsInPaused ? 'mt-0.5' : ''}`}>
-            {communityDigits.map((digit, i) => (
-              <MosaicDigitCard key={`${i}-${digit}`} digit={digit} size="community" />
-            ))}
-          </div>
-        ) : null}
+        <div className="flex items-center justify-center gap-[2px] sm:gap-0.5">
+          {communityDigits.map((digit, i) => (
+            <MosaicDigitCard key={`${i}-${digit}`} digit={digit} size="community" />
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -237,11 +223,11 @@ function MosaicDigitCard({
 }) {
   const sizeClass =
     size === 'community'
-      ? 'h-[clamp(1.1rem,7.8cqw,1.8rem)] w-[clamp(0.82rem,5.5cqw,1.28rem)]'
+      ? 'h-[clamp(1.35rem,9.5cqw,2.25rem)] w-[clamp(1rem,7cqw,1.65rem)]'
       : 'h-[clamp(0.92rem,6.2cqw,1.45rem)] w-[clamp(0.66rem,4.4cqw,1.08rem)]'
   const textClass =
     size === 'community'
-      ? 'text-[clamp(0.58rem,4.2cqw,0.85rem)]'
+      ? 'text-[clamp(0.72rem,5.2cqw,1.05rem)]'
       : 'text-[clamp(0.48rem,3.3cqw,0.68rem)]'
   if (faceDown) {
     return (
@@ -293,7 +279,7 @@ function mosaicSeatInwardPct(
   seatCount: number,
   w: number,
   h: number,
-  inwardFrac = 0.3
+  inwardFrac = 0.12
 ): { leftPct: number; topPct: number } {
   const outer = mosaicSeatDotPct(seatIndex, seatCount, w, h)
   const center = venueMosaicFeltCenterPct()
@@ -796,8 +782,7 @@ function SeatRingWithLabels({
         )
       : railBorderRadius
 
-  const showFeltBoardCenter =
-    isMosaic && (betsInPaused || communityDigits.length > 0)
+  const showFeltBoardCenter = isMosaic && communityDigits.length > 0
 
   return (
     <div ref={ringElRef} className={`@container relative overflow-visible ${wrap}`}>
@@ -857,10 +842,7 @@ function SeatRingWithLabels({
         />
       ) : null}
       {showFeltBoardCenter ? (
-        <VenueMosaicFeltCenterStack
-          communityDigits={communityDigits}
-          betsInPaused={betsInPaused}
-        />
+        <VenueMosaicFeltCenterStack communityDigits={communityDigits} />
       ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         const filled = i < seatedCount
@@ -1297,13 +1279,11 @@ function VenueMosaicTableCard({
             <div aria-hidden />
           )}
           <div className="min-w-0 justify-self-end">
-            {!betsInPaused ? (
-              <span
-                className={`max-w-[min(9rem,46vw)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
-              >
-                {mosaicPhaseLabel(row)}
-              </span>
-            ) : null}
+            <span
+              className={`max-w-[min(9rem,46vw)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
+            >
+              {mosaicPhaseLabel(row)}
+            </span>
           </div>
         </div>
 

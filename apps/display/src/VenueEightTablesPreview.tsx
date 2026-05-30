@@ -14,14 +14,15 @@ import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { readShowdownLabFromUrl } from './displayUrlParams'
 import {
   buildFloorShowdownPresentation,
-  VenueFeltCenterWinningGuess,
-  VenueFloorShowdownCaption,
+  VenueFeltWinningGuessByVariant,
   VenueFloorWinnerArrows,
 } from './VenueFloorShowdownOverlay'
 import {
   resolveFloorShowdownData,
+  venueFloorShowdownVariantForTable,
   VenueFloorShowdownByVariant,
   VenueFloorShowdownVariantStyles,
+  type VenueFloorShowdownVariantId,
 } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
@@ -555,8 +556,9 @@ function SeatRingWithLabels({
   feltCenterPotDimmed = false,
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
   winnerSeatIndexes = null,
-  /** Winning trivia guess drawn large on felt center (floor showdown). */
   feltCenterWinningGuess = null,
+  feltWinningGuessVariant = null,
+  feltWinningGuessSplit = false,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -588,6 +590,8 @@ function SeatRingWithLabels({
   feltCenterPotDimmed?: boolean
   winnerSeatIndexes?: ReadonlySet<number> | null
   feltCenterWinningGuess?: string | null
+  feltWinningGuessVariant?: VenueFloorShowdownVariantId | null
+  feltWinningGuessSplit?: boolean
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
@@ -727,8 +731,12 @@ function SeatRingWithLabels({
           prefersReducedMotion={prefersReducedMotion}
         />
       ) : null}
-      {isMosaic && feltCenterWinningGuess ? (
-        <VenueFeltCenterWinningGuess guess={feltCenterWinningGuess} />
+      {isMosaic && feltCenterWinningGuess && feltWinningGuessVariant != null ? (
+        <VenueFeltWinningGuessByVariant
+          guess={feltCenterWinningGuess}
+          variantId={feltWinningGuessVariant}
+          splitWin={feltWinningGuessSplit}
+        />
       ) : null}
       {isMosaic && winnerSeatIndexes != null && winnerSeatIndexes.size > 0 ? (
         <VenueFloorWinnerArrows
@@ -1062,7 +1070,7 @@ function VenueMosaicTableCard({
     if (!showFloorShowdownOverlay) return null
     return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
   }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
-  const useProductionFloorShowdown = showFloorShowdownOverlay && !showdownLab
+  const floorVariantId = venueFloorShowdownVariantForTable(tn)
   const winnerSeatIndexes = showFloorShowdownOverlay
     ? floorShowdownPresentation?.winnerSeatIndexes ?? null
     : null
@@ -1140,13 +1148,16 @@ function VenueMosaicTableCard({
             feltCenterPotDimmed={ph === 'lobby' || ph === 'question'}
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
             feltCenterWinningGuess={
-              useProductionFloorShowdown ? floorShowdownPresentation?.guess ?? null : null
+              showFloorShowdownOverlay ? floorShowdownPresentation?.guess ?? null : null
+            }
+            feltWinningGuessVariant={showFloorShowdownOverlay ? floorVariantId : null}
+            feltWinningGuessSplit={
+              showFloorShowdownOverlay
+                ? (floorShowdownPresentation?.winners.length ?? 0) > 1
+                : false
             }
           />
-          {useProductionFloorShowdown && floorShowdownPresentation ? (
-            <VenueFloorShowdownCaption presentation={floorShowdownPresentation} />
-          ) : null}
-          {showFloorShowdownOverlay && showdownLab ? (
+          {showFloorShowdownOverlay ? (
             <VenueFloorShowdownByVariant
               tableNum={tn}
               rows={floorShowdownRows}

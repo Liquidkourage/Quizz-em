@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import {
   cardsUsedFromComposition,
   pickShowdownFloorChipRow,
@@ -14,26 +13,26 @@ export type VenueFloorShowdownVariantId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
 export const VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT = 20
 
 export const VENUE_FLOOR_SHOWDOWN_VARIANT_NAMES: Record<VenueFloorShowdownVariantId, string> = {
-  1: 'Classic pills stack',
-  2: 'Giant guess hero',
-  3: 'Banner + ghost guess',
-  4: 'Gold banner trio',
-  5: 'Right scoreboard',
-  6: 'Crown chips only',
-  7: 'Crown + pill row',
-  8: 'Inset winner card',
-  9: 'Split or crown',
-  10: 'Inset with pills',
-  11: 'Chips · pills · guess',
-  12: 'Split · pills · chips',
-  13: 'Split pot stack',
-  14: 'Marquee + pills',
-  15: 'Guess over pills',
-  16: 'Digits + banner',
-  17: 'Left scoreboard',
-  18: 'Crown · stagger list',
-  19: 'Sash + inset zone',
-  20: 'Noir crown strip',
+  1: 'Top caption · classic number',
+  2: 'Bottom pills · hero number',
+  3: 'Gold banner · ghost number',
+  4: 'Bottom strip · gold number',
+  5: 'Right rail · cyan number',
+  6: 'Left rail · halo number',
+  7: 'Crown top · digit stack',
+  8: 'Stagger bottom · wide number',
+  9: 'Sash · low number',
+  10: 'Top pills · emerald number',
+  11: 'Split stars · embossed number',
+  12: 'Corner TR · rose number',
+  13: 'Corner TL · underline number',
+  14: 'Noir bottom · ring number',
+  15: 'Marquee · pot-style number',
+  16: 'Right names · compact number',
+  17: 'Split ribbon · max number',
+  18: 'Corner frame · italic number',
+  19: 'Bottom text · answer tag',
+  20: 'Crown bottom · noir number',
 }
 
 export function venueFloorShowdownVariantForTable(tableNum: number): VenueFloorShowdownVariantId {
@@ -169,26 +168,6 @@ function VariantBadge({ ctx }: { ctx: FloorShowdownCtx }) {
   )
 }
 
-function FloorChips({
-  chipRow,
-  className = '',
-  size = 'floor' as const,
-}: {
-  chipRow: ShowdownResultRow | null
-  className?: string
-  size?: 'floor' | 'sm' | 'xs' | 'md'
-}) {
-  if (chipRow == null) return null
-  return (
-    <div
-      className={`@container flex min-h-0 min-w-0 items-center justify-center ${className}`}
-      style={{ containerType: 'size' }}
-    >
-      <ShowdownFiveCardsUsed row={chipRow} size={size} />
-    </div>
-  )
-}
-
 function WinnerStarPill({ w }: { w: ShowdownResultRow }) {
   return (
     <span
@@ -223,10 +202,32 @@ function WinnerPillsRow({ ctx }: { ctx: FloorShowdownCtx }) {
   )
 }
 
+function DeclShell({
+  className = '',
+  children,
+}: {
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <div
+      className={`max-w-full rounded-md border border-amber-400/35 bg-black/48 px-2 py-0.5 shadow-[0_2px_10px_rgba(0,0,0,0.4)] backdrop-blur-[2px] ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+function DeclLabel({ ctx }: { ctx: FloorShowdownCtx }) {
+  return (
+    <p className="text-[0.38rem] font-bold uppercase tracking-[0.16em] text-amber-200/80">{ctx.label}</p>
+  )
+}
+
 function GoldTopBanner({ ctx }: { ctx: FloorShowdownCtx }) {
   return (
-    <div className="shrink-0 border-b-2 border-amber-400/70 bg-gradient-to-r from-amber-900/95 via-yellow-700/90 to-amber-900/95 px-[4%] py-1 shadow-[0_4px_12px_rgba(0,0,0,0.45)]">
-      <p className="text-center text-[0.38rem] font-bold uppercase tracking-[0.28em] text-amber-950/80">
+    <div className="border-b border-amber-400/50 bg-gradient-to-r from-amber-900/88 via-yellow-700/82 to-amber-900/88 px-2 py-0.5 shadow-sm">
+      <p className="text-center text-[0.36rem] font-bold uppercase tracking-[0.22em] text-amber-950/85">
         {ctx.label}
       </p>
       <WinnerPillsRow ctx={ctx} />
@@ -259,83 +260,40 @@ function SplitPotBanner() {
   )
 }
 
-function SplitOrLabelBanner({ ctx }: { ctx: FloorShowdownCtx }) {
-  return ctx.winners.length > 1 ? <SplitPotBanner /> : <CrownBar ctx={ctx} compact />
-}
-
-function ScoreboardRail(ctx: FloorShowdownCtx, side: 'left' | 'right') {
-  const border = side === 'left' ? 'border-r-2' : 'border-l-2'
+function ScoreboardRail({ ctx, side }: { ctx: FloorShowdownCtx; side: 'left' | 'right' }) {
+  const edge = side === 'left' ? 'left-0 border-r' : 'right-0 border-l'
   return (
     <div
-      className={`flex w-[30%] shrink-0 flex-col ${border} border-amber-500/45 bg-gradient-to-b from-black/92 via-amber-950/75 to-black/95`}
+      className={`absolute top-[12%] bottom-[10%] ${edge} z-[1] flex w-[24%] flex-col border-amber-500/35 bg-black/42`}
     >
-      <p className="shrink-0 border-b border-amber-500/35 bg-amber-600/35 py-0.5 text-center text-[0.38rem] font-black uppercase tracking-widest text-amber-100">
+      <p className="shrink-0 border-b border-amber-500/30 py-0.5 text-center text-[0.36rem] font-black uppercase tracking-widest text-amber-100/90">
         {ctx.label}
       </p>
-      <div className="flex min-h-0 flex-1 flex-col justify-center gap-1 px-1 py-1">
+      <div className="flex min-h-0 flex-1 flex-col justify-center gap-0.5 px-1 py-1">
         {ctx.namePills.map((w) => (
           <div
             key={`${w.seat}:${w.name}`}
-            className="rounded border border-amber-400/40 bg-black/50 px-1 py-0.5"
+            className="rounded border border-amber-400/35 bg-black/40 px-1 py-px"
           >
-            <p className="font-mono text-[0.38rem] font-bold tabular-nums text-amber-300/75">S{w.seat}</p>
-            <p className="truncate text-[0.44rem] font-black leading-tight text-amber-50">{w.name}</p>
+            <p className="font-mono text-[0.34rem] font-bold tabular-nums text-amber-300/70">S{w.seat}</p>
+            <p className="truncate text-[0.4rem] font-bold leading-tight text-amber-50">{w.name}</p>
           </div>
         ))}
         <ExtraWinnersChip n={ctx.extraWinners} />
       </div>
-      {ctx.guess ? (
-        <p className="shrink-0 border-t border-amber-500/30 py-1 text-center font-mono text-[0.52rem] font-black tabular-nums text-yellow-300">
-          {ctx.guess}
-        </p>
-      ) : null}
     </div>
   )
 }
 
-function InsetFeltCard({
-  ctx,
-  children,
-  pad = '8%',
-}: {
-  ctx: FloorShowdownCtx
-  children: ReactNode
-  pad?: string
-}) {
+function CornerFrameBrackets() {
+  const c = 'absolute h-[14%] w-[18%] border-amber-400/55'
   return (
-    <div className="flex h-full items-center justify-center" style={{ padding: pad }}>
-      <div className="flex h-full w-full flex-col overflow-hidden rounded-lg border-2 border-amber-400/70 bg-black/88 shadow-[0_8px_28px_rgba(0,0,0,0.65)]">
-        <p className="shrink-0 border-b border-amber-500/30 py-1 text-center text-[0.42rem] font-bold uppercase text-amber-200/80">
-          {ctx.label}
-        </p>
-        {children}
-      </div>
-    </div>
-  )
-}
-
-function GiantGuessText({
-  ctx,
-  tone = 'hero',
-}: {
-  ctx: FloorShowdownCtx
-  tone?: 'hero' | 'ghost'
-}) {
-  if (!ctx.guess) return null
-  if (tone === 'ghost') {
-    return (
-      <p
-        aria-hidden
-        className="pointer-events-none absolute inset-x-[6%] top-[22%] text-center font-mono text-[clamp(1rem,28cqw,1.6rem)] font-black tabular-nums leading-none text-amber-500/12"
-      >
-        {ctx.guess}
-      </p>
-    )
-  }
-  return (
-    <p className="font-mono text-[clamp(0.85rem,24cqw,1.35rem)] font-black tabular-nums leading-none text-amber-50">
-      {ctx.guess}
-    </p>
+    <>
+      <span className={`${c} left-[8%] top-[10%] border-l-2 border-t-2`} aria-hidden />
+      <span className={`${c} right-[8%] top-[10%] border-r-2 border-t-2`} aria-hidden />
+      <span className={`${c} bottom-[12%] left-[8%] border-b-2 border-l-2`} aria-hidden />
+      <span className={`${c} bottom-[12%] right-[8%] border-b-2 border-r-2`} aria-hidden />
+    </>
   )
 }
 
@@ -377,30 +335,13 @@ function StaggerWinners({ ctx }: { ctx: FloorShowdownCtx }) {
   )
 }
 
-function DigitColumn(chipRow: ShowdownResultRow | null) {
-  const digits = chipRow?.answerCards.map((c) => c.digit) ?? []
-  if (digits.length === 0) return null
-  return (
-    <div className="flex w-[26%] shrink-0 flex-col items-center justify-center gap-0.5 border-r border-amber-500/25 bg-black/55 py-2">
-      {digits.map((d, i) => (
-        <span
-          key={i}
-          className="flex h-[0.95rem] w-[0.95rem] items-center justify-center rounded border border-emerald-400/60 bg-emerald-950/90 font-mono text-[0.55rem] font-black text-emerald-100"
-        >
-          {d}
-        </span>
-      ))}
-    </div>
-  )
-}
-
 function DiagonalWinnerSash({ ctx }: { ctx: FloorShowdownCtx }) {
   return (
     <div
-      className="pointer-events-none absolute -left-[16%] top-[6%] z-[126] w-[76%] -rotate-[36deg] border-y-2 border-amber-300/80 bg-gradient-to-r from-amber-500/95 via-yellow-400/90 to-amber-500/95 py-1 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
+      className="pointer-events-none absolute -left-[14%] top-[4%] z-[2] w-[72%] -rotate-[34deg] border-y border-amber-400/70 bg-amber-500/88 py-px shadow-sm"
       aria-hidden
     >
-      <p className="truncate px-2 text-center text-[0.44rem] font-black uppercase tracking-wide text-amber-950">
+      <p className="truncate px-2 text-center text-[0.4rem] font-black uppercase tracking-wide text-amber-950">
         ★ {ctx.winners.map((w) => w.name).join(' · ')}
         {ctx.extraWinners > 0 ? ` +${ctx.extraWinners}` : ''}
       </p>
@@ -408,260 +349,199 @@ function DiagonalWinnerSash({ ctx }: { ctx: FloorShowdownCtx }) {
   )
 }
 
-function ChipsFooterNames({ ctx }: { ctx: FloorShowdownCtx }) {
+function VerticalWinnerNames({ ctx }: { ctx: FloorShowdownCtx }) {
   return (
-    <p className="shrink-0 truncate px-[6%] pb-[4%] text-center text-[0.48rem] font-bold text-amber-100/90">
-      {ctx.winners.map((w) => w.name).join(' · ')}
-    </p>
+    <div className="absolute right-[3%] top-[14%] bottom-[14%] z-[1] flex w-[22%] flex-col justify-center gap-0.5">
+      <DeclLabel ctx={ctx} />
+      {ctx.namePills.map((w) => (
+        <p key={`${w.seat}:${w.name}`} className="truncate text-[0.4rem] font-bold text-amber-50/95">
+          {w.name}
+        </p>
+      ))}
+      <ExtraWinnersChip n={ctx.extraWinners} />
+    </div>
   )
 }
 
+/** Winner declaration only — large guess + arrows live on the felt layer. */
 function renderVariant(ctx: FloorShowdownCtx): ReactNode {
   switch (ctx.variantId) {
     case 1:
       return (
-        <>
-          <div className="flex shrink-0 flex-col items-center gap-1 px-[5%] pb-1 pt-[4%] text-center">
-            <p className="text-[0.45rem] font-bold uppercase tracking-[0.2em] text-amber-200/75">{ctx.label}</p>
+        <div className="absolute inset-x-0 top-0 flex justify-center px-[5%] pt-[2%]">
+          <DeclShell className="text-center">
+            <DeclLabel ctx={ctx} />
             <WinnerPillsRow ctx={ctx} />
-            {ctx.guess ? (
-              <p className="font-mono text-[0.5rem] font-bold tabular-nums text-amber-100/90">{ctx.guess}</p>
-            ) : null}
-          </div>
-          <FloorChips chipRow={ctx.chipRow} className="w-full flex-1 px-[4%] pb-[5%]" />
-        </>
+          </DeclShell>
+        </div>
       )
     case 2:
       return (
-        <>
-          <div className="flex shrink-0 flex-col items-center gap-0.5 pt-[5%]">
-            <GiantGuessText ctx={ctx} />
-            <p className="text-[0.45rem] font-bold uppercase tracking-widest text-amber-300/70">{ctx.label}</p>
-          </div>
-          <FloorChips chipRow={ctx.chipRow} className="w-full flex-1 px-[3%] pb-[3%]" />
-          <WinnerPillsRow ctx={ctx} />
-          <ChipsFooterNames ctx={ctx} />
-        </>
+        <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 px-[5%] pb-[3%]">
+          <DeclShell className="text-center">
+            <DeclLabel ctx={ctx} />
+            <WinnerPillsRow ctx={ctx} />
+          </DeclShell>
+        </div>
       )
     case 3:
       return (
-        <div className="relative flex h-full min-h-0 w-full flex-col">
+        <div className="absolute inset-x-0 top-0">
           <GoldTopBanner ctx={ctx} />
-          <GiantGuessText ctx={ctx} tone="ghost" />
-          <FloorChips chipRow={ctx.chipRow} className="relative z-[1] w-full flex-1 px-[4%] pb-[4%]" />
         </div>
       )
     case 4:
       return (
-        <>
-          <GoldTopBanner ctx={ctx} />
-          <FloorChips chipRow={ctx.chipRow} className="w-full flex-1 px-[4%]" />
-          {ctx.guess ? (
-            <p className="shrink-0 pb-[4%] text-center font-mono text-[0.52rem] font-bold tabular-nums text-amber-200/80">
-              {ctx.guess}
-            </p>
-          ) : null}
-        </>
-      )
-    case 5:
-      return (
-        <div className="flex h-full min-h-0 w-full">
-          <FloorChips chipRow={ctx.chipRow} className="min-w-0 flex-[1.35] px-[3%] py-[4%]" />
-          {ScoreboardRail(ctx, 'right')}
+        <div className="absolute inset-x-0 bottom-0 px-[4%] pb-[2%]">
+          <div className="border-t border-amber-400/45 bg-gradient-to-r from-amber-900/80 via-yellow-800/75 to-amber-900/80 py-1 text-center">
+            <DeclLabel ctx={ctx} />
+            <WinnerPillsRow ctx={ctx} />
+          </div>
         </div>
       )
+    case 5:
+      return <ScoreboardRail ctx={ctx} side="right" />
     case 6:
-      return (
-        <>
-          <CrownBar ctx={ctx} />
-          <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[4%] pb-[5%]" />
-        </>
-      )
+      return <ScoreboardRail ctx={ctx} side="left" />
     case 7:
       return (
         <>
-          <CrownBar ctx={ctx} />
-          <div className="flex shrink-0 justify-center py-1">
+          <div className="absolute inset-x-0 top-0">
+            <CrownBar ctx={ctx} compact />
+          </div>
+          <div className="absolute inset-x-0 bottom-0 flex justify-center px-[5%] pb-[3%]">
             <WinnerPillsRow ctx={ctx} />
           </div>
-          {ctx.guess ? (
-            <p className="shrink-0 text-center font-mono text-[0.48rem] font-bold tabular-nums text-amber-100/85">
-              {ctx.guess}
-            </p>
-          ) : null}
-          <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[4%] pb-[4%]" />
         </>
       )
     case 8:
       return (
-        <InsetFeltCard ctx={ctx}>
-          <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[6%]" />
-          <div className="shrink-0 space-y-0.5 border-t border-amber-500/25 px-[4%] py-1">
-            <WinnerPillsRow ctx={ctx} />
-          </div>
-        </InsetFeltCard>
+        <div className="absolute inset-x-0 bottom-0">
+          <StaggerWinners ctx={ctx} />
+        </div>
       )
     case 9:
       return (
         <>
-          <SplitOrLabelBanner ctx={ctx} />
-          <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[4%]" />
-          <div className="shrink-0 px-[5%] pb-[4%] text-center">
-            <WinnerPillsRow ctx={ctx} />
+          <DiagonalWinnerSash ctx={ctx} />
+          <div className="absolute inset-x-0 bottom-0 flex justify-center px-[6%] pb-[3%]">
+            <p className="truncate text-center text-[0.44rem] font-bold text-amber-100/90">
+              {ctx.winners.map((w) => w.name).join(' · ')}
+            </p>
           </div>
         </>
       )
     case 10:
       return (
-        <InsetFeltCard ctx={ctx} pad="6%">
-          <div className="shrink-0 flex justify-center py-1">
-            <WinnerPillsRow ctx={ctx} />
-          </div>
-          <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[5%]" />
-          {ctx.guess ? (
-            <p className="shrink-0 border-t border-amber-500/25 py-1 text-center font-mono text-[0.46rem] font-bold tabular-nums text-amber-200/85">
-              {ctx.guess}
-            </p>
-          ) : null}
-        </InsetFeltCard>
+        <div className="absolute inset-x-0 top-0 flex justify-center px-[5%] pt-[2%]">
+          <WinnerPillsRow ctx={ctx} />
+        </div>
       )
     case 11:
       return (
-        <>
-          <FloorChips chipRow={ctx.chipRow} className="w-full flex-[1.15] px-[3%] pt-[4%]" />
-          <div className="flex shrink-0 flex-col items-center gap-1 px-[5%] pb-[5%] text-center">
-            <p className="text-[0.42rem] font-bold uppercase text-amber-300/70">{ctx.label}</p>
-            <WinnerPillsRow ctx={ctx} />
-            {ctx.guess ? (
-              <p className="font-mono text-[0.46rem] font-bold tabular-nums text-amber-200/85">{ctx.guess}</p>
-            ) : null}
-          </div>
-        </>
-      )
-    case 12:
-      return (
-        <>
-          <SplitOrLabelBanner ctx={ctx} />
-          <div className="flex shrink-0 justify-center py-1">
-            <WinnerPillsRow ctx={ctx} />
-          </div>
-          <FloorChips chipRow={ctx.chipRow} className="w-full flex-1 px-[4%] pb-[5%]" />
-        </>
-      )
-    case 13:
-      return (
-        <>
-          {ctx.winners.length > 1 ? <SplitPotBanner /> : <CrownBar ctx={ctx} compact />}
-          <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[4%]" />
-          <div className="shrink-0 space-y-0.5 px-[5%] pb-[4%] text-center">
+        <div className="absolute inset-x-0 bottom-0 px-[5%] pb-[3%] text-center">
+          <DeclLabel ctx={ctx} />
+          <div className="mt-0.5 space-y-px">
             {ctx.namePills.map((w) => (
-              <p key={`${w.seat}:${w.name}`} className="truncate text-[0.48rem] font-bold text-amber-50">
+              <p key={`${w.seat}:${w.name}`} className="truncate text-[0.44rem] font-bold text-amber-50">
                 ★ {w.name}
               </p>
             ))}
-            <ExtraWinnersChip n={ctx.extraWinners} />
           </div>
-        </>
+          <ExtraWinnersChip n={ctx.extraWinners} />
+        </div>
+      )
+    case 12:
+      return (
+        <div className="absolute right-[4%] top-[3%] max-w-[46%]">
+          <DeclShell>
+            <DeclLabel ctx={ctx} />
+            <WinnerPillsRow ctx={ctx} />
+          </DeclShell>
+        </div>
+      )
+    case 13:
+      return (
+        <div className="absolute left-[4%] top-[3%] max-w-[46%]">
+          <DeclShell>
+            <DeclLabel ctx={ctx} />
+            <WinnerPillsRow ctx={ctx} />
+          </DeclShell>
+        </div>
       )
     case 14:
       return (
-        <>
-          <MarqueeBulbs />
-          <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[5%]" />
-          <div className="shrink-0 border-t border-amber-500/25 bg-black/55 px-[5%] py-1 text-center">
-            <p className="text-[0.4rem] font-bold uppercase tracking-wider text-amber-200/70">{ctx.label}</p>
-            <WinnerPillsRow ctx={ctx} />
-          </div>
-        </>
+        <div className="absolute inset-x-[6%] bottom-[3%] border-t-2 border-white/75 pt-1 text-center">
+          <p className="text-[0.4rem] font-black uppercase tracking-[0.24em] text-white/90">{ctx.label}</p>
+          <p className="truncate text-[0.42rem] font-semibold text-white/80">
+            {ctx.winners.map((w) => w.name).join(' — ')}
+          </p>
+        </div>
       )
     case 15:
       return (
         <>
-          <div className="flex shrink-0 flex-col items-center gap-1 pt-[5%]">
-            <GiantGuessText ctx={ctx} />
-            <p className="text-[0.42rem] font-bold uppercase text-amber-300/70">{ctx.label}</p>
+          <div className="absolute inset-x-0 top-0 pt-[2%]">
+            <MarqueeBulbs />
           </div>
-          <div className="flex shrink-0 justify-center py-1">
-            <WinnerPillsRow ctx={ctx} />
+          <div className="absolute inset-x-0 bottom-0 flex justify-center px-[5%] pb-[3%]">
+            <DeclShell className="text-center">
+              <DeclLabel ctx={ctx} />
+              <WinnerPillsRow ctx={ctx} />
+            </DeclShell>
           </div>
-          <FloorChips chipRow={ctx.chipRow} className="w-full flex-1 px-[4%] pb-[5%]" />
         </>
       )
     case 16:
-      return (
-        <div className="flex h-full min-h-0 w-full">
-          {DigitColumn(ctx.chipRow)}
-          <div className="flex min-w-0 flex-1 flex-col">
-            <GoldTopBanner ctx={ctx} />
-            <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[4%] pb-[4%]" />
-          </div>
-        </div>
-      )
+      return <VerticalWinnerNames ctx={ctx} />
     case 17:
       return (
-        <div className="flex h-full min-h-0 w-full">
-          {ScoreboardRail(ctx, 'left')}
-          <FloorChips chipRow={ctx.chipRow} className="min-w-0 flex-1 px-[3%] py-[4%]" />
-        </div>
+        <>
+          <div className="absolute inset-x-0 top-0">
+            {ctx.winners.length > 1 ? <SplitPotBanner /> : <CrownBar ctx={ctx} compact />}
+          </div>
+          <div className="absolute inset-x-0 bottom-0 flex justify-center px-[5%] pb-[3%]">
+            <WinnerPillsRow ctx={ctx} />
+          </div>
+        </>
       )
     case 18:
       return (
         <>
-          <CrownBar ctx={ctx} compact />
-          <FloorChips chipRow={ctx.chipRow} className="w-full flex-1 px-[4%]" />
-          <StaggerWinners ctx={ctx} />
+          <CornerFrameBrackets />
+          <div className="absolute inset-x-0 bottom-0 flex justify-center px-[5%] pb-[3%]">
+            <DeclShell className="text-center">
+              <DeclLabel ctx={ctx} />
+              <p className="truncate text-[0.42rem] font-semibold text-amber-50/90">
+                {ctx.winners.map((w) => w.name).join(' · ')}
+              </p>
+            </DeclShell>
+          </div>
         </>
       )
     case 19:
       return (
-        <div className="relative h-full w-full overflow-hidden">
-          <DiagonalWinnerSash ctx={ctx} />
-          <InsetFeltCard ctx={ctx} pad="10%">
-            {ctx.guess ? (
-              <p className="shrink-0 text-center font-mono text-[0.48rem] font-bold tabular-nums text-amber-200/85">
-                {ctx.guess}
-              </p>
-            ) : null}
-            <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[5%] pb-[4%]" />
-          </InsetFeltCard>
+        <div className="absolute inset-x-0 bottom-[3%] flex justify-center px-[8%]">
+          <DeclShell className="text-center">
+            <DeclLabel ctx={ctx} />
+            <p className="truncate text-[0.43rem] font-bold text-amber-50">{ctx.winners[0]?.name}</p>
+          </DeclShell>
         </div>
       )
     case 20:
       return (
-        <div className="flex h-full flex-col">
-          <CrownBar ctx={ctx} compact />
-          <FloorChips chipRow={ctx.chipRow} className="flex-1 px-[5%]" size="sm" />
-          <div className="mx-[6%] mb-[5%] shrink-0 border-t-2 border-white/90 pt-1">
+        <>
+          <div className="absolute inset-x-0 bottom-0 pb-[3%]">
+            <CrownBar ctx={ctx} compact />
+          </div>
+          <div className="absolute inset-x-0 bottom-[14%] flex justify-center">
             <WinnerPillsRow ctx={ctx} />
           </div>
-        </div>
+        </>
       )
     default:
       return null
   }
-}
-
-const VARIANT_SHELL: Record<VenueFloorShowdownVariantId, string> = {
-  1: 'bg-black/78 backdrop-blur-[1px]',
-  2: 'bg-black/82',
-  3: 'bg-black/65',
-  4: 'bg-black/72',
-  5: 'bg-black/78',
-  6: 'bg-black/70',
-  7: 'bg-black/72',
-  8: 'bg-black/55',
-  9: 'bg-black/76',
-  10: 'bg-black/55',
-  11: 'bg-black/76',
-  12: 'bg-black/74',
-  13: 'bg-black/78',
-  14: 'bg-[#120a04]/88',
-  15: 'bg-black/80',
-  16: 'bg-black/82',
-  17: 'bg-black/78',
-  18: 'bg-black/76',
-  19: 'bg-black/60',
-  20: 'bg-black/92',
 }
 
 export function VenueFloorShowdownByVariant({
@@ -681,7 +561,7 @@ export function VenueFloorShowdownByVariant({
 
   return (
     <div
-      className={`pointer-events-none absolute inset-0 z-[125] flex flex-col overflow-hidden rounded-[inherit] ${VARIANT_SHELL[variantId]}`}
+      className="pointer-events-none absolute inset-0 z-[122] overflow-visible rounded-[inherit]"
       role="group"
       aria-label={ctx.ariaLabel}
     >

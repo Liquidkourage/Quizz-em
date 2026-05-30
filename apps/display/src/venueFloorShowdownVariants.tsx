@@ -13,6 +13,7 @@ import {
   sidePotLabStyleForTable,
   SidePotLabBadge,
   SidePotRibbon,
+  WinnerRibbon,
   ShowdownPotWinnerList,
   synthesizeSidePotLabRows,
   type ShowdownSidePotLine,
@@ -408,6 +409,7 @@ export function VenueFloorShowdownByVariant({
     >
       <VariantBadge ctx={ctx} />
       {ctx.sidePotLines != null ? <SidePotRibbon /> : null}
+      {!ctx.splitWin && ctx.sidePotLines == null ? <WinnerRibbon /> : null}
       {ctx.splitWin && ctx.sidePotLines == null ? <SplitPotRibbon /> : null}
       {renderVariant(ctx)}
     </div>

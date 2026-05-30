@@ -252,18 +252,20 @@ export type ShowdownSidePotLine = {
   name: string
 }
 
+const POT_LAYER_ROW =
+  'grid w-full max-w-full min-w-0 flex-1 grid-cols-[minmax(2.75em,auto)_auto_minmax(0,1fr)] items-baseline gap-x-[clamp(0.2rem,1.6cqw,0.4rem)] px-0.5'
 const POT_LAYER_TAG =
-  'font-black uppercase tracking-[0.14em] text-[clamp(0.4rem,3.6cqw,0.55rem)]'
+  'justify-self-end font-black uppercase tracking-[0.1em] text-[clamp(0.42rem,3.8cqw,0.58rem)]'
 const POT_LAYER_AMOUNT_MAIN =
-  'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.05rem,11.5cqw,2.35rem)]'
+  'justify-self-center font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(0.95rem,10.5cqw,2.1rem)]'
 const POT_LAYER_AMOUNT_SIDE =
-  'font-mono font-black tabular-nums leading-none text-yellow-300/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] text-[clamp(0.92rem,10cqw,2rem)]'
+  'justify-self-center font-mono font-black tabular-nums leading-none text-yellow-300/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] text-[clamp(0.88rem,9.2cqw,1.85rem)]'
 const POT_LAYER_AMOUNT_RETURN =
-  'font-mono font-bold tabular-nums leading-none text-white/65 text-[clamp(0.68rem,6.8cqw,1.2rem)]'
+  'justify-self-center font-mono font-bold tabular-nums leading-none text-white/70 text-[clamp(0.72rem,7cqw,1.25rem)]'
 const POT_LAYER_NAME =
-  'max-w-full truncate font-semibold text-amber-50/90 text-[clamp(0.48rem,4.4cqw,0.72rem)]'
+  'min-w-0 justify-self-start truncate font-bold leading-tight text-amber-50 text-[clamp(0.55rem,5.8cqw,0.95rem)]'
 
-function PotLayerBlock({
+function PotLayerRow({
   line,
   tagClass,
   amountClass,
@@ -275,45 +277,47 @@ function PotLayerBlock({
   nameClass?: string
 }) {
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-px px-0.5">
-      <span className={tagClass}>{line.label}</span>
+    <p className={POT_LAYER_ROW}>
+      <span className={`${POT_LAYER_TAG} ${tagClass}`}>{line.label}</span>
       <span className={amountClass}>${line.amount.toLocaleString()}</span>
-      <span className={nameClass}>{line.name}</span>
-    </div>
+      <span className={nameClass} title={line.name}>
+        {line.name}
+      </span>
+    </p>
   )
 }
 
 export function ShowdownPotWinnerList({ lines }: { lines: readonly ShowdownSidePotLine[] }) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col items-stretch justify-evenly py-1">
+    <div className="flex h-full min-h-0 w-full flex-col items-stretch justify-evenly gap-y-0.5 py-0.5">
       {lines.map((line) => {
         if (line.label === 'Main') {
           return (
-            <PotLayerBlock
+            <PotLayerRow
               key={`${line.label}:${line.name}`}
               line={line}
-              tagClass={`${POT_LAYER_TAG} text-amber-300/90`}
+              tagClass="text-amber-300/90"
               amountClass={POT_LAYER_AMOUNT_MAIN}
             />
           )
         }
         if (line.label === 'Side') {
           return (
-            <PotLayerBlock
+            <PotLayerRow
               key={`${line.label}:${line.name}`}
               line={line}
-              tagClass={`${POT_LAYER_TAG} text-cyan-300/90`}
+              tagClass="text-cyan-300/90"
               amountClass={POT_LAYER_AMOUNT_SIDE}
             />
           )
         }
         return (
-          <PotLayerBlock
+          <PotLayerRow
             key={`${line.label}:${line.name}`}
             line={line}
-            tagClass={`${POT_LAYER_TAG} text-white/40`}
+            tagClass="text-white/45"
             amountClass={POT_LAYER_AMOUNT_RETURN}
-            nameClass={`${POT_LAYER_NAME} text-white/50`}
+            nameClass={`${POT_LAYER_NAME} text-white/60`}
           />
         )
       })}

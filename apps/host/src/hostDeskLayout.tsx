@@ -56,6 +56,167 @@ export type HostDockItem = {
   variant: 'emerald' | 'blue' | 'purple' | 'gold' | 'red'
 }
 
+export type RunOfShowStepState = 'done' | 'current' | 'upcoming' | 'skipped'
+
+export type RunOfShowStep = {
+  id: string
+  label: string
+  hint: string
+  state: RunOfShowStepState
+}
+
+const RUN_OF_SHOW_ORDER = [
+  'assign',
+  'start',
+  'question',
+  'deal-holes',
+  'close-bet-1',
+  'deal-board',
+  'close-bet-2',
+  'start-answer',
+  'reveal',
+  'end-round',
+] as const
+
+export type RunOfShowStepId = (typeof RUN_OF_SHOW_ORDER)[number]
+
+function assignStepApplies(gameState: GameState): boolean {
+  return (
+    gameState.phase === 'lobby' &&
+    (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
+    gameState.players.length > 0
+  )
+}
+
+export function resolveRunOfShowCurrentStepId(gameState: GameState): RunOfShowStepId {
+  const phase = gameState.phase
+  const bettingRound = gameState.round.bettingRound ?? 0
+  const bettingOpen = gameState.round.isBettingOpen !== false
+  const communityLen = gameState.round.communityCards?.length ?? 0
+
+  if (phase === 'lobby') {
+    if (assignStepApplies(gameState)) return 'assign'
+    return 'start'
+  }
+  if (phase === 'question') {
+    return gameState.round.question ? 'deal-holes' : 'question'
+  }
+  if (phase === 'betting') {
+    if (bettingOpen && bettingRound <= 1) return 'close-bet-1'
+    if (!bettingOpen && bettingRound === 1 && communityLen < 5) return 'deal-board'
+    if (bettingOpen && bettingRound >= 2) return 'close-bet-2'
+    if (communityLen >= 5 && !bettingOpen) return 'start-answer'
+    if (!bettingOpen && communityLen < 5) return 'deal-board'
+    return 'close-bet-2'
+  }
+  if (phase === 'answering') return 'reveal'
+  if (phase === 'showdown' || phase === 'payout' || phase === 'reveal') return 'end-round'
+  return 'start'
+}
+
+export function buildHostRunOfShowSteps(gameState: GameState): RunOfShowStep[] {
+  const currentId = resolveRunOfShowCurrentStepId(gameState)
+  const currentIdx = RUN_OF_SHOW_ORDER.indexOf(currentId)
+  const skipAssign = !assignStepApplies(gameState) && currentId !== 'assign'
+
+  const defs: Record<RunOfShowStepId, { label: string; hint: string }> = {
+    assign: {
+      label: 'Seat players',
+      hint: 'Move everyone from the lobby pool into random table seats.',
+    },
+    start: {
+      label: 'Start the round',
+      hint: 'Opens deal setup on every seated table — run once before each hand.',
+    },
+    question: {
+      label: 'Load a question',
+      hint: 'Pick from your bank or setlist. Optional — you can load trivia anytime before answering.',
+    },
+    'deal-holes': {
+      label: 'Deal hole cards',
+      hint: 'Posts blinds and deals two cards to each active player.',
+    },
+    'close-bet-1': {
+      label: 'Finish wagering (round 1)',
+      hint: 'Wait until every table completes pre-flop action, then close betting.',
+    },
+    'deal-board': {
+      label: 'Deal the board',
+      hint: 'Reveals all five community cards at once.',
+    },
+    'close-bet-2': {
+      label: 'Finish wagering (round 2)',
+      hint: 'Wait until post-board action is done on every table, then close betting.',
+    },
+    'start-answer': {
+      label: 'Open answer window',
+      hint: 'Starts the countdown for players to submit their numeric guess.',
+    },
+    reveal: {
+      label: 'Reveal correct answer',
+      hint: 'Shows the answer on TVs and moves tables into showdown.',
+    },
+    'end-round': {
+      label: 'End round & pay out',
+      hint: 'Settles pots and returns every table to lobby for the next hand.',
+    },
+  }
+
+  return RUN_OF_SHOW_ORDER.map((id, idx) => {
+    let state: RunOfShowStepState
+    if (id === 'assign' && skipAssign) {
+      state = 'skipped'
+    } else if (idx < currentIdx) {
+      state = 'done'
+    } else if (id === currentId) {
+      state = 'current'
+    } else {
+      state = 'upcoming'
+    }
+    const def = defs[id]
+    return { id, label: def.label, hint: def.hint, state }
+  })
+}
+
+export function hostRunOfShowHeadline(gameState: GameState): { title: string; detail?: string } {
+  const stepId = resolveRunOfShowCurrentStepId(gameState)
+  const steps = buildHostRunOfShowSteps(gameState)
+  const current = steps.find((s) => s.id === stepId)
+  if (!current) return { title: 'Run the show' }
+
+  const phase = gameState.phase
+  const bettingRound = gameState.round.bettingRound ?? 0
+  const bettingOpen = gameState.round.isBettingOpen !== false
+
+  if (stepId === 'close-bet-1' || stepId === 'close-bet-2') {
+    const idx = gameState.round.currentPlayerIndex
+    const actor =
+      typeof idx === 'number' && idx >= 0 ? gameState.players[idx]?.name : undefined
+    return {
+      title: current.label,
+      detail: bettingOpen
+        ? `Wagering round ${bettingRound} is live${actor ? ` — waiting on ${actor}` : ''}. Close when every table is done.`
+        : current.hint,
+    }
+  }
+
+  if (stepId === 'question' && !gameState.round.question) {
+    return {
+      title: 'Load a question (optional)',
+      detail: 'You can deal hole cards first, or cue trivia now from bank / setlist.',
+    }
+  }
+
+  if (stepId === 'end-round' && phase === 'showdown') {
+    return {
+      title: 'Showdown — end the round',
+      detail: 'Payout runs when you end the round. Then start the next hand from step 1.',
+    }
+  }
+
+  return { title: current.label, detail: current.hint }
+}
+
 export function buildHostPhaseDockItems(args: {
   gameState: GameState
   answerWindowSeconds: number
@@ -97,31 +258,42 @@ export function buildHostPhaseDockItems(args: {
   const bettingOpen = gameState.round.isBettingOpen !== false
 
   if (phase === 'lobby') {
-    const items: HostDockItem[] = [
-      { id: 'start', label: 'Start Game', onClick: onStartGame, variant: 'emerald' },
-    ]
+    const items: HostDockItem[] = []
     if (tableId === LOBBY_TABLE_ID && gameState.players.length > 0) {
       items.push({
         id: 'assign',
-        label: 'Assign from lobby',
+        label: 'Seat players',
         onClick: onAssignFromLobby,
         variant: 'blue',
       })
+    } else {
+      items.push({ id: 'start', label: 'Start the round', onClick: onStartGame, variant: 'emerald' })
     }
     return items
   }
 
   if (phase === 'question') {
+    if (!gameState.round.question) {
+      return [
+        { id: 'setlist', label: 'Next from setlist', onClick: onNextSetlist, variant: 'purple' },
+        { id: 'random', label: 'Random from bank', onClick: onRandomQuestion, variant: 'purple' },
+        {
+          id: 'deal-initial',
+          label: 'Skip — deal hole cards',
+          onClick: onDealInitial,
+          disabled: dealInitialBlocked,
+          variant: 'blue',
+        },
+      ]
+    }
     return [
       {
         id: 'deal-initial',
-        label: 'Deal Initial Cards',
+        label: 'Deal hole cards',
         onClick: onDealInitial,
         disabled: dealInitialBlocked,
         variant: 'blue',
       },
-      { id: 'random', label: 'Random from bank', onClick: onRandomQuestion, variant: 'purple' },
-      { id: 'setlist', label: 'Next from setlist', onClick: onNextSetlist, variant: 'purple' },
     ]
   }
 
@@ -130,7 +302,7 @@ export function buildHostPhaseDockItems(args: {
       return [
         {
           id: 'close-bet',
-          label: 'Close Betting',
+          label: bettingRound <= 1 ? 'Finish wagering (round 1)' : 'Finish wagering (round 2)',
           onClick: () => adminCloseBetting(),
           variant: 'red',
         },
@@ -140,7 +312,7 @@ export function buildHostPhaseDockItems(args: {
       return [
         {
           id: 'deal-board',
-          label: 'Deal Community Cards',
+          label: 'Deal the board',
           onClick: onDealCommunity,
           disabled: dealCommunityBlocked,
           variant: 'blue',
@@ -151,7 +323,7 @@ export function buildHostPhaseDockItems(args: {
       return [
         {
           id: 'start-answer',
-          label: `Start answering (${answerWindowSeconds}s)`,
+          label: `Open answer window (${answerWindowSeconds}s)`,
           onClick: onStartAnswering,
           disabled: startAnswerBlocked,
           variant: 'purple',
@@ -161,11 +333,11 @@ export function buildHostPhaseDockItems(args: {
   }
 
   if (phase === 'answering') {
-    return [{ id: 'reveal', label: 'Reveal Answer', onClick: onRevealAnswer, variant: 'gold' }]
+    return [{ id: 'reveal', label: 'Reveal correct answer', onClick: onRevealAnswer, variant: 'gold' }]
   }
 
   if (phase === 'showdown') {
-    return [{ id: 'end-round', label: 'End Round', onClick: onEndRound, variant: 'red' }]
+    return [{ id: 'end-round', label: 'End round & pay out', onClick: onEndRound, variant: 'red' }]
   }
 
   return []
@@ -174,13 +346,26 @@ export function buildHostPhaseDockItems(args: {
 export function HostPhaseDock({
   items,
   statusLine,
+  headline,
 }: {
   items: HostDockItem[]
   statusLine?: ReactNode
+  headline?: { title: string; detail?: string }
 }) {
-  if (items.length === 0 && !statusLine) return null
+  if (items.length === 0 && !statusLine && !headline) return null
   return (
     <div className="sticky top-0 z-40 mb-4 rounded-xl border border-casino-emerald/40 bg-black/88 p-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.45)] backdrop-blur-md sm:p-3">
+      {headline ? (
+        <div className="mb-2 border-b border-white/10 pb-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-casino-emerald/90">
+            Do this now
+          </p>
+          <p className="mt-0.5 text-base font-bold leading-snug text-white">{headline.title}</p>
+          {headline.detail ? (
+            <p className="mt-1 text-xs leading-snug text-white/55">{headline.detail}</p>
+          ) : null}
+        </div>
+      ) : null}
       {statusLine ? (
         <div className="mb-2 border-b border-white/10 pb-2">{statusLine}</div>
       ) : null}
@@ -193,7 +378,7 @@ export function HostPhaseDock({
               size="normal"
               disabled={item.disabled}
               onClick={item.onClick}
-              className="!px-4 !py-2"
+              className="!px-4 !py-2.5 !text-base !font-bold"
             >
               {item.label}
             </NeonButton>
@@ -392,6 +577,75 @@ export function HostVenueFeltBeatStrip({
         </div>
       )}
     </HostCollapsible>
+  )
+}
+
+export function HostRunOfShowPanel({
+  steps,
+  children,
+}: {
+  steps: RunOfShowStep[]
+  children?: ReactNode
+}) {
+  const visible = steps.filter((s) => s.state !== 'skipped')
+  const doneCount = visible.filter((s) => s.state === 'done').length
+  return (
+    <div className="mb-4 rounded-xl border border-white/10 bg-black/25 p-3 sm:p-4">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">Round checklist</h2>
+        <span className="text-xs tabular-nums text-white/40">
+          {doneCount} / {visible.length} done
+        </span>
+      </div>
+      <ol className="space-y-1">
+        {visible.map((step, i) => {
+          const isCurrent = step.state === 'current'
+          const isDone = step.state === 'done'
+          return (
+            <li
+              key={step.id}
+              className={`rounded-lg border px-2.5 py-2 transition-colors ${
+                isCurrent
+                  ? 'border-casino-emerald/45 bg-casino-emerald/10'
+                  : isDone
+                    ? 'border-white/8 bg-black/20 opacity-70'
+                    : 'border-white/8 bg-black/15 opacity-55'
+              }`}
+            >
+              <div className="flex items-start gap-2.5">
+                <span
+                  className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black tabular-nums ${
+                    isDone
+                      ? 'bg-casino-emerald/25 text-casino-emerald'
+                      : isCurrent
+                        ? 'bg-casino-emerald text-black'
+                        : 'bg-white/10 text-white/45'
+                  }`}
+                  aria-hidden
+                >
+                  {isDone ? '✓' : i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={`text-sm font-semibold leading-snug ${
+                      isCurrent ? 'text-white' : isDone ? 'text-white/65 line-through' : 'text-white/50'
+                    }`}
+                  >
+                    {step.label}
+                  </p>
+                  {isCurrent ? (
+                    <>
+                      <p className="mt-0.5 text-xs leading-snug text-white/55">{step.hint}</p>
+                      {children ? <div className="mt-2.5 space-y-2">{children}</div> : null}
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+    </div>
   )
 }
 

@@ -43,12 +43,16 @@ import {
   HostLiveStatusLine,
   HostPhaseDock,
   HostPublicTvsPanel,
+  HostRunOfShowPanel,
   HostVenueFeltBeatStrip,
   buildHostPhaseDockItems,
+  buildHostRunOfShowSteps,
+  hostRunOfShowHeadline,
+  resolveRunOfShowCurrentStepId,
 } from './hostDeskLayout'
 
 const HOST_TABS = [
-  { id: 'live' as const, label: 'Run show', hint: 'Venue pulse → snapshot → cues → showdown → TVs' },
+  { id: 'live' as const, label: 'Run show', hint: 'Follow the checklist — one cue at a time' },
   { id: 'content' as const, label: 'Content', hint: 'Bank & setlists' },
 ]
 
@@ -504,6 +508,10 @@ function HostApp() {
     onNextSetlist: () => nextQuestionFromSetlist(),
   })
 
+  const runOfShowSteps = buildHostRunOfShowSteps(gameState)
+  const runOfShowHeadline = hostRunOfShowHeadline(gameState)
+  const currentRunStepId = resolveRunOfShowCurrentStepId(gameState)
+
   return (
     <div className="host-root min-h-screen bg-casino-gradient relative overflow-hidden">
       {/* Backdrop — static gradient so the desk stays readable during long hosts */}
@@ -560,24 +568,6 @@ function HostApp() {
               <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3 py-1 text-base font-bold capitalize text-casino-emerald">
                 {gameState.phase}
               </span>
-              <label className="flex items-center gap-2 text-base text-white/70">
-                <span className="sr-only sm:not-sr-only sm:inline">You control</span>
-                <select
-                  value={hostTableId}
-                  title="Which session Keyed host actions apply to — use Lobby for pooled players"
-                  onChange={(e) => setHostTableId(e.target.value)}
-                  className="max-w-[14rem] rounded-lg border border-white/20 bg-zinc-950 py-2 pl-2 pr-8 text-base text-white [color-scheme:dark] sm:max-w-xs"
-                >
-                  {[
-                    LOBBY_TABLE_ID,
-                    ...Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, i) => String(i + 1)),
-                  ].map((v) => (
-                    <option key={v} value={v} className="bg-zinc-950 text-white">
-                      {v === LOBBY_TABLE_ID ? 'Lobby pool' : `Table ${v}`}
-                    </option>
-                  ))}
-                </select>
-              </label>
             </div>
           </div>
 
@@ -656,6 +646,26 @@ function HostApp() {
                 <span className="font-mono text-white/65">{gameState.code}</span> — questions, blinds, dealing, timers,
                 and round transitions fan out to every table.
               </p>
+
+              <label className="flex flex-wrap items-center gap-2 text-sm text-white/60">
+                <span>Host view table</span>
+                <select
+                  value={hostTableId}
+                  title="Which table state the host panel mirrors — use Lobby pool for standard events"
+                  onChange={(e) => setHostTableId(e.target.value)}
+                  className="max-w-[14rem] rounded-lg border border-white/20 bg-zinc-950 py-1.5 pl-2 pr-8 text-sm text-white [color-scheme:dark] sm:max-w-xs"
+                >
+                  {[
+                    LOBBY_TABLE_ID,
+                    ...Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, i) => String(i + 1)),
+                  ].map((v) => (
+                    <option key={v} value={v} className="bg-zinc-950 text-white">
+                      {v === LOBBY_TABLE_ID ? 'Lobby pool (recommended)' : `Table ${v}`}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs text-white/40">Diagnostics only — cues still go to all tables.</span>
+              </label>
             </div>
           </HostCollapsible>
         </motion.header>
@@ -1111,6 +1121,7 @@ function HostApp() {
         <>
         <HostPhaseDock
           items={phaseDockItems}
+          headline={runOfShowHeadline}
           statusLine={
             <HostLiveStatusLine
               gameState={gameState}
@@ -1121,410 +1132,248 @@ function HostApp() {
         />
         <HostVenueFeltBeatStrip rows={venueFeltBeat} hostTableId={hostTableId} />
 
-        <Card variant="glass" hover={false} className="mb-4 p-4 sm:p-5">
-          <section aria-labelledby="run-show-heading" className="mb-4 flex items-baseline justify-between gap-2 border-b border-white/10 pb-3">
-            <h2 id="run-show-heading" className="text-lg font-semibold tracking-tight text-white sm:text-xl">
-              Run show
-            </h2>
-            <span className="text-xs text-white/45">All cues · venue-wide</span>
-          </section>
+        <HostRunOfShowPanel steps={runOfShowSteps}>
+          {currentRunStepId === 'assign' &&
+          gameState.phase === 'lobby' &&
+          (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
+          gameState.players.length > 0 ? (
+            <ul className="flex flex-wrap gap-2" aria-label="Players in lobby">
+              {gameState.players.map((p) => (
+                <li
+                  key={p.id}
+                  className="rounded-full border border-emerald-400/40 bg-black/35 px-3 py-1 text-sm font-semibold text-emerald-100"
+                >
+                  {hostPlayerLabel(p.name)}
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
-            <div className="space-y-5">
-              <section aria-labelledby="live-lobby-heading" className="space-y-3">
-                <h3 id="live-lobby-heading" className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">
-                  Lobby &amp; seating
-                </h3>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <NeonButton
-                variant="emerald"
-                size="normal"
-                onClick={handleStartGame}
-                disabled={gameState.phase !== 'lobby'}
-                className="w-full"
-              >
-                Start Game
-              </NeonButton>
+          {currentRunStepId === 'start' &&
+          gameState.phase === 'lobby' &&
+          (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
+          gameState.players.length === 0 ? (
+            <p className="text-sm text-white/58">Waiting for players to join the lobby…</p>
+          ) : null}
 
-              <NeonButton
-                variant="blue"
-                size="normal"
-                onClick={() => assignTablesFromLobby()}
-                disabled={
-                  gameState.phase !== 'lobby' ||
-                  (gameState.tableId ?? '') !== LOBBY_TABLE_ID ||
-                  gameState.players.length === 0
-                }
-                className="w-full"
-              >
-                Assign from lobby (random seats)
-              </NeonButton>
-              </div>
-              {gameState.phase === 'lobby' && (gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.players.length === 0 ? (
-                <p className="text-sm text-white/58">Waiting for players to join the lobby…</p>
-              ) : null}
-              {gameState.phase === 'lobby' && (gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.players.length > 0 ? (
-                <div className="rounded-lg border border-emerald-400/25 bg-emerald-950/20 p-4">
-                  <div className="text-base font-bold text-casino-emerald mb-2">
-                    In lobby ({gameState.players.length})
-                  </div>
-                  <ul className="flex flex-wrap gap-2" aria-label="Players in lobby">
-                    {gameState.players.map((p) => (
-                      <li
-                        key={p.id}
-                        className="rounded-full border border-emerald-400/40 bg-black/35 px-3 py-1.5 text-base font-semibold text-emerald-100"
-                      >
-                        {hostPlayerLabel(p.name)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              </section>
-
-              <HostCollapsible
-                summary="Rehearsal — CPU seats"
-                badge={
-                  virtualSeatCount > 0 ? (
-                    <span className="text-xs font-normal text-amber-200/80">{virtualSeatCount} CPU</span>
-                  ) : null
-                }
-              >
-              <section aria-labelledby="live-rehearsal-heading" className="space-y-3">
-                <p className="text-xs text-white/60 leading-relaxed">
-                  Bot players for dry runs. Cap {gameState.maxPlayers} · roster {gameState.players.length} (
-                  {virtualSeatCount} CPU).
-                </p>
-                {(gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby' ? (
-                  <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
-                    <p className="text-sm text-amber-100/90 leading-relaxed">
-                      <strong className="text-amber-50">20-table rehearsal</strong> seeds every felt with{' '}
-                      <span className="font-semibold text-casino-gold">5–8 CPUs</span> (pattern 6, 7, 5, 8…) — about{' '}
-                      <span className="font-semibold text-casino-gold">130</span> bots venue-wide. Skips the lobby pool; host lands on
-                      table 1. Use the venue wall / full-screen showdown to stress-test layout.
-                    </p>
-                    <NeonButton
-                      variant="gold"
-                      size="small"
-                      className="mt-3"
-                      onClick={() => seedRehearsalVenue()}
-                    >
-                      Seed {VENUE_NUMBERED_TABLE_MAX}-table rehearsal
-                    </NeonButton>
-                  </div>
-                ) : null}
-                <div className="flex flex-wrap gap-2 items-center">
-                  <div
-                    className="flex flex-wrap gap-1.5 rounded-lg border border-white/20 bg-black/40 p-1"
-                    role="group"
-                    aria-label="Number of virtual CPUs to add"
-                  >
-                    {[1, 2, 5, 10, 15, 20].map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        disabled={atPlayerCap}
-                        onClick={() => setVirtualAddCount(n)}
-                        className={`min-w-[2.75rem] rounded-md px-2.5 py-2.5 text-center text-base font-bold tabular-nums transition-colors disabled:opacity-40 ${
-                          virtualAddCount === n
-                            ? 'border border-amber-400/60 bg-amber-500/25 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.2)]'
-                            : 'border border-transparent text-white/75 hover:bg-white/10 hover:text-white'
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                  <NeonButton
-                    variant="gold"
-                    size="small"
-                    disabled={atPlayerCap}
-                    onClick={() => addVirtualPlayers(virtualAddCount)}
-                  >
-                    Add CPU seats
-                  </NeonButton>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <label htmlFor="virtual-add-custom" className="text-sm whitespace-nowrap text-white/65">
-                      Exact count
-                    </label>
-                    <input
-                      id="virtual-add-custom"
-                      type="number"
-                      min={1}
-                      max={Math.max(1, gameState.maxPlayers - gameState.players.length)}
-                      disabled={atPlayerCap}
-                      value={virtualAddCount}
-                      onChange={(e) => {
-                        const cap = Math.max(1, gameState.maxPlayers - gameState.players.length)
-                        const v = Math.max(1, Math.min(cap, Math.floor(Number(e.target.value)) || 1))
-                        setVirtualAddCount(v)
-                      }}
-                      className="w-28 rounded-md border border-white/25 bg-black/45 px-2 py-2 text-center text-base font-bold tabular-nums text-white disabled:opacity-40"
-                    />
-                  </div>
-                  <NeonButton variant="purple" size="small" onClick={() => clearVirtualPlayers()}>
-                    Clear all CPUs
-                  </NeonButton>
-                </div>
-                {atPlayerCap && (
-                  <p className="text-xs text-amber-200/85">At max players — clear CPUs or remove humans first.</p>
-                )}
-              </section>
-              </HostCollapsible>
-
-              <section aria-labelledby="live-questions-heading" className="space-y-3">
-                <h3 id="live-questions-heading" className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">
-                  Questions &amp; rundown
-                </h3>
-
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <NeonButton
-                variant="purple"
-                size="normal"
-                onClick={handleSetRandomQuestion}
-                disabled={gameState.phase !== 'lobby' && gameState.phase !== 'question'}
-                className="w-full"
-              >
-                Random from bank
-              </NeonButton>
-              <NeonButton
+          {currentRunStepId === 'question' ? (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                <NeonButton
                   variant="purple"
-                  size="normal"
+                  size="small"
+                  onClick={handleSetRandomQuestion}
+                  disabled={gameState.phase !== 'lobby' && gameState.phase !== 'question'}
+                >
+                  Random from bank
+                </NeonButton>
+                <NeonButton
+                  variant="purple"
+                  size="small"
                   onClick={() => nextQuestionFromSetlist()}
                   disabled={gameState.phase !== 'lobby' && gameState.phase !== 'question'}
-                  className="w-full"
                 >
                   Next from setlist
                 </NeonButton>
               </div>
-              <p className="text-xs text-white/50">
-                Or push from <strong className="text-white/70">Content</strong> → To tables.
-              </p>
-
-              <div className="rounded-lg border border-casino-emerald/25 bg-black/25 p-3 space-y-2">
-                <div className="text-sm font-bold text-casino-emerald">Trivia rundown</div>
-                <select
-                  className="w-full rounded-lg border border-white/25 bg-zinc-950 px-3 py-2.5 text-base text-white [color-scheme:dark]"
-                  value={activeSetlistId ?? ''}
-                  onChange={(e) => selectTriviaSetlist(e.target.value || null)}
-                >
-                  <option value="" className="bg-zinc-950 text-white">
-                    None (free play)
+              <select
+                className="w-full max-w-md rounded-lg border border-white/25 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]"
+                value={activeSetlistId ?? ''}
+                onChange={(e) => selectTriviaSetlist(e.target.value || null)}
+              >
+                <option value="" className="bg-zinc-950 text-white">
+                  No setlist (free play)
+                </option>
+                {setlists.map((sl) => (
+                  <option key={sl.id} value={sl.id} className="bg-zinc-950 text-white">
+                    {sl.name} ({sl.questionIds.length} cues)
                   </option>
-                  {setlists.map((sl) => (
-                    <option key={sl.id} value={sl.id} className="bg-zinc-950 text-white">
-                      {sl.name} ({sl.questionIds.length} cues)
-                    </option>
-                  ))}
-                </select>
-                {activeSetlistId ? (
-                  <p className="text-sm text-white/55">
-                    {(() => {
-                      const sl = setlists.find((s) => s.id === activeSetlistId)
-                      const n = sl?.questionIds.length ?? 0
-                      if (!n) return 'This setlist is empty — add cues under Content.'
-                      if (activeSetlistNextIndex >= n) return 'End of rundown — choose another list or clear.'
-                      return `Next cue: ${activeSetlistNextIndex + 1} of ${n}`
-                    })()}
-                  </p>
-                ) : null}
+                ))}
+              </select>
+              {activeSetlistId ? (
+                <p className="text-xs text-white/55">
+                  {(() => {
+                    const sl = setlists.find((s) => s.id === activeSetlistId)
+                    const n = sl?.questionIds.length ?? 0
+                    if (!n) return 'This setlist is empty — add cues under Content.'
+                    if (activeSetlistNextIndex >= n) return 'End of rundown — choose another list or clear.'
+                    return `Next cue: ${activeSetlistNextIndex + 1} of ${n}`
+                  })()}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {currentRunStepId === 'deal-holes' && dealInitialHint ? (
+            <p className="text-xs text-amber-200/90">{dealInitialHint}</p>
+          ) : null}
+          {currentRunStepId === 'deal-holes' && triviaOptionalNote}
+
+          {currentRunStepId === 'deal-board' && dealCommunityHint ? (
+            <p className="text-xs text-amber-200/90">{dealCommunityHint}</p>
+          ) : null}
+          {currentRunStepId === 'deal-board' ? dealCommunityHostStaleNote : null}
+
+          {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
+          gameState.phase === 'betting' ? (
+            <p className="text-xs text-white/50">
+              Players act on their phones. Use the button above when every table is quiet — or open{' '}
+              <strong className="text-white/70">Host overrides</strong> below to force advance.
+            </p>
+          ) : null}
+
+          {currentRunStepId === 'start-answer' ? (
+            <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
+              <div className="flex flex-col gap-0.5">
+                <label htmlFor="answer-window-sec" className="text-[10px] font-semibold uppercase tracking-wide text-white/48">
+                  Countdown (sec)
+                </label>
+                <input
+                  id="answer-window-sec"
+                  type="number"
+                  min={15}
+                  max={300}
+                  step={5}
+                  value={answerWindowSeconds}
+                  onChange={(e) => setAnswerWindowSeconds(clampVenueAnswerWindow(Number(e.target.value)))}
+                  className="w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white"
+                />
               </div>
-              </section>
-
-              <section aria-labelledby="live-table-heading" className="space-y-3">
-                <h3 id="live-table-heading" className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">
-                  Deals &amp; answering window
-                </h3>
-
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <div className="flex min-w-0 flex-col gap-1.5">
               <NeonButton
                 variant="blue"
-                size="normal"
-                onClick={handleDealInitialCards}
-                disabled={dealInitialBlocked}
-                className="w-full"
-                data-phase={gameState.phase}
-                data-can-deal-initial={dealInitialBlocked ? 'no' : 'yes'}
+                size="small"
+                type="button"
+                onClick={() => setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))}
               >
-                Deal Initial Cards
+                Save default
               </NeonButton>
-              {dealInitialHint && (
-                <p className="text-xs text-amber-200/90">{dealInitialHint}</p>
-              )}
-              {triviaOptionalNote}
-                </div>
-                <div className="flex min-w-0 flex-col gap-1.5">
-              <NeonButton
-                variant="blue"
-                size="normal"
-                onClick={handleDealCommunityCards}
-                disabled={dealCommunityBlocked}
-                className="w-full"
-                data-betting-round={bettingRound}
-                data-community-count={communityLen}
-              >
-                Deal Community Cards (board)
-              </NeonButton>
-              {dealCommunityHint && (
-                <p
-                  className={`text-sm ${
-                    dealCommunityBlocked ? 'text-amber-200/90' : 'text-emerald-200/90'
-                  }`}
-                >
-                  {dealCommunityHint}
+            </div>
+          ) : null}
+
+          {currentRunStepId === 'start-answer' && startAnswerBlocked && gameState.phase === 'betting' ? (
+            <p className="text-xs text-white/50">
+              Needs full board (5 community cards) and both wagering rounds closed.
+            </p>
+          ) : null}
+
+          {currentRunStepId === 'end-round' && gameState.phase === 'showdown' ? (
+            <p className="text-xs text-white/50">
+              After payout, tap <strong className="text-white/70">Start the round</strong> for the next hand.
+            </p>
+          ) : null}
+        </HostRunOfShowPanel>
+
+        <HostCollapsible summary="Rehearsal & test bots" className="mb-4">
+          <section aria-labelledby="live-rehearsal-heading" className="space-y-3">
+            <p className="text-xs text-white/60 leading-relaxed">
+              Bot players for dry runs. Cap {gameState.maxPlayers} · roster {gameState.players.length} (
+              {virtualSeatCount} CPU).
+            </p>
+            {(gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby' ? (
+              <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
+                <p className="text-sm text-amber-100/90 leading-relaxed">
+                  <strong className="text-amber-50">20-table rehearsal</strong> seeds every felt with{' '}
+                  <span className="font-semibold text-casino-gold">5–8 CPUs</span> — about{' '}
+                  <span className="font-semibold text-casino-gold">130</span> bots venue-wide. Skips the lobby pool.
                 </p>
-              )}
-              {dealCommunityHostStaleNote}
-                </div>
-                <div className="flex flex-col gap-2 sm:col-span-2">
-                  <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
-                    <div className="flex flex-col gap-0.5">
-                      <label htmlFor="answer-window-sec" className="text-[10px] font-semibold uppercase tracking-wide text-white/48">
-                        Answer countdown (sec)
-                      </label>
-                      <input
-                        id="answer-window-sec"
-                        type="number"
-                        min={15}
-                        max={300}
-                        step={5}
-                        value={answerWindowSeconds}
-                        onChange={(e) => setAnswerWindowSeconds(clampVenueAnswerWindow(Number(e.target.value)))}
-                        className="w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white"
-                      />
-                    </div>
-                    <NeonButton
-                      variant="blue"
-                      size="small"
-                      type="button"
-                      className="!px-3"
-                      onClick={() => setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))}
-                    >
-                      Save default
-                    </NeonButton>
-                  </div>
-              <NeonButton
-                variant="purple"
-                size="normal"
-                onClick={handleStartAnswering}
-                disabled={startAnswerBlocked}
-                className="w-full"
+                <NeonButton variant="gold" size="small" className="mt-3" onClick={() => seedRehearsalVenue()}>
+                  Seed {VENUE_NUMBERED_TABLE_MAX}-table rehearsal
+                </NeonButton>
+              </div>
+            ) : null}
+            <div className="flex flex-wrap gap-2 items-center">
+              <div
+                className="flex flex-wrap gap-1.5 rounded-lg border border-white/20 bg-black/40 p-1"
+                role="group"
+                aria-label="Number of virtual CPUs to add"
               >
-                Start answering ({clampVenueAnswerWindow(answerWindowSeconds)}s)
+                {[1, 2, 5, 10, 15, 20].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    disabled={atPlayerCap}
+                    onClick={() => setVirtualAddCount(n)}
+                    className={`min-w-[2.75rem] rounded-md px-2.5 py-2.5 text-center text-base font-bold tabular-nums transition-colors disabled:opacity-40 ${
+                      virtualAddCount === n
+                        ? 'border border-amber-400/60 bg-amber-500/25 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.2)]'
+                        : 'border border-transparent text-white/75 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <NeonButton variant="gold" size="small" disabled={atPlayerCap} onClick={() => addVirtualPlayers(virtualAddCount)}>
+                Add CPU seats
               </NeonButton>
-              {startAnswerBlocked && gameState.phase === 'betting' && (
-                <p className="text-xs text-white/50">
-                  Needs full board (5 community) and both wagering rounds closed.
-                </p>
-              )}
-                </div>
-              </div>
+              <NeonButton variant="purple" size="small" onClick={() => clearVirtualPlayers()}>
+                Clear all CPUs
+              </NeonButton>
+            </div>
+            {atPlayerCap && (
+              <p className="text-xs text-amber-200/85">At max players — clear CPUs or remove humans first.</p>
+            )}
+          </section>
+        </HostCollapsible>
 
-              </section>
-
-            <details className="group mb-6 rounded-xl border border-white/10 bg-black/25 open:border-white/[0.14] [&_summary::-webkit-details-marker]:hidden">
-              <summary
-                id="live-admin-heading"
-                className="cursor-pointer list-none px-4 py-3 text-base font-medium text-white/75 hover:bg-white/[0.04] hover:text-white/88 rounded-xl"
-              >
-                Wagering overrides &amp; blinds
-                <span className="ml-2 inline-block translate-y-px text-white/35 transition-transform group-open:rotate-180">▼</span>
-              </summary>
-              <div className="space-y-3 border-t border-white/10 px-4 py-4">
-              {/* Admin betting controls */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <NeonButton
-                  variant="gold"
-                  size="normal"
-                  onClick={() => adminAdvanceTurn()}
-                  disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
-                  className="w-full"
-                >
-                  Force Next Player
-                </NeonButton>
-                <NeonButton
-                  variant="red"
-                  size="normal"
-                  onClick={() => adminCloseBetting()}
-                  disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
-                  className="w-full"
-                >
-                  Close Betting
-                </NeonButton>
-              </div>
-
-              {/* Blinds controls */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-                <div>
-                  <div className="text-base text-white/85 mb-1">Small Blind</div>
-                  <input
-                    type="number"
-                    defaultValue={gameState.smallBlind}
-                    id="sb-input"
-                    className="w-full p-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white focus:border-casino-emerald focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <div className="text-base text-white/85 mb-1">Big Blind</div>
-                  <input
-                    type="number"
-                    defaultValue={gameState.bigBlind}
-                    id="bb-input"
-                    className="w-full p-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white focus:border-casino-emerald focus:outline-none"
-                  />
-                </div>
-                <NeonButton
-                  variant="emerald"
-                  size="normal"
-                  onClick={() => {
-                    const sb = Number((document.getElementById('sb-input') as HTMLInputElement)?.value || gameState.smallBlind)
-                    const bb = Number((document.getElementById('bb-input') as HTMLInputElement)?.value || gameState.bigBlind)
-                    adminSetBlinds(sb, bb)
-                  }}
-                >
-                  Set Blinds
-                </NeonButton>
-              </div>
-              </div>
-            </details>
-
-            <section aria-labelledby="live-wrap-heading" className="space-y-3">
-                <h3 id="live-wrap-heading" className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">
-                  Reveal &amp; round reset
-                </h3>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <HostCollapsible summary="Host overrides — wagering, blinds, reset" className="mb-4">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <NeonButton
                 variant="gold"
                 size="normal"
-                onClick={handleRevealAnswer}
-                disabled={gameState.phase !== 'answering'}
+                onClick={() => adminAdvanceTurn()}
+                disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
                 className="w-full"
               >
-                Reveal Answer
+                Force next player
               </NeonButton>
-
               <NeonButton
                 variant="red"
                 size="normal"
-                onClick={handleEndRound}
-                disabled={gameState.phase !== 'showdown'}
+                onClick={() => adminCloseBetting()}
+                disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
                 className="w-full"
               >
-                End Round
+                Close betting
               </NeonButton>
-
-              <NeonButton
-                variant="gold"
-                size="normal"
-                onClick={handleNewGame}
-                className="w-full sm:col-span-2"
-              >
-                New Game
-              </NeonButton>
-              </div>
-              </section>
             </div>
-          </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+              <div>
+                <div className="text-base text-white/85 mb-1">Small blind</div>
+                <input
+                  type="number"
+                  defaultValue={gameState.smallBlind}
+                  id="sb-input"
+                  className="w-full p-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white focus:border-casino-emerald focus:outline-none"
+                />
+              </div>
+              <div>
+                <div className="text-base text-white/85 mb-1">Big blind</div>
+                <input
+                  type="number"
+                  defaultValue={gameState.bigBlind}
+                  id="bb-input"
+                  className="w-full p-3 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white focus:border-casino-emerald focus:outline-none"
+                />
+              </div>
+              <NeonButton
+                variant="emerald"
+                size="normal"
+                onClick={() => {
+                  const sb = Number((document.getElementById('sb-input') as HTMLInputElement)?.value || gameState.smallBlind)
+                  const bb = Number((document.getElementById('bb-input') as HTMLInputElement)?.value || gameState.bigBlind)
+                  adminSetBlinds(sb, bb)
+                }}
+              >
+                Set blinds
+              </NeonButton>
+            </div>
+            <NeonButton variant="gold" size="normal" onClick={handleNewGame} className="w-full">
+              New game (hard reset — clears all tables)
+            </NeonButton>
+          </div>
+        </HostCollapsible>
 
         {gameState.phase === 'showdown' && (
           <Card variant="glass" hover={false} className="mb-4 p-4 sm:p-5">
@@ -1588,9 +1437,9 @@ function HostApp() {
               )
             })()}
 
-            <div className="mt-6 flex justify-center">
-              <NeonButton variant="gold" onClick={handleEndRound}>End Round</NeonButton>
-            </div>
+            <p className="mt-4 text-center text-xs text-white/45">
+              Use <strong className="text-white/65">End round &amp; pay out</strong> in the sticky bar above when ready.
+            </p>
           </Card>
         )}
 

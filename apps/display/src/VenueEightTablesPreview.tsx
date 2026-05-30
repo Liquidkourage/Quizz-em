@@ -49,10 +49,10 @@ const SEAT_LAYER_ACTION_PANEL = 'z-[118]'
 const SEAT_LAYER_NAME_CLUSTER = 'z-[120]'
 
 /** Fixed crawl strips (Players + All tables): keep widths and page padding in sync */
-const VENUE_CRAWL_STRIP_CLASS = 'w-80 sm:w-[22rem] lg:w-96'
+const VENUE_CRAWL_STRIP_CLASS = 'w-56 sm:w-60 lg:w-64'
 
 /** Mirror {@link VENUE_CRAWL_STRIP_CLASS} for main shell padding when the stacks leaderboard mounts */
-const VENUE_CRAWL_PR_CLASS = 'pr-80 sm:pr-[22rem] lg:pr-96'
+const VENUE_CRAWL_PR_CLASS = 'pr-56 sm:pr-60 lg:pr-64'
 
 /** Pre-start seating tour: highlight rotates across populated felts on the aerial floor. */
 
@@ -1319,13 +1319,13 @@ function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) 
           : 'Players and table assignments by first name.'
       }
     >
-      <div className="shrink-0 border-b border-white/10 px-3 py-3.5 sm:px-4 sm:py-4">
-        <h2 className="text-2xl font-bold leading-none tracking-tight text-white/92 sm:text-3xl">
+      <div className="shrink-0 border-b border-white/10 px-2 py-3 sm:px-2.5 sm:py-3.5">
+        <h2 className="text-xl font-bold leading-none tracking-tight text-white/92 sm:text-2xl">
           {gameOn ? 'Stacks' : 'Seating'}
         </h2>
       </div>
       <div
-        className="relative min-h-0 flex-1 overflow-hidden px-2 py-1.5 sm:px-3 sm:py-2"
+        className="relative min-h-0 flex-1 overflow-hidden px-1.5 py-1.5 sm:px-2 sm:py-2"
         style={{
           maskImage:
             'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
@@ -1343,14 +1343,14 @@ function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) 
               className="w-full min-w-0 border-b border-white/[0.08] py-3 sm:py-3.5"
               aria-label={`${r.name}, ${formatVenueBankroll(r.bankroll)}, Table ${r.tableNum} seat ${r.seatNum}`}
             >
-              <div className="w-full min-w-0 truncate text-xl font-bold leading-[1.15] text-white/95 sm:text-2xl md:text-3xl">
+              <div className="w-full min-w-0 truncate text-lg font-bold leading-[1.15] text-white/95 sm:text-xl">
                 {r.name}
               </div>
               <div className="mt-1 flex w-full min-w-0 items-baseline justify-between gap-2">
                 <span className="min-w-0 flex-1 truncate font-mono text-sm font-bold tabular-nums tracking-tight text-yellow-400/92 sm:text-base">
                   Table {r.tableNum} · Seat {r.seatNum}
                 </span>
-                <span className="shrink-0 text-right font-mono text-lg font-bold tabular-nums leading-none text-casino-emerald sm:text-xl">
+                <span className="shrink-0 text-right font-mono text-base font-bold tabular-nums leading-none text-casino-emerald sm:text-lg">
                   {formatVenueBankroll(r.bankroll)}
                 </span>
               </div>

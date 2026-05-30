@@ -13,7 +13,7 @@ export type VenueFloorShowdownVariantId = 8
 export const VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT = 1
 
 export const VENUE_FLOOR_SHOWDOWN_VARIANT_NAMES: Record<VenueFloorShowdownVariantId, string> = {
-  8: 'Marquee bulbs',
+  8: 'Floor stack',
 }
 
 export function venueFloorShowdownVariantForTable(_tableNum: number): VenueFloorShowdownVariantId {
@@ -184,12 +184,12 @@ function HeroPot({
   className?: string
 }) {
   return (
-    <div className={`text-center ${className}`}>
+    <div className={`flex items-baseline justify-center gap-[0.35em] ${className}`}>
       <p className={POT_AMOUNT}>{formatPot(pot)}</p>
       {splitWin ? (
-        <p className="mt-1 font-bold uppercase tracking-[0.22em] text-yellow-200/90 text-[clamp(0.48rem,4.5cqw,0.68rem)]">
+        <span className="shrink-0 font-bold uppercase tracking-[0.18em] text-yellow-200/90 text-[clamp(0.48rem,4.5cqw,0.68rem)]">
           each
-        </p>
+        </span>
       ) : null}
     </div>
   )
@@ -282,26 +282,10 @@ function SplitPotRibbon() {
   )
 }
 
-function MarqueeBulbs() {
-  return (
-    <div className="flex shrink-0 justify-center gap-1 py-1.5">
-      {Array.from({ length: 5 }, (_, i) => (
-        <span
-          key={i}
-          className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(252,211,77,0.9)] motion-safe:animate-[venue-bulb_1.4s_ease-in-out_infinite]"
-          style={{ animationDelay: `${i * 0.1}s` }}
-          aria-hidden
-        />
-      ))}
-    </div>
-  )
-}
-
 function renderVariant(ctx: FloorShowdownCtx): ReactNode {
   if (ctx.variantId !== 8) return null
   return (
     <div className="flex min-h-0 flex-1 flex-col px-2.5 py-3">
-      <MarqueeBulbs />
       <ShowdownStack ctx={ctx} winnerLayout="line" className="min-h-0 flex-1 justify-center" />
     </div>
   )
@@ -334,16 +318,5 @@ export function VenueFloorShowdownByVariant({
       {ctx.splitWin ? <SplitPotRibbon /> : null}
       {renderVariant(ctx)}
     </div>
-  )
-}
-
-export function VenueFloorShowdownVariantStyles() {
-  return (
-    <style>{`
-      @keyframes venue-bulb {
-        0%, 100% { opacity: 0.45; transform: scale(0.85); }
-        50% { opacity: 1; transform: scale(1.05); }
-      }
-    `}</style>
   )
 }

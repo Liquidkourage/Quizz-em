@@ -19,7 +19,6 @@ import {
 import {
   resolveFloorShowdownData,
   VenueFloorShowdownByVariant,
-  VenueFloorShowdownVariantStyles,
 } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
@@ -1551,7 +1550,6 @@ export default function VenueEightTablesPreview({
         showRoster ? VENUE_CRAWL_PR_CLASS : ''
       }`}
     >
-      <VenueFloorShowdownVariantStyles />
       <div className="pointer-events-none absolute inset-0 opacity-35">
         <div
           className="absolute inset-0"

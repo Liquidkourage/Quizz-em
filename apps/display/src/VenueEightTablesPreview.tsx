@@ -1391,15 +1391,12 @@ function VenueAerialFloorGrid({
       animate={{ opacity: 1, y: 0 }}
     >
       {!showHeadline ? (
-        <div className="mb-1.5 flex shrink-0 items-center justify-between gap-3 px-1 sm:mb-2">
-          <div className="w-[clamp(5rem,min(18vw,8rem),9rem)] shrink-0">
+        <div className="mb-1.5 shrink-0 px-1 sm:mb-2">
+          <div className="w-[clamp(5rem,min(18vw,8rem),9rem)]">
             <div className="w-full shadow-black/60 drop-shadow-lg" style={{ aspectRatio: '958 / 592' }}>
               <QuizzEmWordmark layout="fill" />
             </div>
           </div>
-          <p className="text-right text-[0.65rem] font-bold uppercase tracking-[0.2em] text-amber-200/75 sm:text-xs">
-            Venue floor · {n} table{n === 1 ? '' : 's'}
-          </p>
         </div>
       ) : null}
 

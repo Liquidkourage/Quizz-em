@@ -201,8 +201,14 @@ export function resolveFloorShowdownData(
  * Floor showdown type scale (@container on overlay). Visual hierarchy:
  * 1 winner names (largest) → 2 pot amount → 3 five digit cards (winning hand).
  */
-const WINNER_NAME =
-  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1rem,12cqw,2.15rem)]'
+const WINNER_NAME_SINGLE =
+  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1.12rem,13.5cqw,2.5rem)]'
+const WINNER_NAME_SPLIT =
+  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(0.88rem,10.2cqw,1.85rem)]'
+
+function winnerNameClass(splitWin: boolean): string {
+  return splitWin ? WINNER_NAME_SPLIT : WINNER_NAME_SINGLE
+}
 const POT_AMOUNT =
   'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.05rem,11cqw,2.4rem)]'
 
@@ -263,17 +269,18 @@ function PotChip({ pot, splitWin = false }: { pot: number; splitWin?: boolean })
 }
 
 function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?: 'pills' | 'line' }) {
+  const nameClass = winnerNameClass(ctx.splitWin)
   if (ctx.winnerLine != null && ctx.winnerLine.length > 0) {
     return (
       <div className="min-w-0 text-center">
-        <p className={`${WINNER_NAME} truncate`}>{ctx.winnerLine}</p>
+        <p className={`${nameClass} truncate`}>{ctx.winnerLine}</p>
       </div>
     )
   }
   if (layout === 'line') {
     return (
       <div className="min-w-0 text-center">
-        <p className={`${WINNER_NAME} truncate`}>
+        <p className={`${nameClass} truncate`}>
           {ctx.winners.map((w) => w.name).join(' · ')}
           {ctx.extraWinners > 0 ? ` +${ctx.extraWinners}` : ''}
         </p>
@@ -288,7 +295,7 @@ function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?:
             key={`${w.seat}:${w.name}`}
             className="inline-flex max-w-full min-w-0 rounded-full border-2 border-amber-400/80 bg-amber-950/95 px-2 py-0.5 shadow-[0_0_10px_rgba(251,191,36,0.3)]"
           >
-            <span className={`${WINNER_NAME} truncate`}>{w.name}</span>
+            <span className={`${nameClass} truncate`}>{w.name}</span>
           </span>
         ))}
       </div>

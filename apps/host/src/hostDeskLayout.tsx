@@ -455,8 +455,10 @@ export function HostPublicTvsPanel({
   return (
     <HostCollapsible summary="Public TVs & routing" className="mb-4">
       <p className="mb-3 text-xs leading-snug text-white/50">
-        Pair displays in Setup below. During a round the venue wall always shows every table;{' '}
-        <strong className="text-white/70">Highlight</strong> pins the amber ring on one felt.
+        Pair displays in Setup below (venue{' '}
+        <span className="font-mono text-white/65">{venueCode}</span>). During a round the venue wall
+        always shows every table; <strong className="text-white/70">Highlight</strong> pins the amber
+        ring on one felt.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <NeonButton variant="emerald" size="small" onClick={onVenueWall}>

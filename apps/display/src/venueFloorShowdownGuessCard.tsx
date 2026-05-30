@@ -69,12 +69,10 @@ const VARIANT_TONE: Record<VenueFloorShowdownVariantId, GuessCardTone> = {
 export function WinningGuessCard({
   guess,
   variantId,
-  splitWin,
   size = 'md',
 }: {
   guess: string
   variantId: VenueFloorShowdownVariantId
-  splitWin?: boolean
   size?: 'sm' | 'md' | 'lg' | 'xl'
 }) {
   const tone = VARIANT_TONE[variantId]

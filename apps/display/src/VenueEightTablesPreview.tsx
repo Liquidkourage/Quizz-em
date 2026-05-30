@@ -1227,6 +1227,7 @@ function VenueMosaicTableCard({
 
         {showFloorShowdownOverlay ? (
           <VenueFloorShowdownByVariant
+            tableNum={tn}
             pot={floorShowdownPot}
             rows={floorShowdownRows}
             correctAnswer={floorShowdownAnswer}

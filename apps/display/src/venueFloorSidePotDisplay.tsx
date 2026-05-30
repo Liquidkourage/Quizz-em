@@ -121,32 +121,67 @@ export function resolveShowdownSidePotLines(
   return lines.length >= 2 ? lines : null
 }
 
-export const SHOWDOWN_RIBBON_BAR = 'shrink-0 py-1.5 text-center'
+export const SHOWDOWN_RIBBON_BAR = 'shrink-0 py-1.5'
 export const SHOWDOWN_RIBBON_LABEL =
   'font-black uppercase leading-none tracking-[0.16em] text-[clamp(0.62rem,6.8cqw,1.05rem)]'
+const SHOWDOWN_RIBBON_TABLE_NUM =
+  'font-mono font-black tabular-nums leading-none text-yellow-400/95 text-[clamp(0.72rem,6.2cqw,1rem)]'
 
-export function SidePotRibbon() {
-  return (
-    <div className={`${SHOWDOWN_RIBBON_BAR} bg-cyan-900/90`}>
-      <p className={`${SHOWDOWN_RIBBON_LABEL} text-cyan-100`}>Side pot</p>
-    </div>
-  )
-}
-
-export function WinnerRibbon() {
-  return (
-    <div className={`${SHOWDOWN_RIBBON_BAR} bg-amber-900/92`}>
-      <p className={`${SHOWDOWN_RIBBON_LABEL} text-amber-100`}>Winner</p>
-    </div>
-  )
-}
-
-export function SplitPotRibbon() {
+function ShowdownRibbonBar({
+  tableNum,
+  barClassName,
+  labelClassName,
+  label,
+}: {
+  tableNum?: number
+  barClassName: string
+  labelClassName: string
+  label: string
+}) {
   return (
     <div
-      className={`${SHOWDOWN_RIBBON_BAR} bg-gradient-to-r from-rose-700/95 via-amber-600/95 to-rose-700/95`}
+      className={`${SHOWDOWN_RIBBON_BAR} ${barClassName} grid grid-cols-[1fr_auto_1fr] items-center px-1.5 sm:px-2`}
     >
-      <p className={`${SHOWDOWN_RIBBON_LABEL} text-white`}>Split pot</p>
+      <span className={`${SHOWDOWN_RIBBON_TABLE_NUM} justify-self-start`}>
+        {tableNum ?? ''}
+      </span>
+      <p className={`${SHOWDOWN_RIBBON_LABEL} ${labelClassName} justify-self-center text-center`}>
+        {label}
+      </p>
+      <span className="justify-self-end" aria-hidden />
     </div>
+  )
+}
+
+export function SidePotRibbon({ tableNum }: { tableNum?: number } = {}) {
+  return (
+    <ShowdownRibbonBar
+      tableNum={tableNum}
+      barClassName="bg-cyan-900/90"
+      labelClassName="text-cyan-100"
+      label="Side pot"
+    />
+  )
+}
+
+export function WinnerRibbon({ tableNum }: { tableNum?: number } = {}) {
+  return (
+    <ShowdownRibbonBar
+      tableNum={tableNum}
+      barClassName="bg-amber-900/92"
+      labelClassName="text-amber-100"
+      label="Winner"
+    />
+  )
+}
+
+export function SplitPotRibbon({ tableNum }: { tableNum?: number } = {}) {
+  return (
+    <ShowdownRibbonBar
+      tableNum={tableNum}
+      barClassName="bg-gradient-to-r from-rose-700/95 via-amber-600/95 to-rose-700/95"
+      labelClassName="text-white"
+      label="Split pot"
+    />
   )
 }

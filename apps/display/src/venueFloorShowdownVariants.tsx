@@ -196,6 +196,7 @@ function ShowdownStack({ ctx, className = '' }: { ctx: FloorShowdownCtx; classNa
 }
 
 export function VenueFloorShowdownByVariant({
+  tableNum,
   pot,
   rows,
   correctAnswer,
@@ -210,16 +211,18 @@ export function VenueFloorShowdownByVariant({
   if (ctx == null) return null
 
   const sidePot = ctx.sidePotLines != null
+  const ariaLabel =
+    tableNum != null ? `Table ${tableNum}. ${ctx.ariaLabel}` : ctx.ariaLabel
 
   return (
     <div
       className="@container pointer-events-none absolute inset-0 z-[125] flex flex-col overflow-hidden rounded-[inherit] bg-gradient-to-b from-black/72 via-black/78 to-black/85 shadow-[inset_0_0_0_1px_rgba(251,191,36,0.12)]"
       role="group"
-      aria-label={ctx.ariaLabel}
+      aria-label={ariaLabel}
     >
-      {ctx.sidePotLines != null ? <SidePotRibbon /> : null}
-      {!ctx.splitWin && ctx.sidePotLines == null ? <WinnerRibbon /> : null}
-      {ctx.splitWin && ctx.sidePotLines == null ? <SplitPotRibbon /> : null}
+      {ctx.sidePotLines != null ? <SidePotRibbon tableNum={tableNum} /> : null}
+      {!ctx.splitWin && ctx.sidePotLines == null ? <WinnerRibbon tableNum={tableNum} /> : null}
+      {ctx.splitWin && ctx.sidePotLines == null ? <SplitPotRibbon tableNum={tableNum} /> : null}
       <div
         className={`flex min-h-0 flex-1 flex-col ${sidePot ? 'px-2 py-1.5' : 'px-2.5 py-3'}`}
       >

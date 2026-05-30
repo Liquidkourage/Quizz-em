@@ -252,32 +252,46 @@ export type ShowdownSidePotLine = {
   name: string
 }
 
-const POT_WINNER_LINE =
-  'text-[clamp(0.45rem,4.2cqw,0.62rem)] leading-snug'
+const POT_LAYER_ROW = 'flex flex-wrap items-baseline justify-center gap-x-[0.35em] gap-y-0 leading-[1.1]'
+const POT_LAYER_TAG =
+  'shrink-0 font-black uppercase tracking-[0.12em] text-[clamp(0.5rem,4.8cqw,0.72rem)]'
+const POT_LAYER_AMOUNT =
+  'font-mono font-black tabular-nums text-yellow-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] text-[clamp(0.95rem,10.5cqw,2.05rem)]'
+const POT_LAYER_ARROW = 'shrink-0 font-bold text-white/45 text-[clamp(0.55rem,5cqw,0.8rem)]'
+const POT_LAYER_NAME =
+  'min-w-0 truncate font-bold text-amber-50 text-[clamp(0.62rem,6.2cqw,1.05rem)]'
 
 export function ShowdownPotWinnerList({ lines }: { lines: readonly ShowdownSidePotLine[] }) {
   return (
-    <div className={`w-full space-y-0.5 text-center ${POT_WINNER_LINE}`}>
+    <div className="flex w-full flex-col items-center justify-center gap-[clamp(0.35rem,2.8cqw,0.65rem)] px-0.5">
       {lines.map((line) => {
+        const amount = `$${line.amount.toLocaleString()}`
         if (line.label === 'Main') {
           return (
-            <p key={`${line.label}:${line.name}`}>
-              <span className="font-bold text-amber-300/95">Main ${line.amount.toLocaleString()}</span>
-              <span className="text-white/80"> → {line.name}</span>
+            <p key={`${line.label}:${line.name}`} className={POT_LAYER_ROW}>
+              <span className={`${POT_LAYER_TAG} text-amber-300/90`}>Main</span>
+              <span className={POT_LAYER_AMOUNT}>{amount}</span>
+              <span className={POT_LAYER_ARROW}>→</span>
+              <span className={POT_LAYER_NAME}>{line.name}</span>
             </p>
           )
         }
         if (line.label === 'Side') {
           return (
-            <p key={`${line.label}:${line.name}`}>
-              <span className="font-bold text-cyan-300/95">Side ${line.amount.toLocaleString()}</span>
-              <span className="text-white/80"> → {line.name}</span>
+            <p key={`${line.label}:${line.name}`} className={POT_LAYER_ROW}>
+              <span className={`${POT_LAYER_TAG} text-cyan-300/90`}>Side</span>
+              <span className={POT_LAYER_AMOUNT}>{amount}</span>
+              <span className={POT_LAYER_ARROW}>→</span>
+              <span className={POT_LAYER_NAME}>{line.name}</span>
             </p>
           )
         }
         return (
-          <p key={`${line.label}:${line.name}`} className="text-white/50">
-            Return ${line.amount.toLocaleString()} → {line.name}
+          <p key={`${line.label}:${line.name}`} className={POT_LAYER_ROW}>
+            <span className={`${POT_LAYER_TAG} text-white/45`}>Return</span>
+            <span className={`${POT_LAYER_AMOUNT} text-white/70`}>{amount}</span>
+            <span className={POT_LAYER_ARROW}>→</span>
+            <span className={`${POT_LAYER_NAME} text-white/55`}>{line.name}</span>
           </p>
         )
       })}

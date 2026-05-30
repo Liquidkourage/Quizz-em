@@ -324,6 +324,19 @@ function ShowdownStack({
   potStyle?: PotStyle
   className?: string
 }) {
+  if (ctx.sidePotLines != null) {
+    return (
+      <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
+        <div className="flex w-full min-h-0 flex-[1.35] items-center justify-center py-1">
+          <FloorPotBlock ctx={ctx} />
+        </div>
+        <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-1.5">
+          {GuessBlock(ctx)}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
       <div className="flex w-full min-h-0 flex-1 items-end justify-center pb-2">

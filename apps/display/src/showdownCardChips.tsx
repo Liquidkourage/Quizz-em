@@ -1,4 +1,4 @@
-import { Fragment, type CSSProperties } from 'react'
+import { Fragment } from 'react'
 import type { ShowdownResultRow } from './showdownDisplay'
 
 export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor'
@@ -16,7 +16,7 @@ function DigitChip({
 }) {
   const dim =
     size === 'floor'
-      ? 'h-[var(--showdown-chip-h)] min-w-[var(--showdown-chip-h)] border-[3px] px-[0.14em] text-[length:var(--showdown-chip-font)] shadow-[0_0_14px_rgba(0,0,0,0.5)]'
+      ? 'h-[clamp(1.15rem,15cqw,2rem)] min-w-[clamp(1.15rem,15cqw,2rem)] border-2 px-[0.08em] text-[clamp(1rem,12.5cqw,1.7rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
       : size === 'lg'
         ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
         : size === 'xs'
@@ -43,7 +43,7 @@ function DigitChip({
 function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
   const dim =
     size === 'floor'
-      ? 'h-[var(--showdown-chip-h)] w-[0.35em] text-[length:var(--showdown-chip-font)]'
+      ? 'h-[clamp(1.15rem,15cqw,2rem)] w-[0.22em] text-[clamp(1rem,12.5cqw,1.7rem)]'
       : size === 'lg'
         ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
         : size === 'xs'
@@ -104,29 +104,17 @@ export function ShowdownFiveCardsUsed({
 
   const wrapClass =
     size === 'floor'
-      ? 'flex h-full w-full max-h-full flex-nowrap items-center justify-center gap-[0.42em]'
+      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.12rem,0.85cqw,0.32rem)]'
       : size === 'lg'
         ? 'flex flex-nowrap items-center justify-center gap-1'
         : 'flex flex-wrap items-center justify-center gap-0.5'
-
-  const floorChipVars =
-    size === 'floor'
-      ? ({
-          ['--showdown-chip-h' as string]: 'min(88cqh, 26cqw)',
-          ['--showdown-chip-font' as string]: 'min(74cqh, 21cqw)',
-        } satisfies CSSProperties)
-      : undefined
 
   const ariaLabelDigits = cards
     .map((c, i) => (i === decimalAfter ? `. ${c.digit}` : `${c.digit}`))
     .join(', ')
 
   return (
-    <div
-      className={wrapClass}
-      style={floorChipVars}
-      aria-label={`Cards used: ${ariaLabelDigits}`}
-    >
+    <div className={wrapClass} aria-label={`Cards used: ${ariaLabelDigits}`}>
       {cards.map((c, i) => (
         <Fragment key={i}>
           {i === decimalAfter ? <DecimalDot size={size} /> : null}

@@ -246,7 +246,7 @@ function ShowdownStack({
       <div className="w-full shrink-0 flex-none">
         {potStyle === 'chip' ? <PotChip pot={ctx.pot} /> : <HeroPot pot={ctx.pot} />}
       </div>
-      <div className="flex w-full min-h-0 flex-[1.2] items-center justify-center py-0.5">
+      <div className="flex w-full min-h-0 max-h-[42%] shrink-0 items-center justify-center overflow-hidden py-0.5">
         {GuessBlock(ctx)}
       </div>
     </div>

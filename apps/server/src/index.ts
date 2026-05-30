@@ -78,6 +78,11 @@ import {
   liveVirtualCount,
 } from './virtual-players'
 import {
+  isPostBoardWageringClosed,
+  openAnsweringPhase,
+  planVenueWageringOrchestration,
+} from './venue-wagering-orchestration'
+import {
   coerceImportQuestions,
   pruneSetlistRefs,
   type VenueLibraryData,
@@ -849,8 +854,122 @@ function tableSessionKey(venueCode: string, tableId?: string): string {
 
 const rooms = new Map<string, any>()
 const answerTimers = new Map<string, NodeJS.Timeout>()
+const venueShowdownTimers = new Map<string, NodeJS.Timeout>()
+const venueShowdownAtMs = new Map<string, number>()
+const venueOrchestrationGuard = new Set<string>()
 let venueLibraries!: Map<string, VenueLibraryData>
 const venuePlayhead = new Map<string, { setlistId: string | null; nextIndex: number }>()
+
+function clearTableAnswerTimer(sessionKey: string) {
+  const prev = answerTimers.get(sessionKey)
+  if (prev) clearTimeout(prev)
+  answerTimers.delete(sessionKey)
+}
+
+function scheduleTableAnswerReveal(sessionKey: string, deadlineMs: number) {
+  clearTableAnswerTimer(sessionKey)
+  const delay = Math.max(0, deadlineMs - Date.now())
+  const timer = setTimeout(() => {
+    const cur = rooms.get(sessionKey)
+    if (!cur || cur.phase !== 'answering') return
+    const revealed = revealAnswer(cur)
+    rooms.set(sessionKey, revealed)
+    emitVenueTableState(sessionKey, revealed, { skipOrchestration: true })
+    io.to(sessionKey).emit('toast', '⏱️ Time up! Revealing answers...')
+  }, delay)
+  answerTimers.set(sessionKey, timer)
+}
+
+function clearVenueShowdownTimer(venueCode: string) {
+  const vn = normalizeVenueCode(venueCode)
+  const prev = venueShowdownTimers.get(vn)
+  if (prev) clearTimeout(prev)
+  venueShowdownTimers.delete(vn)
+}
+
+function clearVenueWageringOrchestrationState(venueCode: string) {
+  const vn = normalizeVenueCode(venueCode)
+  clearVenueShowdownTimer(vn)
+  venueShowdownAtMs.delete(vn)
+  for (const tk of allTableSessionsInVenue(vn)) {
+    clearTableAnswerTimer(tk)
+  }
+}
+
+function scheduleVenueShowdownTimer(venueCode: string, fireAtMs: number) {
+  const vn = normalizeVenueCode(venueCode)
+  clearVenueShowdownTimer(vn)
+  venueShowdownAtMs.set(vn, fireAtMs)
+  const delay = Math.max(0, fireAtMs - Date.now())
+  venueShowdownTimers.set(
+    vn,
+    setTimeout(() => {
+      executeVenueShowdown(vn)
+    }, delay)
+  )
+}
+
+function executeVenueShowdown(vnRaw: string) {
+  const vn = normalizeVenueCode(vnRaw)
+  clearVenueShowdownTimer(vn)
+  venueShowdownAtMs.delete(vn)
+  for (const tk of allSeatedTableSessionsInVenue(vn)) {
+    let gs = rooms.get(tk)
+    if (!gs) continue
+    clearTableAnswerTimer(tk)
+
+    if (gs.phase === 'betting' && gs.round.isBettingOpen === true) {
+      gs = adminCloseBetting(gs)
+    }
+    if (isPostBoardWageringClosed(gs)) {
+      gs = openAnsweringPhase(gs, Date.now())
+    }
+    gs = runVirtualPlayerSimulation(gs)
+    if (gs.phase === 'answering') {
+      gs = revealAnswer(gs)
+    }
+    rooms.set(tk, gs)
+    io.to(tk).emit('state', gs)
+  }
+  emitDisplayVenueSnapshotNow(vn)
+  io.to(hostVenueRoom(vn)).emit('toast', 'Answer window closed — showdown on all tables.')
+}
+
+function applyVenueWageringOrchestration(venueCode: string) {
+  const vn = normalizeVenueCode(venueCode)
+  if (venueOrchestrationGuard.has(vn)) return
+  venueOrchestrationGuard.add(vn)
+  try {
+    const seated = allSeatedTableSessionsInVenue(vn)
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: seated,
+      getState: (tk) => rooms.get(tk),
+      currentShowdownAtMs: venueShowdownAtMs.get(vn),
+    })
+
+    if (plan.cancelShowdown) {
+      clearVenueShowdownTimer(vn)
+    } else if (plan.scheduleShowdownAtMs != null) {
+      scheduleVenueShowdownTimer(vn, plan.scheduleShowdownAtMs)
+      io.to(hostVenueRoom(vn)).emit(
+        'toast',
+        'Last table finished wagering — showdown in 45 seconds.',
+      )
+    }
+
+    if (plan.tableUpdates.length === 0) return
+
+    for (const update of plan.tableUpdates) {
+      let gs = runVirtualPlayerSimulation(update.gameState)
+      rooms.set(update.sessionKey, gs)
+      io.to(update.sessionKey).emit('state', gs)
+      scheduleTableAnswerReveal(update.sessionKey, update.answerDeadlineMs)
+    }
+    emitDisplayVenueSnapshotNow(vn)
+  } finally {
+    venueOrchestrationGuard.delete(vn)
+  }
+}
 
 async function persistVenues() {
   await persistVenueLibraries(venueLibraries)
@@ -1662,9 +1781,16 @@ function afterTableStateBroadcast(gs: GameState, _sessionKey: string) {
 }
 
 /** Emit felt state then refresh DISPLAY:{venue} wall summaries for numbered felts */
-function emitVenueTableState(sessionKey: string, gs: GameState) {
+function emitVenueTableState(
+  sessionKey: string,
+  gs: GameState,
+  opts?: { skipOrchestration?: boolean }
+) {
   io.to(sessionKey).emit('state', gs)
   afterTableStateBroadcast(gs, sessionKey)
+  if (!opts?.skipOrchestration) {
+    applyVenueWageringOrchestration(gs.code)
+  }
 }
 
 /**
@@ -1997,6 +2123,7 @@ io.on('connection', (socket) => {
           if (!assertVenueHost(socket, gameState)) break
           const lockStart = requireVenueLockstepTables(socket, gameState.code, (gs) => gs.phase === 'lobby', 'be in lobby before starting the trivia wave')
           if (!lockStart) break
+          clearVenueWageringOrchestrationState(gameState.code)
           for (const { tk } of lockStart) {
             let gs = rooms.get(tk)
             gs = startGame(gs)
@@ -2202,6 +2329,7 @@ io.on('connection', (socket) => {
           if (!assertVenueHost(socket, gameState)) break
           const lockDeal = requireVenueLockstepTables(socket, gameState.code, (gs) => gs.phase === 'question', 'wait in deal setup before hole cards + blinds')
           if (!lockDeal) break
+          clearVenueWageringOrchestrationState(gameState.code)
           for (const { tk } of lockDeal) {
             let gs = rooms.get(tk)
             gs = dealInitialCards(gs)
@@ -2239,6 +2367,7 @@ io.on('connection', (socket) => {
             'be in pre-board wagering (round 1, board empty) before dealing community cards',
           )
           if (!lockBoard) break
+          clearVenueWageringOrchestrationState(gameState.code)
           let anyDealt = false
           let anyAutoClosed = false
           for (const { tk } of lockBoard) {
@@ -2300,6 +2429,7 @@ io.on('connection', (socket) => {
           )
           if (!lockAns) break
           const vn = normalizeVenueCode(gameState.code)
+          clearVenueWageringOrchestrationState(vn)
           const durationSec = resolveAnswerWindowSecondsForStart(vn, payload)
           const durationMs = durationSec * 1000
           const deadlineMs2 = Date.now() + durationMs
@@ -2311,21 +2441,9 @@ io.on('connection', (socket) => {
               round: { ...gs.round, answerDeadline: deadlineMs2 }
             }
             gs = runVirtualPlayerSimulation(gs)
-            const prev = answerTimers.get(tk)
-            if (prev) clearTimeout(prev)
-            const timer2 = setTimeout(() => {
-              const cur = rooms.get(tk)
-              if (!cur) return
-              if (cur.phase === 'answering') {
-                const revealed = revealAnswer(cur)
-                rooms.set(tk, revealed)
-                emitVenueTableState(tk, revealed)
-                io.to(tk).emit('toast', '⏱️ Time up! Revealing answers...')
-              }
-            }, durationMs)
-            answerTimers.set(tk, timer2)
+            scheduleTableAnswerReveal(tk, deadlineMs2)
             rooms.set(tk, gs)
-            emitVenueTableState(tk, gs)
+            emitVenueTableState(tk, gs, { skipOrchestration: true })
           }
           socket.emit(
             'toast',
@@ -2594,6 +2712,7 @@ io.on('connection', (socket) => {
             'bring every felt to showdown (reveal trivia) before paying / resetting the wave',
           )
           if (!lockEnd) break
+          clearVenueWageringOrchestrationState(gameState.code)
           for (const { tk } of lockEnd) {
             const gs = rooms.get(tk)
             const next = endRound(gs!)
@@ -2614,6 +2733,7 @@ io.on('connection', (socket) => {
         case 'newGame': {
           if (!assertVenueHost(socket, gameState)) break
           const vn = normalizeVenueCode(gameState.code)
+          clearVenueWageringOrchestrationState(vn)
           const hostIdSnap = gameState.hostId
           const lobbyKey = tableSessionKey(vn, LOBBY_TABLE_ID)
           for (const tk of allTableSessionsInVenue(vn)) {

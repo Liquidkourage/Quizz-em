@@ -245,16 +245,16 @@ function MosaicDigitCard({
 }) {
   const sizeClass =
     size === 'community'
-      ? 'h-[clamp(0.95rem,6.5cqw,1.5rem)] w-[clamp(0.68rem,4.6cqw,1.05rem)]'
-      : 'h-[clamp(0.78rem,5.2cqw,1.2rem)] w-[clamp(0.56rem,3.7cqw,0.9rem)]'
+      ? 'h-[clamp(1.1rem,7.8cqw,1.8rem)] w-[clamp(0.82rem,5.5cqw,1.28rem)]'
+      : 'h-[clamp(0.92rem,6.2cqw,1.45rem)] w-[clamp(0.66rem,4.4cqw,1.08rem)]'
   const textClass =
     size === 'community'
-      ? 'text-[clamp(0.52rem,3.6cqw,0.72rem)]'
-      : 'text-[clamp(0.42rem,2.8cqw,0.58rem)]'
+      ? 'text-[clamp(0.58rem,4.2cqw,0.85rem)]'
+      : 'text-[clamp(0.48rem,3.3cqw,0.68rem)]'
   if (faceDown) {
     return (
       <span
-        className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border border-violet-400/50 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.38rem,2.4cqw,0.52rem)] leading-none shadow-sm shadow-violet-500/25 ${sizeClass}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border border-violet-400/50 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.44rem,2.9cqw,0.62rem)] leading-none shadow-sm shadow-violet-500/25 ${sizeClass}`}
         aria-hidden
       >
         <span className="text-violet-300/80">✦</span>

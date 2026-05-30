@@ -230,14 +230,34 @@ const SEAT_LAYER_FELT_COMMUNITY = 'z-[106]'
 const SEAT_LAYER_FELT_HOLE = 'z-[19]'
 
 /** Tiny digit card for mosaic felts — scales with @container on the ring. */
-function MosaicDigitCard({ digit, dimmed = false }: { digit: number; dimmed?: boolean }) {
+function MosaicDigitCard({
+  digit,
+  dimmed = false,
+  faceDown = false,
+}: {
+  digit?: number
+  dimmed?: boolean
+  faceDown?: boolean
+}) {
+  const sizeClass =
+    'h-[clamp(0.65rem,4.2cqw,0.95rem)] w-[clamp(0.48rem,3.1cqw,0.72rem)]'
+  if (faceDown) {
+    return (
+      <span
+        className={`inline-flex shrink-0 items-center justify-center rounded-[2px] border border-violet-400/45 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.32rem,2cqw,0.45rem)] leading-none shadow-sm shadow-violet-500/20 ${sizeClass}`}
+        aria-hidden
+      >
+        <span className="text-violet-300/75">✦</span>
+      </span>
+    )
+  }
   return (
     <span
       className={`inline-flex shrink-0 items-center justify-center rounded-[2px] border font-mono font-black tabular-nums leading-none shadow-sm ${
         dimmed
           ? 'border-white/15 bg-black/40 text-white/35'
           : 'border-cyan-400/55 bg-neutral-950/95 text-cyan-200 shadow-[0_0_6px_rgba(34,211,238,0.25)]'
-      } h-[clamp(0.65rem,4.2cqw,0.95rem)] w-[clamp(0.48rem,3.1cqw,0.72rem)] text-[clamp(0.42rem,2.8cqw,0.58rem)]`}
+      } ${sizeClass} text-[clamp(0.42rem,2.8cqw,0.58rem)]`}
       aria-hidden
     >
       {digit}
@@ -930,7 +950,6 @@ function SeatRingWithLabels({
             </div>
             {isMosaic && filled && !isFolded && seatHoleDigits[i] != null ? (() => {
               const holePos = mosaicSeatInwardPct(i, seatedCount, rimW, rimH)
-              const pair = seatHoleDigits[i]!
               return (
                 <div
                   className={`pointer-events-none absolute flex -space-x-px ${SEAT_LAYER_FELT_HOLE}`}
@@ -939,10 +958,10 @@ function SeatRingWithLabels({
                     top: `${holePos.topPct}%`,
                     transform: 'translate(-50%, -50%)',
                   }}
-                  aria-hidden
+                  aria-label="Two hole cards"
                 >
-                  <MosaicDigitCard digit={pair[0]} />
-                  <MosaicDigitCard digit={pair[1]} />
+                  <MosaicDigitCard faceDown />
+                  <MosaicDigitCard faceDown />
                 </div>
               )
             })() : null}

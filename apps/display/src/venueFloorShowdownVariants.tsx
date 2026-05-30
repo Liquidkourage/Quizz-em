@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
-import { ShowdownFiveCardsUsed, type ShowdownChipSize } from './showdownCardChips'
+import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import {
   cardsUsedFromComposition,
   pickShowdownFloorChipRow,
@@ -216,16 +216,9 @@ function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?:
   )
 }
 
-function guessSizeToChipSize(size: 'sm' | 'md' | 'lg' | 'xl'): ShowdownChipSize {
-  if (size === 'xl') return 'floor'
-  if (size === 'lg') return 'lg'
-  if (size === 'sm') return 'sm'
-  return 'md'
-}
-
-function GuessBlock(ctx: FloorShowdownCtx, size: 'sm' | 'md' | 'lg' | 'xl' = 'lg') {
+function GuessBlock(ctx: FloorShowdownCtx) {
   if (!ctx.chipRow) return null
-  return <ShowdownFiveCardsUsed row={ctx.chipRow} size={guessSizeToChipSize(size)} />
+  return <ShowdownFiveCardsUsed row={ctx.chipRow} size="floor" />
 }
 
 type WinnerLayout = 'pills' | 'line'
@@ -236,27 +229,25 @@ function ShowdownStack({
   ctx,
   winnerLayout = 'line',
   potStyle = 'hero',
-  guessSize = 'md',
   className = '',
   gapClass = 'gap-2',
 }: {
   ctx: FloorShowdownCtx
   winnerLayout?: WinnerLayout
   potStyle?: PotStyle
-  guessSize?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
   gapClass?: string
 }) {
   return (
     <div className={`flex min-h-0 min-w-0 flex-col items-center ${gapClass} ${className}`}>
-      <div className="w-full max-w-full shrink-0 flex-[1.15]">
+      <div className="w-full max-w-full shrink-0 flex-[1]">
         <WinnerBlock ctx={ctx} layout={winnerLayout} />
       </div>
       <div className="w-full shrink-0 flex-none">
         {potStyle === 'chip' ? <PotChip pot={ctx.pot} /> : <HeroPot pot={ctx.pot} />}
       </div>
-      <div className="flex w-full min-h-0 flex-[0.85] items-center justify-center">
-        {GuessBlock(ctx, guessSize)}
+      <div className="flex w-full min-h-0 flex-[1.2] items-center justify-center py-0.5">
+        {GuessBlock(ctx)}
       </div>
     </div>
   )
@@ -277,7 +268,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
     case 1:
       return (
         <div className="flex min-h-0 flex-1 px-3 py-3">
-          <ShowdownStack ctx={ctx} winnerLayout="line" guessSize="lg" className="flex-1 justify-center" gapClass="gap-2" />
+          <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" gapClass="gap-2" />
         </div>
       )
     case 5:
@@ -289,11 +280,9 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
     case 17:
       return (
         <div className="flex min-h-0 flex-1 flex-col">
-          {ctx.splitWin ? <SplitPotRibbon /> : null}
           <ShowdownStack
             ctx={ctx}
             winnerLayout="line"
-            guessSize="lg"
             className="flex-1 justify-center bg-gradient-to-b from-yellow-950/35 to-transparent px-3 py-3"
             gapClass="gap-3"
           />
@@ -328,6 +317,7 @@ export function VenueFloorShowdownByVariant({
       aria-label={ctx.ariaLabel}
     >
       <VariantBadge ctx={ctx} />
+      {ctx.splitWin ? <SplitPotRibbon /> : null}
       {renderVariant(ctx)}
     </div>
   )

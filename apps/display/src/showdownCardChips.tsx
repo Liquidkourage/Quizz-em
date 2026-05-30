@@ -16,7 +16,7 @@ function DigitChip({
 }) {
   const dim =
     size === 'floor'
-      ? 'h-[var(--showdown-chip-h)] min-w-[var(--showdown-chip-h)] border-[2px] px-[0.12em] text-[length:var(--showdown-chip-font)] shadow-[0_0_12px_rgba(0,0,0,0.45)]'
+      ? 'h-[var(--showdown-chip-h)] min-w-[var(--showdown-chip-h)] border-[3px] px-[0.14em] text-[length:var(--showdown-chip-font)] shadow-[0_0_14px_rgba(0,0,0,0.5)]'
       : size === 'lg'
         ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
         : size === 'xs'
@@ -104,7 +104,7 @@ export function ShowdownFiveCardsUsed({
 
   const wrapClass =
     size === 'floor'
-      ? 'flex h-full w-full max-h-full flex-nowrap items-center justify-center gap-[0.35em]'
+      ? 'flex h-full w-full max-h-full flex-nowrap items-center justify-center gap-[0.42em]'
       : size === 'lg'
         ? 'flex flex-nowrap items-center justify-center gap-1'
         : 'flex flex-wrap items-center justify-center gap-0.5'
@@ -112,8 +112,8 @@ export function ShowdownFiveCardsUsed({
   const floorChipVars =
     size === 'floor'
       ? ({
-          ['--showdown-chip-h' as string]: 'min(78cqh, 17.5cqw)',
-          ['--showdown-chip-font' as string]: 'min(62cqh, 14cqw)',
+          ['--showdown-chip-h' as string]: 'min(88cqh, 26cqw)',
+          ['--showdown-chip-font' as string]: 'min(74cqh, 21cqw)',
         } satisfies CSSProperties)
       : undefined
 

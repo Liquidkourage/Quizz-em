@@ -84,7 +84,6 @@ function sumWinnerChipPayouts(winners: readonly ShowdownResultRow[]): number {
 export function resolveShowdownDisplayPot(
   tile: DisplayVenueTileSnapshot,
   rows: readonly ShowdownResultRow[],
-  labMode: boolean,
   correctAnswer: number | undefined
 ): number {
   const { winnerKeys } = sortShowdownRowsByDistance([...rows], correctAnswer)
@@ -111,11 +110,6 @@ export function resolveShowdownDisplayPot(
     if (tilePot > 0) return Math.round(tilePot / winnerCount)
     const fromTilePayouts = sumTileSeatChipPayouts(tile)
     if (fromTilePayouts > 0) return Math.round(fromTilePayouts / winnerCount)
-    if (labMode) {
-      const seated = Math.max(2, Math.floor(tile.seated) || 2)
-      const total = 95 + tile.tableNum * 28 + seated * 12
-      return Math.round(total / winnerCount)
-    }
     return 0
   }
 
@@ -127,11 +121,6 @@ export function resolveShowdownDisplayPot(
 
   const fromTilePayouts = sumTileSeatChipPayouts(tile)
   if (fromTilePayouts > 0) return fromTilePayouts
-
-  if (labMode) {
-    const seated = Math.max(2, Math.floor(tile.seated) || 2)
-    return 95 + tile.tableNum * 28 + seated * 12
-  }
 
   return 0
 }

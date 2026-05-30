@@ -24,13 +24,6 @@ export function readDisplayTableIdFromUrl(): string {
   return '1'
 }
 
-/** `?showdownLab=1` — preview all 20 floor showdown layouts on the venue wall (demo data OK). */
-export function readShowdownLabFromUrl(): boolean {
-  if (typeof window === 'undefined') return false
-  const v = new URLSearchParams(window.location.search).get('showdownLab')?.trim().toLowerCase()
-  return v === '1' || v === 'true' || v === 'yes'
-}
-
 /** Initial layout before the first `displayLayout` from the server. `?table=N` (1–8) opens in spotlight. */
 export function readUrlLayoutBootstrap(): DisplayLayoutPayload {
   if (typeof window === 'undefined') {

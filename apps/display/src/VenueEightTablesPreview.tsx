@@ -11,15 +11,11 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAct
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
-import { readShowdownLabFromUrl } from './displayUrlParams'
 import {
   buildFloorShowdownPresentation,
   resolveShowdownDisplayPot,
 } from './VenueFloorShowdownOverlay'
-import {
-  resolveFloorShowdownData,
-  VenueFloorShowdownByVariant,
-} from './venueFloorShowdownVariants'
+import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
@@ -1006,8 +1002,6 @@ type VenueMosaicTableCardProps = {
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
   prefersReducedMotion?: boolean
-  /** URL lab: force showdown overlay + variant badges on every floor tile. */
-  showdownLab?: boolean
 }
 
 function VenueMosaicTableCard({
@@ -1017,7 +1011,6 @@ function VenueMosaicTableCard({
   floorCompact = false,
   floorHoneycomb = false,
   prefersReducedMotion = false,
-  showdownLab = false,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1032,22 +1025,18 @@ function VenueMosaicTableCard({
   const showSeatBettingActions = ph === 'betting'
   const inShowdown = ph === 'showdown'
   const showdownBrief = hideShowdownResults || floorCompact
-  const liveShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
-  const liveShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
-  const { rows: floorShowdownRows, correctAnswer: floorShowdownAnswer } = useMemo(
-    () => resolveFloorShowdownData(row, liveShowdownRows, liveShowdownAnswer, showdownLab),
-    [row, liveShowdownRows, liveShowdownAnswer, showdownLab]
-  )
+  const floorShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
+  const floorShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
   const showFloorShowdownOverlay =
-    showdownBrief && (inShowdown || showdownLab) && floorShowdownRows.length > 0
+    showdownBrief && inShowdown && floorShowdownRows.length > 0
   const floorShowdownPresentation = useMemo(() => {
     if (!showFloorShowdownOverlay) return null
     return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
   }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
   const floorShowdownPot = useMemo(() => {
     if (!showFloorShowdownOverlay) return 0
-    return resolveShowdownDisplayPot(row, floorShowdownRows, showdownLab, floorShowdownAnswer)
-  }, [showFloorShowdownOverlay, row, floorShowdownRows, showdownLab, floorShowdownAnswer])
+    return resolveShowdownDisplayPot(row, floorShowdownRows, floorShowdownAnswer)
+  }, [showFloorShowdownOverlay, row, floorShowdownRows, floorShowdownAnswer])
   const winnerSeatIndexes = showFloorShowdownOverlay
     ? floorShowdownPresentation?.winnerSeatIndexes ?? null
     : null
@@ -1218,7 +1207,7 @@ function VenueMosaicTableCard({
           )}
         </dl>
 
-        {inShowdown && liveShowdownRows.length > 0 && !showdownBrief ? (
+        {inShowdown && floorShowdownRows.length > 0 && !showdownBrief ? (
           <div
             className="rounded-lg p-1"
             style={{
@@ -1228,8 +1217,8 @@ function VenueMosaicTableCard({
           >
             <ShowdownResultsPanel
               compact
-              correctAnswer={liveShowdownAnswer}
-              rows={liveShowdownRows}
+              correctAnswer={floorShowdownAnswer}
+              rows={floorShowdownRows}
             />
           </div>
         ) : null}
@@ -1237,11 +1226,9 @@ function VenueMosaicTableCard({
 
         {showFloorShowdownOverlay ? (
           <VenueFloorShowdownByVariant
-            tableNum={tn}
             pot={floorShowdownPot}
             rows={floorShowdownRows}
             correctAnswer={floorShowdownAnswer}
-            labMode={showdownLab}
           />
         ) : null}
       </article>
@@ -1366,14 +1353,12 @@ function VenueAerialFloorGrid({
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
-  showdownLab = false,
 }: {
   tiles: DisplayVenueTileSnapshot[]
   spotlightTableNum: number | null
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
-  showdownLab?: boolean
 }) {
   const n = tiles.length
   const { columns, rowCount } = useMemo(() => venueBanquetLayout(n), [n])
@@ -1479,7 +1464,6 @@ function VenueAerialFloorGrid({
                       floorCompact={floorCompact}
                       floorHoneycomb
                       prefersReducedMotion={prefersReducedMotion}
-                      showdownLab={showdownLab}
                     />
                   </div>
                 )
@@ -1513,8 +1497,6 @@ export default function VenueEightTablesPreview({
 }: VenueEightTablesPreviewProps) {
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
-  const showdownLab = useMemo(() => readShowdownLabFromUrl(), [])
-
   const headlineQuestionText = wall?.headlineQuestionText ?? null
   const answerDeadlineMs = wall?.answerDeadlineMs ?? null
 
@@ -1642,26 +1624,12 @@ export default function VenueEightTablesPreview({
               </motion.div>
             ) : null}
 
-            {showdownLab ? (
-              <p className="shrink-0 rounded-lg border border-amber-500/40 bg-amber-950/35 px-2 py-1.5 text-center text-[0.55rem] leading-snug text-amber-100/90 sm:text-xs">
-                <span className="font-bold uppercase tracking-wider text-amber-300">
-                  Showdown lab
-                </span>
-                {' — '}
-                Tables 1–7: side-pot banner + layer winners. 8–10: single winner. 11–20: split pot.
-                Hover
-                badges for labels. Remove <span className="font-mono text-amber-200">?showdownLab=1</span>{' '}
-                to exit.
-              </p>
-            ) : null}
-
             <VenueAerialFloorGrid
               tiles={floorTiles}
               spotlightTableNum={spotlightTableNum}
               showHeadline={showHeadline}
               skipMountIntro={skipMountIntro}
               prefersReducedMotion={prefersReducedMotion}
-              showdownLab={showdownLab}
             />
           </section>
         ) : tileRows.length > 0 ? (

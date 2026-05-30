@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
-  displayBettingPhaseLabel,
   formatTriviaNumber,
   isVenueTileWageringPaused,
   venueTileActingSeatIndex,
@@ -103,14 +102,12 @@ function VenueMosaicFeltCenterStack({
   communityDigits,
   prefersReducedMotion,
   betsInPaused = false,
-  betsInRibbonLabel = 'BETS IN',
 }: {
   amount: number
   dimmed: boolean
   communityDigits: number[]
   prefersReducedMotion: boolean
   betsInPaused?: boolean
-  betsInRibbonLabel?: string
 }) {
   const feltBounds = venueFeltBoundsFrac()
   const hasCommunity = communityDigits.length > 0
@@ -136,8 +133,8 @@ function VenueMosaicFeltCenterStack({
           }`}
         />
         {betsInPaused ? (
-          <span className="mt-0.5 rounded border border-emerald-400/45 bg-emerald-950/80 px-1.5 py-px text-[clamp(0.38rem,2.3cqw,0.55rem)] font-black uppercase leading-none tracking-[0.12em] text-emerald-100 shadow-sm">
-            {betsInRibbonLabel}
+          <span className="mt-1 w-[min(100%,5.5rem)] rounded-sm bg-emerald-400 px-2 py-0.5 text-center text-[clamp(0.45rem,2.9cqw,0.68rem)] font-black uppercase leading-none tracking-[0.14em] text-black shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
+            Bets in
           </span>
         ) : null}
         {hasCommunity ? (
@@ -499,24 +496,32 @@ function venueTileActingSeat(row: DisplayVenueTileSnapshot): number | null {
 function mosaicPhaseLabel(row: DisplayVenueTileSnapshot): string {
   const ph = String(row.phase ?? '').trim().toLowerCase()
   if (ph === 'betting' && row.seated >= 2 && isVenueTileWageringPaused(row)) {
-    return displayBettingPhaseLabel({
-      isBettingOpen: row.isBettingOpen ?? undefined,
-      currentPlayerIndex: row.currentPlayerIndex ?? undefined,
-    })
+    return 'Bets in'
+  }
+  if (ph === 'betting' && row.seated >= 2 && row.isBettingOpen === true) {
+    return 'Wagering'
   }
   return phaseLabel(row.phase)
 }
 
 function mosaicPhaseAccent(row: DisplayVenueTileSnapshot): string {
-  if (isVenueTileWageringPaused(row) && row.seated >= 2)
-    return 'text-emerald-100 ring-1 ring-emerald-400/45'
+  if (isVenueTileWageringPaused(row) && row.seated >= 2) {
+    return 'bg-emerald-400 font-black text-black shadow-[0_0_10px_rgba(52,211,153,0.45)] ring-0'
+  }
+  if (isMosaicWageringLive(row)) {
+    return 'bg-amber-400 font-black text-black shadow-[0_0_10px_rgba(251,191,36,0.35)] ring-0'
+  }
   return phaseAccent(row.phase)
 }
 
 /** Corner phase pill: paused betting uses sentence case and may wrap — other phases stay compact uppercase. */
 function mosaicPhaseCornerTypography(row: DisplayVenueTileSnapshot): string {
-  if (isVenueTileWageringPaused(row) && row.seated >= 2)
-    return 'font-bold leading-snug normal-case whitespace-normal hyphens-none'
+  if (isVenueTileWageringPaused(row) && row.seated >= 2) {
+    return 'font-black uppercase leading-tight tracking-wide'
+  }
+  if (isMosaicWageringLive(row)) {
+    return 'font-black uppercase leading-tight tracking-wide'
+  }
   return 'font-bold uppercase leading-tight truncate'
 }
 
@@ -524,52 +529,9 @@ function isMosaicBetsIn(row: DisplayVenueTileSnapshot): boolean {
   return row.seated >= 2 && isVenueTileWageringPaused(row)
 }
 
-function mosaicBetsInRibbonLabel(row: DisplayVenueTileSnapshot): string {
-  const br = row.bettingRound ?? 1
-  return br >= 2 ? 'R2 ✓' : 'R1 ✓'
+function isMosaicWageringLive(row: DisplayVenueTileSnapshot): boolean {
+  return row.phase === 'betting' && row.seated >= 2 && row.isBettingOpen === true && !isMosaicBetsIn(row)
 }
-
-function venueWageringAggregateStats(tileRows: DisplayVenueTileSnapshot[]) {
-  const wagering = tileRows.filter((t) => t.phase === 'betting' && t.seated >= 2)
-  const betsIn = wagering.filter((t) => isVenueTileWageringPaused(t))
-  return { wagering, betsInCount: betsIn.length, wageringCount: wagering.length }
-}
-
-/** Host-facing strip: how many tables finished the current wagering street. */
-function VenueWageringAggregateStrip({ tileRows }: { tileRows: DisplayVenueTileSnapshot[] }) {
-  const { wagering, betsInCount, wageringCount } = useMemo(
-    () => venueWageringAggregateStats(tileRows),
-    [tileRows]
-  )
-  if (wageringCount === 0) return null
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg border border-emerald-500/35 bg-black/55 px-2.5 py-1.5 shadow-sm backdrop-blur-sm sm:px-3"
-    >
-      <span className="text-xs font-bold tabular-nums text-emerald-100 sm:text-sm">
-        {betsInCount} / {wageringCount} tables — bets in
-      </span>
-      <div className="flex flex-wrap items-center gap-1" aria-hidden>
-        {wagering.map((t) => (
-          <span
-            key={t.tableNum}
-            title={`Table ${t.tableNum}${isVenueTileWageringPaused(t) ? ' — bets in' : ' — wagering'}`}
-            className={`h-2 w-2 rounded-full ${
-              isVenueTileWageringPaused(t)
-                ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.55)]'
-                : 'bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.45)] motion-safe:animate-pulse'
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-
-/** Fallback label anchor when wrapper size unknown (SSR / first paint). */
 function fallbackLabelEllipseScale(size: 'md' | 'lg', feltStacks: boolean): number {
   if (size === 'lg') return feltStacks ? 1.045 : 1.03
   return feltStacks ? 1.04 : 1.025
@@ -720,7 +682,6 @@ function SeatRingWithLabels({
   communityDigits: communityDigitsIn,
   /** Mosaic: wagering street complete on this felt. */
   betsInPaused = false,
-  betsInRibbonLabel = 'BETS IN',
 }: {
   seatedCount: number
   seatNames: string[]
@@ -754,7 +715,6 @@ function SeatRingWithLabels({
   seatHoleDigits?: (readonly [number, number] | null)[]
   communityDigits?: number[]
   betsInPaused?: boolean
-  betsInRibbonLabel?: string
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
@@ -869,16 +829,22 @@ function SeatRingWithLabels({
         }}
       />
       <div
-        className={`absolute border-amber-700/70 shadow-inner ${
+        className={`absolute shadow-inner ${
           size === 'lg' ? 'border-2 sm:border-[3px]' : 'border-2'
-        } ${isMosaic && betsInPaused ? 'saturate-[0.68] brightness-[0.88]' : ''}`}
+        } ${
+          isMosaic && betsInPaused
+            ? 'border-emerald-400/75 brightness-[0.72] saturate-[0.45]'
+            : 'border-amber-700/70'
+        }`}
         style={{
           top: `${VENUE_FELT_INSET_TOP * 100}%`,
           right: `${VENUE_FELT_INSET_RIGHT * 100}%`,
           bottom: `${VENUE_FELT_INSET_BOTTOM * 100}%`,
           left: `${VENUE_FELT_INSET_LEFT * 100}%`,
           borderRadius: feltBorderRadius,
-          background: `
+          background: isMosaic && betsInPaused
+            ? 'linear-gradient(135deg, #1a4a30 0%, #0f2818 100%)'
+            : `
             repeating-linear-gradient(
               45deg,
               #245c36 0px,
@@ -892,7 +858,7 @@ function SeatRingWithLabels({
       />
       {isMosaic && betsInPaused ? (
         <div
-          className="pointer-events-none absolute z-[11] bg-emerald-400/14"
+          className="pointer-events-none absolute z-[11] bg-emerald-500/20 ring-1 ring-inset ring-emerald-300/35"
           style={{
             top: `${VENUE_FELT_INSET_TOP * 100}%`,
             right: `${VENUE_FELT_INSET_RIGHT * 100}%`,
@@ -910,7 +876,6 @@ function SeatRingWithLabels({
           communityDigits={communityDigits}
           prefersReducedMotion={prefersReducedMotion}
           betsInPaused={betsInPaused}
-          betsInRibbonLabel={betsInRibbonLabel}
         />
       ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
@@ -1259,13 +1224,17 @@ function VenueMosaicTableCard({
     actingCallAmount: row.actingCallAmount,
   })
   const betsInPaused = ph === 'betting' && isMosaicBetsIn(row)
-  const betsInRibbonLabel = mosaicBetsInRibbonLabel(row)
+  const wageringLive = isMosaicWageringLive(row)
 
   const spotlight = isSpotlightThumb === true
   const totalChips = totalChipsFromSeats(seatNames, seatBankrolls)
   const cardShell = spotlight
     ? 'rounded-xl border-2 border-amber-400/70 bg-black/65 shadow-[0_0_32px_rgba(251,191,36,0.22)] ring-2 ring-amber-400/35'
-    : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
+    : betsInPaused
+      ? 'rounded-xl border-2 border-emerald-400/90 bg-emerald-950/55 shadow-[0_0_28px_rgba(52,211,153,0.38)] ring-2 ring-emerald-400/45'
+      : wageringLive
+        ? 'rounded-xl border-2 border-amber-500/60 bg-black/55 shadow-[0_0_18px_rgba(251,191,36,0.22)]'
+        : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
 
   return (
       <article
@@ -1334,7 +1303,6 @@ function VenueMosaicTableCard({
             seatHoleDigits={row.seatHoleDigits}
             communityDigits={row.communityDigits}
             betsInPaused={betsInPaused}
-            betsInRibbonLabel={betsInRibbonLabel}
           />
         </div>
 
@@ -1891,8 +1859,6 @@ export default function VenueEightTablesPreview({
                 </motion.div>
               </motion.div>
             ) : null}
-
-            <VenueWageringAggregateStrip tileRows={tileRows} />
 
             <VenueAerialFloorGrid
               tiles={floorTiles}

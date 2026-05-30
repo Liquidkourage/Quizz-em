@@ -15,7 +15,6 @@ import { readShowdownLabFromUrl } from './displayUrlParams'
 import {
   buildFloorShowdownPresentation,
   VenueFeltWinningGuessByVariant,
-  VenueFloorWinnerArrows,
 } from './VenueFloorShowdownOverlay'
 import {
   resolveFloorShowdownData,
@@ -738,14 +737,6 @@ function SeatRingWithLabels({
           splitWin={feltWinningGuessSplit}
         />
       ) : null}
-      {isMosaic && winnerSeatIndexes != null && winnerSeatIndexes.size > 0 ? (
-        <VenueFloorWinnerArrows
-          seatedCount={seatedCount}
-          winnerSeatIndexes={winnerSeatIndexes}
-          ringW={ringPx.w}
-          ringH={ringPx.h}
-        />
-      ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         const filled = i < seatedCount
         if (isMosaic && !filled) return null
@@ -1120,7 +1111,7 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`relative z-[1] flex w-full justify-center ${
+          className={`@container relative z-[1] flex w-full justify-center ${
             floorHoneycomb && floorCompact
               ? 'min-h-0 flex-1 overflow-hidden'
               : floorHoneycomb

@@ -168,16 +168,24 @@ function VariantBadge({ ctx }: { ctx: FloorShowdownCtx }) {
   )
 }
 
+/** Readable winner names on mosaic tiles (scales with tile width). */
+const WINNER_NAME_TEXT =
+  'min-w-0 truncate font-black leading-tight text-amber-50 text-[clamp(0.72rem,8cqw,1.2rem)]'
+const WINNER_NAMES_LINE =
+  'truncate text-center font-black leading-tight text-amber-50 text-[clamp(0.72rem,8cqw,1.2rem)]'
+const WINNER_LABEL_TEXT =
+  'font-bold uppercase tracking-[0.14em] text-amber-200/85 text-[clamp(0.44rem,4.5cqw,0.58rem)]'
+
 function WinnerStarPill({ w }: { w: ShowdownResultRow }) {
   return (
     <span
-      className="inline-flex max-w-full min-w-0 items-center gap-0.5 rounded-full border-2 border-amber-400/85 bg-amber-950/92 py-0.5 pl-1 pr-1.5 shadow-[0_0_10px_rgba(251,191,36,0.35)]"
+      className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border-2 border-amber-400/85 bg-amber-950/92 py-1 pl-1.5 pr-2 shadow-[0_0_10px_rgba(251,191,36,0.35)]"
       title={`Seat ${w.seat}`}
     >
-      <span className="flex h-[0.85em] w-[0.85em] shrink-0 items-center justify-center rounded-full bg-amber-400/90 text-[0.45rem] font-black text-amber-950">
+      <span className="flex h-[1em] w-[1em] shrink-0 items-center justify-center rounded-full bg-amber-400/90 text-[clamp(0.5rem,5cqw,0.7rem)] font-black text-amber-950">
         ★
       </span>
-      <span className="min-w-0 truncate text-[0.5rem] font-black text-amber-50">{w.name}</span>
+      <span className={WINNER_NAME_TEXT}>{w.name}</span>
     </span>
   )
 }
@@ -185,9 +193,18 @@ function WinnerStarPill({ w }: { w: ShowdownResultRow }) {
 function ExtraWinnersChip({ n }: { n: number }) {
   if (n <= 0) return null
   return (
-    <span className="rounded-full border border-amber-500/40 bg-black/55 px-1.5 py-0.5 text-[0.45rem] font-semibold text-amber-200/75">
+    <span className="rounded-full border border-amber-500/40 bg-black/55 px-2 py-0.5 text-[clamp(0.5rem,5cqw,0.7rem)] font-bold text-amber-200/80">
       +{n}
     </span>
+  )
+}
+
+function WinnerNamesLine({ ctx, className = '' }: { ctx: FloorShowdownCtx; className?: string }) {
+  return (
+    <p className={`${WINNER_NAMES_LINE} ${className}`}>
+      {ctx.winners.map((w) => w.name).join(' · ')}
+      {ctx.extraWinners > 0 ? ` +${ctx.extraWinners}` : ''}
+    </p>
   )
 }
 
@@ -219,15 +236,13 @@ function DeclShell({
 }
 
 function DeclLabel({ ctx }: { ctx: FloorShowdownCtx }) {
-  return (
-    <p className="text-[0.38rem] font-bold uppercase tracking-[0.16em] text-amber-200/80">{ctx.label}</p>
-  )
+  return <p className={WINNER_LABEL_TEXT}>{ctx.label}</p>
 }
 
 function GoldTopBanner({ ctx }: { ctx: FloorShowdownCtx }) {
   return (
     <div className="border-b border-amber-400/50 bg-gradient-to-r from-amber-900/88 via-yellow-700/82 to-amber-900/88 px-2 py-0.5 shadow-sm">
-      <p className="text-center text-[0.36rem] font-bold uppercase tracking-[0.22em] text-amber-950/85">
+      <p className="text-center text-[clamp(0.4rem,4cqw,0.52rem)] font-bold uppercase tracking-[0.22em] text-amber-950/85">
         {ctx.label}
       </p>
       <WinnerPillsRow ctx={ctx} />
@@ -242,12 +257,12 @@ function CrownBar({ ctx, compact }: { ctx: FloorShowdownCtx; compact?: boolean }
         compact ? 'px-[3%] py-0.5' : 'px-[4%] py-1'
       }`}
     >
-      <p className="text-[0.42rem] font-black uppercase tracking-[0.22em] text-amber-950">👑 {ctx.label}</p>
-      {!compact ? (
-        <p className="truncate text-[0.52rem] font-black text-amber-950">
-          {ctx.winners.map((w) => w.name).join(' · ')}
-        </p>
-      ) : null}
+      <p className="text-[clamp(0.42rem,4.5cqw,0.55rem)] font-black uppercase tracking-[0.22em] text-amber-950">
+        👑 {ctx.label}
+      </p>
+      <p className="truncate font-black text-amber-950 text-[clamp(0.68rem,7.5cqw,1.1rem)]">
+        {ctx.winners.map((w) => w.name).join(' · ')}
+      </p>
     </div>
   )
 }
@@ -264,19 +279,21 @@ function ScoreboardRail({ ctx, side }: { ctx: FloorShowdownCtx; side: 'left' | '
   const edge = side === 'left' ? 'left-0 border-r' : 'right-0 border-l'
   return (
     <div
-      className={`absolute top-[12%] bottom-[10%] ${edge} z-[1] flex w-[24%] flex-col border-amber-500/35 bg-black/42`}
+      className={`absolute top-[10%] bottom-[8%] ${edge} z-[1] flex w-[28%] flex-col border-amber-500/35 bg-black/42`}
     >
-      <p className="shrink-0 border-b border-amber-500/30 py-0.5 text-center text-[0.36rem] font-black uppercase tracking-widest text-amber-100/90">
+      <p className="shrink-0 border-b border-amber-500/30 py-0.5 text-center text-[clamp(0.38rem,4cqw,0.5rem)] font-black uppercase tracking-widest text-amber-100/90">
         {ctx.label}
       </p>
       <div className="flex min-h-0 flex-1 flex-col justify-center gap-0.5 px-1 py-1">
         {ctx.namePills.map((w) => (
           <div
             key={`${w.seat}:${w.name}`}
-            className="rounded border border-amber-400/35 bg-black/40 px-1 py-px"
+            className="rounded border border-amber-400/35 bg-black/40 px-1 py-0.5"
           >
-            <p className="font-mono text-[0.34rem] font-bold tabular-nums text-amber-300/70">S{w.seat}</p>
-            <p className="truncate text-[0.4rem] font-bold leading-tight text-amber-50">{w.name}</p>
+            <p className="font-mono text-[clamp(0.38rem,4cqw,0.48rem)] font-bold tabular-nums text-amber-300/70">
+              S{w.seat}
+            </p>
+            <p className={WINNER_NAME_TEXT}>{w.name}</p>
           </div>
         ))}
         <ExtraWinnersChip n={ctx.extraWinners} />
@@ -325,7 +342,7 @@ function StaggerWinners({ ctx }: { ctx: FloorShowdownCtx }) {
             className="h-[0.35rem] w-[0.35rem] shrink-0 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]"
             aria-hidden
           />
-          <span className="min-w-0 flex-1 truncate rounded-r bg-amber-500/25 py-px pl-1 text-[0.46rem] font-bold text-amber-50">
+          <span className={`min-w-0 flex-1 rounded-r bg-amber-500/25 py-0.5 pl-1 ${WINNER_NAME_TEXT}`}>
             {w.name}
           </span>
         </div>
@@ -341,7 +358,7 @@ function DiagonalWinnerSash({ ctx }: { ctx: FloorShowdownCtx }) {
       className="pointer-events-none absolute -left-[14%] top-[4%] z-[2] w-[72%] -rotate-[34deg] border-y border-amber-400/70 bg-amber-500/88 py-px shadow-sm"
       aria-hidden
     >
-      <p className="truncate px-2 text-center text-[0.4rem] font-black uppercase tracking-wide text-amber-950">
+      <p className="truncate px-2 text-center font-black uppercase tracking-wide text-amber-950 text-[clamp(0.55rem,6cqw,0.9rem)]">
         ★ {ctx.winners.map((w) => w.name).join(' · ')}
         {ctx.extraWinners > 0 ? ` +${ctx.extraWinners}` : ''}
       </p>
@@ -354,7 +371,7 @@ function VerticalWinnerNames({ ctx }: { ctx: FloorShowdownCtx }) {
     <div className="absolute right-[3%] top-[14%] bottom-[14%] z-[1] flex w-[22%] flex-col justify-center gap-0.5">
       <DeclLabel ctx={ctx} />
       {ctx.namePills.map((w) => (
-        <p key={`${w.seat}:${w.name}`} className="truncate text-[0.4rem] font-bold text-amber-50/95">
+        <p key={`${w.seat}:${w.name}`} className={WINNER_NAME_TEXT}>
           {w.name}
         </p>
       ))}
@@ -363,7 +380,7 @@ function VerticalWinnerNames({ ctx }: { ctx: FloorShowdownCtx }) {
   )
 }
 
-/** Winner declaration only — large guess + arrows live on the felt layer. */
+/** Winner declaration only — large card-backed guess lives on the felt layer. */
 function renderVariant(ctx: FloorShowdownCtx): ReactNode {
   switch (ctx.variantId) {
     case 1:
@@ -425,9 +442,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
         <>
           <DiagonalWinnerSash ctx={ctx} />
           <div className="absolute inset-x-0 bottom-0 flex justify-center px-[6%] pb-[3%]">
-            <p className="truncate text-center text-[0.44rem] font-bold text-amber-100/90">
-              {ctx.winners.map((w) => w.name).join(' · ')}
-            </p>
+            <WinnerNamesLine ctx={ctx} className="text-amber-100/95" />
           </div>
         </>
       )
@@ -443,7 +458,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
           <DeclLabel ctx={ctx} />
           <div className="mt-0.5 space-y-px">
             {ctx.namePills.map((w) => (
-              <p key={`${w.seat}:${w.name}`} className="truncate text-[0.44rem] font-bold text-amber-50">
+              <p key={`${w.seat}:${w.name}`} className={`${WINNER_NAME_TEXT} text-center`}>
                 ★ {w.name}
               </p>
             ))}
@@ -472,10 +487,10 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
     case 14:
       return (
         <div className="absolute inset-x-[6%] bottom-[3%] border-t-2 border-white/75 pt-1 text-center">
-          <p className="text-[0.4rem] font-black uppercase tracking-[0.24em] text-white/90">{ctx.label}</p>
-          <p className="truncate text-[0.42rem] font-semibold text-white/80">
-            {ctx.winners.map((w) => w.name).join(' — ')}
+          <p className="text-[clamp(0.44rem,4.5cqw,0.56rem)] font-black uppercase tracking-[0.24em] text-white/90">
+            {ctx.label}
           </p>
+          <WinnerNamesLine ctx={ctx} className="font-semibold text-white/90" />
         </div>
       )
     case 15:
@@ -512,9 +527,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
           <div className="absolute inset-x-0 bottom-0 flex justify-center px-[5%] pb-[3%]">
             <DeclShell className="text-center">
               <DeclLabel ctx={ctx} />
-              <p className="truncate text-[0.42rem] font-semibold text-amber-50/90">
-                {ctx.winners.map((w) => w.name).join(' · ')}
-              </p>
+              <WinnerNamesLine ctx={ctx} className="font-semibold text-amber-50/95" />
             </DeclShell>
           </div>
         </>
@@ -524,7 +537,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
         <div className="absolute inset-x-0 bottom-[3%] flex justify-center px-[8%]">
           <DeclShell className="text-center">
             <DeclLabel ctx={ctx} />
-            <p className="truncate text-[0.43rem] font-bold text-amber-50">{ctx.winners[0]?.name}</p>
+            <p className={`${WINNER_NAME_TEXT} text-center`}>{ctx.winners[0]?.name}</p>
           </DeclShell>
         </div>
       )
@@ -561,7 +574,7 @@ export function VenueFloorShowdownByVariant({
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-[122] overflow-visible rounded-[inherit]"
+      className="@container pointer-events-none absolute inset-0 z-[122] overflow-visible rounded-[inherit]"
       role="group"
       aria-label={ctx.ariaLabel}
     >

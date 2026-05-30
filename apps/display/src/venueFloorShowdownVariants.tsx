@@ -1,13 +1,12 @@
 import type { ReactNode } from 'react'
-import { formatTriviaNumber } from '@qhe/core'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
+import { ShowdownFiveCardsUsed, type ShowdownChipSize } from './showdownCardChips'
 import {
   cardsUsedFromComposition,
   pickShowdownFloorChipRow,
   sortShowdownRowsByDistance,
   type ShowdownResultRow,
 } from './showdownDisplay'
-import { WinningGuessCard } from './venueFloorShowdownGuessCard'
 
 export type VenueFloorShowdownVariantId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20
 
@@ -17,7 +16,7 @@ export const VENUE_FLOOR_SHOWDOWN_VARIANT_NAMES: Record<VenueFloorShowdownVarian
   1: 'Center stack',
   2: 'Yellow wash',
   3: 'Gold header',
-  4: 'Star names · footer rule',
+  4: 'Footer rule stack',
   5: 'Cyan frame',
   6: 'Emerald frame',
   7: 'Crown + chip pot',
@@ -49,7 +48,6 @@ export type FloorShowdownCtx = {
   label: string
   winners: ShowdownResultRow[]
   chipRow: ShowdownResultRow | null
-  guess: string | null
   namePills: ShowdownResultRow[]
   extraWinners: number
   splitWin: boolean
@@ -82,11 +80,6 @@ function buildCtx(
   const label = winners.length > 1 ? 'Split winners' : 'Winner'
   const namePills = winners.slice(0, 4)
   const extraWinners = winners.length - namePills.length
-  const guess =
-    chipRow?.submitted != null && typeof correctAnswer === 'number'
-      ? formatTriviaNumber(chipRow.submitted)
-      : null
-
   return {
     variantId,
     tableNum,
@@ -95,7 +88,6 @@ function buildCtx(
     label,
     winners,
     chipRow,
-    guess,
     namePills,
     extraWinners,
     splitWin: winners.length > 1,
@@ -166,7 +158,7 @@ export function resolveFloorShowdownData(
 
 /**
  * Floor showdown type scale (@container on overlay). Visual hierarchy:
- * 1 winner names (largest) → 2 pot amount → 3 winning answer card.
+ * 1 winner names (largest) → 2 pot amount → 3 five digit cards (winning hand).
  */
 const WINNER_LABEL =
   'font-bold uppercase tracking-[0.16em] text-amber-200/90 text-[clamp(0.5rem,4cqw,0.65rem)]'
@@ -206,7 +198,7 @@ function PotChip({ pot }: { pot: number }) {
   )
 }
 
-function WinnerBlock({ ctx, layout = 'pills' }: { ctx: FloorShowdownCtx; layout?: 'pills' | 'stars' | 'line' }) {
+function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?: 'pills' | 'line' }) {
   if (layout === 'line') {
     return (
       <div className="min-w-0 text-center">
@@ -218,21 +210,6 @@ function WinnerBlock({ ctx, layout = 'pills' }: { ctx: FloorShowdownCtx; layout?
       </div>
     )
   }
-  if (layout === 'stars') {
-    return (
-      <div className="min-w-0 space-y-1 text-center">
-        <p className={WINNER_LABEL}>{ctx.label}</p>
-        {ctx.namePills.map((w) => (
-          <p key={`${w.seat}:${w.name}`} className={`${WINNER_NAME} truncate`}>
-            ★ {w.name}
-          </p>
-        ))}
-        {ctx.extraWinners > 0 ? (
-          <p className="text-[clamp(0.55rem,5cqw,0.75rem)] font-bold text-amber-200/80">+{ctx.extraWinners}</p>
-        ) : null}
-      </div>
-    )
-  }
   return (
     <div className="flex min-w-0 flex-col items-center gap-1">
       <p className={WINNER_LABEL}>{ctx.label}</p>
@@ -240,11 +217,8 @@ function WinnerBlock({ ctx, layout = 'pills' }: { ctx: FloorShowdownCtx; layout?
         {ctx.namePills.map((w) => (
           <span
             key={`${w.seat}:${w.name}`}
-            className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border-2 border-amber-400/80 bg-amber-950/95 px-2 py-0.5 shadow-[0_0_10px_rgba(251,191,36,0.3)]"
+            className="inline-flex max-w-full min-w-0 rounded-full border-2 border-amber-400/80 bg-amber-950/95 px-2 py-0.5 shadow-[0_0_10px_rgba(251,191,36,0.3)]"
           >
-            <span className="shrink-0 text-[clamp(0.55rem,5cqw,0.75rem)] font-black text-amber-400">
-              ★
-            </span>
             <span className={`${WINNER_NAME} truncate`}>{w.name}</span>
           </span>
         ))}
@@ -256,22 +230,22 @@ function WinnerBlock({ ctx, layout = 'pills' }: { ctx: FloorShowdownCtx; layout?
   )
 }
 
-function GuessBlock(ctx: FloorShowdownCtx, size: 'sm' | 'md' | 'lg' | 'xl' = 'lg') {
-  if (!ctx.guess) return null
-  return (
-    <WinningGuessCard
-      guess={ctx.guess}
-      variantId={ctx.variantId}
-      splitWin={ctx.splitWin}
-      size={size}
-    />
-  )
+function guessSizeToChipSize(size: 'sm' | 'md' | 'lg' | 'xl'): ShowdownChipSize {
+  if (size === 'xl') return 'floor'
+  if (size === 'lg') return 'lg'
+  if (size === 'sm') return 'sm'
+  return 'md'
 }
 
-type WinnerLayout = 'pills' | 'stars' | 'line'
+function GuessBlock(ctx: FloorShowdownCtx, size: 'sm' | 'md' | 'lg' | 'xl' = 'lg') {
+  if (!ctx.chipRow) return null
+  return <ShowdownFiveCardsUsed row={ctx.chipRow} size={guessSizeToChipSize(size)} />
+}
+
+type WinnerLayout = 'pills' | 'line'
 type PotStyle = 'hero' | 'chip'
 
-/** Canonical order: winner declaration → pot → winning answer card. */
+/** Canonical order: winner declaration → pot → five winning digit cards. */
 function ShowdownStack({
   ctx,
   winnerLayout = 'line',
@@ -345,7 +319,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
         <div className="flex min-h-0 flex-1 flex-col">
           <ShowdownStack
             ctx={ctx}
-            winnerLayout="stars"
+            winnerLayout="line"
             guessSize="lg"
             className="flex-1 justify-center px-3 py-2"
           />
@@ -407,7 +381,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
       return (
         <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
           {ctx.splitWin ? <SplitPotRibbon /> : null}
-          <ShowdownStack ctx={ctx} winnerLayout="stars" className="flex-1 justify-center" />
+          <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" />
         </div>
       )
     case 11:
@@ -427,7 +401,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
         <div className="flex min-h-0 flex-1 border border-amber-500/30 bg-black/40">
           <ShowdownStack
             ctx={ctx}
-            winnerLayout="stars"
+            winnerLayout="line"
             potStyle="chip"
             className="flex-1 justify-center px-3 py-2"
           />
@@ -472,7 +446,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
           {ctx.splitWin ? <SplitPotRibbon /> : null}
           <ShowdownStack
             ctx={ctx}
-            winnerLayout="stars"
+            winnerLayout="line"
             guessSize="lg"
             className="flex-1 justify-center bg-gradient-to-b from-yellow-950/35 to-transparent px-3 py-3"
             gapClass="gap-3"
@@ -492,7 +466,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
     case 19:
       return (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-3 py-3">
-          <ShowdownStack ctx={ctx} winnerLayout="stars" guessSize="md" gapClass="gap-2.5" />
+          <ShowdownStack ctx={ctx} winnerLayout="line" guessSize="md" gapClass="gap-2.5" />
         </div>
       )
     case 20:

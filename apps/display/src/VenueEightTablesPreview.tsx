@@ -846,7 +846,7 @@ function SeatRingWithLabels({
           size === 'lg' ? 'border-2 sm:border-[3px]' : 'border-2'
         } ${
           isMosaic && betsInPaused
-            ? 'border-emerald-400/75 brightness-[0.72] saturate-[0.45]'
+            ? 'border-transparent brightness-[0.72] saturate-[0.45]'
             : 'border-amber-700/70'
         }`}
         style={{
@@ -871,7 +871,7 @@ function SeatRingWithLabels({
       />
       {isMosaic && betsInPaused ? (
         <div
-          className="pointer-events-none absolute z-[11] bg-emerald-500/20 ring-1 ring-inset ring-emerald-300/35"
+          className="pointer-events-none absolute z-[11] bg-emerald-500/12"
           style={{
             top: `${VENUE_FELT_INSET_TOP * 100}%`,
             right: `${VENUE_FELT_INSET_RIGHT * 100}%`,
@@ -1260,9 +1260,9 @@ function VenueMosaicTableCard({
   const cardShell = spotlight
     ? 'rounded-xl border-2 border-amber-400/70 bg-black/65 shadow-[0_0_32px_rgba(251,191,36,0.22)] ring-2 ring-amber-400/35'
     : betsInPaused
-      ? 'rounded-xl border-2 border-emerald-400/90 bg-emerald-950/55 shadow-[0_0_28px_rgba(52,211,153,0.38)] ring-2 ring-emerald-400/45'
+      ? 'rounded-xl border-0 bg-transparent shadow-none ring-0'
       : wageringLive
-        ? 'rounded-xl border-2 border-amber-500/60 bg-black/55 shadow-[0_0_18px_rgba(251,191,36,0.22)]'
+        ? 'rounded-xl border-2 border-amber-500/70 bg-black/55 shadow-[0_0_22px_rgba(251,191,36,0.28)] ring-1 ring-amber-400/25'
         : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
 
   return (
@@ -1271,7 +1271,7 @@ function VenueMosaicTableCard({
         role="group"
         aria-current={spotlight ? 'true' : undefined}
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${betsInPaused ? ', bets in' : ''}, venue floor`}
-        className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
+        className={`flex w-full min-w-0 flex-col ${betsInPaused ? '' : 'backdrop-blur-md'} ${
           floorHoneycomb && floorCompact
             ? 'h-full min-h-0 overflow-hidden'
             : floorHoneycomb

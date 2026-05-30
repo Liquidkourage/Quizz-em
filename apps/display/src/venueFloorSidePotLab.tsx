@@ -6,13 +6,13 @@ export type SidePotLabStyleId = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G'
 export const SIDE_POT_LAB_STYLE_COUNT = 7
 
 export const SIDE_POT_LAB_STYLE_NAMES: Record<SidePotLabStyleId, string> = {
-  A: 'A — Payout only',
-  B: 'B — Side pot ribbon',
-  C: 'C — Layer lines',
-  D: 'D — Total + breakdown',
-  E: 'E — Ladder bars',
-  F: 'F — Each + return',
-  G: 'G — Layer winners',
+  A: 'Side pot · ribbon + winners',
+  B: 'Side pot · ribbon + winners',
+  C: 'Side pot · ribbon + winners',
+  D: 'Side pot · ribbon + winners',
+  E: 'Side pot · ribbon + winners',
+  F: 'Side pot · ribbon + winners',
+  G: 'Side pot · ribbon + winners',
 }
 
 const STYLES: readonly SidePotLabStyleId[] = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
@@ -246,6 +246,108 @@ export function PotReturnNote({ name, amount }: { name: string; amount: number }
   )
 }
 
+export type ShowdownSidePotLine = {
+  label: 'Main' | 'Side' | 'Return'
+  amount: number
+  name: string
+}
+
+const POT_WINNER_LINE =
+  'text-[clamp(0.45rem,4.2cqw,0.62rem)] leading-snug'
+
+export function ShowdownPotWinnerList({ lines }: { lines: readonly ShowdownSidePotLine[] }) {
+  return (
+    <div className={`w-full space-y-0.5 text-center ${POT_WINNER_LINE}`}>
+      {lines.map((line) => {
+        if (line.label === 'Main') {
+          return (
+            <p key={`${line.label}:${line.name}`}>
+              <span className="font-bold text-amber-300/95">Main ${line.amount.toLocaleString()}</span>
+              <span className="text-white/80"> → {line.name}</span>
+            </p>
+          )
+        }
+        if (line.label === 'Side') {
+          return (
+            <p key={`${line.label}:${line.name}`}>
+              <span className="font-bold text-cyan-300/95">Side ${line.amount.toLocaleString()}</span>
+              <span className="text-white/80"> → {line.name}</span>
+            </p>
+          )
+        }
+        return (
+          <p key={`${line.label}:${line.name}`} className="text-white/50">
+            Return ${line.amount.toLocaleString()} → {line.name}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
+export function sidePotLinesFromLabRows(rows: ShowdownResultRow[]): ShowdownSidePotLine[] {
+  const s = SIDE_POT_LAB_SCENARIO
+  const { main, side, returned } = labRosterRows(rows)
+  return [
+    { label: 'Main', amount: s.main, name: main.name },
+    { label: 'Side', amount: s.side, name: side.name },
+    { label: 'Return', amount: s.returnAmount, name: returned.name },
+  ]
+}
+
+/** Infer main / side / return lines from per-seat chip payouts (no layer wire yet). */
+export function inferSidePotLinesFromRows(
+  rows: ShowdownResultRow[],
+  correctAnswer: number | undefined
+): ShowdownSidePotLine[] | null {
+  const paid = rows.filter(
+    (r) => !r.hasFolded && typeof r.chipPayout === 'number' && r.chipPayout > 0
+  )
+  if (paid.length < 2) return null
+  const amounts = paid.map((r) => r.chipPayout!)
+  if (amounts.every((p) => p === amounts[0])) return null
+
+  const ranked = paid
+    .map((r) => {
+      const distance =
+        typeof correctAnswer === 'number' && r.submitted != null
+          ? Math.abs(r.submitted - correctAnswer)
+          : Infinity
+      return { row: r, distance }
+    })
+    .sort((a, b) => a.distance - b.distance)
+
+  const main = ranked[0]!.row
+  const lines: ShowdownSidePotLine[] = [
+    { label: 'Main', amount: main.chipPayout!, name: main.name },
+  ]
+
+  for (const { row, distance } of ranked.slice(1)) {
+    const payout = row.chipPayout!
+    if (payout === main.chipPayout && distance > ranked[0]!.distance) {
+      lines.push({ label: 'Return', amount: payout, name: row.name })
+      continue
+    }
+    if (payout < main.chipPayout! && !lines.some((l) => l.label === 'Side' && l.name === row.name)) {
+      lines.push({ label: 'Side', amount: payout, name: row.name })
+    }
+  }
+
+  return lines.length >= 2 ? lines : null
+}
+
+export function resolveShowdownSidePotLines(
+  rows: ShowdownResultRow[],
+  correctAnswer: number | undefined,
+  tableNum: number,
+  labMode: boolean
+): ShowdownSidePotLine[] | null {
+  if (isSidePotLabTable(tableNum, labMode)) {
+    return sidePotLinesFromLabRows(rows)
+  }
+  return inferSidePotLinesFromRows(rows, correctAnswer)
+}
+
 export function PotDetailLines({
   scenario,
   mainName,
@@ -257,25 +359,16 @@ export function PotDetailLines({
   sideName?: string
   returnName?: string
 }) {
-  const line = 'text-[clamp(0.45rem,4cqw,0.6rem)] leading-snug'
-  const main = mainName ?? scenario.mainWinner
-  const side = sideName ?? scenario.sideWinner
-  const ret = returnName ?? scenario.returnTo
-  return (
-    <div className={`w-full space-y-0.5 text-center ${line}`}>
-      <p>
-        <span className="font-bold text-amber-300/95">Main ${scenario.main}</span>
-        <span className="text-white/80"> → {main}</span>
-      </p>
-      <p>
-        <span className="font-bold text-cyan-300/95">Side ${scenario.side}</span>
-        <span className="text-white/80"> → {side}</span>
-      </p>
-      <p className="text-white/50">
-        Return ${scenario.returnAmount} → {ret}
-      </p>
-    </div>
-  )
+  const lines: ShowdownSidePotLine[] = [
+    { label: 'Main', amount: scenario.main, name: mainName ?? scenario.mainWinner },
+    { label: 'Side', amount: scenario.side, name: sideName ?? scenario.sideWinner },
+    {
+      label: 'Return',
+      amount: scenario.returnAmount,
+      name: returnName ?? scenario.returnTo,
+    },
+  ]
+  return <ShowdownPotWinnerList lines={lines} />
 }
 
 export function SidePotRibbon() {

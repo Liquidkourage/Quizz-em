@@ -9,19 +9,14 @@ import {
 } from './showdownDisplay'
 import {
   isSidePotLabTable,
-  PotDetailLines,
-  PotLadderBars,
-  PotLayerRows,
-  PotReturnNote,
-  sidePotLabDisplay,
+  resolveShowdownSidePotLines,
   sidePotLabStyleForTable,
   SidePotLabBadge,
   SidePotRibbon,
-  SIDE_POT_LAB_SCENARIO,
+  ShowdownPotWinnerList,
   synthesizeSidePotLabRows,
-  type SidePotLabDisplay,
+  type ShowdownSidePotLine,
   type SidePotLabStyleId,
-  SIDE_POT_LAB_STYLE_NAMES,
 } from './venueFloorSidePotLab'
 
 export type VenueFloorShowdownVariantId = 8
@@ -49,7 +44,7 @@ export type FloorShowdownCtx = {
   splitWin: boolean
   ariaLabel: string
   sidePotLabStyle: SidePotLabStyleId | null
-  sidePotLab: SidePotLabDisplay | null
+  sidePotLines: ShowdownSidePotLine[] | null
   winnerLine: string | null
 }
 
@@ -77,14 +72,25 @@ function buildCtx(
 
   const chipRow = pickShowdownFloorChipRow(winners)
   const label = winners.length > 1 ? 'Split winners' : 'Winner'
-  const namePills = winners.slice(0, 4)
-  const extraWinners = winners.length - namePills.length
   const sidePotLabStyle = sidePotLabStyleForTable(tableNum, labMode)
-  const sidePotLab =
-    sidePotLabStyle != null ? sidePotLabDisplay(sidePotLabStyle, rows) : null
-  const displayPot = sidePotLab?.pot ?? pot
-  const displaySplit = sidePotLab?.splitWin ?? winners.length > 1
-  const winnerLine = sidePotLab?.winnerLine ?? null
+  const sidePotLines = resolveShowdownSidePotLines(rows, correctAnswer, tableNum, labMode)
+  const mainLine = sidePotLines?.find((l) => l.label === 'Main')
+  const mainRow =
+    mainLine != null
+      ? rows.find((r) => r.name === mainLine.name && !r.hasFolded) ?? null
+      : null
+  const displayWinners = mainRow != null ? [mainRow] : winners
+  const displayChipRow = pickShowdownFloorChipRow(displayWinners) ?? chipRow
+  const displayPot = mainLine?.amount ?? pot
+  const displaySplit = sidePotLines == null && winners.length > 1
+  const winnerLine = null
+  const namePills = displayWinners.slice(0, 4)
+  const extraWinners = Math.max(0, winners.length - namePills.length)
+
+  const layerSummary =
+    sidePotLines != null
+      ? sidePotLines.map((l) => `${l.label} ${formatPot(l.amount)} ${l.name}`).join(', ')
+      : null
 
   return {
     variantId,
@@ -92,17 +98,17 @@ function buildCtx(
     labMode,
     pot: displayPot,
     label,
-    winners,
-    chipRow,
+    winners: displayWinners,
+    chipRow: displayChipRow,
     namePills,
     extraWinners,
     splitWin: displaySplit,
     sidePotLabStyle,
-    sidePotLab,
+    sidePotLines,
     winnerLine,
     ariaLabel:
-      sidePotLab != null
-        ? `${SIDE_POT_LAB_STYLE_NAMES[sidePotLabStyle!]}: ${sidePotLab.winnerLine || 'layer breakdown'}. ${formatPot(displayPot)}${displaySplit ? ' each' : ''}`
+      layerSummary != null
+        ? `Side pots: ${layerSummary}`
         : displaySplit
           ? `${label}: ${winners.map((w) => w.name).join(', ')}. ${formatPot(displayPot)} each`
           : `${label}: ${winners.map((w) => w.name).join(', ')}. Pot ${formatPot(displayPot)}`,
@@ -297,39 +303,10 @@ function GuessBlock(ctx: FloorShowdownCtx) {
 }
 
 function FloorPotBlock(ctx: FloorShowdownCtx) {
-  const lab = ctx.sidePotLab
-  if (lab == null) {
-    return <HeroPot pot={ctx.pot} splitWin={ctx.splitWin} />
+  if (ctx.sidePotLines != null) {
+    return <ShowdownPotWinnerList lines={ctx.sidePotLines} />
   }
-
-  const style = ctx.sidePotLabStyle!
-  if (style === 'G') {
-    return null
-  }
-  if (style === 'E') {
-    return (
-      <div className="flex w-full flex-col items-center gap-1">
-        <PotLadderBars layers={lab.layers} />
-      </div>
-    )
-  }
-  if (style === 'C') {
-    return (
-      <div className="flex w-full flex-col items-center gap-1">
-        <HeroPot pot={lab.pot} splitWin={lab.splitWin} subline={lab.potSubline} />
-        <PotLayerRows layers={lab.layers} />
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex w-full flex-col items-center gap-0.5">
-      <HeroPot pot={lab.pot} splitWin={lab.splitWin} subline={lab.potSubline} />
-      {style === 'F' && lab.potReturn ? (
-        <PotReturnNote name={lab.potReturn.name} amount={lab.potReturn.amount} />
-      ) : null}
-    </div>
-  )
+  return <HeroPot pot={ctx.pot} splitWin={ctx.splitWin} />
 }
 
 type WinnerLayout = 'pills' | 'line'
@@ -347,27 +324,6 @@ function ShowdownStack({
   potStyle?: PotStyle
   className?: string
 }) {
-  if (ctx.sidePotLabStyle === 'G') {
-    return (
-      <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
-        <div className="flex w-full min-h-0 flex-[1.2] flex-col items-center justify-center py-2">
-          <PotDetailLines
-            scenario={SIDE_POT_LAB_SCENARIO}
-            mainName={ctx.chipRow?.name ?? ctx.winners[0]?.name}
-            sideName={
-              ctx.winners.find((w) => w.chipPayout === SIDE_POT_LAB_SCENARIO.side && w.submitted !== 42)
-                ?.name
-            }
-            returnName={ctx.winners.find((w) => w.chipPayout === SIDE_POT_LAB_SCENARIO.returnAmount)?.name}
-          />
-        </div>
-        <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-1">
-          {GuessBlock(ctx)}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
       <div className="flex w-full min-h-0 flex-1 items-end justify-center pb-2">
@@ -430,8 +386,8 @@ export function VenueFloorShowdownByVariant({
       aria-label={ctx.ariaLabel}
     >
       <VariantBadge ctx={ctx} />
-      {ctx.sidePotLab?.showSidePotRibbon ? <SidePotRibbon /> : null}
-      {ctx.splitWin && !ctx.sidePotLab?.showSidePotRibbon ? <SplitPotRibbon /> : null}
+      {ctx.sidePotLines != null ? <SidePotRibbon /> : null}
+      {ctx.splitWin && ctx.sidePotLines == null ? <SplitPotRibbon /> : null}
       {renderVariant(ctx)}
     </div>
   )

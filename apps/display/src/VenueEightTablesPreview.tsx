@@ -1651,7 +1651,8 @@ export default function VenueEightTablesPreview({
                   Showdown lab
                 </span>
                 {' — '}
-                Tables 1–7: side-pot styles A–G. 8–10: single winner. 11–20: split pot. Hover
+                Tables 1–7: side-pot banner + layer winners. 8–10: single winner. 11–20: split pot.
+                Hover
                 badges for labels. Remove <span className="font-mono text-amber-200">?showdownLab=1</span>{' '}
                 to exit.
               </p>

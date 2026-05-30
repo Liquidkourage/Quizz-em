@@ -511,6 +511,99 @@ function mosaicPhaseCornerTypography(row: DisplayVenueTileSnapshot): string {
   return 'font-bold uppercase leading-tight truncate'
 }
 
+type MosaicWageringRing =
+  | { state: 'active'; progress: number }
+  | { state: 'complete' }
+
+function computeMosaicWageringRing(
+  row: DisplayVenueTileSnapshot,
+  seatFolded: boolean[],
+  seatLastBettingAction: (SeatBettingAction | null)[]
+): MosaicWageringRing | null {
+  const ph = String(row.phase ?? '').trim().toLowerCase()
+  if (ph !== 'betting' || row.seated < 2) return null
+  if (isVenueTileWageringPaused(row)) return { state: 'complete' }
+  if (row.isBettingOpen !== true) return null
+
+  let active = 0
+  let acted = 0
+  for (let i = 0; i < row.seated; i++) {
+    if (seatFolded[i]) continue
+    active++
+    if (seatLastBettingAction[i] != null) acted++
+  }
+  if (active === 0) return null
+
+  const onClock = venueTileActingSeat(row) != null
+  let progress = acted / active
+  if (onClock && acted < active) progress += 0.45 / active
+  progress = Math.min(0.94, Math.max(acted === 0 && onClock ? 0.1 : 0.07, progress))
+  return { state: 'active', progress }
+}
+
+const SEAT_LAYER_WAGERING_RING = 'z-[12]'
+
+/** Progress ring hugging the green felt — partial arc while wagering, closed ring when bets are in. */
+function VenueMosaicWageringProgressRing({
+  ring,
+  prefersReducedMotion,
+}: {
+  ring: MosaicWageringRing
+  prefersReducedMotion: boolean
+}) {
+  const isComplete = ring.state === 'complete'
+  const dash = isComplete ? 1 : ring.progress
+  const feltInsetStyle = {
+    top: `${VENUE_FELT_INSET_TOP * 100}%`,
+    right: `${VENUE_FELT_INSET_RIGHT * 100}%`,
+    bottom: `${VENUE_FELT_INSET_BOTTOM * 100}%`,
+    left: `${VENUE_FELT_INSET_LEFT * 100}%`,
+  }
+  return (
+    <svg
+      className={`pointer-events-none absolute ${SEAT_LAYER_WAGERING_RING} ${
+        !isComplete && !prefersReducedMotion ? 'motion-safe:animate-pulse motion-safe:[animation-duration:2.4s]' : ''
+      }`}
+      style={feltInsetStyle}
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <rect
+        x="1.25"
+        y="1.25"
+        width="97.5"
+        height="97.5"
+        rx="40"
+        ry="40"
+        fill="none"
+        stroke="rgba(255,255,255,0.14)"
+        strokeWidth="1.1"
+        pathLength={1}
+        strokeDasharray="1 0"
+        vectorEffect="non-scaling-stroke"
+      />
+      <rect
+        x="1.25"
+        y="1.25"
+        width="97.5"
+        height="97.5"
+        rx="40"
+        ry="40"
+        fill="none"
+        stroke={isComplete ? 'rgba(52,211,153,0.95)' : 'rgba(251,191,36,0.92)'}
+        strokeWidth={isComplete ? 2.2 : 2}
+        pathLength={1}
+        strokeDasharray={`${dash} ${1 - dash}`}
+        strokeLinecap="round"
+        transform="rotate(-90 50 50)"
+        vectorEffect="non-scaling-stroke"
+        className={isComplete ? 'drop-shadow-[0_0_5px_rgba(52,211,153,0.55)]' : undefined}
+      />
+    </svg>
+  )
+}
+
 
 /** Fallback label anchor when wrapper size unknown (SSR / first paint). */
 function fallbackLabelEllipseScale(size: 'md' | 'lg', feltStacks: boolean): number {
@@ -661,6 +754,8 @@ function SeatRingWithLabels({
   seatHoleDigits: seatHoleDigitsIn,
   /** Mosaic: community board digits (0–5 cards). */
   communityDigits: communityDigitsIn,
+  /** Mosaic: wagering progress ring on the felt edge. */
+  wageringRing = null,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -693,6 +788,7 @@ function SeatRingWithLabels({
   winnerSeatIndexes?: ReadonlySet<number> | null
   seatHoleDigits?: (readonly [number, number] | null)[]
   communityDigits?: number[]
+  wageringRing?: MosaicWageringRing | null
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
@@ -828,6 +924,9 @@ function SeatRingWithLabels({
             `,
         }}
       />
+      {isMosaic && wageringRing != null ? (
+        <VenueMosaicWageringProgressRing ring={wageringRing} prefersReducedMotion={prefersReducedMotion} />
+      ) : null}
       {showFeltCenterPot ? (
         <VenueMosaicFeltCenterStack
           amount={feltCenterPot}
@@ -1181,6 +1280,11 @@ function VenueMosaicTableCard({
     seatNames,
     actingCallAmount: row.actingCallAmount,
   })
+  const wageringRing = useMemo(
+    () => computeMosaicWageringRing(row, seatFolded, seatLastBettingAction),
+    [row, seatFolded, seatLastBettingAction]
+  )
+  const betsIn = wageringRing?.state === 'complete'
 
   const spotlight = isSpotlightThumb === true
   const totalChips = totalChipsFromSeats(seatNames, seatBankrolls)
@@ -1193,7 +1297,7 @@ function VenueMosaicTableCard({
         data-spotlight-tile={tn}
         role="group"
         aria-current={spotlight ? 'true' : undefined}
-        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}, venue floor`}
+        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${betsIn ? ', bets in' : ''}, venue floor`}
         className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
           floorHoneycomb && floorCompact
             ? 'h-full min-h-0 overflow-hidden'
@@ -1254,6 +1358,7 @@ function VenueMosaicTableCard({
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
             seatHoleDigits={row.seatHoleDigits}
             communityDigits={row.communityDigits}
+            wageringRing={wageringRing}
           />
         </div>
 

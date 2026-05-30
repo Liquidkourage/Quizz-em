@@ -1,6 +1,6 @@
-﻿import { useEffect, useState, useRef, type FormEvent } from 'react'
+﻿import { useEffect, useMemo, useState, useRef, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, NeonButton, JackpotDisplay, PokerChip } from '@qhe/ui'
+import { Card, NeonButton, PokerChip } from '@qhe/ui'
 import {
   connect,
   onState,
@@ -37,6 +37,15 @@ import type { GameState, GamePhase, Question } from '@qhe/core'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
+import {
+  HostActionFloorBanner,
+  HostCollapsible,
+  HostLiveStatusLine,
+  HostPhaseDock,
+  HostPublicTvsPanel,
+  HostVenueFeltBeatStrip,
+  buildHostPhaseDockItems,
+} from './hostDeskLayout'
 
 const HOST_TABS = [
   { id: 'live' as const, label: 'Run show', hint: 'Venue pulse → snapshot → cues → showdown → TVs' },
@@ -134,120 +143,6 @@ function venueDealCommunityLockstepHint(rows: HostVenueFeltBeatRow[] | null): st
 /** Match server clamp in apps/server venue-answer-window-settings. */
 function clampVenueAnswerWindow(v: number): number {
   return Math.min(300, Math.max(15, Math.floor(Number.isFinite(v) ? v : 45)))
-}
-
-/** Full-venue felt strip; updates from `hostVenueFeltBeat`. */
-function HostVenueFeltBeatStrip({
-  rows,
-  hostTableId,
-}: {
-  rows: HostVenueFeltBeatRow[] | null
-  hostTableId: string
-}) {
-  const activeWithSig = rows?.filter((r) => r.active && r.phaseStrictSig != null && r.phaseStrictSig !== '') ?? []
-  const outlierTableNums = (() => {
-    if (activeWithSig.length < 2) return new Set<number>()
-    const bySig = new Map<string, number[]>()
-    for (const r of activeWithSig) {
-      const s = r.phaseStrictSig!
-      if (!bySig.has(s)) bySig.set(s, [])
-      bySig.get(s)!.push(r.tableNum)
-    }
-    if (bySig.size <= 1) return new Set<number>()
-    let bestSig = ''
-    let bestLen = -1
-    for (const [sig, nums] of bySig) {
-      if (nums.length > bestLen || (nums.length === bestLen && sig < bestSig)) {
-        bestLen = nums.length
-        bestSig = sig
-      }
-    }
-    const out = new Set<number>()
-    for (const [sig, nums] of bySig) {
-      if (sig !== bestSig) nums.forEach((t) => out.add(t))
-    }
-    return out
-  })()
-  const lockstepMisaligned = outlierTableNums.size > 0
-
-  const hasLiveCountdown =
-    rows?.some((r) => r.phase === 'answering' && r.answerDeadlineMs != null) ?? false
-  const [, setTick] = useState(0)
-  useEffect(() => {
-    if (!hasLiveCountdown) return
-    const id = window.setInterval(() => setTick((n) => n + 1), 1000)
-    return () => clearInterval(id)
-  }, [hasLiveCountdown])
-
-  return (
-    <Card variant="glass" hover={false} className="mb-6 border border-white/12 p-4 sm:p-5">
-      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-        <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-white/42">Venue felts · beat</h2>
-        <p className="text-xs leading-snug text-white/45">
-          Same refresh as the public mosaic — diagnose lockstep toasts here. Cyan ring = your host control table; amber
-          border = this felt’s signature is in the <strong className="text-white/70">minority</strong> vs other active felts.
-        </p>
-      </div>
-      {lockstepMisaligned ? (
-        <div
-          role="status"
-          className="mb-3 rounded-lg border border-amber-400/55 bg-amber-950/35 px-3 py-2 text-sm font-semibold text-amber-100"
-        >
-          Lockstep mismatch: amber felts use a different engine signature than the plurality. Fix them before a venue-wide cue.
-        </div>
-      ) : null}
-      {rows == null ? (
-        <p className="text-sm text-white/50">Waiting for first venue sync…</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-          {rows.map((row) => {
-            const watching =
-              hostTableId.trim() !== LOBBY_TABLE_ID && String(row.tableNum) === hostTableId.trim()
-            const phaseLabel =
-              row.phase === 'inactive' ? '—' : HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
-            const countdownSec =
-              row.phase === 'answering' && row.answerDeadlineMs != null
-                ? Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
-                : null
-            const sig = row.phaseStrictSig ?? null
-            const drift = row.active && outlierTableNums.has(row.tableNum)
-            return (
-              <div
-                key={row.tableNum}
-                title={
-                  drift && sig
-                    ? `Straggler vs majority — lockstep sig: ${sig}`
-                    : lockstepMisaligned && row.active && sig
-                      ? `Lockstep sig: ${sig}`
-                      : undefined
-                }
-                className={`rounded-lg border px-2 py-2 text-center transition-colors sm:min-h-[7.25rem] ${
-                  row.active
-                    ? drift
-                      ? 'border-amber-400/85 bg-amber-950/25 shadow-[0_0_14px_rgba(251,191,36,0.25)]'
-                      : 'border-white/20 bg-black/35'
-                    : 'border-white/10 bg-black/22 opacity-80'
-                } ${watching ? 'ring-2 ring-cyan-400/65 ring-offset-2 ring-offset-[#0d0d14]' : ''}`}
-              >
-                <div className="text-[11px] font-bold uppercase tracking-wide text-white/38">Tbl {row.tableNum}</div>
-                <div className="mt-1 text-[13px] font-bold tabular-nums text-white/88">{phaseLabel}</div>
-                <div className="mt-1 text-[11px] leading-snug text-white/50">{row.active ? `${row.seated} seat(s)` : 'unused'}</div>
-                <div className="mt-2 border-t border-white/10 pt-1.5 text-[11px] leading-snug text-amber-100/85">
-                  {row.active ? row.street : '—'}
-                </div>
-                <div className="text-[11px] leading-snug text-casino-emerald/90">
-                  {row.active ? row.clock : '—'}
-                  {countdownSec != null ? (
-                    <span className="mt-0.5 block font-mono tabular-nums text-casino-gold">{countdownSec}s</span>
-                  ) : null}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </Card>
-  )
 }
 
 function HostApp() {
@@ -590,6 +485,37 @@ function HostApp() {
   const draftSetlist =
     setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
 
+  const phaseDockItems = useMemo(
+    () =>
+      buildHostPhaseDockItems({
+        gameState,
+        answerWindowSeconds,
+        dealInitialBlocked,
+        dealCommunityBlocked,
+        startAnswerBlocked,
+        communityLen,
+        bettingRound,
+        onStartGame: handleStartGame,
+        onAssignFromLobby: () => assignTablesFromLobby(),
+        onDealInitial: handleDealInitialCards,
+        onDealCommunity: handleDealCommunityCards,
+        onStartAnswering: handleStartAnswering,
+        onRevealAnswer: handleRevealAnswer,
+        onEndRound: handleEndRound,
+        onRandomQuestion: handleSetRandomQuestion,
+        onNextSetlist: () => nextQuestionFromSetlist(),
+      }),
+    [
+      gameState,
+      answerWindowSeconds,
+      dealInitialBlocked,
+      dealCommunityBlocked,
+      startAnswerBlocked,
+      communityLen,
+      bettingRound,
+    ]
+  )
+
   return (
     <div className="host-root min-h-screen bg-casino-gradient relative overflow-hidden">
       {/* Backdrop — static gradient so the desk stays readable during long hosts */}
@@ -614,18 +540,18 @@ function HostApp() {
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-4 pb-12 pt-4 sm:px-6 lg:px-8 lg:pb-16">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 pb-6 pt-3 sm:px-6 lg:px-8">
         <motion.header
-          className="mb-6 rounded-2xl border border-white/10 bg-black/35 px-4 py-4 shadow-lg shadow-black/20 backdrop-blur-md sm:px-5 sm:py-5"
+          className="mb-4 rounded-xl border border-white/10 bg-black/35 px-3 py-3 shadow-lg shadow-black/20 backdrop-blur-md sm:px-4"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
         >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <div className="flex items-center gap-2">
                 <PokerChip size="md" className="opacity-95" />
-                <span className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                <span className="text-xl font-bold tracking-tight text-white sm:text-2xl">
                   {'Quizz\u2019em'} <span className="font-normal text-white/40">·</span>{' '}
                   <span className="font-semibold text-casino-emerald">Host</span>
                 </span>
@@ -667,88 +593,87 @@ function HostApp() {
             </div>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-white/10 pt-3">
-            <span className="text-sm font-semibold uppercase tracking-wider text-white/45">Pair TV</span>
-            <input
-              id="tv-pair-code"
-              type="text"
-              autoCapitalize="characters"
-              spellCheck={false}
-              placeholder="••••"
-              maxLength={4}
-              value={tvPairCode}
-              aria-label="Display pairing code from TV"
-              title="Four characters shown on the TV’s pairing screen (/display)"
-              onChange={(e) =>
-                setTvPairCode(
-                  e.target.value
-                    .toUpperCase()
-                    .replace(/[^A-Z2-9]/g, '')
-                    .slice(0, 4)
-                )
-              }
-              className="w-[7rem] shrink-0 rounded-md border border-sky-500/35 bg-black/45 px-2 py-1.5 text-center font-mono text-lg tracking-[0.18em] text-white outline-none ring-sky-500/30 placeholder:text-white/20 focus:border-sky-500/60 focus:ring-1 sm:text-xl"
-            />
-            <NeonButton
-              variant="gold"
-              size="small"
-              className="!px-3 !py-1.5"
-              disabled={tvPairCode.length !== 4}
-              onClick={() => {
-                if (tvPairCode.length !== 4) return
-                pairDisplayWithHost(tvPairCode, (ack) => {
-                  if (ack.ok) setTvPairCode('')
-                })
-              }}
-            >
-              Attach
-            </NeonButton>
-            <span className="min-w-0 flex-1 text-sm leading-snug text-white/40 basis-full sm:basis-auto sm:flex-none">
-              Same venue (<span className="font-mono text-white/55">{gameState.code}</span>) — chars from the TV glow box.
-            </span>
-          </div>
+          <HostCollapsible summary="Setup — pair TV, password, sync help" className="mt-3">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Pair TV</span>
+                <input
+                  id="tv-pair-code"
+                  type="text"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  placeholder="••••"
+                  maxLength={4}
+                  value={tvPairCode}
+                  aria-label="Display pairing code from TV"
+                  title="Four characters shown on the TV’s pairing screen (/display)"
+                  onChange={(e) =>
+                    setTvPairCode(
+                      e.target.value
+                        .toUpperCase()
+                        .replace(/[^A-Z2-9]/g, '')
+                        .slice(0, 4)
+                    )
+                  }
+                  className="w-[6.5rem] shrink-0 rounded-md border border-sky-500/35 bg-black/45 px-2 py-1 text-center font-mono text-base tracking-[0.18em] text-white outline-none placeholder:text-white/20 focus:border-sky-500/60"
+                />
+                <NeonButton
+                  variant="gold"
+                  size="small"
+                  className="!px-3 !py-1.5"
+                  disabled={tvPairCode.length !== 4}
+                  onClick={() => {
+                    if (tvPairCode.length !== 4) return
+                    pairDisplayWithHost(tvPairCode, (ack) => {
+                      if (ack.ok) setTvPairCode('')
+                    })
+                  }}
+                >
+                  Attach
+                </NeonButton>
+                <span className="text-xs text-white/45">
+                  Venue <span className="font-mono text-white/60">{gameState.code}</span>
+                </span>
+              </div>
 
-          {!viteHostSecret ? (
-            <form
-              className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4 text-base"
-              onSubmit={(e) => {
-                e.preventDefault()
-                setHostSecretApplied(secretDraft)
-              }}
-            >
-              <span className="text-white/50">Host password</span>
-              <input
-                type="password"
-                value={secretDraft}
-                onChange={(e) => setSecretDraft(e.target.value)}
-                placeholder="if SERVER sets HOST_SECRET"
-                className="w-52 max-w-full rounded-lg border border-white/20 bg-black/40 px-3 py-1.5 text-white"
-                autoComplete="off"
-              />
-              <NeonButton variant="blue" size="small" type="submit">
-                Apply & reconnect
-              </NeonButton>
-            </form>
-          ) : (
-            <p className="mt-3 border-t border-white/10 pt-3 text-xs text-emerald-200/85">
-              Using bundled <code className="rounded bg-white/10 px-1 text-white/90">VITE_HOST_SECRET</code>.
-            </p>
-          )}
+              {!viteHostSecret ? (
+                <form
+                  className="flex flex-wrap items-center gap-2 text-sm"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    setHostSecretApplied(secretDraft)
+                  }}
+                >
+                  <span className="text-white/50">Host password</span>
+                  <input
+                    type="password"
+                    value={secretDraft}
+                    onChange={(e) => setSecretDraft(e.target.value)}
+                    placeholder="if SERVER sets HOST_SECRET"
+                    className="w-48 max-w-full rounded-lg border border-white/20 bg-black/40 px-2 py-1 text-white"
+                    autoComplete="off"
+                  />
+                  <NeonButton variant="blue" size="small" type="submit">
+                    Apply & reconnect
+                  </NeonButton>
+                </form>
+              ) : (
+                <p className="text-xs text-emerald-200/85">
+                  Using bundled <code className="rounded bg-white/10 px-1">VITE_HOST_SECRET</code>.
+                </p>
+              )}
 
-          <details className="mt-4 border-t border-white/10 pt-3 text-left text-xs text-white/50">
-            <summary className="cursor-pointer select-none text-white/60 hover:text-white/75">
-              How venue sync works
-            </summary>
-            <p className="mt-2 leading-relaxed">
-              Actions you send from this panel apply venue-wide under <span className="font-mono text-white/65">{gameState.code}</span>
-              {' — '}questions, blinds, dealing, timers, and round transitions fan out to every table. Numeric answers stay off public
-              TVs until reveal / showdown.
-            </p>
-          </details>
+              <p className="text-xs leading-relaxed text-white/50">
+                Cues from this panel apply venue-wide under{' '}
+                <span className="font-mono text-white/65">{gameState.code}</span> — questions, blinds, dealing, timers,
+                and round transitions fan out to every table.
+              </p>
+            </div>
+          </HostCollapsible>
         </motion.header>
 
         <nav
-          className="mb-6 rounded-xl border border-white/10 bg-black/25 p-1 backdrop-blur-sm"
+          className="mb-4 rounded-xl border border-white/10 bg-black/25 p-1 backdrop-blur-sm"
           role="tablist"
           aria-label="Host sections"
         >
@@ -762,7 +687,7 @@ function HostApp() {
                   role="tab"
                   aria-selected={active}
                   title={t.hint}
-                  className={`min-h-[48px] flex-1 rounded-lg px-3 py-3 text-center text-base font-semibold transition-colors sm:flex-none sm:text-left sm:min-w-[9rem] ${
+                  className={`min-h-[40px] flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold transition-colors sm:flex-none sm:text-left sm:min-w-[8.5rem] ${
                     active
                       ? 'bg-white/14 text-white shadow-inner ring-1 ring-casino-emerald/35'
                       : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'
@@ -780,7 +705,7 @@ function HostApp() {
                     ) : null}
                   </span>
                   {active ? (
-                    <span className="mt-0.5 block text-[10px] font-normal capitalize tracking-wide text-casino-emerald/85">
+                    <span className="mt-0.5 hidden text-[10px] font-normal capitalize tracking-wide text-casino-emerald/85 sm:block">
                       {t.hint}
                     </span>
                   ) : null}
@@ -791,105 +716,20 @@ function HostApp() {
         </nav>
 
         {livelyGameplayTableNums.length > 0 ? (
-          <motion.div
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-            layout
-            className="relative mb-6 overflow-hidden rounded-2xl border-2 border-amber-400/90 bg-gradient-to-br from-amber-600/[0.22] via-orange-950/80 to-neutral-950/95 shadow-[0_0_36px_rgba(251,191,36,0.45)]"
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <motion.div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(253,224,71,0.25),transparent_55%)]"
-              animate={{ opacity: [0.45, 0.85, 0.45] }}
-              transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            <div className="relative px-4 py-4 sm:px-5 sm:py-5">
-              <div className="flex flex-col gap-4">
-                <div className="flex min-w-0 flex-col gap-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="relative inline-flex h-3 w-3 shrink-0">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-300 opacity-75" />
-                      <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-200 shadow-[0_0_10px_rgba(253,224,71,0.9)]" />
-                    </span>
-                    <span className="text-xl font-black uppercase tracking-[0.18em] text-amber-200 sm:text-2xl">
-                      Action on the floor
-                    </span>
-                  </div>
-                  <p className="text-base font-semibold leading-snug text-white/90 sm:text-lg">
-                    {livelyGameplayTableNums.length === 1 ? (
-                      <>
-                        Table{' '}
-                        <span className="font-mono font-bold tabular-nums text-amber-100">
-                          {livelyGameplayTableNums[0]}
-                        </span>{' '}
-                        has play in motion.
-                      </>
-                    ) : (
-                      <>
-                        <span className="font-mono font-bold tabular-nums text-amber-100">
-                          {livelyGameplayTableNums.length}
-                        </span>{' '}
-                        tables have play in motion — pick a felt for the venue TVs below.
-                      </>
-                    )}
-                  </p>
-                </div>
-                {livelyGameplayTableNums.length > 6 ? (
-                  <div
-                    className="flex max-h-[4.5rem] flex-wrap gap-1.5 overflow-y-auto overscroll-y-contain rounded-lg border border-amber-500/25 bg-black/35 px-2 py-2"
-                    aria-label="Tables with live action"
-                  >
-                    {livelyGameplayTableNums.map((n) => (
-                      <span
-                        key={n}
-                        className="rounded-md border border-amber-400/35 bg-amber-950/50 px-2 py-0.5 font-mono text-sm font-bold tabular-nums text-amber-100"
-                      >
-                        {n}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="font-mono text-sm font-bold tabular-nums text-amber-100/90">
-                    Tables {livelyGameplayTableNums.join(', ')}
-                  </p>
-                )}
-                <div
-                  className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10"
-                  role="group"
-                  aria-label="Spotlight table on venue TVs"
-                >
-                  {livelyGameplayTableNums.map((n) => (
-                    <NeonButton
-                      key={n}
-                      variant="gold"
-                      size="small"
-                      type="button"
-                      className="min-w-0 px-2 text-sm"
-                      title={`Send every paired TV to Table ${n} (full felt)`}
-                      onClick={() => displaySetLayout({ layout: 'venueWall', focusTable: n })}
-                    >
-                      TV {n}
-                    </NeonButton>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          <HostActionFloorBanner
+            tableNums={livelyGameplayTableNums}
+            onSpotlight={(n) => displaySetLayout({ layout: 'venueWall', focusTable: n })}
+          />
         ) : null}
 
         {hostTab === 'content' && (
         <>
-        <Card variant="glass" hover={false} className="mb-8 p-5 sm:p-6">
-          <div className="mb-6 flex flex-col gap-1 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <Card variant="glass" hover={false} className="mb-4 p-4 sm:p-5">
+          <div className="mb-4 flex flex-col gap-1 border-b border-white/10 pb-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-white">Question bank</h2>
-              <p className="mt-1 max-w-2xl text-base text-white/52">
-                Venue <span className="font-mono text-white/65">{gameState.code}</span>. Edit during prep; cue questions from{' '}
-                <strong className="text-white/75">Run show</strong> (Random / setlist / <strong className="text-white/75">To tables</strong>).
+              <h2 className="text-lg font-semibold tracking-tight text-white sm:text-xl">Question bank</h2>
+              <p className="mt-0.5 text-xs text-white/50">
+                Venue <span className="font-mono text-white/65">{gameState.code}</span> · cue from Run show
               </p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">
@@ -948,20 +788,18 @@ function HostApp() {
                   Restore starter pack
                 </NeonButton>
               </div>
-              <span className="text-[11px] text-white/45 text-right max-w-xs">
-                Saved automatically when you change anything: use{' '}
-                <span className="font-mono text-white/60">DATABASE_URL</span> on Railway (Postgres); locally, SQLite{' '}
-                <span className="text-white/60">venue-libraries.sqlite</span> unless <span className="font-mono text-white/60">DATABASE_URL</span> or{' '}
-                <span className="font-mono text-white/60">VENUE_DATABASE_PATH</span> is set. Stores questions + setlists. CSV: columns{' '}
-                <span className="text-white/60">text</span>, <span className="text-white/60">answer</span>; optional{' '}
-                <span className="text-white/60">category</span>, <span className="text-white/60">difficulty</span>. JSON: a top-level array, or any object that has a{' '}
-                <span className="text-white/60">questions</span> array.
-              </span>
+              <HostCollapsible summary="Import formats &amp; storage" className="mt-2">
+                <p className="text-[11px] leading-relaxed text-white/50">
+                  Auto-saved on change. Postgres via <span className="font-mono">DATABASE_URL</span> on Railway; locally SQLite{' '}
+                  <span className="text-white/60">venue-libraries.sqlite</span>. CSV columns: text, answer; optional category,
+                  difficulty. JSON: top-level array or object with a questions array.
+                </p>
+              </HostCollapsible>
             </div>
           </div>
 
-          <form onSubmit={handleSaveBankQuestion} className="mb-6 rounded-xl border border-white/15 bg-black/25 p-4 space-y-3">
-            <div className="text-base font-bold text-white/90">{editingBankId ? 'Edit question' : 'Add question'}</div>
+          <HostCollapsible summary={editingBankId ? 'Edit question' : 'Add question'} className="mb-4">
+          <form onSubmit={handleSaveBankQuestion} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <label className="block md:col-span-2 text-sm text-white/80">
                 Prompt
@@ -1016,8 +854,9 @@ function HostApp() {
               ) : null}
             </div>
           </form>
+          </HostCollapsible>
 
-          <div className="overflow-x-auto max-h-[min(480px,50vh)] overflow-y-auto rounded-lg border border-white/15">
+          <div className="overflow-x-auto max-h-[min(420px,45vh)] overflow-y-auto rounded-lg border border-white/15">
             <table className="min-w-full text-left text-base text-white/90">
               <thead className="sticky top-0 bg-gray-950/95 z-10 text-white/60">
                 <tr>
@@ -1100,12 +939,11 @@ function HostApp() {
           </div>
         </Card>
 
-        <Card variant="glass" hover={false} className="mb-8 p-5 sm:p-6">
-          <div className="mb-6 border-b border-white/10 pb-5">
-            <h2 className="text-2xl font-semibold tracking-tight text-white">Setlists (rundowns)</h2>
-            <p className="mt-1 max-w-2xl text-base text-white/52">
-              Ordered cues from your bank. Pick active rundown on <strong className="text-white/75">Run show</strong>, then{' '}
-              <strong className="text-white/75">Next from setlist</strong>.
+        <Card variant="glass" hover={false} className="mb-4 p-4 sm:p-5">
+          <div className="mb-4 border-b border-white/10 pb-3">
+            <h2 className="text-lg font-semibold tracking-tight text-white sm:text-xl">Setlists (rundowns)</h2>
+            <p className="mt-0.5 text-xs text-white/50">
+              Ordered cues · activate on Run show → Next from setlist
             </p>
           </div>
           <div className="flex flex-wrap gap-2 items-end mb-4">
@@ -1283,170 +1121,52 @@ function HostApp() {
 
         {hostTab === 'live' && (
         <>
+        <HostPhaseDock
+          items={phaseDockItems}
+          statusLine={
+            <HostLiveStatusLine
+              gameState={gameState}
+              hostPlayerLabel={hostPlayerLabel}
+              virtualSeatCount={virtualSeatCount}
+            />
+          }
+        />
         <HostVenueFeltBeatStrip rows={venueFeltBeat} hostTableId={hostTableId} />
-        <Card variant="glass" hover={false} className="mb-8 p-5 sm:p-6">
-              <div className="mb-5 border-b border-white/10 pb-4">
-                <h2 id="host-live-snapshot-heading" className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
-                  Live snapshot
-                </h2>
-                <p className="mt-1 max-w-2xl text-base text-white/50">
-                  Read this first — it tracks the{' '}
-                  <span className="font-semibold text-white/70">Synced table</span> you chose in the header ({' '}
-                  <span className="font-semibold text-casino-gold">{gameState.tableId ?? '1'}</span> ).
-                </p>
-              </div>
-              <div className="space-y-4 text-base">
-                <div className="flex items-center justify-between gap-2 border-b border-white/[0.08] pb-3">
-                  <span className="text-white/60">Phase</span>
-                  <span className="font-semibold text-white/90">{HOST_PHASE_LABEL[gameState.phase]}</span>
-                </div>
-                <JackpotDisplay amount={gameState.round.pot} variant="control" />
-                {gameState.round.question && (
-                  <div>
-                    <div className="text-xs font-semibold tracking-wide text-white/50">Current question</div>
-                    <div className="mt-1 text-base font-semibold leading-snug text-casino-gold">{gameState.round.question.text}</div>
-                  </div>
-                )}
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-white/60">Players</span>
-                  <span className="text-lg font-bold text-casino-emerald">
-                    {gameState.players.length}
-                    {virtualSeatCount > 0 ? (
-                      <span className="text-sm font-normal text-amber-200/90"> ({virtualSeatCount} CPU)</span>
-                    ) : null}
-                  </span>
-                </div>
-                <p className="text-xs leading-snug text-white/42">
-                  <a href="#live-rehearsal-heading" className="text-amber-200/85 underline underline-offset-2 hover:text-amber-100">
-                    Rehearsal — CPU seats
-                  </a>
-                  {' '}
-                  Use it under Run show → Lobby (below).
-                </p>
-                {gameState.phase === 'betting' && (
-                  <>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-white/60">Wagering</span>
-                      <span className="font-semibold text-white/90">
-                        Round {bettingRound} ·{' '}
-                        {gameState.round.isBettingOpen !== false ? 'clock open' : 'clock closed'}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-xs font-semibold tracking-wide text-white/50">Action on</div>
-                      <div className="mt-1 text-lg font-extrabold text-casino-gold">
-                        {(() => {
-                          if (gameState.round.isBettingOpen === false) {
-                            return '— (street closed)'
-                          }
-                          const idx = gameState.round.currentPlayerIndex
-                          const p =
-                            typeof idx === 'number' && idx >= 0 ? gameState.players[idx] : undefined
-                          return p ? hostPlayerLabel(p.name) : '— (waiting for seat)'
-                        })()}
-                      </div>
-                    </div>
-                  </>
-                )}
-                {gameState.phase === 'answering' && (
-                  <div>
-                    <div className="text-xs font-semibold tracking-wide text-white/50">Answering time</div>
-                    <div className="mt-1 text-2xl font-extrabold tabular-nums text-casino-gold">
-                      {Math.max(0, Math.ceil(((gameState.round.answerDeadline ?? 0) - Date.now()) / 1000))}s
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="mt-5 border-t border-white/10 pt-4">
-                <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-white/42">At this table</div>
-                <div className="flex max-h-48 flex-wrap gap-2 overflow-y-auto">
-                  {gameState.players.length === 0 ? (
-                    <span className="text-sm text-white/50">No one seated yet.</span>
-                  ) : (
-                    gameState.players.map((player) => (
-                      <span
-                        key={player.id}
-                        className="rounded-full border border-emerald-400/35 bg-black/35 px-3 py-1.5 text-sm font-semibold text-emerald-100"
-                      >
-                        {hostPlayerLabel(player.name)}
-                      </span>
-                    ))
-                  )}
-                </div>
-              </div>
-            </Card>
 
-        <Card variant="glass" hover={false} className="mb-8 p-6 sm:p-8">
-          <section aria-labelledby="run-show-heading" className="mb-6 flex flex-col gap-2 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 id="run-show-heading" className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                Run show
-              </h2>
-              <p className="mt-2 max-w-3xl text-base leading-relaxed text-white/52">
-                Follow these blocks top to bottom for a round. Pair and route paired{' '}
-                <code className="rounded bg-white/10 px-1 font-mono text-xs text-white/85">/display</code> TVs afterward in{' '}
-                <strong className="font-semibold text-white/72">Public TVs</strong>.
-              </p>
-            </div>
+        <Card variant="glass" hover={false} className="mb-4 p-4 sm:p-5">
+          <section aria-labelledby="run-show-heading" className="mb-4 flex items-baseline justify-between gap-2 border-b border-white/10 pb-3">
+            <h2 id="run-show-heading" className="text-lg font-semibold tracking-tight text-white sm:text-xl">
+              Run show
+            </h2>
+            <span className="text-xs text-white/45">All cues · venue-wide</span>
           </section>
 
-            <details className="group mb-6 rounded-xl border border-white/10 bg-black/25 open:border-white/[0.14] [&_summary::-webkit-details-marker]:hidden">
-              <summary className="cursor-pointer list-none px-4 py-3 text-base font-medium text-white/75 hover:bg-white/[0.04] hover:text-white/88 rounded-xl">
-                Suggested round order
-                <span className="ml-2 inline-block translate-y-px text-white/35 transition-transform group-open:rotate-180">▼</span>
-              </summary>
-              <ol className="border-t border-white/10 px-4 py-4 text-base leading-relaxed text-white/62">
-                <li className="mb-2">
-                  Lobby / auto-assign · then <strong className="text-white/85">Assign from lobby</strong> when pooled. Add CPU fill with{' '}
-                  <strong className="text-white/85">
-                    <a href="#live-rehearsal-heading" className="text-casino-gold underline decoration-casino-gold/55 underline-offset-2 hover:text-amber-200">
-                      Rehearsal — CPU seats
-                    </a>
-                  </strong>{' '}
-                  just below.
-                </li>
-                <li className="mb-2">
-                  <strong className="text-white/85">Start Game</strong> → question via <strong className="text-white/85">Random</strong>, bank row{' '}
-                  <strong className="text-white/85">To tables</strong>, or setlist <strong className="text-white/85">Next from setlist</strong> →{' '}
-                  <strong className="text-white/85">Deal Initial Cards</strong>.
-                </li>
-                <li className="mb-2">Wager round 1 → <strong className="text-white/85">Close Betting</strong>.</li>
-                <li className="mb-2">
-                  <strong className="text-white/85">Deal Community Cards</strong> · wager round 2 → close again →{' '}
-                  <strong className="text-white/85">Start Answering</strong> → <strong className="text-white/85">Reveal Answer</strong> if needed.
-                </li>
-                <li>
-                  <strong className="text-white/85">End Round</strong> clears to lobby · <strong className="text-white/85">Start Game</strong> for the next cycle.
-                </li>
-              </ol>
-            </details>
-
-            <div className="space-y-10">
-              <section aria-labelledby="live-lobby-heading" className="space-y-4">
-                <h3 id="live-lobby-heading" className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">
+            <div className="space-y-5">
+              <section aria-labelledby="live-lobby-heading" className="space-y-3">
+                <h3 id="live-lobby-heading" className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">
                   Lobby &amp; seating
                 </h3>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <NeonButton
                 variant="emerald"
-                size="large"
+                size="normal"
                 onClick={handleStartGame}
                 disabled={gameState.phase !== 'lobby'}
-                className="w-full min-h-[52px]"
+                className="w-full"
               >
                 Start Game
               </NeonButton>
 
               <NeonButton
                 variant="blue"
-                size="large"
+                size="normal"
                 onClick={() => assignTablesFromLobby()}
                 disabled={
                   gameState.phase !== 'lobby' ||
                   (gameState.tableId ?? '') !== LOBBY_TABLE_ID ||
                   gameState.players.length === 0
                 }
-                className="w-full min-h-[52px]"
+                className="w-full"
               >
                 Assign from lobby (random seats)
               </NeonButton>
@@ -1473,23 +1193,18 @@ function HostApp() {
               ) : null}
               </section>
 
-              <section
-                aria-labelledby="live-rehearsal-heading"
-                className="mb-8 space-y-3 rounded-xl border border-amber-400/40 bg-amber-950/15 p-4 sm:p-5"
+              <HostCollapsible
+                summary="Rehearsal — CPU seats"
+                badge={
+                  virtualSeatCount > 0 ? (
+                    <span className="text-xs font-normal text-amber-200/80">{virtualSeatCount} CPU</span>
+                  ) : null
+                }
               >
-                <h3
-                  id="live-rehearsal-heading"
-                  className="text-sm font-bold uppercase tracking-[0.12em] text-amber-200/95"
-                >
-                  Rehearsal — CPU seats
-                </h3>
-                <p className="text-sm text-white/72 leading-relaxed">
-                  Adds bot players with the same server rules as humans: check / call / min-raise / occasional all-in / fold; answering
-                  uses the nearest legal number from holes + board. Works on <strong className="text-white/88">LOBBY</strong>{' '}
-                  (then <strong className="text-white/88">Assign from lobby</strong>) or on any numbered table roster. Cap per table:{' '}
-                  <span className="font-semibold text-casino-gold">{gameState.maxPlayers}</span> · this roster:{' '}
-                  <span className="font-semibold text-casino-gold">{gameState.players.length}</span> filled (
-                  <span className="font-semibold text-casino-gold">{virtualSeatCount}</span> CPU).
+              <section aria-labelledby="live-rehearsal-heading" className="space-y-3">
+                <p className="text-xs text-white/60 leading-relaxed">
+                  Bot players for dry runs. Cap {gameState.maxPlayers} · roster {gameState.players.length} (
+                  {virtualSeatCount} CPU).
                 </p>
                 {(gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby' ? (
                   <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
@@ -1563,45 +1278,42 @@ function HostApp() {
                   </NeonButton>
                 </div>
                 {atPlayerCap && (
-                  <p className="text-sm text-amber-200/85">Room is at max players — remove humans or CPUs before inviting more bots.</p>
+                  <p className="text-xs text-amber-200/85">At max players — clear CPUs or remove humans first.</p>
                 )}
               </section>
+              </HostCollapsible>
 
-              <section aria-labelledby="live-questions-heading" className="space-y-4">
-                <h3 id="live-questions-heading" className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">
+              <section aria-labelledby="live-questions-heading" className="space-y-3">
+                <h3 id="live-questions-heading" className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">
                   Questions &amp; rundown
                 </h3>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <NeonButton
                 variant="purple"
-                size="large"
+                size="normal"
                 onClick={handleSetRandomQuestion}
                 disabled={gameState.phase !== 'lobby' && gameState.phase !== 'question'}
-                className="w-full min-h-[52px]"
+                className="w-full"
               >
                 Random from bank
               </NeonButton>
               <NeonButton
                   variant="purple"
-                  size="large"
+                  size="normal"
                   onClick={() => nextQuestionFromSetlist()}
                   disabled={gameState.phase !== 'lobby' && gameState.phase !== 'question'}
-                  className="w-full min-h-[52px]"
+                  className="w-full"
                 >
                   Next from setlist
                 </NeonButton>
               </div>
-              <p className="text-sm text-white/55">
-                Or push from <strong className="text-white/75">Content</strong> (<strong className="text-white/75">To tables</strong>), or build setlists in the same tab.
+              <p className="text-xs text-white/50">
+                Or push from <strong className="text-white/70">Content</strong> → To tables.
               </p>
 
-              <div className="rounded-lg border border-casino-emerald/25 bg-black/25 p-4 space-y-3">
-                <div className="text-base font-bold text-casino-emerald">Trivia rundown</div>
-                <p className="text-sm text-white/58 leading-relaxed">
-                  Select a setlist (from <strong className="text-white/75">Content</strong>) for a fixed cue order.{' '}
-                  <strong className="text-white/75">None</strong> = use random / bank row pushes only.
-                </p>
+              <div className="rounded-lg border border-casino-emerald/25 bg-black/25 p-3 space-y-2">
+                <div className="text-sm font-bold text-casino-emerald">Trivia rundown</div>
                 <select
                   className="w-full rounded-lg border border-white/25 bg-zinc-950 px-3 py-2.5 text-base text-white [color-scheme:dark]"
                   value={activeSetlistId ?? ''}
@@ -1630,41 +1342,36 @@ function HostApp() {
               </div>
               </section>
 
-              <section aria-labelledby="live-table-heading" className="space-y-4">
-                <h3 id="live-table-heading" className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">
+              <section aria-labelledby="live-table-heading" className="space-y-3">
+                <h3 id="live-table-heading" className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">
                   Deals &amp; answering window
                 </h3>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="flex min-w-0 flex-col gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-1.5">
               <NeonButton
                 variant="blue"
-                size="large"
+                size="normal"
                 onClick={handleDealInitialCards}
                 disabled={dealInitialBlocked}
-                className="w-full min-h-[52px]"
+                className="w-full"
                 data-phase={gameState.phase}
                 data-can-deal-initial={dealInitialBlocked ? 'no' : 'yes'}
               >
                 Deal Initial Cards
               </NeonButton>
               {dealInitialHint && (
-                <p className="text-sm text-amber-200/90">{dealInitialHint}</p>
+                <p className="text-xs text-amber-200/90">{dealInitialHint}</p>
               )}
               {triviaOptionalNote}
-              {!dealInitialBlocked && !!gameState.round?.question && (
-                <p className="text-sm text-white/52">
-                  Players aren’t required—you can deal before anyone joins for a dry run.
-                </p>
-              )}
                 </div>
-                <div className="flex min-w-0 flex-col gap-2">
+                <div className="flex min-w-0 flex-col gap-1.5">
               <NeonButton
                 variant="blue"
-                size="large"
+                size="normal"
                 onClick={handleDealCommunityCards}
                 disabled={dealCommunityBlocked}
-                className="w-full min-h-[52px]"
+                className="w-full"
                 data-betting-round={bettingRound}
                 data-community-count={communityLen}
               >
@@ -1681,11 +1388,11 @@ function HostApp() {
               )}
               {dealCommunityHostStaleNote}
                 </div>
-                <div className="flex flex-col gap-3 sm:col-span-2">
-                  <div className="flex flex-wrap items-end gap-3 rounded-lg border border-purple-400/30 bg-purple-950/25 px-4 py-3">
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="answer-window-sec" className="text-xs font-semibold uppercase tracking-wide text-white/48">
-                        Trivia answer countdown
+                <div className="flex flex-col gap-2 sm:col-span-2">
+                  <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
+                    <div className="flex flex-col gap-0.5">
+                      <label htmlFor="answer-window-sec" className="text-[10px] font-semibold uppercase tracking-wide text-white/48">
+                        Answer countdown (sec)
                       </label>
                       <input
                         id="answer-window-sec"
@@ -1695,18 +1402,14 @@ function HostApp() {
                         step={5}
                         value={answerWindowSeconds}
                         onChange={(e) => setAnswerWindowSeconds(clampVenueAnswerWindow(Number(e.target.value)))}
-                        className="w-[5.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-2 text-center text-lg font-bold tabular-nums text-white"
+                        className="w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white"
                       />
                     </div>
-                    <span className="pb-2 text-sm text-white/52">
-                      seconds (15–300). Save default stores this venue under <code className="rounded bg-white/10 px-1 font-mono text-xs">data/venue-answer-settings.json</code> on the
-                      server (and in <strong className="text-white/72">hostLibrary</strong>). This button always sends the countdown you set.
-                    </span>
                     <NeonButton
                       variant="blue"
                       size="small"
                       type="button"
-                      className="!px-4"
+                      className="!px-3"
                       onClick={() => setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))}
                     >
                       Save default
@@ -1714,15 +1417,15 @@ function HostApp() {
                   </div>
               <NeonButton
                 variant="purple"
-                size="large"
+                size="normal"
                 onClick={handleStartAnswering}
                 disabled={startAnswerBlocked}
-                className="w-full min-h-[52px]"
+                className="w-full"
               >
                 Start answering ({clampVenueAnswerWindow(answerWindowSeconds)}s)
               </NeonButton>
               {startAnswerBlocked && gameState.phase === 'betting' && (
-                <p className="text-sm text-white/52">
+                <p className="text-xs text-white/50">
                   Needs full board (5 community) and both wagering rounds closed.
                 </p>
               )}
@@ -1744,7 +1447,7 @@ function HostApp() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <NeonButton
                   variant="gold"
-                  size="large"
+                  size="normal"
                   onClick={() => adminAdvanceTurn()}
                   disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
                   className="w-full"
@@ -1753,7 +1456,7 @@ function HostApp() {
                 </NeonButton>
                 <NeonButton
                   variant="red"
-                  size="large"
+                  size="normal"
                   onClick={() => adminCloseBetting()}
                   disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
                   className="w-full"
@@ -1784,7 +1487,7 @@ function HostApp() {
                 </div>
                 <NeonButton
                   variant="emerald"
-                  size="large"
+                  size="normal"
                   onClick={() => {
                     const sb = Number((document.getElementById('sb-input') as HTMLInputElement)?.value || gameState.smallBlind)
                     const bb = Number((document.getElementById('bb-input') as HTMLInputElement)?.value || gameState.bigBlind)
@@ -1797,38 +1500,38 @@ function HostApp() {
               </div>
             </details>
 
-            <section aria-labelledby="live-wrap-heading" className="space-y-4">
-                <h3 id="live-wrap-heading" className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">
+            <section aria-labelledby="live-wrap-heading" className="space-y-3">
+                <h3 id="live-wrap-heading" className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">
                   Reveal &amp; round reset
                 </h3>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <NeonButton
                 variant="gold"
-                size="large"
+                size="normal"
                 onClick={handleRevealAnswer}
                 disabled={gameState.phase !== 'answering'}
-                className="w-full min-h-[52px]"
+                className="w-full"
               >
                 Reveal Answer
               </NeonButton>
 
               <NeonButton
                 variant="red"
-                size="large"
+                size="normal"
                 onClick={handleEndRound}
                 disabled={gameState.phase !== 'showdown'}
-                className="w-full min-h-[52px]"
+                className="w-full"
               >
                 End Round
               </NeonButton>
 
               <NeonButton
                 variant="gold"
-                size="large"
+                size="normal"
                 onClick={handleNewGame}
-                className="w-full min-h-[52px] sm:col-span-2"
+                className="w-full sm:col-span-2"
               >
-                🆕 New Game
+                New Game
               </NeonButton>
               </div>
               </section>
@@ -1836,11 +1539,11 @@ function HostApp() {
           </Card>
 
         {gameState.phase === 'showdown' && (
-          <Card variant="glass" hover={false} className="mb-8 p-5 sm:p-6">
-            <h2 className="mb-5 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Showdown</h2>
-            <div className="text-center text-white mb-6">
-              <div className="text-white/80">Correct Answer</div>
-              <div className="text-4xl font-extrabold text-casino-gold">
+          <Card variant="glass" hover={false} className="mb-4 p-4 sm:p-5">
+            <h2 className="mb-3 text-lg font-semibold tracking-tight text-white">Showdown</h2>
+            <div className="mb-4 text-center text-white">
+              <div className="text-xs text-white/70">Correct Answer</div>
+              <div className="text-3xl font-extrabold text-casino-gold">
                 {formatTriviaNumber(gameState.round.question?.answer)}
               </div>
             </div>
@@ -1903,76 +1606,13 @@ function HostApp() {
           </Card>
         )}
 
-        <Card variant="glass" hover={false} className="mb-8 border border-white/15 p-5 sm:p-6">
-          <h2 id="public-tvs-wall" className="mb-2 text-2xl font-semibold tracking-tight text-white">
-            Public TVs
-          </h2>
-          <p className="mb-5 max-w-3xl text-base leading-relaxed text-white/54">
-            <span className="font-semibold text-white/72">Outputs</span> — read-only TVs on{' '}
-            <code className="rounded bg-white/10 px-1.5 font-mono text-xs text-white/90">/display</code> show a short pairing code
-            unless you bookmark{' '}
-            <code className="rounded bg-white/10 px-1.5 font-mono text-xs text-white/90">
-              /display?room={gameState.code}
-            </code>
-            . Use <strong className="text-white/77">Pair TV</strong> in the header first. Buttons here send{' '}
-            <strong className="text-white/82">every</strong> paired display on this venue to the mosaic or a single live felt —
-            nobody taps the TV.
-          </p>
-          <div className="mx-auto mb-2 max-w-5xl rounded-xl bg-black/30 p-5">
-            <div className="mb-8 text-[11px] font-bold uppercase tracking-[0.12em] text-white/38">Venue wall</div>
-            <p className="mb-4 text-center text-sm font-semibold leading-relaxed text-amber-100/95">
-              Glow + <span className="font-black uppercase tracking-wide text-amber-200">Live</span> tag = action on that mosaic (open wagering clock or trivia in hand). Prefer the amber “Action on the floor” banner for one-tap routing.
-            </p>
-            <div className="flex flex-wrap items-start justify-center gap-x-2 gap-y-6 py-3">
-              <NeonButton variant="emerald" onClick={() => displaySetLayout({ layout: 'venueWall', focusTable: null })}>
-                All {VENUE_NUMBERED_TABLE_MAX} felts
-              </NeonButton>
-              <span className="mx-2 text-xs text-white/40">Spotlight (live felt)</span>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => {
-                const lively = livelyGameplayTableNums.includes(n)
-                const btn = (
-                  <NeonButton
-                    variant="gold"
-                    className={`relative !px-3 !py-2 min-w-[2.75rem] ${
-                      lively
-                        ? 'ring-[3px] ring-amber-300 ring-offset-4 ring-offset-[#0f0f18] shadow-[0_0_28px_rgba(251,191,36,0.55)]'
-                        : ''
-                    }`}
-                    onClick={() => displaySetLayout({ layout: 'venueWall', focusTable: n })}
-                  >
-                    {n}
-                  </NeonButton>
-                )
-                return lively ? (
-                  <motion.span
-                    key={n}
-                    className="relative inline-block rounded-xl"
-                    animate={{
-                      filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'],
-                      boxShadow: [
-                        '0 0 0px rgba(251,191,36,0)',
-                        '0 0 26px rgba(251,191,36,0.55)',
-                        '0 0 0px rgba(251,191,36,0)',
-                      ],
-                    }}
-                    transition={{ duration: 1.25, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <span className="absolute -top-2 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-orange-500 px-1.5 py-0.5 text-[10px] font-black uppercase leading-none tracking-wider text-black shadow-[0_0_12px_rgba(251,191,36,0.9)]">
-                      Live
-                    </span>
-                    {btn}
-                  </motion.span>
-                ) : (
-                  <span key={n}>{btn}</span>
-                )
-              })}
-            </div>
-            <p className="mt-4 text-center text-[12px] leading-relaxed text-white/48">
-              Spotlight zooms one table&apos;s live game full-screen · <strong className="text-white/65">All {VENUE_NUMBERED_TABLE_MAX} felts</strong> restores the mosaic.{' '}
-              <code className="rounded bg-white/10 px-1 font-mono text-[11px] text-white/80">/display?table=N</code> (N = 1–{VENUE_NUMBERED_TABLE_MAX}) matches spotlight.
-            </p>
-          </div>
-        </Card>
+        <HostPublicTvsPanel
+          venueCode={gameState.code}
+          tableMax={VENUE_NUMBERED_TABLE_MAX}
+          livelyTableNums={livelyGameplayTableNums}
+          onVenueWall={() => displaySetLayout({ layout: 'venueWall', focusTable: null })}
+          onSpotlight={(n) => displaySetLayout({ layout: 'venueWall', focusTable: n })}
+        />
 
         </>
         )}

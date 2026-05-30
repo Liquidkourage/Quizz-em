@@ -14,7 +14,7 @@
 
   /* Slightly larger type for host control desk (readable at arm’s length). */
   .host-root {
-    font-size: clamp(15px, 0.42vw + 14px, 17px);
+    font-size: clamp(14px, 0.35vw + 13px, 16px);
   }
 }
 

@@ -8,36 +8,22 @@ import {
   type ShowdownResultRow,
 } from './showdownDisplay'
 
-export type VenueFloorShowdownVariantId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20
+export type VenueFloorShowdownVariantId = 1 | 5 | 17
 
-export const VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT = 20
+/** Production floor showdown shells (picked from lab). */
+export const VENUE_FLOOR_SHOWDOWN_VARIANTS: readonly VenueFloorShowdownVariantId[] = [1, 5, 17]
+
+export const VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT = VENUE_FLOOR_SHOWDOWN_VARIANTS.length
 
 export const VENUE_FLOOR_SHOWDOWN_VARIANT_NAMES: Record<VenueFloorShowdownVariantId, string> = {
   1: 'Center stack',
-  2: 'Yellow wash',
-  3: 'Gold header',
-  4: 'Footer rule stack',
   5: 'Cyan frame',
-  6: 'Emerald frame',
-  7: 'Crown + chip pot',
-  8: 'Marquee bulbs',
-  9: 'Noir stack',
-  10: 'Rose split ribbon',
-  11: 'Chip pot center',
-  12: 'Chip pot compact',
-  13: 'Amber border panel',
-  14: 'Noir underline',
-  15: 'Marquee strip',
-  16: 'Inset panel',
   17: 'Split ribbon + wash',
-  18: 'Corner brackets',
-  19: 'Tight stack',
-  20: 'Cyan vault',
 }
 
 export function venueFloorShowdownVariantForTable(tableNum: number): VenueFloorShowdownVariantId {
-  const n = ((Math.floor(tableNum) - 1) % VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT) + 1
-  return n as VenueFloorShowdownVariantId
+  const i = (Math.max(1, Math.floor(tableNum)) - 1) % VENUE_FLOOR_SHOWDOWN_VARIANT_COUNT
+  return VENUE_FLOOR_SHOWDOWN_VARIANTS[i]!
 }
 
 export type FloorShowdownCtx = {
@@ -294,150 +280,10 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
           <ShowdownStack ctx={ctx} winnerLayout="line" guessSize="lg" className="flex-1 justify-center" gapClass="gap-2" />
         </div>
       )
-    case 2:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <ShowdownStack
-            ctx={ctx}
-            winnerLayout="line"
-            className="flex-1 justify-center border-b-2 border-yellow-500/40 bg-gradient-to-b from-yellow-950/50 to-transparent px-3 py-3"
-            gapClass="gap-3"
-          />
-        </div>
-      )
-    case 3:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="shrink-0 bg-gradient-to-r from-amber-600/95 via-yellow-500/90 to-amber-600/95 py-1 text-center">
-            <p className="text-[clamp(0.42rem,4cqw,0.55rem)] font-black uppercase text-amber-950">Showdown</p>
-          </div>
-          <ShowdownStack ctx={ctx} className="flex-1 justify-center px-3 py-2" />
-        </div>
-      )
-    case 4:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <ShowdownStack
-            ctx={ctx}
-            winnerLayout="line"
-            guessSize="lg"
-            className="flex-1 justify-center px-3 py-2"
-          />
-          <div className="shrink-0 border-t-2 border-amber-400/50 bg-amber-950/40 py-1" aria-hidden />
-        </div>
-      )
     case 5:
       return (
         <div className="m-2 flex min-h-0 flex-1 rounded-lg border border-cyan-500/40 bg-black/50 p-2">
           <ShowdownStack ctx={ctx} className="flex-1 justify-center" />
-        </div>
-      )
-    case 6:
-      return (
-        <div className="m-2 flex min-h-0 flex-1 flex-col rounded-lg border-2 border-emerald-500/45 p-2">
-          <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" />
-        </div>
-      )
-    case 7:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
-          <div className="shrink-0 rounded-t-lg bg-gradient-to-r from-amber-600/95 via-yellow-500/90 to-amber-600/95 py-1 text-center">
-            <p className="text-[clamp(0.45rem,4.5cqw,0.58rem)] font-black uppercase text-amber-950">👑 Crown</p>
-          </div>
-          <ShowdownStack
-            ctx={ctx}
-            potStyle="chip"
-            className="flex-1 justify-center rounded-b-lg border border-amber-500/35 bg-black/55 px-2 py-2"
-          />
-        </div>
-      )
-    case 8:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
-          <div className="flex shrink-0 justify-center gap-1 py-1">
-            {Array.from({ length: 5 }, (_, i) => (
-              <span
-                key={i}
-                className="h-2 w-2 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(252,211,77,0.9)] motion-safe:animate-[venue-bulb_1.4s_ease-in-out_infinite]"
-                style={{ animationDelay: `${i * 0.1}s` }}
-                aria-hidden
-              />
-            ))}
-          </div>
-          <ShowdownStack ctx={ctx} winnerLayout="line" guessSize="md" className="flex-1 justify-center" />
-        </div>
-      )
-    case 9:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col bg-gradient-to-b from-neutral-950/90 to-black/95 px-3 py-3">
-          <ShowdownStack
-            ctx={ctx}
-            winnerLayout="line"
-            className="flex-1 justify-center [&_.text-yellow-300]:text-white"
-          />
-        </div>
-      )
-    case 10:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
-          {ctx.splitWin ? <SplitPotRibbon /> : null}
-          <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" />
-        </div>
-      )
-    case 11:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col items-center px-3 py-2">
-          <ShowdownStack ctx={ctx} potStyle="chip" guessSize="md" className="flex-1 justify-center" gapClass="gap-3" />
-        </div>
-      )
-    case 12:
-      return (
-        <div className="relative flex min-h-0 flex-1 px-3 py-3">
-          <ShowdownStack ctx={ctx} potStyle="chip" guessSize="lg" className="flex-1 justify-center" gapClass="gap-2" />
-        </div>
-      )
-    case 13:
-      return (
-        <div className="flex min-h-0 flex-1 border border-amber-500/30 bg-black/40">
-          <ShowdownStack
-            ctx={ctx}
-            winnerLayout="line"
-            potStyle="chip"
-            className="flex-1 justify-center px-3 py-2"
-          />
-        </div>
-      )
-    case 14:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col border-t-2 border-white/70 bg-black/50 px-3 py-2">
-          <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center [&_.text-amber-50]:text-white/95" />
-        </div>
-      )
-    case 15:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
-          <div className="flex shrink-0 justify-center gap-1 py-1">
-            {Array.from({ length: 7 }, (_, i) => (
-              <span
-                key={i}
-                className="h-1.5 w-1.5 rounded-full bg-amber-300 motion-safe:animate-[venue-bulb_1.4s_ease-in-out_infinite]"
-                style={{ animationDelay: `${i * 0.1}s` }}
-                aria-hidden
-              />
-            ))}
-          </div>
-          <ShowdownStack ctx={ctx} guessSize="md" className="flex-1 justify-center" />
-        </div>
-      )
-    case 16:
-      return (
-        <div className="flex min-h-0 flex-1 px-2 py-2">
-          <ShowdownStack
-            ctx={ctx}
-            winnerLayout="line"
-            guessSize="sm"
-            className="flex-1 justify-center rounded-lg border border-amber-500/25 bg-black/45 p-2"
-          />
         </div>
       )
     case 17:
@@ -451,28 +297,6 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
             className="flex-1 justify-center bg-gradient-to-b from-yellow-950/35 to-transparent px-3 py-3"
             gapClass="gap-3"
           />
-        </div>
-      )
-    case 18:
-      return (
-        <div className="relative m-2 flex min-h-0 flex-1">
-          <span className="absolute left-1 top-1 h-5 w-7 border-l-2 border-t-2 border-amber-400/60" aria-hidden />
-          <span className="absolute right-1 top-1 h-5 w-7 border-r-2 border-t-2 border-amber-400/60" aria-hidden />
-          <span className="absolute bottom-1 left-1 h-5 w-7 border-b-2 border-l-2 border-amber-400/60" aria-hidden />
-          <span className="absolute bottom-1 right-1 h-5 w-7 border-b-2 border-r-2 border-amber-400/60" aria-hidden />
-          <ShowdownStack ctx={ctx} className="flex-1 justify-center px-2 py-2" />
-        </div>
-      )
-    case 19:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-3 py-3">
-          <ShowdownStack ctx={ctx} winnerLayout="line" guessSize="md" gapClass="gap-2.5" />
-        </div>
-      )
-    case 20:
-      return (
-        <div className="flex min-h-0 flex-1 flex-col rounded-[inherit] border border-cyan-500/35 bg-gradient-to-b from-cyan-950/75 to-black/88">
-          <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center px-3 py-2" />
         </div>
       )
     default:
@@ -506,16 +330,5 @@ export function VenueFloorShowdownByVariant({
       <VariantBadge ctx={ctx} />
       {renderVariant(ctx)}
     </div>
-  )
-}
-
-export function VenueFloorShowdownVariantStyles() {
-  return (
-    <style>{`
-      @keyframes venue-bulb {
-        0%, 100% { opacity: 0.45; transform: scale(0.85); }
-        50% { opacity: 1; transform: scale(1.05); }
-      }
-    `}</style>
   )
 }

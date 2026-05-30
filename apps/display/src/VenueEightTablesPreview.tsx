@@ -19,7 +19,6 @@ import {
 import {
   resolveFloorShowdownData,
   VenueFloorShowdownByVariant,
-  VenueFloorShowdownVariantStyles,
 } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
@@ -1554,7 +1553,6 @@ export default function VenueEightTablesPreview({
         showRoster ? VENUE_CRAWL_PR_CLASS : ''
       }`}
     >
-      <VenueFloorShowdownVariantStyles />
       <div className="pointer-events-none absolute inset-0 opacity-35">
         <div
           className="absolute inset-0"
@@ -1656,7 +1654,7 @@ export default function VenueEightTablesPreview({
                   Showdown lab
                 </span>
                 {' — '}
-                Each table tries a different layout (#01–#20). Hover badges for names. Remove{' '}
+                Three layouts rotate by table (#01, #05, #17). Hover badges for names. Remove{' '}
                 <span className="font-mono text-amber-200">?showdownLab=1</span> to exit.
               </p>
             ) : null}

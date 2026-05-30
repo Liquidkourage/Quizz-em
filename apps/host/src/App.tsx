@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, useRef, type FormEvent } from 'react'
+﻿import { useEffect, useState, useRef, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, NeonButton, PokerChip } from '@qhe/ui'
 import {
@@ -485,36 +485,24 @@ function HostApp() {
   const draftSetlist =
     setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
 
-  const phaseDockItems = useMemo(
-    () =>
-      buildHostPhaseDockItems({
-        gameState,
-        answerWindowSeconds,
-        dealInitialBlocked,
-        dealCommunityBlocked,
-        startAnswerBlocked,
-        communityLen,
-        bettingRound,
-        onStartGame: handleStartGame,
-        onAssignFromLobby: () => assignTablesFromLobby(),
-        onDealInitial: handleDealInitialCards,
-        onDealCommunity: handleDealCommunityCards,
-        onStartAnswering: handleStartAnswering,
-        onRevealAnswer: handleRevealAnswer,
-        onEndRound: handleEndRound,
-        onRandomQuestion: handleSetRandomQuestion,
-        onNextSetlist: () => nextQuestionFromSetlist(),
-      }),
-    [
-      gameState,
-      answerWindowSeconds,
-      dealInitialBlocked,
-      dealCommunityBlocked,
-      startAnswerBlocked,
-      communityLen,
-      bettingRound,
-    ]
-  )
+  const phaseDockItems = buildHostPhaseDockItems({
+    gameState,
+    answerWindowSeconds,
+    dealInitialBlocked,
+    dealCommunityBlocked,
+    startAnswerBlocked,
+    communityLen,
+    bettingRound,
+    onStartGame: handleStartGame,
+    onAssignFromLobby: () => assignTablesFromLobby(),
+    onDealInitial: handleDealInitialCards,
+    onDealCommunity: handleDealCommunityCards,
+    onStartAnswering: handleStartAnswering,
+    onRevealAnswer: handleRevealAnswer,
+    onEndRound: handleEndRound,
+    onRandomQuestion: handleSetRandomQuestion,
+    onNextSetlist: () => nextQuestionFromSetlist(),
+  })
 
   return (
     <div className="host-root min-h-screen bg-casino-gradient relative overflow-hidden">

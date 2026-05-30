@@ -12,7 +12,10 @@ import seatChipStackImg from './assets/seat-chip-stack.png'
 import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { readShowdownLabFromUrl } from './displayUrlParams'
-import { buildFloorShowdownPresentation } from './VenueFloorShowdownOverlay'
+import {
+  buildFloorShowdownPresentation,
+  resolveShowdownDisplayPot,
+} from './VenueFloorShowdownOverlay'
 import {
   resolveFloorShowdownData,
   VenueFloorShowdownByVariant,
@@ -1043,6 +1046,10 @@ function VenueMosaicTableCard({
     if (!showFloorShowdownOverlay) return null
     return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
   }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
+  const floorShowdownPot = useMemo(() => {
+    if (!showFloorShowdownOverlay) return 0
+    return resolveShowdownDisplayPot(row, floorShowdownRows, showdownLab)
+  }, [showFloorShowdownOverlay, row, floorShowdownRows, showdownLab])
   const winnerSeatIndexes = showFloorShowdownOverlay
     ? floorShowdownPresentation?.winnerSeatIndexes ?? null
     : null
@@ -1233,7 +1240,7 @@ function VenueMosaicTableCard({
         {showFloorShowdownOverlay ? (
           <VenueFloorShowdownByVariant
             tableNum={tn}
-            pot={pot}
+            pot={floorShowdownPot}
             rows={floorShowdownRows}
             correctAnswer={floorShowdownAnswer}
             labMode={showdownLab}

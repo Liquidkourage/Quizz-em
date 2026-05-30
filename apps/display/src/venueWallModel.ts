@@ -133,23 +133,33 @@ export function venueHeadlineDivergenceNote(
 
 /** Sticky headline strip: venue-wide blind amounts + level schedule. */
 export function venueWallBlindsLine(wall: DisplayVenueWallSnapshot | null): string | null {
+  const parts = venueWallBlindsHeadline(wall)
+  if (parts == null) return null
+  return parts.meta != null ? `Blinds ${parts.amount} · ${parts.meta}` : `Blinds ${parts.amount}`
+}
+
+/** Right-rail headline chip: amount + optional level meta (matches timer / answer column). */
+export function venueWallBlindsHeadline(
+  wall: DisplayVenueWallSnapshot | null,
+): { amount: string; meta: string | null } | null {
   if (wall == null) return null
   const sb = wall.venueSmallBlind
   const bb = wall.venueBigBlind
   if (sb == null || bb == null || !Number.isFinite(sb) || !Number.isFinite(bb)) return null
-  let line = `Blinds $${Math.floor(sb)} / $${Math.floor(bb)}`
+  const amount = `$${Math.floor(sb)} / $${Math.floor(bb)}`
+  const metaParts: string[] = []
   if (
     wall.blindLevelNumber != null &&
     wall.blindLevelCount != null &&
     Number.isFinite(wall.blindLevelNumber) &&
     Number.isFinite(wall.blindLevelCount)
   ) {
-    line += ` · Level ${Math.floor(wall.blindLevelNumber)}/${Math.floor(wall.blindLevelCount)}`
+    metaParts.push(`Level ${Math.floor(wall.blindLevelNumber)}/${Math.floor(wall.blindLevelCount)}`)
   }
   if (wall.handsUntilNextBlindLevel != null && Number.isFinite(wall.handsUntilNextBlindLevel)) {
-    line += ` · ${Math.floor(wall.handsUntilNextBlindLevel)} hand(s) to next level`
+    metaParts.push(`${Math.floor(wall.handsUntilNextBlindLevel)} hand(s) to next level`)
   }
-  return line
+  return { amount, meta: metaParts.length > 0 ? metaParts.join(' · ') : null }
 }
 
 /** Legacy full-screen grid — mosaic tile overlays are production. */

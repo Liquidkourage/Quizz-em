@@ -18,7 +18,7 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
-import { buildVenueWallTileRows, resolveVenueHeadlineSource, showdownTableNums, venueHeadlineDivergenceNote, venueWallBlindsLine, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, resolveVenueHeadlineSource, showdownTableNums, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   banquetCheckerboardGridColumn,
   banquetCheckerboardTrackCount,
@@ -1798,7 +1798,7 @@ export default function VenueEightTablesPreview({
   )
   const headlinePhaseLabel =
     headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
-  const venueBlindsLine = useMemo(() => venueWallBlindsLine(wall), [wall])
+  const venueBlindsHeadline = useMemo(() => venueWallBlindsHeadline(wall), [wall])
 
   const spotlightTableNum = featuredWatch.featuredTableNum
 
@@ -1875,11 +1875,6 @@ export default function VenueEightTablesPreview({
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div className="min-w-0 flex-1">
-                    {venueBlindsLine ? (
-                      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-amber-200/90 sm:text-xs">
-                        {venueBlindsLine}
-                      </p>
-                    ) : null}
                     {headlineSource.tableNum != null && headlinePhaseLabel ? (
                       <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                         <span className="inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-yellow-100/95 sm:text-xs">
@@ -1906,6 +1901,29 @@ export default function VenueEightTablesPreview({
                       <p className="sr-only">Answering in progress.</p>
                     )}
                   </div>
+                  <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2.5">
+                    {venueBlindsHeadline ? (
+                      <div
+                        className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border border-amber-500/50 bg-amber-950/40 px-2 py-1.5 shadow-[0_0_16px_rgba(251,191,36,0.08)] sm:min-w-[6.5rem] sm:px-3 sm:py-2"
+                        aria-label={
+                          venueBlindsHeadline.meta
+                            ? `Blinds ${venueBlindsHeadline.amount}, ${venueBlindsHeadline.meta}`
+                            : `Blinds ${venueBlindsHeadline.amount}`
+                        }
+                      >
+                        <span className="text-center text-[10px] font-black uppercase leading-tight tracking-wide text-amber-200/85 sm:text-xs">
+                          Blinds
+                        </span>
+                        <div className="text-center font-mono text-lg font-black tabular-nums tracking-tight text-amber-100 sm:text-2xl md:text-3xl">
+                          {venueBlindsHeadline.amount}
+                        </div>
+                        {venueBlindsHeadline.meta ? (
+                          <span className="max-w-[8.5rem] text-center text-[9px] font-semibold leading-tight text-amber-200/65 sm:max-w-[10rem] sm:text-[10px]">
+                            {venueBlindsHeadline.meta}
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
                   {inVenueShowdown && venueShowdownAnswer != null ? (
                     <div
                       className="flex shrink-0 flex-row items-center justify-center gap-1.5 rounded-lg border border-amber-400/55 bg-amber-950/45 px-2 py-1.5 shadow-[0_0_20px_rgba(251,191,36,0.1)] sm:flex-col sm:px-3 sm:py-2"
@@ -1936,6 +1954,7 @@ export default function VenueEightTablesPreview({
                       </div>
                     </div>
                   ) : null}
+                  </div>
                 </motion.div>
               </motion.div>
             ) : null}

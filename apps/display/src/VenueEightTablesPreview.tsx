@@ -13,15 +13,18 @@ import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { readShowdownLabFromUrl } from './displayUrlParams'
 import {
+  buildFloorShowdownPresentation,
+  VenueFeltCenterWinningGuess,
+  VenueFloorShowdownCaption,
+  VenueFloorWinnerArrows,
+} from './VenueFloorShowdownOverlay'
+import {
   resolveFloorShowdownData,
   VenueFloorShowdownByVariant,
   VenueFloorShowdownVariantStyles,
 } from './venueFloorShowdownVariants'
-import {
-  showdownCorrectAnswerFromTile,
-  showdownRowsFromTile,
-  sortShowdownRowsByDistance,
-} from './showdownDisplay'
+import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
+import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   banquetCheckerboardGridColumn,
@@ -234,10 +237,6 @@ function seatBettingActionPillClass(action: SeatBettingAction): string {
 const VENUE_RING_ASPECT_MD = 8 / 5
 const VENUE_RING_ASPECT_LG = 14 / 8
 
-/** Authoring size for mosaic seat layout before ResizeObserver (16.5rem × 8.75rem @ 16px). */
-const MOSAIC_RING_FALLBACK_W_PX = 264
-const MOSAIC_RING_FALLBACK_H_PX = 140
-
 /** Amber rail — mosaic uses full wrapper; full mode insets slightly. */
 const VENUE_RAIL_INSET_TOP = 0.02
 const VENUE_RAIL_INSET_RIGHT = 0.02
@@ -321,74 +320,6 @@ function venueSeatRimPct(
 /** Polar angle θ for seat i (matches {@link venueSeatRimPct}). */
 function seatThetaRad(seatIndex: number): number {
   return (seatIndex / VENUE_SEAT_SLOTS) * 2 * Math.PI - Math.PI / 2
-}
-
-/** Inward walk from outer outline so dot center sits on the amber rail band (px). */
-const MOSAIC_SEAT_RAIL_INSET_PX = 12
-
-/**
- * Mosaic crawl: seat dots at **equal arc length** around the stadium perimeter, then
- * walked inward along the surface normal so they land on the amber rail. Equal-angle
- * spacing on a non-circular shape leaves uneven gaps on the sides — use arc length.
- *
- * Seat 0 = top center, advancing clockwise.
- */
-function mosaicSeatDotPct(
-  seatIndex: number,
-  seatCount: number,
-  w: number,
-  h: number
-): { leftPct: number; topPct: number } {
-  const ww = w > 0 ? w : MOSAIC_RING_FALLBACK_W_PX
-  const hh = h > 0 ? h : MOSAIC_RING_FALLBACK_H_PX
-  const halfW = ww / 2
-  const halfH = hh / 2
-  const r = halfH
-  const flat = Math.max(0, halfW - r)
-  const perimeter = 4 * flat + 2 * Math.PI * r
-  /** Distribute by live seat count so a 6/7-player table doesn't leave a big empty arc. */
-  const denom = seatCount > 0 ? seatCount : VENUE_SEAT_SLOTS
-  let s = ((seatIndex / denom) * perimeter) % perimeter
-  if (s < 0) s += perimeter
-
-  let lx: number
-  let ly: number
-  let nx: number
-  let ny: number
-
-  if (s <= flat) {
-    lx = s
-    ly = -halfH
-    nx = 0
-    ny = -1
-  } else if ((s -= flat) <= Math.PI * r) {
-    const a = -Math.PI / 2 + s / r
-    lx = flat + r * Math.cos(a)
-    ly = r * Math.sin(a)
-    nx = Math.cos(a)
-    ny = Math.sin(a)
-  } else if ((s -= Math.PI * r) <= 2 * flat) {
-    lx = flat - s
-    ly = halfH
-    nx = 0
-    ny = 1
-  } else if ((s -= 2 * flat) <= Math.PI * r) {
-    const a = Math.PI / 2 + s / r
-    lx = -flat + r * Math.cos(a)
-    ly = r * Math.sin(a)
-    nx = Math.cos(a)
-    ny = Math.sin(a)
-  } else {
-    s -= Math.PI * r
-    lx = -flat + s
-    ly = -halfH
-    nx = 0
-    ny = -1
-  }
-
-  const x = halfW + lx - nx * MOSAIC_SEAT_RAIL_INSET_PX
-  const y = halfH + ly - ny * MOSAIC_SEAT_RAIL_INSET_PX
-  return { leftPct: (x / ww) * 100, topPct: (y / hh) * 100 }
 }
 
 /** Nudge pole labels toward beltline (top downward, bottom upward); east/west stay put. */
@@ -624,6 +555,8 @@ function SeatRingWithLabels({
   feltCenterPotDimmed = false,
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
   winnerSeatIndexes = null,
+  /** Winning trivia guess drawn large on felt center (floor showdown). */
+  feltCenterWinningGuess = null,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -654,6 +587,7 @@ function SeatRingWithLabels({
   /** Fade the center pot during lobby / question before blinds post. */
   feltCenterPotDimmed?: boolean
   winnerSeatIndexes?: ReadonlySet<number> | null
+  feltCenterWinningGuess?: string | null
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
@@ -791,6 +725,17 @@ function SeatRingWithLabels({
           amount={feltCenterPot}
           dimmed={feltCenterPotDimmed}
           prefersReducedMotion={prefersReducedMotion}
+        />
+      ) : null}
+      {isMosaic && feltCenterWinningGuess ? (
+        <VenueFeltCenterWinningGuess guess={feltCenterWinningGuess} />
+      ) : null}
+      {isMosaic && winnerSeatIndexes != null && winnerSeatIndexes.size > 0 ? (
+        <VenueFloorWinnerArrows
+          seatedCount={seatedCount}
+          winnerSeatIndexes={winnerSeatIndexes}
+          ringW={ringPx.w}
+          ringH={ringPx.h}
         />
       ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
@@ -1113,15 +1058,14 @@ function VenueMosaicTableCard({
   )
   const showFloorShowdownOverlay =
     showdownBrief && (inShowdown || showdownLab) && floorShowdownRows.length > 0
-  const winnerSeatIndexes = useMemo(() => {
+  const floorShowdownPresentation = useMemo(() => {
     if (!showFloorShowdownOverlay) return null
-    const { winnerKeys } = sortShowdownRowsByDistance(floorShowdownRows, floorShowdownAnswer)
-    const seatSet = new Set<number>()
-    for (const r of floorShowdownRows) {
-      if (winnerKeys.has(`${r.seat}:${r.name}`) && !r.hasFolded) seatSet.add(r.seat - 1)
-    }
-    return seatSet.size > 0 ? seatSet : null
+    return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
   }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
+  const useProductionFloorShowdown = showFloorShowdownOverlay && !showdownLab
+  const winnerSeatIndexes = showFloorShowdownOverlay
+    ? floorShowdownPresentation?.winnerSeatIndexes ?? null
+    : null
   const mosaicPotSubtitle = mosaicPotSubtitleActingToCall({
     actingSeatIndex: actingSeat,
     seatNames,
@@ -1195,8 +1139,14 @@ function VenueMosaicTableCard({
             feltCenterPot={showFloorShowdownOverlay ? undefined : pot}
             feltCenterPotDimmed={ph === 'lobby' || ph === 'question'}
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
+            feltCenterWinningGuess={
+              useProductionFloorShowdown ? floorShowdownPresentation?.guess ?? null : null
+            }
           />
-          {showFloorShowdownOverlay ? (
+          {useProductionFloorShowdown && floorShowdownPresentation ? (
+            <VenueFloorShowdownCaption presentation={floorShowdownPresentation} />
+          ) : null}
+          {showFloorShowdownOverlay && showdownLab ? (
             <VenueFloorShowdownByVariant
               tableNum={tn}
               rows={floorShowdownRows}

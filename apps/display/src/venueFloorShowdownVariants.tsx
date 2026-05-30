@@ -328,7 +328,7 @@ function ShowdownStack({
     return (
       <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
         <div className="flex w-full min-h-0 flex-[1.35] items-center justify-center py-1">
-          <FloorPotBlock ctx={ctx} />
+          {FloorPotBlock(ctx)}
         </div>
         <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-1.5">
           {GuessBlock(ctx)}

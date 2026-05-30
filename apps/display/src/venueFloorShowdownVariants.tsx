@@ -299,7 +299,12 @@ function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?:
 
 function GuessBlock(ctx: FloorShowdownCtx) {
   if (!ctx.chipRow) return null
-  return <ShowdownFiveCardsUsed row={ctx.chipRow} size="floor" />
+  return (
+    <ShowdownFiveCardsUsed
+      row={ctx.chipRow}
+      size={ctx.sidePotLines != null ? 'floor-compact' : 'floor'}
+    />
+  )
 }
 
 function FloorPotBlock(ctx: FloorShowdownCtx) {
@@ -327,10 +332,10 @@ function ShowdownStack({
   if (ctx.sidePotLines != null) {
     return (
       <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
-        <div className="flex w-full min-h-0 flex-[1.35] items-center justify-center py-1">
+        <div className="flex w-full min-h-0 flex-1 items-stretch justify-center overflow-hidden pb-2">
           {FloorPotBlock(ctx)}
         </div>
-        <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-1.5">
+        <div className="flex w-full shrink-0 items-end justify-center pb-1.5 pt-0.5">
           {GuessBlock(ctx)}
         </div>
       </div>
@@ -368,8 +373,11 @@ function SplitPotRibbon() {
 
 function renderVariant(ctx: FloorShowdownCtx): ReactNode {
   if (ctx.variantId !== 8) return null
+  const sidePot = ctx.sidePotLines != null
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-2.5 py-3">
+    <div
+      className={`flex min-h-0 flex-1 flex-col ${sidePot ? 'px-2 py-1.5' : 'px-2.5 py-3'}`}
+    >
       <ShowdownStack ctx={ctx} winnerLayout="line" className="min-h-0 flex-1 justify-center" />
     </div>
   )

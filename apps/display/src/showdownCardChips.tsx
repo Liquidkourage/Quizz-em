@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import type { ShowdownResultRow } from './showdownDisplay'
 
-export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor'
+export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-compact'
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
@@ -17,7 +17,9 @@ function DigitChip({
   const dim =
     size === 'floor'
       ? 'h-[clamp(1.32rem,17.25cqw,2.3rem)] min-w-[clamp(1.32rem,17.25cqw,2.3rem)] border-2 px-[0.08em] text-[clamp(1.15rem,14.4cqw,1.95rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
-      : size === 'lg'
+      : size === 'floor-compact'
+        ? 'h-[clamp(1rem,12.5cqw,1.75rem)] min-w-[clamp(1rem,12.5cqw,1.75rem)] border-2 px-[0.06em] text-[clamp(0.9rem,10.5cqw,1.5rem)] shadow-[0_0_8px_rgba(0,0,0,0.45)]'
+        : size === 'lg'
         ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
         : size === 'xs'
           ? 'h-5 min-w-[0.95rem] px-0.5 text-[0.55rem]'
@@ -44,7 +46,9 @@ function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
   const dim =
     size === 'floor'
       ? 'h-[clamp(1.32rem,17.25cqw,2.3rem)] w-[0.22em] text-[clamp(1.15rem,14.4cqw,1.95rem)]'
-      : size === 'lg'
+      : size === 'floor-compact'
+        ? 'h-[clamp(1rem,12.5cqw,1.75rem)] w-[0.2em] text-[clamp(0.9rem,10.5cqw,1.5rem)]'
+        : size === 'lg'
         ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
         : size === 'xs'
           ? 'h-5 w-1.5 text-sm'
@@ -105,7 +109,9 @@ export function ShowdownFiveCardsUsed({
   const wrapClass =
     size === 'floor'
       ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.14rem,0.98cqw,0.37rem)]'
-      : size === 'lg'
+      : size === 'floor-compact'
+        ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.1rem,0.75cqw,0.28rem)]'
+        : size === 'lg'
         ? 'flex flex-nowrap items-center justify-center gap-1'
         : 'flex flex-wrap items-center justify-center gap-0.5'
 

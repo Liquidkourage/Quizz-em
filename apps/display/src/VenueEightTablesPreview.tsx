@@ -468,7 +468,7 @@ function venueTileActingSeat(row: DisplayVenueTileSnapshot): number | null {
 function mosaicPhaseLabel(row: DisplayVenueTileSnapshot): string {
   const ph = String(row.phase ?? '').trim().toLowerCase()
   if (ph === 'betting' && row.seated >= 2 && isVenueTileWageringPaused(row)) {
-    return 'Bets in'
+    return 'NO MORE BETS'
   }
   if (ph === 'betting' && row.seated >= 2 && row.isBettingOpen === true) {
     return 'Wagering'
@@ -1216,7 +1216,7 @@ function VenueMosaicTableCard({
       <article
         data-table-tile={tn}
         role="group"
-        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${betsInPaused ? ', bets in' : ''}, venue floor`}
+        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${betsInPaused ? ', no more bets' : ''}, venue floor`}
         className={`flex w-full min-w-0 flex-col ${betsInPaused ? '' : 'backdrop-blur-md'} ${
           floorHoneycomb && floorCompact
             ? 'h-full min-h-0 overflow-hidden'

@@ -164,14 +164,18 @@ export function resolveFloorShowdownData(
   return { rows: [], correctAnswer: undefined }
 }
 
+/**
+ * Floor showdown type scale (@container on overlay). Visual hierarchy:
+ * 1 winner names (largest) → 2 pot amount → 3 winning answer card.
+ */
 const WINNER_LABEL =
-  'font-bold uppercase tracking-[0.18em] text-amber-200/90 text-[clamp(0.48rem,5cqw,0.72rem)]'
+  'font-bold uppercase tracking-[0.16em] text-amber-200/90 text-[clamp(0.5rem,4cqw,0.65rem)]'
 const WINNER_NAME =
-  'min-w-0 font-black leading-tight text-amber-50 text-[clamp(0.82rem,9.5cqw,1.35rem)]'
+  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1rem,12cqw,2.15rem)]'
 const POT_LABEL =
-  'font-black uppercase tracking-[0.32em] text-yellow-200/85 text-[clamp(0.5rem,5.5cqw,0.8rem)]'
+  'font-black uppercase tracking-[0.28em] text-yellow-200/80 text-[clamp(0.45rem,3.5cqw,0.58rem)]'
 const POT_AMOUNT =
-  'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_3px_14px_rgba(0,0,0,0.85)] text-[clamp(1.6rem,20cqw,4.25rem)]'
+  'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.05rem,11cqw,2.4rem)]'
 
 function VariantBadge({ ctx }: { ctx: FloorShowdownCtx }) {
   if (!ctx.labMode) return null
@@ -230,15 +234,15 @@ function WinnerBlock({ ctx, layout = 'pills' }: { ctx: FloorShowdownCtx; layout?
     )
   }
   return (
-    <div className="flex min-w-0 flex-col items-center gap-1.5">
+    <div className="flex min-w-0 flex-col items-center gap-1">
       <p className={WINNER_LABEL}>{ctx.label}</p>
-      <div className="flex max-w-full flex-wrap justify-center gap-1.5">
+      <div className="flex max-w-full flex-wrap justify-center gap-1">
         {ctx.namePills.map((w) => (
           <span
             key={`${w.seat}:${w.name}`}
-            className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border-2 border-amber-400/80 bg-amber-950/95 px-2 py-1 shadow-[0_0_12px_rgba(251,191,36,0.35)]"
+            className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-full border-2 border-amber-400/80 bg-amber-950/95 px-2 py-0.5 shadow-[0_0_10px_rgba(251,191,36,0.3)]"
           >
-            <span className="flex h-[1.1em] w-[1.1em] shrink-0 items-center justify-center rounded-full bg-amber-400 text-[0.55em] font-black text-amber-950">
+            <span className="shrink-0 text-[clamp(0.55rem,5cqw,0.75rem)] font-black text-amber-400">
               ★
             </span>
             <span className={`${WINNER_NAME} truncate`}>{w.name}</span>
@@ -270,9 +274,9 @@ type PotStyle = 'hero' | 'chip'
 /** Canonical order: winner declaration → pot → winning answer card. */
 function ShowdownStack({
   ctx,
-  winnerLayout = 'pills',
+  winnerLayout = 'line',
   potStyle = 'hero',
-  guessSize = 'lg',
+  guessSize = 'md',
   className = '',
   gapClass = 'gap-2',
 }: {
@@ -285,13 +289,13 @@ function ShowdownStack({
 }) {
   return (
     <div className={`flex min-h-0 min-w-0 flex-col items-center ${gapClass} ${className}`}>
-      <div className="w-full max-w-full shrink-0">
+      <div className="w-full max-w-full shrink-0 flex-[1.15]">
         <WinnerBlock ctx={ctx} layout={winnerLayout} />
       </div>
-      <div className="w-full shrink-0">
+      <div className="w-full shrink-0 flex-none">
         {potStyle === 'chip' ? <PotChip pot={ctx.pot} /> : <HeroPot pot={ctx.pot} />}
       </div>
-      <div className="flex w-full flex-1 items-center justify-center py-0.5">
+      <div className="flex w-full min-h-0 flex-[0.85] items-center justify-center">
         {GuessBlock(ctx, guessSize)}
       </div>
     </div>
@@ -313,7 +317,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
     case 1:
       return (
         <div className="flex min-h-0 flex-1 px-3 py-3">
-          <ShowdownStack ctx={ctx} guessSize="xl" className="flex-1 justify-center" gapClass="gap-3" />
+          <ShowdownStack ctx={ctx} winnerLayout="line" guessSize="lg" className="flex-1 justify-center" gapClass="gap-2" />
         </div>
       )
     case 2:
@@ -342,7 +346,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
           <ShowdownStack
             ctx={ctx}
             winnerLayout="stars"
-            guessSize="xl"
+            guessSize="lg"
             className="flex-1 justify-center px-3 py-2"
           />
           <div className="shrink-0 border-t-2 border-amber-400/50 bg-amber-950/40 py-1" aria-hidden />
@@ -415,7 +419,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
     case 12:
       return (
         <div className="relative flex min-h-0 flex-1 px-3 py-3">
-          <ShowdownStack ctx={ctx} potStyle="chip" guessSize="xl" className="flex-1 justify-center" gapClass="gap-3" />
+          <ShowdownStack ctx={ctx} potStyle="chip" guessSize="lg" className="flex-1 justify-center" gapClass="gap-2" />
         </div>
       )
     case 13:

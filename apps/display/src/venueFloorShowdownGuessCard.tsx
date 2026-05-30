@@ -46,12 +46,12 @@ export function GuessNumberCard({
           : 'px-[0.5em] py-[0.38em]'
   const text =
     size === 'xl'
-      ? 'text-[clamp(1.35rem,14cqw,3.2rem)]'
+      ? 'text-[clamp(1rem,10cqw,1.9rem)]'
       : size === 'lg'
-        ? 'text-[clamp(1.2rem,12cqw,2.75rem)]'
+        ? 'text-[clamp(0.95rem,9cqw,1.7rem)]'
         : size === 'sm'
-          ? 'text-[clamp(0.95rem,9cqw,2rem)]'
-          : 'text-[clamp(1.05rem,10cqw,2.35rem)]'
+          ? 'text-[clamp(0.8rem,7.5cqw,1.25rem)]'
+          : 'text-[clamp(0.88rem,8.5cqw,1.5rem)]'
 
   return (
     <div

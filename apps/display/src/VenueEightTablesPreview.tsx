@@ -158,15 +158,6 @@ function mosaicPotSubtitleActingToCall(args: {
   return `${name} to call: ${formatVenueBankroll(args.actingCallAmount)}`
 }
 
-/** Sum bankrolls for seats that have a player name — matches crawl "Chips on table". */
-function totalChipsFromSeats(seatNames: string[], seatBankrolls: number[]): number {
-  let total = 0
-  for (let i = 0; i < VENUE_SEAT_SLOTS; i++) {
-    if (seatNames[i]?.trim()) total += seatBankrolls[i] ?? 0
-  }
-  return total
-}
-
 function padSeatNames(raw: string[] | undefined): string[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     if (raw != null && raw[i] != null) {
@@ -1233,7 +1224,6 @@ function VenueMosaicTableCard({
   const betsInPaused = ph === 'betting' && isMosaicBetsIn(row)
   const wageringLive = isMosaicWageringLive(row)
 
-  const totalChips = totalChipsFromSeats(seatNames, seatBankrolls)
   const cardShell = betsInPaused
     ? 'rounded-xl border-0 bg-transparent shadow-none ring-0'
     : wageringLive
@@ -1387,45 +1377,13 @@ function VenueMosaicTableCard({
           </ul>
         ) : null}
 
-        <dl
-          className={`min-w-0 shrink-0 border-t border-white/10 text-white/88 ${
-            floorCompact
-              ? 'flex items-center justify-between gap-2 px-0.5 pt-0.5 text-[0.6rem] leading-none sm:text-[0.65rem]'
-              : 'space-y-1 pt-1.5 text-[0.6875rem] leading-snug sm:text-sm'
-          }`}
-        >
-          {floorCompact ? (
-            <>
-              <div className="flex min-w-0 items-baseline gap-1.5">
-                <dt className="sr-only">Chips on table</dt>
-                <dd className="truncate font-mono font-semibold tabular-nums text-casino-emerald/90">
-                  {formatVenueBankroll(totalChips)}
-                </dd>
-              </div>
-              <dd className="shrink-0 font-mono text-[0.55rem] tabular-nums text-white/45">{seats}p</dd>
-            </>
-          ) : (
-            <>
-              <div className="flex justify-between gap-2">
-                <dt className="font-semibold text-white/65">Occupied</dt>
-                <dd className="font-mono font-bold tabular-nums text-casino-emerald">
-                  {seats} / 8
-                </dd>
-              </div>
-              {mosaicPotSubtitle != null ? (
-                <div className="rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
-                  <p className="min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs">
-                    {mosaicPotSubtitle}
-                  </p>
-                </div>
-              ) : null}
-              <div className="flex justify-between gap-2">
-                <dt className="font-semibold text-white/65">Chips on table</dt>
-                <dd className="font-mono font-bold tabular-nums text-white/90">{formatVenueBankroll(totalChips)}</dd>
-              </div>
-            </>
-          )}
-        </dl>
+        {!floorCompact && mosaicPotSubtitle != null ? (
+          <div className="shrink-0 rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
+            <p className="min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs">
+              {mosaicPotSubtitle}
+            </p>
+          </div>
+        ) : null}
 
         {inShowdown && floorShowdownRows.length > 0 && !showdownBrief ? (
           <div

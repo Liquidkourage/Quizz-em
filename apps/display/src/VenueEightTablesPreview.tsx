@@ -1259,12 +1259,9 @@ function VenueMosaicTableCard({
           } ${showFloorShowdownOverlay ? 'opacity-25' : ''}`}
         >
         <div className="flex shrink-0 items-start justify-between gap-1">
-          <div className="min-w-0">
+          <div className="flex min-w-0 items-start gap-1.5 sm:gap-2">
             {!showFloorShowdownOverlay ? (
-              <div
-                className={floorCompact ? 'pb-0.5' : 'pb-1'}
-                aria-label={`Pot ${formatVenueBankroll(pot)}`}
-              >
+              <div aria-label={`Pot ${formatVenueBankroll(pot)}`}>
                 <VenuePotAmount
                   amount={pot}
                   prefersReducedMotion={prefersReducedMotion}
@@ -1282,27 +1279,29 @@ function VenueMosaicTableCard({
                 />
               </div>
             ) : null}
-            <div
-              className={`font-black tabular-nums leading-none text-yellow-400 ${
-                floorCompact ? 'text-base sm:text-lg' : 'text-2xl'
-              }`}
-            >
-              {tn}
-            </div>
-            {typeof row.smallBlind === 'number' &&
-            typeof row.bigBlind === 'number' &&
-            row.smallBlind > 0 &&
-            row.bigBlind > 0 ? (
+            <div className="min-w-0">
               <div
-                className={`font-mono font-bold tabular-nums leading-none text-white/55 ${
-                  floorCompact ? 'mt-0.5 text-[8px] sm:text-[9px]' : 'mt-1 text-[10px] sm:text-xs'
+                className={`font-black tabular-nums leading-none text-yellow-400 ${
+                  floorCompact ? 'text-base sm:text-lg' : 'text-2xl'
                 }`}
-                title={row.blindsTableOverride ? 'Custom blinds for this table' : 'Venue blinds'}
               >
-                ${row.smallBlind}/${row.bigBlind}
-                {row.blindsTableOverride ? '*' : ''}
+                {tn}
               </div>
-            ) : null}
+              {typeof row.smallBlind === 'number' &&
+              typeof row.bigBlind === 'number' &&
+              row.smallBlind > 0 &&
+              row.bigBlind > 0 ? (
+                <div
+                  className={`font-mono font-bold tabular-nums leading-none text-white/55 ${
+                    floorCompact ? 'mt-0.5 text-[8px] sm:text-[9px]' : 'mt-1 text-[10px] sm:text-xs'
+                  }`}
+                  title={row.blindsTableOverride ? 'Custom blinds for this table' : 'Venue blinds'}
+                >
+                  ${row.smallBlind}/${row.bigBlind}
+                  {row.blindsTableOverride ? '*' : ''}
+                </div>
+              ) : null}
+            </div>
           </div>
           {!betsInPaused ? (
             <span

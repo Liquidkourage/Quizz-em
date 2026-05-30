@@ -37,10 +37,15 @@ export type SidePotLabScenario = {
   sideWinner: string
 }
 
+/** Unequal stacks (100 / 200 / 500) → main $300, side $200, $300 uncalled return — layers rarely match. */
+function formatPot(amount: number): string {
+  return `$${Math.max(0, Math.round(amount)).toLocaleString()}`
+}
+
 export const SIDE_POT_LAB_SCENARIO: SidePotLabScenario = {
   main: 300,
-  side: 300,
-  returnAmount: 250,
+  side: 200,
+  returnAmount: 300,
   returnTo: 'Big',
   mainWinner: 'Short',
   sideWinner: 'Mid',
@@ -58,10 +63,11 @@ export function synthesizeSidePotLabRows(
 ): { rows: ShowdownResultRow[]; correctAnswer: number } {
   const correctAnswer = 42
   const names = (tile.seatNames ?? []).map((n) => (typeof n === 'string' ? n.trim() : ''))
+  const s = SIDE_POT_LAB_SCENARIO
   const roster = [
-    { label: names[0] || 'Short', holes: [2, 4] as [number, number], submitted: 42, payout: 300 },
-    { label: names[1] || 'Big', holes: [6, 8] as [number, number], submitted: 99, payout: 250 },
-    { label: names[2] || 'Mid', holes: [0, 1] as [number, number], submitted: 50, payout: 300 },
+    { label: names[0] || 'Short', holes: [2, 4] as [number, number], submitted: 42, payout: s.main },
+    { label: names[1] || 'Big', holes: [6, 8] as [number, number], submitted: 99, payout: s.returnAmount },
+    { label: names[2] || 'Mid', holes: [0, 1] as [number, number], submitted: 50, payout: s.side },
   ]
 
   const rows: ShowdownResultRow[] = roster.map((r, i) => ({
@@ -91,15 +97,14 @@ export type SidePotLabDisplay = {
 }
 
 function labRosterRows(rows: ShowdownResultRow[]) {
+  const s = SIDE_POT_LAB_SCENARIO
   const main =
-    rows.find((r) => r.chipPayout === SIDE_POT_LAB_SCENARIO.main && r.submitted === 42) ??
-    rows[0]!
+    rows.find((r) => r.chipPayout === s.main && r.submitted === 42) ?? rows[0]!
   const side =
-    rows.find(
-      (r) => r.chipPayout === SIDE_POT_LAB_SCENARIO.side && r.submitted != null && r.submitted !== 42
-    ) ?? rows[2] ?? rows[1]!
-  const returned =
-    rows.find((r) => r.chipPayout === SIDE_POT_LAB_SCENARIO.returnAmount) ?? rows[1]!
+    rows.find((r) => r.chipPayout === s.side && r.submitted != null && r.submitted !== 42) ??
+    rows[2] ??
+    rows[1]!
+  const returned = rows.find((r) => r.chipPayout === s.returnAmount && r.submitted !== 42) ?? rows[1]!
   return { main, side, returned }
 }
 
@@ -165,10 +170,10 @@ export function sidePotLabDisplay(style: SidePotLabStyleId, rows: ShowdownResult
     case 'F':
       return {
         ...base,
-        pot: 150,
-        splitWin: true,
-        potSubline: 'main layer share',
-        winnerLine: `${short.name} · ${mid.name}`,
+        pot: s.side,
+        splitWin: false,
+        potSubline: `${short.name} took main ${formatPot(s.main)}`,
+        winnerLine: `${mid.name} · side pot`,
         showSidePotRibbon: true,
         showSplitPotRibbon: false,
       }

@@ -16,7 +16,7 @@ function DigitChip({
 }) {
   const dim =
     size === 'floor'
-      ? 'h-[clamp(1.15rem,15cqw,2rem)] min-w-[clamp(1.15rem,15cqw,2rem)] border-2 px-[0.08em] text-[clamp(1rem,12.5cqw,1.7rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+      ? 'h-[clamp(1.32rem,17.25cqw,2.3rem)] min-w-[clamp(1.32rem,17.25cqw,2.3rem)] border-2 px-[0.08em] text-[clamp(1.15rem,14.4cqw,1.95rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
       : size === 'lg'
         ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
         : size === 'xs'
@@ -43,7 +43,7 @@ function DigitChip({
 function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
   const dim =
     size === 'floor'
-      ? 'h-[clamp(1.15rem,15cqw,2rem)] w-[0.22em] text-[clamp(1rem,12.5cqw,1.7rem)]'
+      ? 'h-[clamp(1.32rem,17.25cqw,2.3rem)] w-[0.22em] text-[clamp(1.15rem,14.4cqw,1.95rem)]'
       : size === 'lg'
         ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
         : size === 'xs'
@@ -104,7 +104,7 @@ export function ShowdownFiveCardsUsed({
 
   const wrapClass =
     size === 'floor'
-      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.12rem,0.85cqw,0.32rem)]'
+      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.14rem,0.98cqw,0.37rem)]'
       : size === 'lg'
         ? 'flex flex-nowrap items-center justify-center gap-1'
         : 'flex flex-wrap items-center justify-center gap-0.5'

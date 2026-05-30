@@ -1047,8 +1047,8 @@ function VenueMosaicTableCard({
   }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
   const floorShowdownPot = useMemo(() => {
     if (!showFloorShowdownOverlay) return 0
-    return resolveShowdownDisplayPot(row, floorShowdownRows, showdownLab)
-  }, [showFloorShowdownOverlay, row, floorShowdownRows, showdownLab])
+    return resolveShowdownDisplayPot(row, floorShowdownRows, showdownLab, floorShowdownAnswer)
+  }, [showFloorShowdownOverlay, row, floorShowdownRows, showdownLab, floorShowdownAnswer])
   const winnerSeatIndexes = showFloorShowdownOverlay
     ? floorShowdownPresentation?.winnerSeatIndexes ?? null
     : null

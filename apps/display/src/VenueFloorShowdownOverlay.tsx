@@ -66,17 +66,61 @@ function sumTileSeatChipPayouts(tile: DisplayVenueTileSnapshot): number {
   return sum
 }
 
+function sumWinnerChipPayouts(winners: readonly ShowdownResultRow[]): number {
+  let sum = 0
+  for (const r of winners) {
+    if (typeof r.chipPayout === 'number' && Number.isFinite(r.chipPayout) && r.chipPayout > 0) {
+      sum += Math.round(r.chipPayout)
+    }
+  }
+  return sum
+}
+
 /**
  * Pot readout for floor showdown overlays. During showdown the engine `pot` field is often
  * already 0; use projected/awarded chip payouts from showdown rows when available.
+ * Split pots show each winner's share, not the summed total (avoid implying full pot per winner).
  */
 export function resolveShowdownDisplayPot(
   tile: DisplayVenueTileSnapshot,
   rows: readonly ShowdownResultRow[],
-  labMode: boolean
+  labMode: boolean,
+  correctAnswer: number | undefined
 ): number {
+  const { winnerKeys } = sortShowdownRowsByDistance([...rows], correctAnswer)
+  const winners = rows.filter(
+    (r) =>
+      winnerKeys.has(`${r.seat}:${r.name}`) &&
+      r.name.trim() !== '' &&
+      !r.hasFolded
+  )
+  const winnerCount = Math.max(1, winners.length)
+  const isSplit = winners.length > 1
+
   const tilePot = Math.max(0, Math.floor(Number.isFinite(tile.pot) ? tile.pot : 0))
+  const winnerPayoutSum = sumWinnerChipPayouts(winners)
+
+  if (isSplit) {
+    const payouts = winners
+      .map((r) => r.chipPayout)
+      .filter((p): p is number => typeof p === 'number' && p > 0)
+    if (payouts.length > 0 && payouts.every((p) => p === payouts[0])) {
+      return payouts[0]!
+    }
+    if (winnerPayoutSum > 0) return Math.round(winnerPayoutSum / winnerCount)
+    if (tilePot > 0) return Math.round(tilePot / winnerCount)
+    const fromTilePayouts = sumTileSeatChipPayouts(tile)
+    if (fromTilePayouts > 0) return Math.round(fromTilePayouts / winnerCount)
+    if (labMode) {
+      const seated = Math.max(2, Math.floor(tile.seated) || 2)
+      const total = 95 + tile.tableNum * 28 + seated * 12
+      return Math.round(total / winnerCount)
+    }
+    return 0
+  }
+
   if (tilePot > 0) return tilePot
+  if (winnerPayoutSum > 0) return winnerPayoutSum
 
   const fromRows = sumPositiveChipPayouts(rows)
   if (fromRows > 0) return fromRows

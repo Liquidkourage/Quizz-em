@@ -71,7 +71,10 @@ function buildCtx(
     namePills,
     extraWinners,
     splitWin: winners.length > 1,
-    ariaLabel: `${label}: ${winners.map((w) => w.name).join(', ')}`,
+    ariaLabel:
+      winners.length > 1
+        ? `${label}: ${winners.map((w) => w.name).join(', ')}. ${formatPot(pot)} each`
+        : `${label}: ${winners.map((w) => w.name).join(', ')}. Pot ${formatPot(pot)}`,
   }
 }
 
@@ -225,29 +228,27 @@ function GuessBlock(ctx: FloorShowdownCtx) {
 type WinnerLayout = 'pills' | 'line'
 type PotStyle = 'hero' | 'chip'
 
-/** Canonical order: winner declaration → pot → five winning digit cards. */
+/** Canonical order: winner → pot (centered in gap) → five winning digit cards. */
 function ShowdownStack({
   ctx,
   winnerLayout = 'line',
   potStyle = 'hero',
   className = '',
-  gapClass = 'gap-1',
 }: {
   ctx: FloorShowdownCtx
   winnerLayout?: WinnerLayout
   potStyle?: PotStyle
   className?: string
-  gapClass?: string
 }) {
   return (
-    <div className={`flex min-h-0 min-w-0 flex-col items-center ${gapClass} ${className}`}>
-      <div className="w-full max-w-full shrink-0 flex-[1]">
+    <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
+      <div className="flex w-full min-h-0 flex-1 items-end justify-center pb-0.5">
         <WinnerBlock ctx={ctx} layout={winnerLayout} />
       </div>
-      <div className="w-full shrink-0 flex-none -mt-1">
+      <div className="w-full shrink-0 py-1">
         {potStyle === 'chip' ? <PotChip pot={ctx.pot} /> : <HeroPot pot={ctx.pot} />}
       </div>
-      <div className="flex w-full min-h-0 max-h-[42%] shrink-0 items-center justify-center overflow-hidden py-0.5">
+      <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-0.5">
         {GuessBlock(ctx)}
       </div>
     </div>
@@ -284,7 +285,7 @@ function renderVariant(ctx: FloorShowdownCtx): ReactNode {
   return (
     <div className="flex min-h-0 flex-1 flex-col px-2 py-2">
       <MarqueeBulbs />
-      <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" gapClass="gap-1" />
+      <ShowdownStack ctx={ctx} winnerLayout="line" className="flex-1 justify-center" />
     </div>
   )
 }

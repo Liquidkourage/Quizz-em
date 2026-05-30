@@ -201,6 +201,13 @@ function padSeatFolded(raw: boolean[] | undefined): boolean[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => raw?.[i] === true)
 }
 
+function padSeatSubmittedAnswers(raw: (number | null | undefined)[] | undefined): (number | null)[] {
+  return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
+    const v = raw?.[i]
+    return typeof v === 'number' && Number.isFinite(v) ? v : null
+  })
+}
+
 function padSeatLastBettingAction(
   raw: (SeatBettingAction | null | undefined)[] | undefined
 ): (SeatBettingAction | null)[] {
@@ -682,6 +689,9 @@ function SeatRingWithLabels({
   communityDigits: communityDigitsIn,
   /** Mosaic: wagering street complete on this felt. */
   betsInPaused = false,
+  /** Mosaic: per-seat locked trivia answers during answering. */
+  seatSubmittedAnswers: seatSubmittedAnswersIn,
+  answeringPhase = false,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -715,10 +725,13 @@ function SeatRingWithLabels({
   seatHoleDigits?: (readonly [number, number] | null)[]
   communityDigits?: number[]
   betsInPaused?: boolean
+  seatSubmittedAnswers?: (number | null)[]
+  answeringPhase?: boolean
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
   const seatHoleDigits = padSeatHoleDigits(seatHoleDigitsIn)
+  const seatSubmittedAnswers = padSeatSubmittedAnswers(seatSubmittedAnswersIn)
   const communityDigits =
     communityDigitsIn?.filter((d) => Number.isInteger(d) && d >= 0 && d <= 9) ?? []
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -908,6 +921,11 @@ function SeatRingWithLabels({
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
         const showFoldOut = isFolded && !(showSeatBettingActions && lastBetAct === 'fold')
         const isActing = filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded
+        const answerLocked =
+          filled &&
+          answeringPhase &&
+          !isFolded &&
+          seatSubmittedAnswers[i] != null
         const isWinner =
           filled &&
           !isFolded &&
@@ -928,6 +946,9 @@ function SeatRingWithLabels({
           }
           if (isActing) {
             return 'border-[3px] border-amber-300/85 bg-neutral-950 shadow-[0_0_14px_rgba(234,179,8,0.35)] ring-1 ring-amber-400/25'
+          }
+          if (answerLocked) {
+            return 'border-[3px] border-cyan-300/95 bg-cyan-950/90 shadow-[0_0_14px_rgba(34,211,238,0.55)] ring-2 ring-cyan-400/50'
           }
           if (isWinner) {
             return 'border-[3px] border-amber-300/95 bg-amber-950/95 shadow-[0_0_14px_rgba(251,191,36,0.5)] ring-2 ring-amber-400/45'
@@ -954,6 +975,11 @@ function SeatRingWithLabels({
             >
               {isActing && !prefersReducedMotion ? (
                 <span aria-hidden className={`${actingSoftPulse} motion-safe:animate-pulse motion-safe:[animation-duration:2.8s]`} />
+              ) : answerLocked && !prefersReducedMotion ? (
+                <span
+                  aria-hidden
+                  className={`${actingSoftPulse} bg-cyan-400/20 motion-safe:animate-pulse motion-safe:[animation-duration:2.2s]`}
+                />
               ) : isWinner && !prefersReducedMotion ? (
                 <span
                   aria-hidden
@@ -961,13 +987,16 @@ function SeatRingWithLabels({
                 />
               ) : null}
               <div
-                className={`relative z-[2] flex shrink-0 items-center justify-center ${isActing ? dotActing : isWinner ? dotActing : dot} rounded-full border-2 shadow ${seatDotClass}`}
+                className={`relative z-[2] flex shrink-0 items-center justify-center ${
+                  isActing || answerLocked || isWinner ? dotActing : dot
+                } rounded-full border-2 shadow ${seatDotClass}`}
                 aria-current={isActing ? true : undefined}
                 aria-label={
                   raw
                     ? [
                         raw,
                         isActing ? 'has the wagering turn' : null,
+                        answerLocked ? 'answer locked in' : null,
                         isWinner ? 'won the hand' : null,
                         isFolded ? 'folded' : null,
                         showActingCallLine
@@ -1265,11 +1294,13 @@ function VenueMosaicTableCard({
               {tn}
             </div>
           </div>
-          <span
-            className={`max-w-[min(9rem,46%)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
-          >
-            {mosaicPhaseLabel(row)}
-          </span>
+          {!betsInPaused ? (
+            <span
+              className={`max-w-[min(9rem,46%)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
+            >
+              {mosaicPhaseLabel(row)}
+            </span>
+          ) : null}
         </div>
 
         <div
@@ -1303,6 +1334,8 @@ function VenueMosaicTableCard({
             seatHoleDigits={row.seatHoleDigits}
             communityDigits={row.communityDigits}
             betsInPaused={betsInPaused}
+            seatSubmittedAnswers={row.seatSubmittedAnswers}
+            answeringPhase={ph === 'answering'}
           />
         </div>
 

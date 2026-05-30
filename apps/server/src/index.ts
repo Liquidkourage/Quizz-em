@@ -1507,6 +1507,14 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     let seatSubmittedAnswers: (number | null)[] | undefined
     let seatAnswerCommunityIndices: (readonly number[] | null)[] | undefined
     let seatChipPayout: (number | null)[] | undefined
+    if (gs.phase === 'answering' || gs.phase === 'showdown' || gs.phase === 'reveal') {
+      seatSubmittedAnswers = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
+        const p = gs.players[i]
+        if (p == null || p.hasFolded) return null
+        const sa = p.submittedAnswer
+        return typeof sa === 'number' && Number.isFinite(sa) ? sa : null
+      })
+    }
     if (gs.phase === 'showdown' || gs.phase === 'reveal') {
       const q = gs.round.question
       if (q != null && typeof q.answer === 'number' && Number.isFinite(q.answer)) {
@@ -1514,12 +1522,6 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
         const qt = q.text
         showdownQuestionText = typeof qt === 'string' && qt.trim() !== '' ? qt.trim() : null
       }
-      seatSubmittedAnswers = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-        const p = gs.players[i]
-        if (p == null || p.hasFolded) return null
-        const sa = p.submittedAnswer
-        return typeof sa === 'number' && Number.isFinite(sa) ? sa : null
-      })
       seatAnswerCommunityIndices = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
         const p = gs.players[i]
         if (p == null || p.hasFolded || typeof p.submittedAnswer !== 'number') return null

@@ -486,10 +486,10 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot): string {
   return phaseAccent(row.phase)
 }
 
-/** Corner phase pill: paused betting uses sentence case and may wrap — other phases stay compact uppercase. */
+/** Corner phase pill typography — paused betting stays on one line in narrow tiles. */
 function mosaicPhaseCornerTypography(row: DisplayVenueTileSnapshot): string {
   if (isVenueTileWageringPaused(row) && row.seated >= 2) {
-    return 'font-black uppercase leading-tight tracking-wide'
+    return 'whitespace-nowrap text-[9px] font-black uppercase leading-none tracking-tight sm:text-[10px]'
   }
   if (isMosaicWageringLive(row)) {
     return 'font-black uppercase leading-tight tracking-wide'
@@ -1239,20 +1239,6 @@ function VenueMosaicTableCard({
             >
               {tn}
             </div>
-            {typeof row.smallBlind === 'number' &&
-            typeof row.bigBlind === 'number' &&
-            row.smallBlind > 0 &&
-            row.bigBlind > 0 ? (
-              <div
-                className={`font-mono font-bold tabular-nums leading-none text-white/55 ${
-                  floorCompact ? 'mt-0.5 text-[8px] sm:text-[9px]' : 'mt-1 text-[10px] sm:text-xs'
-                }`}
-                title={row.blindsTableOverride ? 'Custom blinds for this table' : 'Venue blinds'}
-              >
-                ${row.smallBlind}/${row.bigBlind}
-                {row.blindsTableOverride ? '*' : ''}
-              </div>
-            ) : null}
           </div>
           {!showFloorShowdownOverlay ? (
             <div
@@ -1280,7 +1266,9 @@ function VenueMosaicTableCard({
           )}
           <div className="min-w-0 justify-self-end">
             <span
-              className={`max-w-[min(9rem,46vw)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
+              className={`max-w-[min(9rem,46vw)] shrink-0 rounded-md font-semibold leading-tight sm:max-w-[10rem] ${
+                betsInPaused ? 'px-1.5 py-0.5' : 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs'
+              } ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
             >
               {mosaicPhaseLabel(row)}
             </span>

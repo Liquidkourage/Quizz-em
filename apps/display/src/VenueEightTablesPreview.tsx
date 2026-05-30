@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
   displayBettingPhaseLabel,
-  formatTriviaNumber,
   isVenueTileWageringPaused,
   venueTileActingSeatIndex,
 } from '@qhe/core'
@@ -12,12 +11,16 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAct
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
+import { readShowdownLabFromUrl } from './displayUrlParams'
+import {
+  resolveFloorShowdownData,
+  VenueFloorShowdownByVariant,
+  VenueFloorShowdownVariantStyles,
+} from './venueFloorShowdownVariants'
 import {
   showdownCorrectAnswerFromTile,
   showdownRowsFromTile,
   sortShowdownRowsByDistance,
-  type ShowdownResultRow,
 } from './showdownDisplay'
 import { buildVenueWallTileRows, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
@@ -33,11 +36,6 @@ import {
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
-import {
-  displayTextWrap,
-  fitDisplayNameClasses,
-  longestTrimmedLength,
-} from './displayTextFit'
 
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
@@ -477,7 +475,7 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot): string {
 function mosaicPhaseCornerTypography(row: DisplayVenueTileSnapshot): string {
   if (isVenueTileWageringPaused(row) && row.seated >= 2)
     return 'font-bold leading-snug normal-case whitespace-normal hyphens-none'
-  return `font-bold uppercase leading-tight ${displayTextWrap}`
+  return 'font-bold uppercase leading-tight truncate'
 }
 
 
@@ -624,6 +622,8 @@ function SeatRingWithLabels({
   mosaicFillHeight = false,
   feltCenterPot,
   feltCenterPotDimmed = false,
+  /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
+  winnerSeatIndexes = null,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -653,6 +653,7 @@ function SeatRingWithLabels({
   feltCenterPot?: number
   /** Fade the center pot during lobby / question before blinds post. */
   feltCenterPotDimmed?: boolean
+  winnerSeatIndexes?: ReadonlySet<number> | null
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
@@ -822,6 +823,11 @@ function SeatRingWithLabels({
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
         const showFoldOut = isFolded && !(showSeatBettingActions && lastBetAct === 'fold')
         const isActing = filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded
+        const isWinner =
+          filled &&
+          !isFolded &&
+          winnerSeatIndexes != null &&
+          winnerSeatIndexes.has(i)
         const showActingCallLine =
           isActing &&
           showSeatBettingActions &&
@@ -837,6 +843,9 @@ function SeatRingWithLabels({
           }
           if (isActing) {
             return 'border-[3px] border-amber-300/85 bg-neutral-950 shadow-[0_0_14px_rgba(234,179,8,0.35)] ring-1 ring-amber-400/25'
+          }
+          if (isWinner) {
+            return 'border-[3px] border-amber-300/95 bg-amber-950/95 shadow-[0_0_14px_rgba(251,191,36,0.5)] ring-2 ring-amber-400/45'
           }
           if (isFolded) {
             return 'border-rose-500/50 bg-black/50 shadow-inner opacity-[0.78] saturate-[0.7]'
@@ -860,15 +869,21 @@ function SeatRingWithLabels({
             >
               {isActing && !prefersReducedMotion ? (
                 <span aria-hidden className={`${actingSoftPulse} motion-safe:animate-pulse motion-safe:[animation-duration:2.8s]`} />
+              ) : isWinner && !prefersReducedMotion ? (
+                <span
+                  aria-hidden
+                  className={`${actingSoftPulse} bg-amber-400/18 motion-safe:animate-pulse motion-safe:[animation-duration:3.2s]`}
+                />
               ) : null}
               <div
-                className={`relative z-[2] flex shrink-0 items-center justify-center ${isActing ? dotActing : dot} rounded-full border-2 shadow ${seatDotClass}`}
+                className={`relative z-[2] flex shrink-0 items-center justify-center ${isActing ? dotActing : isWinner ? dotActing : dot} rounded-full border-2 shadow ${seatDotClass}`}
                 aria-current={isActing ? true : undefined}
                 aria-label={
                   raw
                     ? [
                         raw,
                         isActing ? 'has the wagering turn' : null,
+                        isWinner ? 'won the hand' : null,
                         isFolded ? 'folded' : null,
                         showActingCallLine
                           ? formatActingCallHint(actingCallAmount ?? 0)
@@ -973,7 +988,7 @@ function SeatRingWithLabels({
                 }}
               >
                 <span
-                  className={`block max-w-full ${displayTextWrap} ${fitDisplayNameClasses(raw.trim().length, size === 'lg' ? 'venueSeatLg' : 'venueSeatMd')} ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
+                  className={`block max-w-full truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
                 >
                   {raw}
                 </span>
@@ -983,7 +998,7 @@ function SeatRingWithLabels({
                     <>
                       {showMonoStackUnderName ? (
                         <span
-                          className={`mt-0.5 block max-w-full font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
+                          className={`mt-0.5 block max-w-full truncate font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
                             isFolded ? 'text-white/40' : 'text-casino-emerald'
                           }`}
                         >
@@ -1017,7 +1032,7 @@ function SeatRingWithLabels({
                 ) : null}
                 {lastBetAct != null ? (
                   <span
-                    className={`max-w-full whitespace-nowrap border-2 px-1.5 py-0.5 font-black uppercase leading-tight tracking-wide shadow-md ${
+                    className={`max-w-full truncate border-2 px-1.5 py-0.5 font-black uppercase leading-tight tracking-wide shadow-md ${
                       size === 'lg'
                         ? 'text-sm sm:text-base md:text-lg'
                         : 'text-[0.7rem] sm:text-xs md:text-sm'
@@ -1031,73 +1046,6 @@ function SeatRingWithLabels({
           </div>
         )
       })}
-    </div>
-  )
-}
-
-/** Compact floor tile — winning answer on the felt (overlay; does not grow the card). */
-function VenueFloorShowdownOverlay({
-  rows,
-  correctAnswer,
-}: {
-  rows: ShowdownResultRow[]
-  correctAnswer: number | undefined
-}) {
-  const { winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
-  const winners = rows.filter(
-    (r) =>
-      winnerKeys.has(`${r.seat}:${r.name}`) &&
-      r.name.trim() !== '' &&
-      !r.hasFolded
-  )
-  const label = winners.length > 1 ? 'Split winners' : 'Winner'
-  const shown = winners.slice(0, 2)
-
-  if (shown.length === 0) return null
-
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-[125] flex flex-col overflow-hidden rounded-[inherit] bg-black/78 backdrop-blur-[1px]"
-      role="group"
-      aria-label={`${label}: ${shown.map((w) => w.name).join(', ')}`}
-    >
-      {shown.map((w, winnerIndex) => (
-        <div
-          key={`${w.seat}:${w.name}`}
-          className={`flex min-h-0 flex-col items-stretch ${
-            shown.length > 1 ? 'flex-1' : 'h-full'
-          } ${winnerIndex > 0 ? 'border-t border-amber-500/30' : ''}`}
-        >
-          <div className="flex shrink-0 flex-col items-center gap-0.5 px-[6%] pb-0.5 pt-[5%] text-center">
-            {winnerIndex === 0 ? (
-              <p className="text-[0.45rem] font-bold uppercase leading-none tracking-[0.2em] text-amber-200/75 sm:text-[0.5rem]">
-                {label}
-              </p>
-            ) : null}
-            <p
-              className={`max-w-full ${displayTextWrap} text-[0.55rem] font-black leading-tight text-amber-50 sm:text-[0.65rem] ${fitDisplayNameClasses(w.name.trim().length, 'venueFloorWinner')}`}
-            >
-              {w.name}
-            </p>
-            {w.submitted != null && typeof correctAnswer === 'number' ? (
-              <p className="font-mono text-[0.5rem] font-bold tabular-nums leading-none text-amber-100/85 sm:text-[0.55rem]">
-                {formatTriviaNumber(w.submitted)}
-              </p>
-            ) : null}
-          </div>
-          <div
-            className="@container flex min-h-0 w-full flex-1 items-center justify-center px-[4%] pb-[6%]"
-            style={{ containerType: 'size' }}
-          >
-            <ShowdownFiveCardsUsed row={w} size="floor" />
-          </div>
-        </div>
-      ))}
-      {winners.length > 2 ? (
-        <p className="shrink-0 py-0.5 text-center text-[0.45rem] font-semibold text-amber-200/70">
-          +{winners.length - 2} more
-        </p>
-      ) : null}
     </div>
   )
 }
@@ -1131,6 +1079,8 @@ type VenueMosaicTableCardProps = {
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
   prefersReducedMotion?: boolean
+  /** URL lab: force showdown overlay + variant badges on every floor tile. */
+  showdownLab?: boolean
 }
 
 function VenueMosaicTableCard({
@@ -1140,6 +1090,7 @@ function VenueMosaicTableCard({
   floorCompact = false,
   floorHoneycomb = false,
   prefersReducedMotion = false,
+  showdownLab = false,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1153,23 +1104,32 @@ function VenueMosaicTableCard({
   const seatLastBettingAction = padSeatLastBettingAction(row.seatLastBettingAction)
   const showSeatBettingActions = ph === 'betting'
   const inShowdown = ph === 'showdown'
-  const showdownRows = inShowdown ? showdownRowsFromTile(row) : []
-  const showdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
+  const showdownBrief = hideShowdownResults || floorCompact
+  const liveShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
+  const liveShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
+  const { rows: floorShowdownRows, correctAnswer: floorShowdownAnswer } = useMemo(
+    () => resolveFloorShowdownData(row, liveShowdownRows, liveShowdownAnswer, showdownLab),
+    [row, liveShowdownRows, liveShowdownAnswer, showdownLab]
+  )
+  const showFloorShowdownOverlay =
+    showdownBrief && (inShowdown || showdownLab) && floorShowdownRows.length > 0
+  const winnerSeatIndexes = useMemo(() => {
+    if (!showFloorShowdownOverlay) return null
+    const { winnerKeys } = sortShowdownRowsByDistance(floorShowdownRows, floorShowdownAnswer)
+    const seatSet = new Set<number>()
+    for (const r of floorShowdownRows) {
+      if (winnerKeys.has(`${r.seat}:${r.name}`) && !r.hasFolded) seatSet.add(r.seat - 1)
+    }
+    return seatSet.size > 0 ? seatSet : null
+  }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
   const mosaicPotSubtitle = mosaicPotSubtitleActingToCall({
     actingSeatIndex: actingSeat,
     seatNames,
     actingCallAmount: row.actingCallAmount,
   })
-  const phaseCornerLabel = mosaicPhaseLabel(row)
-  const cardLabelMaxLen = longestTrimmedLength([
-    ...seatNames,
-    ...showdownRows.map((r) => r.name),
-    phaseCornerLabel,
-  ])
 
   const spotlight = isSpotlightThumb === true
   const totalChips = totalChipsFromSeats(seatNames, seatBankrolls)
-  const showdownBrief = hideShowdownResults || floorCompact
   const cardShell = spotlight
     ? 'rounded-xl border-2 border-amber-400/70 bg-black/65 shadow-[0_0_32px_rgba(251,191,36,0.22)] ring-2 ring-amber-400/35'
     : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
@@ -1201,9 +1161,9 @@ function VenueMosaicTableCard({
             </div>
           </div>
           <span
-            className={`max-w-[min(9rem,46%)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${fitDisplayNameClasses(cardLabelMaxLen, 'venuePhasePill')} ${mosaicPhaseAccent(row)}`}
+            className={`max-w-[min(9rem,46%)] shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold leading-tight sm:max-w-[10rem] sm:px-2.5 sm:py-1.5 sm:text-xs ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
           >
-            {phaseCornerLabel}
+            {mosaicPhaseLabel(row)}
           </span>
         </div>
 
@@ -1232,11 +1192,17 @@ function VenueMosaicTableCard({
             showSeatBettingActions={false}
             seatLastBettingAction={seatLastBettingAction}
             actingCallAmount={row.actingCallAmount}
-            feltCenterPot={inShowdown && showdownBrief ? undefined : pot}
+            feltCenterPot={showFloorShowdownOverlay ? undefined : pot}
             feltCenterPotDimmed={ph === 'lobby' || ph === 'question'}
+            winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
           />
-          {inShowdown && showdownBrief && showdownRows.length > 0 ? (
-            <VenueFloorShowdownOverlay rows={showdownRows} correctAnswer={showdownAnswer} />
+          {showFloorShowdownOverlay ? (
+            <VenueFloorShowdownByVariant
+              tableNum={tn}
+              rows={floorShowdownRows}
+              correctAnswer={floorShowdownAnswer}
+              labMode={showdownLab}
+            />
           ) : null}
         </div>
 
@@ -1251,7 +1217,7 @@ function VenueMosaicTableCard({
               return (
                 <li key={i} className="flex min-w-0 items-center justify-between gap-1">
                   <span
-                    className={`min-w-0 ${displayTextWrap} ${fitDisplayNameClasses(name.length, 'venueSeatList')} ${folded ? 'text-white/45 line-through' : onClock ? 'font-bold text-amber-200' : ''}`}
+                    className={`min-w-0 truncate ${folded ? 'text-white/45 line-through' : onClock ? 'font-bold text-amber-200' : ''}`}
                   >
                     {name}
                   </span>
@@ -1289,7 +1255,7 @@ function VenueMosaicTableCard({
                 <dt className="sr-only">Pot</dt>
                 <dd className="sr-only">{formatVenueBankroll(pot)}</dd>
                 <dt className="sr-only">Chips on table</dt>
-                <dd className="font-mono font-semibold tabular-nums text-casino-emerald/90">
+                <dd className="truncate font-mono font-semibold tabular-nums text-casino-emerald/90">
                   {formatVenueBankroll(totalChips)}
                 </dd>
               </div>
@@ -1315,9 +1281,7 @@ function VenueMosaicTableCard({
               </div>
               {mosaicPotSubtitle != null ? (
                 <div className="rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
-                  <p
-                    className={`min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs ${displayTextWrap} ${fitDisplayNameClasses(mosaicPotSubtitle.length, 'venueSeatList')}`}
-                  >
+                  <p className="min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs">
                     {mosaicPotSubtitle}
                   </p>
                 </div>
@@ -1330,7 +1294,7 @@ function VenueMosaicTableCard({
           )}
         </dl>
 
-        {inShowdown && showdownRows.length > 0 && !showdownBrief ? (
+        {inShowdown && liveShowdownRows.length > 0 && !showdownBrief ? (
           <div
             className="rounded-lg p-1"
             style={{
@@ -1340,8 +1304,8 @@ function VenueMosaicTableCard({
           >
             <ShowdownResultsPanel
               compact
-              correctAnswer={showdownAnswer}
-              rows={showdownRows}
+              correctAnswer={liveShowdownAnswer}
+              rows={liveShowdownRows}
             />
           </div>
         ) : null}
@@ -1442,13 +1406,11 @@ function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) 
               className="w-full min-w-0 border-b border-white/[0.08] py-3 sm:py-3.5"
               aria-label={`${r.name}, ${formatVenueBankroll(r.bankroll)}, Table ${r.tableNum} seat ${r.seatNum}`}
             >
-              <div
-                className={`w-full min-w-0 ${displayTextWrap} text-xl font-bold leading-[1.15] text-white/95 sm:text-2xl md:text-3xl ${fitDisplayNameClasses(r.name.trim().length, 'venueRosterName')}`}
-              >
+              <div className="w-full min-w-0 truncate text-xl font-bold leading-[1.15] text-white/95 sm:text-2xl md:text-3xl">
                 {r.name}
               </div>
               <div className="mt-1 flex w-full min-w-0 items-baseline justify-between gap-2">
-                <span className="min-w-0 flex-1 font-mono text-sm font-bold tabular-nums tracking-tight text-yellow-400/92 sm:text-base">
+                <span className="min-w-0 flex-1 truncate font-mono text-sm font-bold tabular-nums tracking-tight text-yellow-400/92 sm:text-base">
                   Table {r.tableNum} · Seat {r.seatNum}
                 </span>
                 <span className="shrink-0 text-right font-mono text-lg font-bold tabular-nums leading-none text-casino-emerald sm:text-xl">
@@ -1469,12 +1431,14 @@ function VenueAerialFloorGrid({
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
+  showdownLab = false,
 }: {
   tiles: DisplayVenueTileSnapshot[]
   spotlightTableNum: number | null
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
+  showdownLab?: boolean
 }) {
   const n = tiles.length
   const { columns, rowCount } = useMemo(() => venueBanquetLayout(n), [n])
@@ -1583,6 +1547,7 @@ function VenueAerialFloorGrid({
                       floorCompact={floorCompact}
                       floorHoneycomb
                       prefersReducedMotion={prefersReducedMotion}
+                      showdownLab={showdownLab}
                     />
                   </div>
                 )
@@ -1616,6 +1581,7 @@ export default function VenueEightTablesPreview({
 }: VenueEightTablesPreviewProps) {
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null)
   const prefersReducedMotion = usePrefersReducedMotion()
+  const showdownLab = useMemo(() => readShowdownLabFromUrl(), [])
 
   const headlineQuestionText = wall?.headlineQuestionText ?? null
   const answerDeadlineMs = wall?.answerDeadlineMs ?? null
@@ -1651,6 +1617,7 @@ export default function VenueEightTablesPreview({
         showRoster ? VENUE_CRAWL_PR_CLASS : ''
       }`}
     >
+      <VenueFloorShowdownVariantStyles />
       <div className="pointer-events-none absolute inset-0 opacity-35">
         <div
           className="absolute inset-0"
@@ -1746,12 +1713,24 @@ export default function VenueEightTablesPreview({
               </motion.div>
             ) : null}
 
+            {showdownLab ? (
+              <p className="shrink-0 rounded-lg border border-amber-500/40 bg-amber-950/35 px-2 py-1.5 text-center text-[0.55rem] leading-snug text-amber-100/90 sm:text-xs">
+                <span className="font-bold uppercase tracking-wider text-amber-300">
+                  Showdown lab
+                </span>
+                {' — '}
+                Each table tries a different layout (#01–#20). Hover badges for names. Remove{' '}
+                <span className="font-mono text-amber-200">?showdownLab=1</span> to exit.
+              </p>
+            ) : null}
+
             <VenueAerialFloorGrid
               tiles={floorTiles}
               spotlightTableNum={spotlightTableNum}
               showHeadline={showHeadline}
               skipMountIntro={skipMountIntro}
               prefersReducedMotion={prefersReducedMotion}
+              showdownLab={showdownLab}
             />
 
             {showRotatingTour && spotlightTableNum != null ? (

@@ -7,7 +7,6 @@ import {
   type ShowdownResultRow,
 } from './showdownDisplay'
 import { SHOWDOWN_FELT_STYLE, SHOWDOWN_RAIL_STYLE } from './showdownTheme'
-import { displayTextWrap, fitDisplayNameClasses } from './displayTextFit'
 
 type ShowdownResultsPanelProps = {
   correctAnswer: number | undefined
@@ -206,11 +205,7 @@ function PlayerShowdownRow({
         {row.seat}
       </span>
 
-      <p
-        className={`min-w-0 ${displayTextWrap} text-sm font-bold text-white sm:text-base ${fitDisplayNameClasses(row.name.trim().length, 'showdownRailName')}`}
-      >
-        {row.name}
-      </p>
+      <p className="min-w-0 truncate text-sm font-bold text-white sm:text-base">{row.name}</p>
 
       <motion.div className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[0.55rem] font-bold uppercase tracking-wider text-white/40">

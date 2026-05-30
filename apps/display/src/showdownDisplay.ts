@@ -201,6 +201,12 @@ export function showdownRowsFromGameState(gs: GameState): ShowdownResultRow[] {
 
 const rowKey = (r: { seat: number; name: string }): string => `${r.seat}:${r.name}`
 
+/** Best row to render the five winning digit chips on a compact venue floor tile. */
+export function pickShowdownFloorChipRow(winners: readonly ShowdownResultRow[]): ShowdownResultRow | null {
+  if (winners.length === 0) return null
+  return winners.find((w) => w.answerCards.length > 0) ?? winners[0]!
+}
+
 /**
  * Sort by closeness to the correct answer AND identify every winner
  * (single closest *or* every seat sharing the closest distance / a positive

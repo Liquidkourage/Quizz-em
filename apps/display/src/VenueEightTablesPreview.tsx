@@ -97,32 +97,55 @@ function VenuePotAmount({
 }
 
 /** Hero pot readout centered on the green felt (venue floor mosaic). */
-function VenueFeltCenterPot({
+function mosaicStreetLabel(phase: string, communityCount: number): string | null {
+  const ph = phase.trim().toLowerCase()
+  if (ph === 'lobby' || ph === 'question') return null
+  if (communityCount === 0) return 'Pre-flop'
+  if (communityCount === 3) return 'Flop'
+  if (communityCount === 4) return 'Turn'
+  if (communityCount >= 5) return 'River'
+  return 'Pre-flop'
+}
+
+/** Community board + pot + street — stacked on felt center, shifted upward. */
+function VenueMosaicFeltCenterStack({
   amount,
   dimmed,
+  communityDigits,
+  streetLabel,
   prefersReducedMotion,
 }: {
   amount: number
   dimmed: boolean
+  communityDigits: number[]
+  streetLabel: string | null
   prefersReducedMotion: boolean
 }) {
   const feltBounds = venueFeltBoundsFrac()
+  const hasCommunity = communityDigits.length > 0
   return (
     <div
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
-      aria-hidden={dimmed && amount <= 0}
+      aria-hidden={dimmed && amount <= 0 && !hasCommunity && streetLabel == null}
     >
       <div
-        className="flex max-w-[72%] flex-col items-center justify-center text-center"
+        className="flex max-w-[92%] flex-col items-center justify-center gap-[2px] text-center sm:gap-0.5"
         style={{
           position: 'absolute',
           left: `${feltBounds.cx * 100}%`,
-          top: `${feltBounds.cy * 100}%`,
+          top: `calc(${feltBounds.cy * 100}% - 7%)`,
           transform: 'translate(-50%, -50%)',
         }}
       >
+        {hasCommunity ? (
+          <div className="mb-0.5 flex items-center justify-center gap-[2px] sm:gap-0.5">
+            {communityDigits.map((digit, i) => (
+              <MosaicDigitCard key={`${i}-${digit}`} digit={digit} size="community" />
+            ))}
+          </div>
+        ) : null}
         <span
-          className={`mb-0.5 text-[0.45rem] font-black uppercase tracking-[0.2em] sm:text-[0.5rem] ${
+          className={`text-[clamp(0.42rem,2.4cqw,0.52rem)] font-black uppercase tracking-[0.18em] ${
             dimmed && amount <= 0 ? 'text-yellow-200/25' : 'text-yellow-200/60'
           }`}
         >
@@ -131,10 +154,15 @@ function VenueFeltCenterPot({
         <VenuePotAmount
           amount={amount}
           prefersReducedMotion={prefersReducedMotion}
-          className={`block font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] text-[clamp(1rem,8cqw,2.1rem)] ${
+          className={`block font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] text-[clamp(0.85rem,7.5cqw,1.75rem)] ${
             dimmed && amount <= 0 ? 'text-yellow-300/35' : 'text-yellow-300'
           }`}
         />
+        {streetLabel ? (
+          <span className="mt-0.5 text-[clamp(0.45rem,2.8cqw,0.62rem)] font-bold uppercase leading-none tracking-wide text-amber-200/90">
+            {streetLabel}
+          </span>
+        ) : null}
       </div>
     </div>
   )
@@ -226,38 +254,45 @@ function padSeatHoleDigits(
   })
 }
 
-const SEAT_LAYER_FELT_COMMUNITY = 'z-[106]'
 const SEAT_LAYER_FELT_HOLE = 'z-[19]'
 
-/** Tiny digit card for mosaic felts — scales with @container on the ring. */
+/** Digit card for mosaic felts — scales with @container on the ring. */
 function MosaicDigitCard({
   digit,
   dimmed = false,
   faceDown = false,
+  size = 'hole',
 }: {
   digit?: number
   dimmed?: boolean
   faceDown?: boolean
+  size?: 'hole' | 'community'
 }) {
   const sizeClass =
-    'h-[clamp(0.65rem,4.2cqw,0.95rem)] w-[clamp(0.48rem,3.1cqw,0.72rem)]'
+    size === 'community'
+      ? 'h-[clamp(0.95rem,6.5cqw,1.5rem)] w-[clamp(0.68rem,4.6cqw,1.05rem)]'
+      : 'h-[clamp(0.78rem,5.2cqw,1.2rem)] w-[clamp(0.56rem,3.7cqw,0.9rem)]'
+  const textClass =
+    size === 'community'
+      ? 'text-[clamp(0.52rem,3.6cqw,0.72rem)]'
+      : 'text-[clamp(0.42rem,2.8cqw,0.58rem)]'
   if (faceDown) {
     return (
       <span
-        className={`inline-flex shrink-0 items-center justify-center rounded-[2px] border border-violet-400/45 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.32rem,2cqw,0.45rem)] leading-none shadow-sm shadow-violet-500/20 ${sizeClass}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border border-violet-400/50 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.38rem,2.4cqw,0.52rem)] leading-none shadow-sm shadow-violet-500/25 ${sizeClass}`}
         aria-hidden
       >
-        <span className="text-violet-300/75">✦</span>
+        <span className="text-violet-300/80">✦</span>
       </span>
     )
   }
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-[2px] border font-mono font-black tabular-nums leading-none shadow-sm ${
+      className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border font-mono font-black tabular-nums leading-none shadow-sm ${
         dimmed
           ? 'border-white/15 bg-black/40 text-white/35'
-          : 'border-cyan-400/55 bg-neutral-950/95 text-cyan-200 shadow-[0_0_6px_rgba(34,211,238,0.25)]'
-      } ${sizeClass} text-[clamp(0.42rem,2.8cqw,0.58rem)]`}
+          : 'border-cyan-400/55 bg-neutral-950/95 text-cyan-200 shadow-[0_0_8px_rgba(34,211,238,0.3)]'
+      } ${sizeClass} ${textClass}`}
       aria-hidden
     >
       {digit}
@@ -270,7 +305,7 @@ function mosaicSeatInwardPct(
   seatCount: number,
   w: number,
   h: number,
-  inwardFrac = 0.34
+  inwardFrac = 0.3
 ): { leftPct: number; topPct: number } {
   const outer = mosaicSeatDotPct(seatIndex, seatCount, w, h)
   const center = venueMosaicFeltCenterPct()
@@ -278,39 +313,6 @@ function mosaicSeatInwardPct(
     leftPct: outer.leftPct + (center.leftPct - outer.leftPct) * inwardFrac,
     topPct: outer.topPct + (center.topPct - outer.topPct) * inwardFrac,
   }
-}
-
-function VenueMosaicCommunityRow({
-  digits,
-  abovePot = true,
-}: {
-  digits: number[]
-  abovePot?: boolean
-}) {
-  const feltBounds = venueFeltBoundsFrac()
-  const valid = digits.filter((d) => Number.isInteger(d) && d >= 0 && d <= 9)
-  if (valid.length === 0) return null
-  const cyOffset = abovePot ? -10 : 8
-  return (
-    <div
-      className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_COMMUNITY}`}
-      aria-hidden
-    >
-      <div
-        className="flex max-w-[88%] items-center justify-center gap-[1px] sm:gap-0.5"
-        style={{
-          position: 'absolute',
-          left: `${feltBounds.cx * 100}%`,
-          top: `calc(${feltBounds.cy * 100}% + ${cyOffset}%)`,
-          transform: 'translate(-50%, -50%)',
-        }}
-      >
-        {valid.map((digit, i) => (
-          <MosaicDigitCard key={`${i}-${digit}`} digit={digit} />
-        ))}
-      </div>
-    </div>
-  )
 }
 
 const SEAT_BETTING_ACTION_LABELS: Record<SeatBettingAction, string> = {
@@ -663,6 +665,8 @@ function SeatRingWithLabels({
   seatHoleDigits: seatHoleDigitsIn,
   /** Mosaic: community board digits (0–5 cards). */
   communityDigits: communityDigitsIn,
+  /** Mosaic: table phase for street label under pot. */
+  feltMosaicPhase = 'lobby',
 }: {
   seatedCount: number
   seatNames: string[]
@@ -695,12 +699,14 @@ function SeatRingWithLabels({
   winnerSeatIndexes?: ReadonlySet<number> | null
   seatHoleDigits?: (readonly [number, number] | null)[]
   communityDigits?: number[]
+  feltMosaicPhase?: string
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
   const seatHoleDigits = padSeatHoleDigits(seatHoleDigitsIn)
   const communityDigits =
     communityDigitsIn?.filter((d) => Number.isInteger(d) && d >= 0 && d <= 9) ?? []
+  const feltStreetLabel = mosaicStreetLabel(feltMosaicPhase, communityDigits.length)
   const prefersReducedMotion = usePrefersReducedMotion()
   const isMosaic = ringMode === 'mosaic'
   const ringAspect = size === 'lg' ? VENUE_RING_ASPECT_LG : VENUE_RING_ASPECT_MD
@@ -831,14 +837,13 @@ function SeatRingWithLabels({
         }}
       />
       {showFeltCenterPot ? (
-        <VenueFeltCenterPot
+        <VenueMosaicFeltCenterStack
           amount={feltCenterPot}
           dimmed={feltCenterPotDimmed}
+          communityDigits={communityDigits}
+          streetLabel={feltStreetLabel}
           prefersReducedMotion={prefersReducedMotion}
         />
-      ) : null}
-      {isMosaic && communityDigits.length > 0 ? (
-        <VenueMosaicCommunityRow digits={communityDigits} />
       ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         const filled = i < seatedCount
@@ -1259,6 +1264,7 @@ function VenueMosaicTableCard({
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
             seatHoleDigits={row.seatHoleDigits}
             communityDigits={row.communityDigits}
+            feltMosaicPhase={ph}
           />
         </div>
 

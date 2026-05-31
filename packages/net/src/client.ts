@@ -11,6 +11,7 @@ import type {
   DisplayVenueWallSnapshot,
   HostVenueGameplayHintsPayload,
   HostVenueFeltBeatPayload,
+  HostVenueFloorBriefPayload,
 } from './index'
 
 let socket: Socket | null = null
@@ -198,6 +199,15 @@ export function onHostVenueFeltBeat(callback: (payload: HostVenueFeltBeatPayload
   socket.on('hostVenueFeltBeat', callback)
   return () => {
     if (socket) socket.off('hostVenueFeltBeat', callback)
+  }
+}
+
+export function onHostVenueFloorBrief(callback: (payload: HostVenueFloorBriefPayload) => void) {
+  if (!socket) return () => {}
+
+  socket.on('hostVenueFloorBrief', callback)
+  return () => {
+    if (socket) socket.off('hostVenueFloorBrief', callback)
   }
 }
 

@@ -8,6 +8,7 @@ import {
   onHostLibrary,
   onHostVenueGameplayHints,
   onHostVenueFeltBeat,
+  onHostVenueFloorBrief,
   useSocket,
   startAnswering,
   adminAdvanceTurn,
@@ -37,7 +38,7 @@ import {
   setlistDelete,
 } from '@qhe/net'
 import type { GameState, Question } from '@qhe/core'
-import type { HostVenueFeltBeatRow } from '@qhe/net'
+import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
 import {
@@ -49,6 +50,7 @@ import {
   HostPublicTvsPanel,
   HostRunOfShowPanel,
   HostVenueFeltBeatStrip,
+  HostVenueFloorBriefPanel,
   buildHostPhaseDockItems,
   buildHostRunOfShowSteps,
   formatVenueBlindsSummary,
@@ -154,6 +156,7 @@ function HostApp() {
   const [handsPerBlindLevel, setHandsPerBlindLevel] = useState(3)
   const [blindLevelSummary, setBlindLevelSummary] = useState<string | null>(null)
   const [venueFeltBeat, setVenueFeltBeat] = useState<HostVenueFeltBeatRow[] | null>(null)
+  const [venueFloorBrief, setVenueFloorBrief] = useState<HostVenueFloorBriefPayload | null>(null)
 
   const viteHostSecret =
     typeof import.meta.env.VITE_HOST_SECRET === 'string' ? import.meta.env.VITE_HOST_SECRET.trim() : ''
@@ -221,6 +224,13 @@ function HostApp() {
   useEffect(() => {
     const off = onHostVenueFeltBeat((p) => {
       setVenueFeltBeat(p.felts)
+    })
+    return off
+  }, [])
+
+  useEffect(() => {
+    const off = onHostVenueFloorBrief((p) => {
+      setVenueFloorBrief(p)
     })
     return off
   }, [])
@@ -1097,6 +1107,11 @@ function HostApp() {
           }
         />
         <HostVenueFeltBeatStrip rows={venueFeltBeat} hostTableId={hostTableId} />
+        <HostVenueFloorBriefPanel
+          brief={venueFloorBrief}
+          hostPlayerLabel={hostPlayerLabel}
+          hostTableId={hostTableId}
+        />
 
         <HostRunOfShowPanel steps={runOfShowSteps}>
           {currentRunStepId === 'assign' &&

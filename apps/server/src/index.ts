@@ -88,6 +88,11 @@ import {
 } from './venue-wagering-orchestration'
 import { applyVenueCondenseAfterRound, venueCondenseSnapshotFromRooms } from './venue-condense'
 import {
+  buildHostVenueFloorBrief,
+  clearVenueHostLog,
+  recordVenueHostHandResults,
+} from './venue-host-log'
+import {
   coerceImportQuestions,
   pruneSetlistRefs,
   type VenueLibraryData,
@@ -1829,6 +1834,16 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     .sort((a, b) => a - b)
   io.to(hostVenueRoom(vn)).emit('hostVenueGameplayHints', { livelyTableNums })
   io.to(hostVenueRoom(vn)).emit('hostVenueFeltBeat', buildHostVenueFeltBeatPayload(vn))
+  io.to(hostVenueRoom(vn)).emit(
+    'hostVenueFloorBrief',
+    buildHostVenueFloorBrief({
+      venueCode: vn,
+      tiles,
+      fieldPlayerCount: condenseCounts.chipSurvivorCount,
+      liveTableCount: condenseCounts.liveTableCount,
+      bigBlindHint: blindsSnap.bigBlind,
+    }),
+  )
 }
 
 function afterTableStateBroadcast(gs: GameState, _sessionKey: string) {
@@ -2846,13 +2861,19 @@ io.on('connection', (socket) => {
           )
           if (!lockEnd) break
           clearVenueWageringOrchestrationState(gameState.code)
-          for (const { tk } of lockEnd) {
-            const gs = rooms.get(tk)
-            const next = endRound(gs!)
-            rooms.set(tk, next)
-            emitVenueTableState(tk, next)
-          }
           const vnEnd = normalizeVenueCode(gameState.code)
+          const handResultRows: { tableNum: number; before: GameState; after: GameState }[] = []
+          for (const { tk, n } of lockEnd) {
+            const gs = rooms.get(tk)
+            if (!gs) continue
+            handResultRows.push({ tableNum: n, before: gs, after: endRound(gs) })
+          }
+          recordVenueHostHandResults(vnEnd, handResultRows)
+          for (let i = 0; i < handResultRows.length; i++) {
+            const tk = lockEnd[i]!.tk
+            rooms.set(tk, handResultRows[i]!.after)
+            emitVenueTableState(tk, handResultRows[i]!.after)
+          }
           const levelMsg = recordVenueHandCompleted(vnEnd)
           syncVenueBlindsToAllSessions(vnEnd)
           await emitHostLibrary(vnEnd)
@@ -2902,6 +2923,7 @@ io.on('connection', (socket) => {
           emitVenueTableState(lobbyKey, freshLobby)
           socket.emit('toast', 'New game — numbered tables cleared; lobby reset.')
           venueAudienceWelcomeExpired.delete(vn)
+          clearVenueHostLog(vn)
           emitDisplayVenueSnapshotNow(gameState.code)
           gameState = rooms.get(lobbyKey)!
           break

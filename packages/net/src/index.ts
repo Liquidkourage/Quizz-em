@@ -178,6 +178,47 @@ export type HostVenueFeltBeatPayload = {
   felts: HostVenueFeltBeatRow[]
 }
 
+export type HostVenueRecentAction = {
+  seat: number
+  name: string
+  action: SeatBettingAction
+}
+
+/** Host-only: per-table action cue plus venue bust / big-win ledger. */
+export type HostVenueActionRow = {
+  tableNum: number
+  phase: string
+  seated: number
+  pot: number
+  interestingAction?: boolean
+  actingSeatIndex: number | null
+  actingPlayerName: string | null
+  actingSummary: string | null
+  recentActions: HostVenueRecentAction[]
+}
+
+export type HostVenueBustEntry = {
+  name: string
+  tableNum: number
+  atMs: number
+}
+
+export type HostVenueBigWinEntry = {
+  name: string
+  tableNum: number
+  amount: number
+  atMs: number
+}
+
+export type HostVenueFloorBriefPayload = {
+  actionRows: HostVenueActionRow[]
+  busts: HostVenueBustEntry[]
+  bigWinners: HostVenueBigWinEntry[]
+  bigWinMinAmount: number
+  fieldPlayerCount: number
+  liveTableCount: number
+}
+
 export const ClientHello = z.object({
   role: ClientRole,
   name: z.string(),
@@ -294,6 +335,8 @@ export interface ServerToClientEvents {
   hostVenueGameplayHints: (payload: HostVenueGameplayHintsPayload) => void
   /** Host cue: structured 1–8 beat rows (updates with venue wall). */
   hostVenueFeltBeat: (payload: HostVenueFeltBeatPayload) => void
+  /** Host cue: per-table action + bust / big-win ledger (updates with venue wall). */
+  hostVenueFloorBrief: (payload: HostVenueFloorBriefPayload) => void
   /** Venue displays (DISPLAY:{venue}); host drives via displaySetLayout */
   displayLayout: (layout: DisplayLayoutPayload) => void
   /** Venue wall mosaic + current question / answer timer */

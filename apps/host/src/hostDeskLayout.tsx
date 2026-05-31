@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NeonButton } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
-import type { HostVenueFeltBeatRow, VenueBlindsSnapshot } from '@qhe/net'
+import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload, VenueBlindsSnapshot } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID } from '@qhe/core'
 import { adminCloseBetting } from '@qhe/net'
 
@@ -568,6 +568,171 @@ export function HostVenueFeltBeatStrip({
               </div>
             )
           })}
+        </div>
+      )}
+    </HostCollapsible>
+  )
+}
+
+const BET_ACTION_LABEL: Record<string, string> = {
+  check: 'Check',
+  call: 'Call',
+  raise: 'Raise',
+  fold: 'Fold',
+  allIn: 'All-in',
+}
+
+function formatHostFloorMoney(n: number): string {
+  return `$${Math.round(n).toLocaleString()}`
+}
+
+export function HostVenueFloorBriefPanel({
+  brief,
+  hostPlayerLabel,
+  hostTableId,
+}: {
+  brief: HostVenueFloorBriefPayload | null
+  hostPlayerLabel: (name: string) => string
+  hostTableId: string
+}) {
+  const livelyCount = brief?.actionRows.filter((r) => r.interestingAction).length ?? 0
+  const rows = brief?.actionRows ?? []
+
+  return (
+    <HostCollapsible
+      defaultOpen={livelyCount > 0}
+      className="mb-4"
+      badge={
+        brief != null ? (
+          <span className="text-xs font-normal text-white/40">
+            {brief.liveTableCount} tables · {brief.fieldPlayerCount} in field
+          </span>
+        ) : null
+      }
+      summary={
+        <span>
+          Venue floor · action
+          <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
+            — who&apos;s acting, busts, big wins
+          </span>
+        </span>
+      }
+    >
+      {brief == null ? (
+        <p className="text-sm text-white/50">Waiting for venue sync…</p>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
+          <div>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/45">
+              Table action
+            </p>
+            {rows.length === 0 ? (
+              <p className="text-sm text-white/50">No seated tables yet.</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {rows.map((row) => {
+                  const watching =
+                    hostTableId.trim() !== LOBBY_TABLE_ID &&
+                    String(row.tableNum) === hostTableId.trim()
+                  const phaseLabel = HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
+                  return (
+                    <li
+                      key={row.tableNum}
+                      className={`rounded-lg border px-2.5 py-2 ${
+                        row.interestingAction
+                          ? 'border-amber-400/45 bg-amber-950/25'
+                          : 'border-white/10 bg-black/20'
+                      } ${watching ? 'ring-1 ring-emerald-400/50' : ''}`}
+                    >
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+                        <span className="text-sm font-bold text-white/90">
+                          T{row.tableNum}
+                          {watching ? (
+                            <span className="ml-1.5 text-[10px] font-semibold uppercase text-emerald-300">
+                              You
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="text-xs text-white/50">
+                          {phaseLabel}
+                          {row.pot > 0 ? ` · pot ${formatHostFloorMoney(row.pot)}` : ''}
+                        </span>
+                      </div>
+                      {row.actingSummary ? (
+                        <p className="mt-0.5 text-xs font-semibold text-amber-100/90">
+                          {row.actingSummary}
+                        </p>
+                      ) : null}
+                      {row.recentActions.length > 0 ? (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {row.recentActions.map((a, i) => (
+                            <span
+                              key={`${row.tableNum}-${a.seat}-${i}`}
+                              className="rounded-full border border-white/15 bg-black/35 px-2 py-0.5 text-[10px] font-semibold text-white/75"
+                            >
+                              {hostPlayerLabel(a.name)}{' '}
+                              <span className="text-white/45">
+                                {BET_ACTION_LABEL[a.action] ?? a.action}
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/45">
+              Busts
+            </p>
+            {brief.busts.length === 0 ? (
+              <p className="text-sm text-white/50">None yet this session.</p>
+            ) : (
+              <ul className="max-h-56 space-y-1 overflow-y-auto pr-1">
+                {brief.busts.map((b, i) => (
+                  <li
+                    key={`${b.name}-${b.tableNum}-${b.atMs}-${i}`}
+                    className="flex items-baseline justify-between gap-2 rounded-md border border-red-400/25 bg-red-950/20 px-2 py-1.5 text-xs"
+                  >
+                    <span className="font-semibold text-red-100">{hostPlayerLabel(b.name)}</span>
+                    <span className="shrink-0 text-white/45">T{b.tableNum}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/45">
+              Big wins
+              <span className="ml-1 font-normal normal-case text-white/35">
+                (≥ {formatHostFloorMoney(brief.bigWinMinAmount)})
+              </span>
+            </p>
+            {brief.bigWinners.length === 0 ? (
+              <p className="text-sm text-white/50">None yet this session.</p>
+            ) : (
+              <ul className="max-h-56 space-y-1 overflow-y-auto pr-1">
+                {brief.bigWinners.map((w, i) => (
+                  <li
+                    key={`${w.name}-${w.tableNum}-${w.atMs}-${i}`}
+                    className="flex items-baseline justify-between gap-2 rounded-md border border-emerald-400/30 bg-emerald-950/20 px-2 py-1.5 text-xs"
+                  >
+                    <span className="min-w-0 truncate font-semibold text-emerald-100">
+                      {hostPlayerLabel(w.name)}
+                    </span>
+                    <span className="shrink-0 font-mono font-bold tabular-nums text-emerald-200">
+                      +{formatHostFloorMoney(w.amount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       )}
     </HostCollapsible>

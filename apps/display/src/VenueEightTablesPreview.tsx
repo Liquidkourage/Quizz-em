@@ -25,11 +25,9 @@ import {
   banquetCheckerboardTrackCount,
   chunkTilesIntoBanquetRows,
   populatedVenueTiles,
-  VENUE_FLOOR_CELL_GAP_REM,
-  VENUE_FLOOR_ROW_GAP_REM,
   venueBanquetLayout,
-  venueFloorCompact,
-  venueFloorShowdownBrief,
+  venueFloorSizeSpec,
+  type VenueFloorSizeSpec,
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
@@ -1168,8 +1166,8 @@ type VenueMosaicTableCardProps = {
   row: DisplayVenueTileSnapshot
   /** Winner line only (dense floor with many tables). */
   hideShowdownResults?: boolean
-  /** Aerial floor: tighter chrome, no per-seat scroll list. */
-  floorCompact?: boolean
+  /** Row-driven felt density from {@link venueFloorSizeSpec}. */
+  floorSize: VenueFloorSizeSpec
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
   prefersReducedMotion?: boolean
@@ -1180,7 +1178,7 @@ type VenueMosaicTableCardProps = {
 function VenueMosaicTableCard({
   row,
   hideShowdownResults = false,
-  floorCompact = false,
+  floorSize,
   floorHoneycomb = false,
   prefersReducedMotion = false,
   dimAnsweringEarly = false,
@@ -1197,7 +1195,8 @@ function VenueMosaicTableCard({
   const seatLastBettingAction = padSeatLastBettingAction(row.seatLastBettingAction)
   const showSeatBettingActions = ph === 'betting'
   const inShowdown = ph === 'showdown'
-  const showdownBrief = hideShowdownResults || floorCompact
+  const showdownBrief = hideShowdownResults || floorSize.showdownBrief
+  const compactChrome = floorSize.compactChrome
   const floorShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
   const floorShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
   const showFloorShowdownOverlay =
@@ -1234,24 +1233,22 @@ function VenueMosaicTableCard({
         className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
           dimAnsweringEarly ? 'opacity-[0.68] brightness-[0.78] saturate-[0.82]' : ''
         } ${
-          floorHoneycomb && floorCompact
+          floorHoneycomb && compactChrome
             ? 'h-full min-h-0 overflow-hidden'
             : floorHoneycomb
               ? 'h-auto overflow-visible'
               : 'h-full min-h-0 overflow-hidden'
-        } ${floorCompact ? 'p-1 sm:p-1.5' : 'overflow-visible p-2 sm:p-2.5'} relative ${cardShell}`}
+        } ${floorSize.cardPaddingClass} relative ${cardShell}`}
       >
         <div
-          className={`flex min-h-0 min-w-0 flex-1 flex-col ${
-            floorCompact ? 'gap-0.5' : 'gap-1.5 sm:gap-2'
-          } ${showFloorShowdownOverlay ? 'opacity-25' : ''}`}
+          className={`flex min-h-0 min-w-0 flex-1 flex-col ${floorSize.innerGapClass} ${
+            showFloorShowdownOverlay ? 'opacity-25' : ''
+          }`}
         >
         <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-start gap-x-1">
           <div className="min-w-0 justify-self-start">
             <div
-              className={`font-black tabular-nums leading-none text-yellow-400 ${
-                floorCompact ? 'text-base sm:text-lg' : 'text-2xl'
-              }`}
+              className={`font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
             >
               {tn}
             </div>
@@ -1264,11 +1261,7 @@ function VenueMosaicTableCard({
               <VenuePotAmount
                 amount={pot}
                 prefersReducedMotion={prefersReducedMotion}
-                className={`font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${
-                  floorCompact
-                    ? 'text-[clamp(0.95rem,5cqw,1.5rem)] sm:text-[clamp(1rem,5.5cqw,1.65rem)]'
-                    : 'text-[clamp(1.1rem,6cqw,2rem)] sm:text-[clamp(1.2rem,6.5cqw,2.15rem)]'
-                } ${
+                className={`font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${
                   ph === 'lobby' || ph === 'question'
                     ? pot > 0
                       ? 'text-yellow-300/75'
@@ -1283,7 +1276,7 @@ function VenueMosaicTableCard({
           <div className="min-w-0 justify-self-end">
             <span
               className={`max-w-[min(9rem,46vw)] shrink-0 rounded-md font-semibold leading-tight sm:max-w-[10rem] ${
-                showNoMoreBets ? 'px-1.5 py-0.5' : 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs'
+                showNoMoreBets ? 'px-1.5 py-0.5' : floorSize.phaseChipClass
               } ${mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)} ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
             >
               {mosaicPhaseLabel(row, showNoMoreBets)}
@@ -1293,20 +1286,20 @@ function VenueMosaicTableCard({
 
         <div
           className={`@container relative z-[1] flex w-full justify-center ${
-            floorHoneycomb && floorCompact
+            floorHoneycomb && compactChrome
               ? 'min-h-0 flex-1 overflow-hidden'
               : floorHoneycomb
                 ? 'shrink-0 overflow-visible'
                 : 'min-h-0 flex-1 overflow-hidden'
-          } ${floorCompact && !floorHoneycomb ? 'scale-[0.92] sm:scale-95' : ''}`}
+          } ${floorSize.ringScaleClass}`}
           style={
-            floorHoneycomb && !floorCompact ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined
+            floorHoneycomb && !compactChrome ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined
           }
         >
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb}
-            mosaicFillHeight={floorHoneycomb && floorCompact}
+            mosaicFillHeight={floorHoneycomb && floorSize.honeycombFillHeight}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}
@@ -1325,7 +1318,7 @@ function VenueMosaicTableCard({
           />
         </div>
 
-        {seats > 0 && !floorCompact ? (
+        {seats > 0 && floorSize.showSeatList ? (
           <ul className="max-h-[5.5rem] space-y-0.5 overflow-y-auto border-t border-white/10 pt-1.5 text-[0.7rem] leading-snug text-white/88">
             {Array.from({ length: seats }, (_, i) => {
               const name = seatNames[i]?.trim() ?? ''
@@ -1361,7 +1354,7 @@ function VenueMosaicTableCard({
           </ul>
         ) : null}
 
-        {!floorCompact && mosaicPotSubtitle != null ? (
+        {floorSize.showPotSubtitle && mosaicPotSubtitle != null ? (
           <div className="shrink-0 rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
             <p className="min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs">
               {mosaicPotSubtitle}
@@ -1546,10 +1539,11 @@ function VenueAerialFloorGrid({
   prefersReducedMotion: boolean
 }) {
   const n = tiles.length
-  const { columns, rowCount } = useMemo(() => venueBanquetLayout(n), [n])
+  const banquetLayout = useMemo(() => venueBanquetLayout(n), [n])
+  const { columns, rowCount } = banquetLayout
+  const floorSize = useMemo(() => venueFloorSizeSpec(banquetLayout), [banquetLayout])
   const banquetRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
-  const floorCompact = venueFloorCompact(columns)
-  const showdownBrief = venueFloorShowdownBrief(columns)
+  const showdownBrief = floorSize.showdownBrief
   const othersStillWagering = useMemo(() => venueHasOpenWagering(tiles), [tiles])
 
   if (n === 0) return null
@@ -1600,7 +1594,7 @@ function VenueAerialFloorGrid({
         style={
           {
             gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
-            gap: `${VENUE_FLOOR_ROW_GAP_REM}rem`,
+            gap: `${floorSize.rowGapRem}rem`,
             perspective: '1400px',
             transform: 'rotateX(3deg)',
             transformOrigin: 'center 50%',
@@ -1616,7 +1610,7 @@ function VenueAerialFloorGrid({
               className="grid h-full min-h-0 w-full min-w-0 items-stretch overflow-hidden"
               style={{
                 gridTemplateColumns: `repeat(${trackCount}, minmax(0, 1fr))`,
-                gap: `${VENUE_FLOOR_CELL_GAP_REM}rem`,
+                gap: `${floorSize.cellGapRem}rem`,
               }}
             >
               {Array.from({ length: columns }, (_, colIndex) => {
@@ -1644,7 +1638,7 @@ function VenueAerialFloorGrid({
                     <VenueMosaicTableCard
                       row={row}
                       hideShowdownResults={showdownBrief}
-                      floorCompact={floorCompact}
+                      floorSize={floorSize}
                       floorHoneycomb
                       prefersReducedMotion={prefersReducedMotion}
                       dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}

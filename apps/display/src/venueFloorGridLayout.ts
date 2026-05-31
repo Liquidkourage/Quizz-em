@@ -14,10 +14,10 @@ export const VENUE_FLOOR_GRID_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
  */
 export const VENUE_FLOOR_LAYOUT_A1 = 'checkerboard-half-stagger' as const
 
-/** Aisle gap between checkerboard rows (rem). */
+/** @deprecated Prefer {@link venueFloorSizeSpec} row/cell gaps. */
 export const VENUE_FLOOR_ROW_GAP_REM = 1.25
 
-/** Gap between tables within a row (rem). */
+/** @deprecated Prefer {@link venueFloorSizeSpec} row/cell gaps. */
 export const VENUE_FLOOR_CELL_GAP_REM = 1.45
 
 /** Columns for A1 — same count on every full row (5 when 17–20 tables). */
@@ -40,6 +40,138 @@ export function venueBanquetLayout(tableCount: number): VenueBanquetLayout {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   const rowCount = n <= 0 ? 0 : Math.ceil(n / columns)
   return { columns, rowCount }
+}
+
+/**
+ * Table card density tier — driven primarily by how many checkerboard rows the floor needs.
+ * More rows ⇒ smaller uniform felts so the whole venue fits one viewport.
+ */
+export type VenueFloorTableSize = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
+
+export type VenueFloorSizeSpec = {
+  size: VenueFloorTableSize
+  /** Tighter chrome: hide seat list, smaller padding, fill honeycomb height. */
+  compactChrome: boolean
+  /** Showdown winner overlay only (no full results panel). */
+  showdownBrief: boolean
+  rowGapRem: number
+  cellGapRem: number
+  cardPaddingClass: string
+  innerGapClass: string
+  tableNumClass: string
+  potClass: string
+  phaseChipClass: string
+  honeycombFillHeight: boolean
+  /** Legacy non-honeycomb shrink — unused on checkerboard floor. */
+  ringScaleClass: string
+  showSeatList: boolean
+  showPotSubtitle: boolean
+}
+
+/** Pick felt size tier from banquet row count (and column width at the tightest band). */
+export function venueFloorTableSize(layout: VenueBanquetLayout): VenueFloorTableSize {
+  const { columns, rowCount } = layout
+  if (rowCount <= 1) return 'hero'
+  if (rowCount === 2) return 'large'
+  if (rowCount === 3) return 'medium'
+  if (rowCount === 4 && columns <= 4) return 'compact'
+  return 'micro'
+}
+
+export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSpec {
+  const size = venueFloorTableSize(layout)
+  switch (size) {
+    case 'hero':
+      return {
+        size,
+        compactChrome: false,
+        showdownBrief: false,
+        rowGapRem: 1.5,
+        cellGapRem: 1.75,
+        cardPaddingClass: 'overflow-visible p-2 sm:p-2.5',
+        innerGapClass: 'gap-1.5 sm:gap-2',
+        tableNumClass: 'text-2xl sm:text-3xl',
+        potClass:
+          'text-[clamp(1.15rem,6.5cqw,2.25rem)] sm:text-[clamp(1.25rem,7cqw,2.4rem)]',
+        phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
+        honeycombFillHeight: false,
+        ringScaleClass: '',
+        showSeatList: true,
+        showPotSubtitle: true,
+      }
+    case 'large':
+      return {
+        size,
+        compactChrome: false,
+        showdownBrief: false,
+        rowGapRem: 1.35,
+        cellGapRem: 1.55,
+        cardPaddingClass: 'overflow-visible p-2 sm:p-2',
+        innerGapClass: 'gap-1.5 sm:gap-2',
+        tableNumClass: 'text-xl sm:text-2xl',
+        potClass:
+          'text-[clamp(1.05rem,6cqw,2rem)] sm:text-[clamp(1.15rem,6.5cqw,2.1rem)]',
+        phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
+        honeycombFillHeight: false,
+        ringScaleClass: '',
+        showSeatList: true,
+        showPotSubtitle: true,
+      }
+    case 'medium':
+      return {
+        size,
+        compactChrome: false,
+        showdownBrief: false,
+        rowGapRem: 1.2,
+        cellGapRem: 1.35,
+        cardPaddingClass: 'overflow-visible p-1.5 sm:p-2',
+        innerGapClass: 'gap-1 sm:gap-1.5',
+        tableNumClass: 'text-lg sm:text-xl',
+        potClass:
+          'text-[clamp(0.95rem,5.5cqw,1.75rem)] sm:text-[clamp(1.05rem,6cqw,1.9rem)]',
+        phaseChipClass: 'px-1.5 py-0.5 text-[9px] sm:px-2 sm:py-1 sm:text-[10px]',
+        honeycombFillHeight: false,
+        ringScaleClass: '',
+        showSeatList: false,
+        showPotSubtitle: true,
+      }
+    case 'compact':
+      return {
+        size,
+        compactChrome: true,
+        showdownBrief: true,
+        rowGapRem: 1.05,
+        cellGapRem: 1.15,
+        cardPaddingClass: 'p-1 sm:p-1.5',
+        innerGapClass: 'gap-0.5',
+        tableNumClass: 'text-base sm:text-lg',
+        potClass:
+          'text-[clamp(0.9rem,5cqw,1.45rem)] sm:text-[clamp(0.95rem,5.5cqw,1.55rem)]',
+        phaseChipClass: 'px-1.5 py-0.5 text-[9px] sm:px-2 sm:py-1 sm:text-[10px]',
+        honeycombFillHeight: true,
+        ringScaleClass: '',
+        showSeatList: false,
+        showPotSubtitle: false,
+      }
+    case 'micro':
+      return {
+        size,
+        compactChrome: true,
+        showdownBrief: true,
+        rowGapRem: 0.85,
+        cellGapRem: 0.95,
+        cardPaddingClass: 'p-0.5 sm:p-1',
+        innerGapClass: 'gap-0.5',
+        tableNumClass: 'text-sm sm:text-base',
+        potClass:
+          'text-[clamp(0.8rem,4.5cqw,1.2rem)] sm:text-[clamp(0.85rem,5cqw,1.35rem)]',
+        phaseChipClass: 'px-1 py-px text-[8px] sm:px-1.5 sm:py-0.5 sm:text-[9px]',
+        honeycombFillHeight: true,
+        ringScaleClass: '',
+        showSeatList: false,
+        showPotSubtitle: false,
+      }
+  }
 }
 
 /** Slice tables into equal-width banquet rows (last row may be short — pad in UI). */
@@ -84,10 +216,12 @@ export function banquetRowOffsetCss(columns: number): string {
   return `calc(50% / ${cols})`
 }
 
+/** @deprecated Use {@link venueFloorSizeSpec}. */
 export function venueFloorShowdownBrief(columns: number): boolean {
   return columns > 4
 }
 
+/** @deprecated Use {@link venueFloorSizeSpec}. */
 export function venueFloorCompact(columns: number): boolean {
   return columns >= 4
 }

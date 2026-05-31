@@ -16,9 +16,9 @@ function DigitChip({
 }) {
   const dim =
     size === 'floor'
-      ? 'h-[clamp(1.32rem,17.25cqw,2.3rem)] min-w-[clamp(1.32rem,17.25cqw,2.3rem)] border-2 px-[0.08em] text-[clamp(1.15rem,14.4cqw,1.95rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+      ? 'h-[clamp(1.58rem,20.7cqw,2.75rem)] min-w-[clamp(1.58rem,20.7cqw,2.75rem)] border-2 px-[0.08em] text-[clamp(1.35rem,17.3cqw,2.35rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
       : size === 'floor-compact'
-        ? 'h-[clamp(1rem,12.5cqw,1.75rem)] min-w-[clamp(1rem,12.5cqw,1.75rem)] border-2 px-[0.06em] text-[clamp(0.9rem,10.5cqw,1.5rem)] shadow-[0_0_8px_rgba(0,0,0,0.45)]'
+        ? 'h-[clamp(1.2rem,15cqw,2.1rem)] min-w-[clamp(1.2rem,15cqw,2.1rem)] border-2 px-[0.06em] text-[clamp(1.05rem,12.6cqw,1.8rem)] shadow-[0_0_8px_rgba(0,0,0,0.45)]'
         : size === 'lg'
         ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
         : size === 'xs'
@@ -45,9 +45,9 @@ function DigitChip({
 function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
   const dim =
     size === 'floor'
-      ? 'h-[clamp(1.32rem,17.25cqw,2.3rem)] w-[0.22em] text-[clamp(1.15rem,14.4cqw,1.95rem)]'
+      ? 'h-[clamp(1.58rem,20.7cqw,2.75rem)] w-[0.22em] text-[clamp(1.35rem,17.3cqw,2.35rem)]'
       : size === 'floor-compact'
-        ? 'h-[clamp(1rem,12.5cqw,1.75rem)] w-[0.2em] text-[clamp(0.9rem,10.5cqw,1.5rem)]'
+        ? 'h-[clamp(1.2rem,15cqw,2.1rem)] w-[0.2em] text-[clamp(1.05rem,12.6cqw,1.8rem)]'
         : size === 'lg'
         ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
         : size === 'xs'

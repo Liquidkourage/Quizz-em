@@ -93,16 +93,16 @@ function buildCtx(
 }
 
 const WINNER_NAME_SINGLE =
-  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1.12rem,13.5cqw,2.5rem)]'
+  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1.32rem,16.2cqw,3rem)]'
 const WINNER_NAME_SPLIT =
-  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(0.88rem,10.2cqw,1.85rem)]'
+  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1.05rem,12.2cqw,2.2rem)]'
 
 function winnerNameClass(splitWin: boolean): string {
   return splitWin ? WINNER_NAME_SPLIT : WINNER_NAME_SINGLE
 }
 
 const POT_AMOUNT =
-  'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.05rem,11cqw,2.4rem)]'
+  'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.25rem,13.2cqw,2.85rem)]'
 
 function HeroPot({ pot, splitWin = false }: { pot: number; splitWin?: boolean }) {
   if (pot <= 0) return null
@@ -111,7 +111,7 @@ function HeroPot({ pot, splitWin = false }: { pot: number; splitWin?: boolean })
       <div className="flex items-baseline justify-center gap-[0.35em]">
         <p className={POT_AMOUNT}>{formatPot(pot)}</p>
         {splitWin ? (
-          <span className="shrink-0 font-bold uppercase tracking-[0.18em] text-yellow-200/90 text-[clamp(0.48rem,4.5cqw,0.68rem)]">
+          <span className="shrink-0 font-bold uppercase tracking-[0.18em] text-yellow-200/90 text-[clamp(0.58rem,5.4cqw,0.82rem)]">
             each
           </span>
         ) : null}
@@ -145,7 +145,7 @@ function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?:
         ))}
       </div>
       {ctx.extraWinners > 0 ? (
-        <p className="text-[clamp(0.55rem,5cqw,0.75rem)] font-bold text-amber-200/80">+{ctx.extraWinners} more</p>
+        <p className="text-[clamp(0.65rem,6cqw,0.9rem)] font-bold text-amber-200/80">+{ctx.extraWinners} more</p>
       ) : null}
     </div>
   )

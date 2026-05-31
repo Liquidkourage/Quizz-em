@@ -223,16 +223,16 @@ function MosaicDigitCard({
 }) {
   const sizeClass =
     size === 'community'
-      ? 'h-[clamp(1.35rem,9.5cqw,2.25rem)] w-[clamp(1rem,7cqw,1.65rem)]'
-      : 'h-[clamp(0.92rem,6.2cqw,1.45rem)] w-[clamp(0.66rem,4.4cqw,1.08rem)]'
+      ? 'h-[clamp(1.6rem,11.4cqw,2.7rem)] w-[clamp(1.2rem,8.4cqw,2rem)]'
+      : 'h-[clamp(1.1rem,7.4cqw,1.75rem)] w-[clamp(0.8rem,5.3cqw,1.3rem)]'
   const textClass =
     size === 'community'
-      ? 'text-[clamp(0.72rem,5.2cqw,1.05rem)]'
-      : 'text-[clamp(0.48rem,3.3cqw,0.68rem)]'
+      ? 'text-[clamp(0.85rem,6.2cqw,1.25rem)]'
+      : 'text-[clamp(0.58rem,4cqw,0.82rem)]'
   if (faceDown) {
     return (
       <span
-        className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border border-violet-400/50 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.44rem,2.9cqw,0.62rem)] leading-none shadow-sm shadow-violet-500/25 ${sizeClass}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border border-violet-400/50 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.52rem,3.5cqw,0.75rem)] leading-none shadow-sm shadow-violet-500/25 ${sizeClass}`}
         aria-hidden
       >
         <span className="text-violet-300/80">✦</span>
@@ -259,8 +259,8 @@ function MosaicHoleCardPair() {
     <div
       className="relative shrink-0"
       style={{
-        width: 'clamp(1.05rem, 7.4cqw, 1.68rem)',
-        height: 'clamp(1.05rem, 7.1cqw, 1.62rem)',
+        width: 'clamp(1.25rem, 8.9cqw, 2rem)',
+        height: 'clamp(1.25rem, 8.5cqw, 1.95rem)',
       }}
       aria-hidden
     >
@@ -508,7 +508,7 @@ function mosaicPhaseCornerTypography(
   wageringLive: boolean
 ): string {
   if (showNoMoreBets && row.seated >= 2) {
-    return 'whitespace-nowrap text-[9px] font-black uppercase leading-none tracking-tight sm:text-[10px]'
+    return 'whitespace-nowrap text-[10px] font-black uppercase leading-none tracking-tight sm:text-[11px]'
   }
   if (wageringLive) {
     return 'font-black uppercase leading-tight tracking-wide'
@@ -725,13 +725,13 @@ function SeatRingWithLabels({
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
   const dot = isMosaic
-    ? 'h-[1.2rem] w-[1.2rem] border-[1.5px]'
+    ? 'h-[1.35rem] w-[1.35rem] border-[1.5px]'
     : size === 'lg'
       ? 'h-[2.8375rem] w-[2.8375rem] sm:h-[3.15rem] sm:w-[3.15rem]'
       : 'h-7 w-7'
   /** Larger rim marker for the player on the clock — reads from the back of the room. */
   const dotActing = isMosaic
-    ? 'h-[1.45rem] w-[1.45rem] border-[2px] ring-2 ring-cyan-400/70'
+    ? 'h-[1.6rem] w-[1.6rem] border-[2px] ring-2 ring-cyan-400/70'
     : size === 'lg'
       ? 'h-[3.5rem] w-[3.5rem] sm:h-16 sm:w-16 md:h-[4.25rem] md:w-[4.25rem]'
       : 'h-10 w-10 sm:h-11 sm:w-11'
@@ -973,7 +973,7 @@ function SeatRingWithLabels({
                 }
               >
                 {isMosaic && filled && mosaicInitials ? (
-                  <span className="block w-full min-w-0 px-0.5 text-center text-[0.5625rem] font-black leading-none tracking-tighter text-amber-50">
+                  <span className="block w-full min-w-0 px-0.5 text-center text-[0.65rem] font-black leading-none tracking-tighter text-amber-50">
                     {mosaicInitials}
                   </span>
                 ) : null}
@@ -1496,7 +1496,7 @@ function VenueScrollingRoster({
       }
     >
       <div className="shrink-0 border-b border-white/10 px-2 py-3 sm:px-2.5 sm:py-3.5">
-        <h2 className="text-xl font-bold leading-none tracking-tight text-white/92 sm:text-2xl">
+        <h2 className="text-2xl font-bold leading-none tracking-tight text-white/92 sm:text-3xl">
           {gameOn ? 'Stacks' : 'Seating'}
         </h2>
         {showCondenseInSidebar && condenseProgress != null ? (
@@ -1524,14 +1524,14 @@ function VenueScrollingRoster({
               className="w-full min-w-0 border-b border-white/[0.08] py-3 sm:py-3.5"
               aria-label={`${r.name}, ${formatVenueBankroll(r.bankroll)}, Table ${r.tableNum} seat ${r.seatNum}`}
             >
-              <div className="w-full min-w-0 truncate text-lg font-bold leading-[1.15] text-white/95 sm:text-xl">
+              <div className="w-full min-w-0 truncate text-xl font-bold leading-[1.15] text-white/95 sm:text-2xl">
                 {r.name}
               </div>
               <div className="mt-1 flex w-full min-w-0 items-baseline justify-between gap-2">
-                <span className="min-w-0 flex-1 truncate font-mono text-sm font-bold tabular-nums tracking-tight text-yellow-400/92 sm:text-base">
+                <span className="min-w-0 flex-1 truncate font-mono text-base font-bold tabular-nums tracking-tight text-yellow-400/92 sm:text-lg">
                   Table {r.tableNum} · Seat {r.seatNum}
                 </span>
-                <span className="shrink-0 text-right font-mono text-base font-bold tabular-nums leading-none text-casino-emerald sm:text-lg">
+                <span className="shrink-0 text-right font-mono text-lg font-bold tabular-nums leading-none text-casino-emerald sm:text-xl">
                   {formatVenueBankroll(r.bankroll)}
                 </span>
               </div>
@@ -1827,7 +1827,7 @@ export default function VenueEightTablesPreview({
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div className="flex w-full min-w-0 items-stretch gap-2.5 sm:gap-4 md:gap-5">
-                <div className="pointer-events-none flex w-[clamp(6.75rem,min(22vw,9rem),11rem)] shrink-0 items-center self-center sm:w-[clamp(7.5rem,min(26vw,10rem),12rem)] md:w-[clamp(8.5rem,min(24vw,11rem),13rem)]">
+                <div className="pointer-events-none flex w-[clamp(7.5rem,min(24vw,10rem),12.5rem)] shrink-0 items-center self-center sm:w-[clamp(8.25rem,min(28vw,11rem),13.5rem)] md:w-[clamp(9rem,min(26vw,12rem),14.5rem)]">
                   <div
                     className="w-full shadow-black/70 drop-shadow-xl"
                     style={{ aspectRatio: '958 / 592' }}
@@ -1854,7 +1854,7 @@ export default function VenueEightTablesPreview({
                       </div>
                     ) : null}
                     {headlineQuestionDisplay ? (
-                      <p className="text-balance text-left text-lg font-bold leading-snug tracking-tight text-yellow-400 sm:text-xl sm:leading-snug md:text-2xl md:leading-snug lg:text-[1.75rem] xl:text-[2rem] 2xl:text-[2.15rem]">
+                      <p className="text-balance text-left text-xl font-bold leading-snug tracking-tight text-yellow-400 sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem]">
                         {headlineQuestionDisplay}
                       </p>
                     ) : inVenueShowdown ? (
@@ -1880,7 +1880,7 @@ export default function VenueEightTablesPreview({
                         <span className="text-center text-[10px] font-black uppercase leading-tight tracking-wide text-amber-200/85 sm:text-xs">
                           Blinds
                         </span>
-                        <div className="text-center font-mono text-lg font-black tabular-nums tracking-tight text-amber-100 sm:text-2xl md:text-3xl">
+                        <div className="text-center font-mono text-xl font-black tabular-nums tracking-tight text-amber-100 sm:text-3xl md:text-4xl">
                           {venueBlindsHeadline.amount}
                         </div>
                         {venueBlindsHeadline.meta ? (
@@ -1898,7 +1898,7 @@ export default function VenueEightTablesPreview({
                       <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-200/70 sm:text-xs">
                         Correct answer
                       </span>
-                      <div className="font-mono text-2xl font-black tracking-tight text-amber-100 sm:text-4xl md:text-5xl xl:text-6xl">
+                      <div className="font-mono text-3xl font-black tracking-tight text-amber-100 sm:text-5xl md:text-6xl xl:text-7xl">
                         {formatTriviaNumber(venueShowdownAnswer)}
                       </div>
                     </div>
@@ -1920,7 +1920,7 @@ export default function VenueEightTablesPreview({
                         Answer on your phone
                       </span>
                       {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
-                        <div className="text-center font-mono text-2xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-4xl md:text-5xl xl:text-6xl">
+                        <div className="text-center font-mono text-3xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-5xl md:text-6xl xl:text-7xl">
                           {timerSeconds}s
                         </div>
                       ) : othersStillWagering ? (

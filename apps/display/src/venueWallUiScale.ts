@@ -6,12 +6,17 @@ import type { CSSProperties } from 'react'
  */
 export const VENUE_WALL_UI_SCALE = 0.8
 
+/**
+ * Pre-zoom bump for type and felt chrome. Visual size ≈ `TYPE_EMPHASIS × UI_SCALE`
+ * (1.2 × 0.8 = 0.96 — slightly sharper / roomier than raw transform alone).
+ */
+export const VENUE_WALL_TYPE_EMPHASIS = 1.2
+
 export function venueWallUiScaleFrameStyle(): CSSProperties {
-  const inv = `${100 / VENUE_WALL_UI_SCALE}%`
   return {
-    transform: `scale(${VENUE_WALL_UI_SCALE})`,
-    transformOrigin: 'top left',
-    width: inv,
-    height: inv,
+    zoom: VENUE_WALL_UI_SCALE,
+    width: '100%',
+    height: '100%',
+    WebkitFontSmoothing: 'antialiased',
   }
 }

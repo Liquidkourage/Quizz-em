@@ -1872,7 +1872,7 @@ function drainCpuVpSessionChain(sessionKey: string) {
   }
 }
 
-function applyQuestionToAllPlayable(venueCode: string, picked: Question) {
+function applyQuestionToAllPlayable(venueCode: string, picked: Question): boolean {
   const playable = allSeatedTableSessionsInVenue(venueCode)
   for (const tk of playable) {
     let gs = rooms.get(tk)
@@ -1881,6 +1881,39 @@ function applyQuestionToAllPlayable(venueCode: string, picked: Question) {
     rooms.set(tk, gs)
     emitVenueTableState(tk, gs!)
   }
+  return autoDealInitialCardsOnVenue(venueCode)
+}
+
+/** Deal hole cards + post blinds on every seated table still in question setup. */
+function autoDealInitialCardsOnVenue(venueCode: string): boolean {
+  const vn = normalizeVenueCode(venueCode)
+  const rows = venuePlayableSnapshots(vn)
+  if (rows.length === 0) return false
+  if (!rows.every((r) => r.gs.phase === 'question')) return false
+
+  clearVenueWageringOrchestrationState(vn)
+  let anyDealt = false
+  for (const { tk } of rows) {
+    let gs = rooms.get(tk)
+    if (!gs || gs.phase !== 'question' || gs.players.length === 0) continue
+    gs = dealInitialCards(gs)
+    anyDealt = true
+    rooms.set(tk, gs)
+    io.to(tk).emit('dealingCards')
+    const holeTableNum = tableNumFromSessionKey(gs.code, tk)
+    if (holeTableNum != null) {
+      io.to(displayVenueRoom(vn)).emit('dealingCards', { tableNum: holeTableNum })
+    }
+    emitVenueTableState(tk, gs)
+    if (tableIsCpuOnly(gs)) {
+      enqueueCpuOnlyVpDrain(tk)
+    } else {
+      gs = runVirtualPlayerSimulation(gs)
+      rooms.set(tk, gs)
+      emitVenueTableState(tk, gs)
+    }
+  }
+  return anyDealt
 }
 
 /** Host controls that apply everywhere in the venue — rosters/hand/pot stay separate per session key. */
@@ -2167,9 +2200,14 @@ io.on('connection', (socket) => {
               break
             }
           }
-          applyQuestionToAllPlayable(gameState.code, picked)
+          const autoDealt = applyQuestionToAllPlayable(gameState.code, picked)
           await emitHostLibrary(gameState.code)
-          socket.emit('toast', 'Question synced to all tables at this venue.')
+          socket.emit(
+            'toast',
+            autoDealt
+              ? 'Question synced — hole cards dealt, wagering round 1 (all tables).'
+              : 'Question synced to all tables at this venue.',
+          )
           gameState = rooms.get(sessionKey)!
           break
         }
@@ -2205,11 +2243,13 @@ io.on('connection', (socket) => {
             venuePlayhead.set(venue, ph)
             const qFound = lib.questions.find((q) => q.id === qid)
             if (qFound) {
-              applyQuestionToAllPlayable(gameState.code, qFound)
+              const autoDealt = applyQuestionToAllPlayable(gameState.code, qFound)
               await emitHostLibrary(gameState.code)
               socket.emit(
                 'toast',
-                `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} → all tables.`
+                autoDealt
+                  ? `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} — hole cards dealt, wagering round 1.`
+                  : `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} → all tables.`,
               )
               gameState = rooms.get(sessionKey)!
               dispatched = true
@@ -2332,28 +2372,11 @@ io.on('connection', (socket) => {
           if (!assertVenueHost(socket, gameState)) break
           const lockDeal = requireVenueLockstepTables(socket, gameState.code, (gs) => gs.phase === 'question', 'wait in deal setup before hole cards + blinds')
           if (!lockDeal) break
-          clearVenueWageringOrchestrationState(gameState.code)
-          for (const { tk } of lockDeal) {
-            let gs = rooms.get(tk)
-            gs = dealInitialCards(gs)
-            rooms.set(tk, gs)
-            io.to(tk).emit('dealingCards')
-            const holeTableNum = tableNumFromSessionKey(gs.code, tk)
-            if (holeTableNum != null) {
-              io.to(displayVenueRoom(normalizeVenueCode(gs.code))).emit('dealingCards', {
-                tableNum: holeTableNum,
-              })
-            }
-            emitVenueTableState(tk, gs)
-            if (tableIsCpuOnly(gs)) {
-              enqueueCpuOnlyVpDrain(tk)
-            } else {
-              gs = runVirtualPlayerSimulation(gs)
-              rooms.set(tk, gs)
-              emitVenueTableState(tk, gs)
-            }
+          if (autoDealInitialCardsOnVenue(gameState.code)) {
+            socket.emit('toast', 'Hole cards dealt — wagering round 1 (all tables).')
+          } else {
+            socket.emit('toast', 'Could not deal — every seated table must be in question setup.')
           }
-          socket.emit('toast', 'Hole cards dealt — wagering round 1 (all tables).')
           gameState = rooms.get(sessionKey)!
           break
         }

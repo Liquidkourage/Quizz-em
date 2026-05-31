@@ -448,6 +448,59 @@ export function HostLiveStatusLine({
   )
 }
 
+function venueFeltBeatLockstep(rows: HostVenueFeltBeatRow[] | null): {
+  seatedWithSig: HostVenueFeltBeatRow[]
+  outlierTableNums: Set<number>
+  lockstepMisaligned: boolean
+  unanimousSig: string | null
+} {
+  const seatedWithSig =
+    rows?.filter(
+      (r) => r.active && r.seated > 0 && r.phaseStrictSig != null && r.phaseStrictSig !== '',
+    ) ?? []
+  if (seatedWithSig.length < 2) {
+    return {
+      seatedWithSig,
+      outlierTableNums: new Set<number>(),
+      lockstepMisaligned: false,
+      unanimousSig: seatedWithSig[0]?.phaseStrictSig ?? null,
+    }
+  }
+  const sigs = new Set(seatedWithSig.map((r) => r.phaseStrictSig!))
+  if (sigs.size <= 1) {
+    return {
+      seatedWithSig,
+      outlierTableNums: new Set<number>(),
+      lockstepMisaligned: false,
+      unanimousSig: seatedWithSig[0]!.phaseStrictSig!,
+    }
+  }
+  const bySig = new Map<string, number[]>()
+  for (const r of seatedWithSig) {
+    const s = r.phaseStrictSig!
+    if (!bySig.has(s)) bySig.set(s, [])
+    bySig.get(s)!.push(r.tableNum)
+  }
+  let bestSig = ''
+  let bestLen = -1
+  for (const [sig, nums] of bySig) {
+    if (nums.length > bestLen || (nums.length === bestLen && sig < bestSig)) {
+      bestLen = nums.length
+      bestSig = sig
+    }
+  }
+  const outlierTableNums = new Set<number>()
+  for (const [sig, nums] of bySig) {
+    if (sig !== bestSig) nums.forEach((t) => outlierTableNums.add(t))
+  }
+  return {
+    seatedWithSig,
+    outlierTableNums,
+    lockstepMisaligned: outlierTableNums.size > 0,
+    unanimousSig: null,
+  }
+}
+
 export function HostVenueFeltBeatStrip({
   rows,
   hostTableId,
@@ -455,35 +508,7 @@ export function HostVenueFeltBeatStrip({
   rows: HostVenueFeltBeatRow[] | null
   hostTableId: string
 }) {
-  /** Lockstep diagnostic — only seated felts matter (matches server venue-wide gates). */
-  const seatedWithSig =
-    rows?.filter(
-      (r) => r.active && r.seated > 0 && r.phaseStrictSig != null && r.phaseStrictSig !== '',
-    ) ?? []
-  const outlierTableNums = (() => {
-    if (seatedWithSig.length < 2) return new Set<number>()
-    const bySig = new Map<string, number[]>()
-    for (const r of seatedWithSig) {
-      const s = r.phaseStrictSig!
-      if (!bySig.has(s)) bySig.set(s, [])
-      bySig.get(s)!.push(r.tableNum)
-    }
-    if (bySig.size <= 1) return new Set<number>()
-    let bestSig = ''
-    let bestLen = -1
-    for (const [sig, nums] of bySig) {
-      if (nums.length > bestLen || (nums.length === bestLen && sig < bestSig)) {
-        bestLen = nums.length
-        bestSig = sig
-      }
-    }
-    const out = new Set<number>()
-    for (const [sig, nums] of bySig) {
-      if (sig !== bestSig) nums.forEach((t) => out.add(t))
-    }
-    return out
-  })()
-  const lockstepMisaligned = outlierTableNums.size > 0
+  const { outlierTableNums, lockstepMisaligned, unanimousSig } = venueFeltBeatLockstep(rows)
   const seatedTableCount = rows?.filter((r) => r.active && r.seated > 0).length ?? 0
 
   const hasLiveCountdown =
@@ -522,7 +547,15 @@ export function HostVenueFeltBeatStrip({
           role="status"
           className="mb-2 rounded-lg border border-amber-400/55 bg-amber-950/35 px-2.5 py-1.5 text-xs font-semibold text-amber-100"
         >
-          Amber felts differ from the majority — fix before venue-wide cues. Empty felts (0p) are ignored.
+          Amber felts differ from the majority — fix before venue-wide cues. Empty felts (0p) are
+          ignored.
+        </div>
+      ) : unanimousSig != null && seatedTableCount >= 2 ? (
+        <div
+          role="status"
+          className="mb-2 rounded-lg border border-emerald-500/40 bg-emerald-950/25 px-2.5 py-1.5 text-xs font-semibold text-emerald-100"
+        >
+          All {seatedTableCount} seated felts in sync ({unanimousSig}) — venue-wide cues OK.
         </div>
       ) : null}
       {rows == null ? (
@@ -539,18 +572,22 @@ export function HostVenueFeltBeatStrip({
                 ? Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
                 : null
             const sig = row.phaseStrictSig ?? null
-            const drift = row.active && outlierTableNums.has(row.tableNum)
+            const drift = row.seated > 0 && outlierTableNums.has(row.tableNum)
             return (
               <div
                 key={row.tableNum}
                 title={
                   watching
-                    ? 'Your mirrored host table — cyan ring is not a straggler'
-                    : drift && sig
-                      ? `Straggler — ${sig}`
-                      : lockstepMisaligned && row.active && row.seated > 0 && sig
-                        ? sig
-                        : undefined
+                    ? `Your mirrored host table (cyan ring)${sig ? ` — ${sig}` : ''}`
+                    : row.seated === 0
+                      ? 'Empty felt — not counted for lockstep'
+                      : drift && sig
+                        ? `Straggler — ${sig}`
+                        : sig
+                          ? unanimousSig != null
+                            ? `In sync — ${sig}`
+                            : `In sync with majority — ${sig}`
+                          : undefined
                 }
                 className={`rounded-md border px-1.5 py-1 text-center sm:min-h-[3.75rem] ${
                   row.active

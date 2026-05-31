@@ -396,16 +396,19 @@ export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
 }
 
-// Sample questions for gameplay
-export const SAMPLE_QUESTIONS: ReadonlyArray<{ id: string; text: string; answer: number; category?: string; difficulty?: number }> = [
-  { id: 'q1', text: 'How many minutes are there in a day?', answer: 1440, category: 'Time', difficulty: 1 },
-  { id: 'q2', text: 'What is the boiling point of water in Kelvin?', answer: 373, category: 'Science', difficulty: 1 },
-  { id: 'q3', text: 'How many bones are in the adult human body?', answer: 206, category: 'Biology', difficulty: 2 },
-  { id: 'q4', text: 'What year did the Apollo 11 land on the moon?', answer: 1969, category: 'History', difficulty: 2 },
-  { id: 'q5', text: 'What is the average distance from Earth to the Moon in km?', answer: 384400, category: 'Astronomy', difficulty: 3 },
-];
+// Sample questions for gameplay — full 25-question starter set (see starterQuestionSet.ts)
+export {
+  VENUE_QUESTION_SET_LENGTH,
+  STARTER_QUESTION_SET,
+  STARTER_SETLIST_ID,
+  STARTER_SETLIST_NAME,
+  formatSetlistProgress,
+  isSetlistTargetLength,
+  createStarterSetlist,
+} from './starterQuestionSet'
+export { STARTER_QUESTION_SET as SAMPLE_QUESTIONS } from './starterQuestionSet'
 
-/** Reset wagering fields when a new trivia beat starts (before cards / blinds). */
+// Game flow functions
 function roundStateForQuestionSetup(round: RoundState): RoundState {
   return {
     ...round,

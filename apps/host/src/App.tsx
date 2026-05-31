@@ -39,7 +39,7 @@ import {
 } from '@qhe/net'
 import type { GameState, Question } from '@qhe/core'
 import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress, isSetlistTargetLength } from '@qhe/core'
 import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
 import {
   HostActionFloorBanner,
@@ -703,7 +703,8 @@ function HostApp() {
             <div>
               <h2 className="text-lg font-semibold tracking-tight text-white sm:text-xl">Question bank</h2>
               <p className="mt-0.5 text-xs text-white/50">
-                Venue <span className="font-mono text-white/65">{gameState.code}</span> · cue from Run show
+                Venue <span className="font-mono text-white/65">{gameState.code}</span> ·{' '}
+                {VENUE_QUESTION_SET_LENGTH}-question sets · cue from Run show
               </p>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">
@@ -759,7 +760,7 @@ function HostApp() {
                   Import replace bank
                 </NeonButton>
                 <NeonButton variant="purple" size="small" type="button" onClick={() => questionBankRestoreSamples()}>
-                  Restore starter pack
+                  Restore starter set ({VENUE_QUESTION_SET_LENGTH})
                 </NeonButton>
               </div>
               <HostCollapsible summary="Import formats &amp; storage" className="mt-2">
@@ -846,7 +847,7 @@ function HostApp() {
                 {questionBank.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-8 px-3 text-center text-white/50">
-                      Bank is empty — add questions or restore the starter pack.
+                      Bank is empty — add questions, import a set, or restore the {VENUE_QUESTION_SET_LENGTH}-question starter.
                     </td>
                   </tr>
                 ) : (
@@ -917,7 +918,7 @@ function HostApp() {
           <div className="mb-4 border-b border-white/10 pb-3">
             <h2 className="text-lg font-semibold tracking-tight text-white sm:text-xl">Setlists (rundowns)</h2>
             <p className="mt-0.5 text-xs text-white/50">
-              Ordered cues · activate on Run show → Next from setlist
+              {VENUE_QUESTION_SET_LENGTH}-question rundowns · activate on Run show → Next from setlist
             </p>
           </div>
           <div className="flex flex-wrap gap-2 items-end mb-4">
@@ -927,7 +928,7 @@ function HostApp() {
                 type="text"
                 value={newSetlistName}
                 onChange={(e) => setNewSetlistName(e.target.value)}
-                placeholder="e.g. Round 1 — Pop culture"
+                placeholder={`e.g. Set 1 — Pop culture (${VENUE_QUESTION_SET_LENGTH} cues)`}
                 className="mt-1 block rounded-lg bg-white/10 border border-white/20 text-white px-3 py-2 w-64 max-w-[80vw]"
               />
             </label>
@@ -964,7 +965,7 @@ function HostApp() {
                   </option>
                   {setlists.map((sl) => (
                     <option key={sl.id} value={sl.id} className="bg-zinc-950 text-white">
-                      {sl.name} ({sl.questionIds.length} cues)
+                      {sl.name} ({formatSetlistProgress(sl.questionIds.length)})
                     </option>
                   ))}
                 </select>
@@ -1012,7 +1013,25 @@ function HostApp() {
                 <p className="text-sm text-white/50">Select a setlist to arrange its questions.</p>
               ) : (
                 <div className="space-y-3">
-                  <div className="text-sm font-bold text-white/90">Question order</div>
+                  <div className="text-sm font-bold text-white/90">
+                    Question order
+                    {draftSetlist ? (
+                      <span
+                        className={`ml-2 font-normal tabular-nums ${
+                          isSetlistTargetLength(draftSetlist.questionIds.length)
+                            ? 'text-emerald-300/90'
+                            : 'text-amber-200/85'
+                        }`}
+                      >
+                        {formatSetlistProgress(draftSetlist.questionIds.length)}
+                      </span>
+                    ) : null}
+                  </div>
+                  {!draftSetlist || isSetlistTargetLength(draftSetlist.questionIds.length) ? null : (
+                    <p className="text-xs text-amber-200/80">
+                      Sets target {VENUE_QUESTION_SET_LENGTH} cues — add or remove questions to match.
+                    </p>
+                  )}
                   <select
                     className="w-full rounded-lg border border-white/20 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]"
                     value={addToSetlistChoice}
@@ -1171,7 +1190,7 @@ function HostApp() {
                 </option>
                 {setlists.map((sl) => (
                   <option key={sl.id} value={sl.id} className="bg-zinc-950 text-white">
-                    {sl.name} ({sl.questionIds.length} cues)
+                    {sl.name} ({formatSetlistProgress(sl.questionIds.length)})
                   </option>
                 ))}
               </select>
@@ -1182,7 +1201,12 @@ function HostApp() {
                     const n = sl?.questionIds.length ?? 0
                     if (!n) return 'This setlist is empty — add cues under Content.'
                     if (activeSetlistNextIndex >= n) return 'End of rundown — choose another list or clear.'
-                    return `Next cue: ${activeSetlistNextIndex + 1} of ${n}`
+                    const progress = `${activeSetlistNextIndex + 1} / ${n}`
+                    const setNote =
+                      n === VENUE_QUESTION_SET_LENGTH
+                        ? ''
+                        : ` (${formatSetlistProgress(n)} — full sets are ${VENUE_QUESTION_SET_LENGTH})`
+                    return `Next cue: ${progress}${setNote}`
                   })()}
                 </p>
               ) : null}

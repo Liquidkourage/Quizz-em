@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyGame, pickRandomQuestion, setQuestion, SAMPLE_QUESTIONS } from './index'
+import {
+  createEmptyGame,
+  pickRandomQuestion,
+  setQuestion,
+  SAMPLE_QUESTIONS,
+  STARTER_QUESTION_SET,
+  VENUE_QUESTION_SET_LENGTH,
+  createStarterSetlist,
+  isSetlistTargetLength,
+} from './index'
+
+describe('starter question set', () => {
+  it('defines a full 25-question starter set and setlist', () => {
+    expect(STARTER_QUESTION_SET).toHaveLength(VENUE_QUESTION_SET_LENGTH)
+    expect(SAMPLE_QUESTIONS).toHaveLength(VENUE_QUESTION_SET_LENGTH)
+    const sl = createStarterSetlist()
+    expect(sl.questionIds).toHaveLength(VENUE_QUESTION_SET_LENGTH)
+    expect(isSetlistTargetLength(sl.questionIds.length)).toBe(true)
+  })
+})
 
 describe('setQuestion', () => {
   it('installs the given question and clears community cards', () => {

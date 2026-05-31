@@ -35,6 +35,9 @@ import {
   playerRaise,
   playerAllIn,
   SAMPLE_QUESTIONS,
+  STARTER_QUESTION_SET,
+  STARTER_SETLIST_ID,
+  createStarterSetlist,
   buildDisplayPreviewGameState,
   VENUE_NUMBERED_TABLE_MAX,
   VENUE_WALL_SEAT_SLOTS,
@@ -1162,8 +1165,8 @@ async function ensureVenueLibrary(venueCode: string): Promise<VenueLibraryData> 
   const k = normalizeVenueCode(venueCode)
   if (!venueLibraries.has(k)) {
     venueLibraries.set(k, {
-      questions: SAMPLE_QUESTIONS.map((q) => ({ ...q })),
-      setlists: [],
+      questions: STARTER_QUESTION_SET.map((q) => ({ ...q })),
+      setlists: [createStarterSetlist(STARTER_QUESTION_SET)],
     })
     await persistVenues()
   }
@@ -1584,7 +1587,7 @@ function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenueFeltBea
 
     felts.push({
       tableNum: n,
-      active: true,
+      active: seated > 0,
       seated,
       phase,
       street,
@@ -3248,11 +3251,18 @@ io.on('connection', (socket) => {
         case 'questionBankResetSamples': {
           if (!assertVenueHost(socket, gameState)) break
           const lib = await ensureVenueLibrary(gameState.code)
-          lib.questions = SAMPLE_QUESTIONS.map((q) => ({ ...q }))
+          lib.questions = STARTER_QUESTION_SET.map((q) => ({ ...q }))
+          const starterIdx = lib.setlists.findIndex((s) => s.id === STARTER_SETLIST_ID)
+          const starter = createStarterSetlist(STARTER_QUESTION_SET)
+          if (starterIdx >= 0) {
+            lib.setlists[starterIdx] = starter
+          } else {
+            lib.setlists.unshift(starter)
+          }
           pruneSetlistRefs(lib)
           await persistVenues()
           await emitHostLibrary(gameState.code)
-          socket.emit('toast', 'Starter pack restored.')
+          socket.emit('toast', `Starter pack restored (${STARTER_QUESTION_SET.length} questions).`)
           break
         }
           

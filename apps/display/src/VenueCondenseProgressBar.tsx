@@ -2,8 +2,8 @@ import type { VenueCondenseProgressModel } from './venueWallModel'
 
 type VenueCondenseProgressBarProps = {
   model: VenueCondenseProgressModel
-  /** Dock under the stacks crawl instead of floating over the floor. */
-  variant?: 'sidebar' | 'bottom'
+  /** headline = full-width under venue headline; sidebar = stacks rail; bottom = fallback strip */
+  variant?: 'headline' | 'sidebar' | 'bottom'
 }
 
 function compactCaption(model: VenueCondenseProgressModel): string {
@@ -26,59 +26,74 @@ export default function VenueCondenseProgressBar({
   if (liveTables <= 1 && marks.length === 0) return null
 
   const showMarks = marks.length > 0 && liveTables > 1
+  const headline = variant === 'headline'
   const sidebar = variant === 'sidebar'
+
+  const trackHeight = headline ? 'h-2.5 sm:h-3' : sidebar ? 'h-2' : 'h-2 sm:h-2.5'
+  const tickClass = headline ? 'w-0.5' : 'w-px'
 
   return (
     <div
       className={
-        sidebar
-          ? 'w-full'
-          : 'pointer-events-none fixed bottom-0 left-0 right-0 z-30 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] pt-1.5 sm:px-4'
+        headline
+          ? 'w-full border-t border-white/10 pt-2'
+          : sidebar
+            ? 'w-full'
+            : 'pointer-events-none fixed bottom-0 left-0 right-0 z-30 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] pt-1.5 sm:px-4'
       }
       aria-live="polite"
     >
       <div
-        className={`${sidebar ? 'w-full' : 'mx-auto max-w-3xl'} ${sidebar ? '' : 'rounded-md border border-white/10 bg-black/55 px-2 py-1.5 backdrop-blur-sm sm:px-2.5'}`}
+        className={`w-full ${headline || sidebar ? '' : 'mx-auto max-w-3xl rounded-md border border-white/10 bg-black/55 px-2 py-1.5 backdrop-blur-sm sm:px-2.5'}`}
         role="img"
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >
         <p
-          className={`truncate text-center font-medium tabular-nums text-white/70 ${
-            sidebar ? 'mb-1 text-[9px] leading-tight sm:text-[10px]' : 'mb-1 text-[10px] sm:text-xs'
+          className={`truncate font-medium tabular-nums text-white/65 ${
+            headline
+              ? 'mb-1.5 text-left text-[10px] sm:text-xs'
+              : sidebar
+                ? 'mb-1 text-center text-[9px] leading-tight sm:text-[10px]'
+                : 'mb-1 text-center text-[10px] sm:text-xs'
           }`}
         >
           {compactCaption(model)}
         </p>
 
-        <div className={`relative ${sidebar ? 'h-1.5' : 'h-2 sm:h-2.5'}`}>
+        <div className={`relative ${headline ? 'pb-0.5 pt-3' : sidebar ? 'pt-2.5' : ''}`}>
           {showMarks ? (
-            <div className="absolute inset-x-0 top-0 h-2" aria-hidden>
+            <div className={`absolute inset-x-0 top-0 ${headline ? 'h-3' : 'h-2.5'}`} aria-hidden>
               {marks.map((mark) => (
                 <span
                   key={`${mark.atSurvivors}-${mark.toTables}`}
-                  className={`absolute top-0 block w-px -translate-x-1/2 ${
+                  className={`absolute bottom-0 block ${tickClass} -translate-x-1/2 rounded-full ${
                     mark.status === 'next'
-                      ? 'h-2 bg-amber-300/90'
+                      ? 'h-3 bg-amber-300 shadow-[0_0_6px_rgba(251,191,36,0.55)] sm:h-3.5'
                       : mark.status === 'passed'
-                        ? 'h-1 bg-white/20'
-                        : 'h-1.5 bg-white/45'
+                        ? 'h-1.5 bg-white/25'
+                        : 'h-2 bg-white/55 sm:h-2.5'
                   }`}
                   style={{ left: `${mark.pct}%` }}
+                  title={`${mark.atSurvivors} players → ${mark.toTables} tables`}
                 />
               ))}
             </div>
           ) : null}
 
-          <div className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-full bg-white/10">
+          <div
+            className={`overflow-hidden rounded-full bg-white/10 ${trackHeight}`}
+          >
             <div
-              className="h-full rounded-full bg-violet-400/75 transition-[width] duration-500 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-violet-500/80 to-violet-400/70 transition-[width] duration-500 ease-out"
               style={{ width: `${fillPct}%` }}
             />
           </div>
 
           {showMarks && nextAt != null && survivors > nextAt ? (
             <span
-              className="absolute -top-0.5 -translate-x-1/2 font-mono text-[8px] font-bold tabular-nums text-amber-200/90"
+              className={`absolute -translate-x-1/2 font-mono font-bold tabular-nums text-amber-200/95 ${
+                headline ? '-top-0.5 text-[9px] sm:text-[10px]' : '-top-0.5 text-[8px]'
+              }`}
               style={{
                 left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
               }}

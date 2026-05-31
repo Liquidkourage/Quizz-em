@@ -1472,9 +1472,11 @@ function rosterRowsFromTiles(
 function VenueScrollingRoster({
   tiles,
   condenseProgress,
+  showCondenseInSidebar = false,
 }: {
   tiles: DisplayVenueTileSnapshot[]
   condenseProgress?: ReturnType<typeof buildVenueCondenseProgress> | null
+  showCondenseInSidebar?: boolean
 }) {
   const gameOn = useMemo(() => venueWallGameplayActive(tiles), [tiles])
   const rows = useMemo(() => rosterRowsFromTiles(tiles), [tiles])
@@ -1496,7 +1498,7 @@ function VenueScrollingRoster({
         <h2 className="text-xl font-bold leading-none tracking-tight text-white/92 sm:text-2xl">
           {gameOn ? 'Stacks' : 'Seating'}
         </h2>
-        {condenseProgress != null ? (
+        {showCondenseInSidebar && condenseProgress != null ? (
           <div className="mt-2.5">
             <VenueCondenseProgressBar model={condenseProgress} variant="sidebar" />
           </div>
@@ -1814,13 +1816,14 @@ export default function VenueEightTablesPreview({
 
             {showHeadline ? (
               <motion.div
-                className="sticky top-0 z-[45] shrink-0 flex w-full min-w-0 items-stretch gap-2.5 rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 py-2 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:gap-4 sm:px-4 sm:py-2.5 md:gap-5 md:px-5 md:py-3"
+                className="sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col gap-2 rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 py-2 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:gap-2.5 sm:px-4 sm:py-2.5 md:gap-3 md:px-5 md:py-3"
                 style={{
                   paddingTop: 'max(0.35rem, env(safe-area-inset-top, 0px))',
                 }}
                 initial={skipMountIntro ? false : { opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
+                <div className="flex w-full min-w-0 items-stretch gap-2.5 sm:gap-4 md:gap-5">
                 <div className="pointer-events-none flex w-[clamp(6.75rem,min(22vw,9rem),11rem)] shrink-0 items-center self-center sm:w-[clamp(7.5rem,min(26vw,10rem),12rem)] md:w-[clamp(8.5rem,min(24vw,11rem),13rem)]">
                   <div
                     className="w-full shadow-black/70 drop-shadow-xl"
@@ -1926,6 +1929,10 @@ export default function VenueEightTablesPreview({
                   ) : null}
                   </div>
                 </motion.div>
+                </div>
+                {condenseProgress != null && tileRows.length > 0 ? (
+                  <VenueCondenseProgressBar model={condenseProgress} variant="headline" />
+                ) : null}
               </motion.div>
             ) : null}
 
@@ -1951,9 +1958,13 @@ export default function VenueEightTablesPreview({
       </main>
 
       {showRoster ? (
-        <VenueScrollingRoster tiles={tileRows} condenseProgress={condenseProgress} />
+        <VenueScrollingRoster
+          tiles={tileRows}
+          condenseProgress={condenseProgress}
+          showCondenseInSidebar={!showHeadline}
+        />
       ) : null}
-      {!showRoster && condenseProgress != null && tileRows.length > 0 ? (
+      {!showRoster && !showHeadline && condenseProgress != null && tileRows.length > 0 ? (
         <VenueCondenseProgressBar model={condenseProgress} variant="bottom" />
       ) : null}
     </div>

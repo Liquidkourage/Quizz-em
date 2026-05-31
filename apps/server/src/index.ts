@@ -963,7 +963,11 @@ function applyVenueWageringOrchestration(venueCode: string) {
       let gs = runVirtualPlayerSimulation(update.gameState)
       rooms.set(update.sessionKey, gs)
       io.to(update.sessionKey).emit('state', gs)
-      scheduleTableAnswerReveal(update.sessionKey, update.answerDeadlineMs)
+      if (update.answerDeadlineMs != null) {
+        scheduleTableAnswerReveal(update.sessionKey, update.answerDeadlineMs)
+      } else {
+        clearTableAnswerTimer(update.sessionKey)
+      }
     }
     emitDisplayVenueSnapshotNow(vn)
   } finally {
@@ -1740,12 +1744,11 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     if (q != null && typeof q.text === 'string' && q.text.trim() !== '') {
       headlineQuestionText = q.text.trim()
     }
-    if (
-      headlineGs.phase === 'answering' &&
-      headlineGs.round?.answerDeadline != null &&
-      Number.isFinite(headlineGs.round.answerDeadline)
-    ) {
-      answerDeadlineMs = headlineGs.round.answerDeadline
+    if (headlineGs.phase === 'answering') {
+      const venueDeadline = venueShowdownAtMs.get(vn)
+      if (venueDeadline != null && Number.isFinite(venueDeadline)) {
+        answerDeadlineMs = venueDeadline
+      }
     }
   }
 
@@ -2649,8 +2652,12 @@ io.on('connection', (socket) => {
             socket.emit('ack', { ok: false, message: 'Not accepting answers right now.' })
             break
           }
-          const deadline = gameState.round.answerDeadline ?? 0
-          if (Date.now() > deadline) {
+          const deadline = gameState.round.answerDeadline
+          if (
+            typeof deadline === 'number' &&
+            Number.isFinite(deadline) &&
+            Date.now() > deadline
+          ) {
             socket.emit('toast', '⏱️ Too late! Answer window has closed.')
             socket.emit('ack', { ok: false, message: 'Answer window has closed.' })
             break

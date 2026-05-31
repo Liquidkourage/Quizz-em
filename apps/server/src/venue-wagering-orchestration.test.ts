@@ -22,7 +22,7 @@ function postBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<ty
 }
 
 describe('venue wagering orchestration', () => {
-  it('opens answering when post-board wagering closes on a table', () => {
+  it('opens answering with the 45s venue deadline when only one table is seated', () => {
     const { key, gs } = postBoardClosedTable()
     const plan = planVenueWageringOrchestration({
       seatedTableKeys: [key],
@@ -32,6 +32,7 @@ describe('venue wagering orchestration', () => {
     })
     expect(plan.tableUpdates).toHaveLength(1)
     expect(plan.tableUpdates[0]!.gameState.phase).toBe('answering')
+    expect(plan.tableUpdates[0]!.answerDeadlineMs).toBe(1_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
     expect(plan.scheduleShowdownAtMs).toBe(1_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
   })
 
@@ -56,6 +57,7 @@ describe('venue wagering orchestration', () => {
       nowMs: 2_000_000,
     })
     expect(plan.tableUpdates.some((u) => u.sessionKey === t1.key)).toBe(true)
+    expect(plan.tableUpdates.find((u) => u.sessionKey === t1.key)?.answerDeadlineMs).toBeNull()
     expect(plan.scheduleShowdownAtMs).toBeNull()
     expect(venueAllPostBoardWageringComplete(['V:1', 'V:2'], (tk) => states.get(tk))).toBe(false)
 
@@ -73,8 +75,8 @@ describe('venue wagering orchestration', () => {
 
   it('syncs answering deadlines when the venue timer is already armed', () => {
     const { key, gs } = postBoardClosedTable()
-    const opened = openAnsweringPhase(gs, gs.round.answerDeadline ?? Date.now() + 999_999)
-    const answering = { ...opened, phase: 'answering' as const, round: { ...opened.round, answerDeadline: 9_999_999 } }
+    const opened = openAnsweringPhase(gs, null)
+    const answering = { ...opened, phase: 'answering' as const }
     const showdownAt = 5_000_000
     const plan = planVenueWageringOrchestration({
       seatedTableKeys: [key],

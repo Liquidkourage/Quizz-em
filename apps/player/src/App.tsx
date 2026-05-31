@@ -325,9 +325,11 @@ function PlayerApp() {
   const minRaise = (gameState.bigBlind || 0)
   const canRaise = isMyTurn && (currentPlayer?.bankroll || 0) > toCall && raiseAmount >= minRaise && (toCall + raiseAmount) <= (currentPlayer?.bankroll || 0)
   const canAllIn = isMyTurn && (currentPlayer?.bankroll || 0) > 0
-  const answerDeadline = gameState.round.answerDeadline ?? 0
-  const remainingMs = Math.max(0, answerDeadline - Date.now())
-  const remainingSec = Math.ceil(remainingMs / 1000)
+  const answerDeadline = gameState.round.answerDeadline
+  const hasAnswerDeadline =
+    typeof answerDeadline === 'number' && Number.isFinite(answerDeadline) && answerDeadline > 0
+  const remainingMs = hasAnswerDeadline ? Math.max(0, answerDeadline - Date.now()) : null
+  const remainingSec = remainingMs != null ? Math.ceil(remainingMs / 1000) : null
   const wageringRound = gameState.round.bettingRound ?? 0
   const boardHiddenDuringBetting =
     gameState.phase === 'betting' &&
@@ -484,7 +486,9 @@ function PlayerApp() {
             {gameState.phase === 'answering' && (
               <div className="mb-4 hidden text-center sm:block">
                 <span className="mr-2 text-white/80">Time left:</span>
-                <span className="text-2xl font-extrabold text-casino-gold">{remainingSec}s</span>
+                <span className="text-2xl font-extrabold text-casino-gold">
+                  {remainingSec != null ? `${remainingSec}s` : 'Open'}
+                </span>
               </div>
             )}
             
@@ -943,7 +947,9 @@ function PlayerApp() {
           <div className="mx-auto max-w-lg space-y-3">
             <div className="text-center text-sm text-white/85">
               <span className="text-white/60">Time left: </span>
-              <span className="text-xl font-extrabold tabular-nums text-casino-gold">{remainingSec}s</span>
+              <span className="text-xl font-extrabold tabular-nums text-casino-gold">
+                {remainingSec != null ? `${remainingSec}s` : 'Open'}
+              </span>
             </div>
             <div className="flex justify-center gap-3">
               <NeonButton

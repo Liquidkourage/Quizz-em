@@ -3,9 +3,6 @@ import type { GameState } from '@qhe/core'
 /** Grace period after the last table closes post-board wagering before venue-wide showdown. */
 export const VENUE_POST_BOARD_SHOWDOWN_GRACE_MS = 45_000
 
-/** Placeholder until every table has finished wagering — replaced when the venue timer arms. */
-export const PLACEHOLDER_ANSWER_DEADLINE_MS = 24 * 60 * 60 * 1000
-
 export function isPostBoardWageringStreet(gs: GameState): boolean {
   if (gs.players.length === 0) return false
   if (gs.phase !== 'betting') return false
@@ -54,17 +51,20 @@ export function venueAllPostBoardWageringComplete(
   return inWave.every((tk) => tablePastPostBoardWagering(getState(tk)!))
 }
 
-export function openAnsweringPhase(gs: GameState, answerDeadlineMs: number): GameState {
+export function openAnsweringPhase(gs: GameState, answerDeadlineMs: number | null): GameState {
   if (!isPostBoardWageringClosed(gs)) return gs
   return {
     ...gs,
     phase: 'answering',
-    round: { ...gs.round, answerDeadline: answerDeadlineMs },
+    round: {
+      ...gs.round,
+      ...(answerDeadlineMs != null ? { answerDeadline: answerDeadlineMs } : { answerDeadline: undefined }),
+    },
   }
 }
 
 export type VenueWageringOrchestrationPlan = {
-  tableUpdates: { sessionKey: string; gameState: GameState; answerDeadlineMs: number }[]
+  tableUpdates: { sessionKey: string; gameState: GameState; answerDeadlineMs: number | null }[]
   scheduleShowdownAtMs: number | null
   cancelShowdown: boolean
 }
@@ -93,7 +93,7 @@ export function planVenueWageringOrchestration(args: {
     if (!gs || gs.players.length === 0) continue
 
     if (isPostBoardWageringClosed(gs)) {
-      const deadline = showdownAt ?? nowMs + PLACEHOLDER_ANSWER_DEADLINE_MS
+      const deadline = showdownAt ?? null
       const next = openAnsweringPhase(gs, deadline)
       if (next.phase !== gs.phase || next.round.answerDeadline !== gs.round.answerDeadline) {
         tableUpdates.push({ sessionKey: tk, gameState: next, answerDeadlineMs: deadline })

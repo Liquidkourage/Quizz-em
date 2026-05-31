@@ -112,6 +112,10 @@ export function resolveVenueHeadlineSource(
   return t != null ? { tableNum: t.tableNum, phase: t.phase } : { tableNum: null, phase: null }
 }
 
+export function venueHasOpenWagering(tileRows: DisplayVenueTileSnapshot[]): boolean {
+  return tileRows.some((t) => t.seated >= 2 && t.phase === 'betting' && t.isBettingOpen === true)
+}
+
 export function venueHeadlineDivergenceNote(
   tileRows: DisplayVenueTileSnapshot[],
   headlinePhase: string | null

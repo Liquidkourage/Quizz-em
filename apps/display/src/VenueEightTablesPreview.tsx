@@ -18,7 +18,7 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
-import { buildVenueWallTileRows, resolveVenueHeadlineSource, showdownTableNums, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   banquetCheckerboardGridColumn,
   banquetCheckerboardTrackCount,
@@ -1161,6 +1161,8 @@ type VenueMosaicTableCardProps = {
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
   prefersReducedMotion?: boolean
+  /** Slightly dim answering tiles while other felts are still in open wagering. */
+  dimAnsweringEarly?: boolean
 }
 
 function VenueMosaicTableCard({
@@ -1169,6 +1171,7 @@ function VenueMosaicTableCard({
   floorCompact = false,
   floorHoneycomb = false,
   prefersReducedMotion = false,
+  dimAnsweringEarly = false,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1218,6 +1221,8 @@ function VenueMosaicTableCard({
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${betsInPaused ? ', no more bets' : ''}, venue floor`}
         className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
+          dimAnsweringEarly ? 'opacity-[0.68] brightness-[0.78] saturate-[0.82]' : ''
+        } ${
           floorHoneycomb && floorCompact
             ? 'h-full min-h-0 overflow-hidden'
             : floorHoneycomb
@@ -1534,6 +1539,7 @@ function VenueAerialFloorGrid({
   const banquetRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
   const floorCompact = venueFloorCompact(columns)
   const showdownBrief = venueFloorShowdownBrief(columns)
+  const othersStillWagering = useMemo(() => venueHasOpenWagering(tiles), [tiles])
 
   if (n === 0) return null
 
@@ -1630,6 +1636,7 @@ function VenueAerialFloorGrid({
                       floorCompact={floorCompact}
                       floorHoneycomb
                       prefersReducedMotion={prefersReducedMotion}
+                      dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
                     />
                   </div>
                 )
@@ -1688,16 +1695,18 @@ export default function VenueEightTablesPreview({
   )
 
   const hasLiveWall = wall != null && wall.tiles != null && wall.tiles.length > 0
-  const showHeadline =
-    hasLiveWall &&
-    (headlineQuestionText != null || answerDeadlineMs != null || inVenueShowdown)
-  const headlineQuestionDisplay = inVenueShowdown
-    ? venueShowdownQuestionText
-    : headlineQuestionText
   const headlineSource = useMemo(
     () => resolveVenueHeadlineSource(wall, tileRows),
     [wall, tileRows]
   )
+  const headlineAnswering =
+    headlineSource.phase === 'answering' || wall?.headlinePhase === 'answering'
+  const showHeadline =
+    hasLiveWall &&
+    (headlineQuestionText != null || answerDeadlineMs != null || inVenueShowdown || headlineAnswering)
+  const headlineQuestionDisplay = inVenueShowdown
+    ? venueShowdownQuestionText
+    : headlineQuestionText
   const headlineDivergenceNote = useMemo(
     () => venueHeadlineDivergenceNote(tileRows, headlineSource.phase),
     [tileRows, headlineSource.phase]
@@ -1838,22 +1847,32 @@ export default function VenueEightTablesPreview({
                         {formatTriviaNumber(venueShowdownAnswer)}
                       </div>
                     </div>
-                  ) : inAnsweringCountdown && typeof timerSeconds === 'number' ? (
+                  ) : headlineAnswering ? (
                     <div
                       className={`flex shrink-0 flex-col items-stretch justify-center gap-1.5 rounded-lg border px-2 py-1.5 sm:min-w-[7.5rem] sm:px-3 sm:py-2 ${
-                        timerSeconds <= 10
+                        inAnsweringCountdown && typeof timerSeconds === 'number' && timerSeconds <= 10
                           ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_20px_rgba(34,211,238,0.12)]'
                           : 'border-cyan-600/35 bg-cyan-950/25'
                       }`}
                       aria-live="polite"
-                      aria-label={`Answer on your phone, ${timerSeconds} seconds remaining`}
+                      aria-label={
+                        inAnsweringCountdown && typeof timerSeconds === 'number'
+                          ? `Answer on your phone, ${timerSeconds} seconds remaining`
+                          : 'Answer on your phone — timer starts when every table finishes wagering'
+                      }
                     >
                       <span className="text-center text-[10px] font-black uppercase leading-tight tracking-wide text-cyan-100/90 sm:text-xs">
                         Answer on your phone
                       </span>
-                      <div className="text-center font-mono text-2xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-4xl md:text-5xl xl:text-6xl">
-                        {timerSeconds}s
-                      </div>
+                      {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
+                        <div className="text-center font-mono text-2xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-4xl md:text-5xl xl:text-6xl">
+                          {timerSeconds}s
+                        </div>
+                      ) : (
+                        <div className="text-center text-[11px] font-semibold leading-snug text-cyan-200/75 sm:text-xs">
+                          45s after last table
+                        </div>
+                      )}
                     </div>
                   ) : null}
                   </div>

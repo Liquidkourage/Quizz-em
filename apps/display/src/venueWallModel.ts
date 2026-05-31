@@ -4,6 +4,7 @@ import {
   DISPLAY_PREVIEW_TABLES,
   VENUE_WALL_SEAT_SLOTS,
   displayBlindSeatIndices,
+  listVenueCondenseMilestones,
   rehearsalSeatDisplayName,
 } from '@qhe/core'
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot } from '@qhe/net'
@@ -247,6 +248,81 @@ export function venueWallCondenseHeadline(wall: DisplayVenueWallSnapshot | null)
       targetTables != null
         ? `${liveTables} tables now → ${targetTables} tables`
         : `${liveTables} tables · ${survivors} players remaining`,
+  }
+}
+
+export type VenueCondenseProgressMark = {
+  atSurvivors: number
+  toTables: number
+  /** 0–100 from left (full field) to right (final). */
+  pct: number
+  status: 'passed' | 'next' | 'upcoming'
+}
+
+export type VenueCondenseProgressModel = {
+  survivors: number
+  peakSurvivors: number
+  liveTables: number
+  fillPct: number
+  marks: VenueCondenseProgressMark[]
+  primary: string
+  secondary: string | null
+}
+
+function survivorTrackPct(survivors: number, peakSurvivors: number): number {
+  if (peakSurvivors <= 0) return 0
+  if (peakSurvivors <= 1) return survivors >= 1 ? 100 : 0
+  const clamped = Math.max(0, Math.min(peakSurvivors, survivors))
+  return (clamped / peakSurvivors) * 100
+}
+
+/** Thermometer progress model for the venue condense strip. */
+export function buildVenueCondenseProgress(args: {
+  wall: DisplayVenueWallSnapshot | null
+  peakSurvivors: number
+}): VenueCondenseProgressModel | null {
+  const headline = venueWallCondenseHeadline(args.wall)
+  if (headline == null) return null
+
+  const peakSurvivors = Math.max(args.peakSurvivors, headline.survivors, 1)
+  const { survivors, liveTables, nextAt, primary, secondary } = headline
+
+  if (liveTables <= 1) {
+    return {
+      survivors,
+      peakSurvivors,
+      liveTables,
+      fillPct: survivorTrackPct(survivors, peakSurvivors),
+      marks: [],
+      primary,
+      secondary,
+    }
+  }
+
+  const milestones = listVenueCondenseMilestones(liveTables, peakSurvivors)
+  const marks: VenueCondenseProgressMark[] = milestones.map((m) => {
+    let status: VenueCondenseProgressMark['status'] = 'upcoming'
+    if (nextAt != null && m.atSurvivors === nextAt) {
+      status = survivors <= nextAt ? 'next' : 'upcoming'
+    } else if (survivors < m.atSurvivors) {
+      status = 'passed'
+    }
+    return {
+      atSurvivors: m.atSurvivors,
+      toTables: m.toTables,
+      pct: survivorTrackPct(m.atSurvivors, peakSurvivors),
+      status,
+    }
+  })
+
+  return {
+    survivors,
+    peakSurvivors,
+    liveTables,
+    fillPct: survivorTrackPct(survivors, peakSurvivors),
+    marks,
+    primary,
+    secondary,
   }
 }
 

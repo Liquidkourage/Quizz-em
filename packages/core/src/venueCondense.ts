@@ -63,6 +63,44 @@ export function computeNextCondenseAtSurvivors(
   return null
 }
 
+export type VenueCondenseMilestone = {
+  atSurvivors: number
+  fromTables: number
+  toTables: number
+}
+
+/**
+ * Scheduled combine thresholds from `scanFromSurvivors` down to final table,
+ * simulating each merge and the next threshold at the new table count.
+ */
+export function listVenueCondenseMilestones(
+  liveTableCount: number,
+  scanFromSurvivors: number,
+): VenueCondenseMilestone[] {
+  if (liveTableCount <= 1 || scanFromSurvivors <= 0) return []
+
+  const out: VenueCondenseMilestone[] = []
+  let tables = liveTableCount
+  let scanFrom = scanFromSurvivors
+
+  while (tables > 1 && scanFrom >= 1) {
+    const at = computeNextCondenseAtSurvivors(tables, scanFrom)
+    if (at == null) break
+
+    const toTables = mergeTargetTableCount(at)
+    const last = out[out.length - 1]
+    if (last?.atSurvivors !== at || last?.fromTables !== tables) {
+      out.push({ atSurvivors: at, fromTables: tables, toTables })
+    }
+
+    if (toTables >= tables) break
+    tables = toTables
+    scanFrom = at - 1
+  }
+
+  return out
+}
+
 export type VenueTableRoster = {
   tableNum: number
   players: PlayerState[]

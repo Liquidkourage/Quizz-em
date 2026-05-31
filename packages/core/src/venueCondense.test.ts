@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   computeNextCondenseAtSurvivors,
+  listVenueCondenseMilestones,
   mergeTargetTableCount,
   optimalVenueTableCount,
   planVenueCondense,
@@ -32,6 +33,16 @@ describe('venue condense thresholds', () => {
 
   it('returns null at one table', () => {
     expect(computeNextCondenseAtSurvivors(1, 5)).toBeNull()
+  })
+
+  it('lists merge ladder from 20 tables down', () => {
+    const ladder = listVenueCondenseMilestones(20, 134)
+    expect(ladder.length).toBeGreaterThan(0)
+    expect(ladder[0]).toEqual({ atSurvivors: 110, fromTables: 20, toTables: 18 })
+    for (let i = 1; i < ladder.length; i++) {
+      expect(ladder[i]!.atSurvivors).toBeLessThan(ladder[i - 1]!.atSurvivors)
+      expect(ladder[i]!.fromTables).toBeLessThanOrEqual(ladder[i - 1]!.toTables)
+    }
   })
 })
 

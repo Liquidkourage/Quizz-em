@@ -18,7 +18,8 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
-import { buildVenueWallTileRows, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import {
   banquetCheckerboardGridColumn,
   banquetCheckerboardTrackCount,
@@ -1678,6 +1679,7 @@ export default function VenueEightTablesPreview({
   featuredWatch: _featuredWatch,
 }: VenueEightTablesPreviewProps) {
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null)
+  const [peakSurvivors, setPeakSurvivors] = useState(0)
   const prefersReducedMotion = usePrefersReducedMotion()
   const headlineQuestionText = wall?.headlineQuestionText ?? null
   const answerDeadlineMs = wall?.answerDeadlineMs ?? null
@@ -1726,6 +1728,15 @@ export default function VenueEightTablesPreview({
     headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
   const venueBlindsHeadline = useMemo(() => venueWallBlindsHeadline(wall), [wall])
   const condenseHeadline = useMemo(() => venueWallCondenseHeadline(wall), [wall])
+  useEffect(() => {
+    if (condenseHeadline != null) {
+      setPeakSurvivors((prev) => Math.max(prev, condenseHeadline.survivors))
+    }
+  }, [condenseHeadline])
+  const condenseProgress = useMemo(
+    () => buildVenueCondenseProgress({ wall, peakSurvivors }),
+    [wall, peakSurvivors],
+  )
   const showVenueBlindsHeadline =
     venueBlindsHeadline != null &&
     !(inVenueShowdown && venueShowdownAnswer != null) &&
@@ -1896,22 +1907,8 @@ export default function VenueEightTablesPreview({
               </motion.div>
             ) : null}
 
-            {condenseHeadline != null && tileRows.length > 0 ? (
-              <motion.div
-                className="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-xl border border-violet-500/40 bg-violet-950/35 px-3 py-2 text-center shadow-[0_0_16px_rgba(139,92,246,0.08)] backdrop-blur-md sm:px-4 sm:py-2.5"
-                initial={skipMountIntro ? false : { opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                aria-live="polite"
-              >
-                <span className="text-sm font-bold tracking-tight text-violet-100 sm:text-base md:text-lg">
-                  {condenseHeadline.primary}
-                </span>
-                {condenseHeadline.secondary ? (
-                  <span className="text-xs font-medium text-violet-200/70 sm:text-sm">
-                    {condenseHeadline.secondary}
-                  </span>
-                ) : null}
-              </motion.div>
+            {condenseProgress != null && tileRows.length > 0 ? (
+              <VenueCondenseProgressBar model={condenseProgress} skipMountIntro={skipMountIntro} />
             ) : null}
 
             <VenueAerialFloorGrid

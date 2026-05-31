@@ -1233,7 +1233,7 @@ function VenueMosaicTableCard({
         className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
           dimAnsweringEarly ? 'opacity-[0.68] brightness-[0.78] saturate-[0.82]' : ''
         } ${
-          floorHoneycomb && compactChrome
+          floorHoneycomb && (compactChrome || floorSize.honeycombFillHeight)
             ? 'h-full min-h-0 overflow-hidden'
             : floorHoneycomb
               ? 'h-auto overflow-visible'
@@ -1286,14 +1286,14 @@ function VenueMosaicTableCard({
 
         <div
           className={`@container relative z-[1] flex w-full justify-center ${
-            floorHoneycomb && compactChrome
+            floorHoneycomb && (compactChrome || floorSize.honeycombFillHeight)
               ? 'min-h-0 flex-1 overflow-hidden'
               : floorHoneycomb
                 ? 'shrink-0 overflow-visible'
                 : 'min-h-0 flex-1 overflow-hidden'
           } ${floorSize.ringScaleClass}`}
           style={
-            floorHoneycomb && !compactChrome ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined
+            floorHoneycomb && !floorSize.honeycombFillHeight ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined
           }
         >
           <SeatRingWithLabels
@@ -1467,7 +1467,13 @@ function rosterRowsFromTiles(
   return out
 }
 
-function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) {
+function VenueScrollingRoster({
+  tiles,
+  condenseProgress,
+}: {
+  tiles: DisplayVenueTileSnapshot[]
+  condenseProgress?: ReturnType<typeof buildVenueCondenseProgress> | null
+}) {
   const gameOn = useMemo(() => venueWallGameplayActive(tiles), [tiles])
   const rows = useMemo(() => rosterRowsFromTiles(tiles), [tiles])
   if (rows.length === 0) return null
@@ -1523,6 +1529,9 @@ function VenueScrollingRoster({ tiles }: { tiles: DisplayVenueTileSnapshot[] }) 
           ))}
         </div>
       </div>
+      {condenseProgress != null ? (
+        <VenueCondenseProgressBar model={condenseProgress} variant="sidebar" />
+      ) : null}
     </aside>
   )
 }
@@ -1758,11 +1767,9 @@ export default function VenueEightTablesPreview({
       </div>
 
       <main
-        className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 sm:px-4 ${
-          condenseProgress != null && tileRows.length > 0
-            ? 'pb-11 sm:pb-12'
-            : 'pb-3 sm:pb-4'
-        } ${showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'}`}
+        className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 pb-3 sm:px-4 sm:pb-4 ${
+          showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'
+        }`}
       >
         {wall != null && tileRows.length === 0 ? (
           <motion.div
@@ -1923,9 +1930,11 @@ export default function VenueEightTablesPreview({
         ) : null}
       </main>
 
-      {showRoster ? <VenueScrollingRoster tiles={tileRows} /> : null}
-      {condenseProgress != null && tileRows.length > 0 ? (
-        <VenueCondenseProgressBar model={condenseProgress} insetForRoster={showRoster} />
+      {showRoster ? (
+        <VenueScrollingRoster tiles={tileRows} condenseProgress={condenseProgress} />
+      ) : null}
+      {!showRoster && condenseProgress != null && tileRows.length > 0 ? (
+        <VenueCondenseProgressBar model={condenseProgress} variant="bottom" />
       ) : null}
     </div>
   )

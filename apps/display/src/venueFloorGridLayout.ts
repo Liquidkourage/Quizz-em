@@ -103,7 +103,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
       return {
         size,
         compactChrome: false,
-        showdownBrief: false,
+        showdownBrief: true,
         rowGapRem: 1.35,
         cellGapRem: 1.55,
         cardPaddingClass: 'overflow-visible p-2 sm:p-2',
@@ -112,7 +112,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         potClass:
           'text-[clamp(1.05rem,6cqw,2rem)] sm:text-[clamp(1.15rem,6.5cqw,2.1rem)]',
         phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
-        honeycombFillHeight: false,
+        honeycombFillHeight: true,
         ringScaleClass: '',
         showSeatList: true,
         showPotSubtitle: true,
@@ -121,19 +121,19 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
       return {
         size,
         compactChrome: false,
-        showdownBrief: false,
+        showdownBrief: true,
         rowGapRem: 1.2,
         cellGapRem: 1.35,
-        cardPaddingClass: 'overflow-visible p-1.5 sm:p-2',
+        cardPaddingClass: 'p-1.5 sm:p-2',
         innerGapClass: 'gap-1 sm:gap-1.5',
         tableNumClass: 'text-lg sm:text-xl',
         potClass:
           'text-[clamp(0.95rem,5.5cqw,1.75rem)] sm:text-[clamp(1.05rem,6cqw,1.9rem)]',
         phaseChipClass: 'px-1.5 py-0.5 text-[9px] sm:px-2 sm:py-1 sm:text-[10px]',
-        honeycombFillHeight: false,
+        honeycombFillHeight: true,
         ringScaleClass: '',
         showSeatList: false,
-        showPotSubtitle: true,
+        showPotSubtitle: false,
       }
     case 'compact':
       return {

@@ -34,6 +34,9 @@ describe('venueFloorTableSize', () => {
 
     expect(hero.showSeatList).toBe(true)
     expect(medium.showSeatList).toBe(false)
+    expect(large.showdownBrief).toBe(true)
+    expect(medium.showdownBrief).toBe(true)
+    expect(medium.honeycombFillHeight).toBe(true)
     expect(compact.compactChrome).toBe(true)
     expect(micro.showdownBrief).toBe(true)
   })

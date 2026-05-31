@@ -2,8 +2,8 @@ import type { VenueCondenseProgressModel } from './venueWallModel'
 
 type VenueCondenseProgressBarProps = {
   model: VenueCondenseProgressModel
-  /** Leave room for the stacks crawl on the right. */
-  insetForRoster?: boolean
+  /** Dock under the stacks crawl instead of floating over the floor. */
+  variant?: 'sidebar' | 'bottom'
 }
 
 function compactCaption(model: VenueCondenseProgressModel): string {
@@ -20,30 +20,37 @@ function compactCaption(model: VenueCondenseProgressModel): string {
 
 export default function VenueCondenseProgressBar({
   model,
-  insetForRoster = false,
+  variant = 'bottom',
 }: VenueCondenseProgressBarProps) {
   const { survivors, peakSurvivors, liveTables, fillPct, marks, nextAt } = model
   if (liveTables <= 1 && marks.length === 0) return null
 
   const showMarks = marks.length > 0 && liveTables > 1
+  const sidebar = variant === 'sidebar'
 
   return (
     <div
-      className={`pointer-events-none fixed bottom-0 left-0 z-30 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] pt-1.5 sm:px-4 ${
-        insetForRoster ? 'right-56 sm:right-60 lg:right-64' : 'right-0'
-      }`}
+      className={
+        sidebar
+          ? 'shrink-0 border-t border-white/10 px-2 py-2 sm:px-2.5 sm:py-2.5'
+          : 'pointer-events-none fixed bottom-0 left-0 right-0 z-30 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] pt-1.5 sm:px-4'
+      }
       aria-live="polite"
     >
       <div
-        className="mx-auto max-w-3xl rounded-lg border border-white/10 bg-black/55 px-2.5 py-1.5 backdrop-blur-sm sm:px-3 sm:py-2"
+        className={`${sidebar ? 'w-full' : 'mx-auto max-w-3xl'} rounded-md border border-white/10 bg-black/55 px-2 py-1.5 backdrop-blur-sm sm:px-2.5`}
         role="img"
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >
-        <p className="mb-1 truncate text-center text-[10px] font-medium tabular-nums text-white/70 sm:text-xs">
+        <p
+          className={`truncate text-center font-medium tabular-nums text-white/70 ${
+            sidebar ? 'mb-1 text-[9px] leading-tight sm:text-[10px]' : 'mb-1 text-[10px] sm:text-xs'
+          }`}
+        >
           {compactCaption(model)}
         </p>
 
-        <div className="relative h-2 sm:h-2.5">
+        <div className={`relative ${sidebar ? 'h-1.5' : 'h-2 sm:h-2.5'}`}>
           {showMarks ? (
             <div className="absolute inset-x-0 top-0 h-2" aria-hidden>
               {marks.map((mark) => (
@@ -57,26 +64,21 @@ export default function VenueCondenseProgressBar({
                         : 'h-1.5 bg-white/45'
                   }`}
                   style={{ left: `${mark.pct}%` }}
-                  title={
-                    mark.status === 'next'
-                      ? `Combine at ${mark.atSurvivors} players → ${mark.toTables} tables`
-                      : `${mark.atSurvivors} → ${mark.toTables} tables`
-                  }
                 />
               ))}
             </div>
           ) : null}
 
-          <div className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-full bg-white/10 sm:h-1.5">
+          <div className="absolute inset-x-0 bottom-0 h-1 overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-violet-400/80 transition-[width] duration-500 ease-out"
+              className="h-full rounded-full bg-violet-400/75 transition-[width] duration-500 ease-out"
               style={{ width: `${fillPct}%` }}
             />
           </div>
 
           {showMarks && nextAt != null && survivors > nextAt ? (
             <span
-              className="absolute -top-0.5 -translate-x-1/2 font-mono text-[8px] font-bold tabular-nums text-amber-200/90 sm:text-[9px]"
+              className="absolute -top-0.5 -translate-x-1/2 font-mono text-[8px] font-bold tabular-nums text-amber-200/90"
               style={{
                 left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
               }}

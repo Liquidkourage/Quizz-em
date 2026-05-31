@@ -223,8 +223,8 @@ function MosaicDigitCard({
 }) {
   const sizeClass =
     size === 'community'
-      ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(1.58rem,11.5cqw,2.75rem)]'
-      : 'h-[clamp(1.1rem,7.4cqw,1.75rem)] w-[clamp(0.8rem,5.3cqw,1.3rem)]'
+      ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(2.1rem,15.5cqw,3.65rem)] shrink-0'
+      : 'h-[clamp(1.1rem,7.4cqw,1.75rem)] w-[clamp(0.8rem,5.3cqw,1.3rem)] shrink-0'
   const textClass =
     size === 'community'
       ? 'text-[clamp(1.1rem,8.5cqw,1.75rem)]'

@@ -5,6 +5,11 @@ export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-comp
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
+const FLOOR_CHIP_DIM =
+  'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(2rem,26.5cqw,3.5rem)] shrink-0 border-2 px-[0.08em] text-[clamp(1.72rem,22.2cqw,3rem)]'
+const FLOOR_COMPACT_CHIP_DIM =
+  'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.55rem,19.2cqw,2.7rem)] shrink-0 border-2 px-[0.06em] text-[clamp(1.35rem,16.1cqw,2.3rem)]'
+
 function DigitChip({
   digit,
   variant,
@@ -14,23 +19,18 @@ function DigitChip({
   variant: DigitChipVariant
   size?: ShowdownChipSize
 }) {
-  const isBoard = variant === 'board'
   const dim =
     size === 'floor'
-      ? isBoard
-        ? 'h-[clamp(2rem,26.5cqw,3.5rem)] min-w-[clamp(2rem,26.5cqw,3.5rem)] border-2 px-[0.08em] text-[clamp(1.72rem,22.2cqw,3rem)] shadow-[0_0_12px_rgba(52,211,153,0.35)]'
-        : 'h-[clamp(1.58rem,20.7cqw,2.75rem)] min-w-[clamp(1.58rem,20.7cqw,2.75rem)] border-2 px-[0.08em] text-[clamp(1.35rem,17.3cqw,2.35rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+      ? FLOOR_CHIP_DIM
       : size === 'floor-compact'
-        ? isBoard
-          ? 'h-[clamp(1.55rem,19.2cqw,2.7rem)] min-w-[clamp(1.55rem,19.2cqw,2.7rem)] border-2 px-[0.06em] text-[clamp(1.35rem,16.1cqw,2.3rem)] shadow-[0_0_10px_rgba(52,211,153,0.32)]'
-          : 'h-[clamp(1.2rem,15cqw,2.1rem)] min-w-[clamp(1.2rem,15cqw,2.1rem)] border-2 px-[0.06em] text-[clamp(1.05rem,12.6cqw,1.8rem)] shadow-[0_0_8px_rgba(0,0,0,0.45)]'
+        ? FLOOR_COMPACT_CHIP_DIM
         : size === 'lg'
-        ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
+        ? 'h-9 w-[1.65rem] shrink-0 px-1 text-base sm:h-10 sm:w-[1.85rem] sm:text-lg'
         : size === 'xs'
-          ? 'h-5 min-w-[0.95rem] px-0.5 text-[0.55rem]'
+          ? 'h-5 w-[0.95rem] shrink-0 px-0.5 text-[0.55rem]'
           : size === 'sm'
-            ? 'h-6 min-w-[1.125rem] px-0.5 text-[0.65rem]'
-            : 'h-7 min-w-[1.35rem] px-1 text-xs'
+            ? 'h-6 w-[1.125rem] shrink-0 px-0.5 text-[0.65rem]'
+            : 'h-7 w-[1.35rem] shrink-0 px-1 text-xs'
   const styles: Record<DigitChipVariant, string> = {
     hole: 'border-amber-400/85 bg-amber-950/90 text-amber-50 shadow-[0_0_8px_rgba(251,191,36,0.35)]',
     board:
@@ -39,7 +39,7 @@ function DigitChip({
   }
   return (
     <span
-      className={`inline-flex items-center justify-center rounded border font-mono font-black tabular-nums ${dim} ${styles[variant]}`}
+      className={`inline-flex items-center justify-center rounded border font-mono font-black tabular-nums leading-none ${dim} ${styles[variant]}`}
     >
       {digit}
     </span>

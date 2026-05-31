@@ -20,6 +20,7 @@ import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeo
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
+import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import {
   banquetCheckerboardGridColumn,
   banquetCheckerboardTrackCount,
@@ -1769,11 +1770,13 @@ export default function VenueEightTablesPreview({
   const showRoster = rosterRowsFromTiles(tileRows).length > 0
 
   return (
-    <div
-      className={`relative flex min-h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white ${
-        showRoster ? VENUE_CRAWL_PR_CLASS : ''
-      }`}
-    >
+    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div
+        className={`relative flex h-full min-h-0 flex-col overflow-hidden text-white ${
+          showRoster ? VENUE_CRAWL_PR_CLASS : ''
+        }`}
+        style={venueWallUiScaleFrameStyle()}
+      >
       <div className="pointer-events-none absolute inset-0 opacity-35">
         <div
           className="absolute inset-0"
@@ -1967,6 +1970,7 @@ export default function VenueEightTablesPreview({
       {!showRoster && !showHeadline && condenseProgress != null && tileRows.length > 0 ? (
         <VenueCondenseProgressBar model={condenseProgress} variant="bottom" />
       ) : null}
+      </div>
     </div>
   )
 }

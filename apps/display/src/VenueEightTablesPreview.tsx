@@ -1725,6 +1725,10 @@ export default function VenueEightTablesPreview({
   const headlinePhaseLabel =
     headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
   const venueBlindsHeadline = useMemo(() => venueWallBlindsHeadline(wall), [wall])
+  const showVenueBlindsHeadline =
+    venueBlindsHeadline != null &&
+    !(inVenueShowdown && venueShowdownAnswer != null) &&
+    !headlineAnswering
 
   const showRoster = rosterRowsFromTiles(tileRows).length > 0
 
@@ -1824,7 +1828,7 @@ export default function VenueEightTablesPreview({
                     )}
                   </div>
                   <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2.5">
-                    {venueBlindsHeadline ? (
+                    {showVenueBlindsHeadline && venueBlindsHeadline != null ? (
                       <div
                         className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border border-amber-500/50 bg-amber-950/40 px-2 py-1.5 shadow-[0_0_16px_rgba(251,191,36,0.08)] sm:min-w-[6.5rem] sm:px-3 sm:py-2"
                         aria-label={

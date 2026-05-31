@@ -455,12 +455,15 @@ export function HostVenueFeltBeatStrip({
   rows: HostVenueFeltBeatRow[] | null
   hostTableId: string
 }) {
-  const activeWithSig =
-    rows?.filter((r) => r.active && r.phaseStrictSig != null && r.phaseStrictSig !== '') ?? []
+  /** Lockstep diagnostic — only seated felts matter (matches server venue-wide gates). */
+  const seatedWithSig =
+    rows?.filter(
+      (r) => r.active && r.seated > 0 && r.phaseStrictSig != null && r.phaseStrictSig !== '',
+    ) ?? []
   const outlierTableNums = (() => {
-    if (activeWithSig.length < 2) return new Set<number>()
+    if (seatedWithSig.length < 2) return new Set<number>()
     const bySig = new Map<string, number[]>()
-    for (const r of activeWithSig) {
+    for (const r of seatedWithSig) {
       const s = r.phaseStrictSig!
       if (!bySig.has(s)) bySig.set(s, [])
       bySig.get(s)!.push(r.tableNum)
@@ -481,7 +484,7 @@ export function HostVenueFeltBeatStrip({
     return out
   })()
   const lockstepMisaligned = outlierTableNums.size > 0
-  const activeCount = rows?.filter((r) => r.active).length ?? 0
+  const seatedTableCount = rows?.filter((r) => r.active && r.seated > 0).length ?? 0
 
   const hasLiveCountdown =
     rows?.some((r) => r.phase === 'answering' && r.answerDeadlineMs != null) ?? false
@@ -502,7 +505,7 @@ export function HostVenueFeltBeatStrip({
             Misaligned
           </span>
         ) : rows != null ? (
-          <span className="text-xs font-normal text-white/40">{activeCount} active</span>
+          <span className="text-xs font-normal text-white/40">{seatedTableCount} seated</span>
         ) : null
       }
       summary={
@@ -519,7 +522,7 @@ export function HostVenueFeltBeatStrip({
           role="status"
           className="mb-2 rounded-lg border border-amber-400/55 bg-amber-950/35 px-2.5 py-1.5 text-xs font-semibold text-amber-100"
         >
-          Amber felts differ from the majority — fix before venue-wide cues.
+          Amber felts differ from the majority — fix before venue-wide cues. Empty felts (0p) are ignored.
         </div>
       ) : null}
       {rows == null ? (
@@ -541,11 +544,13 @@ export function HostVenueFeltBeatStrip({
               <div
                 key={row.tableNum}
                 title={
-                  drift && sig
-                    ? `Straggler — ${sig}`
-                    : lockstepMisaligned && row.active && sig
-                      ? sig
-                      : undefined
+                  watching
+                    ? 'Your mirrored host table — cyan ring is not a straggler'
+                    : drift && sig
+                      ? `Straggler — ${sig}`
+                      : lockstepMisaligned && row.active && row.seated > 0 && sig
+                        ? sig
+                        : undefined
                 }
                 className={`rounded-md border px-1.5 py-1 text-center sm:min-h-[3.75rem] ${
                   row.active

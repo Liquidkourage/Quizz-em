@@ -113,7 +113,7 @@ function VenueMosaicFeltCenterStack({ communityDigits }: { communityDigits: numb
           transform: 'translate(-50%, -50%)',
         }}
       >
-        <div className="flex items-center justify-center gap-[2px] sm:gap-0.5">
+        <div className="flex items-center justify-center gap-0.5 sm:gap-1">
           {communityDigits.map((digit, i) => (
             <MosaicDigitCard key={`${i}-${digit}`} digit={digit} size="community" />
           ))}
@@ -223,11 +223,11 @@ function MosaicDigitCard({
 }) {
   const sizeClass =
     size === 'community'
-      ? 'h-[clamp(1.6rem,11.4cqw,2.7rem)] w-[clamp(1.2rem,8.4cqw,2rem)]'
+      ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(1.58rem,11.5cqw,2.75rem)]'
       : 'h-[clamp(1.1rem,7.4cqw,1.75rem)] w-[clamp(0.8rem,5.3cqw,1.3rem)]'
   const textClass =
     size === 'community'
-      ? 'text-[clamp(0.85rem,6.2cqw,1.25rem)]'
+      ? 'text-[clamp(1.1rem,8.5cqw,1.75rem)]'
       : 'text-[clamp(0.58rem,4cqw,0.82rem)]'
   if (faceDown) {
     return (

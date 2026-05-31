@@ -14,11 +14,16 @@ function DigitChip({
   variant: DigitChipVariant
   size?: ShowdownChipSize
 }) {
+  const isBoard = variant === 'board'
   const dim =
     size === 'floor'
-      ? 'h-[clamp(1.58rem,20.7cqw,2.75rem)] min-w-[clamp(1.58rem,20.7cqw,2.75rem)] border-2 px-[0.08em] text-[clamp(1.35rem,17.3cqw,2.35rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+      ? isBoard
+        ? 'h-[clamp(2rem,26.5cqw,3.5rem)] min-w-[clamp(2rem,26.5cqw,3.5rem)] border-2 px-[0.08em] text-[clamp(1.72rem,22.2cqw,3rem)] shadow-[0_0_12px_rgba(52,211,153,0.35)]'
+        : 'h-[clamp(1.58rem,20.7cqw,2.75rem)] min-w-[clamp(1.58rem,20.7cqw,2.75rem)] border-2 px-[0.08em] text-[clamp(1.35rem,17.3cqw,2.35rem)] shadow-[0_0_10px_rgba(0,0,0,0.5)]'
       : size === 'floor-compact'
-        ? 'h-[clamp(1.2rem,15cqw,2.1rem)] min-w-[clamp(1.2rem,15cqw,2.1rem)] border-2 px-[0.06em] text-[clamp(1.05rem,12.6cqw,1.8rem)] shadow-[0_0_8px_rgba(0,0,0,0.45)]'
+        ? isBoard
+          ? 'h-[clamp(1.55rem,19.2cqw,2.7rem)] min-w-[clamp(1.55rem,19.2cqw,2.7rem)] border-2 px-[0.06em] text-[clamp(1.35rem,16.1cqw,2.3rem)] shadow-[0_0_10px_rgba(52,211,153,0.32)]'
+          : 'h-[clamp(1.2rem,15cqw,2.1rem)] min-w-[clamp(1.2rem,15cqw,2.1rem)] border-2 px-[0.06em] text-[clamp(1.05rem,12.6cqw,1.8rem)] shadow-[0_0_8px_rgba(0,0,0,0.45)]'
         : size === 'lg'
         ? 'h-9 min-w-[1.65rem] px-1 text-base sm:h-10 sm:min-w-[1.85rem] sm:text-lg'
         : size === 'xs'
@@ -45,9 +50,9 @@ function DigitChip({
 function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
   const dim =
     size === 'floor'
-      ? 'h-[clamp(1.58rem,20.7cqw,2.75rem)] w-[0.22em] text-[clamp(1.35rem,17.3cqw,2.35rem)]'
+      ? 'h-[clamp(2rem,26.5cqw,3.5rem)] w-[0.22em] text-[clamp(1.72rem,22.2cqw,3rem)]'
       : size === 'floor-compact'
-        ? 'h-[clamp(1.2rem,15cqw,2.1rem)] w-[0.2em] text-[clamp(1.05rem,12.6cqw,1.8rem)]'
+        ? 'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[0.2em] text-[clamp(1.35rem,16.1cqw,2.3rem)]'
         : size === 'lg'
         ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
         : size === 'xs'
@@ -108,9 +113,9 @@ export function ShowdownFiveCardsUsed({
 
   const wrapClass =
     size === 'floor'
-      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.14rem,0.98cqw,0.37rem)]'
+      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.18rem,1.25cqw,0.48rem)]'
       : size === 'floor-compact'
-        ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.1rem,0.75cqw,0.28rem)]'
+        ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.14rem,1cqw,0.38rem)]'
         : size === 'lg'
         ? 'flex flex-nowrap items-center justify-center gap-1'
         : 'flex flex-wrap items-center justify-center gap-0.5'

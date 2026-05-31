@@ -32,13 +32,13 @@ export default function VenueCondenseProgressBar({
     <div
       className={
         sidebar
-          ? 'shrink-0 border-t border-white/10 px-2 py-2 sm:px-2.5 sm:py-2.5'
+          ? 'w-full'
           : 'pointer-events-none fixed bottom-0 left-0 right-0 z-30 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] pt-1.5 sm:px-4'
       }
       aria-live="polite"
     >
       <div
-        className={`${sidebar ? 'w-full' : 'mx-auto max-w-3xl'} rounded-md border border-white/10 bg-black/55 px-2 py-1.5 backdrop-blur-sm sm:px-2.5`}
+        className={`${sidebar ? 'w-full' : 'mx-auto max-w-3xl'} ${sidebar ? '' : 'rounded-md border border-white/10 bg-black/55 px-2 py-1.5 backdrop-blur-sm sm:px-2.5'}`}
         role="img"
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >

@@ -1195,12 +1195,16 @@ function VenueMosaicTableCard({
   const seatLastBettingAction = padSeatLastBettingAction(row.seatLastBettingAction)
   const showSeatBettingActions = ph === 'betting'
   const inShowdown = ph === 'showdown'
-  const showdownBrief = hideShowdownResults || floorSize.showdownBrief
-  const compactChrome = floorSize.compactChrome
   const floorShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
   const floorShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
-  const showFloorShowdownOverlay =
-    showdownBrief && inShowdown && floorShowdownRows.length > 0
+  const showdownBrief = hideShowdownResults || floorSize.showdownBrief
+  const compactChrome = floorSize.compactChrome
+  /** Mosaic floor never stacks the brown results rail under the felt — overlay or headline only. */
+  const mosaicShowdownOverlay =
+    inShowdown && floorShowdownRows.length > 0 && (showdownBrief || floorHoneycomb)
+  const showExpandedShowdownPanel =
+    inShowdown && floorShowdownRows.length > 0 && !showdownBrief && !floorHoneycomb
+  const showFloorShowdownOverlay = mosaicShowdownOverlay
   const floorShowdownPresentation = useMemo(() => {
     if (!showFloorShowdownOverlay) return null
     return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
@@ -1233,11 +1237,9 @@ function VenueMosaicTableCard({
         className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
           dimAnsweringEarly ? 'opacity-[0.68] brightness-[0.78] saturate-[0.82]' : ''
         } ${
-          floorHoneycomb && (compactChrome || floorSize.honeycombFillHeight)
+          floorHoneycomb || floorSize.honeycombFillHeight
             ? 'h-full min-h-0 overflow-hidden'
-            : floorHoneycomb
-              ? 'h-auto overflow-visible'
-              : 'h-full min-h-0 overflow-hidden'
+            : 'h-full min-h-0 overflow-hidden'
         } ${floorSize.cardPaddingClass} relative ${cardShell}`}
       >
         <div
@@ -1362,7 +1364,7 @@ function VenueMosaicTableCard({
           </div>
         ) : null}
 
-        {inShowdown && floorShowdownRows.length > 0 && !showdownBrief ? (
+        {showExpandedShowdownPanel ? (
           <div
             className="rounded-lg p-1"
             style={{
@@ -1494,6 +1496,11 @@ function VenueScrollingRoster({
         <h2 className="text-xl font-bold leading-none tracking-tight text-white/92 sm:text-2xl">
           {gameOn ? 'Stacks' : 'Seating'}
         </h2>
+        {condenseProgress != null ? (
+          <div className="mt-2.5">
+            <VenueCondenseProgressBar model={condenseProgress} variant="sidebar" />
+          </div>
+        ) : null}
       </div>
       <div
         className="relative min-h-0 flex-1 overflow-hidden px-1.5 py-1.5 sm:px-2 sm:py-2"
@@ -1529,30 +1536,35 @@ function VenueScrollingRoster({
           ))}
         </div>
       </div>
-      {condenseProgress != null ? (
-        <VenueCondenseProgressBar model={condenseProgress} variant="sidebar" />
-      ) : null}
     </aside>
   )
 }
 
 function VenueAerialFloorGrid({
   tiles,
+  layoutTableCount,
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
 }: {
   tiles: DisplayVenueTileSnapshot[]
+  /** Size felts for the live table count even when empty felts are hidden from the grid. */
+  layoutTableCount: number
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
 }) {
   const n = tiles.length
-  const banquetLayout = useMemo(() => venueBanquetLayout(n), [n])
+  const banquetLayout = useMemo(
+    () => venueBanquetLayout(Math.max(n, layoutTableCount)),
+    [n, layoutTableCount],
+  )
   const { columns, rowCount } = banquetLayout
   const floorSize = useMemo(() => venueFloorSizeSpec(banquetLayout), [banquetLayout])
   const banquetRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
-  const showdownBrief = floorSize.showdownBrief
+  const inVenueShowdown = useMemo(() => showdownTableNums(tiles).length > 0, [tiles])
+  const showdownBrief =
+    floorSize.showdownBrief || rowCount >= 2 || (showHeadline && inVenueShowdown)
   const othersStillWagering = useMemo(() => venueHasOpenWagering(tiles), [tiles])
 
   if (n === 0) return null
@@ -1702,6 +1714,13 @@ export default function VenueEightTablesPreview({
 
   const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
   const floorTiles = useMemo(() => populatedVenueTiles(tileRows), [tileRows])
+  const floorLayoutTableCount = useMemo(() => {
+    const live =
+      typeof wall?.venueLiveTableCount === 'number' && Number.isFinite(wall.venueLiveTableCount)
+        ? Math.floor(wall.venueLiveTableCount)
+        : floorTiles.length
+    return Math.max(floorTiles.length, live)
+  }, [wall?.venueLiveTableCount, floorTiles.length])
   const inVenueShowdown = useMemo(() => showdownTableNums(tileRows).length > 0, [tileRows])
   const venueShowdownAnswer = useMemo(() => venueShowdownAnswerFromTiles(tileRows), [tileRows])
   const venueShowdownQuestionText = useMemo(
@@ -1912,6 +1931,7 @@ export default function VenueEightTablesPreview({
 
             <VenueAerialFloorGrid
               tiles={floorTiles}
+              layoutTableCount={floorLayoutTableCount}
               showHeadline={showHeadline}
               skipMountIntro={skipMountIntro}
               prefersReducedMotion={prefersReducedMotion}

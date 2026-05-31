@@ -710,7 +710,7 @@ export function displayBettingPhaseLabel(
   return 'All bets are in!';
 }
 
-/** Venue mosaic tile: paused when the clock is not explicitly open. */
+/** Venue mosaic tile: paused when the clock is not explicitly open (same rule for round 1 and 2). */
 export function isVenueTileWageringPaused(row: {
   phase: string;
   isBettingOpen?: boolean | null;
@@ -727,9 +727,6 @@ export function isVenueTileWageringPaused(row: {
       ? Math.floor(row.currentPlayerIndex)
       : null;
   if (idx === -1) return true;
-  const br = row.bettingRound ?? 0;
-  const board = row.communityDigits?.length ?? 0;
-  if (br >= 2 && board >= 5) return true;
   return false;
 }
 

@@ -20,7 +20,7 @@ describe('venue tile wagering display', () => {
     expect(venueTileActingSeatIndex(row)).toBeNull()
   })
 
-  it('treats round-2 complete board as paused when isBettingOpen is unknown', () => {
+  it('treats round-2 with action pending as live when isBettingOpen is unknown', () => {
     const row = {
       phase: 'betting',
       seated: 4,
@@ -29,7 +29,7 @@ describe('venue tile wagering display', () => {
       bettingRound: 2,
       communityDigits: [0, 1, 2, 3, 4],
     }
-    expect(isVenueTileWageringPaused(row)).toBe(true)
+    expect(isVenueTileWageringPaused(row)).toBe(false)
     expect(venueTileActingSeatIndex(row)).toBeNull()
   })
 

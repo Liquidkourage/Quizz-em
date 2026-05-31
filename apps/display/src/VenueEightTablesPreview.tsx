@@ -465,44 +465,55 @@ function venueTileActingSeat(row: DisplayVenueTileSnapshot): number | null {
   return venueTileActingSeatIndex(row)
 }
 
-function mosaicPhaseLabel(row: DisplayVenueTileSnapshot): string {
+function mosaicWagerStyleFlags(
+  row: DisplayVenueTileSnapshot,
+  waitingOnOthersToAnswer = false
+): { showNoMoreBets: boolean; wageringLive: boolean } {
   const ph = String(row.phase ?? '').trim().toLowerCase()
-  if (ph === 'betting' && row.seated >= 2 && isVenueTileWageringPaused(row)) {
-    return 'NO MORE BETS'
-  }
+  const showNoMoreBets =
+    row.seated >= 2 &&
+    ((ph === 'betting' && isVenueTileWageringPaused(row)) ||
+      (ph === 'answering' && waitingOnOthersToAnswer))
+  const wageringLive =
+    ph === 'betting' &&
+    row.seated >= 2 &&
+    row.isBettingOpen === true &&
+    !isVenueTileWageringPaused(row)
+  return { showNoMoreBets, wageringLive }
+}
+
+function mosaicPhaseLabel(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean): string {
+  if (showNoMoreBets) return 'NO MORE BETS'
+  const ph = String(row.phase ?? '').trim().toLowerCase()
   if (ph === 'betting' && row.seated >= 2 && row.isBettingOpen === true) {
     return 'Wagering'
   }
   return phaseLabel(row.phase)
 }
 
-function mosaicPhaseAccent(row: DisplayVenueTileSnapshot): string {
-  if (isVenueTileWageringPaused(row) && row.seated >= 2) {
+function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean, wageringLive: boolean): string {
+  if (showNoMoreBets && row.seated >= 2) {
     return 'bg-emerald-400 font-black text-black shadow-[0_0_10px_rgba(52,211,153,0.45)] ring-0'
   }
-  if (isMosaicWageringLive(row)) {
+  if (wageringLive) {
     return 'bg-amber-400 font-black text-black shadow-[0_0_10px_rgba(251,191,36,0.35)] ring-0'
   }
   return phaseAccent(row.phase)
 }
 
 /** Corner phase pill typography — paused betting stays on one line in narrow tiles. */
-function mosaicPhaseCornerTypography(row: DisplayVenueTileSnapshot): string {
-  if (isVenueTileWageringPaused(row) && row.seated >= 2) {
+function mosaicPhaseCornerTypography(
+  row: DisplayVenueTileSnapshot,
+  showNoMoreBets: boolean,
+  wageringLive: boolean
+): string {
+  if (showNoMoreBets && row.seated >= 2) {
     return 'whitespace-nowrap text-[9px] font-black uppercase leading-none tracking-tight sm:text-[10px]'
   }
-  if (isMosaicWageringLive(row)) {
+  if (wageringLive) {
     return 'font-black uppercase leading-tight tracking-wide'
   }
   return 'font-bold uppercase leading-tight truncate'
-}
-
-function isMosaicBetsIn(row: DisplayVenueTileSnapshot): boolean {
-  return row.seated >= 2 && isVenueTileWageringPaused(row)
-}
-
-function isMosaicWageringLive(row: DisplayVenueTileSnapshot): boolean {
-  return row.phase === 'betting' && row.seated >= 2 && row.isBettingOpen === true && !isMosaicBetsIn(row)
 }
 function fallbackLabelEllipseScale(size: 'md' | 'lg', feltStacks: boolean): number {
   if (size === 'lg') return feltStacks ? 1.045 : 1.03
@@ -1206,10 +1217,9 @@ function VenueMosaicTableCard({
     seatNames,
     actingCallAmount: row.actingCallAmount,
   })
-  const betsInPaused = ph === 'betting' && isMosaicBetsIn(row)
-  const wageringLive = isMosaicWageringLive(row)
+  const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
 
-  const cardShell = betsInPaused
+  const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
     : wageringLive
       ? 'rounded-xl border-2 border-amber-500/70 bg-black/55 shadow-[0_0_22px_rgba(251,191,36,0.28)] ring-1 ring-amber-400/25'
@@ -1219,7 +1229,7 @@ function VenueMosaicTableCard({
       <article
         data-table-tile={tn}
         role="group"
-        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${betsInPaused ? ', no more bets' : ''}, venue floor`}
+        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
         className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
           dimAnsweringEarly ? 'opacity-[0.68] brightness-[0.78] saturate-[0.82]' : ''
         } ${
@@ -1272,10 +1282,10 @@ function VenueMosaicTableCard({
           <div className="min-w-0 justify-self-end">
             <span
               className={`max-w-[min(9rem,46vw)] shrink-0 rounded-md font-semibold leading-tight sm:max-w-[10rem] ${
-                betsInPaused ? 'px-1.5 py-0.5' : 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs'
-              } ${mosaicPhaseCornerTypography(row)} ${mosaicPhaseAccent(row)}`}
+                showNoMoreBets ? 'px-1.5 py-0.5' : 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs'
+              } ${mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)} ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
             >
-              {mosaicPhaseLabel(row)}
+              {mosaicPhaseLabel(row, showNoMoreBets)}
             </span>
           </div>
         </div>
@@ -1308,7 +1318,7 @@ function VenueMosaicTableCard({
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
             seatHoleDigits={row.seatHoleDigits}
             communityDigits={row.communityDigits}
-            betsInPaused={betsInPaused}
+            betsInPaused={showNoMoreBets}
             seatSubmittedAnswers={row.seatSubmittedAnswers}
             answeringPhase={ph === 'answering'}
           />

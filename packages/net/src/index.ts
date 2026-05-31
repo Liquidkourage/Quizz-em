@@ -138,7 +138,7 @@ export type DisplayVenueWallSnapshot = {
   totalSeatedAtTables: number
   /** Numbered felts with at least one chip survivor (condense display). */
   venueLiveTableCount?: number | null
-  /** Chip survivors across numbered tables (same as totalSeatedAtTables after elimination). */
+  /** Seated field players (elimination only at endRound — bankroll can be $0 mid-hand). */
   venueChipSurvivorCount?: number | null
   /** Scheduled merge triggers when survivors drop to this count or below; null at one table. */
   venueNextCondenseAtSurvivors?: number | null

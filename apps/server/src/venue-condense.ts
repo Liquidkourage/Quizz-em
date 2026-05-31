@@ -2,7 +2,6 @@ import type { Server as SocketIOServer } from 'socket.io'
 import {
   type GameState,
   VENUE_NUMBERED_TABLE_MAX,
-  countChipSurvivors,
   createEmptyGame,
   planVenueCondense,
   type VenueTableRoster,
@@ -40,12 +39,37 @@ function collectRosters(deps: VenueCondenseApplyDeps): VenueTableRoster[] {
     if (!gs || gs.players.length === 0) continue
     const n = deps.tableNumFromSessionKey(vn, tk)
     if (n == null) continue
+    /** After endRound busts are removed; chip filter skips empty felts at apply time. */
     const survivors = gs.players.filter((p) => p.bankroll > 0)
     if (survivors.length === 0) continue
     out.push({ tableNum: n, players: survivors })
   }
   out.sort((a, b) => a.tableNum - b.tableNum)
   return out
+}
+
+/** Audience + threshold display: count seated roster, not chips in play (bankroll can hit $0 mid-hand). */
+export function venueCondenseSnapshotFromRooms(deps: {
+  venueCode: string
+  getState: (sessionKey: string) => GameState | undefined
+  tableNumFromSessionKey: (venueCode: string, sessionKey: string) => number | null
+  allTableSessionKeys: (venueCode: string) => string[]
+}): {
+  chipSurvivorCount: number
+  liveTableCount: number
+} {
+  const vn = deps.venueCode
+  let chipSurvivorCount = 0
+  let liveTableCount = 0
+  for (const tk of deps.allTableSessionKeys(vn)) {
+    const gs = deps.getState(tk)
+    if (!gs || gs.players.length === 0) continue
+    const n = deps.tableNumFromSessionKey(vn, tk)
+    if (n == null) continue
+    liveTableCount++
+    chipSurvivorCount += gs.players.length
+  }
+  return { chipSurvivorCount, liveTableCount }
 }
 
 function playerSessionKey(
@@ -183,18 +207,4 @@ export function applyVenueCondenseAfterRound(deps: VenueCondenseApplyDeps): Venu
     survivorsAfter: rosters.reduce((n, t) => n + t.players.length, 0),
     hostToasts,
   }
-}
-
-export function venueCondenseSnapshotFromRooms(deps: {
-  venueCode: string
-  getState: (sessionKey: string) => GameState | undefined
-  tableNumFromSessionKey: (venueCode: string, sessionKey: string) => number | null
-  allTableSessionKeys: (venueCode: string) => string[]
-}): {
-  chipSurvivorCount: number
-  liveTableCount: number
-} {
-  const rosters = collectRosters(deps as VenueCondenseApplyDeps)
-  const chipSurvivorCount = rosters.reduce((n, t) => n + countChipSurvivors(t.players), 0)
-  return { chipSurvivorCount, liveTableCount: rosters.length }
 }

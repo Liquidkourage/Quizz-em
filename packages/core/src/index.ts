@@ -441,19 +441,53 @@ export function pickRandomQuestion(bank: Question[]): Question | undefined {
   return bank[i]
 }
 
-/** Hole cards only + blinds; first wagering round (no community yet). */
-export function dealInitialCards(state: GameState): GameState {
+export function playersHaveHoleCards(state: GameState): boolean {
+  return state.players.some((p) => p.hand.length >= 2);
+}
+
+/** Deal two hole cards per player; stays in question until trivia opens wagering. */
+export function dealHoleCards(state: GameState): GameState {
   if (state.phase !== 'question' || state.players.length === 0) return state;
+  if (playersHaveHoleCards(state)) return state;
   const updatedPlayers = state.players.map((player) => ({
     ...player,
     hand: [dealCard(), dealCard()],
   }));
+  return {
+    ...state,
+    phase: 'question',
+    players: updatedPlayers,
+    round: {
+      ...state.round,
+      communityCards: [],
+      isBettingOpen: false,
+      currentPlayerIndex: -1,
+      currentBet: 0,
+      playerBets: {},
+      handContributions: {},
+      bettingRound: 1,
+      lastSeatBettingAction: undefined,
+    },
+  };
+}
 
-  // Initialize betting state for round 1 and auto-post blinds
-  const smallBlindIndex = updatedPlayers.length > 0 ? (state.round.dealerIndex + 1) % Math.max(1, updatedPlayers.length) : -1;
-  const bigBlindIndex = updatedPlayers.length > 0 ? (state.round.dealerIndex + 2) % Math.max(1, updatedPlayers.length) : -1;
+/** Post blinds and open wagering round 1 once hole cards and a question are set. */
+export function openBettingRound1(state: GameState): GameState {
+  if (state.phase !== 'question' || state.players.length === 0) return state;
+  if (state.round.question == null) return state;
+  if (!playersHaveHoleCards(state)) return state;
 
-  let playersAfterBlinds = updatedPlayers;
+  const playersWithHands = state.players;
+  const smallBlindIndex =
+    playersWithHands.length > 0
+      ? (state.round.dealerIndex + 1) % Math.max(1, playersWithHands.length)
+      : -1;
+  const bigBlindIndex =
+    playersWithHands.length > 0
+      ? (state.round.dealerIndex + 2) % Math.max(1, playersWithHands.length)
+      : -1;
+
+  let playersAfterBlinds = playersWithHands;
   let pot = state.round.pot;
   const playerBets: Record<string, number> = {};
   const handContributions: Record<string, number> = {};
@@ -474,7 +508,8 @@ export function dealInitialCards(state: GameState): GameState {
   postBlind(smallBlindIndex, state.smallBlind);
   postBlind(bigBlindIndex, state.bigBlind);
 
-  const startIndex = playersAfterBlinds.length > 0 ? (bigBlindIndex + 1) % playersAfterBlinds.length : -1;
+  const startIndex =
+    playersAfterBlinds.length > 0 ? (bigBlindIndex + 1) % playersAfterBlinds.length : -1;
   const findNextToAct = (start: number): number => {
     if (playersAfterBlinds.length === 0) return -1;
     for (let step = 0; step < playersAfterBlinds.length; step++) {
@@ -505,6 +540,15 @@ export function dealInitialCards(state: GameState): GameState {
       lastSeatBettingAction: Array.from({ length: playersAfterBlinds.length }, () => null),
     },
   };
+}
+
+/** Deal holes if needed, then open round 1 when a question is already loaded. */
+export function dealInitialCards(state: GameState): GameState {
+  let next = dealHoleCards(state);
+  if (next.round.question != null) {
+    next = openBettingRound1(next);
+  }
+  return next;
 }
 
 /**

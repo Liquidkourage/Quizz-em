@@ -10,6 +10,9 @@ import {
   removePlayer,
   startGame,
   setQuestion,
+  dealHoleCards,
+  openBettingRound1,
+  playersHaveHoleCards,
   dealInitialCards,
   dealCommunityCards,
   placeBet,
@@ -1881,22 +1884,23 @@ function applyQuestionToAllPlayable(venueCode: string, picked: Question): boolea
     rooms.set(tk, gs)
     emitVenueTableState(tk, gs!)
   }
-  return autoDealInitialCardsOnVenue(venueCode)
+  autoDealHoleCardsOnVenue(venueCode)
+  return openBettingAfterQuestionOnVenue(venueCode)
 }
 
-/** Deal hole cards + post blinds on every seated table still in question setup. */
-function autoDealInitialCardsOnVenue(venueCode: string): boolean {
+/** Deal hole cards on every seated table in question setup (no blinds yet). */
+function autoDealHoleCardsOnVenue(venueCode: string): boolean {
   const vn = normalizeVenueCode(venueCode)
   const rows = venuePlayableSnapshots(vn)
   if (rows.length === 0) return false
   if (!rows.every((r) => r.gs.phase === 'question')) return false
 
-  clearVenueWageringOrchestrationState(vn)
   let anyDealt = false
   for (const { tk } of rows) {
     let gs = rooms.get(tk)
     if (!gs || gs.phase !== 'question' || gs.players.length === 0) continue
-    gs = dealInitialCards(gs)
+    if (playersHaveHoleCards(gs)) continue
+    gs = dealHoleCards(gs)
     anyDealt = true
     rooms.set(tk, gs)
     io.to(tk).emit('dealingCards')
@@ -1904,6 +1908,28 @@ function autoDealInitialCardsOnVenue(venueCode: string): boolean {
     if (holeTableNum != null) {
       io.to(displayVenueRoom(vn)).emit('dealingCards', { tableNum: holeTableNum })
     }
+    emitVenueTableState(tk, gs)
+  }
+  return anyDealt
+}
+
+/** Post blinds and open wagering round 1 after trivia is revealed. */
+function openBettingAfterQuestionOnVenue(venueCode: string): boolean {
+  const vn = normalizeVenueCode(venueCode)
+  const rows = venuePlayableSnapshots(vn)
+  if (rows.length === 0) return false
+  if (!rows.every((r) => r.gs.phase === 'question' && r.gs.round.question != null)) return false
+
+  clearVenueWageringOrchestrationState(vn)
+  let anyOpened = false
+  for (const { tk } of rows) {
+    let gs = rooms.get(tk)
+    if (!gs || gs.phase !== 'question' || gs.round.question == null || gs.players.length === 0) continue
+    if (!playersHaveHoleCards(gs)) continue
+    gs = openBettingRound1(gs)
+    if (gs.phase !== 'betting') continue
+    anyOpened = true
+    rooms.set(tk, gs)
     emitVenueTableState(tk, gs)
     if (tableIsCpuOnly(gs)) {
       enqueueCpuOnlyVpDrain(tk)
@@ -1913,7 +1939,7 @@ function autoDealInitialCardsOnVenue(venueCode: string): boolean {
       emitVenueTableState(tk, gs)
     }
   }
-  return anyDealt
+  return anyOpened
 }
 
 /** Host controls that apply everywhere in the venue — rosters/hand/pot stay separate per session key. */
@@ -2167,7 +2193,11 @@ io.on('connection', (socket) => {
             rooms.set(tk, gs)
             emitVenueTableState(tk, gs)
           }
-          socket.emit('toast', 'Game started — synced to all tables at this venue.')
+          autoDealHoleCardsOnVenue(gameState.code)
+          socket.emit(
+            'toast',
+            'Round started — hole cards dealt on every table. Reveal a question to open wagering.',
+          )
           markVenueShowStarted(gameState.code)
           gameState = rooms.get(sessionKey)!
           break
@@ -2200,13 +2230,13 @@ io.on('connection', (socket) => {
               break
             }
           }
-          const autoDealt = applyQuestionToAllPlayable(gameState.code, picked)
+          const bettingOpened = applyQuestionToAllPlayable(gameState.code, picked)
           await emitHostLibrary(gameState.code)
           socket.emit(
             'toast',
-            autoDealt
-              ? 'Question synced — hole cards dealt, wagering round 1 (all tables).'
-              : 'Question synced to all tables at this venue.',
+            bettingOpened
+              ? 'Question revealed — wagering round 1 open (all tables).'
+              : 'Question synced — deal hole cards first (Start the round), then reveal again if needed.',
           )
           gameState = rooms.get(sessionKey)!
           break
@@ -2243,13 +2273,13 @@ io.on('connection', (socket) => {
             venuePlayhead.set(venue, ph)
             const qFound = lib.questions.find((q) => q.id === qid)
             if (qFound) {
-              const autoDealt = applyQuestionToAllPlayable(gameState.code, qFound)
+              const bettingOpened = applyQuestionToAllPlayable(gameState.code, qFound)
               await emitHostLibrary(gameState.code)
               socket.emit(
                 'toast',
-                autoDealt
-                  ? `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} — hole cards dealt, wagering round 1.`
-                  : `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} → all tables.`,
+                bettingOpened
+                  ? `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} — wagering round 1 open.`
+                  : `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} → all tables (start the round first if holes are missing).`,
               )
               gameState = rooms.get(sessionKey)!
               dispatched = true
@@ -2370,12 +2400,35 @@ io.on('connection', (socket) => {
 
         case 'dealInitialCards': {
           if (!assertVenueHost(socket, gameState)) break
-          const lockDeal = requireVenueLockstepTables(socket, gameState.code, (gs) => gs.phase === 'question', 'wait in deal setup before hole cards + blinds')
+          const lockDeal = requireVenueLockstepTables(
+            socket,
+            gameState.code,
+            (gs) => gs.phase === 'question',
+            'wait in deal setup before hole cards or opening wagering',
+          )
           if (!lockDeal) break
-          if (autoDealInitialCardsOnVenue(gameState.code)) {
-            socket.emit('toast', 'Hole cards dealt — wagering round 1 (all tables).')
+          const vn = normalizeVenueCode(gameState.code)
+          const rows = venuePlayableSnapshots(vn)
+          const allHaveQuestion = rows.every((r) => r.gs.round.question != null)
+          const allHaveHoles = rows.every((r) => playersHaveHoleCards(r.gs))
+          if (allHaveQuestion && allHaveHoles) {
+            if (openBettingAfterQuestionOnVenue(gameState.code)) {
+              socket.emit('toast', 'Wagering round 1 open (all tables).')
+            } else {
+              socket.emit('toast', 'Could not open wagering — check every table has hole cards and a question.')
+            }
+          } else if (!allHaveHoles) {
+            if (autoDealHoleCardsOnVenue(gameState.code)) {
+              if (allHaveQuestion && openBettingAfterQuestionOnVenue(gameState.code)) {
+                socket.emit('toast', 'Hole cards dealt — wagering round 1 open (all tables).')
+              } else {
+                socket.emit('toast', 'Hole cards dealt — reveal a question to open wagering.')
+              }
+            } else {
+              socket.emit('toast', 'Could not deal — every seated table must be in question setup.')
+            }
           } else {
-            socket.emit('toast', 'Could not deal — every seated table must be in question setup.')
+            socket.emit('toast', 'Reveal a question first — wagering opens after trivia is shown.')
           }
           gameState = rooms.get(sessionKey)!
           break

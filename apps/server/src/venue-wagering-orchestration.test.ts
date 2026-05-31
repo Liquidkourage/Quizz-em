@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyGame, dealCommunityCards, dealInitialCards } from '@qhe/core'
+import { createEmptyGame, dealCommunityCards, dealInitialCards, setQuestion, startGame, SAMPLE_QUESTIONS } from '@qhe/core'
 import { addVirtualPlayers, runVirtualPlayerSimulation } from './virtual-players'
 import {
   isPostBoardWageringClosed,
@@ -13,6 +13,8 @@ function postBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<ty
   let gs = createEmptyGame('V', '', '1')
   gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
   gs = addVirtualPlayers(gs, playerCount)
+  gs = startGame(gs)
+  gs = setQuestion(gs, SAMPLE_QUESTIONS[0]!)
   gs = dealInitialCards(gs)
   gs = runVirtualPlayerSimulation(gs)
   gs = dealCommunityCards(gs)
@@ -41,6 +43,8 @@ describe('venue wagering orchestration', () => {
     let t2 = createEmptyGame('V', '', '2')
     t2 = { ...t2, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
     t2 = addVirtualPlayers(t2, 3)
+    t2 = startGame(t2)
+    t2 = setQuestion(t2, SAMPLE_QUESTIONS[0]!)
     t2 = dealInitialCards(t2)
     t2 = runVirtualPlayerSimulation(t2)
     t2 = dealCommunityCards(t2)
@@ -78,6 +82,8 @@ describe('venue wagering orchestration', () => {
     let t2 = createEmptyGame('V', '', '2')
     t2 = { ...t2, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
     t2 = addVirtualPlayers(t2, 3)
+    t2 = startGame(t2)
+    t2 = setQuestion(t2, SAMPLE_QUESTIONS[0]!)
     t2 = dealInitialCards(t2)
     t2 = runVirtualPlayerSimulation(t2)
     t2 = dealCommunityCards(t2)
@@ -102,6 +108,8 @@ describe('venue wagering orchestration', () => {
     let round1 = createEmptyGame('V', '', '2')
     round1 = { ...round1, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
     round1 = addVirtualPlayers(round1, 3)
+    round1 = startGame(round1)
+    round1 = setQuestion(round1, SAMPLE_QUESTIONS[0]!)
     round1 = dealInitialCards(round1)
     round1 = runVirtualPlayerSimulation(round1)
     expect(round1.round.bettingRound).toBe(1)

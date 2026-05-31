@@ -69,7 +69,6 @@ const RUN_OF_SHOW_ORDER = [
   'assign',
   'start',
   'question',
-  'deal-holes',
   'close-bet-1',
   'deal-board',
   'close-bet-2',
@@ -99,7 +98,7 @@ export function resolveRunOfShowCurrentStepId(gameState: GameState): RunOfShowSt
     return 'start'
   }
   if (phase === 'question') {
-    return gameState.round.question ? 'deal-holes' : 'question'
+    return 'question'
   }
   if (phase === 'betting') {
     if (bettingOpen && bettingRound <= 1) return 'close-bet-1'
@@ -126,15 +125,11 @@ export function buildHostRunOfShowSteps(gameState: GameState): RunOfShowStep[] {
     },
     start: {
       label: 'Start the round',
-      hint: 'Opens deal setup on every seated table — run once before each hand.',
+      hint: 'Deals hole cards on every table — then reveal a question to open wagering.',
     },
     question: {
-      label: 'Load a question',
-      hint: 'Pick from your bank or setlist. Optional — you can load trivia anytime before answering.',
-    },
-    'deal-holes': {
-      label: 'Deal hole cards',
-      hint: 'Posts blinds and deals two cards to each active player.',
+      label: 'Reveal the question',
+      hint: 'Shows trivia on all tables and opens wagering round 1.',
     },
     'close-bet-1': {
       label: 'Finish wagering (round 1)',
@@ -202,8 +197,15 @@ export function hostRunOfShowHeadline(gameState: GameState): { title: string; de
 
   if (stepId === 'question' && !gameState.round.question) {
     return {
-      title: 'Load a question (optional)',
-      detail: 'You can deal hole cards first, or cue trivia now from bank / setlist.',
+      title: 'Reveal the question',
+      detail: 'Hole cards are dealt — pick from bank or setlist to show trivia and open wagering.',
+    }
+  }
+
+  if (stepId === 'question' && gameState.round.question) {
+    return {
+      title: 'Question loaded — open wagering',
+      detail: 'Trivia is set; wagering should open automatically when revealed from bank or setlist.',
     }
   }
 
@@ -217,14 +219,14 @@ export function hostRunOfShowHeadline(gameState: GameState): { title: string; de
   if (stepId === 'start' && phase === 'lobby') {
     return {
       title: current.label,
-      detail: `Blinds $${gameState.smallBlind} / $${gameState.bigBlind} on this felt — confirm amounts below before dealing.`,
+      detail: `Blinds $${gameState.smallBlind} / $${gameState.bigBlind} on this felt — confirm amounts below, then start to deal hole cards.`,
     }
   }
 
-  if (stepId === 'deal-holes') {
+  if (stepId === 'start' && phase === 'question') {
     return {
-      title: current.label,
-      detail: `Posts $${gameState.smallBlind} / $${gameState.bigBlind} blinds, then deals hole cards.`,
+      title: 'Hole cards dealt',
+      detail: 'Reveal a question from bank or setlist to open wagering round 1.',
     }
   }
 
@@ -234,14 +236,12 @@ export function hostRunOfShowHeadline(gameState: GameState): { title: string; de
 export function buildHostPhaseDockItems(args: {
   gameState: GameState
   answerWindowSeconds: number
-  dealInitialBlocked: boolean
   dealCommunityBlocked: boolean
   startAnswerBlocked: boolean
   communityLen: number
   bettingRound: number
   onStartGame: () => void
   onAssignFromLobby: () => void
-  onDealInitial: () => void
   onDealCommunity: () => void
   onStartAnswering: () => void
   onRevealAnswer: () => void
@@ -252,14 +252,12 @@ export function buildHostPhaseDockItems(args: {
   const {
     gameState,
     answerWindowSeconds,
-    dealInitialBlocked,
     dealCommunityBlocked,
     startAnswerBlocked,
     communityLen,
     bettingRound,
     onStartGame,
     onAssignFromLobby,
-    onDealInitial,
     onDealCommunity,
     onStartAnswering,
     onRevealAnswer,
@@ -287,27 +285,9 @@ export function buildHostPhaseDockItems(args: {
   }
 
   if (phase === 'question') {
-    if (!gameState.round.question) {
-      return [
-        { id: 'setlist', label: 'Next from setlist', onClick: onNextSetlist, variant: 'purple' },
-        { id: 'random', label: 'Random from bank', onClick: onRandomQuestion, variant: 'purple' },
-        {
-          id: 'deal-initial',
-          label: 'Skip — deal hole cards',
-          onClick: onDealInitial,
-          disabled: dealInitialBlocked,
-          variant: 'blue',
-        },
-      ]
-    }
     return [
-      {
-        id: 'deal-initial',
-        label: 'Deal hole cards',
-        onClick: onDealInitial,
-        disabled: dealInitialBlocked,
-        variant: 'blue',
-      },
+      { id: 'setlist', label: 'Next from setlist', onClick: onNextSetlist, variant: 'purple' },
+      { id: 'random', label: 'Random from bank', onClick: onRandomQuestion, variant: 'purple' },
     ]
   }
 

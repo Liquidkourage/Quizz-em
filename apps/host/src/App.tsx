@@ -36,7 +36,7 @@ import {
   setlistSave,
   setlistDelete,
 } from '@qhe/net'
-import type { GameState, GamePhase, Question } from '@qhe/core'
+import type { GameState, Question } from '@qhe/core'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
@@ -61,17 +61,6 @@ const HOST_TABS = [
   { id: 'content' as const, label: 'Content', hint: 'Bank & setlists' },
 ]
 
-const HOST_PHASE_LABEL: Record<GamePhase, string> = {
-  lobby: 'Lobby',
-  question: 'Question / deal setup',
-  betting: 'Wagering',
-  answering: 'Answering',
-  reveal: 'Reveal',
-  showdown: 'Showdown',
-  payout: 'Payout',
-  intermission: 'Intermission',
-}
-
 /** Host UI: "First L." from full name; unchanged for single tokens and CPU seats */
 function hostPlayerLabel(raw: string): string {
   const s = String(raw ?? '')
@@ -90,36 +79,6 @@ function hostPlayerLabel(raw: string): string {
   const m = last.match(/[A-Za-z]/)
   const L = m ? m[0].toUpperCase() : ''
   return L ? `${first} ${L}.` : first
-}
-
-/** Venue-wide gate for Deal Initial Cards — mirrors server `requireVenueLockstepTables`. */
-function venueDealLockstepHint(
-  rows: HostVenueFeltBeatRow[] | null,
-  hostPhase: GamePhase
-): string | null {
-  if (!rows) return null
-  const seated = rows.filter((r) => r.active && r.seated > 0)
-  if (seated.length === 0) {
-    return 'No seated tables at this venue — assign from lobby or seed rehearsal before dealing.'
-  }
-  const sigs = new Set(
-    seated.map((r) => r.phaseStrictSig).filter((s): s is string => s != null && s !== '')
-  )
-  if (sigs.size > 1) {
-    return 'Tables are out of sync — check Venue felts · beat (amber borders), align every seated felt, then deal again.'
-  }
-  const collective = seated[0]?.phase
-  if (collective !== 'question') {
-    const label =
-      collective === 'inactive'
-        ? 'inactive'
-        : HOST_PHASE_LABEL[collective as GamePhase] ?? collective
-    if (hostPhase === 'question' && collective !== 'question') {
-      return `Your control table is in deal setup, but other seated felts are still “${label}”. Run Start Game venue-wide, then deal.`
-    }
-    return `Every seated table must be in deal setup before hole cards (venue is on “${label}”).`
-  }
-  return null
 }
 
 /** Round 1, no board — matches server `requireAllSeatedTablesSatisfy` for deal community. */
@@ -353,17 +312,6 @@ function HostApp() {
     })
   }
 
-  const handleDealInitialCards = () => {
-    console.log('🎰 Host: Deal Initial Cards button clicked')
-    console.log('🎰 Host: Current phase:', gameState?.phase)
-    if (socket) {
-      console.log('🎰 Host: Emitting dealInitialCards action')
-      socket.emit('action', { type: 'dealInitialCards' })
-    } else {
-      console.log('🎰 Host: No socket available')
-    }
-  }
-
   const handleDealCommunityCards = () => {
     if (socket) {
       socket.emit('action', { type: 'dealCommunityCards' })
@@ -420,48 +368,6 @@ function HostApp() {
     )
   }
 
-  // Engine only cares about phase ("question" → deal → "betting"). Trivia is optional UI-side.
-  const venueDealHint = venueDealLockstepHint(venueFeltBeat, gameState.phase)
-  const dealInitialBlocked = gameState.phase !== 'question' || venueDealHint != null
-  const dealInitialHint: string | null =
-    venueDealHint ??
-    (dealInitialBlocked
-    ? (() => {
-        const p = gameState.phase
-        if (p === 'lobby')
-          return 'Start Game first—you can deal once phase is “question”.'
-        if (p === 'betting') {
-          const r = gameState.round
-          const br = r.bettingRound ?? 0
-          const open = r.isBettingOpen !== false
-          if (open) {
-            const idx = r.currentPlayerIndex
-            const actor =
-              typeof idx === 'number' && idx >= 0 ? gameState.players[idx]?.name : null
-            return `Wagering round ${br} is open${actor ? ` — action on ${hostPlayerLabel(actor)}` : ''}. Use Close Betting when the street is done, then Deal Community Cards.`
-          }
-          return br === 1
-            ? 'Wagering round 1 is closed — deal the community board next, or open overrides below if needed.'
-            : 'Wagering round 2 is closed — start answering when the board is complete.'
-        }
-        if (p === 'answering')
-          return 'Answering is open—initial deal is finished. Use Reveal Answer or wait for the timer.'
-        if (p === 'showdown' || p === 'payout') {
-          return 'Showdown / payout—initial deal is done. End Round to reset, then Start Game for the next round.'
-        }
-        if (p === 'intermission' || p === 'reveal') {
-          return 'Not in setup—use End Round or New Game if you need a clean state.'
-        }
-        return `Initial deal happens only while phase is “question” (yours: "${p}").`
-      })()
-    : null)
-  const triviaOptionalNote =
-    !dealInitialBlocked && !gameState.round?.question ? (
-      <p className="text-sm text-amber-200/80">
-        No trivia loaded yet—you can still deal to enter betting (use <strong>Random from bank</strong>, <strong>To tables</strong>, or a <strong>setlist cue</strong>).
-      </p>
-    ) : null
-
   const round = gameState.round
   const bettingRound = round.bettingRound ?? 0
   const communityLen = round.communityCards?.length ?? 0
@@ -507,14 +413,12 @@ function HostApp() {
   const phaseDockItems = buildHostPhaseDockItems({
     gameState,
     answerWindowSeconds,
-    dealInitialBlocked,
     dealCommunityBlocked,
     startAnswerBlocked,
     communityLen,
     bettingRound,
     onStartGame: handleStartGame,
     onAssignFromLobby: () => assignTablesFromLobby(),
-    onDealInitial: handleDealInitialCards,
     onDealCommunity: handleDealCommunityCards,
     onStartAnswering: handleStartAnswering,
     onRevealAnswer: handleRevealAnswer,
@@ -526,6 +430,12 @@ function HostApp() {
   const runOfShowSteps = buildHostRunOfShowSteps(gameState)
   const runOfShowHeadline = hostRunOfShowHeadline(gameState)
   const currentRunStepId = resolveRunOfShowCurrentStepId(gameState)
+  const triviaOptionalNote =
+    currentRunStepId === 'question' && !gameState.round?.question ? (
+      <p className="text-sm text-amber-200/80">
+        Hole cards are dealt — use <strong>Random from bank</strong> or <strong>Next from setlist</strong> to reveal trivia and open wagering.
+      </p>
+    ) : null
   const hostTableNum = (() => {
     const raw = gameState.tableId ?? '1'
     if (raw === LOBBY_TABLE_ID) return 1
@@ -534,7 +444,7 @@ function HostApp() {
   })()
   const showRunOfShowBlinds =
     currentRunStepId === 'start' ||
-    currentRunStepId === 'deal-holes' ||
+    currentRunStepId === 'question' ||
     (currentRunStepId === 'assign' &&
       gameState.phase === 'lobby' &&
       (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
@@ -1264,10 +1174,7 @@ function HostApp() {
             </div>
           ) : null}
 
-          {currentRunStepId === 'deal-holes' && dealInitialHint ? (
-            <p className="text-xs text-amber-200/90">{dealInitialHint}</p>
-          ) : null}
-          {currentRunStepId === 'deal-holes' && triviaOptionalNote}
+          {currentRunStepId === 'question' && triviaOptionalNote}
 
           {currentRunStepId === 'deal-board' && dealCommunityHint ? (
             <p className="text-xs text-amber-200/90">{dealCommunityHint}</p>

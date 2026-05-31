@@ -467,6 +467,27 @@ function PlayerApp() {
               )}
             </div>
           )}
+          {gameState.phase === 'question' &&
+            currentPlayer &&
+            currentPlayer.hand.length >= 2 &&
+            !currentPlayer.hasFolded && (
+              <div className="mx-auto mt-4 max-w-md rounded-lg border border-casino-gold/35 bg-black/30 p-4 text-center sm:p-5">
+                <div className="mb-3 text-sm font-bold uppercase tracking-wide text-casino-gold">Your hole cards</div>
+                <div className="flex justify-center gap-3">
+                  {currentPlayer.hand.map((card, i) => (
+                    <div
+                      key={i}
+                      className="flex h-16 w-12 items-center justify-center rounded-lg border-2 border-casino-gold bg-white text-2xl font-bold text-black sm:h-20 sm:w-14 sm:text-3xl"
+                    >
+                      {card.digit}
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-white/65 sm:text-sm">
+                  Waiting for the host to reveal the question — wagering opens after trivia is shown.
+                </p>
+              </div>
+            )}
         </Card>
 
         {/* Answer Composition Interface */}

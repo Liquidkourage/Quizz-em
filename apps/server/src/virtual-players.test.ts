@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyGame, dealCommunityCards, dealInitialCards } from '@qhe/core'
+import { createEmptyGame, dealCommunityCards, dealInitialCards, setQuestion, startGame, SAMPLE_QUESTIONS } from '@qhe/core'
 import { addVirtualPlayers, advanceVirtualBettingStep, runVirtualPlayerSimulation } from './virtual-players'
 
 describe('CPU post-board wagering', () => {
@@ -7,6 +7,8 @@ describe('CPU post-board wagering', () => {
     let gs = createEmptyGame('V', '', '1')
     gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
     gs = addVirtualPlayers(gs, 4)
+    gs = startGame(gs)
+    gs = setQuestion(gs, SAMPLE_QUESTIONS[0]!)
     gs = dealInitialCards(gs)
     gs = runVirtualPlayerSimulation(gs)
     expect(gs.round.isBettingOpen).toBe(false)

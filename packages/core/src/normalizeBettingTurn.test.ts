@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyGame, dealCommunityCards, dealInitialCards, normalizeBettingTurn } from './index'
+import { createEmptyGame, dealCommunityCards, dealInitialCards, normalizeBettingTurn, openBettingRound1, SAMPLE_QUESTIONS } from './index'
 
 describe('normalizeBettingTurn', () => {
   it('advances off a folded action seat when another player can still act', () => {
@@ -26,9 +26,10 @@ describe('normalizeBettingTurn', () => {
 
   it('advances off an all-in seat when another player still owes action', () => {
     let gs = createEmptyGame('T', '', '1')
-    gs = dealInitialCards({
+    gs = openBettingRound1({
       ...gs,
       phase: 'question',
+      round: { ...gs.round, question: SAMPLE_QUESTIONS[0]! },
       players: [
         { id: 'a', name: 'A', bankroll: 0, hand: [{ digit: 1 }, { digit: 2 }], hasFolded: false, isAllIn: true },
         { id: 'b', name: 'B', bankroll: 500, hand: [{ digit: 3 }, { digit: 4 }], hasFolded: false, isAllIn: false },
@@ -52,13 +53,14 @@ describe('normalizeBettingTurn', () => {
 
   it('does not close a fresh post-board street before anyone acts', () => {
     let gs = createEmptyGame('T', '', '1')
-    gs = dealInitialCards({
+    gs = openBettingRound1({
       ...gs,
       phase: 'question',
+      round: { ...gs.round, question: SAMPLE_QUESTIONS[0]! },
       players: [
-        { id: 'vp:1', name: 'A', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
-        { id: 'vp:2', name: 'B', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
-        { id: 'vp:3', name: 'C', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
+        { id: 'vp:1', name: 'A', bankroll: 500, hand: [{ digit: 1 }, { digit: 2 }], hasFolded: false, isAllIn: false },
+        { id: 'vp:2', name: 'B', bankroll: 500, hand: [{ digit: 3 }, { digit: 4 }], hasFolded: false, isAllIn: false },
+        { id: 'vp:3', name: 'C', bankroll: 500, hand: [{ digit: 5 }, { digit: 6 }], hasFolded: false, isAllIn: false },
       ],
     })
     gs = {

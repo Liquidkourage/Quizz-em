@@ -265,8 +265,8 @@ export type VenueCondenseProgressModel = {
   liveTables: number
   fillPct: number
   marks: VenueCondenseProgressMark[]
-  primary: string
-  secondary: string | null
+  nextAt: number | null
+  nextToTables: number | null
 }
 
 function survivorTrackPct(survivors: number, peakSurvivors: number): number {
@@ -285,7 +285,7 @@ export function buildVenueCondenseProgress(args: {
   if (headline == null) return null
 
   const peakSurvivors = Math.max(args.peakSurvivors, headline.survivors, 1)
-  const { survivors, liveTables, nextAt, primary, secondary } = headline
+  const { survivors, liveTables, nextAt, targetTables } = headline
 
   if (liveTables <= 1) {
     return {
@@ -294,8 +294,8 @@ export function buildVenueCondenseProgress(args: {
       liveTables,
       fillPct: survivorTrackPct(survivors, peakSurvivors),
       marks: [],
-      primary,
-      secondary,
+      nextAt: null,
+      nextToTables: null,
     }
   }
 
@@ -321,8 +321,8 @@ export function buildVenueCondenseProgress(args: {
     liveTables,
     fillPct: survivorTrackPct(survivors, peakSurvivors),
     marks,
-    primary,
-    secondary,
+    nextAt,
+    nextToTables: targetTables,
   }
 }
 

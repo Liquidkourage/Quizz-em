@@ -1764,9 +1764,11 @@ export default function VenueEightTablesPreview({
       </div>
 
       <main
-        className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 pb-3 sm:px-4 sm:pb-4 ${
-          showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'
-        }`}
+        className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 sm:px-4 ${
+          condenseProgress != null && tileRows.length > 0
+            ? 'pb-11 sm:pb-12'
+            : 'pb-3 sm:pb-4'
+        } ${showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'}`}
       >
         {wall != null && tileRows.length === 0 ? (
           <motion.div
@@ -1907,10 +1909,6 @@ export default function VenueEightTablesPreview({
               </motion.div>
             ) : null}
 
-            {condenseProgress != null && tileRows.length > 0 ? (
-              <VenueCondenseProgressBar model={condenseProgress} skipMountIntro={skipMountIntro} />
-            ) : null}
-
             <VenueAerialFloorGrid
               tiles={floorTiles}
               showHeadline={showHeadline}
@@ -1932,6 +1930,9 @@ export default function VenueEightTablesPreview({
       </main>
 
       {showRoster ? <VenueScrollingRoster tiles={tileRows} /> : null}
+      {condenseProgress != null && tileRows.length > 0 ? (
+        <VenueCondenseProgressBar model={condenseProgress} insetForRoster={showRoster} />
+      ) : null}
     </div>
   )
 }

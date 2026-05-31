@@ -6,9 +6,9 @@ export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-comp
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
 const FLOOR_CHIP_DIM =
-  'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(2rem,26.5cqw,3.5rem)] shrink-0 border-2 px-[0.08em] text-[clamp(1.72rem,22.2cqw,3rem)]'
+  'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0 border-2 px-[0.06em] text-[clamp(1.72rem,22.2cqw,3rem)]'
 const FLOOR_COMPACT_CHIP_DIM =
-  'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.55rem,19.2cqw,2.7rem)] shrink-0 border-2 px-[0.06em] text-[clamp(1.35rem,16.1cqw,2.3rem)]'
+  'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.03rem,12.8cqw,1.8rem)] shrink-0 border-2 px-[0.05em] text-[clamp(1.35rem,16.1cqw,2.3rem)]'
 
 function DigitChip({
   digit,
@@ -39,7 +39,7 @@ function DigitChip({
   }
   return (
     <span
-      className={`inline-flex items-center justify-center rounded border font-mono font-black tabular-nums leading-none ${dim} ${styles[variant]}`}
+      className={`inline-flex items-center justify-center rounded-[4px] border font-mono font-black tabular-nums leading-none ${dim} ${styles[variant]}`}
     >
       {digit}
     </span>

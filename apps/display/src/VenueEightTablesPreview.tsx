@@ -223,7 +223,7 @@ function MosaicDigitCard({
 }) {
   const sizeClass =
     size === 'community'
-      ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(2.1rem,15.5cqw,3.65rem)] shrink-0'
+      ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(1.4rem,10.3cqw,2.45rem)] shrink-0'
       : 'h-[clamp(1.1rem,7.4cqw,1.75rem)] w-[clamp(0.8rem,5.3cqw,1.3rem)] shrink-0'
   const textClass =
     size === 'community'
@@ -241,7 +241,7 @@ function MosaicDigitCard({
   }
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border font-mono font-black tabular-nums leading-none shadow-sm ${
+      className={`inline-flex shrink-0 items-center justify-center rounded-[4px] border font-mono font-black tabular-nums leading-none shadow-sm ${
         dimmed
           ? 'border-white/15 bg-black/40 text-white/35'
           : 'border-cyan-400/55 bg-neutral-950/95 text-cyan-200 shadow-[0_0_8px_rgba(34,211,238,0.3)]'

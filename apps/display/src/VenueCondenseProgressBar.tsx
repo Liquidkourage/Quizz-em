@@ -51,10 +51,10 @@ export default function VenueCondenseProgressBar({
         <p
           className={`truncate font-medium tabular-nums text-white/65 ${
             headline
-              ? 'mb-1.5 text-left text-[10px] sm:text-xs'
+              ? 'mb-1.5 text-left text-[11px] sm:text-sm'
               : sidebar
-                ? 'mb-1 text-center text-[9px] leading-tight sm:text-[10px]'
-                : 'mb-1 text-center text-[10px] sm:text-xs'
+                ? 'mb-1 text-center text-[10px] leading-tight sm:text-[11px]'
+                : 'mb-1 text-center text-[11px] sm:text-sm'
           }`}
         >
           {compactCaption(model)}

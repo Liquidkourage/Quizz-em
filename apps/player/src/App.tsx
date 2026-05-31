@@ -300,9 +300,35 @@ function PlayerApp() {
     )
   }
 
-  const myId = socket?.id
-
   const currentPlayer = gameState.players.find((p) => p.name === playerName)
+  const isEliminated =
+    !currentPlayer &&
+    (gameState.tableId ?? '') !== LOBBY_TABLE_ID &&
+    gameState.phase !== 'lobby'
+
+  if (isEliminated) {
+    return (
+      <div className="min-h-screen bg-casino-gradient flex items-center justify-center px-4">
+        <Card variant="glass" className="max-w-lg p-8 text-center sm:p-10">
+          <motion.h1
+            className="text-4xl font-black text-red-400 sm:text-5xl"
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            Eliminated
+          </motion.h1>
+          <p className="mt-4 text-lg leading-relaxed text-white/80 sm:text-xl">
+            Your stack hit zero — you&apos;re out of the chip contest. Thanks for playing, {playerName}!
+          </p>
+          <p className="mt-3 text-sm text-white/55 sm:text-base">
+            Watch the venue display for the rest of the show.
+          </p>
+        </Card>
+      </div>
+    )
+  }
+
+  const myId = socket?.id
   const myIndex = myId ? gameState.players.findIndex(p => p.id === myId) : gameState.players.findIndex(p => p.name === playerName)
   const showSeatNumbers = (gameState.tableId ?? '') !== LOBBY_TABLE_ID
   const isBettingPhase = gameState.phase === 'betting'
@@ -423,12 +449,6 @@ function PlayerApp() {
               </span>
             </span>
           </div>
-          {currentPlayer?.pointsOnly && (
-            <div className="mx-auto mb-4 max-w-xl rounded-lg border border-amber-400/45 bg-amber-950/30 px-3 py-2 text-center text-xs leading-snug text-amber-100 sm:text-sm">
-              <strong className="text-amber-200">Point trail only</strong> — your stack&apos;s busted ($0 chips), so seats and felts hide you from
-              wagering, but each wave you can still build an answer here for trivia points.
-            </div>
-          )}
           <div className="mt-2 inline-block rounded-lg border border-white/20 bg-white/10 p-2 backdrop-blur-md sm:mt-4 sm:p-3">
             <div className="text-[11px] text-white/80 uppercase tracking-wide sm:text-sm">Phase</div>
             <div className="text-base font-bold capitalize text-casino-emerald sm:text-lg">{gameState.phase}</div>
@@ -725,11 +745,6 @@ function PlayerApp() {
           <Card variant="glass" className="p-4 sm:p-6">
             <h2 className="text-2xl font-bold text-casino-emerald mb-6 text-center">Game Actions</h2>
             <div className="space-y-4">
-              {currentPlayer?.pointsOnly ? (
-                <p className="text-center text-sm leading-relaxed text-white/65">
-                  Chip actions aren&apos;t available on the point trail — wait for answering to play the trivia wave.
-                </p>
-              ) : (
               <>
               {gameState.phase === 'betting' && (
                 <div className="grid grid-cols-2 gap-3 text-white text-sm">
@@ -807,7 +822,6 @@ function PlayerApp() {
                 </NeonButton>
               </div>
               </>
-              )}
             </div>
           </Card>
         </div>

@@ -1307,22 +1307,22 @@ export function endRound(state: GameState): GameState {
   const snapById = new Map(state.players.map((p) => [p.id, p]));
 
   const q = state.round.question;
-  const clearedPlayers: PlayerState[] = afterPayout.players.map((p) => {
-    const snap = snapById.get(p.id);
-    const gained = q != null && snap != null ? answerRoundPointsGained(snap, q.answer) : 0;
-    const answerPoints = (p.answerPoints ?? 0) + gained;
-    const pointsOnly = p.pointsOnly === true || p.bankroll <= 0;
-    return {
-      ...p,
-      answerPoints,
-      pointsOnly,
-      hand: [],
-      hasFolded: false,
-      isAllIn: false,
-      submittedAnswer: undefined,
-      answerComposition: undefined,
-    };
-  });
+  const clearedPlayers: PlayerState[] = afterPayout.players
+    .filter((p) => p.bankroll > 0)
+    .map((p) => {
+      const snap = snapById.get(p.id)
+      const gained = q != null && snap != null ? answerRoundPointsGained(snap, q.answer) : 0
+      const answerPoints = (p.answerPoints ?? 0) + gained
+      return {
+        ...p,
+        answerPoints,
+        hand: [],
+        hasFolded: false,
+        isAllIn: false,
+        submittedAnswer: undefined,
+        answerComposition: undefined,
+      }
+    })
 
   return {
     ...afterPayout,
@@ -1359,3 +1359,20 @@ export {
   rehearsalVenueTableRosterSizes,
 } from './displayPreviewFixture'
 export { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
+export {
+  VENUE_CONDENSE_MAX_SEATS,
+  VENUE_CONDENSE_MERGE_MIN_TABLE_DROP,
+  VENUE_CONDENSE_MIN_SEATS,
+  computeNextCondenseAtSurvivors,
+  countChipSurvivors,
+  isChipSurvivor,
+  mergeTargetTableCount,
+  optimalVenueTableCount,
+  planVenueCondense,
+  shouldScheduleVenueMerge,
+  venueCondenseDisplayFields,
+  type VenueCondensePlan,
+  type VenueCondenseScheduledMerge,
+  type VenueCondenseSoloMove,
+  type VenueTableRoster,
+} from './venueCondense'

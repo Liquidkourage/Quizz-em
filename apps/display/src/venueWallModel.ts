@@ -166,6 +166,90 @@ export function venueWallBlindsHeadline(
   return { amount, meta: metaParts.length > 0 ? metaParts.join(' · ') : null }
 }
 
+export type VenueCondenseHeadline = {
+  survivors: number
+  liveTables: number
+  nextAt: number | null
+  targetTables: number | null
+  /** Primary audience line for the TV strip. */
+  primary: string
+  /** Secondary detail line. */
+  secondary: string | null
+}
+
+/** Audience-facing table-combine forecast for the venue wall header. */
+export function venueWallCondenseHeadline(wall: DisplayVenueWallSnapshot | null): VenueCondenseHeadline | null {
+  if (wall == null) return null
+  const survivors =
+    typeof wall.venueChipSurvivorCount === 'number' && Number.isFinite(wall.venueChipSurvivorCount)
+      ? Math.floor(wall.venueChipSurvivorCount)
+      : typeof wall.totalSeatedAtTables === 'number' && Number.isFinite(wall.totalSeatedAtTables)
+        ? Math.floor(wall.totalSeatedAtTables)
+        : null
+  const liveTables =
+    typeof wall.venueLiveTableCount === 'number' && Number.isFinite(wall.venueLiveTableCount)
+      ? Math.floor(wall.venueLiveTableCount)
+      : null
+  if (survivors == null || liveTables == null || liveTables <= 0) return null
+
+  const nextAt =
+    typeof wall.venueNextCondenseAtSurvivors === 'number' &&
+    Number.isFinite(wall.venueNextCondenseAtSurvivors)
+      ? Math.floor(wall.venueNextCondenseAtSurvivors)
+      : null
+  const targetTables =
+    typeof wall.venueTargetTablesAfterCondense === 'number' &&
+    Number.isFinite(wall.venueTargetTablesAfterCondense)
+      ? Math.floor(wall.venueTargetTablesAfterCondense)
+      : null
+
+  if (liveTables <= 1) {
+    return {
+      survivors,
+      liveTables,
+      nextAt: null,
+      targetTables: null,
+      primary: survivors <= 8 ? 'Final table' : `${survivors} players remain`,
+      secondary: null,
+    }
+  }
+
+  if (nextAt == null) {
+    return {
+      survivors,
+      liveTables,
+      nextAt: null,
+      targetTables: null,
+      primary: `${liveTables} tables · ${survivors} players`,
+      secondary: null,
+    }
+  }
+
+  if (survivors <= nextAt) {
+    const to = targetTables ?? liveTables - 2
+    return {
+      survivors,
+      liveTables,
+      nextAt,
+      targetTables: targetTables,
+      primary: `Combining to ${to} tables now`,
+      secondary: `${survivors} players remaining`,
+    }
+  }
+
+  return {
+    survivors,
+    liveTables,
+    nextAt,
+    targetTables,
+    primary: `Next combine at ${nextAt} players`,
+    secondary:
+      targetTables != null
+        ? `${liveTables} tables now → ${targetTables} tables`
+        : `${liveTables} tables · ${survivors} players remaining`,
+  }
+}
+
 /** Legacy full-screen grid — mosaic tile overlays are production. */
 export function shouldUseVenueShowdownWall(_tileRows: DisplayVenueTileSnapshot[]): boolean {
   return false

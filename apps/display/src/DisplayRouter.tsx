@@ -174,6 +174,24 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           typeof p.lobbyPlayerCount === 'number' ? p.lobbyPlayerCount : 0,
         totalSeatedAtTables:
           typeof p.totalSeatedAtTables === 'number' ? p.totalSeatedAtTables : 0,
+        venueLiveTableCount:
+          typeof p.venueLiveTableCount === 'number' && Number.isFinite(p.venueLiveTableCount)
+            ? Math.floor(p.venueLiveTableCount)
+            : null,
+        venueChipSurvivorCount:
+          typeof p.venueChipSurvivorCount === 'number' && Number.isFinite(p.venueChipSurvivorCount)
+            ? Math.floor(p.venueChipSurvivorCount)
+            : null,
+        venueNextCondenseAtSurvivors:
+          typeof p.venueNextCondenseAtSurvivors === 'number' &&
+          Number.isFinite(p.venueNextCondenseAtSurvivors)
+            ? Math.floor(p.venueNextCondenseAtSurvivors)
+            : null,
+        venueTargetTablesAfterCondense:
+          typeof p.venueTargetTablesAfterCondense === 'number' &&
+          Number.isFinite(p.venueTargetTablesAfterCondense)
+            ? Math.floor(p.venueTargetTablesAfterCondense)
+            : null,
         /** Older servers never sent this — keep briefing until reconnect to a newer build. */
         showAudienceWelcome: p.showAudienceWelcome !== false,
       }

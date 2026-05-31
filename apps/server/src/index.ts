@@ -47,6 +47,7 @@ import {
   normalizeBettingTurn,
   previewChipPayoutByPlayerId,
   venueWallDisplayPot,
+  venueCondenseDisplayFields,
 } from '@qhe/core'
 import type { Question, GameState } from '@qhe/core'
 import type { 
@@ -85,6 +86,7 @@ import {
   openAnsweringPhase,
   planVenueWageringOrchestration,
 } from './venue-wagering-orchestration'
+import { applyVenueCondenseAfterRound, venueCondenseSnapshotFromRooms } from './venue-condense'
 import {
   coerceImportQuestions,
   pruneSetlistRefs,
@@ -1299,6 +1301,38 @@ function tableNumFromSessionKey(venueCode: string, sessionKey: string): number |
   return n
 }
 
+function moveHumanToTableSession(playerId: string, toSessionKey: string, tableId: string): void {
+  const sock = io.sockets.sockets.get(playerId)
+  if (!sock) return
+  for (const r of [...sock.rooms]) {
+    if (r === sock.id) continue
+    if (typeof r === 'string' && r.includes(':') && !isLobbySessionKey(r)) {
+      sock.leave(r)
+    }
+  }
+  sock.join(toSessionKey)
+  ;(sock.data as { sessionKey?: string }).sessionKey = toSessionKey
+  sock.emit('seated', { tableId })
+}
+
+function runVenueCondenseAfterRound(vnRaw: string, hostId: string): string[] {
+  const vn = normalizeVenueCode(vnRaw)
+  const result = applyVenueCondenseAfterRound({
+    venueCode: vn,
+    hostId,
+    io,
+    getState: (tk) => rooms.get(tk),
+    setState: (tk, gs) => rooms.set(tk, gs),
+    tableSessionKey,
+    tableNumFromSessionKey,
+    allTableSessionKeys: allTableSessionsInVenue,
+    applyEffectiveBlinds: applyEffectiveBlindsToGameState,
+    emitTableState: emitVenueTableState,
+    moveHumanSocket: moveHumanToTableSession,
+  })
+  return result.hostToasts
+}
+
 /**
  * Phase / street fingerprint for lockstep venues: every playable table session must match
  * before cross-table host actions advance the show together.
@@ -1583,6 +1617,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       }
     }
     const seated = welcomeWallSeatCount(gs)
+    if (seated === 0) continue
     totalSeatedAtTables += seated
     const seatNames = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
       const p = gs.players[i]
@@ -1755,6 +1790,17 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     }
   }
 
+  const condenseCounts = venueCondenseSnapshotFromRooms({
+    venueCode: vn,
+    getState: (tk) => rooms.get(tk),
+    tableNumFromSessionKey,
+    allTableSessionKeys: allTableSessionsInVenue,
+  })
+  const condenseDisplay = venueCondenseDisplayFields({
+    liveTableCount: condenseCounts.liveTableCount,
+    chipSurvivorCount: condenseCounts.chipSurvivorCount,
+  })
+
   const payload: DisplayVenueWallSnapshot = {
     tiles,
     headlineQuestionText,
@@ -1771,6 +1817,10 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     lobbyPlayerCount,
     totalSeatedAtTables,
     showAudienceWelcome: !venueAudienceWelcomeExpired.has(vn),
+    venueLiveTableCount: condenseCounts.liveTableCount,
+    venueChipSurvivorCount: condenseCounts.chipSurvivorCount,
+    venueNextCondenseAtSurvivors: condenseDisplay.nextCondenseAtSurvivors,
+    venueTargetTablesAfterCondense: condenseDisplay.targetTablesAfterCondense,
   }
   io.to(displayVenueRoom(vn)).emit('displayVenueSnapshot', payload)
   const livelyTableNums = tiles
@@ -2806,8 +2856,13 @@ io.on('connection', (socket) => {
           const levelMsg = recordVenueHandCompleted(vnEnd)
           syncVenueBlindsToAllSessions(vnEnd)
           await emitHostLibrary(vnEnd)
+          const condenseToasts = runVenueCondenseAfterRound(vnEnd, gameState.hostId)
           emitDisplayVenueSnapshotNow(vnEnd)
           socket.emit('toast', `Round cleared — lobby on all ${lockEnd.length} felts at this venue.`)
+          for (const msg of condenseToasts) {
+            socket.emit('toast', msg)
+            io.to(hostVenueRoom(vnEnd)).emit('toast', msg)
+          }
           if (levelMsg) socket.emit('toast', levelMsg)
           gameState = rooms.get(sessionKey)!
           break

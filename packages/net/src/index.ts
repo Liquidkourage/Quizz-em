@@ -136,6 +136,14 @@ export type DisplayVenueWallSnapshot = {
   lobbyPlayerCount: number
   /** Sum of seated humans across numbered tables. */
   totalSeatedAtTables: number
+  /** Numbered felts with at least one chip survivor (condense display). */
+  venueLiveTableCount?: number | null
+  /** Chip survivors across numbered tables (same as totalSeatedAtTables after elimination). */
+  venueChipSurvivorCount?: number | null
+  /** Scheduled merge triggers when survivors drop to this count or below; null at one table. */
+  venueNextCondenseAtSurvivors?: number | null
+  /** Table count after the next scheduled combine. */
+  venueTargetTablesAfterCondense?: number | null
   /**
    * Public TV briefing: false after host **Assign from lobby** (or **Start Game** fallback for single-table flows),
    * mosaic tile phases, or local mosaic force.

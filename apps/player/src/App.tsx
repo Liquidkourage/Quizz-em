@@ -487,7 +487,7 @@ function PlayerApp() {
               <div className="mb-4 hidden text-center sm:block">
                 <span className="mr-2 text-white/80">Time left:</span>
                 <span className="text-2xl font-extrabold text-casino-gold">
-                  {remainingSec != null ? `${remainingSec}s` : 'Open'}
+                  {remainingSec != null ? `${remainingSec}s` : 'Waiting'}
                 </span>
               </div>
             )}
@@ -948,7 +948,7 @@ function PlayerApp() {
             <div className="text-center text-sm text-white/85">
               <span className="text-white/60">Time left: </span>
               <span className="text-xl font-extrabold tabular-nums text-casino-gold">
-                {remainingSec != null ? `${remainingSec}s` : 'Open'}
+                {remainingSec != null ? `${remainingSec}s` : 'Waiting'}
               </span>
             </div>
             <div className="flex justify-center gap-3">

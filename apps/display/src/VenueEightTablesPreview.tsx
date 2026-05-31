@@ -1701,6 +1701,7 @@ export default function VenueEightTablesPreview({
   )
   const headlineAnswering =
     headlineSource.phase === 'answering' || wall?.headlinePhase === 'answering'
+  const othersStillWagering = useMemo(() => venueHasOpenWagering(tileRows), [tileRows])
   const showHeadline =
     hasLiveWall &&
     (headlineQuestionText != null || answerDeadlineMs != null || inVenueShowdown || headlineAnswering)
@@ -1868,11 +1869,11 @@ export default function VenueEightTablesPreview({
                         <div className="text-center font-mono text-2xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-4xl md:text-5xl xl:text-6xl">
                           {timerSeconds}s
                         </div>
-                      ) : (
+                      ) : othersStillWagering ? (
                         <div className="text-center text-[11px] font-semibold leading-snug text-cyan-200/75 sm:text-xs">
-                          45s after last table
+                          Waiting for last table
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   ) : null}
                   </div>

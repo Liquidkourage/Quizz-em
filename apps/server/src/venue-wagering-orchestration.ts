@@ -14,13 +14,6 @@ export function isPostBoardWageringClosed(gs: GameState): boolean {
   return isPostBoardWageringStreet(gs) && gs.round.isBettingOpen !== true
 }
 
-export function tablePastPostBoardWagering(gs: GameState): boolean {
-  if (gs.players.length === 0) return false
-  const ph = gs.phase
-  if (ph === 'answering' || ph === 'showdown' || ph === 'reveal' || ph === 'payout') return true
-  return isPostBoardWageringClosed(gs)
-}
-
 export function venueInPostBoardAnswerWave(
   seatedTableKeys: string[],
   getState: (sessionKey: string) => GameState | undefined
@@ -30,6 +23,30 @@ export function venueInPostBoardAnswerWave(
     if (!gs || gs.players.length === 0) return false
     return isPostBoardWageringStreet(gs) || gs.phase === 'answering'
   })
+}
+
+export function countOpenPostBoardWageringTables(
+  seatedTableKeys: string[],
+  getState: (sessionKey: string) => GameState | undefined
+): number {
+  return seatedTableKeys.filter((tk) => {
+    const gs = getState(tk)
+    return (
+      gs != null &&
+      gs.players.length > 0 &&
+      isPostBoardWageringStreet(gs) &&
+      gs.round.isBettingOpen === true
+    )
+  }).length
+}
+
+/** Seated table has finished post-board wagering (answering or clock closed on round 2). */
+export function seatedTableFinishedPostBoardWagering(gs: GameState): boolean {
+  if (gs.players.length === 0) return true
+  if (gs.phase === 'answering' || gs.phase === 'showdown' || gs.phase === 'reveal' || gs.phase === 'payout') {
+    return true
+  }
+  return isPostBoardWageringClosed(gs)
 }
 
 export function venueAllPostBoardWageringComplete(
@@ -42,13 +59,14 @@ export function venueAllPostBoardWageringComplete(
   })
   if (seated.length === 0) return false
 
-  const inWave = seated.filter((tk) => {
-    const gs = getState(tk)!
-    return isPostBoardWageringStreet(gs) || gs.phase === 'answering'
-  })
-  if (inWave.length === 0) return false
+  // At least one table still has the post-board clock open — wait for the last one.
+  if (countOpenPostBoardWageringTables(seatedTableKeys, getState) > 0) return false
 
-  return inWave.every((tk) => tablePastPostBoardWagering(getState(tk)!))
+  const hasAnswerFlow = seated.some((tk) => seatedTableFinishedPostBoardWagering(getState(tk)!))
+  if (!hasAnswerFlow) return false
+
+  // Every seated table must be done — not still in round 1 while others answer.
+  return seated.every((tk) => seatedTableFinishedPostBoardWagering(getState(tk)!))
 }
 
 export function openAnsweringPhase(gs: GameState, answerDeadlineMs: number | null): GameState {
@@ -80,10 +98,11 @@ export function planVenueWageringOrchestration(args: {
 
   const inWave = venueInPostBoardAnswerWave(args.seatedTableKeys, args.getState)
   const allComplete = venueAllPostBoardWageringComplete(args.seatedTableKeys, args.getState)
+  const openWageringCount = countOpenPostBoardWageringTables(args.seatedTableKeys, args.getState)
 
   let showdownAt = args.currentShowdownAtMs
   let scheduleShowdownAtMs: number | null = null
-  if (allComplete && showdownAt == null) {
+  if (allComplete && openWageringCount === 0 && showdownAt == null) {
     showdownAt = nowMs + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS
     scheduleShowdownAtMs = showdownAt
   }
@@ -93,7 +112,7 @@ export function planVenueWageringOrchestration(args: {
     if (!gs || gs.players.length === 0) continue
 
     if (isPostBoardWageringClosed(gs)) {
-      const deadline = showdownAt ?? null
+      const deadline = allComplete && showdownAt != null ? showdownAt : null
       const next = openAnsweringPhase(gs, deadline)
       if (next.phase !== gs.phase || next.round.answerDeadline !== gs.round.answerDeadline) {
         tableUpdates.push({ sessionKey: tk, gameState: next, answerDeadlineMs: deadline })
@@ -101,7 +120,7 @@ export function planVenueWageringOrchestration(args: {
       continue
     }
 
-    if (gs.phase === 'answering' && showdownAt != null && gs.round.answerDeadline !== showdownAt) {
+    if (gs.phase === 'answering' && allComplete && showdownAt != null && gs.round.answerDeadline !== showdownAt) {
       tableUpdates.push({
         sessionKey: tk,
         gameState: { ...gs, round: { ...gs.round, answerDeadline: showdownAt } },

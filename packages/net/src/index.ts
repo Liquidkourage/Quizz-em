@@ -117,6 +117,10 @@ export type DisplayVenueWallSnapshot = {
   headlineTableNum?: number | null
   /** Core phase of the headline felt when a shared strip is active. */
   headlinePhase?: string | null
+  /** 1-based index of the active setlist cue when a rundown is loaded and a hand is in progress. */
+  setlistCueNumber?: number | null
+  /** Total cues in the active setlist (e.g. 25). */
+  setlistCueTotal?: number | null
   /** Venue-wide blind amounts (lowest table override excluded — see per-tile fields). */
   venueSmallBlind?: number | null
   venueBigBlind?: number | null

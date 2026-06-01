@@ -413,11 +413,6 @@ function HostApp() {
       </p>
     ) : null
 
-  const startAnswerBlocked =
-    gameState.phase !== 'betting' ||
-    !!(round as { isBettingOpen?: boolean }).isBettingOpen ||
-    communityLen < 5
-
   const draftSetlist =
     setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
 
@@ -425,6 +420,12 @@ function HostApp() {
   const controlRound = hostControlState.round
   const controlBettingRound = controlRound.bettingRound ?? 0
   const controlCommunityLen = controlRound.communityCards?.length ?? 0
+  const controlBettingOpen = controlRound.isBettingOpen !== false
+
+  const startAnswerBlocked =
+    hostControlState.phase !== 'betting' ||
+    controlBettingOpen ||
+    controlCommunityLen < 5
 
   const phaseDockItems = buildHostPhaseDockItems({
     gameState: hostControlState,

@@ -1701,6 +1701,10 @@ export default function VenueEightTablesPreview({
   const prefersReducedMotion = usePrefersReducedMotion()
   const headlineQuestionText = wall?.headlineQuestionText ?? null
   const answerDeadlineMs = wall?.answerDeadlineMs ?? null
+  const setlistCueNumber = wall?.setlistCueNumber ?? null
+  const setlistCueTotal = wall?.setlistCueTotal ?? null
+  const showSetlistCue =
+    setlistCueNumber != null && setlistCueTotal != null && setlistCueTotal > 0
   const inAnsweringCountdown = answerDeadlineMs != null
 
   useEffect(() => {
@@ -1841,11 +1845,18 @@ export default function VenueEightTablesPreview({
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div className="min-w-0 flex-1">
-                    {headlineSource.tableNum != null && headlinePhaseLabel ? (
+                    {(headlineSource.tableNum != null && headlinePhaseLabel) || showSetlistCue ? (
                       <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-yellow-100/95 sm:text-xs">
-                          Table {headlineSource.tableNum} · {headlinePhaseLabel}
-                        </span>
+                        {headlineSource.tableNum != null && headlinePhaseLabel ? (
+                          <span className="inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-yellow-100/95 sm:text-xs">
+                            Table {headlineSource.tableNum} · {headlinePhaseLabel}
+                          </span>
+                        ) : null}
+                        {showSetlistCue ? (
+                          <span className="inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-100/95 sm:text-xs">
+                            Question {setlistCueNumber} of {setlistCueTotal}
+                          </span>
+                        ) : null}
                         {headlineDivergenceNote ? (
                           <span className="text-[10px] font-medium leading-snug text-white/55 sm:text-xs">
                             {headlineDivergenceNote}

@@ -108,20 +108,86 @@ function unanimousVenueBeatSig(venueBeat: HostVenueFeltBeatRow[] | null): string
   return [...sigs][0]!
 }
 
-/**
- * When the host mirrors the lobby pool, numbered felts may be mid-hand while LOBBY stays lobby.
- * Mirror unanimous venue phase into a synthetic control state for dock + run-of-show.
- */
-export function hostControlGameStateFromBeat(
-  gameState: GameState,
-  venueBeat: HostVenueFeltBeatRow[] | null,
-): GameState {
-  const tableId = gameState.tableId ?? ''
-  if (tableId !== LOBBY_TABLE_ID) return gameState
-  const venuePhase = unanimousVenueBeatPhase(venueBeat)
-  if (venuePhase == null || venuePhase === 'lobby') return gameState
+/** Most advanced seated felt phase — matches venue-wall headline priority when felts drift. */
+function venueBeatPhasePriority(phase: string): number {
+  switch (phase) {
+    case 'answering':
+      return 70
+    case 'showdown':
+      return 65
+    case 'reveal':
+      return 64
+    case 'payout':
+      return 63
+    case 'betting':
+      return 50
+    case 'question':
+      return 40
+    case 'lobby':
+      return 10
+    default:
+      return 0
+  }
+}
 
-  const sig = unanimousVenueBeatSig(venueBeat)
+function pickDominantVenueBeatRow(venueBeat: HostVenueFeltBeatRow[] | null): HostVenueFeltBeatRow | null {
+  const seated = seatedVenueBeatRows(venueBeat)
+  if (seated.length === 0) return null
+  let best: HostVenueFeltBeatRow | null = null
+  let bestPri = -1
+  for (const row of seated) {
+    const pri = venueBeatPhasePriority(row.phase)
+    if (
+      pri > bestPri ||
+      (pri === bestPri && best != null && row.tableNum < best.tableNum) ||
+      (pri === bestPri && best == null)
+    ) {
+      best = row
+      bestPri = pri
+    }
+  }
+  return best
+}
+
+type ResolvedVenueBeat = {
+  phase: string
+  sig: string | null
+  row: HostVenueFeltBeatRow
+  misaligned: boolean
+}
+
+function resolveVenueBeatForHost(venueBeat: HostVenueFeltBeatRow[] | null): ResolvedVenueBeat | null {
+  const seated = seatedVenueBeatRows(venueBeat)
+  if (seated.length === 0) return null
+
+  const unanimousPhase = unanimousVenueBeatPhase(venueBeat)
+  if (unanimousPhase != null) {
+    const row = seated.find((r) => r.phase === unanimousPhase) ?? seated[0]!
+    return {
+      phase: unanimousPhase,
+      sig: unanimousVenueBeatSig(venueBeat) ?? row.phaseStrictSig,
+      row,
+      misaligned: false,
+    }
+  }
+
+  const dominant = pickDominantVenueBeatRow(venueBeat)
+  if (dominant == null || dominant.phase === 'lobby' || dominant.phase === 'inactive') return null
+
+  return {
+    phase: dominant.phase,
+    sig: dominant.phaseStrictSig,
+    row: dominant,
+    misaligned: true,
+  }
+}
+
+function syntheticControlStateFromBeatRow(
+  gameState: GameState,
+  venuePhase: string,
+  sig: string | null,
+  row: HostVenueFeltBeatRow,
+): GameState {
   if (venuePhase === 'betting' && sig) {
     const m = /^bet\|(\d+)\|([TF?])\|cc(\d+)$/.exec(sig)
     if (m) {
@@ -139,30 +205,30 @@ export function hostControlGameStateFromBeat(
     }
   }
 
-  if (venuePhase === 'answering' || venuePhase === 'showdown' || venuePhase === 'reveal' || venuePhase === 'payout') {
+  if (venuePhase === 'answering') {
+    const dl = row.answerDeadlineMs
+    return {
+      ...gameState,
+      phase: 'answering',
+      round: {
+        ...gameState.round,
+        ...(typeof dl === 'number' && Number.isFinite(dl) ? { answerDeadline: dl } : {}),
+      },
+    }
+  }
+
+  if (venuePhase === 'showdown' || venuePhase === 'reveal' || venuePhase === 'payout') {
     return { ...gameState, phase: venuePhase as GameState['phase'] }
   }
 
   return { ...gameState, phase: venuePhase as GameState['phase'] }
 }
 
-/** Run-of-show step — uses venue felts when host view is the lobby pool. */
-export function resolveRunOfShowStepForHost(
+function runOfShowStepFromBeatPhase(
+  phase: string,
+  sig: string | null,
   gameState: GameState,
-  venueBeat: HostVenueFeltBeatRow[] | null,
-): RunOfShowStepId {
-  const tableId = gameState.tableId ?? ''
-  if (tableId !== LOBBY_TABLE_ID) return resolveRunOfShowCurrentStepId(gameState)
-
-  const seated = seatedVenueBeatRows(venueBeat)
-  if (seated.length === 0) return resolveRunOfShowCurrentStepId(gameState)
-
-  const phases = new Set(seated.map((r) => r.phase))
-  if (phases.size !== 1) return resolveRunOfShowCurrentStepId(gameState)
-
-  const phase = [...phases][0]!
-  const sig = unanimousVenueBeatSig(venueBeat)
-
+): RunOfShowStepId | null {
   if (phase === 'lobby') {
     if (assignStepApplies(gameState)) return 'assign'
     return 'start'
@@ -184,7 +250,37 @@ export function resolveRunOfShowStepForHost(
   }
   if (phase === 'answering') return 'reveal'
   if (phase === 'showdown' || phase === 'reveal' || phase === 'payout') return 'end-round'
-  return resolveRunOfShowCurrentStepId(gameState)
+  return null
+}
+
+/**
+ * When the host mirrors the lobby pool, numbered felts may be mid-hand while LOBBY stays lobby.
+ * Mirror venue phase into a synthetic control state for dock + run-of-show (unanimous or dominant felt).
+ */
+export function hostControlGameStateFromBeat(
+  gameState: GameState,
+  venueBeat: HostVenueFeltBeatRow[] | null,
+): GameState {
+  const tableId = gameState.tableId ?? ''
+  if (tableId !== LOBBY_TABLE_ID) return gameState
+  const resolved = resolveVenueBeatForHost(venueBeat)
+  if (resolved == null || resolved.phase === 'lobby') return gameState
+  return syntheticControlStateFromBeatRow(gameState, resolved.phase, resolved.sig, resolved.row)
+}
+
+/** Run-of-show step — uses venue felts when host view is the lobby pool. */
+export function resolveRunOfShowStepForHost(
+  gameState: GameState,
+  venueBeat: HostVenueFeltBeatRow[] | null,
+): RunOfShowStepId {
+  const tableId = gameState.tableId ?? ''
+  if (tableId !== LOBBY_TABLE_ID) return resolveRunOfShowCurrentStepId(gameState)
+
+  const resolved = resolveVenueBeatForHost(venueBeat)
+  if (resolved == null) return resolveRunOfShowCurrentStepId(gameState)
+
+  const step = runOfShowStepFromBeatPhase(resolved.phase, resolved.sig, gameState)
+  return step ?? resolveRunOfShowCurrentStepId(gameState)
 }
 
 export function resolveRunOfShowCurrentStepId(gameState: GameState): RunOfShowStepId {

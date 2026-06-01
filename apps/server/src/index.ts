@@ -1792,8 +1792,27 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     }
     if (headlineGs.phase === 'answering') {
       const venueDeadline = venueShowdownAtMs.get(vn)
+      const tableDeadline = headlineGs.round?.answerDeadline
       if (venueDeadline != null && Number.isFinite(venueDeadline)) {
         answerDeadlineMs = venueDeadline
+      } else if (typeof tableDeadline === 'number' && Number.isFinite(tableDeadline)) {
+        answerDeadlineMs = tableDeadline
+      }
+    }
+  }
+
+  let setlistCueNumber: number | null = null
+  let setlistCueTotal: number | null = null
+  if (headlineQuestionText != null) {
+    const ph = getPlayhead(vn)
+    const lib = venueLibraries.get(vn)
+    if (ph.setlistId && lib) {
+      const sl = lib.setlists.find((s) => s.id === ph.setlistId)
+      if (sl && sl.questionIds.length > 0) {
+        setlistCueTotal = sl.questionIds.length
+        if (ph.nextIndex > 0 && ph.nextIndex <= sl.questionIds.length) {
+          setlistCueNumber = ph.nextIndex
+        }
       }
     }
   }
@@ -1815,6 +1834,8 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     answerDeadlineMs,
     headlineTableNum,
     headlinePhase,
+    setlistCueNumber,
+    setlistCueTotal,
     venueSmallBlind: blindsSnap.smallBlind,
     venueBigBlind: blindsSnap.bigBlind,
     blindLevelNumber: blindsSnap.blindLevelIndex + 1,

@@ -149,6 +149,14 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
             ? Math.floor(p.headlineTableNum)
             : null,
         headlinePhase: typeof p.headlinePhase === 'string' ? p.headlinePhase : null,
+        setlistCueNumber:
+          typeof p.setlistCueNumber === 'number' && Number.isFinite(p.setlistCueNumber)
+            ? Math.floor(p.setlistCueNumber)
+            : null,
+        setlistCueTotal:
+          typeof p.setlistCueTotal === 'number' && Number.isFinite(p.setlistCueTotal)
+            ? Math.floor(p.setlistCueTotal)
+            : null,
         venueSmallBlind:
           typeof p.venueSmallBlind === 'number' && Number.isFinite(p.venueSmallBlind)
             ? Math.floor(p.venueSmallBlind)

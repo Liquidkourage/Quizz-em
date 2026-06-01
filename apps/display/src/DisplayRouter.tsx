@@ -15,6 +15,7 @@ import VenueSeatingChart from './VenueSeatingChart.tsx'
 import VenueLeaderboardWall from './VenueLeaderboardWall.tsx'
 import { buildVenueWallTileRows, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
+import { useVenueWallAutoView } from './useVenueWallAutoView'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -83,7 +84,8 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     (venueWall === null ||
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !mosaicShowsLiveFelts))
 
-  const wallView = layout.wallView ?? 'floor'
+  const autoWallView = useVenueWallAutoView(venueWall)
+  const wallView = autoWallView ?? layout.wallView ?? 'floor'
   const tileRows = useMemo(() => buildVenueWallTileRows(venueWall), [venueWall])
   const showSeatingChart =
     onVenueWallLayout &&

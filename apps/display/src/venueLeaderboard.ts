@@ -6,11 +6,24 @@ export type VenueLeaderboardRow = {
   tableNum: number
   seatNum: number
   bankroll: number
+  /** Change vs stack at hand start; null when no baseline yet. */
+  stackDelta: number | null
+}
+
+export function venueLeaderboardPlayerKey(tableNum: number, seatNum: number, name: string): string {
+  return `${tableNum}:${seatNum}:${name.trim()}`
 }
 
 export function formatVenueBankroll(amount: number): string {
   const n = Number.isFinite(amount) ? Math.round(amount) : 0
   return `$${Math.max(0, n).toLocaleString()}`
+}
+
+export function formatVenueStackDelta(delta: number): string {
+  const n = Number.isFinite(delta) ? Math.round(delta) : 0
+  if (n === 0) return '±0'
+  const sign = n > 0 ? '+' : '−'
+  return `${sign}$${Math.abs(n).toLocaleString()}`
 }
 
 function padSeatBankrolls(raw: number[] | undefined): number[] {
@@ -38,9 +51,25 @@ export function venueWallGameplayActive(tiles: DisplayVenueTileSnapshot[]): bool
   return tiles.some((t) => t.phase !== 'lobby')
 }
 
+export function captureVenueHandStackBaselines(tiles: DisplayVenueTileSnapshot[]): Map<string, number> {
+  const out = new Map<string, number>()
+  for (const t of tiles) {
+    const sn = t.seatNames
+    const br = padSeatBankrolls(t.seatBankrolls)
+    if (sn == null || sn.length === 0) continue
+    for (let i = 0; i < sn.length; i++) {
+      const raw = sn[i]?.trim()
+      if (!raw) continue
+      out.set(venueLeaderboardPlayerKey(t.tableNum, i + 1, raw), br[i] ?? 0)
+    }
+  }
+  return out
+}
+
 /** Ranked by stack (desc); tie-break name then table/seat. */
 export function venueLeaderboardRowsFromTiles(
-  tiles: DisplayVenueTileSnapshot[]
+  tiles: DisplayVenueTileSnapshot[],
+  handStartBaselines?: ReadonlyMap<string, number> | null
 ): VenueLeaderboardRow[] {
   const out: VenueLeaderboardRow[] = []
   for (const t of tiles) {
@@ -49,7 +78,17 @@ export function venueLeaderboardRowsFromTiles(
     if (sn == null || sn.length === 0) continue
     for (let i = 0; i < sn.length; i++) {
       const raw = sn[i]?.trim()
-      if (raw) out.push({ name: raw, tableNum: t.tableNum, seatNum: i + 1, bankroll: br[i] ?? 0 })
+      if (!raw) continue
+      const bankroll = br[i] ?? 0
+      const key = venueLeaderboardPlayerKey(t.tableNum, i + 1, raw)
+      const baseline = handStartBaselines?.get(key)
+      out.push({
+        name: raw,
+        tableNum: t.tableNum,
+        seatNum: i + 1,
+        bankroll,
+        stackDelta: baseline != null ? bankroll - baseline : null,
+      })
     }
   }
   out.sort((a, b) => {

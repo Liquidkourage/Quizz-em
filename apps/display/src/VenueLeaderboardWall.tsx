@@ -5,12 +5,13 @@ import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import {
   formatVenueBankroll,
+  formatVenueStackDelta,
   venueLeaderboardColumns,
   venueLeaderboardRowsFromTiles,
-  venueWallGameplayActive,
 } from './venueLeaderboard'
 import { buildVenueWallTileRows, venueWallBlindsHeadline, buildVenueCondenseProgress, venueWallCondenseHeadline } from './venueWallModel'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
+import { useVenueHandStackBaselines } from './useVenueHandStackBaselines'
 
 function splitLeaderboardName(name: string): { given: string; suffix: string } {
   const trimmed = name.trim()
@@ -52,10 +53,14 @@ export default function VenueLeaderboardWall({
     [wall, peakSurvivors],
   )
 
-  const rows = useMemo(() => venueLeaderboardRowsFromTiles(buildVenueWallTileRows(wall)), [wall])
+  const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
+  const handBaselines = useVenueHandStackBaselines(tileRows, wall?.headlinePhase ?? null)
+  const rows = useMemo(
+    () => venueLeaderboardRowsFromTiles(tileRows, handBaselines),
+    [tileRows, handBaselines]
+  )
   const columns = useMemo(() => venueLeaderboardColumns(rows.length), [rows.length])
   const rowCount = useMemo(() => Math.ceil(rows.length / columns), [rows.length, columns])
-  const gameOn = useMemo(() => venueWallGameplayActive(buildVenueWallTileRows(wall)), [wall])
   const blindsHeadline = useMemo(() => venueWallBlindsHeadline(wall), [wall])
 
   if (rows.length === 0) return null
@@ -79,7 +84,7 @@ export default function VenueLeaderboardWall({
               </h1>
               <p className="text-sm text-white/70 sm:text-base">
                 {rows.length} player{rows.length === 1 ? '' : 's'}
-                {gameOn && blindsHeadline ? (
+                {blindsHeadline ? (
                   <>
                     {' · '}
                     <span className="font-mono tabular-nums text-amber-200/90">{blindsHeadline.amount}</span>
@@ -135,6 +140,20 @@ export default function VenueLeaderboardWall({
                     {given}
                     {suffix ? <span className="font-medium text-amber-100/45"> {suffix}</span> : null}
                   </span>
+                  {row.stackDelta != null && row.stackDelta !== 0 ? (
+                    <span
+                      style={RANK_FONT}
+                      className={`shrink-0 font-black leading-none ${
+                        row.stackDelta > 0 ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                      title={formatVenueStackDelta(row.stackDelta)}
+                      aria-hidden
+                    >
+                      {row.stackDelta > 0 ? '▲' : '▼'}
+                    </span>
+                  ) : (
+                    <span style={RANK_FONT} className="w-[0.85em] shrink-0" aria-hidden />
+                  )}
                   <span
                     style={ROW_FONT}
                     className="shrink-0 font-mono font-bold tabular-nums text-emerald-400"

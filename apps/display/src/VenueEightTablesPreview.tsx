@@ -698,6 +698,10 @@ function SeatRingWithLabels({
   seatSubmittedAnswers?: (number | null)[]
   answeringPhase?: boolean
 }) {
+  function clamp(n: number, lo: number, hi: number) {
+    return Math.max(lo, Math.min(hi, n))
+  }
+
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
   const seatHoleDigits = padSeatHoleDigits(seatHoleDigitsIn)
@@ -794,6 +798,18 @@ function SeatRingWithLabels({
       : railBorderRadius
 
   const showFeltBoardCenter = isMosaic && communityDigits.length > 0
+
+  const mosaicScale = useMemo(() => {
+    if (!isMosaic) return 1
+    // Scale seat dots/initials off the ring width so the whole mini-felt reads consistently
+    // across venue wall card sizes (no fixed 1.35rem circles).
+    const w = ringPx.w
+    if (!(w > 0)) return 1
+    return clamp(w / 260, 0.75, 1.25)
+  }, [isMosaic, ringPx.w])
+
+  const mosaicDotPx = 22 * mosaicScale
+  const mosaicDotActingPx = 26 * mosaicScale
 
   return (
     <div ref={ringElRef} className={`@container relative overflow-visible ${wrap}`}>
@@ -923,7 +939,7 @@ function SeatRingWithLabels({
           return filled ? 'border-emerald-300/70 bg-black/85' : 'border-white/20 bg-black/35'
         })()
         const actingSoftPulse = isMosaic
-          ? 'pointer-events-none absolute left-1/2 top-1/2 z-0 h-[1.35rem] w-[1.35rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden'
+          ? 'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden'
           : size === 'lg'
             ? 'pointer-events-none absolute left-1/2 top-1/2 z-0 h-[4.5rem] w-[4.5rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden sm:h-[5rem] sm:w-[5rem]'
             : 'pointer-events-none absolute left-1/2 top-1/2 z-0 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/10 motion-reduce:hidden sm:h-[3.75rem] sm:w-[3.75rem]'
@@ -938,22 +954,36 @@ function SeatRingWithLabels({
               }}
             >
               {isActing && !prefersReducedMotion ? (
-                <span aria-hidden className={`${actingSoftPulse} motion-safe:animate-pulse motion-safe:[animation-duration:2.8s]`} />
+                <span
+                  aria-hidden
+                  className={`${actingSoftPulse} motion-safe:animate-pulse motion-safe:[animation-duration:2.8s]`}
+                  style={isMosaic ? { width: mosaicDotActingPx, height: mosaicDotActingPx } : undefined}
+                />
               ) : answerLocked && !prefersReducedMotion ? (
                 <span
                   aria-hidden
                   className={`${actingSoftPulse} bg-cyan-400/20 motion-safe:animate-pulse motion-safe:[animation-duration:2.2s]`}
+                  style={isMosaic ? { width: mosaicDotActingPx, height: mosaicDotActingPx } : undefined}
                 />
               ) : isWinner && !prefersReducedMotion ? (
                 <span
                   aria-hidden
                   className={`${actingSoftPulse} bg-amber-400/18 motion-safe:animate-pulse motion-safe:[animation-duration:3.2s]`}
+                  style={isMosaic ? { width: mosaicDotActingPx, height: mosaicDotActingPx } : undefined}
                 />
               ) : null}
               <div
                 className={`relative z-[2] flex shrink-0 items-center justify-center ${
-                  isActing || answerLocked || isWinner ? dotActing : dot
+                  isMosaic ? '' : isActing || answerLocked || isWinner ? dotActing : dot
                 } rounded-full border-2 shadow ${seatDotClass}`}
+                style={
+                  isMosaic
+                    ? {
+                        width: isActing || answerLocked || isWinner ? mosaicDotActingPx : mosaicDotPx,
+                        height: isActing || answerLocked || isWinner ? mosaicDotActingPx : mosaicDotPx,
+                      }
+                    : undefined
+                }
                 aria-current={isActing ? true : undefined}
                 aria-label={
                   raw
@@ -973,7 +1003,10 @@ function SeatRingWithLabels({
                 }
               >
                 {isMosaic && filled && mosaicInitials ? (
-                  <span className="block w-full min-w-0 px-0.5 text-center text-[0.65rem] font-black leading-none tracking-tighter text-amber-50">
+                  <span
+                    className="block w-full min-w-0 px-0.5 text-center font-black leading-none tracking-tighter text-amber-50"
+                    style={{ fontSize: `${Math.round(10.4 * mosaicScale)}px` }}
+                  >
                     {mosaicInitials}
                   </span>
                 ) : null}

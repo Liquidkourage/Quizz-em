@@ -247,6 +247,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
             wall={venueWall}
             skipMountIntro={venueMosaicWasShownRef.current}
             featuredWatch={featuredWatch}
+            hostFocusTable={layout.focusTable}
           />
         </motion.div>
       )}

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
   formatTriviaNumber,
@@ -10,6 +10,9 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAct
 
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
+import { useVenueWallViewCycle } from './useVenueWallViewCycle.ts'
+import VenueWallActionTicker from './VenueWallActionTicker.tsx'
+import VenueWallViewCycleBadge from './VenueWallViewCycleBadge.tsx'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import {
   buildFloorShowdownPresentation,
@@ -1690,6 +1693,48 @@ function VenueAerialFloorGrid({
   )
 }
 
+function VenueHeroSpotlightLayout({
+  featured,
+  companions,
+  layoutTableCount,
+  skipMountIntro,
+  prefersReducedMotion,
+}: {
+  featured: DisplayVenueTileSnapshot
+  companions: DisplayVenueTileSnapshot[]
+  layoutTableCount: number
+  skipMountIntro: boolean
+  prefersReducedMotion: boolean
+}) {
+  const heroSize = useMemo(() => venueFloorSizeSpec(venueBanquetLayout(1)), [])
+  const othersStillWagering = useMemo(() => venueHasOpenWagering(companions), [companions])
+
+  return (
+    <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-3">
+      <div className="flex min-h-0 min-w-0 flex-col lg:max-h-full">
+        <VenueMosaicTableCard
+          row={featured}
+          hideShowdownResults={false}
+          floorSize={heroSize}
+          floorHoneycomb
+          shrinkWrapRowHeight={false}
+          prefersReducedMotion={prefersReducedMotion}
+          dimAnsweringEarly={featured.phase === 'answering' && othersStillWagering}
+        />
+      </div>
+      {companions.length > 0 ? (
+        <VenueAerialFloorGrid
+          tiles={companions}
+          layoutTableCount={Math.max(companions.length, layoutTableCount - 1)}
+          showHeadline={false}
+          skipMountIntro={skipMountIntro}
+          prefersReducedMotion={prefersReducedMotion}
+        />
+      ) : null}
+    </div>
+  )
+}
+
 type VenueEightTablesPreviewProps = {
   /** null until first `displayVenueSnapshot` from socket */
   wall: DisplayVenueWallSnapshot | null
@@ -1698,6 +1743,8 @@ type VenueEightTablesPreviewProps = {
    */
   skipMountIntro?: boolean
   featuredWatch: VenueFeaturedWatch
+  /** Host-pinned table from `displayLayout.focusTable` — locks spotlight view. */
+  hostFocusTable?: number | null
 }
 
 /**
@@ -1706,7 +1753,8 @@ type VenueEightTablesPreviewProps = {
 export default function VenueEightTablesPreview({
   wall,
   skipMountIntro = false,
-  featuredWatch: _featuredWatch,
+  featuredWatch,
+  hostFocusTable = null,
 }: VenueEightTablesPreviewProps) {
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null)
   const [peakSurvivors, setPeakSurvivors] = useState(0)
@@ -1784,6 +1832,29 @@ export default function VenueEightTablesPreview({
     !headlineAnswering
 
   const showRoster = rosterRowsFromTiles(tileRows).length > 0
+
+  const viewCycle = useVenueWallViewCycle({
+    tileRows,
+    featuredWatch,
+    hostFocusTable,
+    headlineAnswering,
+    answerDeadlineMs,
+    prefersReducedMotion,
+  })
+
+  const featuredTile = useMemo(() => {
+    if (featuredWatch.featuredTableNum == null) return null
+    return floorTiles.find((t) => t.tableNum === featuredWatch.featuredTableNum) ?? null
+  }, [floorTiles, featuredWatch.featuredTableNum])
+
+  const companionTiles = useMemo(() => {
+    if (featuredWatch.featuredTableNum == null) return floorTiles
+    return floorTiles.filter((t) => t.tableNum !== featuredWatch.featuredTableNum)
+  }, [floorTiles, featuredWatch.featuredTableNum])
+
+  const showHeroSpotlight =
+    (viewCycle.activeView === 'heroSpotlight' || viewCycle.activeView === 'showdownSpotlight') &&
+    featuredTile != null
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -1962,13 +2033,53 @@ export default function VenueEightTablesPreview({
               </motion.div>
             ) : null}
 
-            <VenueAerialFloorGrid
-              tiles={floorTiles}
-              layoutTableCount={floorLayoutTableCount}
-              showHeadline={showHeadline}
-              skipMountIntro={skipMountIntro}
-              prefersReducedMotion={prefersReducedMotion}
-            />
+            <div className="relative flex min-h-0 flex-1 flex-col">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={viewCycle.activeView}
+                  className="flex min-h-0 flex-1 flex-col gap-2"
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {showHeroSpotlight ? (
+                    <VenueHeroSpotlightLayout
+                      featured={featuredTile!}
+                      companions={companionTiles}
+                      layoutTableCount={floorLayoutTableCount}
+                      skipMountIntro={skipMountIntro}
+                      prefersReducedMotion={prefersReducedMotion}
+                    />
+                  ) : (
+                    <>
+                      <div className="min-h-0 flex-1">
+                        <VenueAerialFloorGrid
+                          tiles={floorTiles}
+                          layoutTableCount={floorLayoutTableCount}
+                          showHeadline={showHeadline}
+                          skipMountIntro={skipMountIntro}
+                          prefersReducedMotion={prefersReducedMotion}
+                        />
+                      </div>
+                      {viewCycle.activeView === 'actionTicker' ? (
+                        <VenueWallActionTicker
+                          lines={viewCycle.tickerLines}
+                          prefersReducedMotion={prefersReducedMotion}
+                        />
+                      ) : null}
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+              <VenueWallViewCycleBadge
+                label={viewCycle.activeLabel}
+                cycling={viewCycle.cycling}
+                cycleProgress={viewCycle.cycleProgress}
+                viewIndex={viewCycle.viewIndex}
+                viewCount={viewCycle.viewCount}
+              />
+            </div>
           </section>
         ) : tileRows.length > 0 ? (
           <motion.div

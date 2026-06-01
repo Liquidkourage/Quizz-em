@@ -32,8 +32,6 @@ describe('venueFloorTableSize', () => {
     expect(medium.rowGapRem).toBeGreaterThan(compact.rowGapRem)
     expect(compact.rowGapRem).toBeGreaterThan(micro.rowGapRem)
 
-    expect(hero.showSeatList).toBe(true)
-    expect(medium.showSeatList).toBe(false)
     expect(large.showdownBrief).toBe(true)
     expect(medium.showdownBrief).toBe(true)
     expect(medium.honeycombFillHeight).toBe(true)

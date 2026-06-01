@@ -50,7 +50,7 @@ export type VenueFloorTableSize = 'hero' | 'large' | 'medium' | 'compact' | 'mic
 
 export type VenueFloorSizeSpec = {
   size: VenueFloorTableSize
-  /** Tighter chrome: hide seat list, smaller padding, fill honeycomb height. */
+  /** Tighter chrome: smaller padding, fill honeycomb height. */
   compactChrome: boolean
   /** Showdown winner overlay only (no full results panel). */
   showdownBrief: boolean
@@ -64,7 +64,6 @@ export type VenueFloorSizeSpec = {
   honeycombFillHeight: boolean
   /** Legacy non-honeycomb shrink — unused on checkerboard floor. */
   ringScaleClass: string
-  showSeatList: boolean
   showPotSubtitle: boolean
 }
 
@@ -96,7 +95,6 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
         honeycombFillHeight: false,
         ringScaleClass: '',
-        showSeatList: true,
         showPotSubtitle: true,
       }
     case 'large':
@@ -114,7 +112,6 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
         honeycombFillHeight: true,
         ringScaleClass: '',
-        showSeatList: true,
         showPotSubtitle: true,
       }
     case 'medium':
@@ -132,7 +129,6 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         phaseChipClass: 'px-1.5 py-0.5 text-[10px] sm:px-2 sm:py-1 sm:text-[11px]',
         honeycombFillHeight: true,
         ringScaleClass: '',
-        showSeatList: false,
         showPotSubtitle: false,
       }
     case 'compact':
@@ -150,7 +146,6 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         phaseChipClass: 'px-1.5 py-0.5 text-[9px] sm:px-2 sm:py-1 sm:text-[10px]',
         honeycombFillHeight: true,
         ringScaleClass: '',
-        showSeatList: false,
         showPotSubtitle: false,
       }
     case 'micro':
@@ -168,7 +163,6 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         phaseChipClass: 'px-1 py-0.5 text-[9px] sm:px-1.5 sm:py-0.5 sm:text-[10px]',
         honeycombFillHeight: true,
         ringScaleClass: '',
-        showSeatList: false,
         showPotSubtitle: false,
       }
   }

@@ -1227,7 +1227,6 @@ function VenueMosaicTableCard({
   const blindSeatSnapshot = venueTileBlindSeats(row)
   const actingSeat = venueTileActingSeat(row)
   const seatLastBettingAction = padSeatLastBettingAction(row.seatLastBettingAction)
-  const showSeatBettingActions = ph === 'betting'
   const inShowdown = ph === 'showdown'
   const floorShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
   const floorShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
@@ -1353,42 +1352,6 @@ function VenueMosaicTableCard({
             answeringPhase={ph === 'answering'}
           />
         </div>
-
-        {seats > 0 && floorSize.showSeatList ? (
-          <ul className="max-h-[5.5rem] space-y-0.5 overflow-y-auto border-t border-white/10 pt-1.5 text-[0.7rem] leading-snug text-white/88">
-            {Array.from({ length: seats }, (_, i) => {
-              const name = seatNames[i]?.trim() ?? ''
-              if (!name) return null
-              const act = showSeatBettingActions ? seatLastBettingAction[i] : null
-              const folded = seatFolded[i] === true
-              const onClock = actingSeat === i && !folded
-              return (
-                <li key={i} className="flex min-w-0 items-center justify-between gap-1">
-                  <span
-                    className={`min-w-0 truncate ${folded ? 'text-white/45 line-through' : onClock ? 'font-bold text-amber-200' : ''}`}
-                  >
-                    {name}
-                  </span>
-                  {act != null ? (
-                    <span
-                      className={`shrink-0 rounded border px-1 py-px text-[0.55rem] font-black uppercase leading-none ${seatBettingActionPillClass(act)}`}
-                    >
-                      {seatBettingActionLabel(act)}
-                    </span>
-                  ) : onClock ? (
-                    <span className="shrink-0 text-[0.6rem] font-bold uppercase tracking-wide text-cyan-300">
-                      Turn
-                    </span>
-                  ) : (
-                    <span className="shrink-0 font-mono text-[0.65rem] tabular-nums text-casino-emerald">
-                      {formatVenueBankroll(seatBankrolls[i] ?? 0)}
-                    </span>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        ) : null}
 
         {floorSize.showPotSubtitle && mosaicPotSubtitle != null ? (
           <div className="shrink-0 rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">

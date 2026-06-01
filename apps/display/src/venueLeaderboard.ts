@@ -38,12 +38,11 @@ export function venueWallGameplayActive(tiles: DisplayVenueTileSnapshot[]): bool
   return tiles.some((t) => t.phase !== 'lobby')
 }
 
-/** Ranked stacks during gameplay; alphabetical seating chart order pre-round. */
+/** Ranked by stack (desc); tie-break name then table/seat. */
 export function venueLeaderboardRowsFromTiles(
   tiles: DisplayVenueTileSnapshot[]
 ): VenueLeaderboardRow[] {
   const out: VenueLeaderboardRow[] = []
-  const leaderboardOrder = venueWallGameplayActive(tiles)
   for (const t of tiles) {
     const sn = t.seatNames
     const br = padSeatBankrolls(t.seatBankrolls)
@@ -54,17 +53,11 @@ export function venueLeaderboardRowsFromTiles(
     }
   }
   out.sort((a, b) => {
-    if (leaderboardOrder) {
-      if (b.bankroll !== a.bankroll) return b.bankroll - a.bankroll
-      const c = comparePlayersByFirstNameThenFullName(a, b)
-      if (c !== 0) return c
-      return a.tableNum - b.tableNum
-    }
-    const cmp = firstNameSortKey(a.name).localeCompare(firstNameSortKey(b.name), undefined, {
-      sensitivity: 'base',
-    })
-    if (cmp !== 0) return cmp
-    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    if (b.bankroll !== a.bankroll) return b.bankroll - a.bankroll
+    const c = comparePlayersByFirstNameThenFullName(a, b)
+    if (c !== 0) return c
+    if (a.tableNum !== b.tableNum) return a.tableNum - b.tableNum
+    return a.seatNum - b.seatNum
   })
   return out
 }

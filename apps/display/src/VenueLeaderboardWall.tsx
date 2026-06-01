@@ -75,7 +75,7 @@ export default function VenueLeaderboardWall({
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-black tracking-tight text-yellow-300 sm:text-3xl md:text-4xl">
-                {gameOn ? 'Leaderboard' : 'Seating'}
+                Leaderboard
               </h1>
               <p className="text-sm text-white/70 sm:text-base">
                 {rows.length} player{rows.length === 1 ? '' : 's'}
@@ -129,24 +129,18 @@ export default function VenueLeaderboardWall({
                     style={RANK_FONT}
                     className="w-[1.35em] shrink-0 text-right font-mono font-black tabular-nums text-amber-300/90"
                   >
-                    {gameOn ? index + 1 : row.seatNum}
+                    {index + 1}
                   </span>
                   <span style={ROW_FONT} className="min-w-0 flex-1 truncate font-semibold text-white">
                     {given}
                     {suffix ? <span className="font-medium text-amber-100/45"> {suffix}</span> : null}
                   </span>
-                  {gameOn ? (
-                    <span
-                      style={ROW_FONT}
-                      className="shrink-0 font-mono font-bold tabular-nums text-emerald-400"
-                    >
-                      {formatVenueBankroll(row.bankroll)}
-                    </span>
-                  ) : (
-                    <span style={RANK_FONT} className="shrink-0 font-mono tabular-nums text-yellow-400/85">
-                      T{row.tableNum}
-                    </span>
-                  )}
+                  <span
+                    style={ROW_FONT}
+                    className="shrink-0 font-mono font-bold tabular-nums text-emerald-400"
+                  >
+                    {formatVenueBankroll(row.bankroll)}
+                  </span>
                 </div>
               )
             })}

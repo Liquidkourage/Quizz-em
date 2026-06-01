@@ -18,6 +18,20 @@ describe('venueLeaderboardRowsFromTiles', () => {
     const rows = venueLeaderboardRowsFromTiles([tile({ tableNum: 1 }), tile({ tableNum: 2 })])
     expect(rows[0]!.bankroll).toBeGreaterThanOrEqual(rows[1]!.bankroll)
   })
+
+  it('sorts by bankroll pre-round (all lobby)', () => {
+    const rows = venueLeaderboardRowsFromTiles([
+      tile({
+        tableNum: 1,
+        phase: 'lobby',
+        seatNames: ['Zara Q.', 'Amy B.', '', '', '', '', '', ''],
+        seatBankrolls: [800, 1200, 0, 0, 0, 0, 0, 0],
+      }),
+    ])
+    expect(rows[0]!.name).toBe('Amy B.')
+    expect(rows[0]!.bankroll).toBe(1200)
+    expect(rows[1]!.name).toBe('Zara Q.')
+  })
 })
 
 describe('venueLeaderboardColumns', () => {

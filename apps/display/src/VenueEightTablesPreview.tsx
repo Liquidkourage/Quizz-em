@@ -724,7 +724,7 @@ function SeatRingWithLabels({
     ? mosaicFluidWidth
       ? mosaicFillHeight
         ? 'relative mx-auto aspect-[8/5] h-full max-h-full w-full min-h-0 max-w-full'
-        : 'relative mx-auto aspect-[8/5] h-auto w-full max-w-none shrink-0'
+        : 'relative mx-auto h-full w-full min-h-0 max-w-full'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
@@ -1231,7 +1231,6 @@ function VenueMosaicTableCard({
   const floorShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
   const floorShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
   const showdownBrief = hideShowdownResults || floorSize.showdownBrief
-  const compactChrome = floorSize.compactChrome
   /** Mosaic floor never stacks the brown results rail under the felt — overlay or headline only. */
   const mosaicShowdownOverlay =
     inShowdown && floorShowdownRows.length > 0 && (showdownBrief || floorHoneycomb)
@@ -1267,16 +1266,10 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`flex w-full min-w-0 flex-col backdrop-blur-md ${
-          dimAnsweringEarly ? 'opacity-[0.68] brightness-[0.78] saturate-[0.82]' : ''
-        } ${
-          floorHoneycomb || floorSize.honeycombFillHeight
-            ? 'h-full min-h-0 overflow-hidden'
-            : 'h-full min-h-0 overflow-hidden'
-        } ${floorSize.cardPaddingClass} relative ${cardShell}`}
+        className={`flex w-full min-w-0 shrink-0 flex-col backdrop-blur-md h-auto overflow-hidden ${floorSize.cardPaddingClass} relative ${cardShell}`}
       >
         <div
-          className={`flex min-h-0 min-w-0 flex-1 flex-col ${floorSize.innerGapClass} ${
+          className={`flex min-w-0 flex-col ${floorSize.innerGapClass} ${
             showFloorShowdownOverlay ? 'opacity-25' : ''
           }`}
         >
@@ -1320,21 +1313,13 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container relative z-[1] flex w-full justify-center ${
-            floorHoneycomb && (compactChrome || floorSize.honeycombFillHeight)
-              ? 'min-h-0 flex-1 overflow-hidden'
-              : floorHoneycomb
-                ? 'shrink-0 overflow-visible'
-                : 'min-h-0 flex-1 overflow-hidden'
-          } ${floorSize.ringScaleClass}`}
-          style={
-            floorHoneycomb && !floorSize.honeycombFillHeight ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined
-          }
+          className={`@container relative z-[1] w-full shrink-0 overflow-visible ${floorSize.ringScaleClass}`}
+          style={floorHoneycomb ? { aspectRatio: `${VENUE_RING_ASPECT_MD}` } : undefined}
         >
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb}
-            mosaicFillHeight={floorHoneycomb && floorSize.honeycombFillHeight}
+            mosaicFillHeight={false}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}
@@ -1613,7 +1598,8 @@ function VenueAerialFloorGrid({
         className="relative grid min-h-0 w-full flex-1 overflow-hidden px-4 py-3 sm:px-6 sm:py-4"
         style={
           {
-            gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${rowCount}, auto)`,
+            alignContent: 'start',
             gap: `${floorSize.rowGapRem}rem`,
             perspective: '1400px',
             transform: 'rotateX(3deg)',
@@ -1627,7 +1613,7 @@ function VenueAerialFloorGrid({
           return (
             <div
               key={rowTiles.map((t) => t.tableNum).join('-') || `row-${rowIndex}`}
-              className="grid h-full min-h-0 w-full min-w-0 items-stretch overflow-hidden"
+              className="grid w-full min-w-0 items-start overflow-visible"
               style={{
                 gridTemplateColumns: `repeat(${trackCount}, minmax(0, 1fr))`,
                 gap: `${floorSize.cellGapRem}rem`,
@@ -1652,7 +1638,7 @@ function VenueAerialFloorGrid({
                 return (
                   <div
                     key={row.tableNum}
-                    className="flex min-h-0 min-w-0 w-full flex-col"
+                    className="flex min-w-0 w-full flex-col items-stretch"
                     style={{ gridColumn }}
                   >
                     <VenueMosaicTableCard

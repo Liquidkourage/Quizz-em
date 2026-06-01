@@ -427,6 +427,12 @@ function HostApp() {
     controlBettingOpen ||
     controlCommunityLen < 5
 
+  const activeSetlist = activeSetlistId != null ? setlists.find((s) => s.id === activeSetlistId) : undefined
+  const hasActiveSetlist =
+    activeSetlist != null &&
+    activeSetlist.questionIds.length > 0 &&
+    activeSetlistNextIndex < activeSetlist.questionIds.length
+
   const phaseDockItems = buildHostPhaseDockItems({
     gameState: hostControlState,
     answerWindowSeconds,
@@ -442,15 +448,21 @@ function HostApp() {
     onEndRound: handleEndRound,
     onRandomQuestion: handleSetRandomQuestion,
     onNextSetlist: () => nextQuestionFromSetlist(),
+    hasActiveSetlist,
   })
 
   const runOfShowSteps = buildHostRunOfShowSteps(gameState, venueFeltBeat)
-  const runOfShowHeadline = hostRunOfShowHeadline(gameState, venueFeltBeat)
+  const runOfShowHeadline = hostRunOfShowHeadline(gameState, venueFeltBeat, { hasActiveSetlist })
   const currentRunStepId = resolveRunOfShowStepForHost(gameState, venueFeltBeat)
   const triviaOptionalNote =
     currentRunStepId === 'question' && !controlRound?.question ? (
       <p className="text-sm text-amber-200/80">
         Hole cards are dealt — use <strong>Random from bank</strong> or <strong>Next from setlist</strong> to reveal trivia and open wagering.
+      </p>
+    ) : currentRunStepId === 'start' && hasActiveSetlist && hostControlState.phase === 'lobby' ? (
+      <p className="text-sm text-violet-200/85">
+        All felts are in lobby between hands — <strong>Next from setlist</strong> loads question{' '}
+        {activeSetlistNextIndex + 1} and opens wagering without a separate Start click.
       </p>
     ) : null
   const hostTableNum = (() => {
@@ -1167,7 +1179,7 @@ function HostApp() {
             <HostBlindsControls {...hostBlindsControlProps} compact showTableOverride={false} />
           ) : null}
 
-          {currentRunStepId === 'question' ? (
+          {currentRunStepId === 'start' || currentRunStepId === 'question' ? (
             <div className="space-y-2">
               <div className="flex flex-wrap gap-2">
                 <NeonButton
@@ -1220,7 +1232,7 @@ function HostApp() {
             </div>
           ) : null}
 
-          {currentRunStepId === 'question' && triviaOptionalNote}
+          {(currentRunStepId === 'start' || currentRunStepId === 'question') && triviaOptionalNote}
 
           {currentRunStepId === 'deal-board' && dealCommunityHint ? (
             <p className="text-xs text-amber-200/90">{dealCommunityHint}</p>

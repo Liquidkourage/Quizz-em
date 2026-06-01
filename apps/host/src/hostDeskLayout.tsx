@@ -416,6 +416,7 @@ export function buildHostRunOfShowSteps(
 export function hostRunOfShowHeadline(
   gameState: GameState,
   venueBeat?: HostVenueFeltBeatRow[] | null,
+  opts?: { hasActiveSetlist?: boolean },
 ): { title: string; detail?: string } {
   const controlState = hostControlGameStateFromBeat(gameState, venueBeat ?? null)
   const stepId = resolveRunOfShowStepForHost(gameState, venueBeat ?? null)
@@ -463,7 +464,10 @@ export function hostRunOfShowHeadline(
   if (stepId === 'start' && phase === 'lobby') {
     return {
       title: current.label,
-      detail: `Blinds $${gameState.smallBlind} / $${gameState.bigBlind} on this felt — confirm amounts below, then start to deal hole cards.`,
+      detail:
+        opts?.hasActiveSetlist === true
+          ? 'Every felt is between hands. Next from setlist loads the next cue, deals holes, and opens wagering in one step — or Start the round first if you prefer manual reveal.'
+          : `Blinds $${gameState.smallBlind} / $${gameState.bigBlind} — confirm below, then start to deal hole cards.`,
     }
   }
 
@@ -492,6 +496,8 @@ export function buildHostPhaseDockItems(args: {
   onEndRound: () => void
   onRandomQuestion: () => void
   onNextSetlist: () => void
+  /** Active rundown selected — show one-click Next from setlist in lobby. */
+  hasActiveSetlist?: boolean
 }): HostDockItem[] {
   const {
     gameState,
@@ -508,6 +514,7 @@ export function buildHostPhaseDockItems(args: {
     onEndRound,
     onRandomQuestion,
     onNextSetlist,
+    hasActiveSetlist = false,
   } = args
   const phase = gameState.phase
   const tableId = gameState.tableId ?? ''
@@ -523,6 +530,14 @@ export function buildHostPhaseDockItems(args: {
         variant: 'blue',
       })
     } else {
+      if (hasActiveSetlist) {
+        items.push({
+          id: 'setlist',
+          label: 'Next from setlist',
+          onClick: onNextSetlist,
+          variant: 'purple',
+        })
+      }
       items.push({ id: 'start', label: 'Start the round', onClick: onStartGame, variant: 'emerald' })
     }
     return items

@@ -41,6 +41,20 @@ export function venueBanquetLayout(tableCount: number): VenueBanquetLayout {
   return { columns, rowCount }
 }
 
+/** Single-row floors shrink-wrap table height; multi-row floors divide viewport evenly. */
+export function venueFloorRowTrackSpec(rowCount: number): {
+  gridTemplateRows: string
+  shrinkWrapRowHeight: boolean
+} {
+  if (rowCount <= 1) {
+    return { gridTemplateRows: 'auto', shrinkWrapRowHeight: true }
+  }
+  return {
+    gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
+    shrinkWrapRowHeight: false,
+  }
+}
+
 /**
  * Table card density tier — driven primarily by how many checkerboard rows the floor needs.
  * More rows ⇒ smaller uniform felts so the whole venue fits one viewport.

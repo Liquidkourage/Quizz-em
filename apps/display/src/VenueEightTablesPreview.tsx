@@ -27,6 +27,7 @@ import {
   chunkTilesIntoBanquetRows,
   populatedVenueTiles,
   venueBanquetLayout,
+  venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   type VenueFloorSizeSpec,
 } from './venueFloorGridLayout'
@@ -1204,6 +1205,8 @@ type VenueMosaicTableCardProps = {
   floorSize: VenueFloorSizeSpec
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
+  /** Single-row floor — card height follows felt content, not viewport. */
+  shrinkWrapRowHeight?: boolean
   prefersReducedMotion?: boolean
   /** Slightly dim answering tiles while other felts are still in open wagering. */
   dimAnsweringEarly?: boolean
@@ -1214,6 +1217,7 @@ function VenueMosaicTableCard({
   hideShowdownResults = false,
   floorSize,
   floorHoneycomb = false,
+  shrinkWrapRowHeight = false,
   prefersReducedMotion = false,
   dimAnsweringEarly = false,
 }: VenueMosaicTableCardProps) {
@@ -1266,10 +1270,10 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`@container flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden backdrop-blur-md ${floorSize.cardPaddingClass} relative ${cardShell}`}
+        className={`@container flex min-h-0 w-full min-w-0 flex-col overflow-hidden backdrop-blur-md ${shrinkWrapRowHeight ? 'h-auto' : 'h-full'} ${floorSize.cardPaddingClass} relative ${cardShell}`}
       >
         <div
-          className={`flex min-h-0 min-w-0 flex-1 flex-col ${floorSize.innerGapClass} ${
+          className={`flex min-h-0 min-w-0 flex-col ${shrinkWrapRowHeight ? '' : 'flex-1'} ${floorSize.innerGapClass} ${
             showFloorShowdownOverlay ? 'opacity-25' : ''
           }`}
         >
@@ -1313,7 +1317,7 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container relative z-[1] flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden ${floorSize.ringScaleClass}`}
+          className={`@container relative z-[1] flex min-h-0 w-full ${shrinkWrapRowHeight ? 'shrink-0' : 'flex-1'} items-center justify-center overflow-hidden ${floorSize.ringScaleClass}`}
         >
           <SeatRingWithLabels
             ringMode="mosaic"
@@ -1547,6 +1551,8 @@ function VenueAerialFloorGrid({
   )
   const { columns, rowCount } = banquetLayout
   const floorSize = useMemo(() => venueFloorSizeSpec(banquetLayout), [banquetLayout])
+  const floorRowTracks = useMemo(() => venueFloorRowTrackSpec(rowCount), [rowCount])
+  const shrinkWrapRowHeight = floorRowTracks.shrinkWrapRowHeight
   const banquetRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
   const inVenueShowdown = useMemo(() => showdownTableNums(tiles).length > 0, [tiles])
   const showdownBrief =
@@ -1597,10 +1603,12 @@ function VenueAerialFloorGrid({
       />
 
       <div
-        className="relative grid min-h-0 w-full flex-1 overflow-hidden px-4 py-3 sm:px-6 sm:py-4"
+        className={`relative grid min-h-0 w-full flex-1 overflow-hidden px-4 py-3 sm:px-6 sm:py-4 ${
+          shrinkWrapRowHeight ? 'items-start content-start' : ''
+        }`}
         style={
           {
-            gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
+            gridTemplateRows: floorRowTracks.gridTemplateRows,
             gap: `${floorSize.rowGapRem}rem`,
             perspective: '1400px',
             transform: 'rotateX(3deg)',
@@ -1614,7 +1622,9 @@ function VenueAerialFloorGrid({
           return (
             <div
               key={rowTiles.map((t) => t.tableNum).join('-') || `row-${rowIndex}`}
-              className="grid h-full min-h-0 w-full min-w-0 items-stretch overflow-hidden"
+              className={`grid w-full min-w-0 overflow-hidden ${
+                shrinkWrapRowHeight ? 'h-auto items-start' : 'h-full min-h-0 items-stretch'
+              }`}
               style={{
                 gridTemplateColumns: `repeat(${trackCount}, minmax(0, 1fr))`,
                 gap: `${floorSize.cellGapRem}rem`,
@@ -1639,7 +1649,7 @@ function VenueAerialFloorGrid({
                 return (
                   <div
                     key={row.tableNum}
-                    className="flex h-full min-h-0 min-w-0 w-full flex-col"
+                    className={`flex min-w-0 w-full flex-col ${shrinkWrapRowHeight ? 'h-auto' : 'h-full min-h-0'}`}
                     style={{ gridColumn }}
                   >
                     <VenueMosaicTableCard
@@ -1647,6 +1657,7 @@ function VenueAerialFloorGrid({
                       hideShowdownResults={showdownBrief}
                       floorSize={floorSize}
                       floorHoneycomb
+                      shrinkWrapRowHeight={shrinkWrapRowHeight}
                       prefersReducedMotion={prefersReducedMotion}
                       dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
                     />

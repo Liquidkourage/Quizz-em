@@ -1,9 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import {
   venueBanquetLayout,
+  venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorTableSize,
 } from './venueFloorGridLayout'
+
+describe('venueFloorRowTrackSpec', () => {
+  it('shrink-wraps a single checkerboard row', () => {
+    expect(venueFloorRowTrackSpec(1)).toEqual({
+      gridTemplateRows: 'auto',
+      shrinkWrapRowHeight: true,
+    })
+    expect(venueFloorRowTrackSpec(venueBanquetLayout(2).rowCount).shrinkWrapRowHeight).toBe(true)
+    expect(venueFloorRowTrackSpec(2).shrinkWrapRowHeight).toBe(false)
+  })
+})
 
 describe('venueFloorTableSize', () => {
   it('maps row count to size tiers', () => {

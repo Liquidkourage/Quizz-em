@@ -16,6 +16,7 @@ Ten **25-question sets** (250 total) for numeric-answer trivia nights. Each CSV 
 | `set-08-animals.csv` | Animals & biology |
 | `set-09-world-facts.csv` | World facts (harder geo) |
 | `set-10-challenge.csv` | Challenge round (difficulty 3) |
+| `set-11-toss-up.csv` | **Toss Up** — 26 curated toss-up style questions |
 
 See `manifest.json` for build metadata.
 

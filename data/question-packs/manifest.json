@@ -1,7 +1,7 @@
 {
   "setLength": 25,
-  "setCount": 10,
-  "totalQuestions": 250,
+  "setCount": 11,
+  "totalQuestions": 276,
   "attribution": "Some questions may derive from Open Trivia DB (https://opentdb.com/), CC BY-SA 4.0. Majority are curated for Quizz'em numeric play.",
   "sets": [
     {
@@ -73,6 +73,14 @@
       "count": 25,
       "opentdbCount": 1,
       "curatedCount": 24
+    },
+    {
+      "file": "set-11-toss-up.csv",
+      "name": "Toss Up — curated set",
+      "count": 26,
+      "opentdbCount": 0,
+      "curatedCount": 26,
+      "source": "Toss Up Questions (user import)"
     }
   ]
 }

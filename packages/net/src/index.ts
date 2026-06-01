@@ -33,7 +33,28 @@ export const ClientRole = z.enum(['host', 'player', 'display'])
 export type ClientRole = z.infer<typeof ClientRole>
 
 /** Host-driven `/display` mode: mosaic shell always; `focusTable` spotlights one felt or null for overview. */
-export type DisplayLayoutPayload = { layout: 'venueWall'; focusTable: number | null }
+export type VenueWallViewMode = 'floor' | 'leaderboard'
+
+export type DisplayLayoutPayload = {
+  layout: 'venueWall'
+  focusTable: number | null
+  /** Host toggles between the table floor and full-screen stacks leaderboard. */
+  wallView?: VenueWallViewMode
+}
+
+export function normalizeDisplayLayoutPayload(
+  raw: Partial<DisplayLayoutPayload> | Record<string, unknown> | null | undefined
+): DisplayLayoutPayload {
+  const focusRaw = raw && typeof raw === 'object' ? (raw as Record<string, unknown>).focusTable : null
+  let focusTable: number | null = null
+  if (focusRaw === null) focusTable = null
+  else if (typeof focusRaw === 'number' && Number.isInteger(focusRaw) && focusRaw >= 1 && focusRaw <= VENUE_NUMBERED_TABLE_MAX) {
+    focusTable = focusRaw
+  }
+  const wallViewRaw = raw && typeof raw === 'object' ? (raw as Record<string, unknown>).wallView : undefined
+  const wallView: VenueWallViewMode = wallViewRaw === 'leaderboard' ? 'leaderboard' : 'floor'
+  return { layout: 'venueWall', focusTable, wallView }
+}
 
 /** Mosaic row for `/display` venue wall — derived live from numbered table sessions (1…N). */
 export type DisplayVenueTileSnapshot = {

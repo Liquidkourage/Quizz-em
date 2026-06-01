@@ -13,6 +13,7 @@ import type {
   HostVenueFeltBeatPayload,
   HostVenueFloorBriefPayload,
 } from './index'
+import { normalizeDisplayLayoutPayload } from './index'
 
 let socket: Socket | null = null
 
@@ -23,6 +24,7 @@ function isDisplayLayoutPayloadLocal(v: unknown): v is DisplayLayoutPayload {
   if (!v || typeof v !== 'object') return false
   const o = v as Record<string, unknown>
   if (o.layout !== 'venueWall') return false
+  if (o.wallView != null && o.wallView !== 'floor' && o.wallView !== 'leaderboard') return false
   if (o.focusTable === null) return true
   return (
     typeof o.focusTable === 'number' &&
@@ -607,10 +609,11 @@ export function seedRehearsalVenue() {
 
 /** Host-only: where TVs should point (venue wall vs single felt). */
 export function displaySetLayout(layout: DisplayLayoutPayload) {
+  const next = normalizeDisplayLayoutPayload(layout)
   if (socket) {
-    socket.emit('action', { type: 'displaySetLayout', payload: layout })
+    socket.emit('action', { type: 'displaySetLayout', payload: next })
   }
-  postDisplayLayoutLocal(layout)
+  postDisplayLayoutLocal(next)
 }
 
 /** Display: apply host layout changes relayed locally (demo / no server). Cleanup on unsubscribe. */

@@ -711,7 +711,9 @@ function HostApp() {
         {livelyGameplayTableNums.length > 0 ? (
           <HostActionFloorBanner
             tableNums={livelyGameplayTableNums}
-            onSpotlight={(n) => displaySetLayout({ layout: 'venueWall', focusTable: n })}
+            onSpotlight={(n) =>
+              displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
+            }
           />
         ) : null}
 
@@ -1442,8 +1444,15 @@ function HostApp() {
           venueCode={gameState.code}
           tableMax={VENUE_NUMBERED_TABLE_MAX}
           livelyTableNums={livelyGameplayTableNums}
-          onVenueWall={() => displaySetLayout({ layout: 'venueWall', focusTable: null })}
-          onSpotlight={(n) => displaySetLayout({ layout: 'venueWall', focusTable: n })}
+          onVenueFloor={() =>
+            displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'floor' })
+          }
+          onLeaderboard={() =>
+            displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
+          }
+          onSpotlight={(n) =>
+            displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
+          }
         />
 
         </>

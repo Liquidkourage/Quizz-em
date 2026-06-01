@@ -12,7 +12,7 @@ import { readUrlLayoutBootstrap } from './displayUrlParams'
 import AudienceWelcomeWall from './AudienceWelcomeWall.tsx'
 import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
 import VenueSeatingChart from './VenueSeatingChart.tsx'
-import { useVenueWallFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
+import VenueLeaderboardWall from './VenueLeaderboardWall.tsx'
 import { buildVenueWallTileRows, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 
@@ -54,11 +54,11 @@ type DisplayRouterProps = {
 export default function DisplayRouter({ venueCode, pairingBootstrap = false }: DisplayRouterProps) {
   const [layout, setLayout] = useState<DisplayLayoutPayload>(() => {
     if (pairingBootstrap) {
-      return { layout: 'venueWall', focusTable: null }
+      return { layout: 'venueWall', focusTable: null, wallView: 'floor' }
     }
     return typeof window !== 'undefined'
       ? readUrlLayoutBootstrap()
-      : ({ layout: 'venueWall', focusTable: null } satisfies DisplayLayoutPayload)
+      : ({ layout: 'venueWall', focusTable: null, wallView: 'floor' } satisfies DisplayLayoutPayload)
   })
 
   const layoutRef = useRef(layout)
@@ -83,16 +83,21 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     (venueWall === null ||
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !mosaicShowsLiveFelts))
 
-  const featuredWatch = useVenueWallFeaturedWatch(venueWall, layout)
-
+  const wallView = layout.wallView ?? 'floor'
   const tileRows = useMemo(() => buildVenueWallTileRows(venueWall), [venueWall])
   const showSeatingChart =
     onVenueWallLayout &&
     !audienceBriefing &&
     !mosaicForcedByHost &&
     venueWallShowSeatingChart(venueWall, tileRows)
+  const showLeaderboard =
+    onVenueWallLayout &&
+    !audienceBriefing &&
+    !showSeatingChart &&
+    wallView === 'leaderboard' &&
+    venueWall != null
 
-  const connectFingerprint = `${venueCode}:wall:w${layout.focusTable ?? 'h'}`
+  const connectFingerprint = `${venueCode}:wall:${wallView}:w${layout.focusTable ?? 'h'}`
 
   useEffect(() => {
     const hostFocus = layout.focusTable
@@ -215,14 +220,14 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   }, [connectFingerprint])
 
   useEffect(() => {
-    if (onVenueWallLayout && !audienceBriefing && !showSeatingChart && venueWall != null) {
+    if (onVenueWallLayout && !audienceBriefing && !showSeatingChart && !showLeaderboard && venueWall != null) {
       venueMosaicWasShownRef.current = true
     }
-  }, [onVenueWallLayout, audienceBriefing, showSeatingChart, venueWall])
+  }, [onVenueWallLayout, audienceBriefing, showSeatingChart, showLeaderboard, venueWall])
 
   const showBriefingHero = audienceBriefing
-  /** Mosaic is the in-round view; seating chart fills the gap between assign and first hand. */
-  const showVenueMosaicShell = onVenueWallLayout && !audienceBriefing && !showSeatingChart
+  const showVenueMosaicShell =
+    onVenueWallLayout && !audienceBriefing && !showSeatingChart && !showLeaderboard
 
   return (
     <AnimatePresence mode="sync">
@@ -252,6 +257,19 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           <VenueSeatingChart wall={venueWall} skipMountIntro={venueMosaicWasShownRef.current} />
         </motion.div>
       )}
+      {showLeaderboard && (
+        <motion.div
+          key="venue-leaderboard"
+          className="relative z-10 min-h-screen w-full"
+          role="presentation"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <VenueLeaderboardWall wall={venueWall} skipMountIntro={venueMosaicWasShownRef.current} />
+        </motion.div>
+      )}
       {showVenueMosaicShell && (
         <motion.div
           key="venue-wall-shell"
@@ -265,7 +283,6 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           <VenueEightTablesPreview
             wall={venueWall}
             skipMountIntro={venueMosaicWasShownRef.current}
-            featuredWatch={featuredWatch}
             hostFocusTable={layout.focusTable}
           />
         </motion.div>

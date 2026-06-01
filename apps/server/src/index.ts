@@ -74,7 +74,8 @@ import type {
   AllInAction,
   AdminCloseBettingAction,
   AdminAdvanceTurnAction,
-  AdminSetBlindsAction
+  AdminSetBlindsAction,
+  normalizeDisplayLayoutPayload,
 } from '@qhe/net'
 import {
   addVirtualPlayers as spawnVirtualPlayers,
@@ -1020,25 +1021,25 @@ function parseDisplaySetLayoutPayload(payload: unknown): DisplayLayoutPayload | 
   if (!payload || typeof payload !== 'object') return null
   const p = payload as Record<string, unknown>
   if (p.layout !== 'venueWall') return null
-  return { layout: 'venueWall', focusTable: normalizeDisplayFocusTable(p.focusTable) }
+  return normalizeDisplayLayoutPayload(p)
 }
 
 /** Normalize persisted or legacy payloads (older builds stored `singleTable`). */
 function coerceDisplayLayoutPayload(raw: unknown): DisplayLayoutPayload {
-  if (!raw || typeof raw !== 'object') return { layout: 'venueWall', focusTable: null }
+  if (!raw || typeof raw !== 'object') return normalizeDisplayLayoutPayload(null)
   const o = raw as Record<string, unknown>
   if (o.layout === 'singleTable' && typeof o.tableId === 'string') {
     const tid = normalizeTableId(o.tableId.trim())
     const n = Number.parseInt(String(tid), 10)
-    return {
+    return normalizeDisplayLayoutPayload({
       layout: 'venueWall',
       focusTable: Number.isInteger(n) && n >= 1 && n <= VENUE_NUMBERED_TABLE_MAX ? n : null,
-    }
+    })
   }
   if (o.layout === 'venueWall') {
-    return { layout: 'venueWall', focusTable: normalizeDisplayFocusTable(o.focusTable) }
+    return normalizeDisplayLayoutPayload(o)
   }
-  return { layout: 'venueWall', focusTable: null }
+  return normalizeDisplayLayoutPayload(null)
 }
 
 function resolveDisplayLayoutForHello(venueCode: string, data: ClientHello): DisplayLayoutPayload {

@@ -1157,27 +1157,34 @@ export function HostPublicTvsPanel({
   venueCode,
   tableMax,
   livelyTableNums,
-  onVenueWall,
+  onVenueFloor,
+  onLeaderboard,
   onSpotlight,
 }: {
   venueCode: string
   tableMax: number
   livelyTableNums: number[]
-  onVenueWall: () => void
+  onVenueFloor: () => void
+  onLeaderboard: () => void
   onSpotlight: (n: number) => void
 }) {
   return (
     <HostCollapsible summary="Public TVs & routing" className="mb-4">
       <p className="mb-3 text-xs leading-snug text-white/50">
         Pair displays in Setup below (venue{' '}
-        <span className="font-mono text-white/65">{venueCode}</span>). During a round the venue wall
-        always shows every table; <strong className="text-white/70">Highlight</strong> pins the amber
-        ring on one felt.
+        <span className="font-mono text-white/65">{venueCode}</span>). Switch TVs between the{' '}
+        <strong className="text-white/70">venue floor</strong> and a full-screen{' '}
+        <strong className="text-white/70">leaderboard</strong>, or highlight one table.
       </p>
-      <div className="flex flex-wrap items-center gap-2">
-        <NeonButton variant="emerald" size="small" onClick={onVenueWall}>
-          Clear highlight
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <NeonButton variant="emerald" size="small" onClick={onVenueFloor}>
+          Venue floor
         </NeonButton>
+        <NeonButton variant="purple" size="small" onClick={onLeaderboard}>
+          Leaderboard
+        </NeonButton>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
         <span className="text-[10px] uppercase tracking-wide text-white/35">Highlight</span>
         {Array.from({ length: Math.min(20, tableMax) }, (_, i) => i + 1).map((n) => {
           const lively = livelyTableNums.includes(n)

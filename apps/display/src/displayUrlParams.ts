@@ -37,5 +37,5 @@ export function readUrlLayoutBootstrap(): DisplayLayoutPayload {
       return { layout: 'venueWall', focusTable: n }
     }
   }
-  return { layout: 'venueWall', focusTable: null }
+  return { layout: 'venueWall', focusTable: null, wallView: 'floor' }
 }

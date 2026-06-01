@@ -9,8 +9,6 @@ import {
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAction } from '@qhe/net'
 
 import seatChipStackImg from './assets/seat-chip-stack.png'
-import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
-import { useVenueWallViewCycle } from './useVenueWallViewCycle.ts'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import {
   buildFloorShowdownPresentation,
@@ -20,6 +18,7 @@ import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { formatVenueBankroll } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import {
@@ -49,12 +48,6 @@ const SEAT_LAYER_BLIND_OUT = 'z-[117]'
 const SEAT_LAYER_ACTION_PANEL = 'z-[118]'
 const SEAT_LAYER_NAME_CLUSTER = 'z-[120]'
 
-/** Fixed crawl strips (Players + All tables): keep widths and page padding in sync */
-const VENUE_CRAWL_STRIP_CLASS = 'w-56 sm:w-60 lg:w-64'
-
-/** Mirror {@link VENUE_CRAWL_STRIP_CLASS} for main shell padding when the stacks leaderboard mounts */
-const VENUE_CRAWL_PR_CLASS = 'pr-56 sm:pr-60 lg:pr-64'
-
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false)
@@ -67,11 +60,6 @@ function usePrefersReducedMotion(): boolean {
     return () => mq.removeEventListener('change', onChange)
   }, [])
   return reduced
-}
-
-function formatVenueBankroll(amount: number): string {
-  const n = Number.isFinite(amount) ? Math.round(amount) : 0
-  return `$${Math.max(0, n).toLocaleString()}`
 }
 
 /** Pot dollars — pulses when the venue snapshot posts a new amount. */
@@ -1394,27 +1382,6 @@ function VenueMosaicTableCard({
   )
 }
 
-/** Latin-first sort key: leading word of the display name (first name). */
-function firstNameSortKey(displayName: string): string {
-  const t = displayName.trim()
-  if (!t) return ''
-  const w = t.split(/\s+/)[0]
-  return w ?? t
-}
-
-/** Any numbered felt has advanced past lobby — venue lists switch to chip / bankroll leaderboard order. */
-function venueWallGameplayActive(tiles: DisplayVenueTileSnapshot[]): boolean {
-  return tiles.some((t) => t.phase !== 'lobby')
-}
-
-function comparePlayersByFirstNameThenFullName(a: { name: string }, b: { name: string }): number {
-  const cmp = firstNameSortKey(a.name).localeCompare(firstNameSortKey(b.name), undefined, {
-    sensitivity: 'base',
-  })
-  if (cmp !== 0) return cmp
-  return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-}
-
 function venueShowdownQuestionFromTiles(
   tileRows: DisplayVenueTileSnapshot[],
   wallQuestion: string | null
@@ -1437,110 +1404,6 @@ function venueShowdownAnswerFromTiles(tileRows: DisplayVenueTileSnapshot[]): num
     }
   }
   return undefined
-}
-
-function rosterRowsFromTiles(
-  tiles: DisplayVenueTileSnapshot[]
-): { name: string; tableNum: number; seatNum: number; bankroll: number }[] {
-  const out: { name: string; tableNum: number; seatNum: number; bankroll: number }[] = []
-  const leaderboardOrder = venueWallGameplayActive(tiles)
-  for (const t of tiles) {
-    const sn = t.seatNames
-    const br = padSeatBankrolls(t.seatBankrolls)
-    if (sn == null || sn.length === 0) continue
-    for (let i = 0; i < sn.length; i++) {
-      const raw = sn[i]?.trim()
-      /** Physical numbered seat positions (same indexing as mosaic + hero). */
-      if (raw) out.push({ name: raw, tableNum: t.tableNum, seatNum: i + 1, bankroll: br[i] ?? 0 })
-    }
-  }
-  out.sort((a, b) => {
-    if (leaderboardOrder) {
-      if (b.bankroll !== a.bankroll) return b.bankroll - a.bankroll
-      const c = comparePlayersByFirstNameThenFullName(a, b)
-      if (c !== 0) return c
-      return a.tableNum - b.tableNum
-    }
-    const cmp = firstNameSortKey(a.name).localeCompare(firstNameSortKey(b.name), undefined, {
-      sensitivity: 'base',
-    })
-    if (cmp !== 0) return cmp
-    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-  })
-  return out
-}
-
-function VenueScrollingRoster({
-  tiles,
-  condenseProgress,
-  showCondenseInSidebar = false,
-}: {
-  tiles: DisplayVenueTileSnapshot[]
-  condenseProgress?: ReturnType<typeof buildVenueCondenseProgress> | null
-  showCondenseInSidebar?: boolean
-}) {
-  const gameOn = useMemo(() => venueWallGameplayActive(tiles), [tiles])
-  const rows = useMemo(() => rosterRowsFromTiles(tiles), [tiles])
-  if (rows.length === 0) return null
-
-  const durationSec = Math.max(28, Math.min(120, rows.length * 2.2))
-  const doubled = [...rows, ...rows]
-
-  return (
-    <aside
-      className={`fixed inset-y-0 right-0 z-20 flex flex-col border-l border-yellow-600/50 bg-slate-950/94 shadow-[-8px_0_28px_rgba(0,0,0,0.4)] backdrop-blur-md ${VENUE_CRAWL_STRIP_CLASS}`}
-      aria-label={
-        gameOn
-          ? 'Player stacks ranked by bankroll across numbered tables.'
-          : 'Players and table assignments by first name.'
-      }
-    >
-      <div className="shrink-0 border-b border-white/10 px-2 py-3 sm:px-2.5 sm:py-3.5">
-        <h2 className="text-2xl font-bold leading-none tracking-tight text-white/92 sm:text-3xl">
-          {gameOn ? 'Stacks' : 'Seating'}
-        </h2>
-        {showCondenseInSidebar && condenseProgress != null ? (
-          <div className="mt-2.5">
-            <VenueCondenseProgressBar model={condenseProgress} variant="sidebar" />
-          </div>
-        ) : null}
-      </div>
-      <div
-        className="relative min-h-0 flex-1 overflow-hidden px-1.5 py-1.5 sm:px-2 sm:py-2"
-        style={{
-          maskImage:
-            'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
-          WebkitMaskImage:
-            'linear-gradient(to bottom, transparent 0%, black 8%, black 92%, transparent 100%)',
-        }}
-      >
-        <div
-          className="venue-roster-animate flex flex-col gap-0"
-          style={{ ['--venue-roster-secs' as string]: `${durationSec}s` }}
-        >
-          {doubled.map((r, idx) => (
-            <div
-              key={`${r.tableNum}-${r.seatNum}-${r.name}-${idx}`}
-              className="w-full min-w-0 border-b border-white/[0.08] py-3 sm:py-3.5"
-              aria-label={`${r.name}, ${formatVenueBankroll(r.bankroll)}, Table ${r.tableNum} seat ${r.seatNum}`}
-            >
-              <div className="w-full min-w-0 truncate text-xl font-bold leading-[1.15] text-white/95 sm:text-2xl">
-                {r.name}
-              </div>
-              <div className="mt-1 flex w-full min-w-0 items-baseline justify-between gap-2">
-                <span className="min-w-0 flex-1 truncate font-mono text-base font-bold tabular-nums tracking-tight text-yellow-400/92 sm:text-lg">
-                  Table {r.tableNum} · Seat {r.seatNum}
-                </span>
-                <span className="shrink-0 text-right font-mono text-lg font-bold tabular-nums leading-none text-casino-emerald sm:text-xl">
-                  {formatVenueBankroll(r.bankroll)}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </aside>
-  )
 }
 
 function VenueAerialFloorGrid({
@@ -1748,18 +1611,16 @@ type VenueEightTablesPreviewProps = {
    * Skip Framer entrance on header / headline (brief unmounts across layout transitions should not replay fades).
    */
   skipMountIntro?: boolean
-  featuredWatch: VenueFeaturedWatch
-  /** Host-pinned table from `displayLayout.focusTable` — locks spotlight view. */
+  /** Host-pinned table from `displayLayout.focusTable` — shows spotlight layout only when set. */
   hostFocusTable?: number | null
 }
 
 /**
- * Venue wall: A1 checkerboard floor (5×4 half-stagger, uniform tables) plus stacks strip.
+ * Venue wall: A1 checkerboard floor (5×4 half-stagger, uniform tables).
  */
 export default function VenueEightTablesPreview({
   wall,
   skipMountIntro = false,
-  featuredWatch,
   hostFocusTable = null,
 }: VenueEightTablesPreviewProps) {
   const [timerSeconds, setTimerSeconds] = useState<number | null>(null)
@@ -1837,39 +1698,25 @@ export default function VenueEightTablesPreview({
     !(inVenueShowdown && venueShowdownAnswer != null) &&
     !headlineAnswering
 
-  const showRoster = rosterRowsFromTiles(tileRows).length > 0
   const compactVenueHeadline = floorLayoutTableCount >= 14
   const ultraCompactVenueHeadline = floorLayoutTableCount >= 17
 
-  const viewCycle = useVenueWallViewCycle({
-    tileRows,
-    featuredWatch,
-    hostFocusTable,
-    headlineAnswering,
-    answerDeadlineMs,
-    prefersReducedMotion,
-  })
-
   const featuredTile = useMemo(() => {
-    if (featuredWatch.featuredTableNum == null) return null
-    return floorTiles.find((t) => t.tableNum === featuredWatch.featuredTableNum) ?? null
-  }, [floorTiles, featuredWatch.featuredTableNum])
+    if (hostFocusTable == null) return null
+    return floorTiles.find((t) => t.tableNum === hostFocusTable) ?? null
+  }, [floorTiles, hostFocusTable])
 
   const companionTiles = useMemo(() => {
-    if (featuredWatch.featuredTableNum == null) return floorTiles
-    return floorTiles.filter((t) => t.tableNum !== featuredWatch.featuredTableNum)
-  }, [floorTiles, featuredWatch.featuredTableNum])
+    if (hostFocusTable == null) return floorTiles
+    return floorTiles.filter((t) => t.tableNum !== hostFocusTable)
+  }, [floorTiles, hostFocusTable])
 
-  const showHeroSpotlight =
-    (viewCycle.activeView === 'heroSpotlight' || viewCycle.activeView === 'showdownSpotlight') &&
-    featuredTile != null
+  const showHeroSpotlight = hostFocusTable != null && featuredTile != null
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div
-        className={`relative flex h-full min-h-0 flex-col overflow-hidden text-white ${
-          showRoster ? VENUE_CRAWL_PR_CLASS : ''
-        }`}
+        className="relative flex h-full min-h-0 flex-col overflow-hidden text-white"
         style={venueWallUiScaleFrameStyle()}
       >
       <div className="pointer-events-none absolute inset-0 opacity-35">
@@ -2066,8 +1913,8 @@ export default function VenueEightTablesPreview({
             <div className="relative flex min-h-0 flex-1 flex-col">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={viewCycle.activeView}
-                  className="flex min-h-0 flex-1 flex-col gap-2"
+                  key={showHeroSpotlight ? `spotlight-${hostFocusTable}` : 'floor'}
+                  className="flex h-full min-h-0 flex-1 flex-col"
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
@@ -2111,14 +1958,7 @@ export default function VenueEightTablesPreview({
         ) : null}
       </main>
 
-      {showRoster ? (
-        <VenueScrollingRoster
-          tiles={tileRows}
-          condenseProgress={condenseProgress}
-          showCondenseInSidebar={!showHeadline}
-        />
-      ) : null}
-      {!showRoster && !showHeadline && condenseProgress != null && tileRows.length > 0 ? (
+      {!showHeadline && condenseProgress != null && tileRows.length > 0 ? (
         <VenueCondenseProgressBar model={condenseProgress} variant="bottom" />
       ) : null}
       </div>

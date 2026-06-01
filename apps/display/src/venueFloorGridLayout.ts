@@ -1,4 +1,5 @@
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import type { CSSProperties } from 'react'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 
 /** Tables with at least one seated player — the aerial floor shows these only. */
@@ -53,6 +54,27 @@ export function venueFloorRowTrackSpec(rowCount: number): {
     gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
     shrinkWrapRowHeight: false,
   }
+}
+
+/** 3D tilt only when there is vertical room; dense floors stay flat to avoid clipping. */
+export function venueFloorGridPerspectiveStyle(rowCount: number): Pick<
+  CSSProperties,
+  'perspective' | 'transform' | 'transformOrigin'
+> {
+  if (rowCount >= 4) return {}
+  return {
+    perspective: '1400px',
+    transform: 'rotateX(3deg)',
+    transformOrigin: 'center 50%',
+  }
+}
+
+/** Extra bottom inset on multi-row floors so the last row + action captions stay in view. */
+export function venueFloorGridPaddingRem(rowCount: number): { top: number; bottom: number } {
+  if (rowCount <= 1) return { top: 0.75, bottom: 0.75 }
+  if (rowCount === 2) return { top: 0.75, bottom: 0.85 }
+  if (rowCount === 3) return { top: 0.65, bottom: 1 }
+  return { top: 0.5, bottom: 1.15 }
 }
 
 /**
@@ -161,8 +183,8 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: true,
         showdownBrief: true,
-        rowGapRem: 1.05,
-        cellGapRem: 1.15,
+        rowGapRem: 0.72,
+        cellGapRem: 0.82,
         cardPaddingClass: 'p-1 sm:p-1.5',
         innerGapClass: 'gap-0.5',
         tableNumClass: 'text-base sm:text-lg',
@@ -173,16 +195,16 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         ringScaleClass: '',
         showPotSubtitle: true,
         potSubtitleClass:
-          'text-[clamp(0.72rem,4.6cqw,1.05rem)] font-black leading-tight tracking-tight text-amber-50',
-        potSubtitleWrapClass: 'px-1.5 py-1',
+          'text-[clamp(0.68rem,4.4cqw,0.98rem)] font-black leading-tight tracking-tight text-amber-50',
+        potSubtitleWrapClass: 'px-1 py-0.5',
       }
     case 'micro':
       return {
         size,
         compactChrome: true,
         showdownBrief: true,
-        rowGapRem: 0.78,
-        cellGapRem: 0.88,
+        rowGapRem: 0.62,
+        cellGapRem: 0.72,
         cardPaddingClass: 'p-0.5 sm:p-1',
         innerGapClass: 'gap-0.5',
         tableNumClass: 'text-base sm:text-lg',
@@ -193,7 +215,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         ringScaleClass: '',
         showPotSubtitle: true,
         potSubtitleClass:
-          'text-[clamp(0.65rem,4.2cqw,0.95rem)] font-black leading-tight tracking-tight text-amber-50',
+          'text-[clamp(0.62rem,4.8cqw,0.92rem)] font-black leading-none tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
       }
   }

@@ -27,6 +27,8 @@ import {
   chunkTilesIntoBanquetRows,
   populatedVenueTiles,
   venueBanquetLayout,
+  venueFloorGridPaddingRem,
+  venueFloorGridPerspectiveStyle,
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   type VenueFloorSizeSpec,
@@ -1258,6 +1260,8 @@ function VenueMosaicTableCard({
     actingCallAmount: row.actingCallAmount,
   })
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
+  const feltFillsCell = floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight
+  const showPotSubtitleStrip = floorSize.showPotSubtitle && mosaicPotSubtitle != null
 
   const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
@@ -1270,14 +1274,22 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`@container flex min-h-0 w-full min-w-0 flex-col overflow-hidden backdrop-blur-md ${shrinkWrapRowHeight ? 'h-auto' : 'h-full'} ${floorSize.cardPaddingClass} relative ${cardShell}`}
+        className={`@container relative min-h-0 w-full min-w-0 overflow-hidden backdrop-blur-md ${floorSize.cardPaddingClass} ${cardShell} ${
+          shrinkWrapRowHeight
+            ? 'flex h-auto flex-col'
+            : feltFillsCell && showPotSubtitleStrip
+              ? 'grid h-full grid-rows-[auto_minmax(0,1fr)_auto]'
+              : feltFillsCell
+                ? 'grid h-full grid-rows-[auto_minmax(0,1fr)]'
+                : 'flex h-full flex-col'
+        }`}
       >
         <div
-          className={`flex min-h-0 min-w-0 flex-col ${shrinkWrapRowHeight ? '' : 'flex-1'} ${floorSize.innerGapClass} ${
+          className={`min-h-0 min-w-0 ${shrinkWrapRowHeight || !feltFillsCell ? `flex flex-col ${floorSize.innerGapClass}` : 'contents'} ${
             showFloorShowdownOverlay ? 'opacity-25' : ''
           }`}
         >
-        <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-start gap-x-1">
+        <div className={`grid shrink-0 grid-cols-[1fr_auto_1fr] items-start gap-x-1 ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}>
           <div className="min-w-0 justify-self-start">
             <div
               className={`font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
@@ -1317,12 +1329,14 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container relative z-[1] flex min-h-0 w-full ${shrinkWrapRowHeight ? 'shrink-0' : 'flex-1'} items-center justify-center overflow-hidden ${floorSize.ringScaleClass}`}
+          className={`@container relative z-[1] flex min-h-0 w-full items-center justify-center overflow-hidden ${floorSize.ringScaleClass} ${
+            feltFillsCell ? 'col-start-1 row-start-2' : shrinkWrapRowHeight ? 'shrink-0' : 'flex-1'
+          }`}
         >
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb}
-            mosaicFillHeight={false}
+            mosaicFillHeight={feltFillsCell}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}
@@ -1341,9 +1355,11 @@ function VenueMosaicTableCard({
           />
         </div>
 
-        {floorSize.showPotSubtitle && mosaicPotSubtitle != null ? (
+        {showPotSubtitleStrip ? (
           <div
-            className={`shrink-0 rounded-lg border-2 border-amber-400/50 bg-amber-950/80 shadow-[0_0_14px_rgba(251,191,36,0.18)] ${floorSize.potSubtitleWrapClass}`}
+            className={`shrink-0 rounded-lg border-2 border-amber-400/50 bg-amber-950/80 shadow-[0_0_14px_rgba(251,191,36,0.18)] ${floorSize.potSubtitleWrapClass} ${
+              feltFillsCell ? 'col-start-1 row-start-3 min-w-0' : ''
+            }`}
             aria-live="polite"
           >
             <p className={`min-w-0 text-balance text-center ${floorSize.potSubtitleClass}`}>
@@ -1354,7 +1370,7 @@ function VenueMosaicTableCard({
 
         {showExpandedShowdownPanel ? (
           <div
-            className="rounded-lg p-1"
+            className={`rounded-lg p-1 ${feltFillsCell ? 'col-start-1 row-start-3 min-w-0' : ''}`}
             style={{
               background: 'linear-gradient(180deg, #5c3d1e 0%, #3d2810 100%)',
               boxShadow: 'inset 0 1px 0 rgba(255,220,160,0.1)',
@@ -1553,6 +1569,8 @@ function VenueAerialFloorGrid({
   const floorSize = useMemo(() => venueFloorSizeSpec(banquetLayout), [banquetLayout])
   const floorRowTracks = useMemo(() => venueFloorRowTrackSpec(rowCount), [rowCount])
   const shrinkWrapRowHeight = floorRowTracks.shrinkWrapRowHeight
+  const floorGridPadding = useMemo(() => venueFloorGridPaddingRem(rowCount), [rowCount])
+  const floorGridPerspective = useMemo(() => venueFloorGridPerspectiveStyle(rowCount), [rowCount])
   const banquetRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
   const inVenueShowdown = useMemo(() => showdownTableNums(tiles).length > 0, [tiles])
   const showdownBrief =
@@ -1603,16 +1621,16 @@ function VenueAerialFloorGrid({
       />
 
       <div
-        className={`relative grid min-h-0 w-full flex-1 overflow-hidden px-4 py-3 sm:px-6 sm:py-4 ${
-          shrinkWrapRowHeight ? 'items-start content-start' : ''
+        className={`relative grid min-h-0 w-full flex-1 overflow-hidden px-4 sm:px-6 ${
+          shrinkWrapRowHeight ? 'items-start content-start py-3 sm:py-4' : 'items-stretch content-stretch'
         }`}
         style={
           {
             gridTemplateRows: floorRowTracks.gridTemplateRows,
             gap: `${floorSize.rowGapRem}rem`,
-            perspective: '1400px',
-            transform: 'rotateX(3deg)',
-            transformOrigin: 'center 50%',
+            paddingTop: `${floorGridPadding.top}rem`,
+            paddingBottom: `${floorGridPadding.bottom}rem`,
+            ...floorGridPerspective,
           } as CSSProperties
         }
       >

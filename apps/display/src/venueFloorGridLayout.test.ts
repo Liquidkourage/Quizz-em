@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   venueBanquetLayout,
+  venueFloorGridPaddingRem,
+  venueFloorGridPerspectiveStyle,
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorTableSize,
@@ -14,6 +16,13 @@ describe('venueFloorRowTrackSpec', () => {
     })
     expect(venueFloorRowTrackSpec(venueBanquetLayout(2).rowCount).shrinkWrapRowHeight).toBe(true)
     expect(venueFloorRowTrackSpec(2).shrinkWrapRowHeight).toBe(false)
+  })
+})
+
+describe('venueFloorGridPerspectiveStyle', () => {
+  it('drops 3D tilt on dense four-row floors', () => {
+    expect(venueFloorGridPerspectiveStyle(3).transform).toBe('rotateX(3deg)')
+    expect(venueFloorGridPerspectiveStyle(4)).toEqual({})
   })
 })
 
@@ -49,6 +58,9 @@ describe('venueFloorTableSize', () => {
     expect(medium.showdownBrief).toBe(true)
     expect(medium.honeycombFillHeight).toBe(true)
     expect(compact.compactChrome).toBe(true)
+    expect(compact.showPotSubtitle).toBe(true)
+    expect(micro.showPotSubtitle).toBe(true)
     expect(micro.showdownBrief).toBe(true)
+    expect(venueFloorGridPaddingRem(4).bottom).toBeGreaterThan(venueFloorGridPaddingRem(2).bottom)
   })
 })

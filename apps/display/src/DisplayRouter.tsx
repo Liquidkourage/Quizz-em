@@ -83,16 +83,12 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
 
   const featuredWatch = useVenueWallFeaturedWatch(venueWall, layout)
 
-  const connectFingerprint = `${venueCode}:wall:w${layout.focusTable ?? 'h'}:${featuredWatch.featuredTableNum ?? 'none'}`
+  const connectFingerprint = `${venueCode}:wall:w${layout.focusTable ?? 'h'}`
 
   useEffect(() => {
     const hostFocus = layout.focusTable
-    const derived = featuredWatch.featuredTableNum
-    const effectiveFocus =
-      hostFocus != null && hostFocus >= 1 && hostFocus <= VENUE_NUMBERED_TABLE_MAX
-        ? hostFocus
-        : derived ?? null
-    const tableForHello = effectiveFocus != null ? String(effectiveFocus) : '1'
+    /** Socket table id is legacy; venue wall mode does not pin a felt unless the host spotlighted one. */
+    const tableForHello = '1'
 
     function handleDisplayLayout(next: DisplayLayoutPayload) {
       layoutRef.current = next
@@ -107,7 +103,8 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     let disconnectSock: () => void
     disconnectSock = connect('display', 'DISPLAY01', venueCode, tableForHello, {
       displayVenueWall: true,
-      displayFocusTable: effectiveFocus,
+      /** Only explicit host spotlight — never auto-derived hottest table (avoids sticky table 1). */
+      displayFocusTable: hostFocus,
     })
 
     const offDisplay = onDisplayLayout(handleDisplayLayout)
@@ -118,7 +115,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       offLocal()
       disconnectSock()
     }
-  }, [connectFingerprint, venueCode, layout.focusTable, featuredWatch.featuredTableNum])
+  }, [connectFingerprint, venueCode, layout.focusTable])
 
   useEffect(() => {
     if (!venueWall) {

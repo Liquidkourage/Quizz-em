@@ -6,6 +6,7 @@ import {
   SHOWDOWN_SPOTLIGHT_CYCLE_SEC,
   shouldRotateShowdownTour,
   showdownTableNums,
+  venueWallHasLiveTiles,
 } from './venueWallModel'
 
 function venueSpotlightFromLayout(layout: DisplayLayoutPayload): number | null {
@@ -40,7 +41,10 @@ export function useVenueWallFeaturedWatch(
   wall: DisplayVenueWallSnapshot | null,
   layout: DisplayLayoutPayload
 ): VenueFeaturedWatch {
-  const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
+  const tileRows = useMemo(() => {
+    if (!venueWallHasLiveTiles(wall)) return []
+    return buildVenueWallTileRows(wall)
+  }, [wall])
   const fingerprint = tileRows.map((t) => `${t.tableNum}:${t.phase}`).join('|')
   const hostSpot = venueSpotlightFromLayout(layout)
   const showdownNums = useMemo(() => showdownTableNums(tileRows), [fingerprint])

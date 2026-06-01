@@ -340,3 +340,48 @@ export function shouldRotateShowdownTour(
   if (shouldUseVenueShowdownWall(tileRows)) return false
   return showdownTableNums(tileRows).length > 1
 }
+
+export type VenueSeatingChartTable = {
+  tableNum: number
+  seats: { seatNum: number; name: string; bankroll: number }[]
+}
+
+/** Tables with at least one seated name, sorted by table number. */
+export function seatingChartTablesFromTiles(
+  tileRows: DisplayVenueTileSnapshot[]
+): VenueSeatingChartTable[] {
+  const out: VenueSeatingChartTable[] = []
+  for (const t of tileRows) {
+    if (t.seated <= 0) continue
+    const seats: VenueSeatingChartTable['seats'] = []
+    for (let i = 0; i < VENUE_WALL_SEAT_SLOTS; i++) {
+      const name = t.seatNames[i]?.trim() ?? ''
+      if (!name) continue
+      const bankroll = t.seatBankrolls?.[i]
+      seats.push({
+        seatNum: i + 1,
+        name,
+        bankroll: typeof bankroll === 'number' && Number.isFinite(bankroll) ? bankroll : 0,
+      })
+    }
+    if (seats.length === 0) continue
+    out.push({ tableNum: t.tableNum, seats })
+  }
+  out.sort((a, b) => a.tableNum - b.tableNum)
+  return out
+}
+
+/**
+ * Post–assign-from-lobby, pre–start-round: everyone is seated but every felt is still `lobby`.
+ * Replaces the empty mosaic + spotlight until the host starts the round.
+ */
+export function venueWallShowSeatingChart(
+  wall: DisplayVenueWallSnapshot | null,
+  tileRows: DisplayVenueTileSnapshot[]
+): boolean {
+  if (!venueWallHasLiveTiles(wall)) return false
+  if (wall!.showAudienceWelcome !== false) return false
+  if (tileRows.length === 0) return false
+  if (!tileRows.every((t) => t.phase === 'lobby')) return false
+  return seatingChartTablesFromTiles(tileRows).length > 0
+}

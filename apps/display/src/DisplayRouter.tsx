@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { DisplayLayoutPayload, DisplayVenueWallSnapshot } from '@qhe/net'
 import {
@@ -11,7 +11,9 @@ import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { readUrlLayoutBootstrap } from './displayUrlParams'
 import AudienceWelcomeWall from './AudienceWelcomeWall.tsx'
 import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
+import VenueSeatingChart from './VenueSeatingChart.tsx'
 import { useVenueWallFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
+import { buildVenueWallTileRows, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 
 function normalizeVenueWallTiles(
@@ -82,6 +84,13 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !mosaicShowsLiveFelts))
 
   const featuredWatch = useVenueWallFeaturedWatch(venueWall, layout)
+
+  const tileRows = useMemo(() => buildVenueWallTileRows(venueWall), [venueWall])
+  const showSeatingChart =
+    onVenueWallLayout &&
+    !audienceBriefing &&
+    !mosaicForcedByHost &&
+    venueWallShowSeatingChart(venueWall, tileRows)
 
   const connectFingerprint = `${venueCode}:wall:w${layout.focusTable ?? 'h'}`
 
@@ -206,14 +215,14 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   }, [connectFingerprint])
 
   useEffect(() => {
-    if (onVenueWallLayout && !audienceBriefing && venueWall != null) {
+    if (onVenueWallLayout && !audienceBriefing && !showSeatingChart && venueWall != null) {
       venueMosaicWasShownRef.current = true
     }
-  }, [onVenueWallLayout, audienceBriefing, venueWall])
+  }, [onVenueWallLayout, audienceBriefing, showSeatingChart, venueWall])
 
   const showBriefingHero = audienceBriefing
-  /** Mosaic is always the in-round view; host `focusTable` only highlights a tile (see featuredWatch). */
-  const showVenueMosaicShell = onVenueWallLayout && !audienceBriefing
+  /** Mosaic is the in-round view; seating chart fills the gap between assign and first hand. */
+  const showVenueMosaicShell = onVenueWallLayout && !audienceBriefing && !showSeatingChart
 
   return (
     <AnimatePresence mode="sync">
@@ -228,6 +237,19 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
           <AudienceWelcomeWall venueCode={venueCode} wall={venueWall} />
+        </motion.div>
+      )}
+      {showSeatingChart && (
+        <motion.div
+          key="venue-seating-chart"
+          className="relative z-10 min-h-screen w-full"
+          role="presentation"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <VenueSeatingChart wall={venueWall} skipMountIntro={venueMosaicWasShownRef.current} />
         </motion.div>
       )}
       {showVenueMosaicShell && (

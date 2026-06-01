@@ -64,6 +64,9 @@ export type VenueFloorSizeSpec = {
   /** Legacy non-honeycomb shrink — unused on checkerboard floor. */
   ringScaleClass: string
   showPotSubtitle: boolean
+  /** “Name to call: $X” strip under the felt — scales with card width (@container). */
+  potSubtitleClass: string
+  potSubtitleWrapClass: string
 }
 
 /** Pick felt size tier from banquet row count (and column width at the tightest band). */
@@ -95,6 +98,9 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: true,
+        potSubtitleClass:
+          'text-[clamp(1rem,6.2cqw,1.65rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(1.1rem,6.8cqw,1.85rem)]',
+        potSubtitleWrapClass: 'px-2.5 py-2',
       }
     case 'large':
       return {
@@ -112,6 +118,9 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         honeycombFillHeight: true,
         ringScaleClass: '',
         showPotSubtitle: true,
+        potSubtitleClass:
+          'text-[clamp(0.9rem,5.8cqw,1.45rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(1rem,6.2cqw,1.6rem)]',
+        potSubtitleWrapClass: 'px-2 py-1.5',
       }
     case 'medium':
       return {
@@ -128,7 +137,10 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         phaseChipClass: 'px-1.5 py-0.5 text-[10px] sm:px-2 sm:py-1 sm:text-[11px]',
         honeycombFillHeight: true,
         ringScaleClass: '',
-        showPotSubtitle: false,
+        showPotSubtitle: true,
+        potSubtitleClass:
+          'text-[clamp(0.8rem,5.2cqw,1.2rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(0.9rem,5.6cqw,1.35rem)]',
+        potSubtitleWrapClass: 'px-1.5 py-1',
       }
     case 'compact':
       return {
@@ -145,7 +157,10 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         phaseChipClass: 'px-1.5 py-0.5 text-[9px] sm:px-2 sm:py-1 sm:text-[10px]',
         honeycombFillHeight: true,
         ringScaleClass: '',
-        showPotSubtitle: false,
+        showPotSubtitle: true,
+        potSubtitleClass:
+          'text-[clamp(0.72rem,4.6cqw,1.05rem)] font-black leading-tight tracking-tight text-amber-50',
+        potSubtitleWrapClass: 'px-1.5 py-1',
       }
     case 'micro':
       return {
@@ -162,7 +177,10 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         phaseChipClass: 'px-1 py-0.5 text-[9px] sm:px-1.5 sm:py-0.5 sm:text-[10px]',
         honeycombFillHeight: true,
         ringScaleClass: '',
-        showPotSubtitle: false,
+        showPotSubtitle: true,
+        potSubtitleClass:
+          'text-[clamp(0.65rem,4.2cqw,0.95rem)] font-black leading-tight tracking-tight text-amber-50',
+        potSubtitleWrapClass: 'px-1 py-0.5',
       }
   }
 }

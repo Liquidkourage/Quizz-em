@@ -1266,7 +1266,7 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden backdrop-blur-md ${floorSize.cardPaddingClass} relative ${cardShell}`}
+        className={`@container flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden backdrop-blur-md ${floorSize.cardPaddingClass} relative ${cardShell}`}
       >
         <div
           className={`flex min-h-0 min-w-0 flex-1 flex-col ${floorSize.innerGapClass} ${
@@ -1338,8 +1338,11 @@ function VenueMosaicTableCard({
         </div>
 
         {floorSize.showPotSubtitle && mosaicPotSubtitle != null ? (
-          <div className="shrink-0 rounded-md border border-amber-400/25 bg-black/40 px-1.5 py-1">
-            <p className="min-w-0 text-center text-[0.6875rem] font-bold leading-snug text-amber-100 sm:text-xs">
+          <div
+            className={`shrink-0 rounded-lg border-2 border-amber-400/50 bg-amber-950/80 shadow-[0_0_14px_rgba(251,191,36,0.18)] ${floorSize.potSubtitleWrapClass}`}
+            aria-live="polite"
+          >
+            <p className={`min-w-0 text-balance text-center ${floorSize.potSubtitleClass}`}>
               {mosaicPotSubtitle}
             </p>
           </div>

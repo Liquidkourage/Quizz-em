@@ -660,7 +660,6 @@ function SeatRingWithLabels({
   seatLastBettingAction: seatLastBettingActionIn,
   actingCallAmount,
   mosaicFluidWidth = false,
-  mosaicFillHeight = false,
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
   winnerSeatIndexes = null,
   /** Mosaic: hole-card digits per physical seat (parallel to seatNames). */
@@ -681,8 +680,6 @@ function SeatRingWithLabels({
   ringMode?: 'mosaic' | 'full'
   /** Honeycomb floor: ring scales with tile width (no fixed 8.75rem height). */
   mosaicFluidWidth?: boolean
-  /** Checkerboard cell: shrink-wrap felt inside flex row without growing the card. */
-  mosaicFillHeight?: boolean
   /** Spotlight hero: draw mini chip stack + bankroll on the felt by each seated player. */
   feltSeatStacks?: boolean
   /** Dealer / blind roles (indexes match `seatNames`). Null when unsupported or omitted by server snapshot. */
@@ -725,12 +722,10 @@ function SeatRingWithLabels({
   /** Spotlight hero — wide capsule; mosaic tiles use smaller md ring below. */
   const lgRing =
     'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
-  /** Mosaic crawl — stadium capsule, narrower than crawl column so dots read on the rail. */
+  /** Mosaic crawl — stadium capsule; width-first contain keeps 8:5 on every card size. */
   const mdRing = isMosaic
     ? mosaicFluidWidth
-      ? mosaicFillHeight
-        ? 'relative mx-auto aspect-[8/5] h-full max-h-full w-auto max-w-full min-h-0'
-        : 'relative mx-auto aspect-[8/5] h-auto max-h-full w-full max-w-full'
+      ? 'relative mx-auto aspect-[8/5] h-auto w-[min(100%,calc(100cqh*8/5))] max-h-full max-w-full min-h-0 min-w-0 shrink-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
@@ -1339,7 +1334,6 @@ function VenueMosaicTableCard({
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb}
-            mosaicFillHeight={feltFillsCell}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}

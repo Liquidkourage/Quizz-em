@@ -6,19 +6,20 @@ import { venueBanquetLayout } from './venueFloorGridLayout'
 import { buildVenueWallTileRows, seatingChartTablesFromTiles } from './venueWallModel'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 
-/** Scale name type to the card height divided by seat count (8-seat tables are the tightest fit). */
+/** Scale type from card height ÷ name rows (two columns → half the vertical rows). */
 function seatingTableCardStyle(seatCount: number): CSSProperties {
-  return { ['--seats' as string]: Math.max(1, seatCount) }
+  const seatRows = Math.ceil(Math.max(1, seatCount) / 2)
+  return { ['--seat-rows' as string]: seatRows }
 }
 
 const SEAT_NAME_FONT: CSSProperties = {
   fontSize:
-    'min(2.25rem, max(0.85rem, calc((100cqh - 1.1rem) / var(--seats) * 0.9)))',
+    'min(2.75rem, max(0.9rem, calc((100cqh - 1.1rem) / var(--seat-rows) * 0.92)))',
 }
 
 const TABLE_TITLE_FONT: CSSProperties = {
   fontSize:
-    'min(1.35rem, max(0.7rem, calc((100cqh - 1.1rem) / var(--seats) * 0.38)))',
+    'min(1.35rem, max(0.7rem, calc((100cqh - 1.1rem) / var(--seat-rows) * 0.36)))',
 }
 
 export type VenueSeatingChartProps = {
@@ -102,7 +103,9 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
-            {tables.map((table) => (
+            {tables.map((table) => {
+              const seatRows = Math.ceil(table.seats.length / 2)
+              return (
               <article
                 key={table.tableNum}
                 style={seatingTableCardStyle(table.seats.length)}
@@ -115,9 +118,16 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
                 >
                   Table {table.tableNum}
                 </h2>
-                <ul className="mt-0.5 flex min-h-0 flex-1 flex-col">
+                <ul
+                  className="mt-0.5 grid min-h-0 flex-1 gap-x-1.5"
+                  style={{
+                    gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+                    gridTemplateRows: `repeat(${seatRows}, minmax(0, 1fr))`,
+                    gridAutoFlow: 'column',
+                  }}
+                >
                   {table.seats.map((seat) => (
-                    <li key={seat.seatNum} className="flex min-h-0 flex-1 items-center leading-none">
+                    <li key={seat.seatNum} className="flex min-h-0 min-w-0 items-center leading-none">
                       <span
                         style={SEAT_NAME_FONT}
                         className="block min-w-0 w-full truncate font-bold text-white/95"
@@ -129,7 +139,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
                   ))}
                 </ul>
               </article>
-            ))}
+            )})}
           </motion.div>
         </main>
       </div>

@@ -20,12 +20,11 @@ export const VENUE_FLOOR_ROW_GAP_REM = 1.25
 /** @deprecated Prefer {@link venueFloorSizeSpec} row/cell gaps. */
 export const VENUE_FLOOR_CELL_GAP_REM = 1.45
 
-/** Columns for A1 — same count on every full row (5 when 17–20 tables). */
+/** Columns for A1 — prefer fewer, wider rows so 5–8 felts fit one TV (4×2 vs 3×3). */
 export function venueBanquetColumns(tableCount: number): number {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 1) return 1
   if (n <= 4) return 2
-  if (n <= 9) return 3
   if (n <= 16) return 4
   return 5
 }
@@ -102,8 +101,8 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: false,
         showdownBrief: true,
-        rowGapRem: 1.35,
-        cellGapRem: 1.55,
+        rowGapRem: 0.85,
+        cellGapRem: 0.95,
         cardPaddingClass: 'overflow-visible p-2 sm:p-2',
         innerGapClass: 'gap-1.5 sm:gap-2',
         tableNumClass: 'text-xl sm:text-2xl',

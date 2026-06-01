@@ -10,8 +10,10 @@ describe('venueFloorTableSize', () => {
     expect(venueFloorTableSize(venueBanquetLayout(1))).toBe('hero')
     expect(venueFloorTableSize(venueBanquetLayout(2))).toBe('hero')
     expect(venueFloorTableSize(venueBanquetLayout(4))).toBe('large')
+    expect(venueBanquetLayout(8).columns).toBe(4)
+    expect(venueBanquetLayout(8).rowCount).toBe(2)
     expect(venueFloorTableSize(venueBanquetLayout(6))).toBe('large')
-    expect(venueFloorTableSize(venueBanquetLayout(7))).toBe('medium')
+    expect(venueFloorTableSize(venueBanquetLayout(7))).toBe('large')
     expect(venueFloorTableSize(venueBanquetLayout(9))).toBe('medium')
     expect(venueFloorTableSize(venueBanquetLayout(12))).toBe('medium')
     expect(venueFloorTableSize(venueBanquetLayout(13))).toBe('compact')
@@ -28,7 +30,6 @@ describe('venueFloorTableSize', () => {
     const micro = venueFloorSizeSpec(venueBanquetLayout(20))
 
     expect(hero.rowGapRem).toBeGreaterThan(large.rowGapRem)
-    expect(large.rowGapRem).toBeGreaterThan(medium.rowGapRem)
     expect(medium.rowGapRem).toBeGreaterThan(compact.rowGapRem)
     expect(compact.rowGapRem).toBeGreaterThan(micro.rowGapRem)
 

@@ -291,3 +291,42 @@ export function chunkTilesForHexRows<T>(
   const columns = rowSizes[0] ?? 1
   return chunkTilesIntoBanquetRows(tiles, columns)
 }
+
+export type VenueFloorDenseTuning = {
+  rowGapRem: number
+  cellGapRem: number
+  paddingTopRem: number
+  paddingBottomRem: number
+  gridInsetClass: string
+  potSubtitleWrapClass: string
+}
+
+/** Four-row floors (17–20 tables) — tighten gaps when a headline steals vertical space. */
+export function venueFloorDenseTuning(
+  layout: VenueBanquetLayout,
+  opts?: { withHeadline?: boolean }
+): VenueFloorDenseTuning | null {
+  if (layout.rowCount < 4) return null
+  const headline = opts?.withHeadline === true
+  return {
+    rowGapRem: headline ? 0.4 : 0.5,
+    cellGapRem: headline ? 0.5 : 0.58,
+    paddingTopRem: headline ? 0.1 : 0.3,
+    paddingBottomRem: headline ? 0.35 : 0.55,
+    gridInsetClass: 'px-1.5 sm:px-2',
+    potSubtitleWrapClass: 'px-0.5 py-0.5',
+  }
+}
+
+export function applyVenueFloorDenseTuning(
+  spec: VenueFloorSizeSpec,
+  tuning: VenueFloorDenseTuning | null
+): VenueFloorSizeSpec {
+  if (!tuning) return spec
+  return {
+    ...spec,
+    rowGapRem: tuning.rowGapRem,
+    cellGapRem: tuning.cellGapRem,
+    potSubtitleWrapClass: tuning.potSubtitleWrapClass,
+  }
+}

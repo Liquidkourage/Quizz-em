@@ -30,6 +30,8 @@ import {
   chunkTilesIntoBanquetRows,
   populatedVenueTiles,
   venueBanquetLayout,
+  applyVenueFloorDenseTuning,
+  venueFloorDenseTuning,
   venueFloorGridPaddingRem,
   venueFloorGridPerspectiveStyle,
   venueFloorRowTrackSpec,
@@ -722,10 +724,10 @@ function SeatRingWithLabels({
   /** Spotlight hero — wide capsule; mosaic tiles use smaller md ring below. */
   const lgRing =
     'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
-  /** Mosaic crawl — stadium capsule; width-first contain keeps 8:5 on every card size. */
+  /** Mosaic crawl — stadium capsule; height-first in honeycomb rows so header + captions fit. */
   const mdRing = isMosaic
     ? mosaicFluidWidth
-      ? 'relative mx-auto aspect-[8/5] h-auto w-[min(100%,calc(100cqh*8/5))] max-h-full max-w-full min-h-0 min-w-0 shrink-0'
+      ? 'relative mx-auto aspect-[8/5] h-full w-auto max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
@@ -1327,7 +1329,7 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container relative z-[1] flex min-h-0 w-full items-center justify-center overflow-hidden ${floorSize.ringScaleClass} ${
+          className={`@container/size relative z-[1] flex min-h-0 w-full items-center justify-center overflow-hidden ${floorSize.ringScaleClass} ${
             feltFillsCell ? 'col-start-1 row-start-2' : shrinkWrapRowHeight ? 'shrink-0' : 'flex-1'
           }`}
         >
@@ -1563,10 +1565,22 @@ function VenueAerialFloorGrid({
     [n, layoutTableCount],
   )
   const { columns, rowCount } = banquetLayout
-  const floorSize = useMemo(() => venueFloorSizeSpec(banquetLayout), [banquetLayout])
+  const denseTuning = useMemo(
+    () => venueFloorDenseTuning(banquetLayout, { withHeadline: showHeadline }),
+    [banquetLayout, showHeadline],
+  )
+  const floorSize = useMemo(
+    () => applyVenueFloorDenseTuning(venueFloorSizeSpec(banquetLayout), denseTuning),
+    [banquetLayout, denseTuning],
+  )
   const floorRowTracks = useMemo(() => venueFloorRowTrackSpec(rowCount), [rowCount])
   const shrinkWrapRowHeight = floorRowTracks.shrinkWrapRowHeight
-  const floorGridPadding = useMemo(() => venueFloorGridPaddingRem(rowCount), [rowCount])
+  const floorGridPadding = useMemo(() => {
+    if (denseTuning) {
+      return { top: denseTuning.paddingTopRem, bottom: denseTuning.paddingBottomRem }
+    }
+    return venueFloorGridPaddingRem(rowCount)
+  }, [denseTuning, rowCount])
   const floorGridPerspective = useMemo(() => venueFloorGridPerspectiveStyle(rowCount), [rowCount])
   const banquetRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
   const inVenueShowdown = useMemo(() => showdownTableNums(tiles).length > 0, [tiles])
@@ -1618,9 +1632,9 @@ function VenueAerialFloorGrid({
       />
 
       <div
-        className={`relative grid min-h-0 w-full flex-1 overflow-hidden px-4 sm:px-6 ${
-          shrinkWrapRowHeight ? 'items-start content-start py-3 sm:py-4' : 'items-stretch content-stretch'
-        }`}
+        className={`relative grid min-h-0 w-full flex-1 overflow-hidden ${
+          denseTuning?.gridInsetClass ?? 'px-4 sm:px-6'
+        } ${shrinkWrapRowHeight ? 'items-start content-start py-3 sm:py-4' : 'items-stretch content-stretch'}`}
         style={
           {
             gridTemplateRows: floorRowTracks.gridTemplateRows,
@@ -1826,6 +1840,7 @@ export default function VenueEightTablesPreview({
     !headlineAnswering
 
   const showRoster = rosterRowsFromTiles(tileRows).length > 0
+  const compactVenueHeadline = floorLayoutTableCount >= 14
 
   const viewCycle = useVenueWallViewCycle({
     tileRows,
@@ -1872,9 +1887,9 @@ export default function VenueEightTablesPreview({
       </div>
 
       <main
-        className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 pb-3 sm:px-4 sm:pb-4 ${
-          showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'
-        }`}
+        className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 sm:px-4 ${
+          compactVenueHeadline ? 'pb-1.5 sm:pb-2' : 'pb-3 sm:pb-4'
+        } ${showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'}`}
       >
         {wall != null && tileRows.length === 0 ? (
           <motion.div
@@ -1900,7 +1915,11 @@ export default function VenueEightTablesPreview({
 
             {showHeadline ? (
               <motion.div
-                className="sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col gap-2 rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 py-2 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:gap-2.5 sm:px-4 sm:py-2.5 md:gap-3 md:px-5 md:py-3"
+                className={`sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:px-4 md:px-5 ${
+                  compactVenueHeadline
+                    ? 'gap-1.5 py-1.5 sm:gap-2'
+                    : 'gap-2 py-2 sm:gap-2.5 sm:py-2.5 md:gap-3 md:py-3'
+                }`}
                 style={{
                   paddingTop: 'max(0.35rem, env(safe-area-inset-top, 0px))',
                 }}
@@ -1908,7 +1927,13 @@ export default function VenueEightTablesPreview({
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div className="flex w-full min-w-0 items-stretch gap-2.5 sm:gap-4 md:gap-5">
-                <div className="pointer-events-none flex w-[clamp(7.5rem,min(24vw,10rem),12.5rem)] shrink-0 items-center self-center sm:w-[clamp(8.25rem,min(28vw,11rem),13.5rem)] md:w-[clamp(9rem,min(26vw,12rem),14.5rem)]">
+                <div
+                  className={`pointer-events-none flex shrink-0 items-center self-center ${
+                    compactVenueHeadline
+                      ? 'w-[clamp(5.5rem,min(18vw,8rem),10rem)]'
+                      : 'w-[clamp(7.5rem,min(24vw,10rem),12.5rem)] sm:w-[clamp(8.25rem,min(28vw,11rem),13.5rem)] md:w-[clamp(9rem,min(26vw,12rem),14.5rem)]'
+                  }`}
+                >
                   <div
                     className="w-full shadow-black/70 drop-shadow-xl"
                     style={{ aspectRatio: '958 / 592' }}
@@ -1942,7 +1967,13 @@ export default function VenueEightTablesPreview({
                       </div>
                     ) : null}
                     {headlineQuestionDisplay ? (
-                      <p className="text-balance text-left text-xl font-bold leading-snug tracking-tight text-yellow-400 sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem]">
+                      <p
+                        className={`text-balance text-left font-bold leading-snug tracking-tight text-yellow-400 ${
+                          compactVenueHeadline
+                            ? 'text-lg sm:text-xl md:text-[1.45rem] lg:text-[1.75rem] xl:text-[2rem]'
+                            : 'text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem]'
+                        }`}
+                      >
                         {headlineQuestionDisplay}
                       </p>
                     ) : inVenueShowdown ? (

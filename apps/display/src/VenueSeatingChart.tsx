@@ -1,10 +1,25 @@
-import { useMemo } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { venueBanquetLayout } from './venueFloorGridLayout'
 import { buildVenueWallTileRows, seatingChartTablesFromTiles } from './venueWallModel'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
+
+/** Scale name type to the card height divided by seat count (8-seat tables are the tightest fit). */
+function seatingTableCardStyle(seatCount: number): CSSProperties {
+  return { ['--seats' as string]: Math.max(1, seatCount) }
+}
+
+const SEAT_NAME_FONT: CSSProperties = {
+  fontSize:
+    'min(2.25rem, max(0.85rem, calc((100cqh - 1.1rem) / var(--seats) * 0.9)))',
+}
+
+const TABLE_TITLE_FONT: CSSProperties = {
+  fontSize:
+    'min(1.35rem, max(0.7rem, calc((100cqh - 1.1rem) / var(--seats) * 0.38)))',
+}
 
 export type VenueSeatingChartProps = {
   wall: DisplayVenueWallSnapshot | null
@@ -39,7 +54,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
       >
         <header
           className={`shrink-0 border-b border-yellow-700/35 bg-black/45 backdrop-blur-md ${
-            compactHeader ? 'px-3 py-2' : 'px-4 py-3 sm:px-5 sm:py-4'
+            compactHeader ? 'px-3 py-1.5' : 'px-4 py-3 sm:px-5 sm:py-4'
           }`}
         >
           <div className="flex w-full items-center gap-x-3 gap-y-2 sm:gap-x-4">
@@ -76,9 +91,9 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-hidden px-2 pb-2 pt-1.5 sm:px-3 sm:pb-3">
+        <main className="min-h-0 flex-1 overflow-hidden px-1.5 pb-1.5 pt-1 sm:px-2 sm:pb-2">
           <motion.div
-            className="grid h-full min-h-0 w-full gap-1.5 sm:gap-2"
+            className="grid h-full min-h-0 w-full gap-1 sm:gap-1.5"
             style={{
               gridTemplateColumns: `repeat(${grid.columns}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${grid.rowCount}, minmax(0, 1fr))`,
@@ -90,16 +105,23 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
             {tables.map((table) => (
               <article
                 key={table.tableNum}
-                className="@container/size flex h-full min-h-0 flex-col overflow-hidden rounded-lg border-2 border-yellow-700/40 bg-black/55 p-1.5 backdrop-blur-md sm:rounded-xl sm:p-2"
+                style={seatingTableCardStyle(table.seats.length)}
+                className="@container/size flex h-full min-h-0 flex-col overflow-hidden rounded-lg border-2 border-yellow-700/40 bg-black/55 p-1 backdrop-blur-md sm:rounded-xl sm:p-1.5"
                 aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
               >
-                <h2 className="shrink-0 truncate text-[clamp(0.8rem,3.8cqh,1.75rem)] font-black leading-none tabular-nums text-yellow-400">
+                <h2
+                  style={TABLE_TITLE_FONT}
+                  className="shrink-0 truncate font-black leading-none tabular-nums text-yellow-400"
+                >
                   Table {table.tableNum}
                 </h2>
-                <ul className="mt-1 flex min-h-0 flex-1 flex-col justify-evenly">
+                <ul className="mt-0.5 flex min-h-0 flex-1 flex-col">
                   {table.seats.map((seat) => (
-                    <li key={seat.seatNum} className="min-h-0 leading-none">
-                      <span className="block min-w-0 truncate font-bold text-[clamp(0.72rem,2.65cqh,1.45rem)] text-white/95">
+                    <li key={seat.seatNum} className="flex min-h-0 flex-1 items-center leading-none">
+                      <span
+                        style={SEAT_NAME_FONT}
+                        className="block min-w-0 w-full truncate font-bold text-white/95"
+                      >
                         <span className="font-mono tabular-nums text-yellow-400/90">{seat.seatNum}.</span>{' '}
                         {seat.name}
                       </span>

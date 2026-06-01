@@ -75,8 +75,8 @@ import type {
   AdminCloseBettingAction,
   AdminAdvanceTurnAction,
   AdminSetBlindsAction,
-  normalizeDisplayLayoutPayload,
 } from '@qhe/net'
+import { normalizeDisplayLayoutPayload } from '@qhe/net'
 import {
   addVirtualPlayers as spawnVirtualPlayers,
   removeAllVirtualPlayers,

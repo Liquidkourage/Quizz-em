@@ -54,8 +54,9 @@ import {
   buildHostPhaseDockItems,
   buildHostRunOfShowSteps,
   formatVenueBlindsSummary,
+  hostControlGameStateFromBeat,
   hostRunOfShowHeadline,
-  resolveRunOfShowCurrentStepId,
+  resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
 
 const HOST_TABS = [
@@ -420,13 +421,18 @@ function HostApp() {
   const draftSetlist =
     setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
 
+  const hostControlState = hostControlGameStateFromBeat(gameState, venueFeltBeat)
+  const controlRound = hostControlState.round
+  const controlBettingRound = controlRound.bettingRound ?? 0
+  const controlCommunityLen = controlRound.communityCards?.length ?? 0
+
   const phaseDockItems = buildHostPhaseDockItems({
-    gameState,
+    gameState: hostControlState,
     answerWindowSeconds,
     dealCommunityBlocked,
     startAnswerBlocked,
-    communityLen,
-    bettingRound,
+    communityLen: controlCommunityLen,
+    bettingRound: controlBettingRound,
     onStartGame: handleStartGame,
     onAssignFromLobby: () => assignTablesFromLobby(),
     onDealCommunity: handleDealCommunityCards,
@@ -437,11 +443,11 @@ function HostApp() {
     onNextSetlist: () => nextQuestionFromSetlist(),
   })
 
-  const runOfShowSteps = buildHostRunOfShowSteps(gameState)
-  const runOfShowHeadline = hostRunOfShowHeadline(gameState)
-  const currentRunStepId = resolveRunOfShowCurrentStepId(gameState)
+  const runOfShowSteps = buildHostRunOfShowSteps(gameState, venueFeltBeat)
+  const runOfShowHeadline = hostRunOfShowHeadline(gameState, venueFeltBeat)
+  const currentRunStepId = resolveRunOfShowStepForHost(gameState, venueFeltBeat)
   const triviaOptionalNote =
-    currentRunStepId === 'question' && !gameState.round?.question ? (
+    currentRunStepId === 'question' && !controlRound?.question ? (
       <p className="text-sm text-amber-200/80">
         Hole cards are dealt — use <strong>Random from bank</strong> or <strong>Next from setlist</strong> to reveal trivia and open wagering.
       </p>

@@ -87,6 +87,106 @@ function assignStepApplies(gameState: GameState): boolean {
   )
 }
 
+function seatedVenueBeatRows(venueBeat: HostVenueFeltBeatRow[] | null): HostVenueFeltBeatRow[] {
+  return venueBeat?.filter((r) => r.active && r.seated > 0) ?? []
+}
+
+function unanimousVenueBeatPhase(venueBeat: HostVenueFeltBeatRow[] | null): string | null {
+  const seated = seatedVenueBeatRows(venueBeat)
+  if (seated.length === 0) return null
+  const phases = new Set(seated.map((r) => r.phase))
+  if (phases.size !== 1) return null
+  const phase = [...phases][0]!
+  return phase === 'inactive' ? null : phase
+}
+
+function unanimousVenueBeatSig(venueBeat: HostVenueFeltBeatRow[] | null): string | null {
+  const seated = seatedVenueBeatRows(venueBeat)
+  if (seated.length === 0) return null
+  const sigs = new Set(seated.map((r) => r.phaseStrictSig).filter((s): s is string => s != null && s !== ''))
+  if (sigs.size !== 1) return null
+  return [...sigs][0]!
+}
+
+/**
+ * When the host mirrors the lobby pool, numbered felts may be mid-hand while LOBBY stays lobby.
+ * Mirror unanimous venue phase into a synthetic control state for dock + run-of-show.
+ */
+export function hostControlGameStateFromBeat(
+  gameState: GameState,
+  venueBeat: HostVenueFeltBeatRow[] | null,
+): GameState {
+  const tableId = gameState.tableId ?? ''
+  if (tableId !== LOBBY_TABLE_ID) return gameState
+  const venuePhase = unanimousVenueBeatPhase(venueBeat)
+  if (venuePhase == null || venuePhase === 'lobby') return gameState
+
+  const sig = unanimousVenueBeatSig(venueBeat)
+  if (venuePhase === 'betting' && sig) {
+    const m = /^bet\|(\d+)\|([TF?])\|cc(\d+)$/.exec(sig)
+    if (m) {
+      const cc = Math.max(0, Math.min(5, Number(m[3]) || 0))
+      return {
+        ...gameState,
+        phase: 'betting',
+        round: {
+          ...gameState.round,
+          bettingRound: (Number(m[1]) === 2 ? 2 : 1) as 1 | 2,
+          isBettingOpen: m[2] === 'T',
+          communityCards: Array.from({ length: cc }, () => ({ digit: 0 as const })),
+        },
+      }
+    }
+  }
+
+  if (venuePhase === 'answering' || venuePhase === 'showdown' || venuePhase === 'reveal' || venuePhase === 'payout') {
+    return { ...gameState, phase: venuePhase as GameState['phase'] }
+  }
+
+  return { ...gameState, phase: venuePhase as GameState['phase'] }
+}
+
+/** Run-of-show step — uses venue felts when host view is the lobby pool. */
+export function resolveRunOfShowStepForHost(
+  gameState: GameState,
+  venueBeat: HostVenueFeltBeatRow[] | null,
+): RunOfShowStepId {
+  const tableId = gameState.tableId ?? ''
+  if (tableId !== LOBBY_TABLE_ID) return resolveRunOfShowCurrentStepId(gameState)
+
+  const seated = seatedVenueBeatRows(venueBeat)
+  if (seated.length === 0) return resolveRunOfShowCurrentStepId(gameState)
+
+  const phases = new Set(seated.map((r) => r.phase))
+  if (phases.size !== 1) return resolveRunOfShowCurrentStepId(gameState)
+
+  const phase = [...phases][0]!
+  const sig = unanimousVenueBeatSig(venueBeat)
+
+  if (phase === 'lobby') {
+    if (assignStepApplies(gameState)) return 'assign'
+    return 'start'
+  }
+  if (phase === 'question') return 'question'
+  if (phase === 'betting' && sig) {
+    const m = /^bet\|(\d+)\|([TF?])\|cc(\d+)$/.exec(sig)
+    if (m) {
+      const br = m[1]
+      const open = m[2] === 'T'
+      const cc = Number(m[3]) || 0
+      if (open && br === '1') return 'close-bet-1'
+      if (open && br !== '1') return 'close-bet-2'
+      if (!open && br === '1' && cc < 5) return 'deal-board'
+      if (!open && cc >= 5) return 'start-answer'
+      if (!open && br === '2') return 'close-bet-2'
+    }
+    return 'close-bet-2'
+  }
+  if (phase === 'answering') return 'reveal'
+  if (phase === 'showdown' || phase === 'reveal' || phase === 'payout') return 'end-round'
+  return resolveRunOfShowCurrentStepId(gameState)
+}
+
 export function resolveRunOfShowCurrentStepId(gameState: GameState): RunOfShowStepId {
   const phase = gameState.phase
   const bettingRound = gameState.round.bettingRound ?? 0
@@ -113,8 +213,11 @@ export function resolveRunOfShowCurrentStepId(gameState: GameState): RunOfShowSt
   return 'start'
 }
 
-export function buildHostRunOfShowSteps(gameState: GameState): RunOfShowStep[] {
-  const currentId = resolveRunOfShowCurrentStepId(gameState)
+export function buildHostRunOfShowSteps(
+  gameState: GameState,
+  venueBeat?: HostVenueFeltBeatRow[] | null,
+): RunOfShowStep[] {
+  const currentId = resolveRunOfShowStepForHost(gameState, venueBeat ?? null)
   const currentIdx = RUN_OF_SHOW_ORDER.indexOf(currentId)
   const skipAssign = !assignStepApplies(gameState) && currentId !== 'assign'
 
@@ -173,20 +276,24 @@ export function buildHostRunOfShowSteps(gameState: GameState): RunOfShowStep[] {
   })
 }
 
-export function hostRunOfShowHeadline(gameState: GameState): { title: string; detail?: string } {
-  const stepId = resolveRunOfShowCurrentStepId(gameState)
-  const steps = buildHostRunOfShowSteps(gameState)
+export function hostRunOfShowHeadline(
+  gameState: GameState,
+  venueBeat?: HostVenueFeltBeatRow[] | null,
+): { title: string; detail?: string } {
+  const controlState = hostControlGameStateFromBeat(gameState, venueBeat ?? null)
+  const stepId = resolveRunOfShowStepForHost(gameState, venueBeat ?? null)
+  const steps = buildHostRunOfShowSteps(gameState, venueBeat ?? null)
   const current = steps.find((s) => s.id === stepId)
   if (!current) return { title: 'Run the show' }
 
-  const phase = gameState.phase
-  const bettingRound = gameState.round.bettingRound ?? 0
-  const bettingOpen = gameState.round.isBettingOpen !== false
+  const phase = controlState.phase
+  const bettingRound = controlState.round.bettingRound ?? 0
+  const bettingOpen = controlState.round.isBettingOpen !== false
 
   if (stepId === 'close-bet-1' || stepId === 'close-bet-2') {
-    const idx = gameState.round.currentPlayerIndex
+    const idx = controlState.round.currentPlayerIndex
     const actor =
-      typeof idx === 'number' && idx >= 0 ? gameState.players[idx]?.name : undefined
+      typeof idx === 'number' && idx >= 0 ? controlState.players[idx]?.name : undefined
     return {
       title: current.label,
       detail: bettingOpen
@@ -195,14 +302,14 @@ export function hostRunOfShowHeadline(gameState: GameState): { title: string; de
     }
   }
 
-  if (stepId === 'question' && !gameState.round.question) {
+  if (stepId === 'question' && !controlState.round.question) {
     return {
       title: 'Reveal the question',
       detail: 'Hole cards are dealt — pick from bank or setlist to show trivia and open wagering.',
     }
   }
 
-  if (stepId === 'question' && gameState.round.question) {
+  if (stepId === 'question' && controlState.round.question) {
     return {
       title: 'Question loaded — open wagering',
       detail: 'Trivia is set; wagering should open automatically when revealed from bank or setlist.',

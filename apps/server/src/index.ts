@@ -2251,10 +2251,42 @@ io.on('connection', (socket) => {
       switch (type) {
         case 'startGame': {
           if (!assertVenueHost(socket, gameState)) break
-          const lockStart = requireVenueLockstepTables(socket, gameState.code, (gs) => gs.phase === 'lobby', 'be in lobby before starting the trivia wave')
-          if (!lockStart) break
+          const vnStart = normalizeVenueCode(gameState.code)
+          const rowsStart = venuePlayableSnapshots(vnStart)
+          if (rowsStart.length === 0) {
+            socket.emit('toast', 'No playable tables yet — assign from lobby first.')
+            break
+          }
+          const sig0 = phaseStrictSignature(rowsStart[0]!.gs)
+          let startMisaligned = false
+          for (let i = 1; i < rowsStart.length; i++) {
+            if (phaseStrictSignature(rowsStart[i]!.gs) !== sig0) {
+              toastVenueMisaligned(socket, rowsStart)
+              startMisaligned = true
+              break
+            }
+          }
+          if (startMisaligned) break
+
+          const sample = rowsStart[0]!.gs
+          if (sample.phase === 'question') {
+            autoDealHoleCardsOnVenue(gameState.code)
+            socket.emit(
+              'toast',
+              'Felts are already in deal setup — skip Start and use Reveal question or Next from setlist.',
+            )
+            gameState = rooms.get(sessionKey)!
+            break
+          }
+          if (sample.phase !== 'lobby') {
+            socket.emit(
+              'toast',
+              `Every table must be in lobby before starting the trivia wave (yours collectively: ${humanReadableStrictState(sample)}). Run End round & pay out if the last hand finished.`,
+            )
+            break
+          }
           clearVenueWageringOrchestrationState(gameState.code)
-          for (const { tk } of lockStart) {
+          for (const { tk } of rowsStart) {
             let gs = rooms.get(tk)
             gs = startGame(gs)
             gs = runVirtualPlayerSimulation(gs)

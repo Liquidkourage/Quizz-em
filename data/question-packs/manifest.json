@@ -1,0 +1,78 @@
+{
+  "setLength": 25,
+  "setCount": 10,
+  "totalQuestions": 250,
+  "attribution": "Some questions may derive from Open Trivia DB (https://opentdb.com/), CC BY-SA 4.0. Majority are curated for Quizz'em numeric play.",
+  "sets": [
+    {
+      "file": "set-01-general-mix.csv",
+      "name": "Set 1 — General mix",
+      "count": 25,
+      "opentdbCount": 0,
+      "curatedCount": 25
+    },
+    {
+      "file": "set-02-history.csv",
+      "name": "Set 2 — History & years",
+      "count": 25,
+      "opentdbCount": 1,
+      "curatedCount": 24
+    },
+    {
+      "file": "set-03-science.csv",
+      "name": "Set 3 — Science & nature",
+      "count": 25,
+      "opentdbCount": 0,
+      "curatedCount": 25
+    },
+    {
+      "file": "set-04-sports.csv",
+      "name": "Set 4 — Sports by the numbers",
+      "count": 25,
+      "opentdbCount": 0,
+      "curatedCount": 25
+    },
+    {
+      "file": "set-05-geography.csv",
+      "name": "Set 5 — Geography",
+      "count": 25,
+      "opentdbCount": 0,
+      "curatedCount": 25
+    },
+    {
+      "file": "set-06-math.csv",
+      "name": "Set 6 — Math & numbers",
+      "count": 25,
+      "opentdbCount": 0,
+      "curatedCount": 25
+    },
+    {
+      "file": "set-07-entertainment.csv",
+      "name": "Set 7 — Entertainment stats",
+      "count": 25,
+      "opentdbCount": 0,
+      "curatedCount": 25
+    },
+    {
+      "file": "set-08-animals.csv",
+      "name": "Set 8 — Animals & biology",
+      "count": 25,
+      "opentdbCount": 0,
+      "curatedCount": 25
+    },
+    {
+      "file": "set-09-world-facts.csv",
+      "name": "Set 9 — World facts",
+      "count": 25,
+      "opentdbCount": 0,
+      "curatedCount": 25
+    },
+    {
+      "file": "set-10-challenge.csv",
+      "name": "Set 10 — Challenge round",
+      "count": 25,
+      "opentdbCount": 1,
+      "curatedCount": 24
+    }
+  ]
+}

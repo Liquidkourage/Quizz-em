@@ -23,7 +23,8 @@
     "test": "npm run test --workspace @qhe/core",
     "format": "prettier --write .",
     "trim-logo": "node scripts/trim-quizzem-logo.mjs",
-    "sim:lobby": "node scripts/sim-venue-lobby-joiners.mjs"
+    "sim:lobby": "node scripts/sim-venue-lobby-joiners.mjs",
+    "build:question-packs": "node scripts/build-question-packs.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.14.11",

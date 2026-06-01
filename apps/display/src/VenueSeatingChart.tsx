@@ -6,11 +6,6 @@ import { venueBanquetColumns } from './venueFloorGridLayout'
 import { buildVenueWallTileRows, seatingChartTablesFromTiles } from './venueWallModel'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 
-function formatStack(amount: number): string {
-  const n = Number.isFinite(amount) ? Math.round(amount) : 0
-  return `$${Math.max(0, n).toLocaleString()}`
-}
-
 export type VenueSeatingChartProps = {
   wall: DisplayVenueWallSnapshot | null
   skipMountIntro?: boolean
@@ -71,30 +66,31 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
             {tables.map((table) => (
               <article
                 key={table.tableNum}
-                className="rounded-xl border-2 border-yellow-700/40 bg-black/55 p-2.5 backdrop-blur-md sm:p-3"
+                className="rounded-xl border-2 border-yellow-700/40 bg-black/55 p-3 backdrop-blur-md sm:p-4"
                 aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
               >
                 <h2
                   className={`font-black tabular-nums leading-none text-yellow-400 ${
-                    dense ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'
+                    dense ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'
                   }`}
                 >
                   Table {table.tableNum}
                 </h2>
-                <ul className={`mt-2 space-y-1 ${dense ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'}`}>
+                <ul
+                  className={`mt-2.5 space-y-1.5 ${
+                    dense
+                      ? 'text-base font-bold leading-snug sm:text-lg md:text-xl'
+                      : 'text-xl font-bold leading-snug sm:text-2xl md:text-3xl'
+                  }`}
+                >
                   {table.seats.map((seat) => (
                     <li
                       key={seat.seatNum}
-                      className="flex min-w-0 items-baseline justify-between gap-2 border-b border-white/[0.06] py-1 last:border-0"
+                      className="min-w-0 border-b border-white/[0.06] py-1 last:border-0"
                     >
-                      <span className="min-w-0 truncate font-semibold text-white/92">
-                        <span className="font-mono text-[0.85em] tabular-nums text-yellow-400/85">
-                          {seat.seatNum}.
-                        </span>{' '}
+                      <span className="block min-w-0 truncate text-white/95">
+                        <span className="font-mono tabular-nums text-yellow-400/90">{seat.seatNum}.</span>{' '}
                         {seat.name}
-                      </span>
-                      <span className="shrink-0 font-mono text-[0.9em] font-bold tabular-nums text-emerald-400/95">
-                        {formatStack(seat.bankroll)}
                       </span>
                     </li>
                   ))}

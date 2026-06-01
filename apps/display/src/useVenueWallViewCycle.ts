@@ -55,13 +55,16 @@ export function useVenueWallViewCycle(args: {
     ],
   )
 
+  /** Reset cycle only when the view sequence changes — not on volatile playlist metadata. */
+  const playlistResetKey = `${playlist.views.join('|')}:${playlist.locked ? '1' : '0'}`
+
   const [viewIndex, setViewIndex] = useState(0)
   const [cycleTick, setCycleTick] = useState(0)
   const cycleStartRef = useRef(0)
 
   useEffect(() => {
     setViewIndex(0)
-  }, [playlist.key])
+  }, [playlistResetKey])
 
   const cycling =
     !playlist.locked && !prefersReducedMotion && playlist.views.length > 1
@@ -72,17 +75,17 @@ export function useVenueWallViewCycle(args: {
       setViewIndex((i) => (i + 1) % playlist.views.length)
     }, playlist.dwellMs)
     return () => window.clearInterval(id)
-  }, [cycling, playlist.dwellMs, playlist.views.length, playlist.key])
+  }, [cycling, playlist.dwellMs, playlist.views.length, playlistResetKey])
 
   useLayoutEffect(() => {
     cycleStartRef.current = Date.now()
-  }, [viewIndex, playlist.key])
+  }, [viewIndex, playlistResetKey])
 
   useEffect(() => {
     if (!cycling) return undefined
     const id = window.setInterval(() => setCycleTick((n) => n + 1), 50)
     return () => window.clearInterval(id)
-  }, [cycling, viewIndex, playlist.key])
+  }, [cycling, viewIndex, playlistResetKey])
 
   const cycleProgress = useMemo(() => {
     if (!cycling) return 0

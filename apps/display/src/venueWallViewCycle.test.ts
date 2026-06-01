@@ -76,6 +76,27 @@ describe('buildVenueWallViewPlaylist', () => {
     expect(plan.views).toEqual(['floor', 'actionTicker', 'heroSpotlight'])
   })
 
+  it('keeps a stable wagering playlist key while open-action count fluctuates', () => {
+    const rows = Array.from({ length: 8 }, (_, i) => tile({ tableNum: i + 1 }))
+    const full = buildVenueWallViewPlaylist({
+      tileRows: rows,
+      hostFocusTable: null,
+      showShowdownTour: false,
+      headlineAnswering: false,
+      answerDeadlineMs: null,
+    })
+    const fewerActions = buildVenueWallViewPlaylist({
+      tileRows: rows.map((r, i) => (i === 0 ? { ...r, isBettingOpen: false } : r)),
+      hostFocusTable: null,
+      showShowdownTour: false,
+      headlineAnswering: false,
+      answerDeadlineMs: null,
+    })
+    expect(full.key).toBe('wagering-8')
+    expect(fewerActions.key).toBe('wagering-8')
+    expect(fewerActions.views).toEqual(full.views)
+  })
+
   it('stays on floor for small venues', () => {
     const plan = buildVenueWallViewPlaylist({
       tileRows: [tile({ tableNum: 1 }), tile({ tableNum: 2 })],

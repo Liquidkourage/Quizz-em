@@ -111,7 +111,8 @@ export function buildVenueWallViewPlaylist(input: {
 
   if (openWagering && actionCount >= 2 && tableCount >= 6) {
     return {
-      key: `wagering-${actionCount}-${tableCount}`,
+      /** Stable key — actionCount fluctuates every snapshot while tables act. */
+      key: `wagering-${tableCount}`,
       views: ['floor', 'actionTicker', 'heroSpotlight'],
       dwellMs,
       locked: false,

@@ -14,12 +14,17 @@ function seatingTableCardStyle(seatCount: number): CSSProperties {
 
 const SEAT_NAME_FONT: CSSProperties = {
   fontSize:
-    'min(2.75rem, max(0.9rem, calc((100cqh - 1.1rem) / var(--seat-rows) * 0.92)))',
+    'min(2.75rem, max(0.9rem, calc((100cqh - 2.4rem) / var(--seat-rows) * 0.88)))',
+}
+
+const SEAT_NUM_FONT: CSSProperties = {
+  fontSize:
+    'min(2rem, max(0.78rem, calc((100cqh - 2.4rem) / var(--seat-rows) * 0.68)))',
 }
 
 const TABLE_TITLE_FONT: CSSProperties = {
   fontSize:
-    'min(1.35rem, max(0.7rem, calc((100cqh - 1.1rem) / var(--seat-rows) * 0.36)))',
+    'min(2.25rem, max(1.05rem, calc((100cqh - 2.4rem) / var(--seat-rows) * 0.56)))',
 }
 
 export type VenueSeatingChartProps = {
@@ -109,34 +114,48 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
               <article
                 key={table.tableNum}
                 style={seatingTableCardStyle(table.seats.length)}
-                className="@container/size flex h-full min-h-0 flex-col overflow-hidden rounded-lg border-2 border-yellow-700/40 bg-black/55 p-1 backdrop-blur-md sm:rounded-xl sm:p-1.5"
+                className="@container/size flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-amber-600/35 bg-slate-950/90 shadow-[inset_0_1px_0_rgba(251,191,36,0.08)] backdrop-blur-md sm:rounded-xl"
                 aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
               >
-                <h2
+                <div
                   style={TABLE_TITLE_FONT}
-                  className="shrink-0 truncate font-black leading-none tabular-nums text-yellow-400"
+                  className="shrink-0 border-b border-amber-500/40 bg-gradient-to-r from-amber-500/20 via-amber-400/12 to-amber-500/20 px-2 py-1 text-center font-black leading-none tabular-nums tracking-wide text-amber-100"
                 >
                   Table {table.tableNum}
-                </h2>
+                </div>
                 <ul
-                  className="mt-0.5 grid min-h-0 flex-1 gap-x-1.5"
+                  className="grid min-h-0 flex-1 gap-x-2 px-1 py-0.5"
                   style={{
                     gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
                     gridTemplateRows: `repeat(${seatRows}, minmax(0, 1fr))`,
                     gridAutoFlow: 'column',
                   }}
                 >
-                  {table.seats.map((seat) => (
-                    <li key={seat.seatNum} className="flex min-h-0 min-w-0 items-center leading-none">
+                  {table.seats.map((seat, seatIndex) => {
+                    const rowIndex = seatIndex % seatRows
+                    const colIndex = Math.floor(seatIndex / seatRows)
+                    const zebra = rowIndex % 2 === 0
+                    return (
+                    <li
+                      key={seat.seatNum}
+                      className={`flex min-h-0 min-w-0 items-center gap-1.5 rounded-sm px-1 leading-none ${
+                        zebra ? 'bg-white/[0.05]' : 'bg-transparent'
+                      } ${colIndex === 1 ? 'border-l border-amber-700/30' : ''}`}
+                    >
+                      <span
+                        style={SEAT_NUM_FONT}
+                        className="w-[1.15em] shrink-0 text-right font-mono font-black tabular-nums text-amber-300"
+                      >
+                        {seat.seatNum}
+                      </span>
                       <span
                         style={SEAT_NAME_FONT}
-                        className="block min-w-0 w-full truncate font-bold text-white/95"
+                        className="min-w-0 flex-1 truncate font-semibold text-slate-100"
                       >
-                        <span className="font-mono tabular-nums text-yellow-400/90">{seat.seatNum}.</span>{' '}
                         {seat.name}
                       </span>
                     </li>
-                  ))}
+                  )})}
                 </ul>
               </article>
             )})}

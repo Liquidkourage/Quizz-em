@@ -1841,6 +1841,7 @@ export default function VenueEightTablesPreview({
 
   const showRoster = rosterRowsFromTiles(tileRows).length > 0
   const compactVenueHeadline = floorLayoutTableCount >= 14
+  const ultraCompactVenueHeadline = floorLayoutTableCount >= 17
 
   const viewCycle = useVenueWallViewCycle({
     tileRows,
@@ -1871,7 +1872,7 @@ export default function VenueEightTablesPreview({
         className={`relative flex h-full min-h-0 flex-col overflow-hidden text-white ${
           showRoster ? VENUE_CRAWL_PR_CLASS : ''
         }`}
-        style={venueWallUiScaleFrameStyle()}
+        style={venueWallUiScaleFrameStyle(floorLayoutTableCount)}
       >
       <div className="pointer-events-none absolute inset-0 opacity-35">
         <div
@@ -1907,7 +1908,7 @@ export default function VenueEightTablesPreview({
         ) : floorTiles.length > 0 ? (
           <section
             aria-label="Venue floor — all populated tables"
-            className="flex min-h-0 flex-1 flex-col gap-1.5 sm:gap-2"
+            className={`flex min-h-0 flex-1 flex-col ${compactVenueHeadline ? 'gap-0.5' : 'gap-1.5 sm:gap-2'}`}
           >
             <p className="sr-only" aria-live="polite" aria-atomic="true">
               Venue floor
@@ -1916,9 +1917,11 @@ export default function VenueEightTablesPreview({
             {showHeadline ? (
               <motion.div
                 className={`sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:px-4 md:px-5 ${
-                  compactVenueHeadline
-                    ? 'gap-1.5 py-1.5 sm:gap-2'
-                    : 'gap-2 py-2 sm:gap-2.5 sm:py-2.5 md:gap-3 md:py-3'
+                  ultraCompactVenueHeadline
+                    ? 'gap-1 py-1'
+                    : compactVenueHeadline
+                      ? 'gap-1.5 py-1.5 sm:gap-2'
+                      : 'gap-2 py-2 sm:gap-2.5 sm:py-2.5 md:gap-3 md:py-3'
                 }`}
                 style={{
                   paddingTop: 'max(0.35rem, env(safe-area-inset-top, 0px))',
@@ -1929,9 +1932,11 @@ export default function VenueEightTablesPreview({
                 <div className="flex w-full min-w-0 items-stretch gap-2.5 sm:gap-4 md:gap-5">
                 <div
                   className={`pointer-events-none flex shrink-0 items-center self-center ${
-                    compactVenueHeadline
-                      ? 'w-[clamp(5.5rem,min(18vw,8rem),10rem)]'
-                      : 'w-[clamp(7.5rem,min(24vw,10rem),12.5rem)] sm:w-[clamp(8.25rem,min(28vw,11rem),13.5rem)] md:w-[clamp(9rem,min(26vw,12rem),14.5rem)]'
+                    ultraCompactVenueHeadline
+                      ? 'w-[clamp(4.75rem,min(15vw,7rem),8.5rem)]'
+                      : compactVenueHeadline
+                        ? 'w-[clamp(5.5rem,min(18vw,8rem),10rem)]'
+                        : 'w-[clamp(7.5rem,min(24vw,10rem),12.5rem)] sm:w-[clamp(8.25rem,min(28vw,11rem),13.5rem)] md:w-[clamp(9rem,min(26vw,12rem),14.5rem)]'
                   }`}
                 >
                   <div
@@ -1969,9 +1974,11 @@ export default function VenueEightTablesPreview({
                     {headlineQuestionDisplay ? (
                       <p
                         className={`text-balance text-left font-bold leading-snug tracking-tight text-yellow-400 ${
-                          compactVenueHeadline
-                            ? 'text-lg sm:text-xl md:text-[1.45rem] lg:text-[1.75rem] xl:text-[2rem]'
-                            : 'text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem]'
+                          ultraCompactVenueHeadline
+                            ? 'text-base sm:text-lg md:text-xl lg:text-[1.55rem]'
+                            : compactVenueHeadline
+                              ? 'text-lg sm:text-xl md:text-[1.45rem] lg:text-[1.75rem] xl:text-[2rem]'
+                              : 'text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem]'
                         }`}
                       >
                         {headlineQuestionDisplay}

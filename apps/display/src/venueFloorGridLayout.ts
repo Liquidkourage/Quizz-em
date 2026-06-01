@@ -299,6 +299,11 @@ export type VenueFloorDenseTuning = {
   paddingBottomRem: number
   gridInsetClass: string
   potSubtitleWrapClass: string
+  potSubtitleClass: string
+  cardPaddingClass: string
+  tableNumClass: string
+  phaseChipClass: string
+  potClass: string
 }
 
 /** Four-row floors (17–20 tables) — tighten gaps when a headline steals vertical space. */
@@ -309,12 +314,18 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 0.4 : 0.5,
-    cellGapRem: headline ? 0.5 : 0.58,
-    paddingTopRem: headline ? 0.1 : 0.3,
-    paddingBottomRem: headline ? 0.35 : 0.55,
-    gridInsetClass: 'px-1.5 sm:px-2',
-    potSubtitleWrapClass: 'px-0.5 py-0.5',
+    rowGapRem: headline ? 0.26 : 0.38,
+    cellGapRem: headline ? 0.36 : 0.48,
+    paddingTopRem: headline ? 0 : 0.2,
+    paddingBottomRem: headline ? 0.1 : 0.35,
+    gridInsetClass: 'px-1 sm:px-1.5',
+    potSubtitleWrapClass: 'px-0.5 py-0',
+    potSubtitleClass:
+      'text-[clamp(0.52rem,3.8cqw,0.76rem)] font-black leading-none tracking-tight text-amber-50',
+    cardPaddingClass: 'p-0.5',
+    tableNumClass: 'text-sm sm:text-base',
+    phaseChipClass: 'px-1 py-0.5 text-[8px] sm:text-[9px]',
+    potClass: 'text-[clamp(0.82rem,4.6cqw,1.22rem)]',
   }
 }
 
@@ -328,5 +339,10 @@ export function applyVenueFloorDenseTuning(
     rowGapRem: tuning.rowGapRem,
     cellGapRem: tuning.cellGapRem,
     potSubtitleWrapClass: tuning.potSubtitleWrapClass,
+    potSubtitleClass: tuning.potSubtitleClass,
+    cardPaddingClass: tuning.cardPaddingClass,
+    tableNumClass: tuning.tableNumClass,
+    phaseChipClass: tuning.phaseChipClass,
+    potClass: tuning.potClass,
   }
 }

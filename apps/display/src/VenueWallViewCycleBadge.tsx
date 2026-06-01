@@ -20,7 +20,7 @@ export default function VenueWallViewCycleBadge({
 
   return (
     <div
-      className="pointer-events-none absolute bottom-2 left-2 z-30 max-w-[min(14rem,42vw)] rounded-lg border border-white/15 bg-black/70 px-2 py-1.5 backdrop-blur-md sm:bottom-3 sm:left-3"
+      className="pointer-events-none absolute left-2 top-2 z-30 max-w-[min(14rem,42vw)] rounded-lg border border-white/15 bg-black/70 px-2 py-1.5 backdrop-blur-md sm:left-3 sm:top-3"
       aria-hidden
     >
       <div className="flex items-center gap-2">

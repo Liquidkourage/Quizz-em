@@ -1047,15 +1047,15 @@ function resolveDisplayLayoutForHello(venueCode: string, data: ClientHello): Dis
   const stored = venueDisplayLayouts.get(k)
   if (stored != null) return coerceDisplayLayoutPayload(stored)
   if (data.displayVenueWall) {
-    return {
+    return normalizeDisplayLayoutPayload({
       layout: 'venueWall',
       focusTable: normalizeDisplayFocusTable(data.displayFocusTable),
-    }
+    })
   }
   const tid = normalizeTableId(data.tableId ?? '1')
   const n = Number.parseInt(String(tid), 10)
   const focus = Number.isInteger(n) && n >= 1 && n <= VENUE_NUMBERED_TABLE_MAX ? n : null
-  return { layout: 'venueWall', focusTable: focus }
+  return normalizeDisplayLayoutPayload({ layout: 'venueWall', focusTable: focus })
 }
 
 const DISPLAY_PAIRING_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'

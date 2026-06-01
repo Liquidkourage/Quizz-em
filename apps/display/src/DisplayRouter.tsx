@@ -89,6 +89,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     onVenueWallLayout &&
     !audienceBriefing &&
     !mosaicForcedByHost &&
+    wallView !== 'leaderboard' &&
     venueWallShowSeatingChart(venueWall, tileRows)
   const showLeaderboard =
     onVenueWallLayout &&
@@ -97,7 +98,8 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     wallView === 'leaderboard' &&
     venueWall != null
 
-  const connectFingerprint = `${venueCode}:wall:${wallView}:w${layout.focusTable ?? 'h'}`
+  /** Reconnect only when venue or host spotlight changes — not when toggling floor ↔ leaderboard. */
+  const connectFingerprint = `${venueCode}:focus:${layout.focusTable ?? 'none'}`
 
   useEffect(() => {
     const hostFocus = layout.focusTable
@@ -105,8 +107,12 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     const tableForHello = '1'
 
     function handleDisplayLayout(next: DisplayLayoutPayload) {
-      layoutRef.current = next
-      setLayout(next)
+      const merged: DisplayLayoutPayload = {
+        ...next,
+        wallView: next.wallView ?? layoutRef.current.wallView ?? 'floor',
+      }
+      layoutRef.current = merged
+      setLayout(merged)
     }
 
     function handleLocalLayoutRelay(next: DisplayLayoutPayload) {
@@ -129,7 +135,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       offLocal()
       disconnectSock()
     }
-  }, [connectFingerprint, venueCode, layout.focusTable])
+  }, [connectFingerprint, venueCode])
 
   useEffect(() => {
     if (!venueWall) {

@@ -91,14 +91,17 @@ function seatedVenueBeatRows(venueBeat: HostVenueFeltBeatRow[] | null): HostVenu
   return venueBeat?.filter((r) => r.active && r.seated > 0) ?? []
 }
 
-function unanimousVenueBeatPhase(venueBeat: HostVenueFeltBeatRow[] | null): string | null {
+/** Seated felts first; if none, any felt reporting an in-hand phase (covers seat-count lag). */
+function venueBeatRowsForHostControl(venueBeat: HostVenueFeltBeatRow[] | null): HostVenueFeltBeatRow[] {
   const seated = seatedVenueBeatRows(venueBeat)
-  if (seated.length === 0) return null
-  const phases = new Set(seated.map((r) => r.phase))
-  if (phases.size !== 1) return null
-  const phase = [...phases][0]!
-  return phase === 'inactive' ? null : phase
+  if (seated.length > 0) return seated
+  return (
+    venueBeat?.filter(
+      (r) => r.phase !== 'inactive' && r.phase !== 'lobby' && r.phaseStrictSig != null && r.phaseStrictSig !== '',
+    ) ?? []
+  )
 }
+
 
 function unanimousVenueBeatSig(venueBeat: HostVenueFeltBeatRow[] | null): string | null {
   const seated = seatedVenueBeatRows(venueBeat)
@@ -130,12 +133,11 @@ function venueBeatPhasePriority(phase: string): number {
   }
 }
 
-function pickDominantVenueBeatRow(venueBeat: HostVenueFeltBeatRow[] | null): HostVenueFeltBeatRow | null {
-  const seated = seatedVenueBeatRows(venueBeat)
-  if (seated.length === 0) return null
+function pickDominantVenueBeatRow(rows: HostVenueFeltBeatRow[]): HostVenueFeltBeatRow | null {
+  if (rows.length === 0) return null
   let best: HostVenueFeltBeatRow | null = null
   let bestPri = -1
-  for (const row of seated) {
+  for (const row of rows) {
     const pri = venueBeatPhasePriority(row.phase)
     if (
       pri > bestPri ||
@@ -149,6 +151,40 @@ function pickDominantVenueBeatRow(venueBeat: HostVenueFeltBeatRow[] | null): Hos
   return best
 }
 
+function bettingBeatProgressScore(sig: string | null): number {
+  if (sig == null) return -1
+  const m = /^bet\|(\d+)\|([TF?])\|cc(\d+)$/.exec(sig)
+  if (!m) return 0
+  const br = Number(m[1]) || 0
+  const open = m[2] === 'T'
+  const cc = Number(m[3]) || 0
+  return br * 100 + cc * 10 + (open ? 0 : 5)
+}
+
+function pickBestRowForUnanimousPhase(
+  rows: HostVenueFeltBeatRow[],
+  phase: string,
+): HostVenueFeltBeatRow {
+  const samePhase = rows.filter((r) => r.phase === phase)
+  if (samePhase.length === 0) return rows[0]!
+  if (phase !== 'betting' || samePhase.length === 1) return samePhase[0]!
+  return samePhase.reduce((best, row) =>
+    bettingBeatProgressScore(row.phaseStrictSig) > bettingBeatProgressScore(best.phaseStrictSig) ? row : best,
+  )
+}
+
+function shouldMirrorVenueBeatForHost(
+  gameState: GameState,
+  resolved: ResolvedVenueBeat,
+): boolean {
+  const tableId = gameState.tableId ?? ''
+  if (tableId === LOBBY_TABLE_ID) return true
+  if (resolved.phase === 'lobby' || resolved.phase === 'inactive') return false
+  const hostPri = venueBeatPhasePriority(gameState.phase)
+  const beatPri = venueBeatPhasePriority(resolved.phase)
+  return gameState.phase === 'lobby' || beatPri > hostPri
+}
+
 type ResolvedVenueBeat = {
   phase: string
   sig: string | null
@@ -157,21 +193,27 @@ type ResolvedVenueBeat = {
 }
 
 function resolveVenueBeatForHost(venueBeat: HostVenueFeltBeatRow[] | null): ResolvedVenueBeat | null {
-  const seated = seatedVenueBeatRows(venueBeat)
-  if (seated.length === 0) return null
+  const rows = venueBeatRowsForHostControl(venueBeat)
+  if (rows.length === 0) return null
 
-  const unanimousPhase = unanimousVenueBeatPhase(venueBeat)
-  if (unanimousPhase != null) {
-    const row = seated.find((r) => r.phase === unanimousPhase) ?? seated[0]!
+  const phases = new Set(rows.map((r) => r.phase))
+  const unanimousPhase = phases.size === 1 ? [...phases][0]! : null
+  if (unanimousPhase != null && unanimousPhase !== 'inactive') {
+    const sig = unanimousVenueBeatSig(venueBeat)
+    const row = pickBestRowForUnanimousPhase(rows, unanimousPhase)
+    const misaligned =
+      unanimousPhase === 'betting' &&
+      sig == null &&
+      rows.some((r) => r.phase === 'betting' && r.phaseStrictSig !== row.phaseStrictSig)
     return {
       phase: unanimousPhase,
-      sig: unanimousVenueBeatSig(venueBeat) ?? row.phaseStrictSig,
+      sig: sig ?? row.phaseStrictSig,
       row,
-      misaligned: false,
+      misaligned,
     }
   }
 
-  const dominant = pickDominantVenueBeatRow(venueBeat)
+  const dominant = pickDominantVenueBeatRow(rows)
   if (dominant == null || dominant.phase === 'lobby' || dominant.phase === 'inactive') return null
 
   return {
@@ -234,7 +276,8 @@ function runOfShowStepFromBeatPhase(
     return 'start'
   }
   if (phase === 'question') return 'question'
-  if (phase === 'betting' && sig) {
+  if (phase === 'betting') {
+    if (!sig) return 'close-bet-2'
     const m = /^bet\|(\d+)\|([TF?])\|cc(\d+)$/.exec(sig)
     if (m) {
       const br = m[1]
@@ -261,26 +304,24 @@ export function hostControlGameStateFromBeat(
   gameState: GameState,
   venueBeat: HostVenueFeltBeatRow[] | null,
 ): GameState {
-  const tableId = gameState.tableId ?? ''
-  if (tableId !== LOBBY_TABLE_ID) return gameState
   const resolved = resolveVenueBeatForHost(venueBeat)
-  if (resolved == null || resolved.phase === 'lobby') return gameState
+  if (resolved == null || resolved.phase === 'lobby' || !shouldMirrorVenueBeatForHost(gameState, resolved)) {
+    return gameState
+  }
   return syntheticControlStateFromBeatRow(gameState, resolved.phase, resolved.sig, resolved.row)
 }
 
-/** Run-of-show step — uses venue felts when host view is the lobby pool. */
+/** Run-of-show step — uses venue felts when the host session is stale vs the floor. */
 export function resolveRunOfShowStepForHost(
   gameState: GameState,
   venueBeat: HostVenueFeltBeatRow[] | null,
 ): RunOfShowStepId {
-  const tableId = gameState.tableId ?? ''
-  if (tableId !== LOBBY_TABLE_ID) return resolveRunOfShowCurrentStepId(gameState)
-
   const resolved = resolveVenueBeatForHost(venueBeat)
-  if (resolved == null) return resolveRunOfShowCurrentStepId(gameState)
-
-  const step = runOfShowStepFromBeatPhase(resolved.phase, resolved.sig, gameState)
-  return step ?? resolveRunOfShowCurrentStepId(gameState)
+  if (resolved != null && shouldMirrorVenueBeatForHost(gameState, resolved)) {
+    const step = runOfShowStepFromBeatPhase(resolved.phase, resolved.sig, gameState)
+    if (step != null) return step
+  }
+  return resolveRunOfShowCurrentStepId(gameState)
 }
 
 export function resolveRunOfShowCurrentStepId(gameState: GameState): RunOfShowStepId {

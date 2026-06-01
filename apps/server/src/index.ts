@@ -2115,6 +2115,7 @@ io.on('connection', (socket) => {
     if (role === 'host') {
       socket.join(hostVenueRoom(venueCode))
       socket.emit('hostLibrary', await buildHostLibraryPayload(venueCode))
+      emitDisplayVenueSnapshotNow(venueCode)
     }
 
     if (role === 'display') {
@@ -2889,20 +2890,45 @@ io.on('connection', (socket) => {
           
         case 'revealAnswer': {
           if (!assertVenueHost(socket, gameState)) break
-          const lockRev = requireVenueLockstepTables(
-            socket,
-            gameState.code,
-            (gs) => gs.phase === 'answering',
-            'wait until every table is in the same trivia answer window before revealing',
-          )
-          if (!lockRev) break
-          for (const { tk } of lockRev) {
+          const vnRev = normalizeVenueCode(gameState.code)
+          const rowsRev = venuePlayableSnapshots(vnRev)
+          if (rowsRev.length === 0) {
+            socket.emit('toast', 'No playable tables yet — assign the lobby first.')
+            break
+          }
+          const answeringRows = rowsRev.filter((r) => r.gs.phase === 'answering')
+          if (answeringRows.length === 0) {
+            const sample = rowsRev[0]!.gs
+            socket.emit(
+              'toast',
+              `No table is in the answer window yet (yours collectively: ${humanReadableStrictState(sample)}). Wait for answering or use Host overrides.`,
+            )
+            break
+          }
+          const stragglers = rowsRev.filter((r) => r.gs.phase !== 'answering' && r.gs.phase !== 'showdown')
+          if (stragglers.length > 0) {
+            const nums = stragglers
+              .map((r) => (Number.isFinite(r.n) ? String(r.n) : '?'))
+              .sort()
+              .join(', ')
+            socket.emit(
+              'toast',
+              `Revealing on ${answeringRows.length} table(s) in answering — tables ${nums} are still catching up.`,
+            )
+          }
+          for (const { tk } of answeringRows) {
             let gs = rooms.get(tk)
+            if (!gs || gs.phase !== 'answering') continue
             gs = revealAnswer(gs)
             rooms.set(tk, gs)
             emitVenueTableState(tk, gs)
           }
-          socket.emit('toast', 'Answers revealed — every table at this venue.')
+          socket.emit(
+            'toast',
+            stragglers.length === 0
+              ? 'Answers revealed — every table at this venue.'
+              : `Answers revealed on ${answeringRows.length} table(s).`,
+          )
           gameState = rooms.get(sessionKey)!
           break
         }

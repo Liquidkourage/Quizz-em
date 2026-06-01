@@ -11,8 +11,6 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAct
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import type { VenueFeaturedWatch } from './useVenueWallFeaturedWatch.ts'
 import { useVenueWallViewCycle } from './useVenueWallViewCycle.ts'
-import VenueWallActionTicker from './VenueWallActionTicker.tsx'
-import VenueWallViewCycleBadge from './VenueWallViewCycleBadge.tsx'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import {
   buildFloorShowdownPresentation,
@@ -724,10 +722,10 @@ function SeatRingWithLabels({
   /** Spotlight hero — wide capsule; mosaic tiles use smaller md ring below. */
   const lgRing =
     'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
-  /** Mosaic crawl — stadium capsule; height-first in honeycomb rows so header + captions fit. */
+  /** Mosaic crawl — stadium capsule; fill the grid cell (width-first, height capped). */
   const mdRing = isMosaic
     ? mosaicFluidWidth
-      ? 'relative mx-auto aspect-[8/5] h-full w-auto max-h-full max-w-full min-h-0 min-w-0'
+      ? 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
@@ -1329,7 +1327,7 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container/size relative z-[1] flex min-h-0 w-full items-center justify-center overflow-hidden ${floorSize.ringScaleClass} ${
+          className={`@container/size relative z-[1] flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden ${floorSize.ringScaleClass} ${
             feltFillsCell ? 'col-start-1 row-start-2' : shrinkWrapRowHeight ? 'shrink-0' : 'flex-1'
           }`}
         >
@@ -1593,7 +1591,7 @@ function VenueAerialFloorGrid({
   return (
     <motion.section
       aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, checkerboard half-stagger`}
-      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
       initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -1872,7 +1870,7 @@ export default function VenueEightTablesPreview({
         className={`relative flex h-full min-h-0 flex-col overflow-hidden text-white ${
           showRoster ? VENUE_CRAWL_PR_CLASS : ''
         }`}
-        style={venueWallUiScaleFrameStyle(floorLayoutTableCount)}
+        style={venueWallUiScaleFrameStyle()}
       >
       <div className="pointer-events-none absolute inset-0 opacity-35">
         <div
@@ -2085,7 +2083,7 @@ export default function VenueEightTablesPreview({
                     />
                   ) : (
                     <>
-                      <div className="min-h-0 flex-1">
+                      <div className="flex h-full min-h-0 flex-1 flex-col">
                         <VenueAerialFloorGrid
                           tiles={floorTiles}
                           layoutTableCount={floorLayoutTableCount}
@@ -2094,23 +2092,10 @@ export default function VenueEightTablesPreview({
                           prefersReducedMotion={prefersReducedMotion}
                         />
                       </div>
-                      {viewCycle.activeView === 'actionTicker' ? (
-                        <VenueWallActionTicker
-                          lines={viewCycle.tickerLines}
-                          prefersReducedMotion={prefersReducedMotion}
-                        />
-                      ) : null}
                     </>
                   )}
                 </motion.div>
               </AnimatePresence>
-              <VenueWallViewCycleBadge
-                label={viewCycle.activeLabel}
-                cycling={viewCycle.cycling}
-                cycleProgress={viewCycle.cycleProgress}
-                viewIndex={viewCycle.viewIndex}
-                viewCount={viewCycle.viewCount}
-              />
             </div>
           </section>
         ) : tileRows.length > 0 ? (

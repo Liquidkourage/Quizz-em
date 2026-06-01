@@ -64,7 +64,7 @@ describe('buildVenueWallViewPlaylist', () => {
     expect(plan.views).toEqual(['floor', 'showdownSpotlight'])
   })
 
-  it('includes action ticker when many tables have open action', () => {
+  it('cycles floor and hero spotlight during open wagering', () => {
     const rows = Array.from({ length: 8 }, (_, i) => tile({ tableNum: i + 1 }))
     const plan = buildVenueWallViewPlaylist({
       tileRows: rows,
@@ -73,7 +73,7 @@ describe('buildVenueWallViewPlaylist', () => {
       headlineAnswering: false,
       answerDeadlineMs: null,
     })
-    expect(plan.views).toEqual(['floor', 'actionTicker', 'heroSpotlight'])
+    expect(plan.views).toEqual(['floor', 'heroSpotlight'])
   })
 
   it('keeps a stable wagering playlist key while open-action count fluctuates', () => {

@@ -66,7 +66,6 @@ export function buildVenueWallViewPlaylist(input: {
   const { tileRows, hostFocusTable, showShowdownTour, headlineAnswering, answerDeadlineMs } = input
   const populated = tileRows.filter((t) => t.seated > 0)
   const tableCount = populated.length
-  const actionCount = venueTablesWithOpenAction(tileRows)
   const openWagering = venueHasOpenWagering(tileRows)
   const dwellMs = VENUE_WALL_VIEW_DWELL_MS
 
@@ -109,19 +108,9 @@ export function buildVenueWallViewPlaylist(input: {
     }
   }
 
-  if (openWagering && actionCount >= 2 && tableCount >= 6) {
+  if (openWagering && tableCount >= 6) {
     return {
-      /** Stable key — actionCount fluctuates every snapshot while tables act. */
       key: `wagering-${tableCount}`,
-      views: ['floor', 'actionTicker', 'heroSpotlight'],
-      dwellMs,
-      locked: false,
-    }
-  }
-
-  if (openWagering && actionCount >= 1 && tableCount >= 10) {
-    return {
-      key: `wagering-lite-${tableCount}`,
       views: ['floor', 'heroSpotlight'],
       dwellMs,
       locked: false,

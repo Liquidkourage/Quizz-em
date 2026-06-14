@@ -56,6 +56,25 @@ export function normalizeDisplayLayoutPayload(
   return { layout: 'venueWall', focusTable, wallView }
 }
 
+/** Lightweight venue context for player phones (mirrors display wall header fields). */
+export type PlayerVenueBrief = {
+  setlistCueNumber?: number | null
+  setlistCueTotal?: number | null
+  venueChipSurvivorCount?: number | null
+  venueLiveTableCount?: number | null
+  venueSmallBlind?: number | null
+  venueBigBlind?: number | null
+  blindLevelNumber?: number | null
+  blindLevelCount?: number | null
+  handsUntilNextBlindLevel?: number | null
+  venueNextCondenseAtSurvivors?: number | null
+}
+
+/** Server `state` payload may include wire-only timing metadata. */
+export type PlayerGameStateWire = GameState & {
+  serverNowMs?: number
+}
+
 /** Mosaic row for `/display` venue wall — derived live from numbered table sessions (1…N). */
 export type DisplayVenueTileSnapshot = {
   tableNum: number
@@ -366,6 +385,8 @@ export interface ServerToClientEvents {
   displayLayout: (layout: DisplayLayoutPayload) => void
   /** Venue wall mosaic + current question / answer timer */
   displayVenueSnapshot: (payload: DisplayVenueWallSnapshot) => void
+  /** Player phones: venue-wide blinds, cue, survivor counts (updates with venue wall). */
+  playerVenueBrief: (payload: PlayerVenueBrief) => void
   /** Display pairing: TV shows this 4-character code until the host claims it */
   displayPairingCode: (payload: { code: string }) => void
   /** Pairing succeeded — UI should reconnect / promote as this venue display */

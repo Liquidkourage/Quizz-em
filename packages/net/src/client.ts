@@ -12,6 +12,8 @@ import type {
   HostVenueGameplayHintsPayload,
   HostVenueFeltBeatPayload,
   HostVenueFloorBriefPayload,
+  PlayerGameStateWire,
+  PlayerVenueBrief,
 } from './index'
 import { normalizeDisplayLayoutPayload } from './index'
 
@@ -120,7 +122,7 @@ export function connect(
   }
 }
 
-export function onState(callback: (state: GameState) => void) {
+export function onState(callback: (state: PlayerGameStateWire) => void) {
   if (!socket) return () => {}
 
   socket.on('state', callback)
@@ -129,6 +131,15 @@ export function onState(callback: (state: GameState) => void) {
     if (socket) {
       socket.off('state', callback)
     }
+  }
+}
+
+export function onPlayerVenueBrief(callback: (payload: PlayerVenueBrief) => void) {
+  if (!socket) return () => {}
+
+  socket.on('playerVenueBrief', callback)
+  return () => {
+    if (socket) socket.off('playerVenueBrief', callback)
   }
 }
 

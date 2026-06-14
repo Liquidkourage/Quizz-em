@@ -59,6 +59,7 @@ import type {
   DisplayVenueTileSnapshot,
   DisplayVenueWallSnapshot,
   HostVenueFeltBeatRow,
+  PlayerVenueBrief,
   ServerAck, 
   DealCardsAction,
   BetAction,
@@ -1001,6 +1002,54 @@ function displayVenueRoom(venueCode: string): string {
   return `DISPLAY:${normalizeVenueCode(venueCode)}`
 }
 
+function playerVenueRoom(venueCode: string): string {
+  return `PLAYER:${normalizeVenueCode(venueCode)}`
+}
+
+function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
+  const vn = normalizeVenueCode(vnRaw)
+  const blindsSnap = hostLibraryBlindsPayload(vn)
+  const ph = getPlayhead(vn)
+  const lib = venueLibraries.get(vn)
+  let setlistCueNumber: number | null = null
+  let setlistCueTotal: number | null = null
+  if (ph.setlistId && lib) {
+    const sl = lib.setlists.find((s) => s.id === ph.setlistId)
+    if (sl && sl.questionIds.length > 0) {
+      setlistCueTotal = sl.questionIds.length
+      if (ph.nextIndex > 0 && ph.nextIndex <= sl.questionIds.length) {
+        setlistCueNumber = ph.nextIndex
+      }
+    }
+  }
+  const condenseCounts = venueCondenseSnapshotFromRooms({
+    venueCode: vn,
+    getState: (tk) => rooms.get(tk),
+    tableNumFromSessionKey,
+    allTableSessionKeys: allTableSessionsInVenue,
+  })
+  const condenseDisplay = venueCondenseDisplayFields({
+    liveTableCount: condenseCounts.liveTableCount,
+    chipSurvivorCount: condenseCounts.chipSurvivorCount,
+  })
+  return {
+    setlistCueNumber,
+    setlistCueTotal,
+    venueChipSurvivorCount: condenseCounts.chipSurvivorCount,
+    venueLiveTableCount: condenseCounts.liveTableCount,
+    venueSmallBlind: blindsSnap.smallBlind,
+    venueBigBlind: blindsSnap.bigBlind,
+    blindLevelNumber: blindsSnap.blindLevelIndex + 1,
+    blindLevelCount: blindsSnap.blindLevelCount,
+    handsUntilNextBlindLevel: blindsSnap.handsUntilNextLevel,
+    venueNextCondenseAtSurvivors: condenseDisplay.nextCondenseAtSurvivors,
+  }
+}
+
+function emitPlayerVenueBriefNow(vnRaw: string) {
+  io.to(playerVenueRoom(vnRaw)).emit('playerVenueBrief', buildPlayerVenueBrief(vnRaw))
+}
+
 const venueDisplayLayouts = new Map<string, DisplayLayoutPayload>()
 
 function normalizeDisplayFocusTable(raw: unknown): number | null {
@@ -1853,6 +1902,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     venueTargetTablesAfterCondense: condenseDisplay.targetTablesAfterCondense,
   }
   io.to(displayVenueRoom(vn)).emit('displayVenueSnapshot', payload)
+  emitPlayerVenueBriefNow(vn)
   const livelyTableNums = tiles
     .filter((t) => t.interestingAction === true)
     .map((t) => t.tableNum)
@@ -1882,7 +1932,7 @@ function emitVenueTableState(
   gs: GameState,
   opts?: { skipOrchestration?: boolean }
 ) {
-  io.to(sessionKey).emit('state', gs)
+  io.to(sessionKey).emit('state', { ...gs, serverNowMs: Date.now() })
   afterTableStateBroadcast(gs, sessionKey)
   if (!opts?.skipOrchestration) {
     applyVenueWageringOrchestration(gs.code)
@@ -2147,6 +2197,7 @@ io.on('connection', (socket) => {
     }
 
     if (role === 'player') {
+      socket.join(playerVenueRoom(venueCode))
       gameState = addPlayer(gameState, socket.id, name)
     }
 
@@ -2157,6 +2208,9 @@ io.on('connection', (socket) => {
     socket.emit('ack', ack)
 
     emitVenueTableState(helloSessionKey, gameState)
+    if (role === 'player') {
+      emitPlayerVenueBriefNow(venueCode)
+    }
   })
 
   socket.on('action', async (data: any) => {

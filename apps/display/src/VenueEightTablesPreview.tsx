@@ -1284,26 +1284,14 @@ function VenueMosaicTableCard({
           }`}
         >
         <div
-          className={`grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-x-1 ${
-            denseMosaicChrome ? 'min-h-[clamp(2.5rem,22cqh,3.5rem)]' : ''
-          } ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-x-1 ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
           <div className="min-w-0 justify-self-start">
-            {denseMosaicChrome ? (
-              <div
-                className={`flex flex-col font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
-              >
-                <span className="uppercase tracking-tight">Table</span>
-                <span>{tn}</span>
-              </div>
-            ) : (
-              <div
-                className={`flex items-baseline gap-1 font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
-              >
-                <span className="uppercase tracking-tight">Table</span>
-                <span>{tn}</span>
-              </div>
-            )}
+            <div
+              className={`font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
+            >
+              {tn}
+            </div>
           </div>
           {!showFloorShowdownOverlay ? (
             <div

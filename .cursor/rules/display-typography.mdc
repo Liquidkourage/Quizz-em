@@ -1,0 +1,41 @@
+---
+description: Public display text must use viewport-height sizing — 5vh minimum, ~10vh for primary copy.
+globs: apps/display/**
+alwaysApply: false
+---
+
+# Public display typography (viewport height)
+
+Text on the **venue / TV display** (`apps/display/**`) must stay legible from across a room. **Every visible text node** must meet these floors:
+
+| Role | Minimum size |
+|------|----------------|
+| **Primary** (titles, table numbers, player names, questions, phase labels, countdowns) | **~10% of screen height** (`10vh`, or `clamp` centered on `10vh`) |
+| **Secondary** (subtitles, seat labels, pager counts, metadata, captions) | **≥ 5% of screen height** (`5vh` minimum) |
+
+Nothing on the display may render smaller than **5vh** — including “fine print”, badges, dots labels, and roster rows.
+
+## Implementation
+
+- Prefer **`vh`** (or **`cqh`** inside a full-viewport container) over fixed `px`, `rem`, or Tailwind `text-xs` / `text-sm` for display copy.
+- Use **`clamp(min, preferred, max)`** when a line must not overflow on short viewports, but keep the **minimum at `5vh`** (primary at **`~10vh`**).
+- Decorative-only elements (pager dots with no text) are exempt; **any legible characters are not**.
+
+```tsx
+// ❌ BAD — fixed small type, unreadable on a venue TV
+<p className="text-xs text-white/45">Tables 11–15 of 20</p>
+<h1 className="text-2xl font-black">Seating assignments</h1>
+
+// ✅ GOOD — secondary ≥ 5vh, primary ~ 10vh
+<p className="text-[5vh] leading-tight text-white/65">Tables 11–15 of 20</p>
+<h1 className="text-[10vh] font-black leading-none">Seating assignments</h1>
+
+// ✅ GOOD — clamp keeps primary near 10vh on tall screens
+<h1 className="text-[clamp(5vh,10vh,12vh)] font-black">Seating assignments</h1>
+```
+
+## Checklist before merging display UI changes
+
+- [ ] No display copy uses Tailwind `text-xs`, `text-sm`, `text-base`, or arbitrary px/rem below **5vh** equivalent.
+- [ ] Headlines, table numbers, player names, and main phase/question text target **~10vh**.
+- [ ] Secondary labels (seat numbers, roster table/seat lines, pager counts) are **≥ 5vh**.

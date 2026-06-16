@@ -217,7 +217,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
         <main className="flex min-h-0 flex-1 overflow-hidden pb-3 pt-2 sm:pb-4 sm:pt-2.5">
           <SeatingChartNameRoster title="A–M" entries={rosterHalves.am} align="left" />
 
-          <div className="flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden px-2 sm:px-3">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2 sm:px-3">
             <div className="relative flex min-h-0 flex-1 flex-col items-center overflow-hidden">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div

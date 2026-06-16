@@ -57,13 +57,14 @@ describe('seatingChartRosterHalves', () => {
 
 describe('seatingChartRosterPageEntries', () => {
   it('pages long rosters', () => {
-    const entries = Array.from({ length: 20 }, (_, i) => ({
+    const total = SEATING_CHART_ROSTER_PAGE_SIZE + 8
+    const entries = Array.from({ length: total }, (_, i) => ({
       name: `Player ${i}`,
       tableNum: 1,
       seatNum: 1,
     }))
     expect(seatingChartRosterPageCount(entries.length)).toBe(2)
     expect(seatingChartRosterPageEntries(entries, 0)).toHaveLength(SEATING_CHART_ROSTER_PAGE_SIZE)
-    expect(seatingChartRosterPageEntries(entries, 1)).toHaveLength(20 - SEATING_CHART_ROSTER_PAGE_SIZE)
+    expect(seatingChartRosterPageEntries(entries, 1)).toHaveLength(total - SEATING_CHART_ROSTER_PAGE_SIZE)
   })
 })

@@ -29,11 +29,13 @@ function SeatingTableCard({
         </span>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-rows-[minmax(10.5rem,1.55fr)_auto] gap-3 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
-        <div className="flex min-h-[10.5rem] items-center justify-center border-b border-white/[0.06] pb-4 sm:min-h-[11.5rem] sm:pb-5">
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-2 px-3 py-2 sm:px-4 sm:py-3">
+        <div className="flex min-h-0 items-center justify-center overflow-hidden border-b border-white/[0.06] pb-2 sm:pb-3">
           <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
         </div>
-        <SeatingPlayerList seats={table.seats} />
+        <div className="flex min-h-0 flex-col justify-center overflow-hidden">
+          <SeatingPlayerList seats={table.seats} />
+        </div>
       </div>
     </article>
   )
@@ -120,7 +122,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
       </div>
 
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden text-white">
-        <header className="shrink-0 border-b border-yellow-700/25 bg-black/35 px-6 py-4 backdrop-blur-md sm:px-8 sm:py-5">
+        <header className="shrink-0 border-b border-yellow-700/25 bg-black/35 px-6 py-3 backdrop-blur-md sm:px-8 sm:py-3.5">
           <div
             className="mx-auto flex w-full items-center gap-x-5 gap-y-3 sm:gap-x-6"
             style={{ maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem` }}
@@ -145,34 +147,40 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
           </div>
         </header>
 
-        <main className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-6 px-4 py-5 sm:gap-8 sm:px-6 sm:py-6">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={pageIndex}
-              className="grid w-full items-stretch gap-5 sm:gap-6"
-              style={{
-                maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem`,
-                gridTemplateColumns: `repeat(${pageGrid.columns}, minmax(0, 1fr))`,
-                gridTemplateRows: `repeat(${pageGrid.rowCount}, minmax(0, 1fr))`,
-              }}
-              initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            >
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-3 pt-2 sm:px-6 sm:pb-4 sm:pt-2.5">
+          <div className="relative flex min-h-0 flex-1 flex-col items-center overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={pageIndex}
+                className="grid h-full min-h-0 w-full max-h-full flex-1 items-stretch gap-3 sm:gap-4"
+                style={{
+                  maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem`,
+                  gridTemplateColumns: `repeat(${pageGrid.columns}, minmax(0, 1fr))`,
+                  gridTemplateRows: `repeat(${pageGrid.rowCount}, minmax(0, 1fr))`,
+                }}
+                initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              >
               {pageTables.map((table) => (
-                <SeatingTableCard key={table.tableNum} table={table} />
+                <div key={table.tableNum} className="flex min-h-0 h-full min-w-0">
+                  <SeatingTableCard table={table} />
+                </div>
               ))}
-            </motion.div>
-          </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
           {showPager ? (
-            <SeatingChartPager
-              pageIndex={pageIndex}
-              pageCount={pageCount}
-              tableRange={pageMeta.tableRange}
-              tableTotal={tables.length}
-            />
+            <div className="shrink-0 pt-2 sm:pt-2.5">
+              <SeatingChartPager
+                pageIndex={pageIndex}
+                pageCount={pageCount}
+                tableRange={pageMeta.tableRange}
+                tableTotal={tables.length}
+              />
+            </div>
           ) : null}
         </main>
       </div>

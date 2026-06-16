@@ -86,7 +86,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
   return (
     <div
       ref={wrapRef}
-      className="relative mx-auto aspect-[8/5] h-full max-h-full w-full max-w-[18rem] sm:max-w-[20rem]"
+      className="relative mx-auto aspect-[8/5] h-full max-h-full w-auto max-w-full"
       role="img"
       aria-label="Seat positions around the table"
     >
@@ -137,18 +137,18 @@ export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
   const sorted = [...seats].sort((a, b) => a.seatNum - b.seatNum)
 
   return (
-    <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:gap-x-4 sm:gap-y-2">
+    <ul className="grid h-full min-h-0 grid-cols-2 content-center gap-x-2.5 gap-y-1 sm:gap-x-3 sm:gap-y-1.5">
       {sorted.map((seat) => {
         const { given, suffix } = splitSeatingDisplayName(seat.name)
         return (
           <li
             key={seat.seatNum}
-            className="flex items-center gap-2.5 rounded-lg bg-white/[0.045] px-2.5 py-1.5 ring-1 ring-white/[0.06] sm:gap-3 sm:px-3 sm:py-2"
+            className="flex min-h-0 items-center gap-2 rounded-lg bg-white/[0.045] px-2 py-1 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-1.5"
           >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-xs font-black tabular-nums text-amber-50 sm:h-8 sm:w-8 sm:text-sm">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-[11px] font-black tabular-nums text-amber-50 sm:h-7 sm:w-7 sm:text-xs">
               {seat.seatNum}
             </span>
-            <span className="min-w-0 text-base font-semibold leading-snug text-white sm:text-lg">
+            <span className="min-w-0 text-sm font-semibold leading-snug text-white sm:text-base">
               {given}
               {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}
             </span>

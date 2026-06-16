@@ -45,7 +45,7 @@ export default function VenueCondenseProgressBar({
       aria-live="polite"
     >
       <div
-        className={`w-full ${headline || sidebar ? '' : 'mx-auto max-w-3xl rounded-md border border-white/10 bg-black/55 px-2 py-1.5 backdrop-blur-sm sm:px-2.5'}`}
+        className={`w-full ${headline || sidebar ? '' : 'rounded-none border-x-0 border-b border-white/10 bg-black/55 px-3 py-1.5 backdrop-blur-sm sm:px-4'}`}
         role="img"
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >

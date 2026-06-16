@@ -4,21 +4,15 @@ export const SEATING_CHART_PAGE_TABLES = 5
 /** Dwell time on each page (ms) — long enough to scan a page from the back of the room. */
 export const SEATING_CHART_PAGE_MS = 10_000
 
-/** Max width of the seating page content area. */
-export const SEATING_CHART_GRID_MAX_WIDTH_REM = 80
-
-/** Horizontal gap between cards — spacing only; card width is fixed separately. */
+/** Horizontal gap between cards — spacing only; card width derives from row width. */
 export const SEATING_CHART_GAP_X_REM = 2.75
 
-/**
- * Fixed card width from the row (three cards + two gaps).
- * Does not shrink when gap increases — gap is spacing-only.
- */
-export const SEATING_CHART_ROW_WIDTH_CSS = `min(100%, ${SEATING_CHART_GRID_MAX_WIDTH_REM}rem)`
+/** W-formation row spans the full width of its parent column. */
+export const SEATING_CHART_ROW_WIDTH_CSS = '100%'
 
 export const SEATING_CHART_CARD_WIDTH_CSS = `calc((${SEATING_CHART_ROW_WIDTH_CSS} - 2 * ${SEATING_CHART_GAP_X_REM}rem) / 3)`
 
-/** Full W-formation frame — centered in the viewport. */
+/** Full W-formation frame — fills the center column between rosters. */
 export const SEATING_CHART_FRAME_WIDTH_CSS = SEATING_CHART_ROW_WIDTH_CSS
 
 /** Left edge of bottom card 4 (between top cards 1 and 2). */

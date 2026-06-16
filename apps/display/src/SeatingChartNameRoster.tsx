@@ -4,7 +4,6 @@ import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypograph
 import {
   SEATING_CHART_ROSTER_PAGE_MS,
   SEATING_CHART_ROSTER_PAGE_SIZE,
-  SEATING_CHART_ROSTER_WIDTH_REM,
   seatingChartRosterPageCount,
   seatingChartRosterPageEntries,
   type SeatingChartPlayerEntry,
@@ -59,10 +58,9 @@ export default function SeatingChartNameRoster({
 
   return (
     <aside
-      className={`flex min-h-0 shrink-0 flex-col overflow-hidden border-white/10 py-1 ${
+      className={`flex min-h-0 min-w-0 flex-1 basis-0 flex-col overflow-hidden border-white/10 py-1 ${
         align === 'left' ? 'border-r pr-2 pl-3 sm:pl-4' : 'border-l pl-2 pr-3 sm:pr-4'
       }`}
-      style={{ width: `${SEATING_CHART_ROSTER_WIDTH_REM}rem` }}
       aria-label={`${title} player roster`}
     >
       <div

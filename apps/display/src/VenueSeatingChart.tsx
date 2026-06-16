@@ -8,9 +8,7 @@ import { seatingChartPlayerEntries, seatingChartRosterHalves } from './venueSeat
 import { SeatingPlayerList, SeatingTableDiagram } from './SeatingTableFelt'
 import {
   SEATING_CHART_CARD_WIDTH_CSS,
-  SEATING_CHART_FRAME_WIDTH_CSS,
   SEATING_CHART_GAP_X_REM,
-  SEATING_CHART_GRID_MAX_WIDTH_REM,
   SEATING_CHART_PAGE_MS,
   seatingChartPageCount,
   seatingChartPageLabel,
@@ -69,13 +67,8 @@ function SeatingChartWPage({
   const topRowFull = topIndices.length >= 3
 
   return (
-    <div className="flex h-full min-h-0 w-full max-h-full flex-1 flex-col items-center">
-      <div
-        className="mx-auto flex h-full min-h-0 w-full max-w-full flex-col gap-y-4 sm:gap-y-5"
-        style={{
-          width: SEATING_CHART_FRAME_WIDTH_CSS,
-        }}
-      >
+    <div className="flex h-full min-h-0 w-full max-h-full flex-1 flex-col">
+      <div className="flex h-full min-h-0 w-full flex-col gap-y-4 sm:gap-y-5">
         <div
           className={`flex min-h-0 flex-1 items-stretch ${topRowFull ? 'justify-between' : 'justify-center'}`}
           style={topRowFull ? undefined : { gap: gapX }}
@@ -190,11 +183,8 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
       </div>
 
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden text-white">
-        <header className="shrink-0 border-b border-yellow-700/25 bg-black/35 px-6 py-3 backdrop-blur-md sm:px-8 sm:py-3.5">
-          <div
-            className="mx-auto flex w-full items-center gap-x-5 gap-y-3 sm:gap-x-6"
-            style={{ maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem` }}
-          >
+        <header className="shrink-0 border-b border-yellow-700/25 bg-black/35 px-4 py-3 backdrop-blur-md sm:px-6 sm:py-3.5">
+          <div className="flex w-full items-center gap-x-5 gap-y-3 sm:gap-x-6">
             <div className="w-[clamp(5.5rem,min(14vw,8rem),9rem)] shrink-0">
               <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
                 <QuizzEmWordmark layout="fill" />
@@ -215,15 +205,15 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
           </div>
         </header>
 
-        <main className="flex min-h-0 flex-1 overflow-hidden pb-3 pt-2 sm:pb-4 sm:pt-2.5">
+        <main className="flex min-h-0 w-full flex-1 overflow-hidden pb-2 pt-2 sm:pb-3 sm:pt-2.5">
           <SeatingChartNameRoster title="A–M" entries={rosterHalves.am} align="left" />
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2 sm:px-3">
-            <div className="relative flex min-h-0 flex-1 flex-col items-center overflow-hidden">
+          <div className="flex min-h-0 min-w-0 flex-[1.35] flex-col overflow-hidden px-1 sm:px-2">
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={pageIndex}
-                  className="flex h-full min-h-0 w-full max-h-full flex-1 justify-center"
+                  className="flex h-full min-h-0 w-full max-h-full flex-1"
                   initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -12 }}

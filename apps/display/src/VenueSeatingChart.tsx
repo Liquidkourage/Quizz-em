@@ -20,19 +20,16 @@ function SeatingTableCard({
 }) {
   return (
     <article
-      className="flex w-full min-w-0 flex-col overflow-visible rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
+      className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
       aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
     >
-      <header className="flex shrink-0 items-baseline gap-2 border-b border-amber-500/25 bg-gradient-to-r from-amber-500/18 via-amber-400/12 to-amber-500/18 px-5 py-3 sm:px-6 sm:py-3.5">
-        <span className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300/80 sm:text-sm">
-          Table
-        </span>
-        <span className="text-3xl font-black tabular-nums leading-none text-amber-50 sm:text-4xl">
+      <header className="flex shrink-0 items-center border-b border-amber-500/25 bg-gradient-to-r from-amber-500/18 via-amber-400/12 to-amber-500/18 px-5 py-2.5 sm:px-6 sm:py-3">
+        <span className="text-2xl font-black tabular-nums leading-none text-amber-50 sm:text-3xl">
           {table.tableNum}
         </span>
       </header>
 
-      <div className="min-w-0 overflow-visible px-3 py-4 sm:px-4 sm:py-5">
+      <div className="min-w-0 overflow-hidden px-4 py-3 sm:px-5 sm:py-4">
         <SeatingTableFelt seats={table.seats} />
       </div>
     </article>

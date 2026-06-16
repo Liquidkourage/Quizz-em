@@ -4,31 +4,25 @@ export const SEATING_CHART_PAGE_TABLES = 5
 /** Dwell time on each page (ms) — long enough to scan a page from the back of the room. */
 export const SEATING_CHART_PAGE_MS = 10_000
 
-/** Centered grid — wide enough for W formation with horizontal breathing room. */
-export const SEATING_CHART_GRID_MAX_WIDTH_REM = 88
+/** Max width of the seating page content area. */
+export const SEATING_CHART_GRID_MAX_WIDTH_REM = 80
 
-/** 10-column track grid: each card spans 2 tracks with a gutter track between neighbors. */
-export const SEATING_CHART_W_TRACK_COLUMNS = 10
+/** Horizontal gap between cards — spacing only; card width is fixed separately. */
+export const SEATING_CHART_GAP_X_REM = 1.75
 
-export type SeatingChartWSlot = {
-  gridColumn: string
-  gridRow: number
+/**
+ * Fixed card width: one third of the top row (three cards + two gaps).
+ * Same size as the original 6-track W layout at {@link SEATING_CHART_GRID_MAX_WIDTH_REM}.
+ */
+export const SEATING_CHART_CARD_WIDTH_CSS = `calc((min(100%, ${SEATING_CHART_GRID_MAX_WIDTH_REM}rem) - 2 * ${SEATING_CHART_GAP_X_REM}rem) / 3)`
+
+/** Bottom-row inset so two cards sit in the W stagger between the top three. */
+export const SEATING_CHART_W_BOTTOM_INSET_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} / 2 + ${SEATING_CHART_GAP_X_REM}rem / 2)`
+
+export type SeatingChartWRows = {
+  topIndices: number[]
+  bottomIndices: number[]
 }
-
-export type SeatingChartWFormationLayout = {
-  rowCount: number
-  trackColumns: number
-  slots: SeatingChartWSlot[]
-}
-
-/** Full W: three on top, two staggered on the bottom with gutter columns between cards. */
-const W_FORMATION_FULL: SeatingChartWSlot[] = [
-  { gridColumn: '1 / 3', gridRow: 1 },
-  { gridColumn: '4 / 6', gridRow: 1 },
-  { gridColumn: '7 / 9', gridRow: 1 },
-  { gridColumn: '3 / 5', gridRow: 2 },
-  { gridColumn: '6 / 8', gridRow: 2 },
-]
 
 export function seatingChartPageCount(tableCount: number): number {
   const n = Math.max(0, Math.floor(tableCount))
@@ -43,53 +37,16 @@ export function seatingChartPageTables<T>(tables: readonly T[], pageIndex: numbe
   return tables.slice(start, start + SEATING_CHART_PAGE_TABLES)
 }
 
-/** W-formation placement for 1–5 tables on the current page. */
-export function seatingChartWFormationLayout(tableCountOnPage: number): SeatingChartWFormationLayout {
+/** Split page tables into top (up to 3) and staggered bottom rows for the W formation. */
+export function seatingChartWFormationRows(tableCountOnPage: number): SeatingChartWRows {
   const n = Math.max(0, Math.min(tableCountOnPage, SEATING_CHART_PAGE_TABLES))
-  const tracks = SEATING_CHART_W_TRACK_COLUMNS
-
-  if (n <= 0) {
-    return { rowCount: 1, trackColumns: tracks, slots: [] }
-  }
-  if (n === 1) {
-    return {
-      rowCount: 1,
-      trackColumns: tracks,
-      slots: [{ gridColumn: '4 / 6', gridRow: 1 }],
-    }
-  }
-  if (n === 2) {
-    return {
-      rowCount: 1,
-      trackColumns: tracks,
-      slots: [
-        { gridColumn: '3 / 5', gridRow: 1 },
-        { gridColumn: '6 / 8', gridRow: 1 },
-      ],
-    }
-  }
-  if (n === 3) {
-    return {
-      rowCount: 1,
-      trackColumns: tracks,
-      slots: W_FORMATION_FULL.slice(0, 3),
-    }
+  if (n <= 3) {
+    return { topIndices: Array.from({ length: n }, (_, i) => i), bottomIndices: [] }
   }
   if (n === 4) {
-    return {
-      rowCount: 2,
-      trackColumns: tracks,
-      slots: [
-        ...W_FORMATION_FULL.slice(0, 3),
-        { gridColumn: '4 / 6', gridRow: 2 },
-      ],
-    }
+    return { topIndices: [0, 1, 2], bottomIndices: [3] }
   }
-  return {
-    rowCount: 2,
-    trackColumns: tracks,
-    slots: W_FORMATION_FULL,
-  }
+  return { topIndices: [0, 1, 2], bottomIndices: [3, 4] }
 }
 
 export function seatingChartPageLabel(

@@ -4,7 +4,7 @@ import {
   seatingChartPageCount,
   seatingChartPageLabel,
   seatingChartPageTables,
-  seatingChartWFormationLayout,
+  seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
 
 describe('seatingChartPageCount', () => {
@@ -33,25 +33,22 @@ describe('seatingChartPageTables', () => {
   })
 })
 
-describe('seatingChartWFormationLayout', () => {
-  it('places five tables in a W (3 top, 2 staggered bottom) with gutter tracks', () => {
-    const layout = seatingChartWFormationLayout(5)
-    expect(layout.rowCount).toBe(2)
-    expect(layout.trackColumns).toBe(10)
-    expect(layout.slots).toEqual([
-      { gridColumn: '1 / 3', gridRow: 1 },
-      { gridColumn: '4 / 6', gridRow: 1 },
-      { gridColumn: '7 / 9', gridRow: 1 },
-      { gridColumn: '3 / 5', gridRow: 2 },
-      { gridColumn: '6 / 8', gridRow: 2 },
-    ])
+describe('seatingChartWFormationRows', () => {
+  it('places five tables in top + staggered bottom rows', () => {
+    expect(seatingChartWFormationRows(5)).toEqual({
+      topIndices: [0, 1, 2],
+      bottomIndices: [3, 4],
+    })
   })
 
   it('shrink-wraps partial pages', () => {
-    expect(seatingChartWFormationLayout(3).rowCount).toBe(1)
-    expect(seatingChartWFormationLayout(4).slots[3]).toEqual({
-      gridColumn: '4 / 6',
-      gridRow: 2,
+    expect(seatingChartWFormationRows(3)).toEqual({
+      topIndices: [0, 1, 2],
+      bottomIndices: [],
+    })
+    expect(seatingChartWFormationRows(4)).toEqual({
+      topIndices: [0, 1, 2],
+      bottomIndices: [3],
     })
   })
 })

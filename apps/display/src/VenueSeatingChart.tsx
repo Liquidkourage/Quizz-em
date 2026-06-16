@@ -5,12 +5,15 @@ import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { buildVenueWallTileRows, seatingChartTablesFromTiles } from './venueWallModel'
 import { SeatingPlayerList, SeatingTableDiagram } from './SeatingTableFelt'
 import {
+  SEATING_CHART_CARD_WIDTH_CSS,
+  SEATING_CHART_GAP_X_REM,
   SEATING_CHART_GRID_MAX_WIDTH_REM,
   SEATING_CHART_PAGE_MS,
+  SEATING_CHART_W_BOTTOM_INSET_CSS,
   seatingChartPageCount,
   seatingChartPageLabel,
   seatingChartPageTables,
-  seatingChartWFormationLayout,
+  seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
 
 function SeatingTableCard({
@@ -38,6 +41,53 @@ function SeatingTableCard({
         </div>
       </div>
     </article>
+  )
+}
+
+function SeatingChartCardSlot({ table }: { table: ReturnType<typeof seatingChartTablesFromTiles>[number] }) {
+  return (
+    <div
+      className="flex h-full min-h-0 shrink-0"
+      style={{ width: SEATING_CHART_CARD_WIDTH_CSS }}
+    >
+      <SeatingTableCard table={table} />
+    </div>
+  )
+}
+
+function SeatingChartWPage({
+  tables,
+}: {
+  tables: ReturnType<typeof seatingChartTablesFromTiles>
+}) {
+  const { topIndices, bottomIndices } = seatingChartWFormationRows(tables.length)
+  const gapX = `${SEATING_CHART_GAP_X_REM}rem`
+
+  return (
+    <div
+      className="flex h-full min-h-0 w-full max-h-full flex-1 flex-col gap-y-4 sm:gap-y-5"
+      style={{ maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem` }}
+    >
+      <div className="flex min-h-0 flex-1 items-stretch justify-center" style={{ gap: gapX }}>
+        {topIndices.map((index) => (
+          <SeatingChartCardSlot key={tables[index]!.tableNum} table={tables[index]!} />
+        ))}
+      </div>
+      {bottomIndices.length > 0 ? (
+        <div
+          className="flex min-h-0 flex-1 items-stretch justify-center"
+          style={{
+            gap: gapX,
+            paddingLeft:
+              bottomIndices.length === 1 ? undefined : SEATING_CHART_W_BOTTOM_INSET_CSS,
+          }}
+        >
+          {bottomIndices.map((index) => (
+            <SeatingChartCardSlot key={tables[index]!.tableNum} table={tables[index]!} />
+          ))}
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -103,10 +153,6 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
     () => seatingChartPageTables(tables, pageIndex),
     [tables, pageIndex],
   )
-  const pageLayout = useMemo(
-    () => seatingChartWFormationLayout(pageTables.length),
-    [pageTables.length],
-  )
   const pageMeta = seatingChartPageLabel(pageIndex, tables.length)
 
   const totalSeated =
@@ -155,30 +201,13 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={pageIndex}
-                className="grid h-full min-h-0 w-full max-h-full flex-1 items-stretch gap-x-5 gap-y-4 sm:gap-x-7 sm:gap-y-5"
-                style={{
-                  maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem`,
-                  gridTemplateColumns: `repeat(${pageLayout.trackColumns}, minmax(0, 1fr))`,
-                  gridTemplateRows: `repeat(${pageLayout.rowCount}, minmax(0, 1fr))`,
-                }}
+                className="flex h-full min-h-0 w-full max-h-full flex-1 justify-center"
                 initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
-                {pageTables.map((table, index) => {
-                  const slot = pageLayout.slots[index]
-                  if (!slot) return null
-                  return (
-                    <div
-                      key={table.tableNum}
-                      className="flex h-full min-h-0 min-w-0"
-                      style={{ gridColumn: slot.gridColumn, gridRow: slot.gridRow }}
-                    >
-                      <SeatingTableCard table={table} />
-                    </div>
-                  )
-                })}
+                <SeatingChartWPage tables={pageTables} />
               </motion.div>
             </AnimatePresence>
           </div>

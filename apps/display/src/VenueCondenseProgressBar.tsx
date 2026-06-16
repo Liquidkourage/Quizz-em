@@ -49,12 +49,12 @@ export default function VenueCondenseProgressBar({
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >
         <p
-          className={`truncate font-medium tabular-nums text-white/65 ${
+          className={`truncate font-semibold tabular-nums text-white/75 ${
             headline
               ? 'mb-1.5 text-left text-[11px] sm:text-sm'
               : sidebar
                 ? 'mb-1 text-center text-[10px] leading-tight sm:text-[11px]'
-                : 'mb-1 text-center text-[11px] sm:text-sm'
+                : 'mb-1 text-center text-[clamp(0.9rem,2.2vw,1.125rem)] leading-tight'
           }`}
         >
           {compactCaption(model)}

@@ -34,6 +34,7 @@ import {
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   type VenueFloorSizeSpec,
+  type VenueFloorTableSize,
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
@@ -476,11 +477,17 @@ function mosaicWagerStyleFlags(
   return { showNoMoreBets, wageringLive }
 }
 
-function mosaicPhaseLabel(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean): string {
-  if (showNoMoreBets) return 'NO MORE BETS'
+function mosaicPhaseLabel(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean, dense = false): string {
+  if (showNoMoreBets) return dense ? 'NO BETS' : 'NO MORE BETS'
   const ph = String(row.phase ?? '').trim().toLowerCase()
   if (ph === 'betting' && row.seated >= 2 && row.isBettingOpen === true) {
     return 'Wagering'
+  }
+  if (dense) {
+    if (ph === 'question') return 'Setup'
+    if (ph === 'answering') return 'Answer'
+    if (ph === 'showdown') return 'Showdown'
+    if (ph === 'intermission') return 'Break'
   }
   return phaseLabel(row.phase)
 }
@@ -502,7 +509,7 @@ function mosaicPhaseCornerTypography(
   wageringLive: boolean
 ): string {
   if (showNoMoreBets && row.seated >= 2) {
-    return 'whitespace-nowrap text-[10px] font-black uppercase leading-none tracking-tight sm:text-[11px]'
+    return 'whitespace-nowrap font-black uppercase leading-none tracking-tight'
   }
   if (wageringLive) {
     return 'font-black uppercase leading-tight tracking-wide'
@@ -648,6 +655,8 @@ function SeatRingWithLabels({
   seatLastBettingAction: seatLastBettingActionIn,
   actingCallAmount,
   mosaicFluidWidth = false,
+  /** Honeycomb floor density — drives legible mosaic seat markers on dense grids. */
+  mosaicDensity,
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
   winnerSeatIndexes = null,
   /** Mosaic: hole-card digits per physical seat (parallel to seatNames). */
@@ -668,6 +677,7 @@ function SeatRingWithLabels({
   ringMode?: 'mosaic' | 'full'
   /** Honeycomb floor: ring scales with tile width (no fixed 8.75rem height). */
   mosaicFluidWidth?: boolean
+  mosaicDensity?: VenueFloorTableSize
   /** Spotlight hero: draw mini chip stack + bankroll on the felt by each seated player. */
   feltSeatStacks?: boolean
   /** Dealer / blind roles (indexes match `seatNames`). Null when unsupported or omitted by server snapshot. */
@@ -790,15 +800,15 @@ function SeatRingWithLabels({
 
   const mosaicScale = useMemo(() => {
     if (!isMosaic) return 1
-    // Scale seat dots/initials off the ring width so the whole mini-felt reads consistently
-    // across venue wall card sizes (no fixed 1.35rem circles).
     const w = ringPx.w
     if (!(w > 0)) return 1
-    return clamp(w / 260, 0.75, 1.25)
+    /** Never shrink seat markers below 1× — dense floors use cqh type on the card chrome instead. */
+    return clamp(w / 220, 1, 1.35)
   }, [isMosaic, ringPx.w])
 
-  const mosaicDotPx = 22 * mosaicScale
-  const mosaicDotActingPx = 26 * mosaicScale
+  const mosaicDotPx = 28 * mosaicScale
+  const mosaicDotActingPx = 32 * mosaicScale
+  const mosaicHideHoleCards = mosaicDensity === 'micro' || mosaicDensity === 'compact'
 
   return (
     <div ref={ringElRef} className={`@container relative overflow-visible ${wrap}`}>
@@ -992,16 +1002,13 @@ function SeatRingWithLabels({
                 }
               >
                 {isMosaic && filled && mosaicInitials ? (
-                  <span
-                    className="block w-full min-w-0 px-0.5 text-center font-black leading-none tracking-tighter text-amber-50"
-                    style={{ fontSize: `${Math.round(10.4 * mosaicScale)}px` }}
-                  >
+                  <span className="block w-full min-w-0 px-0.5 text-center text-[clamp(0.8rem,12.5cqh,1.15rem)] font-black leading-none tracking-tight text-amber-50">
                     {mosaicInitials}
                   </span>
                 ) : null}
               </div>
             </div>
-            {isMosaic && filled && !isFolded && seatHoleDigits[i] != null ? (() => {
+            {isMosaic && filled && !isFolded && seatHoleDigits[i] != null && !mosaicHideHoleCards ? (() => {
               const holePos = mosaicSeatInwardPct(i, seatedCount, rimW, rimH)
               return (
                 <div
@@ -1248,6 +1255,7 @@ function VenueMosaicTableCard({
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
   const feltFillsCell = floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight
   const showPotSubtitleStrip = floorSize.showPotSubtitle && mosaicPotSubtitle != null
+  const denseMosaicChrome = floorSize.size === 'compact' || floorSize.size === 'micro'
 
   const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
@@ -1275,13 +1283,27 @@ function VenueMosaicTableCard({
             showFloorShowdownOverlay ? 'opacity-25' : ''
           }`}
         >
-        <div className={`grid shrink-0 grid-cols-[1fr_auto_1fr] items-start gap-x-1 ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}>
+        <div
+          className={`grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-x-1 ${
+            denseMosaicChrome ? 'min-h-[clamp(2.5rem,22cqh,3.5rem)]' : ''
+          } ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+        >
           <div className="min-w-0 justify-self-start">
-            <div
-              className={`font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
-            >
-              {tn}
-            </div>
+            {denseMosaicChrome ? (
+              <div
+                className={`flex flex-col font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
+              >
+                <span className="uppercase tracking-tight">Table</span>
+                <span>{tn}</span>
+              </div>
+            ) : (
+              <div
+                className={`flex items-baseline gap-1 font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
+              >
+                <span className="uppercase tracking-tight">Table</span>
+                <span>{tn}</span>
+              </div>
+            )}
           </div>
           {!showFloorShowdownOverlay ? (
             <div
@@ -1306,10 +1328,12 @@ function VenueMosaicTableCard({
           <div className="min-w-0 justify-self-end">
             <span
               className={`max-w-[min(9rem,46vw)] shrink-0 rounded-md font-semibold leading-tight sm:max-w-[10rem] ${
-                showNoMoreBets ? 'px-1.5 py-0.5' : floorSize.phaseChipClass
+                showNoMoreBets
+                  ? 'px-1.5 py-0.5 text-[clamp(0.85rem,12cqh,1.05rem)] font-black uppercase leading-none'
+                  : floorSize.phaseChipClass
               } ${mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)} ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
             >
-              {mosaicPhaseLabel(row, showNoMoreBets)}
+              {mosaicPhaseLabel(row, showNoMoreBets, denseMosaicChrome)}
             </span>
           </div>
         </div>
@@ -1322,6 +1346,7 @@ function VenueMosaicTableCard({
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb}
+            mosaicDensity={floorSize.size}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}

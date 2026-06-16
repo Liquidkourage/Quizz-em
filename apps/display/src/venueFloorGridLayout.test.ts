@@ -61,7 +61,7 @@ describe('venueFloorTableSize', () => {
     expect(medium.honeycombFillHeight).toBe(true)
     expect(compact.compactChrome).toBe(true)
     expect(compact.showPotSubtitle).toBe(true)
-    expect(micro.showPotSubtitle).toBe(true)
+    expect(micro.showPotSubtitle).toBe(false)
     expect(micro.showdownBrief).toBe(true)
     expect(venueFloorGridPaddingRem(4).bottom).toBeGreaterThan(venueFloorGridPaddingRem(2).bottom)
   })

@@ -167,15 +167,15 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 1.25,
         cardPaddingClass: 'p-1.5 sm:p-2',
         innerGapClass: 'gap-1 sm:gap-1.5',
-        tableNumClass: 'text-xl sm:text-2xl',
-        potClass:
-          'text-[clamp(1.1rem,6.6cqw,2.05rem)] sm:text-[clamp(1.2rem,7.2cqw,2.25rem)]',
-        phaseChipClass: 'px-1.5 py-0.5 text-[10px] sm:px-2 sm:py-1 sm:text-[11px]',
+        tableNumClass: 'text-[clamp(1.15rem,14cqh,1.85rem)] font-black leading-none',
+        potClass: 'text-[clamp(1.05rem,13cqh,1.65rem)] font-mono font-black leading-none',
+        phaseChipClass:
+          'px-1.5 py-0.5 text-[clamp(0.72rem,10cqh,0.9rem)] font-bold uppercase leading-none',
         honeycombFillHeight: true,
         ringScaleClass: '',
         showPotSubtitle: true,
         potSubtitleClass:
-          'text-[clamp(0.8rem,5.2cqw,1.2rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(0.9rem,5.6cqw,1.35rem)]',
+          'text-[clamp(0.85rem,10cqh,1.25rem)] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1.5 py-1',
       }
     case 'compact':
@@ -187,15 +187,15 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 0.82,
         cardPaddingClass: 'p-1 sm:p-1.5',
         innerGapClass: 'gap-0.5',
-        tableNumClass: 'text-base sm:text-lg',
-        potClass:
-          'text-[clamp(0.9rem,5cqw,1.45rem)] sm:text-[clamp(0.95rem,5.5cqw,1.55rem)]',
-        phaseChipClass: 'px-1.5 py-0.5 text-[9px] sm:px-2 sm:py-1 sm:text-[10px]',
+        tableNumClass: 'text-[clamp(1.35rem,17cqh,2.1rem)] font-black leading-none',
+        potClass: 'text-[clamp(1.2rem,16cqh,1.85rem)] font-mono font-black leading-none',
+        phaseChipClass:
+          'px-1 py-0.5 text-[clamp(0.85rem,12cqh,1.05rem)] font-bold uppercase leading-none',
         honeycombFillHeight: true,
         ringScaleClass: '',
         showPotSubtitle: true,
         potSubtitleClass:
-          'text-[clamp(0.68rem,4.4cqw,0.98rem)] font-black leading-tight tracking-tight text-amber-50',
+          'text-[clamp(0.8rem,9.5cqh,1.15rem)] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
       }
     case 'micro':
@@ -207,15 +207,15 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 0.72,
         cardPaddingClass: 'p-0.5 sm:p-1',
         innerGapClass: 'gap-0.5',
-        tableNumClass: 'text-base sm:text-lg',
-        potClass:
-          'text-[clamp(0.95rem,5.4cqw,1.45rem)] sm:text-[clamp(1rem,6cqw,1.6rem)]',
-        phaseChipClass: 'px-1 py-0.5 text-[9px] sm:px-1.5 sm:py-0.5 sm:text-[10px]',
+        tableNumClass: 'text-[clamp(1.45rem,18cqh,2.25rem)] font-black leading-none',
+        potClass: 'text-[clamp(1.3rem,17cqh,2rem)] font-mono font-black leading-none',
+        phaseChipClass:
+          'px-1 py-0.5 text-[clamp(0.9rem,13cqh,1.1rem)] font-bold uppercase leading-none',
         honeycombFillHeight: true,
         ringScaleClass: '',
-        showPotSubtitle: true,
+        showPotSubtitle: false,
         potSubtitleClass:
-          'text-[clamp(0.62rem,4.8cqw,0.92rem)] font-black leading-none tracking-tight text-amber-50',
+          'text-[clamp(0.85rem,10cqh,1.1rem)] font-black leading-none tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
       }
   }
@@ -301,7 +301,7 @@ export type VenueFloorDenseTuning = {
   potSubtitleWrapClass: string
 }
 
-/** Four-row floors (17–20 tables) — tighten gaps when a headline steals vertical space. */
+/** Four-row floors (17–20 tables) — keep gaps modest; type scales via cqh on each card. */
 export function venueFloorDenseTuning(
   layout: VenueBanquetLayout,
   opts?: { withHeadline?: boolean }
@@ -309,11 +309,11 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 0.32 : 0.42,
-    cellGapRem: headline ? 0.42 : 0.52,
-    paddingTopRem: headline ? 0.15 : 0.25,
-    paddingBottomRem: headline ? 0.25 : 0.45,
-    gridInsetClass: 'px-1.5 sm:px-2',
+    rowGapRem: headline ? 0.38 : 0.48,
+    cellGapRem: headline ? 0.48 : 0.58,
+    paddingTopRem: headline ? 0.2 : 0.3,
+    paddingBottomRem: headline ? 0.3 : 0.5,
+    gridInsetClass: 'px-2 sm:px-2.5',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
   }
 }

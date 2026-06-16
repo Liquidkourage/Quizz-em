@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react'
  * Uniform venue-wall scale — tuned so 100% browser zoom matches the prior 80% zoom layout
  * (20-table floor + stacks sidebar + headline fit one viewport).
  */
-export const VENUE_WALL_UI_SCALE = 0.8
+export const VENUE_WALL_UI_SCALE = 0.88
 
 /**
  * Pre-zoom bump for type and felt chrome. Visual size ≈ `TYPE_EMPHASIS × UI_SCALE`

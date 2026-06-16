@@ -4,11 +4,11 @@ export const SEATING_CHART_PAGE_TABLES = 4
 /** Dwell time on each page (ms) — long enough to scan a page from the back of the room. */
 export const SEATING_CHART_PAGE_MS = 10_000
 
-/** Centered grid — intentionally below full viewport width. */
-export const SEATING_CHART_GRID_MAX_WIDTH_REM = 56
+/** Centered grid — wide enough for felt + full names on each card. */
+export const SEATING_CHART_GRID_MAX_WIDTH_REM = 80
 
-/** Cap card width so rows breathe on large displays. */
-export const SEATING_CHART_CARD_MAX_WIDTH_REM = 20
+/** Cards fill their grid column; felt scales with card width. */
+export const SEATING_CHART_CARD_MAX_WIDTH_REM = 40
 
 export type SeatingChartPageGrid = {
   columns: number

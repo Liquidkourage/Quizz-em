@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { buildVenueWallTileRows, seatingChartTablesFromTiles } from './venueWallModel'
+import SeatingChartNameRoster from './SeatingChartNameRoster'
+import { seatingChartPlayerEntries, seatingChartRosterHalves } from './venueSeatingChartRoster'
 import { SeatingPlayerList, SeatingTableDiagram } from './SeatingTableFelt'
 import {
   SEATING_CHART_CARD_WIDTH_CSS,
@@ -166,6 +168,11 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
   )
   const pageMeta = seatingChartPageLabel(pageIndex, tables.length)
 
+  const rosterHalves = useMemo(() => {
+    const entries = seatingChartPlayerEntries(tables)
+    return seatingChartRosterHalves(entries)
+  }, [tables])
+
   const totalSeated =
     wall?.totalSeatedAtTables ??
     tables.reduce((sum, t) => sum + t.seats.length, 0)
@@ -207,32 +214,38 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
           </div>
         </header>
 
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-3 pt-2 sm:px-6 sm:pb-4 sm:pt-2.5">
-          <div className="relative flex min-h-0 flex-1 flex-col items-center overflow-hidden">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={pageIndex}
-                className="flex h-full min-h-0 w-full max-h-full flex-1 justify-center"
-                initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <SeatingChartWPage tables={pageTables} />
-              </motion.div>
-            </AnimatePresence>
+        <main className="flex min-h-0 flex-1 overflow-hidden pb-3 pt-2 sm:pb-4 sm:pt-2.5">
+          <SeatingChartNameRoster title="A–M" entries={rosterHalves.am} align="left" />
+
+          <div className="flex min-h-0 min-w-0 shrink-0 flex-col overflow-hidden px-2 sm:px-3">
+            <div className="relative flex min-h-0 flex-1 flex-col items-center overflow-hidden">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={pageIndex}
+                  className="flex h-full min-h-0 w-full max-h-full flex-1 justify-center"
+                  initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <SeatingChartWPage tables={pageTables} />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {showPager ? (
+              <div className="shrink-0 pt-2 sm:pt-2.5">
+                <SeatingChartPager
+                  pageIndex={pageIndex}
+                  pageCount={pageCount}
+                  tableRange={pageMeta.tableRange}
+                  tableTotal={tables.length}
+                />
+              </div>
+            ) : null}
           </div>
 
-          {showPager ? (
-            <div className="shrink-0 pt-2 sm:pt-2.5">
-              <SeatingChartPager
-                pageIndex={pageIndex}
-                pageCount={pageCount}
-                tableRange={pageMeta.tableRange}
-                tableTotal={tables.length}
-              />
-            </div>
-          ) : null}
+          <SeatingChartNameRoster title="N–Z" entries={rosterHalves.nz} align="right" />
         </main>
       </div>
     </div>

@@ -8,7 +8,7 @@ export const SEATING_CHART_PAGE_MS = 10_000
 export const SEATING_CHART_GRID_MAX_WIDTH_REM = 80
 
 /** Horizontal gap between cards — spacing only; card width is fixed separately. */
-export const SEATING_CHART_GAP_X_REM = 1.75
+export const SEATING_CHART_GAP_X_REM = 2.25
 
 /**
  * Fixed card width: one third of the top row (three cards + two gaps).
@@ -16,8 +16,14 @@ export const SEATING_CHART_GAP_X_REM = 1.75
  */
 export const SEATING_CHART_CARD_WIDTH_CSS = `calc((min(100%, ${SEATING_CHART_GRID_MAX_WIDTH_REM}rem) - 2 * ${SEATING_CHART_GAP_X_REM}rem) / 3)`
 
-/** Bottom-row inset so two cards sit in the W stagger between the top three. */
-export const SEATING_CHART_W_BOTTOM_INSET_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} / 2 + ${SEATING_CHART_GAP_X_REM}rem / 2)`
+/** Shared frame width — three cards across; both rows align inside this box. */
+export const SEATING_CHART_FRAME_WIDTH_CSS = `calc(3 * ${SEATING_CHART_CARD_WIDTH_CSS} + 2 * ${SEATING_CHART_GAP_X_REM}rem)`
+
+/** Stagger two bottom cards between the top three (W formation). */
+export const SEATING_CHART_W_BOTTOM_OFFSET_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} / 2 + ${SEATING_CHART_GAP_X_REM}rem / 2)`
+
+/** Center a lone bottom card under the middle top card. */
+export const SEATING_CHART_W_SINGLE_BOTTOM_OFFSET_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} + ${SEATING_CHART_GAP_X_REM}rem)`
 
 export type SeatingChartWRows = {
   topIndices: number[]

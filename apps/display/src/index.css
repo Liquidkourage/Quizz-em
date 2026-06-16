@@ -200,4 +200,33 @@
   .venue-roster-animate {
     animation: venue-roster-scroll var(--venue-roster-secs, 40s) linear infinite;
   }
+
+  /* Public display typography — 5vh floor, ~10vh primary (.cursor/rules/display-typography.mdc) */
+  .display-text-primary {
+    font-size: clamp(5vh, 10vh, 12vh);
+  }
+
+  .display-text-secondary {
+    font-size: clamp(5vh, 5vh, 7vh);
+  }
+
+  .display-text-primary-cq {
+    font-size: max(5vh, 10cqh);
+  }
+
+  .display-text-secondary-cq {
+    font-size: max(5vh, 5cqh);
+  }
+
+  .display-text-primary-cqw {
+    font-size: max(5vh, 8cqw);
+  }
+
+  .display-text-secondary-cqw {
+    font-size: max(5vh, 5cqw);
+  }
+
+  .display-text-badge-cq {
+    font-size: max(5vh, 7cqh);
+  }
 }

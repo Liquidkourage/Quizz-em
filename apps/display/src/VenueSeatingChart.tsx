@@ -118,9 +118,9 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-hidden px-1.5 pb-1.5 pt-1 sm:px-2 sm:pb-2">
+        <main className="min-h-0 flex-1 overflow-hidden px-2 pb-2 pt-1.5 sm:px-3 sm:pb-2.5">
           <motion.div
-            className="grid h-full min-h-0 w-full gap-1 sm:gap-1.5"
+            className="grid h-full min-h-0 w-full gap-2 sm:gap-2.5"
             style={{
               gridTemplateColumns: `repeat(${grid.columns}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${grid.rowCount}, minmax(0, 1fr))`,
@@ -149,7 +149,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
                     style={TABLE_TITLE_FONT}
                     className="flex shrink-0 items-baseline justify-center gap-[0.35em] border-b border-amber-500/45 bg-gradient-to-b from-amber-500/25 to-amber-600/10 px-2 py-1 leading-none"
                   >
-                    <span className="text-[0.42em] font-bold uppercase tracking-[0.22em] text-amber-300/75">
+                    <span className="font-bold uppercase tracking-[0.14em] text-amber-300/85">
                       Table
                     </span>
                     <span className="font-black tabular-nums text-amber-50 [text-shadow:0_1px_8px_rgba(251,191,36,0.35)]">

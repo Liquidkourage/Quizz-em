@@ -8,9 +8,9 @@ import {
   SEATING_CHART_GRID_MAX_WIDTH_REM,
   SEATING_CHART_PAGE_MS,
   seatingChartPageCount,
-  seatingChartPageGrid,
   seatingChartPageLabel,
   seatingChartPageTables,
+  seatingChartWFormationLayout,
 } from './venueSeatingChartCarousel'
 
 function SeatingTableCard({
@@ -103,7 +103,10 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
     () => seatingChartPageTables(tables, pageIndex),
     [tables, pageIndex],
   )
-  const pageGrid = useMemo(() => seatingChartPageGrid(pageTables.length), [pageTables.length])
+  const pageLayout = useMemo(
+    () => seatingChartWFormationLayout(pageTables.length),
+    [pageTables.length],
+  )
   const pageMeta = seatingChartPageLabel(pageIndex, tables.length)
 
   const totalSeated =
@@ -152,22 +155,30 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={pageIndex}
-                className="grid h-full min-h-0 w-full max-h-full flex-1 items-stretch gap-3 sm:gap-4"
+                className="grid h-full min-h-0 w-full max-h-full flex-1 items-stretch gap-x-3 gap-y-3 sm:gap-x-4 sm:gap-y-4"
                 style={{
                   maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem`,
-                  gridTemplateColumns: `repeat(${pageGrid.columns}, minmax(0, 1fr))`,
-                  gridTemplateRows: `repeat(${pageGrid.rowCount}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `repeat(${pageLayout.trackColumns}, minmax(0, 1fr))`,
+                  gridTemplateRows: `repeat(${pageLayout.rowCount}, minmax(0, 1fr))`,
                 }}
                 initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
-              {pageTables.map((table) => (
-                <div key={table.tableNum} className="flex min-h-0 h-full min-w-0">
-                  <SeatingTableCard table={table} />
-                </div>
-              ))}
+                {pageTables.map((table, index) => {
+                  const slot = pageLayout.slots[index]
+                  if (!slot) return null
+                  return (
+                    <div
+                      key={table.tableNum}
+                      className="flex h-full min-h-0 min-w-0"
+                      style={{ gridColumn: slot.gridColumn, gridRow: slot.gridRow }}
+                    >
+                      <SeatingTableCard table={table} />
+                    </div>
+                  )
+                })}
               </motion.div>
             </AnimatePresence>
           </div>

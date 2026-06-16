@@ -155,7 +155,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={pageIndex}
-                className="grid h-full min-h-0 w-full max-h-full flex-1 items-stretch gap-x-3 gap-y-3 sm:gap-x-4 sm:gap-y-4"
+                className="grid h-full min-h-0 w-full max-h-full flex-1 items-stretch gap-x-5 gap-y-4 sm:gap-x-7 sm:gap-y-5"
                 style={{
                   maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem`,
                   gridTemplateColumns: `repeat(${pageLayout.trackColumns}, minmax(0, 1fr))`,

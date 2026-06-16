@@ -34,23 +34,23 @@ describe('seatingChartPageTables', () => {
 })
 
 describe('seatingChartWFormationLayout', () => {
-  it('places five tables in a W (3 top, 2 staggered bottom)', () => {
+  it('places five tables in a W (3 top, 2 staggered bottom) with gutter tracks', () => {
     const layout = seatingChartWFormationLayout(5)
     expect(layout.rowCount).toBe(2)
-    expect(layout.trackColumns).toBe(6)
+    expect(layout.trackColumns).toBe(10)
     expect(layout.slots).toEqual([
       { gridColumn: '1 / 3', gridRow: 1 },
-      { gridColumn: '3 / 5', gridRow: 1 },
-      { gridColumn: '5 / 7', gridRow: 1 },
-      { gridColumn: '2 / 4', gridRow: 2 },
-      { gridColumn: '4 / 6', gridRow: 2 },
+      { gridColumn: '4 / 6', gridRow: 1 },
+      { gridColumn: '7 / 9', gridRow: 1 },
+      { gridColumn: '3 / 5', gridRow: 2 },
+      { gridColumn: '6 / 8', gridRow: 2 },
     ])
   })
 
   it('shrink-wraps partial pages', () => {
     expect(seatingChartWFormationLayout(3).rowCount).toBe(1)
     expect(seatingChartWFormationLayout(4).slots[3]).toEqual({
-      gridColumn: '3 / 5',
+      gridColumn: '4 / 6',
       gridRow: 2,
     })
   })

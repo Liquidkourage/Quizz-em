@@ -1,8 +1,14 @@
 /** Tables visible on one seating-chart screen before advancing the carousel. */
-export const SEATING_CHART_PAGE_TABLES = 6
+export const SEATING_CHART_PAGE_TABLES = 4
 
-/** Dwell time on each page (ms) — long enough to scan ~6 tables from the back of the room. */
+/** Dwell time on each page (ms) — long enough to scan a page from the back of the room. */
 export const SEATING_CHART_PAGE_MS = 10_000
+
+/** Centered grid — intentionally below full viewport width. */
+export const SEATING_CHART_GRID_MAX_WIDTH_REM = 56
+
+/** Cap card width so rows breathe on large displays. */
+export const SEATING_CHART_CARD_MAX_WIDTH_REM = 20
 
 export type SeatingChartPageGrid = {
   columns: number
@@ -22,13 +28,13 @@ export function seatingChartPageTables<T>(tables: readonly T[], pageIndex: numbe
   return tables.slice(start, start + SEATING_CHART_PAGE_TABLES)
 }
 
-/** Grid for the tables on the current page — at most 3×2 for six tables. */
+/** Grid for the tables on the current page — at most 2×2 for four tables. */
 export function seatingChartPageGrid(tableCountOnPage: number): SeatingChartPageGrid {
   const n = Math.max(0, Math.floor(tableCountOnPage))
   if (n <= 1) return { columns: 1, rowCount: 1 }
   if (n <= 2) return { columns: 2, rowCount: 1 }
-  if (n <= 4) return { columns: 2, rowCount: 2 }
-  return { columns: 3, rowCount: 2 }
+  if (n === 3) return { columns: 2, rowCount: 2 }
+  return { columns: 2, rowCount: 2 }
 }
 
 export function seatingChartPageLabel(

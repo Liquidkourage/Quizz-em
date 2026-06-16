@@ -1,4 +1,5 @@
 import type { VenueCondenseProgressModel } from './venueWallModel'
+import { DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
 type VenueCondenseProgressBarProps = {
   model: VenueCondenseProgressModel
@@ -49,12 +50,8 @@ export default function VenueCondenseProgressBar({
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >
         <p
-          className={`truncate font-semibold tabular-nums text-white/75 ${
-            headline
-              ? 'mb-1.5 text-left text-[11px] sm:text-sm'
-              : sidebar
-                ? 'mb-1 text-center text-[10px] leading-tight sm:text-[11px]'
-                : 'mb-1 text-center text-[clamp(0.9rem,2.2vw,1.125rem)] leading-tight'
+          className={`truncate font-semibold tabular-nums text-white/75 ${DISPLAY_TEXT_SECONDARY} ${
+            headline ? 'mb-1.5 text-left' : sidebar ? 'mb-1 text-center' : 'mb-1 text-center'
           }`}
         >
           {compactCaption(model)}
@@ -91,9 +88,7 @@ export default function VenueCondenseProgressBar({
 
           {showMarks && nextAt != null && survivors > nextAt ? (
             <span
-              className={`absolute -translate-x-1/2 font-mono font-bold tabular-nums text-amber-200/95 ${
-                headline ? '-top-0.5 text-[9px] sm:text-[10px]' : '-top-0.5 text-[8px]'
-              }`}
+              className={`absolute -translate-x-1/2 font-mono font-bold tabular-nums text-amber-200/95 ${DISPLAY_TEXT_SECONDARY} -top-0.5`}
               style={{
                 left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
               }}

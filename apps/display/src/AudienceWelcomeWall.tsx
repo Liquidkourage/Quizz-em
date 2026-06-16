@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
+import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
 export type AudienceWelcomeWallProps = {
   venueCode: string
@@ -227,7 +228,7 @@ function WelcomeQrColumn({
             </div>
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 items-center rounded-xl border-2 border-dashed border-white/35 bg-white/[0.04] px-6 py-10 text-center text-[clamp(1.38rem,_3.85vmin,_1.92rem)] font-semibold leading-snug text-amber-200">
+          <div className={`flex min-h-0 flex-1 items-center rounded-xl border-2 border-dashed border-white/35 bg-white/[0.04] px-6 py-10 text-center font-semibold leading-snug text-amber-200 ${DISPLAY_TEXT_SECONDARY}`}>
             QR blocked — check the centered join card for the URL and code.
           </div>
         )}
@@ -376,7 +377,7 @@ function WelcomeNewPlayerTipsPanel({
   reducedMotion: boolean
 }) {
   const bulletClass =
-    'text-balance font-semibold leading-[1.38] text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] text-[clamp(0.964rem,min(3.038vw,_2.657vh),_1.471rem)] lg:leading-[1.42] lg:text-[clamp(1.011rem,min(3.236vw,_2.8vh),_1.528rem)]'
+    `text-balance font-semibold leading-[1.38] text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_SECONDARY} lg:leading-[1.42]`
 
   const tips = [
     "Quizz'em is a trivia game played exactly like Texas Hold'em—answers are numeric, cards are single digits (e.g. 99, 1492, 90210).",
@@ -398,7 +399,7 @@ function WelcomeNewPlayerTipsPanel({
           <ul className="m-0 flex min-h-0 w-full max-w-[min(100%,56ch)] list-none flex-1 flex-col justify-center gap-y-[clamp(10px,min(1.2vmin,_13px),_16px)] self-center p-0 lg:gap-y-[clamp(12px,min(1.3vmin,_17px),_18px)]">
             {tips.map((t) => (
               <li key={t} className="text-balance text-center">
-                <span className="mr-[0.35em] inline text-[0.75em] font-bold leading-none text-emerald-300/92" aria-hidden>
+                <span className={`mr-[0.35em] inline font-bold leading-none text-emerald-300/92 ${DISPLAY_TEXT_SECONDARY}`} aria-hidden>
                   ●
                 </span>
                 <span className={`${bulletClass} inline`}>{t}</span>
@@ -441,24 +442,24 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
    *  (vmin balloons when the window is tall and crowded the vertical rhythm). */
   /** `min-w-0` + wrapping so wide tracking / long words cannot blow past grid tracks */
   const sectionRibbon =
-    'min-w-0 font-black uppercase tracking-[0.22em] text-amber-50/98 break-words text-balance whitespace-normal text-[clamp(1.05rem,min(3.95vw,_3vh),_2.5rem)] [text-shadow:0_0_32px_rgba(251,191,36,0.45),0_0_72px_rgba(239,68,68,0.14),0_2px_4px_rgba(0,0,0,_0.95)]'
+    `min-w-0 font-black uppercase tracking-[0.22em] text-amber-50/98 break-words text-balance whitespace-normal ${DISPLAY_TEXT_PRIMARY} [text-shadow:0_0_32px_rgba(251,191,36,0.45),0_0_72px_rgba(239,68,68,0.14),0_2px_4px_rgba(0,0,0,_0.95)]`
 
   const hintsTitleClass =
-    'min-w-0 font-black uppercase tracking-[0.17em] text-amber-50/97 break-words text-balance whitespace-normal text-[clamp(1.072rem,min(3.688vw,_2.967vh),_1.863rem)] [text-shadow:0_0_24px_rgba(251,191,36,0.45),0_2px_8px_rgba(0,0,0,_0.92)]'
+    `min-w-0 font-black uppercase tracking-[0.17em] text-amber-50/97 break-words text-balance whitespace-normal ${DISPLAY_TEXT_PRIMARY} [text-shadow:0_0_24px_rgba(251,191,36,0.45),0_2px_8px_rgba(0,0,0,_0.92)]`
 
   /** Credit under the wordmark — readable title case, subtler than headline chrome. */
   const taglineCredit =
-    'min-w-0 break-words text-balance font-semibold tracking-[0.04em] text-amber-50/92 text-[clamp(0.82rem,min(2.45vw,_1.85vh),_1.28rem)] [text-shadow:0_0_14px_rgba(253,224,138,0.38),0_2px_8px_rgba(0,0,0,_0.88)]'
+    `min-w-0 break-words text-balance font-semibold tracking-[0.04em] text-amber-50/92 ${DISPLAY_TEXT_SECONDARY} [text-shadow:0_0_14px_rgba(253,224,138,0.38),0_2px_8px_rgba(0,0,0,_0.88)]`
 
   /** “Players” label above the total count tile */
   const playerCountLabelClass =
-    'min-w-0 break-words text-balance font-black tracking-[0.13em] text-[clamp(0.95rem,min(3.05vw,_2.55vh),_1.95rem)] uppercase text-emerald-50/94 [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:tracking-[0.11em] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:text-[clamp(0.85rem,min(2.5vw,_1.95vh),_1.58rem)] [text-shadow:0_0_18px_rgba(167,243,208,0.28),0_2px_8px_rgba(0,0,0,.58)] mb-[clamp(3px,min(0.55vmin,_5px),_6px)]'
+    `min-w-0 break-words text-balance font-black tracking-[0.13em] uppercase text-emerald-50/94 ${DISPLAY_TEXT_PRIMARY} [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:tracking-[0.11em] [text-shadow:0_0_18px_rgba(167,243,208,0.28),0_2px_8px_rgba(0,0,0,.58)] mb-[clamp(3px,min(0.55vmin,_5px),_6px)]`
   const venueMono =
-    'max-w-full break-all text-center font-mono font-black leading-none tracking-[0.06em] text-[clamp(1.65rem,min(8.6vw,min(9.5vh,_3.55rem)),_4.85rem)] uppercase text-transparent bg-gradient-to-br from-yellow-200 via-yellow-400 to-amber-600 bg-clip-text [-webkit-background-clip:text] [filter:drop-shadow(0_2px_4px_rgba(0,0,0,.9))]'
+    `max-w-full break-all text-center font-mono font-black leading-none tracking-[0.06em] uppercase text-transparent bg-gradient-to-br from-yellow-200 via-yellow-400 to-amber-600 bg-clip-text [-webkit-background-clip:text] [filter:drop-shadow(0_2px_4px_rgba(0,0,0,.9))] ${DISPLAY_TEXT_PRIMARY}`
 
   /** Join card URL — Orbitron; slash-bridged display + break-words for readable wraps. */
   const joinUrlText =
-    'hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-black leading-relaxed tracking-[0.04em] text-amber-50 text-[clamp(0.92rem,min(2.65vw,_2.95vh),_2.2rem)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:text-[clamp(0.88rem,min(2.35vw,_2.68vh),_1.95rem)] [text-shadow:0_0_22px_rgba(254,249,231,0.45),0_0_58px_rgba(251,191,36,0.42),0_0_112px_rgba(234,179,8,0.22),0_0_28px_rgba(239,68,68,0.12),0_1px_0_rgba(0,0,0,0.9)]'
+    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-black leading-relaxed tracking-[0.04em] text-amber-50 ${DISPLAY_TEXT_SECONDARY} [text-shadow:0_0_22px_rgba(254,249,231,0.45),0_0_58px_rgba(251,191,36,0.42),0_0_112px_rgba(234,179,8,0.22),0_0_28px_rgba(239,68,68,0.12),0_1px_0_rgba(0,0,0,0.9)]`
 
   /** Tighter attendance strip on landscape 1080p-class TVs (≥1024 wide, ≤1080 tall); skips narrow/portrait. */
   const statTile1080 =
@@ -466,7 +467,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
 
   /** Slightly taller digits limited on short viewports; default keeps large-TV punch. */
   const statDigitBase =
-    'py-[clamp(3px,min(0.95vmin,_8px),_8px)] font-mono tabular-nums tracking-tight leading-none text-[clamp(1.72rem,min(9.4vw,min(11vmin,_9.2dvh)),_6.1rem)] font-black [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:py-[clamp(2px,min(0.55vmin,_5px),_5px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:text-[clamp(1.4rem,min(6.1vw,min(7.2vmin,_6.5dvh)),_4.25rem)]'
+    `py-[clamp(3px,min(0.95vmin,_8px),_8px)] font-mono tabular-nums tracking-tight leading-none font-black ${DISPLAY_TEXT_PRIMARY} [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:py-[clamp(2px,min(0.55vmin,_5px),_5px)]`
 
   const statDigitAccentShadow =
     '[text-shadow:0_0_36px_rgba(253,224,138,0.65),0_0_92px_rgba(234,179,8,0.35),0_2px_4px_rgba(0,0,0,0.95)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:[text-shadow:0_0_22px_rgba(253,224,138,0.55),0_0_54px_rgba(234,179,8,0.28),0_2px_3px_rgba(0,0,0,0.92)]'

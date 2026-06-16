@@ -1,5 +1,6 @@
 import { displayBlindSeatIndices } from '@qhe/core'
 import type { ReactNode } from 'react'
+import { DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
 /** Raised white dealer puck (~TV-poker readability on green felt). */
 function FeltDealerPuck() {
@@ -19,10 +20,7 @@ function FeltDealerPuck() {
         aria-hidden
       />
       <span
-        className="
-          relative z-[1] select-none font-extrabold leading-none tracking-tight text-neutral-900
-          [text-shadow:0_1px_0_rgba(255,255,255,.9),0_-1px_1px_rgba(0,0,0,.22)]
-          text-[13px] sm:text-sm md:text-[0.95rem]"
+        className={`relative z-[1] select-none font-extrabold leading-none tracking-tight text-neutral-900 [text-shadow:0_1px_0_rgba(255,255,255,.9),0_-1px_1px_rgba(0,0,0,.22)] ${DISPLAY_TEXT_SECONDARY}`}
       >
         BTN
       </span>
@@ -66,10 +64,7 @@ function FeltBlindLammer({
         aria-hidden
       />
       <span
-        className="
-          relative z-[1] select-none font-extrabold leading-none tracking-[0.06em] text-white
-          [text-shadow:0_1px_0_rgba(255,255,255,.32),0_-2px_4px_rgba(0,0,0,.42)]
-          text-[12px] sm:text-[13px] md:text-sm"
+        className={`relative z-[1] select-none font-extrabold leading-none tracking-[0.06em] text-white [text-shadow:0_1px_0_rgba(255,255,255,.32),0_-2px_4px_rgba(0,0,0,.42)] ${DISPLAY_TEXT_SECONDARY}`}
       >
         {label}
       </span>
@@ -100,8 +95,7 @@ export function heroSeatBlindMarkerPills(
     return out
   }
 
-  const badgeCompact =
-    'inline-flex min-w-[1.6rem] items-center justify-center rounded px-1 py-0.5 text-[9px] font-black uppercase leading-none tracking-tight shadow-sm sm:text-[10px]'
+  const badgeCompact = `inline-flex min-w-[1.6rem] items-center justify-center rounded px-1 py-0.5 font-black uppercase leading-none tracking-tight shadow-sm ${DISPLAY_TEXT_SECONDARY}`
 
   if (blindSeats.dealerSeatIndex === seatIndex) {
     out.push(

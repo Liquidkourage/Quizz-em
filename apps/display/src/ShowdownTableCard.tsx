@@ -8,6 +8,11 @@ import {
 } from './showdownDisplay'
 import type { ShowdownWallDensity } from './showdownWallLayout'
 import { SHOWDOWN_FELT_STYLE } from './showdownTheme'
+import {
+  DISPLAY_TEXT_BADGE_CQ,
+  DISPLAY_TEXT_PRIMARY_CQ,
+  DISPLAY_TEXT_SECONDARY_CQ,
+} from './displayTypography'
 
 type ShowdownTableCardProps = {
   tableNum: number
@@ -56,17 +61,13 @@ function PlayerResultTile({
     >
       <div className="flex min-w-0 items-center gap-1.5">
         <span
-          className={`flex shrink-0 items-center justify-center rounded-full font-mono font-black tabular-nums ${
-            compact ? 'h-6 w-6 text-[0.65rem]' : 'h-8 w-8 text-xs sm:text-sm'
-          } ${isWinner ? 'bg-amber-500/30 text-amber-50' : 'bg-black/45 text-white/75'}`}
+          className={`flex aspect-square min-h-[max(5vh,7cqh)] min-w-[max(5vh,7cqh)] shrink-0 items-center justify-center rounded-full font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
+            isWinner ? 'bg-amber-500/30 text-amber-50' : 'bg-black/45 text-white/75'
+          }`}
         >
           {row.seat}
         </span>
-        <p
-          className={`min-w-0 flex-1 truncate font-bold leading-tight text-white ${
-            compact ? 'text-xs' : 'text-sm sm:text-base'
-          }`}
-        >
+        <p className={`min-w-0 flex-1 truncate font-bold text-white ${DISPLAY_TEXT_PRIMARY_CQ}`}>
           {row.name}
         </p>
         {isWinner && !compact ? <PokerChip size="sm" className="shrink-0 opacity-90" /> : null}
@@ -82,29 +83,21 @@ function PlayerResultTile({
         }`}
       >
         <div className="min-w-0 leading-none">
-          <p
-            className={`font-mono font-black tabular-nums text-amber-50 ${
-              compact ? 'text-base' : 'text-xl sm:text-2xl'
-            }`}
-          >
+          <p className={`font-mono font-black tabular-nums text-amber-50 ${DISPLAY_TEXT_PRIMARY_CQ}`}>
             {hasGuess ? formatTriviaNumber(row.submitted) : '—'}
           </p>
           {distance != null ? (
             <p
-              className={`mt-0.5 font-mono font-bold tabular-nums ${
-                compact ? 'text-[0.65rem]' : 'text-xs'
-              } ${isWinner ? 'text-emerald-300' : 'text-white/45'}`}
+              className={`mt-0.5 font-mono font-bold tabular-nums ${DISPLAY_TEXT_SECONDARY_CQ} ${
+                isWinner ? 'text-emerald-300' : 'text-white/45'
+              }`}
             >
               ±{formatTriviaNumber(distance)}
             </p>
           ) : null}
         </div>
         {row.chipPayout != null && row.chipPayout > 0 ? (
-          <p
-            className={`shrink-0 font-mono font-black tabular-nums text-emerald-300 ${
-              compact ? 'text-xs' : 'text-sm sm:text-base'
-            }`}
-          >
+          <p className={`shrink-0 font-mono font-black tabular-nums text-emerald-300 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
             {formatChipPayout(row.chipPayout)}
           </p>
         ) : null}
@@ -142,7 +135,7 @@ export default function ShowdownTableCard({
 
   return (
     <motion.article
-      className={`flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-yellow-600/45 bg-black/55 shadow-lg ${className}`}
+      className={`@container flex min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-yellow-600/45 bg-black/55 shadow-lg ${className}`}
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
@@ -153,27 +146,15 @@ export default function ShowdownTableCard({
         }`}
         style={SHOWDOWN_FELT_STYLE}
       >
-        <p
-          className={`font-mono font-black tabular-nums leading-none text-yellow-400 ${
-            compact ? 'text-lg' : 'text-2xl sm:text-3xl'
-          }`}
-        >
+        <p className={`font-mono font-black tabular-nums leading-none text-yellow-400 ${DISPLAY_TEXT_PRIMARY_CQ}`}>
           {tableNum}
         </p>
         <div className="min-w-0 text-right leading-tight">
-          <p
-            className={`font-mono font-black tabular-nums text-amber-100 ${
-              compact ? 'text-sm' : 'text-lg sm:text-xl'
-            }`}
-          >
+          <p className={`font-mono font-black tabular-nums text-amber-100 ${DISPLAY_TEXT_PRIMARY_CQ}`}>
             {formatTriviaNumber(correctAnswer)}
           </p>
           {potShown > 0 ? (
-            <p
-              className={`font-mono font-bold tabular-nums text-yellow-300 ${
-                compact ? 'text-[0.6rem]' : 'text-xs sm:text-sm'
-              }`}
-            >
+            <p className={`font-mono font-bold tabular-nums text-yellow-300 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
               ${potShown.toLocaleString()}
             </p>
           ) : null}
@@ -187,11 +168,7 @@ export default function ShowdownTableCard({
           }`}
         >
           {!compact ? <PokerChip size="sm" /> : null}
-          <p
-            className={`min-w-0 truncate text-center font-black uppercase tracking-wide text-amber-50 ${
-              compact ? 'text-[0.6rem]' : 'text-sm sm:text-base'
-            }`}
-          >
+          <p className={`min-w-0 truncate text-center font-black uppercase tracking-wide text-amber-50 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
             {winnerRows.length === 1
               ? winnerRows[0]!.name
               : `Split · ${winnerRows.map((w) => w.name).join(' · ')}`}

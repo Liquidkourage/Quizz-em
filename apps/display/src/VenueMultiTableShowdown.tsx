@@ -11,6 +11,7 @@ import {
 } from './showdownDisplay'
 import { showdownWallLayout } from './showdownWallLayout'
 import { SHOWDOWN_FELT_STYLE } from './showdownTheme'
+import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
 type VenueMultiTableShowdownProps = {
   tiles: DisplayVenueTileSnapshot[]
@@ -80,31 +81,31 @@ export default function VenueMultiTableShowdown({
           </div>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[0.6rem] font-bold uppercase tracking-[0.22em] text-amber-200/75 sm:text-xs">
+          <p className={`font-bold uppercase tracking-[0.22em] text-amber-200/75 ${DISPLAY_TEXT_SECONDARY}`}>
             Venue showdown
           </p>
-          <h2 className="truncate text-lg font-black uppercase tracking-wide text-white sm:text-xl md:text-2xl">
+          <h2 className={`truncate font-black uppercase tracking-wide text-white ${DISPLAY_TEXT_PRIMARY}`}>
             {showdownTiles.length === 1
               ? `Table ${showdownTiles[0]!.tableNum}`
               : `${showdownTiles.length} tables`}
           </h2>
           {headlineQuestionText ? (
-            <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-white/65 sm:text-sm">
+            <p className={`mt-0.5 line-clamp-2 text-white/65 ${DISPLAY_TEXT_SECONDARY}`}>
               {headlineQuestionText}
             </p>
           ) : null}
         </div>
         {typeof headerAnswer === 'number' && Number.isFinite(headerAnswer) ? (
           <div className="shrink-0 rounded-xl border border-amber-400/45 bg-black/35 px-3 py-2 text-right sm:px-4 sm:py-2.5">
-            <p className="text-[0.55rem] font-bold uppercase tracking-[0.18em] text-amber-200/80 sm:text-xs">
+            <p className={`font-bold uppercase tracking-[0.18em] text-amber-200/80 ${DISPLAY_TEXT_SECONDARY}`}>
               Correct answer
             </p>
-            <p className="font-mono text-3xl font-black tabular-nums leading-none text-amber-100 sm:text-4xl md:text-5xl">
+            <p className={`font-mono font-black tabular-nums leading-none text-amber-100 ${DISPLAY_TEXT_PRIMARY}`}>
               {formatTriviaNumber(headerAnswer)}
             </p>
           </div>
         ) : (
-          <p className="shrink-0 text-xs text-white/50 sm:text-sm">Answer on each table</p>
+          <p className={`shrink-0 text-white/50 ${DISPLAY_TEXT_SECONDARY}`}>Answer on each table</p>
         )}
       </header>
 

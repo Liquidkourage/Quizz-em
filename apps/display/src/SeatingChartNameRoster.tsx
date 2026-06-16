@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
 import {
   SEATING_CHART_ROSTER_PAGE_MS,
   SEATING_CHART_ROSTER_PAGE_SIZE,
@@ -11,11 +12,11 @@ import {
 
 function SeatingChartRosterRow({ entry }: { entry: SeatingChartPlayerEntry }) {
   return (
-    <li className="min-w-0 border-b border-white/[0.07] py-[0.2rem] last:border-b-0">
-      <p className="truncate text-xs font-semibold leading-tight text-white sm:text-[0.8125rem]">
+    <li className="min-w-0 border-b border-white/[0.07] py-[0.15rem] last:border-b-0">
+      <p className={`truncate font-semibold text-white ${DISPLAY_TEXT_SECONDARY}`}>
         {entry.name.trim()}
       </p>
-      <p className="mt-0.5 truncate text-[10px] font-medium leading-none text-amber-200/75 sm:text-[11px]">
+      <p className={`mt-0.5 truncate font-medium text-amber-200/75 ${DISPLAY_TEXT_SECONDARY}`}>
         Table {entry.tableNum}, Seat {entry.seatNum}
       </p>
     </li>
@@ -69,15 +70,15 @@ export default function SeatingChartNameRoster({
           align === 'right' ? 'flex-row-reverse text-right' : ''
         }`}
       >
-        <h2 className="text-xs font-black uppercase tracking-[0.16em] text-amber-300/90 sm:text-sm">
+        <h2 className={`font-black uppercase tracking-[0.16em] text-amber-300/90 ${DISPLAY_TEXT_PRIMARY}`}>
           {title}
         </h2>
         {pageCount > 1 ? (
-          <p className="text-[10px] font-medium tabular-nums text-white/45 sm:text-[11px]">
+          <p className={`font-medium tabular-nums text-white/45 ${DISPLAY_TEXT_SECONDARY}`}>
             {rangeStart}–{rangeEnd} of {entries.length}
           </p>
         ) : (
-          <p className="text-[10px] font-medium tabular-nums text-white/45 sm:text-[11px]">
+          <p className={`font-medium tabular-nums text-white/45 ${DISPLAY_TEXT_SECONDARY}`}>
             {entries.length} players
           </p>
         )}

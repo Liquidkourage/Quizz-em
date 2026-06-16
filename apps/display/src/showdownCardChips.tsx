@@ -1,14 +1,19 @@
 import { Fragment } from 'react'
 import type { ShowdownResultRow } from './showdownDisplay'
+import {
+  DISPLAY_TEXT_BADGE_CQ,
+  DISPLAY_TEXT_PRIMARY_CQW,
+  DISPLAY_TEXT_SECONDARY_CQ,
+} from './displayTypography'
 
 export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-compact'
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
 const FLOOR_CHIP_DIM =
-  'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0 border-2 px-[0.06em] text-[clamp(1.72rem,22.2cqw,3rem)]'
+  'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0 border-2 px-[0.06em]'
 const FLOOR_COMPACT_CHIP_DIM =
-  'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.03rem,12.8cqw,1.8rem)] shrink-0 border-2 px-[0.05em] text-[clamp(1.35rem,16.1cqw,2.3rem)]'
+  'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.03rem,12.8cqw,1.8rem)] shrink-0 border-2 px-[0.05em]'
 
 function DigitChip({
   digit,
@@ -25,12 +30,16 @@ function DigitChip({
       : size === 'floor-compact'
         ? FLOOR_COMPACT_CHIP_DIM
         : size === 'lg'
-        ? 'h-9 w-[1.65rem] shrink-0 px-1 text-base sm:h-10 sm:w-[1.85rem] sm:text-lg'
-        : size === 'xs'
-          ? 'h-5 w-[0.95rem] shrink-0 px-0.5 text-[0.55rem]'
-          : size === 'sm'
-            ? 'h-6 w-[1.125rem] shrink-0 px-0.5 text-[0.65rem]'
-            : 'h-7 w-[1.35rem] shrink-0 px-1 text-xs'
+          ? 'h-9 w-[1.65rem] shrink-0 px-1 sm:h-10 sm:w-[1.85rem]'
+          : size === 'xs'
+            ? 'h-5 w-[0.95rem] shrink-0 px-0.5'
+            : size === 'sm'
+              ? 'h-6 w-[1.125rem] shrink-0 px-0.5'
+              : 'h-7 w-[1.35rem] shrink-0 px-1'
+  const textClass =
+    size === 'floor' || size === 'floor-compact' || size === 'lg' || size === 'md'
+      ? DISPLAY_TEXT_PRIMARY_CQW
+      : DISPLAY_TEXT_BADGE_CQ
   const styles: Record<DigitChipVariant, string> = {
     hole: 'border-amber-400/85 bg-amber-950/90 text-amber-50 shadow-[0_0_8px_rgba(251,191,36,0.35)]',
     board:
@@ -39,7 +48,7 @@ function DigitChip({
   }
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-[4px] border font-mono font-black tabular-nums leading-none ${dim} ${styles[variant]}`}
+      className={`inline-flex items-center justify-center rounded-[4px] border font-mono font-black tabular-nums leading-none ${dim} ${textClass} ${styles[variant]}`}
     >
       {digit}
     </span>
@@ -50,20 +59,24 @@ function DigitChip({
 function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
   const dim =
     size === 'floor'
-      ? 'h-[clamp(2rem,26.5cqw,3.5rem)] w-[0.22em] text-[clamp(1.72rem,22.2cqw,3rem)]'
+      ? `${FLOOR_CHIP_DIM} w-[0.22em]`
       : size === 'floor-compact'
-        ? 'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[0.2em] text-[clamp(1.35rem,16.1cqw,2.3rem)]'
+        ? `${FLOOR_COMPACT_CHIP_DIM} w-[0.2em]`
         : size === 'lg'
-        ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
-        : size === 'xs'
-          ? 'h-5 w-1.5 text-sm'
-          : size === 'sm'
-            ? 'h-6 w-2 text-base'
-            : 'h-7 w-2.5 text-lg'
+          ? 'h-9 w-3 sm:h-10 sm:w-4'
+          : size === 'xs'
+            ? 'h-5 w-1.5'
+            : size === 'sm'
+              ? 'h-6 w-2'
+              : 'h-7 w-2.5'
+  const textClass =
+    size === 'floor' || size === 'floor-compact' || size === 'lg' || size === 'md'
+      ? DISPLAY_TEXT_PRIMARY_CQW
+      : DISPLAY_TEXT_BADGE_CQ
   return (
     <span
       aria-hidden
-      className={`inline-flex items-end justify-center font-mono font-black leading-none text-amber-200 ${dim}`}
+      className={`inline-flex items-end justify-center font-mono font-black leading-none text-amber-200 ${dim} ${textClass}`}
     >
       .
     </span>
@@ -96,14 +109,16 @@ export function ShowdownFiveCardsUsed({
 }) {
   if (row.hasFolded) {
     return (
-      <span className="text-[0.6rem] font-bold uppercase tracking-wider text-white/30">Folded</span>
+      <span className={`font-bold uppercase tracking-wider text-white/30 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
+        Folded
+      </span>
     )
   }
 
   const cards = row.answerCards
 
   if (cards.length === 0) {
-    return <span className="text-[0.6rem] text-white/35">—</span>
+    return <span className={`text-white/35 ${DISPLAY_TEXT_SECONDARY_CQ}`}>—</span>
   }
 
   const decimalAfter = decimalLeadingDigitCount(
@@ -117,8 +132,8 @@ export function ShowdownFiveCardsUsed({
       : size === 'floor-compact'
         ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.14rem,1cqw,0.38rem)]'
         : size === 'lg'
-        ? 'flex flex-nowrap items-center justify-center gap-1'
-        : 'flex flex-wrap items-center justify-center gap-0.5'
+          ? 'flex flex-nowrap items-center justify-center gap-1'
+          : 'flex flex-wrap items-center justify-center gap-0.5'
 
   const ariaLabelDigits = cards
     .map((c, i) => (i === decimalAfter ? `. ${c.digit}` : `${c.digit}`))

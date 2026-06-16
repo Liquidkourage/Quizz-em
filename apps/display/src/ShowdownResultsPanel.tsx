@@ -7,6 +7,13 @@ import {
   type ShowdownResultRow,
 } from './showdownDisplay'
 import { SHOWDOWN_FELT_STYLE, SHOWDOWN_RAIL_STYLE } from './showdownTheme'
+import {
+  DISPLAY_TEXT_BADGE_CQ,
+  DISPLAY_TEXT_PRIMARY,
+  DISPLAY_TEXT_PRIMARY_CQ,
+  DISPLAY_TEXT_SECONDARY,
+  DISPLAY_TEXT_SECONDARY_CQ,
+} from './displayTypography'
 
 type ShowdownResultsPanelProps = {
   correctAnswer: number | undefined
@@ -27,11 +34,12 @@ function DigitChip({
 }) {
   const dim =
     size === 'sm'
-      ? 'h-6 min-w-[1.125rem] px-0.5 text-[0.65rem]'
-      : 'h-7 min-w-[1.35rem] px-1 text-xs'
+      ? 'h-6 min-w-[1.125rem] px-0.5'
+      : 'h-7 min-w-[1.35rem] px-1'
+  const textClass = size === 'sm' ? DISPLAY_TEXT_BADGE_CQ : DISPLAY_TEXT_SECONDARY_CQ
   return (
     <span
-      className={`inline-flex items-center justify-center rounded border font-mono font-black tabular-nums ${dim} ${
+      className={`inline-flex items-center justify-center rounded border font-mono font-black tabular-nums ${dim} ${textClass} ${
         active
           ? 'border-emerald-400/70 bg-emerald-950/90 text-emerald-100 shadow-[0_0_8px_rgba(52,211,153,0.3)]'
           : 'border-white/12 bg-black/35 text-white/30'
@@ -53,7 +61,7 @@ function HoleChipPair({
 }) {
   if (folded || holes == null) {
     return (
-      <span className="text-[0.6rem] font-bold uppercase tracking-wider text-white/30">Mucked</span>
+      <span className={`font-bold uppercase tracking-wider text-white/30 ${DISPLAY_TEXT_SECONDARY_CQ}`}>Mucked</span>
     )
   }
   return (
@@ -77,10 +85,10 @@ function BoardPickChips({
   size?: 'sm' | 'md'
 }) {
   if (board == null || board.length === 0) {
-    return <span className="text-xs text-white/35">—</span>
+    return <span className={`text-white/35 ${DISPLAY_TEXT_SECONDARY_CQ}`}>—</span>
   }
   if (chosenIndices.length === 0) {
-    return <span className="text-xs text-white/35">—</span>
+    return <span className={`text-white/35 ${DISPLAY_TEXT_SECONDARY_CQ}`}>—</span>
   }
   const chosen = new Set(chosenIndices)
   const slots = board.slice(0, 5)
@@ -107,7 +115,7 @@ function SharedCommunityBoard({
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-amber-200/75 sm:text-xs">
+      <p className={`font-bold uppercase tracking-[0.16em] text-amber-200/75 ${DISPLAY_TEXT_SECONDARY}`}>
         The board
       </p>
       <motion.div className="flex items-center gap-1">
@@ -115,7 +123,7 @@ function SharedCommunityBoard({
           <DigitChip key={i} digit={digit} active size="md" />
         ))}
       </motion.div>
-      <p className="hidden text-[0.6rem] text-white/40 sm:block">
+      <p className={`hidden text-white/40 sm:block ${DISPLAY_TEXT_SECONDARY}`}>
         Highlighted picks in each row
       </p>
     </motion.div>
@@ -142,12 +150,12 @@ function AnswerMedallion({ correctAnswer }: { correctAnswer: number | undefined 
           className="flex h-[82%] w-[82%] items-center justify-center rounded-full border border-amber-300/35"
           style={SHOWDOWN_FELT_STYLE}
         >
-          <span className="font-mono text-2xl font-black tabular-nums text-amber-100 sm:text-3xl">
+          <span className={`font-mono font-black tabular-nums text-amber-100 ${DISPLAY_TEXT_PRIMARY}`}>
             {formatTriviaNumber(correctAnswer)}
           </span>
         </motion.div>
       </motion.div>
-      <p className="mt-1.5 text-[0.6rem] font-bold uppercase tracking-[0.14em] text-amber-200/80 sm:text-xs">
+      <p className={`mt-1.5 font-bold uppercase tracking-[0.14em] text-amber-200/80 ${DISPLAY_TEXT_SECONDARY}`}>
         Correct
       </p>
     </motion.div>
@@ -183,7 +191,7 @@ function PlayerShowdownRow({
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
-      className={`grid min-w-0 items-center gap-x-2 gap-y-1 rounded-lg border px-2 py-2 sm:gap-x-3 sm:px-3 sm:py-2.5 ${
+      className={`@container grid min-w-0 items-center gap-x-2 gap-y-1 rounded-lg border px-2 py-2 sm:gap-x-3 sm:px-3 sm:py-2.5 ${
         compact
           ? 'grid-cols-[auto_minmax(0,1fr)_auto_auto]'
           : 'grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto_auto]'
@@ -196,7 +204,7 @@ function PlayerShowdownRow({
       }`}
     >
       <span
-        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border font-mono text-xs font-black tabular-nums sm:h-8 sm:w-8 ${
+        className={`flex aspect-square min-h-[max(5vh,7cqh)] min-w-[max(5vh,7cqh)] shrink-0 items-center justify-center rounded-full border font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
           isWinner
             ? 'border-amber-300/70 bg-amber-950 text-amber-100'
             : 'border-amber-800/45 bg-slate-950 text-amber-200/85'
@@ -205,10 +213,10 @@ function PlayerShowdownRow({
         {row.seat}
       </span>
 
-      <p className="min-w-0 truncate text-sm font-bold text-white sm:text-base">{row.name}</p>
+      <p className={`min-w-0 truncate font-bold text-white ${DISPLAY_TEXT_PRIMARY_CQ}`}>{row.name}</p>
 
       <motion.div className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-[0.55rem] font-bold uppercase tracking-wider text-white/40">
+        <span className={`font-bold uppercase tracking-wider text-white/40 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
           Cards used
         </span>
         <motion.div className="flex flex-wrap items-center gap-1">
@@ -227,17 +235,17 @@ function PlayerShowdownRow({
       </motion.div>
 
       <motion.div className="text-right">
-        <p className="text-[0.55rem] font-bold uppercase tracking-wider text-white/40">Guess</p>
-        <p className="font-mono text-sm font-black tabular-nums text-amber-100 sm:text-base">
+        <p className={`font-bold uppercase tracking-wider text-white/40 ${DISPLAY_TEXT_SECONDARY_CQ}`}>Guess</p>
+        <p className={`font-mono font-black tabular-nums text-amber-100 ${DISPLAY_TEXT_PRIMARY_CQ}`}>
           {hasGuess ? formatTriviaNumber(row.submitted) : '—'}
         </p>
       </motion.div>
 
       {!compact ? (
         <motion.div className="text-right">
-          <p className="text-[0.55rem] font-bold uppercase tracking-wider text-white/40">Off by</p>
+          <p className={`font-bold uppercase tracking-wider text-white/40 ${DISPLAY_TEXT_SECONDARY_CQ}`}>Off by</p>
           <p
-            className={`font-mono text-sm font-black tabular-nums sm:text-base ${
+            className={`font-mono font-black tabular-nums ${DISPLAY_TEXT_PRIMARY_CQ} ${
               isWinner ? 'text-emerald-300' : 'text-white/70'
             }`}
           >
@@ -248,12 +256,12 @@ function PlayerShowdownRow({
 
       <motion.div className="flex justify-end">
         {isWinner ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-500/20 px-2 py-0.5 text-[0.6rem] font-black uppercase tracking-wider text-amber-100">
+          <span className={`inline-flex items-center gap-1 rounded-full border border-amber-400/50 bg-amber-500/20 px-2 py-0.5 font-black uppercase tracking-wider text-amber-100 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
             <PokerChip size="sm" />
             Win
           </span>
         ) : row.hasFolded ? (
-          <span className="text-[0.6rem] font-bold uppercase text-red-400/80">Fold</span>
+          <span className={`font-bold uppercase text-red-400/80 ${DISPLAY_TEXT_SECONDARY_CQ}`}>Fold</span>
         ) : null}
       </motion.div>
     </motion.div>
@@ -282,8 +290,8 @@ export default function ShowdownResultsPanel({
           className="flex items-center justify-between gap-2 rounded-md border border-amber-500/35 px-2 py-1.5"
           style={SHOWDOWN_FELT_STYLE}
         >
-          <p className="text-[0.6rem] font-bold uppercase tracking-[0.14em] text-amber-200/80">Answer</p>
-          <p className="font-mono text-lg font-black tabular-nums text-amber-100">
+          <p className={`font-bold uppercase tracking-[0.14em] text-amber-200/80 ${DISPLAY_TEXT_SECONDARY}`}>Answer</p>
+          <p className={`font-mono font-black tabular-nums text-amber-100 ${DISPLAY_TEXT_PRIMARY}`}>
             {formatTriviaNumber(correctAnswer)}
           </p>
         </motion.div>
@@ -316,8 +324,8 @@ export default function ShowdownResultsPanel({
         {/* Landscape header */}
         <motion.div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <motion.div>
-            <p className="text-xs font-bold uppercase tracking-[0.28em] text-amber-200/75">Showdown</p>
-            <h2 className="text-xl font-black uppercase tracking-wide text-white sm:text-2xl">
+            <p className={`font-bold uppercase tracking-[0.28em] text-amber-200/75 ${DISPLAY_TEXT_SECONDARY}`}>Showdown</p>
+            <h2 className={`font-black uppercase tracking-wide text-white ${DISPLAY_TEXT_PRIMARY}`}>
               Trivia reveal
             </h2>
           </motion.div>
@@ -333,7 +341,7 @@ export default function ShowdownResultsPanel({
             className="flex items-center justify-center gap-2 rounded-lg border border-amber-400/45 bg-black/45 px-3 py-2"
           >
             <PokerChip size="md" />
-            <p className="text-center text-sm font-black uppercase tracking-wide text-amber-100 sm:text-base">
+            <p className={`text-center font-black uppercase tracking-wide text-amber-100 ${DISPLAY_TEXT_PRIMARY}`}>
               Pot winner · {winnerName}
             </p>
             <PokerChip size="md" />
@@ -344,7 +352,7 @@ export default function ShowdownResultsPanel({
 
         {/* Column labels — desktop */}
         <motion.div
-          className="hidden grid-cols-[auto_minmax(5rem,1fr)_minmax(0,1fr)_auto_auto_auto] gap-x-3 px-3 text-[0.6rem] font-bold uppercase tracking-[0.14em] text-white/45 sm:grid"
+          className={`hidden grid-cols-[auto_minmax(5rem,1fr)_minmax(0,1fr)_auto_auto_auto] gap-x-3 px-3 font-bold uppercase tracking-[0.14em] text-white/45 sm:grid ${DISPLAY_TEXT_SECONDARY}`}
           aria-hidden
         >
           <span>Seat</span>

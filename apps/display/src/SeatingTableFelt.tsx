@@ -1,6 +1,10 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { capsuleBorderRadiusCss } from './tableRimGeometry'
+import {
+  DISPLAY_TEXT_BADGE_CQ,
+  DISPLAY_TEXT_PRIMARY_CQ,
+} from './displayTypography'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
 const FELT_INSET = { top: 0.1, right: 0.06, bottom: 0.13, left: 0.06 }
@@ -111,7 +115,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
           return (
             <div
               key={seatNum}
-              className={`absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono text-[11px] font-black tabular-nums sm:h-8 sm:w-8 sm:text-xs ${
+              className={`absolute flex aspect-square min-h-[max(5vh,7cqh)] min-w-[max(5vh,7cqh)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
                 filled
                   ? 'border-emerald-300/80 bg-neutral-950/95 text-amber-50 shadow-sm ring-1 ring-emerald-400/25'
                   : 'border-white/20 bg-slate-950/70 text-white/35'
@@ -137,18 +141,20 @@ export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
   const sorted = [...seats].sort((a, b) => a.seatNum - b.seatNum)
 
   return (
-    <ul className="grid h-full min-h-0 grid-cols-2 content-center gap-x-2.5 gap-y-1 sm:gap-x-3 sm:gap-y-1.5">
+    <ul className="grid h-full min-h-0 grid-cols-2 content-center gap-x-2 gap-y-0.5 sm:gap-x-3">
       {sorted.map((seat) => {
         const { given, suffix } = splitSeatingDisplayName(seat.name)
         return (
           <li
             key={seat.seatNum}
-            className="flex min-h-0 items-center gap-2 rounded-lg bg-white/[0.045] px-2 py-1 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-1.5"
+            className="flex min-h-0 items-center gap-1.5 rounded-lg bg-white/[0.045] px-1.5 py-0.5 ring-1 ring-white/[0.06] sm:gap-2 sm:px-2"
           >
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-[11px] font-black tabular-nums text-amber-50 sm:h-7 sm:w-7 sm:text-xs">
+            <span
+              className={`flex aspect-square min-h-[max(5vh,6cqh)] min-w-[max(5vh,6cqh)] shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono font-black tabular-nums text-amber-50 ${DISPLAY_TEXT_BADGE_CQ}`}
+            >
               {seat.seatNum}
             </span>
-            <span className="min-w-0 text-sm font-semibold leading-snug text-white sm:text-base">
+            <span className={`min-w-0 font-semibold text-white ${DISPLAY_TEXT_PRIMARY_CQ}`}>
               {given}
               {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}
             </span>

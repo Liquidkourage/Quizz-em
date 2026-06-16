@@ -18,6 +18,7 @@ import {
   seatingChartWBottomLeftCss,
   seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
+import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
 function SeatingTableCard({
   table,
@@ -26,11 +27,11 @@ function SeatingTableCard({
 }) {
   return (
     <article
-      className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
+      className="@container flex h-full w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
       aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
     >
       <header className="flex shrink-0 items-center border-b border-amber-500/25 bg-gradient-to-r from-amber-500/18 via-amber-400/12 to-amber-500/18 px-5 py-2.5 sm:px-6 sm:py-3">
-        <span className="text-2xl font-black tabular-nums leading-none text-amber-50 sm:text-3xl">
+        <span className={`font-black tabular-nums leading-none text-amber-50 ${DISPLAY_TEXT_PRIMARY}`}>
           {table.tableNum}
         </span>
       </header>
@@ -117,7 +118,7 @@ function SeatingChartPager({
 }) {
   return (
     <div className="flex flex-col items-center gap-2.5" aria-live="polite">
-      <p className="text-sm font-medium tabular-nums text-white/60 sm:text-base">
+      <p className={`font-medium tabular-nums text-white/60 ${DISPLAY_TEXT_SECONDARY}`}>
         Tables {tableRange} of {tableTotal}
       </p>
       <div className="flex items-center gap-2.5" aria-hidden>
@@ -200,10 +201,10 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
               </div>
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-black tracking-tight text-yellow-300 sm:text-3xl">
+              <h1 className={`font-black tracking-tight text-yellow-300 ${DISPLAY_TEXT_PRIMARY}`}>
                 Seating assignments
               </h1>
-              <p className="mt-0.5 text-sm text-white/65 sm:text-base">
+              <p className={`mt-0.5 text-white/65 ${DISPLAY_TEXT_SECONDARY}`}>
                 <span className="font-semibold tabular-nums text-amber-200/90">{totalSeated}</span> players
                 across{' '}
                 <span className="font-semibold tabular-nums text-amber-200/90">{tables.length}</span> tables

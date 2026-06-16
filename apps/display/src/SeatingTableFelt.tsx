@@ -1,87 +1,16 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { capsuleBorderRadiusCss } from './tableRimGeometry'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
 const FELT_INSET = { top: 0.1, right: 0.06, bottom: 0.13, left: 0.06 }
-const FELT_WIDTH_FRAC = 0.36
 const FELT_ASPECT = 8 / 5
-
-type SeatPlacement = 'top' | 'bottom' | 'left' | 'right'
-
-type SeatLayout = {
-  xPct: number
-  yPct: number
-  placement: SeatPlacement
-}
-
-function seatingChartSeatLayout(
-  seatIndex: number,
-  wrapperW: number,
-  wrapperH: number
-): SeatLayout {
-  const feltW = wrapperW * FELT_WIDTH_FRAC
-  const feltH = feltW / FELT_ASPECT
-  const feltLeft = (wrapperW - feltW) / 2
-  const feltTop = (wrapperH - feltH) / 2
-  const cx = feltLeft + feltW / 2
-  const cy = feltTop + feltH / 2
-
-  const rim = mosaicSeatDotPct(seatIndex, VENUE_WALL_SEAT_SLOTS, feltW, feltH)
-  const dotX = feltLeft + (rim.leftPct / 100) * feltW
-  const dotY = feltTop + (rim.topPct / 100) * feltH
-
-  let dx = dotX - cx
-  let dy = dotY - cy
-  const len = Math.hypot(dx, dy) || 1
-  dx /= len
-  dy /= len
-
-  const nameOffset = Math.min(wrapperW, wrapperH) * 0.1 + 10
-  const nameX = dotX + dx * nameOffset
-  const nameY = dotY + dy * nameOffset
-
-  const placement: SeatPlacement =
-    Math.abs(dy) >= Math.abs(dx) ? (dy < 0 ? 'top' : 'bottom') : dx < 0 ? 'left' : 'right'
-
-  return {
-    xPct: wrapperW > 0 ? (nameX / wrapperW) * 100 : 50,
-    yPct: wrapperH > 0 ? (nameY / wrapperH) * 100 : 50,
-    placement,
-  }
-}
 
 function splitSeatingDisplayName(name: string): { given: string; suffix: string } {
   const trimmed = name.trim()
   const match = trimmed.match(/^(.+?)\s+([A-Za-z]\.?)$/)
   if (match) return { given: match[1]!, suffix: match[2]! }
   return { given: trimmed, suffix: '' }
-}
-
-function seatClusterClass(placement: SeatPlacement): string {
-  switch (placement) {
-    case 'top':
-      return 'flex-col-reverse items-center text-center'
-    case 'bottom':
-      return 'flex-col items-center text-center'
-    case 'left':
-      return 'flex-row-reverse items-center text-right'
-    case 'right':
-      return 'flex-row items-center text-left'
-  }
-}
-
-function seatClusterTransform(placement: SeatPlacement): string {
-  switch (placement) {
-    case 'top':
-      return 'translate(-50%, -100%)'
-    case 'bottom':
-      return 'translate(-50%, 0%)'
-    case 'left':
-      return 'translate(-100%, -50%)'
-    case 'right':
-      return 'translate(0%, -50%)'
-  }
 }
 
 function SeatingMiniFelt({
@@ -102,11 +31,7 @@ function SeatingMiniFelt({
       : '50% / 50%'
 
   return (
-    <div
-      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-      style={{ width: widthPx, height: heightPx }}
-      aria-hidden
-    >
+    <>
       <div
         className="absolute inset-0 border border-amber-700/85 bg-gradient-to-br from-amber-900 via-amber-800 to-amber-950 shadow-md"
         style={{ borderRadius: railRadius }}
@@ -131,36 +56,15 @@ function SeatingMiniFelt({
           `,
         }}
       />
-    </div>
+    </>
   )
 }
 
-function SeatBadge({ seatNum }: { seatNum: number }) {
-  return (
-    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-xs font-black tabular-nums text-amber-50 shadow-sm ring-1 ring-emerald-400/20 sm:h-8 sm:w-8 sm:text-sm">
-      {seatNum}
-    </span>
-  )
-}
-
-function SeatName({ name }: { name: string }) {
-  const { given, suffix } = splitSeatingDisplayName(name)
-  return (
-    <span className="max-w-[9.5rem] text-pretty text-sm font-semibold leading-snug text-white sm:max-w-[10.5rem] sm:text-base">
-      {given}
-      {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}
-    </span>
-  )
-}
-
-export type SeatingTableFeltSeat = {
-  seatNum: number
-  name: string
-}
-
-export default function SeatingTableFelt({ seats }: { seats: SeatingTableFeltSeat[] }) {
+/** Reference diagram — all eight seat numbers at physical positions around a small felt. */
+export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: number[] }) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [wrapPx, setWrapPx] = useState({ w: 0, h: 0 })
+  const occupied = new Set(occupiedSeatNums)
 
   useLayoutEffect(() => {
     const el = wrapRef.current
@@ -174,49 +78,83 @@ export default function SeatingTableFelt({ seats }: { seats: SeatingTableFeltSea
   }, [])
 
   const { w: wrapW, h: wrapH } = wrapPx
-  const feltW = wrapW * FELT_WIDTH_FRAC
+  const feltW = Math.min(wrapW * 0.88, wrapH * FELT_ASPECT * 0.88)
   const feltH = feltW / FELT_ASPECT
-
-  const wrapStyle: CSSProperties = {
-    aspectRatio: '5 / 3.6',
-    minHeight: '10.5rem',
-  }
+  const feltLeft = (wrapW - feltW) / 2
+  const feltTop = (wrapH - feltH) / 2
 
   return (
     <div
       ref={wrapRef}
-      className="relative mx-auto w-full max-w-full overflow-hidden"
-      style={wrapStyle}
+      className="relative mx-auto aspect-[8/6] w-full max-w-[11rem] sm:max-w-[12rem]"
       role="img"
-      aria-label={`Table with ${seats.length} seated players`}
+      aria-label="Seat positions around the table"
     >
       {wrapW > 0 && wrapH > 0 ? (
-        <SeatingMiniFelt widthPx={feltW} heightPx={feltH} />
+        <div
+          className="absolute"
+          style={{ left: feltLeft, top: feltTop, width: feltW, height: feltH }}
+        >
+          <SeatingMiniFelt widthPx={feltW} heightPx={feltH} />
+        </div>
       ) : null}
 
       {wrapW > 0 &&
         wrapH > 0 &&
-        seats.map((seat) => {
-          const seatIndex = seat.seatNum - 1
-          if (seatIndex < 0 || seatIndex >= VENUE_WALL_SEAT_SLOTS) return null
-          const layout = seatingChartSeatLayout(seatIndex, wrapW, wrapH)
+        Array.from({ length: VENUE_WALL_SEAT_SLOTS }, (_, seatIndex) => {
+          const seatNum = seatIndex + 1
+          const rim = mosaicSeatDotPct(seatIndex, VENUE_WALL_SEAT_SLOTS, feltW, feltH)
+          const left = feltLeft + (rim.leftPct / 100) * feltW
+          const top = feltTop + (rim.topPct / 100) * feltH
+          const filled = occupied.has(seatNum)
 
           return (
             <div
-              key={seat.seatNum}
-              className={`absolute flex gap-1.5 sm:gap-2 ${seatClusterClass(layout.placement)}`}
-              style={{
-                left: `${layout.xPct}%`,
-                top: `${layout.yPct}%`,
-                transform: seatClusterTransform(layout.placement),
-              }}
-              aria-label={`Seat ${seat.seatNum}, ${seat.name}`}
+              key={seatNum}
+              className={`absolute flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono text-[10px] font-black tabular-nums sm:h-7 sm:w-7 sm:text-xs ${
+                filled
+                  ? 'border-emerald-300/80 bg-neutral-950/95 text-amber-50 shadow-sm ring-1 ring-emerald-400/25'
+                  : 'border-white/20 bg-slate-950/70 text-white/35'
+              }`}
+              style={{ left, top }}
+              aria-hidden
             >
-              <SeatBadge seatNum={seat.seatNum} />
-              <SeatName name={seat.name} />
+              {seatNum}
             </div>
           )
         })}
     </div>
+  )
+}
+
+export type SeatingTableSeat = {
+  seatNum: number
+  name: string
+}
+
+/** Numbered player roster — full names, sorted by seat. */
+export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
+  const sorted = [...seats].sort((a, b) => a.seatNum - b.seatNum)
+
+  return (
+    <ul className="flex min-h-0 flex-col justify-center gap-1 sm:gap-1.5">
+      {sorted.map((seat) => {
+        const { given, suffix } = splitSeatingDisplayName(seat.name)
+        return (
+          <li
+            key={seat.seatNum}
+            className="flex items-center gap-2.5 rounded-lg bg-white/[0.045] px-2.5 py-1.5 ring-1 ring-white/[0.06] sm:gap-3 sm:px-3 sm:py-2"
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-xs font-black tabular-nums text-amber-50 sm:h-8 sm:w-8 sm:text-sm">
+              {seat.seatNum}
+            </span>
+            <span className="min-w-0 text-base font-semibold leading-snug text-white sm:text-lg">
+              {given}
+              {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}
+            </span>
+          </li>
+        )
+      })}
+    </ul>
   )
 }

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { buildVenueWallTileRows, seatingChartTablesFromTiles } from './venueWallModel'
-import SeatingTableFelt from './SeatingTableFelt'
+import { SeatingPlayerList, SeatingTableDiagram } from './SeatingTableFelt'
 import {
   SEATING_CHART_GRID_MAX_WIDTH_REM,
   SEATING_CHART_PAGE_MS,
@@ -29,8 +29,11 @@ function SeatingTableCard({
         </span>
       </header>
 
-      <div className="min-w-0 overflow-hidden px-4 py-3 sm:px-5 sm:py-4">
-        <SeatingTableFelt seats={table.seats} />
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 py-3 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] sm:gap-5 sm:px-5 sm:py-4">
+        <div className="flex items-center justify-center border-b border-white/[0.06] pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4">
+          <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
+        </div>
+        <SeatingPlayerList seats={table.seats} />
       </div>
     </article>
   )

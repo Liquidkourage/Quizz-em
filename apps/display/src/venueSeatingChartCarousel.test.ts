@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   SEATING_CHART_PAGE_TABLES,
+  SEATING_CHART_W_CARD4_LEFT_CSS,
+  SEATING_CHART_W_CARD5_LEFT_CSS,
+  SEATING_CHART_W_SINGLE_BOTTOM_LEFT_CSS,
   seatingChartPageCount,
   seatingChartPageLabel,
   seatingChartPageTables,
+  seatingChartWBottomLeftCss,
   seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
 
@@ -50,6 +54,12 @@ describe('seatingChartWFormationRows', () => {
       topIndices: [0, 1, 2],
       bottomIndices: [3],
     })
+  })
+
+  it('positions bottom cards between top gaps', () => {
+    expect(seatingChartWBottomLeftCss(0, 2)).toBe(SEATING_CHART_W_CARD4_LEFT_CSS)
+    expect(seatingChartWBottomLeftCss(1, 2)).toBe(SEATING_CHART_W_CARD5_LEFT_CSS)
+    expect(seatingChartWBottomLeftCss(0, 1)).toBe(SEATING_CHART_W_SINGLE_BOTTOM_LEFT_CSS)
   })
 })
 

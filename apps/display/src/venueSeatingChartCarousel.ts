@@ -8,22 +8,27 @@ export const SEATING_CHART_PAGE_MS = 10_000
 export const SEATING_CHART_GRID_MAX_WIDTH_REM = 80
 
 /** Horizontal gap between cards — spacing only; card width is fixed separately. */
-export const SEATING_CHART_GAP_X_REM = 2.25
+export const SEATING_CHART_GAP_X_REM = 2.75
 
 /**
- * Fixed card width: one third of the top row (three cards + two gaps).
- * Same size as the original 6-track W layout at {@link SEATING_CHART_GRID_MAX_WIDTH_REM}.
+ * Fixed card width from the row (three cards + two gaps).
+ * Does not shrink when gap increases — gap is spacing-only.
  */
-export const SEATING_CHART_CARD_WIDTH_CSS = `calc((min(100%, ${SEATING_CHART_GRID_MAX_WIDTH_REM}rem) - 2 * ${SEATING_CHART_GAP_X_REM}rem) / 3)`
+export const SEATING_CHART_ROW_WIDTH_CSS = `min(100%, ${SEATING_CHART_GRID_MAX_WIDTH_REM}rem)`
 
-/** Shared frame width — three cards across; both rows align inside this box. */
-export const SEATING_CHART_FRAME_WIDTH_CSS = `calc(3 * ${SEATING_CHART_CARD_WIDTH_CSS} + 2 * ${SEATING_CHART_GAP_X_REM}rem)`
+export const SEATING_CHART_CARD_WIDTH_CSS = `calc((${SEATING_CHART_ROW_WIDTH_CSS} - 2 * ${SEATING_CHART_GAP_X_REM}rem) / 3)`
 
-/** Stagger two bottom cards between the top three (W formation). */
-export const SEATING_CHART_W_BOTTOM_OFFSET_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} / 2 + ${SEATING_CHART_GAP_X_REM}rem / 2)`
+/** Full W-formation frame — centered in the viewport. */
+export const SEATING_CHART_FRAME_WIDTH_CSS = SEATING_CHART_ROW_WIDTH_CSS
 
-/** Center a lone bottom card under the middle top card. */
-export const SEATING_CHART_W_SINGLE_BOTTOM_OFFSET_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} + ${SEATING_CHART_GAP_X_REM}rem)`
+/** Left edge of bottom card 4 (between top cards 1 and 2). */
+export const SEATING_CHART_W_CARD4_LEFT_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} / 2 + ${SEATING_CHART_GAP_X_REM}rem / 2)`
+
+/** Left edge of bottom card 5 (between top cards 2 and 3). */
+export const SEATING_CHART_W_CARD5_LEFT_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} * 1.5 + ${SEATING_CHART_GAP_X_REM}rem * 1.5)`
+
+/** Left edge of a lone bottom card (under top card 2). */
+export const SEATING_CHART_W_SINGLE_BOTTOM_LEFT_CSS = `calc(${SEATING_CHART_CARD_WIDTH_CSS} + ${SEATING_CHART_GAP_X_REM}rem)`
 
 export type SeatingChartWRows = {
   topIndices: number[]
@@ -53,6 +58,12 @@ export function seatingChartWFormationRows(tableCountOnPage: number): SeatingCha
     return { topIndices: [0, 1, 2], bottomIndices: [3] }
   }
   return { topIndices: [0, 1, 2], bottomIndices: [3, 4] }
+}
+
+/** Absolute left position for each bottom-row card in the W formation. */
+export function seatingChartWBottomLeftCss(bottomSlotIndex: number, bottomCount: number): string {
+  if (bottomCount === 1) return SEATING_CHART_W_SINGLE_BOTTOM_LEFT_CSS
+  return bottomSlotIndex === 0 ? SEATING_CHART_W_CARD4_LEFT_CSS : SEATING_CHART_W_CARD5_LEFT_CSS
 }
 
 export function seatingChartPageLabel(

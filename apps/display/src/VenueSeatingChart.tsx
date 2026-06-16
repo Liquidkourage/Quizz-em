@@ -10,11 +10,10 @@ import {
   SEATING_CHART_GAP_X_REM,
   SEATING_CHART_GRID_MAX_WIDTH_REM,
   SEATING_CHART_PAGE_MS,
-  SEATING_CHART_W_BOTTOM_OFFSET_CSS,
-  SEATING_CHART_W_SINGLE_BOTTOM_OFFSET_CSS,
   seatingChartPageCount,
   seatingChartPageLabel,
   seatingChartPageTables,
+  seatingChartWBottomLeftCss,
   seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
 
@@ -70,29 +69,31 @@ function SeatingChartWPage({
     <div className="flex h-full min-h-0 w-full max-h-full flex-1 flex-col items-center">
       <div
         className="mx-auto flex h-full min-h-0 w-full max-w-full flex-col gap-y-4 sm:gap-y-5"
-        style={{ width: SEATING_CHART_FRAME_WIDTH_CSS }}
+        style={{
+          width: SEATING_CHART_FRAME_WIDTH_CSS,
+        }}
       >
         <div
-          className={`flex min-h-0 flex-1 items-stretch ${topRowFull ? 'justify-start' : 'justify-center'}`}
-          style={{ gap: gapX }}
+          className={`flex min-h-0 flex-1 items-stretch ${topRowFull ? 'justify-between' : 'justify-center'}`}
+          style={topRowFull ? undefined : { gap: gapX }}
         >
           {topIndices.map((index) => (
             <SeatingChartCardSlot key={tables[index]!.tableNum} table={tables[index]!} />
           ))}
         </div>
         {bottomIndices.length > 0 ? (
-          <div
-            className="flex min-h-0 flex-1 items-stretch justify-start"
-            style={{
-              gap: gapX,
-              marginLeft:
-                bottomIndices.length === 1
-                  ? SEATING_CHART_W_SINGLE_BOTTOM_OFFSET_CSS
-                  : SEATING_CHART_W_BOTTOM_OFFSET_CSS,
-            }}
-          >
-            {bottomIndices.map((index) => (
-              <SeatingChartCardSlot key={tables[index]!.tableNum} table={tables[index]!} />
+          <div className="relative min-h-0 flex-1">
+            {bottomIndices.map((index, bottomSlot) => (
+              <div
+                key={tables[index]!.tableNum}
+                className="absolute top-0 flex h-full min-h-0"
+                style={{
+                  left: seatingChartWBottomLeftCss(bottomSlot, bottomIndices.length),
+                  width: SEATING_CHART_CARD_WIDTH_CSS,
+                }}
+              >
+                <SeatingTableCard table={tables[index]!} />
+              </div>
             ))}
           </div>
         ) : null}

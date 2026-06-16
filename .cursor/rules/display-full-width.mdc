@@ -1,0 +1,47 @@
+---
+description: Public display pages use full viewport width; edge-to-edge layout is preferred.
+globs: apps/display/**
+alwaysApply: false
+---
+
+# Public display layout (full width)
+
+Venue / TV **display** pages (`apps/display/**`) are shown on large wall screens. **Use the full viewport width.** Edge-to-edge layout is **preferred** over letterboxed or centered “article” columns.
+
+## Page shell
+
+- Root layout: **`w-full`** / **`100dvw`**, **`fixed inset-0`** or **`h-[100dvh]`** — no outer `max-w-*` cap on the page.
+- **Avoid** top-level `mx-auto max-w-4xl`, `max-w-7xl`, or similar on the main stage, header band, or primary content column.
+- Horizontal padding on the **page edge** should be **minimal** — only what safe-area or a thin visual gutter needs (`px-2`–`px-4` at most). Do not inset the whole UI as if it were a phone card.
+
+## What full width means
+
+| ✅ Preferred | ❌ Avoid on page shells |
+|-------------|-------------------------|
+| Header bar spans viewport left → right | `max-w-3xl mx-auto` wrapping the whole view |
+| Floor mosaic / leaderboard grids fill width | Fixed `80rem` page column with empty side margins |
+| Side gutters (rosters, rails) grow into unused space | Centered card floating in unused horizontal space |
+| `flex-1 min-w-0` columns sharing a row | Narrow centered column with wide empty gutters |
+
+## Allowed exceptions
+
+- **Sub-regions** inside a full-width page may have intrinsic max width (e.g. a single felt table centered in the spotlight stage, QR tile aspect ratio, pairing card on an otherwise full-bleed background).
+- **`max-w-*` on text** for line-length inside a panel is fine; the **panel** should still participate in a full-width layout.
+- **`min()` / `clamp()`** that cap *content* size but let the **container** stretch to `100%` is fine.
+
+```tsx
+// ❌ BAD — whole display view letterboxed
+<main className="mx-auto max-w-7xl px-8">...</main>
+
+// ✅ GOOD — page edge-to-edge; inner stage can center its own subject
+<div className="fixed inset-0 flex w-full flex-col">
+  <header className="w-full shrink-0 px-4">...</header>
+  <main className="flex min-h-0 flex-1 w-full">...</main>
+</div>
+```
+
+## Checklist before merging display layout changes
+
+- [ ] Page root and primary `<main>` use **full viewport width** (no outer `max-w-*`).
+- [ ] New side panels / gutters **consume** horizontal space instead of leaving unused margins.
+- [ ] Any remaining `max-w-*` is scoped to a **sub-component**, not the display page shell.

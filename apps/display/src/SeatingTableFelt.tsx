@@ -137,7 +137,7 @@ export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
   const sorted = [...seats].sort((a, b) => a.seatNum - b.seatNum)
 
   return (
-    <ul className="flex min-h-0 flex-col justify-center gap-1 sm:gap-1.5">
+    <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:gap-x-4 sm:gap-y-2">
       {sorted.map((seat) => {
         const { given, suffix } = splitSeatingDisplayName(seat.name)
         return (

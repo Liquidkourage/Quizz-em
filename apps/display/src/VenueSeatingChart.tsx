@@ -29,8 +29,8 @@ function SeatingTableCard({
         </span>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 px-4 py-3 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] sm:gap-5 sm:px-5 sm:py-4">
-        <div className="flex items-center justify-center border-b border-white/[0.06] pb-3 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
+        <div className="flex shrink-0 items-center justify-center border-b border-white/[0.06] pb-3 sm:pb-4">
           <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
         </div>
         <SeatingPlayerList seats={table.seats} />

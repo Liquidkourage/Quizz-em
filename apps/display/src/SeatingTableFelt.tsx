@@ -86,7 +86,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
   return (
     <div
       ref={wrapRef}
-      className="relative mx-auto aspect-[8/6] w-full max-w-[11rem] sm:max-w-[12rem]"
+      className="relative mx-auto aspect-[8/5] h-full max-h-full w-full max-w-[18rem] sm:max-w-[20rem]"
       role="img"
       aria-label="Seat positions around the table"
     >
@@ -111,7 +111,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
           return (
             <div
               key={seatNum}
-              className={`absolute flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono text-[10px] font-black tabular-nums sm:h-7 sm:w-7 sm:text-xs ${
+              className={`absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono text-[11px] font-black tabular-nums sm:h-8 sm:w-8 sm:text-xs ${
                 filled
                   ? 'border-emerald-300/80 bg-neutral-950/95 text-amber-50 shadow-sm ring-1 ring-emerald-400/25'
                   : 'border-white/20 bg-slate-950/70 text-white/35'

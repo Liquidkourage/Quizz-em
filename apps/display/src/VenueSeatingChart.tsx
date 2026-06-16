@@ -20,7 +20,7 @@ function SeatingTableCard({
 }) {
   return (
     <article
-      className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
+      className="flex h-full w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
       aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
     >
       <header className="flex shrink-0 items-center border-b border-amber-500/25 bg-gradient-to-r from-amber-500/18 via-amber-400/12 to-amber-500/18 px-5 py-2.5 sm:px-6 sm:py-3">
@@ -29,8 +29,8 @@ function SeatingTableCard({
         </span>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
-        <div className="flex shrink-0 items-center justify-center border-b border-white/[0.06] pb-3 sm:pb-4">
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(10.5rem,1.55fr)_auto] gap-3 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
+        <div className="flex min-h-[10.5rem] items-center justify-center border-b border-white/[0.06] pb-4 sm:min-h-[11.5rem] sm:pb-5">
           <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
         </div>
         <SeatingPlayerList seats={table.seats} />
@@ -149,11 +149,11 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={pageIndex}
-              className="grid w-full gap-5 sm:gap-6"
+              className="grid w-full items-stretch gap-5 sm:gap-6"
               style={{
                 maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem`,
                 gridTemplateColumns: `repeat(${pageGrid.columns}, minmax(0, 1fr))`,
-                gridTemplateRows: `repeat(${pageGrid.rowCount}, auto)`,
+                gridTemplateRows: `repeat(${pageGrid.rowCount}, minmax(0, 1fr))`,
               }}
               initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}

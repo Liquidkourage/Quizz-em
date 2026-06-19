@@ -10,6 +10,7 @@ import {
   venueFloorSizeSpec,
   venueFloorTableSize,
   venueFloorTileScale,
+  venueFloorFourRowFitZoom,
   VENUE_FLOOR_FOUR_ROW_TILE_SCALE,
 } from './venueFloorGridLayout'
 
@@ -98,7 +99,7 @@ describe('venueFloorDenseTuning', () => {
     const applied = applyVenueFloorDenseTuning(micro, tuned)
     expect(applied.rowGapRem).toBeLessThan(micro.rowGapRem)
     expect(applied.cellGapRem).toBeLessThan(micro.cellGapRem)
-    expect(applied.tileInsetClass).toBe('')
+    expect(applied.feltMaxHeightCss).toContain('100dvh')
     expect(applied.potClass).toContain('2.15vmin')
     expect(tuned!.paddingBottomRem).toBe(0)
   })
@@ -110,17 +111,17 @@ describe('venueFloorDenseTuning', () => {
 
 describe('venueFloorHeadlineFeltMaxHeightCss', () => {
   it('derives felt cap from viewport row budget', () => {
-    expect(venueFloorHeadlineFeltMaxHeightCss(4)).toBe(
-      'min(8.5rem, calc((100dvh - 9.25rem) / 4 * 0.52))'
-    )
+    expect(venueFloorHeadlineFeltMaxHeightCss(4)).toBe('calc((100dvh - 10rem) / 4 * 0.56)')
   })
 })
 
 describe('venueFloorTileScale', () => {
-  it('shrinks four-row mosaic tiles by 10%', () => {
+  it('caps four-row floor zoom at 90%', () => {
     expect(VENUE_FLOOR_FOUR_ROW_TILE_SCALE).toBe(0.9)
     expect(venueFloorTileScale(3)).toBe(1)
     expect(venueFloorTileScale(4)).toBe(0.9)
-    expect(venueFloorTileScale(20)).toBe(0.9)
+    expect(venueFloorFourRowFitZoom(900, 1000)).toBe(0.9)
+    expect(venueFloorFourRowFitZoom(800, 1000)).toBe(0.8)
+    expect(venueFloorFourRowFitZoom(950, 900)).toBe(0.9)
   })
 })

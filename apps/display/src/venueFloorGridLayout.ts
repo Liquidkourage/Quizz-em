@@ -162,14 +162,21 @@ export type VenueFloorSizeSpec = {
 /** Felt height cap for four-row floors with a headline strip. */
 export function venueFloorHeadlineFeltMaxHeightCss(rowCount: number): string {
   const rows = Math.max(4, Math.floor(rowCount))
-  return `min(8.5rem, calc((100dvh - 9.25rem) / ${rows} * 0.52))`
+  return `calc((100dvh - 10rem) / ${rows} * 0.56)`
 }
 
-/** Uniform shrink for four-row mosaic tiles — table chrome + felt contents. */
+/** Max uniform zoom for four-row floors — also the shrink target when content fits. */
 export const VENUE_FLOOR_FOUR_ROW_TILE_SCALE = 0.9
 
 export function venueFloorTileScale(rowCount: number): number {
   return rowCount >= 4 ? VENUE_FLOOR_FOUR_ROW_TILE_SCALE : 1
+}
+
+/** Pick the smaller of the four-row shrink cap and the zoom needed to fit the host. */
+export function venueFloorFourRowFitZoom(availPx: number, needPx: number): number {
+  const cap = VENUE_FLOOR_FOUR_ROW_TILE_SCALE
+  if (!(availPx > 0) || !(needPx > 0)) return cap
+  return Math.min(cap, availPx / needPx)
 }
 
 /** Pick felt size tier from banquet row count (and column width at the tightest band). */
@@ -403,8 +410,13 @@ export function venueFloorDenseTuning(
     headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
     potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-none tracking-tight text-amber-50',
     ringScaleClass: '',
-    tileInsetClass: headline ? '' : VENUE_FLOOR_MOSAIC_TILE_INSET,
-    ...(headline ? { cardPaddingClass: 'px-1 pt-0 pb-0' } : {}),
+    tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
+    ...(headline
+      ? {
+          cardPaddingClass: 'px-1 pt-0 pb-0',
+          feltMaxHeightCss: venueFloorHeadlineFeltMaxHeightCss(layout.rowCount),
+        }
+      : {}),
   }
 }
 

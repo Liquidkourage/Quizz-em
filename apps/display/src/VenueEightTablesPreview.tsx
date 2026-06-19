@@ -38,7 +38,7 @@ import {
   venueFloorGridPerspectiveStyle,
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
-  venueFloorTileScale,
+  venueFloorFourRowFitZoom,
   type VenueFloorSizeSpec,
   type VenueFloorTableSize,
   VENUE_FLOOR_MOSAIC_HEADER_TYPE,
@@ -1319,8 +1319,6 @@ type VenueMosaicTableCardProps = {
   floorSize: VenueFloorSizeSpec
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
-  /** Four-row + headline — stretch card and felt to the row slot height. */
-  floorFillHeight?: boolean
   /** Single-row floor — card height follows felt content, not viewport. */
   shrinkWrapRowHeight?: boolean
   prefersReducedMotion?: boolean
@@ -1328,8 +1326,6 @@ type VenueMosaicTableCardProps = {
   dimAnsweringEarly?: boolean
   /** Venue-wide authoritative answer — overrides per-tile `showdownAnswer` when set. */
   sharedShowdownAnswer?: number
-  /** Uniform scale for dense four-row floors (table chrome + felt contents). */
-  tileScale?: number
 }
 
 function VenueMosaicTableCard({
@@ -1337,12 +1333,10 @@ function VenueMosaicTableCard({
   hideShowdownResults = false,
   floorSize,
   floorHoneycomb = false,
-  floorFillHeight = false,
   shrinkWrapRowHeight = false,
   prefersReducedMotion = false,
   dimAnsweringEarly = false,
   sharedShowdownAnswer,
-  tileScale = 1,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1386,10 +1380,8 @@ function VenueMosaicTableCard({
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
   const denseMosaicChrome =
     floorSize.size === 'medium' || floorSize.size === 'compact' || floorSize.size === 'micro'
-  const feltFillsCell =
-    floorFillHeight || (floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight)
-  const mosaicShrinkWrap =
-    !floorFillHeight && (shrinkWrapRowHeight || !floorSize.honeycombFillHeight)
+  const feltFillsCell = floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight
+  const mosaicShrinkWrap = shrinkWrapRowHeight || !floorSize.honeycombFillHeight
   const showPotSubtitleStrip =
     floorSize.showPotSubtitle && !denseMosaicChrome && mosaicPotSubtitle != null
   const showToCallStrip =
@@ -1421,27 +1413,20 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        style={tileScale < 1 ? ({ zoom: tileScale } as CSSProperties) : undefined}
         className={`@container relative min-h-0 min-w-0 backdrop-blur-md ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
-          floorFillHeight
-            ? 'flex h-full min-h-0 flex-col'
-            : shrinkWrapRowHeight || mosaicShrinkWrap
-              ? 'flex h-auto flex-col'
-              : feltFillsCell && showPotSubtitleStrip
-                ? 'grid h-full grid-rows-[auto_minmax(0,1fr)_auto]'
-                : feltFillsCell
-                  ? 'grid h-full grid-rows-[auto_minmax(0,1fr)]'
-                  : 'flex h-full flex-col'
+          shrinkWrapRowHeight || mosaicShrinkWrap
+            ? 'flex h-auto flex-col'
+            : feltFillsCell && showPotSubtitleStrip
+              ? 'grid h-full grid-rows-[auto_minmax(0,1fr)_auto]'
+              : feltFillsCell
+                ? 'grid h-full grid-rows-[auto_minmax(0,1fr)]'
+                : 'flex h-full flex-col'
         }`}
       >
         <div
-          className={`min-h-0 min-w-0 ${
-            floorFillHeight
-              ? 'flex min-h-0 flex-1 flex-col'
-              : shrinkWrapRowHeight || mosaicShrinkWrap || !feltFillsCell
-                ? `flex flex-col ${floorSize.innerGapClass}`
-                : 'contents'
-          } ${showFloorShowdownOverlay ? 'opacity-25' : ''}`}
+          className={`min-h-0 min-w-0 ${shrinkWrapRowHeight || mosaicShrinkWrap || !feltFillsCell ? `flex flex-col ${floorSize.innerGapClass}` : 'contents'} ${
+            showFloorShowdownOverlay ? 'opacity-25' : ''
+          }`}
         >
         <div
           className={`grid shrink-0 items-center gap-x-1 ${denseMosaicChrome ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-[auto_minmax(0,1fr)_auto]'} ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
@@ -1509,25 +1494,22 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container/size relative z-[1] w-full overflow-hidden ${floorSize.ringScaleClass} ${
-            floorFillHeight
-              ? 'flex min-h-0 flex-1 items-center justify-center'
-              : feltFillsCell
-                ? 'col-start-1 row-start-2 flex min-h-0 flex-1 items-center justify-center'
-                : mosaicShrinkWrap
-                  ? 'shrink-0'
-                  : 'flex min-h-0 flex-1 items-center justify-center'
+          className={`@container/size relative z-[1] w-full shrink-0 overflow-hidden ${floorSize.ringScaleClass} ${
+            feltFillsCell
+              ? 'col-start-1 row-start-2 flex min-h-0 flex-1 items-center justify-center'
+              : mosaicShrinkWrap
+                ? 'shrink-0'
+                : 'flex min-h-0 flex-1 items-center justify-center'
           }`}
         >
           <SeatRingWithLabels
             ringMode="mosaic"
-            mosaicFluidWidth={floorHoneycomb || floorFillHeight}
+            mosaicFluidWidth={floorHoneycomb}
             mosaicDensity={floorSize.size}
             mosaicShrinkWrap={mosaicShrinkWrap}
-            mosaicFillHeight={floorFillHeight}
             mosaicFeltAspectClass={floorSize.feltAspectClass}
             mosaicFeltWidthClass={floorSize.feltWidthClass}
-            mosaicFeltMaxHeightCss={floorFillHeight ? undefined : floorSize.feltMaxHeightCss}
+            mosaicFeltMaxHeightCss={floorSize.feltMaxHeightCss}
             mosaicCenterPot={potOnFelt ? pot : null}
             mosaicCenterPotClass={VENUE_FLOOR_MOSAIC_HEADER_TYPE.feltPot}
             mosaicCenterPotMuted={potMuted}
@@ -1653,12 +1635,44 @@ function VenueAerialFloorGrid({
     () => applyVenueFloorDenseTuning(venueFloorSizeSpec(banquetLayout), denseTuning),
     [banquetLayout, denseTuning],
   )
-  const floorRowTracks = useMemo(
-    () => venueFloorRowTrackSpec(rowCount, { fillHeight: showHeadline && rowCount >= 4 }),
-    [rowCount, showHeadline],
-  )
+  const floorRowTracks = useMemo(() => venueFloorRowTrackSpec(rowCount), [rowCount])
   const shrinkWrapRowHeight = floorRowTracks.shrinkWrapRowHeight
-  const fillRowHeight = floorRowTracks.fillRowHeight
+  const fourRowFloor = rowCount >= 4
+  const floorHostRef = useRef<HTMLDivElement>(null)
+  const floorContentRef = useRef<HTMLDivElement>(null)
+  const fourRowFloorZoomRef = useRef(1)
+  const [fourRowFloorZoom, setFourRowFloorZoom] = useState(1)
+
+  useLayoutEffect(() => {
+    if (!fourRowFloor) {
+      fourRowFloorZoomRef.current = 1
+      setFourRowFloorZoom(1)
+      return
+    }
+    const host = floorHostRef.current
+    const content = floorContentRef.current
+    if (!host || !content) return
+
+    const measure = () => {
+      const avail = host.clientHeight
+      let need = content.scrollHeight
+      const currentZoom = fourRowFloorZoomRef.current
+      if (currentZoom > 0 && currentZoom < 1) {
+        need = need / currentZoom
+      }
+      if (!(avail > 0) || !(need > 0)) return
+      const next = venueFloorFourRowFitZoom(avail, need)
+      if (Math.abs(fourRowFloorZoomRef.current - next) < 0.004) return
+      fourRowFloorZoomRef.current = next
+      setFourRowFloorZoom(next)
+    }
+
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(host)
+    ro.observe(content)
+    return () => ro.disconnect()
+  }, [fourRowFloor, n, columns, rowCount, floorSize.rowGapRem, floorSize.cellGapRem, floorSize.feltMaxHeightCss, showHeadline])
   const floorGridPadding = useMemo(() => {
     if (denseTuning) {
       return { top: denseTuning.paddingTopRem, bottom: denseTuning.paddingBottomRem }
@@ -1671,7 +1685,6 @@ function VenueAerialFloorGrid({
   const showdownBrief =
     floorSize.showdownBrief || rowCount >= 2 || (showHeadline && inVenueShowdown)
   const othersStillWagering = useMemo(() => venueHasOpenWagering(tiles), [tiles])
-  const tileScale = venueFloorTileScale(rowCount)
 
   if (n === 0) return null
 
@@ -1716,16 +1729,19 @@ function VenueAerialFloorGrid({
         }}
       />
 
+      <div ref={floorHostRef} className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <div
-        className={`relative grid min-h-0 w-full flex-1 overflow-hidden ${
+        ref={floorContentRef}
+        className={`relative grid w-full ${
           denseTuning?.gridInsetClass ?? 'px-4 sm:px-6'
-        } ${fillRowHeight || !shrinkWrapRowHeight ? 'h-full content-stretch items-stretch' : 'content-start items-start'}`}
+        } ${shrinkWrapRowHeight ? 'content-start items-start' : 'h-full content-stretch items-stretch'}`}
         style={
           {
             gridTemplateRows: floorRowTracks.gridTemplateRows,
             gap: `${floorSize.rowGapRem}rem`,
             paddingTop: `${floorGridPadding.top}rem`,
             paddingBottom: `${floorGridPadding.bottom}rem`,
+            zoom: fourRowFloor && fourRowFloorZoom < 1 ? fourRowFloorZoom : undefined,
             ...floorGridPerspective,
           } as CSSProperties
         }
@@ -1737,9 +1753,7 @@ function VenueAerialFloorGrid({
             <div
               key={rowTiles.map((t) => t.tableNum).join('-') || `row-${rowIndex}`}
               className={`relative grid w-full min-w-0 ${
-                fillRowHeight || !shrinkWrapRowHeight
-                  ? 'h-full min-h-0 items-stretch'
-                  : 'h-auto items-start'
+                shrinkWrapRowHeight ? 'h-auto items-start' : 'h-full min-h-0 items-stretch'
               }`}
               style={{
                 gridTemplateColumns: `repeat(${trackCount}, minmax(0, 1fr))`,
@@ -1754,21 +1768,17 @@ function VenueAerialFloorGrid({
                   return (
                     <div
                       key={`pad-${rowIndex}-${colIndex}`}
-                      className="min-w-0"
+                      className="min-h-0 min-w-0"
                       style={{ gridColumn }}
                       aria-hidden
-                    >
-                      <div className="w-full" style={{ aspectRatio: '8 / 5' }} />
-                    </div>
+                    />
                   )
                 }
 
                 return (
                   <div
                     key={row.tableNum}
-                    className={`flex min-w-0 w-full flex-col ${
-                      fillRowHeight || !shrinkWrapRowHeight ? 'h-full min-h-0' : 'h-auto'
-                    } ${tileScale < 1 ? 'items-center justify-center' : ''}`}
+                    className={`flex min-w-0 w-full flex-col ${shrinkWrapRowHeight ? 'h-auto' : 'h-full min-h-0'}`}
                     style={{ gridColumn }}
                   >
                     <VenueMosaicTableCard
@@ -1776,9 +1786,7 @@ function VenueAerialFloorGrid({
                       hideShowdownResults={showdownBrief}
                       floorSize={floorSize}
                       floorHoneycomb
-                      floorFillHeight={fillRowHeight}
                       shrinkWrapRowHeight={shrinkWrapRowHeight}
-                      tileScale={tileScale}
                       prefersReducedMotion={prefersReducedMotion}
                       dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
                       sharedShowdownAnswer={sharedShowdownAnswer}
@@ -1789,6 +1797,7 @@ function VenueAerialFloorGrid({
             </div>
           )
         })}
+      </div>
       </div>
     </motion.section>
   )

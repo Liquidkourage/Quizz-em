@@ -91,29 +91,57 @@ function VenuePotAmount({
   )
 }
 
-/** Community board — centered on felt. */
-function VenueMosaicFeltCenterStack({ communityDigits }: { communityDigits: number[] }) {
+/** Community board and/or pot — centered on mosaic felt. */
+function VenueMosaicFeltCenterStack({
+  communityDigits,
+  pot,
+  potClass,
+  potMuted,
+  prefersReducedMotion,
+}: {
+  communityDigits: number[]
+  pot?: number | null
+  potClass?: string
+  potMuted?: 'dim' | 'faint' | 'live'
+  prefersReducedMotion: boolean
+}) {
   const feltBounds = venueFeltBoundsFrac()
-  if (communityDigits.length === 0) return null
+  const showPot = pot != null && potClass != null
+  if (communityDigits.length === 0 && !showPot) return null
   return (
     <div
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
-      aria-hidden={communityDigits.length === 0}
+      aria-hidden={communityDigits.length === 0 && !showPot}
     >
       <div
-        className="flex max-w-[92%] flex-col items-center justify-center gap-[2px] text-center sm:gap-0.5"
+        className="flex max-w-[88%] flex-col items-center justify-center gap-0.5 text-center"
         style={{
           position: 'absolute',
           left: `${feltBounds.cx * 100}%`,
-          top: `calc(${feltBounds.cy * 100}% - 4%)`,
+          top: `${feltBounds.cy * 100}%`,
           transform: 'translate(-50%, -50%)',
         }}
       >
-        <div className="flex items-center justify-center gap-0.5 sm:gap-1">
-          {communityDigits.map((digit, i) => (
-            <MosaicDigitCard key={`${i}-${digit}`} digit={digit} size="community" />
-          ))}
-        </div>
+        {communityDigits.length > 0 ? (
+          <div className="flex items-center justify-center gap-0.5 sm:gap-1">
+            {communityDigits.map((digit, i) => (
+              <MosaicDigitCard key={`${i}-${digit}`} digit={digit} size="community" />
+            ))}
+          </div>
+        ) : null}
+        {showPot ? (
+          <VenuePotAmount
+            amount={pot}
+            prefersReducedMotion={prefersReducedMotion}
+            className={`block truncate font-mono font-black tabular-nums leading-tight tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] ${potClass} ${
+              potMuted === 'faint'
+                ? 'text-yellow-300/40'
+                : potMuted === 'dim'
+                  ? 'text-yellow-300/75'
+                  : 'text-yellow-300'
+            }`}
+          />
+        ) : null}
       </div>
     </div>
   )
@@ -668,6 +696,9 @@ function SeatRingWithLabels({
   mosaicDensity,
   /** Honeycomb floor — shrink-wrap felt height (content-sized rows, no 1fr stretch). */
   mosaicShrinkWrap = false,
+  mosaicCenterPot = null,
+  mosaicCenterPotClass = '',
+  mosaicCenterPotMuted = 'live' as 'dim' | 'faint' | 'live',
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
   winnerSeatIndexes = null,
   /** Mosaic: hole-card digits per physical seat (parallel to seatNames). */
@@ -690,6 +721,9 @@ function SeatRingWithLabels({
   mosaicFluidWidth?: boolean
   mosaicDensity?: VenueFloorTableSize
   mosaicShrinkWrap?: boolean
+  mosaicCenterPot?: number | null
+  mosaicCenterPotClass?: string
+  mosaicCenterPotMuted?: 'dim' | 'faint' | 'live'
   /** Spotlight hero: draw mini chip stack + bankroll on the felt by each seated player. */
   feltSeatStacks?: boolean
   /** Dealer / blind roles (indexes match `seatNames`). Null when unsupported or omitted by server snapshot. */
@@ -736,7 +770,7 @@ function SeatRingWithLabels({
   const mdRing = isMosaic
     ? mosaicFluidWidth
       ? mosaicShrinkWrap
-        ? 'relative mx-auto aspect-[8/5] h-auto w-full max-w-full shrink-0'
+        ? 'relative mx-auto aspect-[9/5] h-auto w-full max-w-full shrink-0'
         : 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
@@ -810,7 +844,8 @@ function SeatRingWithLabels({
         )
       : railBorderRadius
 
-  const showFeltBoardCenter = isMosaic && communityDigits.length > 0
+  const showFeltBoardCenter =
+    isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)
 
   const mosaicScale = useMemo(() => {
     if (!isMosaic) return 1
@@ -884,7 +919,13 @@ function SeatRingWithLabels({
         />
       ) : null}
       {showFeltBoardCenter ? (
-        <VenueMosaicFeltCenterStack communityDigits={communityDigits} />
+        <VenueMosaicFeltCenterStack
+          communityDigits={communityDigits}
+          pot={mosaicCenterPot}
+          potClass={mosaicCenterPotClass}
+          potMuted={mosaicCenterPotMuted}
+          prefersReducedMotion={prefersReducedMotion}
+        />
       ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         const filled = i < seatedCount
@@ -1276,6 +1317,13 @@ function VenueMosaicTableCard({
   const showPotSubtitleStrip = floorSize.showPotSubtitle && mosaicPotSubtitle != null
   const denseMosaicChrome =
     floorSize.size === 'medium' || floorSize.size === 'compact' || floorSize.size === 'micro'
+  const potOnFelt = denseMosaicChrome && !showFloorShowdownOverlay
+  const potMuted =
+    ph === 'lobby' || ph === 'question'
+      ? pot > 0
+        ? ('dim' as const)
+        : ('faint' as const)
+      : ('live' as const)
 
   const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
@@ -1304,14 +1352,22 @@ function VenueMosaicTableCard({
           }`}
         >
         <div
-          className={`flex shrink-0 items-center gap-x-1 ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`flex shrink-0 items-center gap-x-1 ${potOnFelt ? 'justify-between' : ''} ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
-          <div
-            className={`shrink-0 font-black tabular-nums leading-tight text-yellow-400 ${floorSize.tableNumClass}`}
-          >
-            {tn}
-          </div>
-          {!showFloorShowdownOverlay ? (
+          {denseMosaicChrome ? (
+            <span
+              className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNumBadge} ${floorSize.tableNumClass}`}
+            >
+              {tn}
+            </span>
+          ) : (
+            <div
+              className={`shrink-0 font-black tabular-nums leading-tight text-yellow-400 ${floorSize.tableNumClass}`}
+            >
+              {tn}
+            </div>
+          )}
+          {!potOnFelt && !showFloorShowdownOverlay ? (
             <div
               className="min-w-0 flex-1 px-0.5 text-center"
               aria-label={`Pot ${formatVenueBankroll(pot)}`}
@@ -1328,9 +1384,9 @@ function VenueMosaicTableCard({
                 }`}
               />
             </div>
-          ) : (
+          ) : !potOnFelt ? (
             <div className="min-w-0 flex-1" aria-hidden />
-          )}
+          ) : null}
           <div className="shrink-0">
             <span
               className={`inline-block whitespace-nowrap rounded-sm font-semibold leading-tight ${
@@ -1360,6 +1416,9 @@ function VenueMosaicTableCard({
             mosaicFluidWidth={floorHoneycomb}
             mosaicDensity={floorSize.size}
             mosaicShrinkWrap={mosaicShrinkWrap}
+            mosaicCenterPot={potOnFelt ? pot : null}
+            mosaicCenterPotClass={floorSize.potClass}
+            mosaicCenterPotMuted={potMuted}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}

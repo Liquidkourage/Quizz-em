@@ -1288,7 +1288,7 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`@container relative min-h-0 min-w-0 overflow-hidden backdrop-blur-md ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
+        className={`@container relative min-h-0 min-w-0 overflow-x-hidden backdrop-blur-md ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           shrinkWrapRowHeight || mosaicShrinkWrap
             ? 'flex h-auto flex-col'
             : feltFillsCell && showPotSubtitleStrip
@@ -1304,24 +1304,24 @@ function VenueMosaicTableCard({
           }`}
         >
         <div
-          className={`grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] gap-x-0.5 overflow-hidden ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] gap-x-0.5 ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
-          <div className="min-w-0 max-w-[22%] justify-self-start overflow-hidden">
+          <div className="min-w-0 max-w-[22%] justify-self-start">
             <div
-              className={`truncate font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
+              className={`truncate font-black tabular-nums leading-tight text-yellow-400 ${floorSize.tableNumClass}`}
             >
               {tn}
             </div>
           </div>
           {!showFloorShowdownOverlay ? (
             <div
-              className="min-w-0 max-w-full justify-self-center overflow-hidden px-0.5 text-center"
+              className="min-w-0 max-w-full justify-self-center px-0.5 text-center"
               aria-label={`Pot ${formatVenueBankroll(pot)}`}
             >
               <VenuePotAmount
                 amount={pot}
                 prefersReducedMotion={prefersReducedMotion}
-                className={`block truncate font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${
+                className={`block truncate font-mono font-black tabular-nums leading-tight tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${
                   ph === 'lobby' || ph === 'question'
                     ? pot > 0
                       ? 'text-yellow-300/75'
@@ -1333,9 +1333,9 @@ function VenueMosaicTableCard({
           ) : (
             <div aria-hidden />
           )}
-          <div className="min-w-0 max-w-[34%] justify-self-end overflow-hidden">
+          <div className="min-w-0 max-w-[34%] justify-self-end">
             <span
-              className={`block max-w-full truncate rounded-sm font-semibold leading-none ${
+              className={`block max-w-full truncate rounded-sm font-semibold leading-tight ${
                 showNoMoreBets ? `${floorSize.phaseChipClass} font-black uppercase` : floorSize.phaseChipClass
               } ${mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)} ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
             >

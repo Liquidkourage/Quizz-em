@@ -91,10 +91,10 @@ export type VenueFloorTableSize = 'hero' | 'large' | 'medium' | 'compact' | 'mic
 
 /** TV-readable mosaic header type — vmin compensates for venue-wall 0.88 zoom. */
 export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
-  tableNum: 'text-[clamp(16px,2.25vmin,22px)] font-black leading-none',
-  pot: 'text-[clamp(15px,2.05vmin,20px)] font-mono font-black leading-none',
-  phase: 'px-1 py-0.5 text-[clamp(13px,1.7vmin,17px)] font-bold uppercase leading-none',
-  headerRow: 'items-center py-0.5',
+  tableNum: 'text-[clamp(16px,2.25vmin,22px)] font-black leading-tight',
+  pot: 'text-[clamp(15px,2.05vmin,20px)] font-mono font-black leading-tight',
+  phase: 'px-1 py-0.5 text-[clamp(13px,1.7vmin,17px)] font-bold uppercase leading-tight',
+  headerRow: 'items-center overflow-visible pt-1 pb-0.5',
   seatInitials: 'text-[clamp(12px,1.55vmin,16px)]',
 } as const
 
@@ -191,7 +191,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.85,
         cellGapRem: 0.95,
-        cardPaddingClass: 'p-1.5 sm:p-2',
+        cardPaddingClass: 'px-1.5 pt-2 pb-1 sm:px-2 sm:pt-2.5',
         innerGapClass: 'gap-1 sm:gap-1.5',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
@@ -211,7 +211,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.72,
         cellGapRem: 0.82,
-        cardPaddingClass: 'p-1 sm:p-1.5',
+        cardPaddingClass: 'px-1 pt-2 pb-0.5 sm:px-1.5 sm:pt-2.5',
         innerGapClass: 'gap-0.5',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
@@ -231,7 +231,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.68,
         cellGapRem: 0.78,
-        cardPaddingClass: 'p-0.5 sm:p-1',
+        cardPaddingClass: 'px-1 pt-2 pb-0.5 sm:px-1.5 sm:pt-2.5',
         innerGapClass: 'gap-0.5',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,

@@ -9,6 +9,8 @@ import {
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorTableSize,
+  venueFloorTileScale,
+  VENUE_FLOOR_FOUR_ROW_TILE_SCALE,
 } from './venueFloorGridLayout'
 
 describe('venueFloorRowTrackSpec', () => {
@@ -111,5 +113,14 @@ describe('venueFloorHeadlineFeltMaxHeightCss', () => {
     expect(venueFloorHeadlineFeltMaxHeightCss(4)).toBe(
       'min(8.5rem, calc((100dvh - 9.25rem) / 4 * 0.52))'
     )
+  })
+})
+
+describe('venueFloorTileScale', () => {
+  it('shrinks four-row mosaic tiles by 10%', () => {
+    expect(VENUE_FLOOR_FOUR_ROW_TILE_SCALE).toBe(0.9)
+    expect(venueFloorTileScale(3)).toBe(1)
+    expect(venueFloorTileScale(4)).toBe(0.9)
+    expect(venueFloorTileScale(20)).toBe(0.9)
   })
 })

@@ -38,6 +38,7 @@ import {
   venueFloorGridPerspectiveStyle,
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
+  venueFloorTileScale,
   type VenueFloorSizeSpec,
   type VenueFloorTableSize,
   VENUE_FLOOR_MOSAIC_HEADER_TYPE,
@@ -1327,6 +1328,8 @@ type VenueMosaicTableCardProps = {
   dimAnsweringEarly?: boolean
   /** Venue-wide authoritative answer — overrides per-tile `showdownAnswer` when set. */
   sharedShowdownAnswer?: number
+  /** Uniform scale for dense four-row floors (table chrome + felt contents). */
+  tileScale?: number
 }
 
 function VenueMosaicTableCard({
@@ -1339,6 +1342,7 @@ function VenueMosaicTableCard({
   prefersReducedMotion = false,
   dimAnsweringEarly = false,
   sharedShowdownAnswer,
+  tileScale = 1,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1417,6 +1421,7 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
+        style={tileScale < 1 ? ({ zoom: tileScale } as CSSProperties) : undefined}
         className={`@container relative min-h-0 min-w-0 backdrop-blur-md ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           floorFillHeight
             ? 'flex h-full min-h-0 flex-col'
@@ -1666,6 +1671,7 @@ function VenueAerialFloorGrid({
   const showdownBrief =
     floorSize.showdownBrief || rowCount >= 2 || (showHeadline && inVenueShowdown)
   const othersStillWagering = useMemo(() => venueHasOpenWagering(tiles), [tiles])
+  const tileScale = venueFloorTileScale(rowCount)
 
   if (n === 0) return null
 
@@ -1762,7 +1768,7 @@ function VenueAerialFloorGrid({
                     key={row.tableNum}
                     className={`flex min-w-0 w-full flex-col ${
                       fillRowHeight || !shrinkWrapRowHeight ? 'h-full min-h-0' : 'h-auto'
-                    }`}
+                    } ${tileScale < 1 ? 'items-center justify-center' : ''}`}
                     style={{ gridColumn }}
                   >
                     <VenueMosaicTableCard
@@ -1772,6 +1778,7 @@ function VenueAerialFloorGrid({
                       floorHoneycomb
                       floorFillHeight={fillRowHeight}
                       shrinkWrapRowHeight={shrinkWrapRowHeight}
+                      tileScale={tileScale}
                       prefersReducedMotion={prefersReducedMotion}
                       dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
                       sharedShowdownAnswer={sharedShowdownAnswer}

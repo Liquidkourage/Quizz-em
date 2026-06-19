@@ -165,6 +165,13 @@ export function venueFloorHeadlineFeltMaxHeightCss(rowCount: number): string {
   return `min(8.5rem, calc((100dvh - 9.25rem) / ${rows} * 0.52))`
 }
 
+/** Uniform shrink for four-row mosaic tiles — table chrome + felt contents. */
+export const VENUE_FLOOR_FOUR_ROW_TILE_SCALE = 0.9
+
+export function venueFloorTileScale(rowCount: number): number {
+  return rowCount >= 4 ? VENUE_FLOOR_FOUR_ROW_TILE_SCALE : 1
+}
+
 /** Pick felt size tier from banquet row count (and column width at the tightest band). */
 export function venueFloorTableSize(layout: VenueBanquetLayout): VenueFloorTableSize {
   const { columns, rowCount } = layout

@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import type { VenueCondenseProgressModel } from './venueWallModel'
 import { DISPLAY_TEXT_HEADLINE_CAPTION, DISPLAY_TEXT_HEADLINE_META } from './displayTypography'
 
@@ -69,9 +70,18 @@ export default function VenueCondenseProgressBar({
       >
         {headline ? (
           <p
-            className={`mb-1 truncate text-left font-semibold tabular-nums text-white/85 ${DISPLAY_TEXT_HEADLINE_CAPTION}`}
+            className={`mb-1 flex min-w-0 items-center truncate text-left font-semibold tabular-nums text-white/85 ${DISPLAY_TEXT_HEADLINE_CAPTION}`}
           >
-            {headlineCondenseCaption(model)}
+            {headlineCondenseCaptionParts(model).map((part, index) => (
+              <Fragment key={part}>
+                {index > 0 ? (
+                  <span className="shrink-0 px-1.5 text-white/40" aria-hidden>
+                    ·
+                  </span>
+                ) : null}
+                <span className="shrink-0">{formatHeadlineCondensePart(part)}</span>
+              </Fragment>
+            ))}
           </p>
         ) : (
           <p

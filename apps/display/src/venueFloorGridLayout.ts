@@ -87,7 +87,7 @@ export function venueFloorGridPerspectiveStyle(rowCount: number): Pick<
 }
 
 /** Extra bottom inset on multi-row floors so the last row + action captions stay in view. */
-export const VENUE_FLOOR_GRID_BOTTOM_SAFE_REM = 0.5
+export const VENUE_FLOOR_GRID_BOTTOM_SAFE_REM = 0.75
 
 export function venueFloorGridPaddingRem(rowCount: number): { top: number; bottom: number } {
   if (rowCount <= 1) return { top: 0.75, bottom: 0.75 }
@@ -111,18 +111,21 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   /** Pot centered on mosaic felt — scales with tile width, not header chrome. */
   feltPot: 'text-[clamp(24px,3.35vmin,38px)] font-mono font-black leading-none',
   actingName:
-    'truncate text-[clamp(20px,2vh,26px)] font-black leading-none tracking-tight text-neutral-50 drop-shadow-[0_1px_2px_rgba(0,0,0,1),0_2px_10px_rgba(0,0,0,0.88)]',
+    'truncate text-[clamp(19px,2.05vh,27px)] font-bold leading-none tracking-tight text-[rgba(245,245,240,0.92)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]',
   phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
   headerRow: 'items-center overflow-visible py-0 leading-none',
   seatInitials: 'text-[clamp(11px,1.55vmin,15px)]',
-  /** Matches {@link actingName} size — under-felt call caption during wagering. */
-  toCallStrip:
-    'text-[clamp(20px,2vh,26px)] font-black leading-none tracking-tight text-amber-100/90',
+  /** Under-felt “To Call” label during wagering. */
+  toCallLabel:
+    'text-[clamp(18px,1.85vh,21px)] font-bold leading-none tracking-tight text-amber-100/88',
+  /** Under-felt “To Call” amount — emphasized over the label. */
+  toCallAmount:
+    'text-[clamp(21px,2.1vh,25px)] font-mono font-black leading-none tabular-nums text-yellow-300',
   /** Stable footer row for under-felt “To Call” during wagering. */
   toCallFooterRow:
     'flex min-h-[clamp(22px,2.4vh,30px)] shrink-0 items-center justify-center px-1 py-0.5',
   noMoreBetsWatermark:
-    'pointer-events-none select-none whitespace-nowrap text-center text-[clamp(15px,2.35vmin,24px)] font-black uppercase leading-none tracking-[0.14em] text-emerald-300/35',
+    'pointer-events-none select-none whitespace-nowrap text-center text-[clamp(15px,2.35vmin,24px)] font-black uppercase leading-none tracking-[0.12em] text-emerald-300/35',
 } as const
 
 /** Slightly taller mosaic felt — room for under-table call caption without shrinking type. */

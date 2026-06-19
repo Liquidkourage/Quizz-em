@@ -203,7 +203,7 @@ function VenueMosaicNoMoreBetsWatermark() {
       aria-hidden
     >
       <span
-        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12 drop-shadow-[0_0_18px_rgba(52,211,153,0.12)]`}
+        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12 translate-y-[18%] drop-shadow-[0_0_18px_rgba(52,211,153,0.12)]`}
       >
         NO MORE BETS
       </span>
@@ -1553,11 +1553,11 @@ function VenueMosaicTableCard({
             }`}
           >
             <p
-              className={`min-w-0 text-center ${VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallStrip}`}
+              className="flex min-w-0 items-baseline justify-center gap-x-1 text-center"
               aria-live="polite"
             >
-              To Call:{' '}
-              <span className="font-mono font-black tabular-nums text-yellow-300">
+              <span className={VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallLabel}>To Call:</span>
+              <span className={VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallAmount}>
                 {formatVenueBankroll(Math.max(0, Math.floor(row.actingCallAmount ?? 0)))}
               </span>
             </p>
@@ -2051,7 +2051,7 @@ export default function VenueEightTablesPreview({
                 >
                   <div className="min-w-0 flex-1">
                     {(headlineSource.tableNum != null && headlinePhaseLabel) || showSetlistCue ? (
-                      <div className="mb-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <div className="mb-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
                         {headlineSource.tableNum != null && headlinePhaseLabel ? (
                           <span className={`inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-1.5 py-px font-black uppercase tracking-wide text-yellow-100/95 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                             Table {headlineSource.tableNum} · {headlinePhaseLabel}

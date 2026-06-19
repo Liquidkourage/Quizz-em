@@ -1,6 +1,11 @@
 import { connectDisplayAwaitingPairing } from '@qhe/net'
 import { useEffect, useRef, useState } from 'react'
-import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
+import {
+  DISPLAY_TEXT_PAIRING_BODY,
+  DISPLAY_TEXT_PAIRING_CODE,
+  DISPLAY_TEXT_PAIRING_LABEL,
+  DISPLAY_TEXT_PAIRING_TITLE,
+} from './displayTypography'
 
 export default function PairingScreen({ onPaired }: { onPaired: (venueCode: string) => void }) {
   const [code, setCode] = useState('')
@@ -19,7 +24,7 @@ export default function PairingScreen({ onPaired }: { onPaired: (venueCode: stri
   }, [onPaired])
 
   return (
-    <div className="relative flex min-h-[100dvh] w-screen items-center justify-center overflow-hidden bg-[#070d1f] px-6">
+    <div className="fixed inset-0 flex min-h-0 flex-col overflow-hidden bg-[#070d1f]">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.38]"
@@ -33,38 +38,52 @@ export default function PairingScreen({ onPaired }: { onPaired: (venueCode: stri
           backgroundPosition: '0 0, 0 0, 14px 14px',
         }}
       />
-      <div className="relative z-[1] w-full max-w-lg rounded-2xl border border-white/[0.08] bg-black/55 px-10 py-12 shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-md">
-        <p className={`text-center font-bold uppercase tracking-[0.28em] text-white/45 ${DISPLAY_TEXT_SECONDARY}`}>
-          Connect display
-        </p>
-        <h1 className={`mt-3 text-center font-['Orbitron',sans-serif] font-black tracking-tight text-white ${DISPLAY_TEXT_PRIMARY}`}>
-          Quizz&apos;em TV
-        </h1>
-        <p className={`mx-auto mt-5 max-w-sm text-center leading-relaxed text-white/75 ${DISPLAY_TEXT_SECONDARY}`}>
-          Enter this code in the host app (Venue &amp; roster, &quot;Public TVs&quot;) so this screen joins your event.
-        </p>
 
-        <div className="mt-10 flex justify-center">
-          <div className="min-w-[12.5rem] rounded-xl border-[3px] border-sky-500/95 px-8 py-5 text-center shadow-[0_0_32px_rgba(56,189,248,0.38)]">
-            {code.length === 4 ? (
-              <span className={`inline-block select-none font-mono font-bold tracking-[0.18em] text-white ${DISPLAY_TEXT_PRIMARY}`}>
-                {code}
-              </span>
-            ) : (
-              <span className={`inline-block animate-pulse tracking-wide text-white/45 ${DISPLAY_TEXT_SECONDARY}`}>
-                Connecting…
-              </span>
-            )}
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col items-center justify-center px-[clamp(1rem,4vw,3rem)] py-[clamp(1rem,3vh,2rem)]">
+        <div className="w-full max-w-md rounded-2xl border border-white/[0.08] bg-black/55 px-[clamp(1.25rem,3vw,2.5rem)] py-[clamp(1.5rem,3.5vh,2.5rem)] shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-md sm:max-w-lg">
+          <p
+            className={`text-center font-bold uppercase tracking-[0.28em] text-white/45 ${DISPLAY_TEXT_PAIRING_LABEL}`}
+          >
+            Connect display
+          </p>
+          <h1
+            className={`mt-2 text-center font-['Orbitron',sans-serif] font-black tracking-tight text-white ${DISPLAY_TEXT_PAIRING_TITLE}`}
+          >
+            Quizz&apos;em TV
+          </h1>
+          <p
+            className={`mx-auto mt-4 max-w-sm text-center text-white/75 ${DISPLAY_TEXT_PAIRING_BODY}`}
+          >
+            Enter this code in the host app (Venue &amp; roster, &quot;Public TVs&quot;) so this screen joins
+            your event.
+          </p>
+
+          <div className="mt-6 flex justify-center sm:mt-8">
+            <div className="min-w-[10rem] rounded-xl border-[3px] border-sky-500/95 px-6 py-3 text-center shadow-[0_0_32px_rgba(56,189,248,0.38)] sm:px-7 sm:py-4">
+              {code.length === 4 ? (
+                <span
+                  className={`inline-block select-none font-mono font-bold tracking-[0.18em] text-white ${DISPLAY_TEXT_PAIRING_CODE}`}
+                >
+                  {code}
+                </span>
+              ) : (
+                <span
+                  className={`inline-block animate-pulse tracking-wide text-white/45 ${DISPLAY_TEXT_PAIRING_BODY}`}
+                >
+                  Connecting…
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        <p className={`mt-10 text-center leading-relaxed text-white/42 ${DISPLAY_TEXT_SECONDARY}`}>
-          For a fixed bookmark (no pairing), load{' '}
-          <code className={`rounded bg-white/10 px-2 py-1 font-mono text-sky-200/90 ${DISPLAY_TEXT_SECONDARY}`}>
-            /display?room=VENUE
-          </code>
-          .
-        </p>
+          <p className={`mt-6 text-center text-white/42 sm:mt-8 ${DISPLAY_TEXT_PAIRING_BODY}`}>
+            For a fixed bookmark (no pairing), load{' '}
+            <code className={`rounded bg-white/10 px-1.5 py-0.5 font-mono text-sky-200/90 ${DISPLAY_TEXT_PAIRING_LABEL}`}>
+              /display?room=VENUE
+            </code>
+            .
+          </p>
+        </div>
       </div>
     </div>
   )

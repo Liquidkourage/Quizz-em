@@ -104,7 +104,7 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   seatInitials: 'text-[clamp(12px,1.65vmin,17px)]',
   /** Matches {@link actingName} size — under-felt call caption during wagering. */
   toCallStrip:
-    'pt-0.5 text-[clamp(18px,2.9vmin,28px)] font-black leading-none tracking-tight text-amber-100/90',
+    'pt-0 text-[clamp(18px,2.9vmin,28px)] font-black leading-none tracking-tight text-amber-100/90',
   noMoreBetsWatermark:
     'pointer-events-none select-none whitespace-nowrap text-center text-[clamp(15px,2.35vmin,24px)] font-black uppercase leading-none tracking-[0.14em] text-emerald-300/35',
 } as const
@@ -139,6 +139,9 @@ export type VenueFloorSizeSpec = {
   potSubtitleWrapClass: string
   /** Narrower tile width on dense checkerboard floors — prevents stagger overlap. */
   tileInsetClass: string
+  /** Optional mosaic felt override — shorter/narrower when headline steals vertical room. */
+  feltAspectClass?: string
+  feltWidthClass?: string
 }
 
 /** Pick felt size tier from banquet row count (and column width at the tightest band). */
@@ -346,9 +349,12 @@ export type VenueFloorDenseTuning = {
   potSubtitleClass: string
   ringScaleClass: string
   tileInsetClass: string
+  cardPaddingClass?: string
+  feltAspectClass?: string
+  feltWidthClass?: string
 }
 
-/** Four-row floors (17–20 tables) — keep gaps modest; type scales via cqh on each card. */
+/** Four-row floors — tighten gaps and felt so the bottom row stays in view with a headline. */
 export function venueFloorDenseTuning(
   layout: VenueBanquetLayout,
   opts?: { withHeadline?: boolean }
@@ -356,11 +362,11 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 0.95 : 0.99,
-    cellGapRem: headline ? 0.85 : 0.92,
-    paddingTopRem: headline ? 0.1 : 0.2,
-    paddingBottomRem: headline ? 0.12 : 0.25,
-    gridInsetClass: 'px-2 sm:px-3',
+    rowGapRem: headline ? 0.42 : 0.55,
+    cellGapRem: headline ? 0.48 : 0.58,
+    paddingTopRem: headline ? 0 : 0.08,
+    paddingBottomRem: headline ? 0.05 : 0.12,
+    gridInsetClass: headline ? 'px-1.5 sm:px-2' : 'px-2 sm:px-3',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
     tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
     potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
@@ -369,6 +375,13 @@ export function venueFloorDenseTuning(
     potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-none tracking-tight text-amber-50',
     ringScaleClass: '',
     tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
+    ...(headline
+      ? {
+          cardPaddingClass: 'px-1 pt-0.5 pb-0',
+          feltAspectClass: 'aspect-[9/5]',
+          feltWidthClass: 'mx-auto w-[90%] max-w-full',
+        }
+      : {}),
   }
 }
 
@@ -389,5 +402,8 @@ export function applyVenueFloorDenseTuning(
     potSubtitleClass: tuning.potSubtitleClass,
     ringScaleClass: tuning.ringScaleClass,
     tileInsetClass: tuning.tileInsetClass,
+    ...(tuning.cardPaddingClass != null ? { cardPaddingClass: tuning.cardPaddingClass } : {}),
+    ...(tuning.feltAspectClass != null ? { feltAspectClass: tuning.feltAspectClass } : {}),
+    ...(tuning.feltWidthClass != null ? { feltWidthClass: tuning.feltWidthClass } : {}),
   }
 }

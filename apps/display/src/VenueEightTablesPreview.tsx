@@ -737,6 +737,8 @@ function SeatRingWithLabels({
   mosaicDensity,
   /** Honeycomb floor — shrink-wrap felt height (content-sized rows, no 1fr stretch). */
   mosaicShrinkWrap = false,
+  mosaicFeltAspectClass,
+  mosaicFeltWidthClass,
   mosaicCenterPot = null,
   mosaicCenterPotClass = '',
   mosaicCenterPotMuted = 'live' as 'dim' | 'faint' | 'live',
@@ -762,6 +764,8 @@ function SeatRingWithLabels({
   mosaicFluidWidth?: boolean
   mosaicDensity?: VenueFloorTableSize
   mosaicShrinkWrap?: boolean
+  mosaicFeltAspectClass?: string
+  mosaicFeltWidthClass?: string
   mosaicCenterPot?: number | null
   mosaicCenterPotClass?: string
   mosaicCenterPotMuted?: 'dim' | 'faint' | 'live'
@@ -811,7 +815,7 @@ function SeatRingWithLabels({
   const mdRing = isMosaic
     ? mosaicFluidWidth
       ? mosaicShrinkWrap
-        ? `relative aspect-[17/10] h-auto shrink-0 ${VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS}`
+        ? `relative ${mosaicFeltAspectClass ?? 'aspect-[17/10]'} h-auto shrink-0 ${mosaicFeltWidthClass ?? VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS}`
         : 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
@@ -1488,6 +1492,8 @@ function VenueMosaicTableCard({
             mosaicFluidWidth={floorHoneycomb}
             mosaicDensity={floorSize.size}
             mosaicShrinkWrap={mosaicShrinkWrap}
+            mosaicFeltAspectClass={floorSize.feltAspectClass}
+            mosaicFeltWidthClass={floorSize.feltWidthClass}
             mosaicCenterPot={potOnFelt ? pot : null}
             mosaicCenterPotClass={VENUE_FLOOR_MOSAIC_HEADER_TYPE.feltPot}
             mosaicCenterPotMuted={potMuted}
@@ -1674,7 +1680,7 @@ function VenueAerialFloorGrid({
       <div
         className={`relative grid min-h-0 w-full flex-1 overflow-hidden ${
           denseTuning?.gridInsetClass ?? 'px-4 sm:px-6'
-        } ${shrinkWrapRowHeight ? 'content-center items-start' : 'items-stretch content-stretch'}`}
+        } ${shrinkWrapRowHeight ? 'content-start items-start' : 'items-stretch content-stretch'}`}
         style={
           {
             gridTemplateRows: floorRowTracks.gridTemplateRows,
@@ -1934,7 +1940,7 @@ export default function VenueEightTablesPreview({
 
       <main
         className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 sm:px-4 ${
-          compactVenueHeadline ? 'pb-1.5 sm:pb-2' : 'pb-3 sm:pb-4'
+          compactVenueHeadline ? 'pb-0.5 sm:pb-1' : 'pb-3 sm:pb-4'
         } ${showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'}`}
       >
         {wall != null && tileRows.length === 0 ? (

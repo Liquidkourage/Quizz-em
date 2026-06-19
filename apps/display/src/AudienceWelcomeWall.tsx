@@ -6,6 +6,7 @@ import {
   DISPLAY_TEXT_WELCOME_DENSE_CQ,
   DISPLAY_TEXT_WELCOME_PRIMARY_CQ,
   DISPLAY_TEXT_WELCOME_SECONDARY_CQ,
+  DISPLAY_TEXT_WELCOME_TIPS_CQ,
   DISPLAY_TEXT_WELCOME_URL_CQW,
 } from './displayTypography'
 
@@ -382,7 +383,7 @@ function WelcomeNewPlayerTipsPanel({
   reducedMotion: boolean
 }) {
   const bulletClass =
-    `text-balance font-semibold leading-snug text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
+    `text-balance font-medium text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
 
   const tips = [
     "Quizz'em is a trivia game played exactly like Texas Hold'em—answers are numeric, cards are single digits (e.g. 99, 1492, 90210).",
@@ -399,11 +400,11 @@ function WelcomeNewPlayerTipsPanel({
         innerFlexClassName="relative z-[5] flex h-full min-h-0 min-w-0 w-full flex-1 flex-col justify-start lg:h-full"
         className="flex min-h-0 min-w-0 h-full w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-0 py-0 shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:min-h-0 lg:h-full lg:flex-1"
       >
-        <div className="relative z-[1] flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden px-[clamp(10px,min(2vmin,_22px),_28px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)]">
+        <div className="relative z-[1] flex h-full min-h-0 flex-1 flex-col gap-[clamp(4px,min(0.85vmin,_10px),_12px)] overflow-hidden px-[clamp(8px,min(1.6vmin,_18px),_22px)] py-[clamp(4px,min(1.2vmin,_12px),_14px)]">
           <p className={`${hintsTitleClass} shrink-0 text-center leading-tight`}>How to play</p>
-          <ul className="m-0 flex min-h-0 flex-1 list-none flex-col justify-start gap-[clamp(6px,min(1vmin,_12px),_14px)] overflow-y-auto overscroll-y-contain p-0">
+          <ul className="m-0 flex min-h-0 flex-1 list-none flex-col justify-between gap-[clamp(3px,min(0.65vmin,_8px),_10px)] overflow-hidden p-0">
             {tips.map((t) => (
-              <li key={t} className="text-balance text-center">
+              <li key={t} className="flex min-h-0 flex-1 items-center justify-center text-center">
                 <span className={`${bulletClass} block`}>{t}</span>
               </li>
             ))}
@@ -459,9 +460,9 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
   const venueMono =
     `max-w-full break-all text-center font-mono font-black leading-none tracking-[0.06em] uppercase text-transparent bg-gradient-to-br from-yellow-200 via-yellow-400 to-amber-600 bg-clip-text [-webkit-background-clip:text] [filter:drop-shadow(0_2px_4px_rgba(0,0,0,.9))] ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
-  /** Join card URL — Orbitron; slash-bridged display + break-words for readable wraps. */
+  /** Join card URL — compact; caps cqw growth so long hosts do not dominate the panel. */
   const joinUrlText =
-    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-black tracking-[0.04em] text-amber-50 ${DISPLAY_TEXT_WELCOME_URL_CQW} [text-shadow:0_0_22px_rgba(254,249,231,0.45),0_0_58px_rgba(251,191,36,0.42),0_0_112px_rgba(234,179,8,0.22),0_0_28px_rgba(239,68,68,0.12),0_1px_0_rgba(0,0,0,0.9)]`
+    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.02em] text-amber-50 ${DISPLAY_TEXT_WELCOME_URL_CQW} [text-shadow:0_0_22px_rgba(254,249,231,0.45),0_0_58px_rgba(251,191,36,0.42),0_0_112px_rgba(234,179,8,0.22),0_0_28px_rgba(239,68,68,0.12),0_1px_0_rgba(0,0,0,0.9)]`
 
   /** Tighter attendance strip on landscape 1080p-class TVs (≥1024 wide, ≤1080 tall); skips narrow/portrait. */
   const statTile1080 =

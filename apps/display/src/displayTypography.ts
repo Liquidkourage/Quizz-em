@@ -50,3 +50,5 @@ export const DISPLAY_TEXT_WELCOME_SECONDARY_CQ = 'display-text-welcome-secondary
 export const DISPLAY_TEXT_WELCOME_DENSE_CQ = 'display-text-welcome-dense-cq leading-tight'
 
 export const DISPLAY_TEXT_WELCOME_URL_CQW = 'display-text-welcome-url-cqw leading-snug'
+
+export const DISPLAY_TEXT_WELCOME_TIPS_CQ = 'display-text-welcome-tips-cq'

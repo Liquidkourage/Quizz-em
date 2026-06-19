@@ -12,7 +12,6 @@ import {
   SEATING_CHART_GAP_X_REM,
   SEATING_CHART_PAGE_MS,
   seatingChartPageCount,
-  seatingChartPageLabel,
   seatingChartPageTables,
   seatingChartWBottomLeftCss,
   seatingChartWFormationRows,
@@ -106,19 +105,16 @@ function SeatingChartWPage({
 function SeatingChartPager({
   pageIndex,
   pageCount,
-  tableRange,
-  tableTotal,
 }: {
   pageIndex: number
   pageCount: number
-  tableRange: string
-  tableTotal: number
 }) {
   return (
-    <div className="flex flex-col items-center gap-2.5" aria-live="polite">
-      <p className="text-sm font-medium tabular-nums text-white/60 sm:text-base">
-        Tables {tableRange} of {tableTotal}
-      </p>
+    <div
+      className="flex flex-col items-center gap-2.5"
+      aria-live="polite"
+      aria-label={`Table page ${pageIndex + 1} of ${pageCount}`}
+    >
       <div className="flex items-center gap-2.5" aria-hidden>
         {Array.from({ length: pageCount }, (_, i) => (
           <span
@@ -165,7 +161,6 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
     () => seatingChartPageTables(tables, pageIndex),
     [tables, pageIndex],
   )
-  const pageMeta = seatingChartPageLabel(pageIndex, tables.length)
 
   const rosterHalves = useMemo(() => {
     const entries = seatingChartPlayerEntries(tables)
@@ -231,12 +226,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
 
             {showPager ? (
               <div className="shrink-0 pt-2 sm:pt-2.5">
-                <SeatingChartPager
-                  pageIndex={pageIndex}
-                  pageCount={pageCount}
-                  tableRange={pageMeta.tableRange}
-                  tableTotal={tables.length}
-                />
+                <SeatingChartPager pageIndex={pageIndex} pageCount={pageCount} />
               </div>
             ) : null}
           </div>

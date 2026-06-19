@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   SEATING_CHART_ROSTER_PAGE_MS,
-  SEATING_CHART_ROSTER_PAGE_SIZE,
   SEATING_CHART_ROSTER_WIDTH_REM,
   seatingChartRosterPageCount,
   seatingChartRosterPageEntries,
@@ -11,11 +10,11 @@ import {
 
 function SeatingChartRosterRow({ entry }: { entry: SeatingChartPlayerEntry }) {
   return (
-    <li className="flex min-h-[2.35rem] shrink-0 flex-col justify-center border-b border-white/[0.07] py-0.5 last:border-b-0">
-      <p className="truncate text-xs font-semibold leading-tight text-white sm:text-[0.8125rem]">
+    <li className="flex min-h-[2.65rem] shrink-0 flex-col justify-center border-b border-white/[0.07] py-0.5 last:border-b-0 sm:min-h-[2.85rem]">
+      <p className="truncate text-sm font-semibold leading-tight text-white sm:text-base">
         {entry.name.trim()}
       </p>
-      <p className="mt-0.5 truncate text-[10px] font-medium leading-none text-amber-200/75 sm:text-[11px]">
+      <p className="mt-0.5 truncate text-xs font-medium leading-none text-amber-200/80 sm:text-sm">
         Table {entry.tableNum}, Seat {entry.seatNum}
       </p>
     </li>
@@ -53,9 +52,6 @@ export default function SeatingChartNameRoster({
 
   if (entries.length === 0) return null
 
-  const rangeStart = pageIndex * SEATING_CHART_ROSTER_PAGE_SIZE + 1
-  const rangeEnd = Math.min((pageIndex + 1) * SEATING_CHART_ROSTER_PAGE_SIZE, entries.length)
-
   return (
     <aside
       className={`flex min-h-0 shrink-0 flex-col overflow-hidden border-white/10 py-1 ${
@@ -64,24 +60,13 @@ export default function SeatingChartNameRoster({
       style={{ width: `${SEATING_CHART_ROSTER_WIDTH_REM}rem` }}
       aria-label={`${title} player roster`}
     >
-      <div
-        className={`mb-1 flex shrink-0 items-end justify-between gap-1.5 ${
-          align === 'right' ? 'flex-row-reverse text-right' : ''
-        }`}
+      <h2
+        className={`mb-2 shrink-0 border-b border-amber-500/35 pb-2 font-black uppercase tracking-[0.22em] text-amber-100 [text-shadow:0_0_24px_rgba(251,191,36,0.35)] ${
+          align === 'right' ? 'text-right' : 'text-left'
+        } text-[clamp(1.75rem,3.2vmin,2.75rem)] leading-none`}
       >
-        <h2 className="text-xs font-black uppercase tracking-[0.16em] text-amber-300/90 sm:text-sm">
-          {title}
-        </h2>
-        {pageCount > 1 ? (
-          <p className="text-[10px] font-medium tabular-nums text-white/45 sm:text-[11px]">
-            {rangeStart}–{rangeEnd} of {entries.length}
-          </p>
-        ) : (
-          <p className="text-[10px] font-medium tabular-nums text-white/45 sm:text-[11px]">
-            {entries.length} players
-          </p>
-        )}
-      </div>
+        {title}
+      </h2>
 
       <div className="relative min-h-0 flex-1 overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>

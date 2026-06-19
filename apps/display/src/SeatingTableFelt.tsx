@@ -143,12 +143,12 @@ export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
         return (
           <li
             key={seat.seatNum}
-            className="flex min-w-0 items-center gap-1.5 rounded-md bg-white/[0.045] px-1.5 py-1 ring-1 ring-white/[0.06] sm:gap-2 sm:px-2 sm:py-1.5"
+            className="flex min-w-0 items-center gap-1.5 rounded-md bg-white/[0.045] px-1.5 py-0.5 ring-1 ring-white/[0.06] sm:gap-1.5 sm:px-1.5 sm:py-1"
           >
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-[9px] font-black tabular-nums text-amber-50 sm:h-6 sm:w-6 sm:text-[10px]">
+            <span className="flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-[8px] font-black tabular-nums text-amber-50 sm:h-5 sm:w-5 sm:text-[9px]">
               {seat.seatNum}
             </span>
-            <span className="min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm">
+            <span className="min-w-0 truncate text-[10px] font-semibold leading-tight text-white sm:text-[11px]">
               {given}
               {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}
             </span>

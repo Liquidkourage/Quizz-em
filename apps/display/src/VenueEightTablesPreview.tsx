@@ -1447,7 +1447,7 @@ function VenueMosaicTableCard({
           } ${showFloorShowdownOverlay ? 'opacity-25' : ''}`}
         >
         <div
-          className={`grid shrink-0 items-center gap-x-1 ${denseMosaicChrome ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-[auto_minmax(0,1fr)_auto]'} ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 gap-x-1 ${denseMosaicChrome ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-[auto_minmax(0,1fr)_auto]'} ${floorSize.headerRowClass} ${denseMosaicChrome ? mosaicTypography.titleRowClass : ''} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
           {denseMosaicChrome ? (
             <span
@@ -1513,6 +1513,8 @@ function VenueMosaicTableCard({
 
         <div
           className={`@container/size relative z-[1] w-full overflow-hidden ${floorSize.ringScaleClass} ${
+            floorFillHeight && denseMosaicChrome ? mosaicTypography.feltMaxHeightClass : ''
+          } ${
             floorFillHeight
               ? 'flex min-h-0 flex-1 items-center justify-center'
               : feltFillsCell
@@ -1554,7 +1556,7 @@ function VenueMosaicTableCard({
 
         {showToCallStrip ? (
           <div
-            className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallFooterRow} ${
+            className={`${mosaicTypography.footerRowClass} ${
               feltFillsCell ? 'col-start-1 row-start-3 min-w-0' : ''
             }`}
           >
@@ -1974,6 +1976,10 @@ export default function VenueEightTablesPreview({
     () => displayHeadlineCaptionClass(publicTypographyTier),
     [publicTypographyTier],
   )
+  const venueTypographyRootClass = useMemo(
+    () => venueFloorMosaicTypography(floorLayoutTableCount).rootClass,
+    [floorLayoutTableCount],
+  )
 
   const featuredTile = useMemo(() => {
     if (hostFocusTable == null) return null
@@ -1991,7 +1997,7 @@ export default function VenueEightTablesPreview({
   return (
     <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <div
-        className="relative flex h-full min-h-0 flex-col overflow-hidden text-white"
+        className={`relative flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
         style={venueWallUiScaleFrameStyle()}
       >
       <div className="pointer-events-none absolute inset-0 opacity-35">
@@ -2120,7 +2126,7 @@ export default function VenueEightTablesPreview({
                         <span className={`text-center font-black uppercase tracking-wide text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                           Blinds
                         </span>
-                        <div className="text-center font-mono text-xl font-black tabular-nums tracking-tight text-amber-100 sm:text-3xl md:text-4xl">
+                        <div className="vfd-blinds-amount text-center font-mono font-black tabular-nums tracking-tight text-amber-100">
                           {venueBlindsHeadline.amount}
                         </div>
                         {venueBlindsHeadline.meta ? (

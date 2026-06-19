@@ -102,9 +102,12 @@ describe('venueFloorMosaicTypography', () => {
   it('returns tier-specific mosaic type scales', () => {
     const standard = venueFloorMosaicTypography(14)
     const compact = venueFloorMosaicTypography(18)
-    expect(standard.feltPot).toContain('3.35vh')
-    expect(compact.actingName).toContain('1.9vh')
+    expect(standard.rootClass).toBe('venue-floor-typography-standard')
+    expect(standard.feltPot).toContain('vfd-mosaic-stack')
+    expect(standard.actingName).toContain('vfd-mosaic-player-name')
+    expect(compact.rootClass).toBe('venue-floor-typography-compact')
     expect(standard.noMoreBetsOffsetClass).not.toBe(compact.noMoreBetsOffsetClass)
+    expect(standard.feltMaxHeightClass).toBe('vfd-mosaic-felt-cap')
   })
 })
 

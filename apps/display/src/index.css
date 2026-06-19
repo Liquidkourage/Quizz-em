@@ -275,36 +275,109 @@
     font-size: clamp(14px, 1.95vmin, 19px);
   }
 
-  /** Headline condense / progress caption under the question row. */
-  .display-text-headline-caption-spacious {
-    font-size: clamp(19px, 1.9vh, 23px);
-  }
-
-  /** Headline condense / progress caption under the question row. */
-  .display-text-headline-caption {
-    font-size: clamp(18px, 1.8vh, 22px);
-  }
-
+  /** Headline condense / progress caption — size from venue-floor typography tier. */
+  .display-text-headline-caption-spacious,
+  .display-text-headline-caption,
   .display-text-headline-caption-compact {
-    font-size: clamp(16px, 1.65vh, 20px);
+    font-size: var(--vfd-summary-size);
   }
 
-  /** Venue question when the floor is spacious (1–8 tables). */
-  .display-text-headline-question-spacious {
-    font-size: clamp(28px, 3.2vh, 40px);
-    font-weight: 700;
-  }
-
-  /** Venue question when the floor is standard (9–15 tables). */
-  .display-text-headline-question-compact {
-    font-size: clamp(25px, 3vh, 38px);
-    font-weight: 700;
-  }
-
-  /** Venue question when the floor is compact (16–20 tables). */
+  /** Venue headline question — size from venue-floor typography tier. */
+  .display-text-headline-question-spacious,
+  .display-text-headline-question-compact,
   .display-text-headline-question-ultra {
-    font-size: clamp(22px, 2.7vh, 32px);
+    font-size: var(--vfd-question-size);
     font-weight: 700;
+  }
+
+  /**
+   * Venue-floor public-display typography tiers.
+   * CSS px values are zoom-compensated for {@link VENUE_WALL_UI_SCALE} (0.88) so rendered
+   * sizes on the venue wall match the eagle-eye targets at 1920×1080.
+   */
+  .venue-floor-typography-spacious {
+    --vfd-question-size: 45px;
+    --vfd-summary-size: 24px;
+    --vfd-player-name-size: 30px;
+    --vfd-stack-size: 45px;
+    --vfd-to-call-label-size: 24px;
+    --vfd-to-call-amount-size: 30px;
+    --vfd-table-number-size: 24px;
+    --vfd-title-row-min-h: 34px;
+    --vfd-footer-row-min-h: 34px;
+    --vfd-felt-max-height: 94%;
+    --vfd-blinds-amount-size: 39px;
+  }
+
+  .venue-floor-typography-standard {
+    --vfd-question-size: 39px;
+    --vfd-summary-size: 22px;
+    --vfd-player-name-size: 28px;
+    --vfd-stack-size: 41px;
+    --vfd-to-call-label-size: 22px;
+    --vfd-to-call-amount-size: 27px;
+    --vfd-table-number-size: 22px;
+    --vfd-title-row-min-h: 32px;
+    --vfd-footer-row-min-h: 33px;
+    --vfd-felt-max-height: 93%;
+    --vfd-blinds-amount-size: 36px;
+  }
+
+  .venue-floor-typography-compact {
+    --vfd-question-size: 36px;
+    --vfd-summary-size: 20px;
+    --vfd-player-name-size: 25px;
+    --vfd-stack-size: 39px;
+    --vfd-to-call-label-size: 20px;
+    --vfd-to-call-amount-size: 25px;
+    --vfd-table-number-size: 20px;
+    --vfd-title-row-min-h: 30px;
+    --vfd-footer-row-min-h: 31px;
+    --vfd-felt-max-height: 92%;
+    --vfd-blinds-amount-size: 34px;
+  }
+
+  /** Mosaic card typography — font-size via CSS vars (not Tailwind text-[var] which maps to color). */
+  .vfd-mosaic-player-name {
+    font-size: var(--vfd-player-name-size);
+  }
+
+  .vfd-mosaic-stack {
+    font-size: var(--vfd-stack-size);
+  }
+
+  .vfd-mosaic-table-num {
+    font-size: var(--vfd-table-number-size);
+  }
+
+  .vfd-mosaic-to-call-label {
+    font-size: var(--vfd-to-call-label-size);
+  }
+
+  .vfd-mosaic-to-call-amount {
+    font-size: var(--vfd-to-call-amount-size);
+  }
+
+  .vfd-mosaic-title-row {
+    min-height: var(--vfd-title-row-min-h);
+    align-items: center;
+  }
+
+  .vfd-mosaic-footer-row {
+    display: flex;
+    min-height: var(--vfd-footer-row-min-h);
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .vfd-mosaic-felt-cap {
+    max-height: var(--vfd-felt-max-height);
+  }
+
+  .vfd-blinds-amount {
+    font-size: var(--vfd-blinds-amount-size);
   }
 
   /** Pairing gate — TV room scale (80% of prior 2.5× bump). */

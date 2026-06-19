@@ -1,0 +1,49 @@
+---
+description: Seating assignments screen is frozen — do not change unless the user explicitly asks.
+alwaysApply: true
+---
+
+# Seating assignments screen is frozen
+
+The **seating assignments** view (W-formation table carousel, table cards with felt + player list, A–M / N–Z gutter rosters) is **approved as-is**. Do **not** modify it unless the user **explicitly countermands** this rule (e.g. “change the seating chart”, “resize seating roster text”, “update VenueSeatingChart”).
+
+## Protected files
+
+- `apps/display/src/VenueSeatingChart.tsx`
+- `apps/display/src/SeatingChartNameRoster.tsx`
+- `apps/display/src/SeatingTableFelt.tsx`
+- `apps/display/src/venueSeatingChartCarousel.ts`
+- `apps/display/src/venueSeatingChartRoster.ts`
+- `apps/display/src/venueSeatingChartCarousel.test.ts`
+- `apps/display/src/venueSeatingChartRoster.test.ts`
+- `apps/display/src/venueWallSeatingChart.test.ts`
+- `apps/display/src/DisplayRouter.tsx` — only when the change affects seating-chart routing or when it is shown
+- `apps/display/src/venueWallModel.ts` — only when the change affects `seatingChartTablesFromTiles`, `venueWallShowSeatingChart`, or `VenueSeatingChartTable`
+
+## Protected constants (do not retune without countermand)
+
+From `venueSeatingChartCarousel.ts` and `venueSeatingChartRoster.ts`, including but not limited to:
+
+- `SEATING_CHART_PAGE_TABLES`, `SEATING_CHART_PAGE_MS`, frame width, gap, and W-formation position CSS
+- `SEATING_CHART_ROSTER_WIDTH_REM`, `SEATING_CHART_ROSTER_PAGE_SIZE`, `SEATING_CHART_ROSTER_PAGE_MS`
+
+## Do not change (without explicit user request)
+
+- Copy, layout, spacing, card proportions, W formation, gutter rosters, colors, or typography on the seating chart
+- Table card split (diagram vs player list), roster carousel behavior, or pager dots
+- Refactors that move seating styles into shared tokens and alter how the screen looks
+- “Drive-by” fixes, responsive tweaks, or viewport-rule cleanups that touch the seating chart
+
+## Allowed without countermand
+
+- Bug fixes that **only** fix crashes, wrong seat/table **data**, or broken carousel **logic** — **only if** visual/copy/layout stay identical; mention the exception in the commit message
+- Renames/moves that preserve **pixel-identical** output (rare; prefer leaving files alone)
+
+## When the user countermands
+
+Proceed with their specific seating-chart instructions only for that turn (or scope they name). Do not broaden changes beyond what they asked.
+
+## Checklist before merging any display change
+
+- [ ] Did this diff touch protected seating-chart files or constants above? If yes, did the user explicitly request it?
+- [ ] If the seating chart was touched without user request, revert those hunks.

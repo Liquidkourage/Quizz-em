@@ -1,41 +1,40 @@
 ---
-description: Public display text must use viewport-height sizing — 5vh minimum, ~10vh for primary copy.
+description: Public display typography — viewport bands for full-screen copy; container units inside tiles and panels.
 globs: apps/display/**
 alwaysApply: false
 ---
 
-# Public display typography (viewport height)
+# Public display typography
 
-Text on the **venue / TV display** (`apps/display/**`) must stay legible from across a room. **Every visible text node** must meet these floors:
+Text on the **venue / TV display** (`apps/display/**`) must stay legible from across a room. Pick the tier that matches **where** the text lives:
 
-| Role | Minimum size |
-|------|----------------|
-| **Primary** (titles, table numbers, player names, questions, phase labels, countdowns) | **~10% of screen height** (`10vh`, or `clamp` centered on `10vh`) |
-| **Secondary** (subtitles, seat labels, pager counts, metadata, captions) | **≥ 5% of screen height** (`5vh` minimum) |
+| Tier | When | CSS utility / token |
+|------|------|---------------------|
+| **Primary** | Full-viewport headlines (spotlight question, pairing title, page H1) | `DISPLAY_TEXT_PRIMARY` → `clamp(5vh, 10vh, 12vh)` |
+| **Headline** | Venue mosaic question / countdown strip (shares row with chips) | `DISPLAY_TEXT_HEADLINE` → `clamp(4vh, 6.5vh, 9vh)` |
+| **Secondary** | Full-viewport subtitles, metadata, dock labels | `DISPLAY_TEXT_SECONDARY` → `≥ 5vh` |
+| **Primary CQ** | Primary copy inside an `@container` cell (~7cqh of the cell) | `DISPLAY_TEXT_PRIMARY_CQ` |
+| **Secondary CQ** | Secondary copy inside an `@container` cell | `DISPLAY_TEXT_SECONDARY_CQ` |
+| **Primary/Secondary CQW** | Copy that should track cell **width** (community cards, pot numerals) | `DISPLAY_TEXT_PRIMARY_CQW` / `DISPLAY_TEXT_SECONDARY_CQW` |
+| **Badge CQ** | Seat markers, compact numerals on felts | `DISPLAY_TEXT_BADGE_CQ` |
+| **Dense CQ** | Multi-row lists (gutter rosters, welcome tips) | `DISPLAY_TEXT_DENSE_CQ` |
 
-Nothing on the display may render smaller than **5vh** — including “fine print”, badges, dots labels, and roster rows.
+## Critical rule: never mix `vh` into `@container` cells
 
-## Implementation
+```css
+/* ❌ BAD — 5vh wins in small mosaic tiles; everything becomes viewport-sized */
+font-size: max(5vh, 10cqh);
 
-- Prefer **`vh`** (or **`cqh`** inside a full-viewport container) over fixed `px`, `rem`, or Tailwind `text-xs` / `text-sm` for display copy.
-- Use **`clamp(min, preferred, max)`** when a line must not overflow on short viewports, but keep the **minimum at `5vh`** (primary at **`~10vh`**).
-- Decorative-only elements (pager dots with no text) are exempt; **any legible characters are not**.
-
-```tsx
-// ❌ BAD — fixed small type, unreadable on a venue TV
-<p className="text-xs text-white/45">Tables 11–15 of 20</p>
-<h1 className="text-2xl font-black">Seating assignments</h1>
-
-// ✅ GOOD — secondary ≥ 5vh, primary ~ 10vh
-<p className="text-[5vh] leading-tight text-white/65">Tables 11–15 of 20</p>
-<h1 className="text-[10vh] font-black leading-none">Seating assignments</h1>
-
-// ✅ GOOD — clamp keeps primary near 10vh on tall screens
-<h1 className="text-[clamp(5vh,10vh,12vh)] font-black">Seating assignments</h1>
+/* ✅ GOOD — scale to the cell only */
+font-size: clamp(3.5cqh, 7cqh, 11cqh);
 ```
+
+- Put `@container` / `@container/size` on the cell wrapper, then use `*_CQ` / `*_CQW` / `DENSE_CQ` inside.
+- Do **not** use `DISPLAY_TEXT_PRIMARY` or `DISPLAY_TEXT_SECONDARY` (`vh`) inside mosaic tiles, seating cards, gutter rosters, or welcome-wall panels.
 
 ## Checklist before merging display UI changes
 
-- [ ] No display copy uses Tailwind `text-xs`, `text-sm`, `text-base`, or arbitrary px/rem below **5vh** equivalent.
-- [ ] Headlines, table numbers, player names, and main phase/question text target **~10vh**.
-- [ ] Secondary labels (seat numbers, roster table/seat lines, pager counts) are **≥ 5vh**.
+- [ ] Full-screen bands use `PRIMARY` / `HEADLINE` / `SECONDARY` (`vh`).
+- [ ] Tile, panel, roster, and felt copy use `*_CQ`, `*_CQW`, `BADGE_CQ`, or `DENSE_CQ` only.
+- [ ] No `max(5vh, …cqh)` or `min-h-[max(5vh,…)]` on container-scoped elements.
+- [ ] No Tailwind `text-xs` / `text-sm` / fixed px for legible display copy.

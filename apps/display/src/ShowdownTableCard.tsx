@@ -61,7 +61,7 @@ function PlayerResultTile({
     >
       <div className="flex min-w-0 items-center gap-1.5">
         <span
-          className={`flex aspect-square min-h-[max(5vh,7cqh)] min-w-[max(5vh,7cqh)] shrink-0 items-center justify-center rounded-full font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
+          className={`flex aspect-square min-h-[7cqh] min-w-[7cqh] shrink-0 items-center justify-center rounded-full font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
             isWinner ? 'bg-amber-500/30 text-amber-50' : 'bg-black/45 text-white/75'
           }`}
         >

@@ -18,7 +18,7 @@ import {
   seatingChartWBottomLeftCss,
   seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
-import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
+import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_PRIMARY_CQ, DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
 function SeatingTableCard({
   table,
@@ -31,7 +31,7 @@ function SeatingTableCard({
       aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
     >
       <header className="flex shrink-0 items-center border-b border-amber-500/25 bg-gradient-to-r from-amber-500/18 via-amber-400/12 to-amber-500/18 px-5 py-2.5 sm:px-6 sm:py-3">
-        <span className={`font-black tabular-nums leading-none text-amber-50 ${DISPLAY_TEXT_PRIMARY}`}>
+        <span className={`font-black tabular-nums leading-none text-amber-50 ${DISPLAY_TEXT_PRIMARY_CQ}`}>
           {table.tableNum}
         </span>
       </header>

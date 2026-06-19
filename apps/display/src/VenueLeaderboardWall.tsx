@@ -26,11 +26,11 @@ function leaderboardGridStyle(rowCount: number): CSSProperties {
 }
 
 const ROW_FONT: CSSProperties = {
-  fontSize: 'max(5vh, min(10vh, calc((100cqh - 3.5rem) / var(--lb-rows) * 0.82)))',
+  fontSize: 'clamp(3.5cqh, calc((100cqh - 3.5rem) / var(--lb-rows) * 0.82), 10cqh)',
 }
 
 const RANK_FONT: CSSProperties = {
-  fontSize: 'max(5vh, min(10vh, calc((100cqh - 3.5rem) / var(--lb-rows) * 0.68)))',
+  fontSize: 'clamp(3cqh, calc((100cqh - 3.5rem) / var(--lb-rows) * 0.68), 8cqh)',
 }
 
 export type VenueLeaderboardWallProps = {

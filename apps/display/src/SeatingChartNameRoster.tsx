@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
+import {
+  DISPLAY_TEXT_DENSE_CQ,
+  DISPLAY_TEXT_SECONDARY_CQ,
+} from './displayTypography'
 import {
   SEATING_CHART_ROSTER_PAGE_MS,
   SEATING_CHART_ROSTER_PAGE_SIZE,
@@ -12,11 +15,11 @@ import {
 
 function SeatingChartRosterRow({ entry }: { entry: SeatingChartPlayerEntry }) {
   return (
-    <li className="min-w-0 border-b border-white/[0.07] py-[0.15rem] last:border-b-0">
-      <p className={`truncate font-semibold text-white ${DISPLAY_TEXT_SECONDARY}`}>
+    <li className="min-w-0 border-b border-white/[0.07] py-[0.1rem] last:border-b-0">
+      <p className={`truncate font-semibold text-white ${DISPLAY_TEXT_DENSE_CQ}`}>
         {entry.name.trim()}
       </p>
-      <p className={`mt-0.5 truncate font-medium text-amber-200/75 ${DISPLAY_TEXT_SECONDARY}`}>
+      <p className={`mt-0.5 truncate font-medium text-amber-200/75 ${DISPLAY_TEXT_DENSE_CQ}`}>
         Table {entry.tableNum}, Seat {entry.seatNum}
       </p>
     </li>
@@ -59,7 +62,7 @@ export default function SeatingChartNameRoster({
 
   return (
     <aside
-      className={`flex min-h-0 shrink-0 flex-col overflow-hidden border-white/10 py-1 ${
+      className={`@container/size flex min-h-0 shrink-0 flex-col overflow-hidden border-white/10 py-1 ${
         align === 'left' ? 'border-r pr-2 pl-3 sm:pl-4' : 'border-l pl-2 pr-3 sm:pr-4'
       }`}
       style={{ width: `${SEATING_CHART_ROSTER_WIDTH_REM}rem` }}
@@ -70,15 +73,15 @@ export default function SeatingChartNameRoster({
           align === 'right' ? 'flex-row-reverse text-right' : ''
         }`}
       >
-        <h2 className={`font-black uppercase tracking-[0.16em] text-amber-300/90 ${DISPLAY_TEXT_PRIMARY}`}>
+        <h2 className={`font-black uppercase tracking-[0.16em] text-amber-300/90 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
           {title}
         </h2>
         {pageCount > 1 ? (
-          <p className={`font-medium tabular-nums text-white/45 ${DISPLAY_TEXT_SECONDARY}`}>
+          <p className={`font-medium tabular-nums text-white/45 ${DISPLAY_TEXT_DENSE_CQ}`}>
             {rangeStart}–{rangeEnd} of {entries.length}
           </p>
         ) : (
-          <p className={`font-medium tabular-nums text-white/45 ${DISPLAY_TEXT_SECONDARY}`}>
+          <p className={`font-medium tabular-nums text-white/45 ${DISPLAY_TEXT_DENSE_CQ}`}>
             {entries.length} players
           </p>
         )}

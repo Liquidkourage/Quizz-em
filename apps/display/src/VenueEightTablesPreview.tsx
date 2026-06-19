@@ -40,6 +40,7 @@ import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry
 import { nowOnServerClock } from './serverClock'
 import {
   DISPLAY_TEXT_BADGE_CQ,
+  DISPLAY_TEXT_HEADLINE,
   DISPLAY_TEXT_PRIMARY,
   DISPLAY_TEXT_PRIMARY_CQ,
   DISPLAY_TEXT_PRIMARY_CQW,
@@ -1835,7 +1836,7 @@ export default function VenueEightTablesPreview({
                     ) : null}
                     {headlineQuestionDisplay ? (
                       <p
-                        className={`text-balance text-left font-bold tracking-tight text-yellow-400 ${DISPLAY_TEXT_PRIMARY}`}
+                        className={`text-balance text-left font-bold tracking-tight text-yellow-400 ${DISPLAY_TEXT_HEADLINE}`}
                       >
                         {headlineQuestionDisplay}
                       </p>
@@ -1843,7 +1844,7 @@ export default function VenueEightTablesPreview({
                       <p className="sr-only">Showdown in progress.</p>
                     ) : inAnsweringCountdown ? (
                       <p
-                        className={`text-left font-bold tracking-tight text-cyan-200 ${DISPLAY_TEXT_PRIMARY}`}
+                        className={`text-left font-bold tracking-tight text-cyan-200 ${DISPLAY_TEXT_HEADLINE}`}
                       >
                         Answer on your phone now
                       </p>

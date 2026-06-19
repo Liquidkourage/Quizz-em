@@ -210,23 +210,36 @@
     font-size: clamp(5vh, 5vh, 7vh);
   }
 
+  /*
+   * @container copy — scale to the CELL (cqh/cqw), never mix in vh.
+   * Dense lists use display-text-dense-cq (rosters, multi-line tips).
+   */
   .display-text-primary-cq {
-    font-size: max(5vh, 10cqh);
+    font-size: clamp(3.5cqh, 7cqh, 11cqh);
   }
 
   .display-text-secondary-cq {
-    font-size: max(5vh, 5cqh);
+    font-size: clamp(3cqh, 4.5cqh, 8cqh);
   }
 
   .display-text-primary-cqw {
-    font-size: max(5vh, 8cqw);
+    font-size: clamp(5cqw, 8cqw, 12cqw);
   }
 
   .display-text-secondary-cqw {
-    font-size: max(5vh, 5cqw);
+    font-size: clamp(4cqw, 5cqw, 10cqw);
   }
 
   .display-text-badge-cq {
-    font-size: max(5vh, 7cqh);
+    font-size: clamp(3.5cqh, 5cqh, 8cqh);
+  }
+
+  .display-text-dense-cq {
+    font-size: clamp(2.75cqh, 3.75cqh, 5cqh);
+  }
+
+  /** Venue headline strip — smaller than full-screen primary so chips/countdown fit. */
+  .display-text-headline {
+    font-size: clamp(4vh, 6.5vh, 9vh);
   }
 }

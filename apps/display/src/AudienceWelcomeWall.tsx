@@ -2,7 +2,11 @@ import { useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
-import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
+import {
+  DISPLAY_TEXT_DENSE_CQ,
+  DISPLAY_TEXT_PRIMARY_CQ,
+  DISPLAY_TEXT_SECONDARY_CQ,
+} from './displayTypography'
 
 export type AudienceWelcomeWallProps = {
   venueCode: string
@@ -140,7 +144,7 @@ function VegasAttentionPanel({
     innerFlexClassName ??
     'relative z-[5] flex h-full min-h-0 min-w-0 flex-col'
   return (
-    <div className={`relative isolate overflow-hidden rounded-[inherit] ${className}`}>
+    <div className={`@container/size relative isolate overflow-hidden rounded-[inherit] ${className}`}>
       {showCorners ? <VegasCornerBrackets /> : null}
       {animateShimmer ? (
         <div
@@ -228,7 +232,7 @@ function WelcomeQrColumn({
             </div>
           </div>
         ) : (
-          <div className={`flex min-h-0 flex-1 items-center rounded-xl border-2 border-dashed border-white/35 bg-white/[0.04] px-6 py-10 text-center font-semibold leading-snug text-amber-200 ${DISPLAY_TEXT_SECONDARY}`}>
+          <div className={`flex min-h-0 flex-1 items-center rounded-xl border-2 border-dashed border-white/35 bg-white/[0.04] px-4 py-6 text-center font-semibold leading-snug text-amber-200 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
             QR blocked — check the centered join card for the URL and code.
           </div>
         )}
@@ -377,7 +381,7 @@ function WelcomeNewPlayerTipsPanel({
   reducedMotion: boolean
 }) {
   const bulletClass =
-    `text-balance font-semibold leading-[1.38] text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_SECONDARY} lg:leading-[1.42]`
+    `text-balance font-semibold leading-snug text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_DENSE_CQ}`
 
   const tips = [
     "Quizz'em is a trivia game played exactly like Texas Hold'em—answers are numeric, cards are single digits (e.g. 99, 1492, 90210).",
@@ -394,15 +398,12 @@ function WelcomeNewPlayerTipsPanel({
         innerFlexClassName="relative z-[5] flex h-full min-h-0 min-w-0 w-full flex-1 flex-col justify-start lg:h-full"
         className="flex min-h-0 min-w-0 h-full w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-0 py-0 shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:min-h-0 lg:h-full lg:flex-1"
       >
-        <div className="relative z-[1] flex h-full min-h-0 flex-1 flex-col justify-start gap-y-[clamp(4px,min(0.85vmin,_10px),_14px)] px-[clamp(10px,min(2vmin,_22px),_28px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]">
-          <p className={`${hintsTitleClass} w-full shrink-0 text-center leading-[1.08] pb-0`}>How to play</p>
-          <ul className="m-0 flex min-h-0 w-full max-w-[min(100%,56ch)] list-none flex-1 flex-col justify-center gap-y-[clamp(10px,min(1.2vmin,_13px),_16px)] self-center p-0 lg:gap-y-[clamp(12px,min(1.3vmin,_17px),_18px)]">
+        <div className="relative z-[1] flex h-full min-h-0 flex-1 flex-col gap-3 overflow-hidden px-[clamp(10px,min(2vmin,_22px),_28px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)]">
+          <p className={`${hintsTitleClass} shrink-0 text-center leading-tight`}>How to play</p>
+          <ul className="m-0 flex min-h-0 flex-1 list-none flex-col justify-start gap-[clamp(8px,min(1.2vmin,_14px),_18px)] overflow-y-auto overscroll-y-contain p-0">
             {tips.map((t) => (
               <li key={t} className="text-balance text-center">
-                <span className={`mr-[0.35em] inline font-bold leading-none text-emerald-300/92 ${DISPLAY_TEXT_SECONDARY}`} aria-hidden>
-                  ●
-                </span>
-                <span className={`${bulletClass} inline`}>{t}</span>
+                <span className={`${bulletClass} block`}>{t}</span>
               </li>
             ))}
           </ul>
@@ -420,7 +421,7 @@ function WelcomeWallHeader({
   taglineClass: string
 }) {
   return (
-    <header className="flex w-full max-w-full min-w-0 shrink-0 flex-col items-stretch px-0 sm:px-[clamp(2px,_0.45vw,_10px)]">
+    <header className="@container/size flex w-full max-w-full min-w-0 shrink-0 flex-col items-stretch px-0 sm:px-[clamp(2px,_0.45vw,_10px)]">
       <div className="relative mx-auto aspect-[958/592] w-full max-w-[min(552px,calc(92vw_*_0.6),calc((100vw_-_28px)_*_0.6))] shrink-0 overflow-visible lg:w-auto lg:max-h-[min(33.6vh,432px)] lg:max-w-[min(576px,calc(96vw_*_0.6),calc((100vw_-_36px)_*_0.6))]">
         <QuizzEmWordmark layout="fill" />
       </div>
@@ -442,24 +443,24 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
    *  (vmin balloons when the window is tall and crowded the vertical rhythm). */
   /** `min-w-0` + wrapping so wide tracking / long words cannot blow past grid tracks */
   const sectionRibbon =
-    `min-w-0 font-black uppercase tracking-[0.22em] text-amber-50/98 break-words text-balance whitespace-normal ${DISPLAY_TEXT_PRIMARY} [text-shadow:0_0_32px_rgba(251,191,36,0.45),0_0_72px_rgba(239,68,68,0.14),0_2px_4px_rgba(0,0,0,_0.95)]`
+    `min-w-0 font-black uppercase tracking-[0.18em] text-amber-50/98 break-words text-balance whitespace-normal ${DISPLAY_TEXT_SECONDARY_CQ} [text-shadow:0_0_32px_rgba(251,191,36,0.45),0_0_72px_rgba(239,68,68,0.14),0_2px_4px_rgba(0,0,0,_0.95)]`
 
   const hintsTitleClass =
-    `min-w-0 font-black uppercase tracking-[0.17em] text-amber-50/97 break-words text-balance whitespace-normal ${DISPLAY_TEXT_PRIMARY} [text-shadow:0_0_24px_rgba(251,191,36,0.45),0_2px_8px_rgba(0,0,0,_0.92)]`
+    `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/97 break-words text-balance whitespace-normal ${DISPLAY_TEXT_SECONDARY_CQ} [text-shadow:0_0_24px_rgba(251,191,36,0.45),0_2px_8px_rgba(0,0,0,_0.92)]`
 
   /** Credit under the wordmark — readable title case, subtler than headline chrome. */
   const taglineCredit =
-    `min-w-0 break-words text-balance font-semibold tracking-[0.04em] text-amber-50/92 ${DISPLAY_TEXT_SECONDARY} [text-shadow:0_0_14px_rgba(253,224,138,0.38),0_2px_8px_rgba(0,0,0,_0.88)]`
+    `min-w-0 break-words text-balance font-semibold tracking-[0.04em] text-amber-50/92 ${DISPLAY_TEXT_DENSE_CQ} [text-shadow:0_0_14px_rgba(253,224,138,0.38),0_2px_8px_rgba(0,0,0,_0.88)]`
 
   /** “Players” label above the total count tile */
   const playerCountLabelClass =
-    `min-w-0 break-words text-balance font-black tracking-[0.13em] uppercase text-emerald-50/94 ${DISPLAY_TEXT_PRIMARY} [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:tracking-[0.11em] [text-shadow:0_0_18px_rgba(167,243,208,0.28),0_2px_8px_rgba(0,0,0,.58)] mb-[clamp(3px,min(0.55vmin,_5px),_6px)]`
+    `min-w-0 break-words text-balance font-black tracking-[0.12em] uppercase text-emerald-50/94 ${DISPLAY_TEXT_SECONDARY_CQ} [text-shadow:0_0_18px_rgba(167,243,208,0.28),0_2px_8px_rgba(0,0,0,.58)] mb-[clamp(3px,min(0.55vmin,_5px),_6px)]`
   const venueMono =
-    `max-w-full break-all text-center font-mono font-black leading-none tracking-[0.06em] uppercase text-transparent bg-gradient-to-br from-yellow-200 via-yellow-400 to-amber-600 bg-clip-text [-webkit-background-clip:text] [filter:drop-shadow(0_2px_4px_rgba(0,0,0,.9))] ${DISPLAY_TEXT_PRIMARY}`
+    `max-w-full break-all text-center font-mono font-black leading-none tracking-[0.06em] uppercase text-transparent bg-gradient-to-br from-yellow-200 via-yellow-400 to-amber-600 bg-clip-text [-webkit-background-clip:text] [filter:drop-shadow(0_2px_4px_rgba(0,0,0,.9))] ${DISPLAY_TEXT_PRIMARY_CQ}`
 
   /** Join card URL — Orbitron; slash-bridged display + break-words for readable wraps. */
   const joinUrlText =
-    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-black leading-relaxed tracking-[0.04em] text-amber-50 ${DISPLAY_TEXT_SECONDARY} [text-shadow:0_0_22px_rgba(254,249,231,0.45),0_0_58px_rgba(251,191,36,0.42),0_0_112px_rgba(234,179,8,0.22),0_0_28px_rgba(239,68,68,0.12),0_1px_0_rgba(0,0,0,0.9)]`
+    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-black leading-snug tracking-[0.04em] text-amber-50 ${DISPLAY_TEXT_SECONDARY_CQ} [text-shadow:0_0_22px_rgba(254,249,231,0.45),0_0_58px_rgba(251,191,36,0.42),0_0_112px_rgba(234,179,8,0.22),0_0_28px_rgba(239,68,68,0.12),0_1px_0_rgba(0,0,0,0.9)]`
 
   /** Tighter attendance strip on landscape 1080p-class TVs (≥1024 wide, ≤1080 tall); skips narrow/portrait. */
   const statTile1080 =
@@ -467,7 +468,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
 
   /** Slightly taller digits limited on short viewports; default keeps large-TV punch. */
   const statDigitBase =
-    `py-[clamp(3px,min(0.95vmin,_8px),_8px)] font-mono tabular-nums tracking-tight leading-none font-black ${DISPLAY_TEXT_PRIMARY} [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:py-[clamp(2px,min(0.55vmin,_5px),_5px)]`
+    `py-[clamp(3px,min(0.95vmin,_8px),_8px)] font-mono tabular-nums tracking-tight leading-none font-black ${DISPLAY_TEXT_PRIMARY_CQ}`
 
   const statDigitAccentShadow =
     '[text-shadow:0_0_36px_rgba(253,224,138,0.65),0_0_92px_rgba(234,179,8,0.35),0_2px_4px_rgba(0,0,0,0.95)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:[text-shadow:0_0_22px_rgba(253,224,138,0.55),0_0_54px_rgba(234,179,8,0.28),0_2px_3px_rgba(0,0,0,0.92)]'

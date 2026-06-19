@@ -265,6 +265,21 @@
     font-size: clamp(4vh, 6.5vh, 9vh);
   }
 
+  /** Headline badges (table · phase, question N of M). */
+  .display-text-headline-badge {
+    font-size: clamp(13px, 1.85vmin, 18px);
+  }
+
+  /** Headline meta (divergence note, blinds subline, waiting copy). */
+  .display-text-headline-meta {
+    font-size: clamp(14px, 1.95vmin, 19px);
+  }
+
+  /** Headline condense / progress caption under the question row. */
+  .display-text-headline-caption {
+    font-size: clamp(14px, 1.95vmin, 19px);
+  }
+
   /** Pairing gate — TV room scale (80% of prior 2.5× bump). */
   .display-text-pairing-label {
     font-size: clamp(1.4rem, 2.7vmin, 1.9rem);

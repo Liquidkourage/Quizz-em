@@ -20,6 +20,10 @@ import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownD
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import { formatVenueBankroll } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
+import {
+  DISPLAY_TEXT_HEADLINE_BADGE,
+  DISPLAY_TEXT_HEADLINE_META,
+} from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import {
   banquetCheckerboardGridColumn,
@@ -1941,10 +1945,10 @@ export default function VenueEightTablesPreview({
               <motion.div
                 className={`sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:px-4 md:px-5 ${
                   ultraCompactVenueHeadline
-                    ? 'gap-1 py-1'
+                    ? 'gap-0.5 py-0.5'
                     : compactVenueHeadline
-                      ? 'gap-1.5 py-1.5 sm:gap-2'
-                      : 'gap-2 py-2 sm:gap-2.5 sm:py-2.5 md:gap-3 md:py-3'
+                      ? 'gap-1 py-1 sm:gap-1.5'
+                      : 'gap-1.5 py-1.5 sm:gap-2 sm:py-2 md:gap-2.5 md:py-2'
                 }`}
                 style={{
                   paddingTop: 'max(0.35rem, env(safe-area-inset-top, 0px))',
@@ -1970,25 +1974,25 @@ export default function VenueEightTablesPreview({
                   </div>
                 </div>
                 <motion.div
-                  className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 rounded-xl border border-casino-emerald/35 bg-black/35 px-2.5 py-2 shadow-[inset_0_0_0_1px_rgba(0,255,180,0.06)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-2.5 md:gap-4 md:px-5"
+                  className="flex min-h-0 min-w-0 flex-1 flex-col gap-1.5 rounded-xl border border-casino-emerald/35 bg-black/35 px-2.5 py-1.5 shadow-[inset_0_0_0_1px_rgba(0,255,180,0.06)] backdrop-blur-md sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-2 md:gap-4 md:px-5"
                   initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div className="min-w-0 flex-1">
                     {(headlineSource.tableNum != null && headlinePhaseLabel) || showSetlistCue ? (
-                      <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <div className="mb-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                         {headlineSource.tableNum != null && headlinePhaseLabel ? (
-                          <span className="inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-yellow-100/95 sm:text-xs">
+                          <span className={`inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-1.5 py-px font-black uppercase tracking-wide text-yellow-100/95 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                             Table {headlineSource.tableNum} · {headlinePhaseLabel}
                           </span>
                         ) : null}
                         {showSetlistCue ? (
-                          <span className="inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-100/95 sm:text-xs">
+                          <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-1.5 py-px font-black uppercase tracking-wide text-violet-100/95 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                             Question {setlistCueNumber} of {setlistCueTotal}
                           </span>
                         ) : null}
                         {headlineDivergenceNote ? (
-                          <span className="text-[10px] font-medium leading-snug text-white/55 sm:text-xs">
+                          <span className={`font-medium text-white/60 ${DISPLAY_TEXT_HEADLINE_META}`}>
                             {headlineDivergenceNote}
                           </span>
                         ) : null}
@@ -2019,21 +2023,21 @@ export default function VenueEightTablesPreview({
                   <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2.5">
                     {showVenueBlindsHeadline && venueBlindsHeadline != null ? (
                       <div
-                        className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border border-amber-500/50 bg-amber-950/40 px-2 py-1.5 shadow-[0_0_16px_rgba(251,191,36,0.08)] sm:min-w-[6.5rem] sm:px-3 sm:py-2"
+                        className="flex shrink-0 flex-col items-center justify-center gap-px rounded-lg border border-amber-500/50 bg-amber-950/40 px-2 py-1 shadow-[0_0_16px_rgba(251,191,36,0.08)] sm:min-w-[6.5rem] sm:px-3 sm:py-1.5"
                         aria-label={
                           venueBlindsHeadline.meta
                             ? `Blinds ${venueBlindsHeadline.amount}, ${venueBlindsHeadline.meta}`
                             : `Blinds ${venueBlindsHeadline.amount}`
                         }
                       >
-                        <span className="text-center text-[10px] font-black uppercase leading-tight tracking-wide text-amber-200/85 sm:text-xs">
+                        <span className={`text-center font-black uppercase tracking-wide text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                           Blinds
                         </span>
                         <div className="text-center font-mono text-xl font-black tabular-nums tracking-tight text-amber-100 sm:text-3xl md:text-4xl">
                           {venueBlindsHeadline.amount}
                         </div>
                         {venueBlindsHeadline.meta ? (
-                          <span className="max-w-[8.5rem] text-center text-[9px] font-semibold leading-tight text-amber-200/65 sm:max-w-[10rem] sm:text-[10px]">
+                          <span className={`max-w-[9rem] text-center font-semibold text-amber-200/70 sm:max-w-[11rem] ${DISPLAY_TEXT_HEADLINE_META}`}>
                             {venueBlindsHeadline.meta}
                           </span>
                         ) : null}
@@ -2044,7 +2048,7 @@ export default function VenueEightTablesPreview({
                       className="flex shrink-0 flex-row items-center justify-center gap-1.5 rounded-lg border border-amber-400/55 bg-amber-950/45 px-2 py-1.5 shadow-[0_0_20px_rgba(251,191,36,0.1)] sm:flex-col sm:px-3 sm:py-2"
                       aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
                     >
-                      <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-200/70 sm:text-xs">
+                      <span className={`font-semibold uppercase tracking-wide text-amber-200/70 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                         Correct answer
                       </span>
                       <div className="font-mono text-3xl font-black tracking-tight text-amber-100 sm:text-5xl md:text-6xl xl:text-7xl">
@@ -2065,7 +2069,7 @@ export default function VenueEightTablesPreview({
                           : 'Answer on your phone — timer starts when every table finishes wagering'
                       }
                     >
-                      <span className="text-center text-[10px] font-black uppercase leading-tight tracking-wide text-cyan-100/90 sm:text-xs">
+                      <span className={`text-center font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                         Answer on your phone
                       </span>
                       {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
@@ -2073,7 +2077,7 @@ export default function VenueEightTablesPreview({
                           {timerSeconds}s
                         </div>
                       ) : othersStillWagering ? (
-                        <div className="text-center text-[11px] font-semibold leading-snug text-cyan-200/75 sm:text-xs">
+                        <div className={`text-center font-semibold text-cyan-200/80 ${DISPLAY_TEXT_HEADLINE_META}`}>
                           Waiting for last table
                         </div>
                       ) : null}

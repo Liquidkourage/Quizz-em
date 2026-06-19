@@ -15,6 +15,15 @@ export const DISPLAY_TEXT_SECONDARY = 'display-text-secondary leading-tight'
 /** Venue mosaic headline strip (question, countdown banner). */
 export const DISPLAY_TEXT_HEADLINE = 'display-text-headline leading-tight'
 
+/** Headline strip — table/phase badges and setlist chips. */
+export const DISPLAY_TEXT_HEADLINE_BADGE = 'display-text-headline-badge leading-none'
+
+/** Headline strip — secondary lines (divergence, blinds meta, waiting). */
+export const DISPLAY_TEXT_HEADLINE_META = 'display-text-headline-meta leading-tight'
+
+/** Headline strip — condense progress caption. */
+export const DISPLAY_TEXT_HEADLINE_CAPTION = 'display-text-headline-caption leading-tight'
+
 /** @container — primary (~10cqh of the cell). */
 export const DISPLAY_TEXT_PRIMARY_CQ = 'display-text-primary-cq leading-tight'
 

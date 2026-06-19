@@ -1,4 +1,5 @@
 import type { VenueCondenseProgressModel } from './venueWallModel'
+import { DISPLAY_TEXT_HEADLINE_CAPTION, DISPLAY_TEXT_HEADLINE_META } from './displayTypography'
 
 type VenueCondenseProgressBarProps = {
   model: VenueCondenseProgressModel
@@ -36,7 +37,7 @@ export default function VenueCondenseProgressBar({
     <div
       className={
         headline
-          ? 'w-full border-t border-white/10 pt-2'
+          ? 'w-full border-t border-white/10 pt-1'
           : sidebar
             ? 'w-full'
             : 'pointer-events-none fixed bottom-0 left-0 right-0 z-30 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] pt-1.5 sm:px-4'
@@ -49,9 +50,9 @@ export default function VenueCondenseProgressBar({
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >
         <p
-          className={`truncate font-semibold tabular-nums text-white/75 ${
+          className={`truncate font-semibold tabular-nums text-white/80 ${
             headline
-              ? 'mb-1.5 text-left text-[11px] sm:text-sm'
+              ? `mb-1 text-left ${DISPLAY_TEXT_HEADLINE_CAPTION}`
               : sidebar
                 ? 'mb-1 text-center text-[10px] leading-tight sm:text-[11px]'
                 : 'mb-1 text-center text-[clamp(0.9rem,2.2vw,1.125rem)] leading-tight'
@@ -60,7 +61,7 @@ export default function VenueCondenseProgressBar({
           {compactCaption(model)}
         </p>
 
-        <div className={`relative ${headline ? 'pb-0.5 pt-3' : sidebar ? 'pt-2.5' : ''}`}>
+        <div className={`relative ${headline ? 'pb-0 pt-2.5' : sidebar ? 'pt-2.5' : ''}`}>
           {showMarks ? (
             <div className={`absolute inset-x-0 top-0 ${headline ? 'h-3' : 'h-2.5'}`} aria-hidden>
               {marks.map((mark) => (
@@ -92,7 +93,7 @@ export default function VenueCondenseProgressBar({
           {showMarks && nextAt != null && survivors > nextAt ? (
             <span
               className={`absolute -translate-x-1/2 font-mono font-bold tabular-nums text-amber-200/95 ${
-                headline ? '-top-0.5 text-[9px] sm:text-[10px]' : '-top-0.5 text-[8px]'
+                headline ? `-top-0.5 ${DISPLAY_TEXT_HEADLINE_META}` : '-top-0.5 text-[8px]'
               }`}
               style={{
                 left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,

@@ -42,13 +42,19 @@ export function venueBanquetLayout(tableCount: number): VenueBanquetLayout {
   return { columns, rowCount }
 }
 
-/** Single-row floors shrink-wrap table height; multi-row floors divide viewport evenly. */
+/** Single-row floors shrink-wrap table height; four-row floors use content height (no 1fr dead space). */
 export function venueFloorRowTrackSpec(rowCount: number): {
   gridTemplateRows: string
   shrinkWrapRowHeight: boolean
 } {
   if (rowCount <= 1) {
     return { gridTemplateRows: 'auto', shrinkWrapRowHeight: true }
+  }
+  if (rowCount >= 4) {
+    return {
+      gridTemplateRows: `repeat(${rowCount}, auto)`,
+      shrinkWrapRowHeight: true,
+    }
   }
   return {
     gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
@@ -82,6 +88,15 @@ export function venueFloorGridPaddingRem(rowCount: number): { top: number; botto
  * More rows ⇒ smaller uniform felts so the whole venue fits one viewport.
  */
 export type VenueFloorTableSize = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
+
+/** TV-readable mosaic header type — vmin tracks the display, not broken cqh on @container. */
+export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
+  tableNum: 'text-[clamp(14px,1.7vmin,18px)] font-black leading-none',
+  pot: 'text-[clamp(13px,1.6vmin,17px)] font-mono font-black leading-none',
+  phase: 'px-1 py-0.5 text-[clamp(11px,1.35vmin,14px)] font-bold uppercase leading-none',
+  headerRow: 'items-center py-0.5',
+  seatInitials: 'text-[clamp(10px,1.25vmin,13px)]',
+} as const
 
 export type VenueFloorSizeSpec = {
   size: VenueFloorTableSize
@@ -167,18 +182,18 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: false,
         showdownBrief: true,
-        rowGapRem: 1.12,
-        cellGapRem: 1.25,
+        rowGapRem: 0.85,
+        cellGapRem: 0.95,
         cardPaddingClass: 'p-1.5 sm:p-2',
         innerGapClass: 'gap-1 sm:gap-1.5',
-        tableNumClass: 'text-[11px] font-black leading-none',
-        potClass: 'text-[10px] font-mono font-black leading-none',
-        phaseChipClass: 'px-0.5 py-px text-[9px] font-bold uppercase leading-none',
-        headerRowClass: 'h-[13px] max-h-[13px] items-center',
-        honeycombFillHeight: true,
-        ringScaleClass: 'mx-auto h-full max-h-[74%] w-[90%] max-w-full',
+        tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
+        potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
+        phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
+        headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
+        honeycombFillHeight: false,
+        ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass: 'text-[10px] font-black leading-tight tracking-tight text-amber-50',
+        potSubtitleClass: 'text-[clamp(10px,1.2vmin,13px)] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1.5 py-1',
       }
     case 'compact':
@@ -190,14 +205,14 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 0.82,
         cardPaddingClass: 'p-1 sm:p-1.5',
         innerGapClass: 'gap-0.5',
-        tableNumClass: 'text-[10px] font-black leading-none',
-        potClass: 'text-[10px] font-mono font-black leading-none',
-        phaseChipClass: 'px-0.5 py-px text-[9px] font-bold uppercase leading-none',
-        headerRowClass: 'h-[13px] max-h-[13px] items-center',
-        honeycombFillHeight: true,
-        ringScaleClass: 'mx-auto h-full max-h-[68%] w-[88%] max-w-full',
+        tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
+        potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
+        phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
+        headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
+        honeycombFillHeight: false,
+        ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass: 'text-[9px] font-black leading-tight tracking-tight text-amber-50',
+        potSubtitleClass: 'text-[clamp(10px,1.2vmin,13px)] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
       }
     case 'micro':
@@ -205,18 +220,18 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: true,
         showdownBrief: true,
-        rowGapRem: 0.62,
-        cellGapRem: 0.72,
+        rowGapRem: 0.55,
+        cellGapRem: 0.65,
         cardPaddingClass: 'p-0.5 sm:p-1',
         innerGapClass: 'gap-0.5',
-        tableNumClass: 'text-[10px] font-black leading-none',
-        potClass: 'text-[10px] font-mono font-black leading-none',
-        phaseChipClass: 'px-0.5 py-px text-[9px] font-bold uppercase leading-none',
-        headerRowClass: 'h-[14px] max-h-[14px] items-center',
-        honeycombFillHeight: true,
-        ringScaleClass: 'mx-auto h-full max-h-[62%] w-[84%] max-w-full',
+        tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
+        potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
+        phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
+        headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
+        honeycombFillHeight: false,
+        ringScaleClass: '',
         showPotSubtitle: false,
-        potSubtitleClass: 'text-[8px] font-black leading-none tracking-tight text-amber-50',
+        potSubtitleClass: 'text-[clamp(10px,1.2vmin,13px)] font-black leading-none tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
       }
   }
@@ -316,18 +331,18 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 0.52 : 0.58,
-    cellGapRem: headline ? 0.62 : 0.68,
-    paddingTopRem: headline ? 0.25 : 0.35,
-    paddingBottomRem: headline ? 0.35 : 0.55,
-    gridInsetClass: 'px-2.5 sm:px-3',
+    rowGapRem: headline ? 0.42 : 0.5,
+    cellGapRem: headline ? 0.5 : 0.58,
+    paddingTopRem: headline ? 0.15 : 0.25,
+    paddingBottomRem: headline ? 0.2 : 0.35,
+    gridInsetClass: 'px-2 sm:px-3',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
-    tableNumClass: 'text-[10px] font-black leading-none',
-    potClass: 'text-[10px] font-mono font-black leading-none',
-    phaseChipClass: 'px-0.5 py-px text-[9px] font-bold uppercase leading-none',
-    headerRowClass: 'h-[14px] max-h-[14px] items-center',
-    potSubtitleClass: 'text-[9px] font-black leading-none tracking-tight text-amber-50',
-    ringScaleClass: 'mx-auto h-full max-h-[58%] w-[82%] max-w-full',
+    tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
+    potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
+    phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
+    headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
+    potSubtitleClass: 'text-[clamp(10px,1.2vmin,13px)] font-black leading-none tracking-tight text-amber-50',
+    ringScaleClass: '',
   }
 }
 

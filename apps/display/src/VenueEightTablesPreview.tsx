@@ -35,6 +35,7 @@ import {
   venueFloorSizeSpec,
   type VenueFloorSizeSpec,
   type VenueFloorTableSize,
+  VENUE_FLOOR_MOSAIC_HEADER_TYPE,
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
@@ -505,16 +506,10 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolea
 
 /** Corner phase pill typography — paused betting stays on one line in narrow tiles. */
 function mosaicSeatInitialsClass(density: VenueFloorTableSize | undefined): string {
-  switch (density) {
-    case 'micro':
-      return 'text-[8px]'
-    case 'compact':
-      return 'text-[9px]'
-    case 'medium':
-      return 'text-[10px]'
-    default:
-      return 'text-[clamp(0.5rem,min(7cqw,9cqh),0.8rem)]'
+  if (density === 'micro' || density === 'compact' || density === 'medium') {
+    return VENUE_FLOOR_MOSAIC_HEADER_TYPE.seatInitials
   }
+  return 'text-[clamp(0.5rem,min(7cqw,9cqh),0.8rem)]'
 }
 
 function mosaicPhaseCornerTypography(
@@ -671,6 +666,8 @@ function SeatRingWithLabels({
   mosaicFluidWidth = false,
   /** Honeycomb floor density — drives legible mosaic seat markers on dense grids. */
   mosaicDensity,
+  /** Honeycomb floor — shrink-wrap felt height (content-sized rows, no 1fr stretch). */
+  mosaicShrinkWrap = false,
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
   winnerSeatIndexes = null,
   /** Mosaic: hole-card digits per physical seat (parallel to seatNames). */
@@ -692,6 +689,7 @@ function SeatRingWithLabels({
   /** Honeycomb floor: ring scales with tile width (no fixed 8.75rem height). */
   mosaicFluidWidth?: boolean
   mosaicDensity?: VenueFloorTableSize
+  mosaicShrinkWrap?: boolean
   /** Spotlight hero: draw mini chip stack + bankroll on the felt by each seated player. */
   feltSeatStacks?: boolean
   /** Dealer / blind roles (indexes match `seatNames`). Null when unsupported or omitted by server snapshot. */
@@ -737,7 +735,9 @@ function SeatRingWithLabels({
   /** Mosaic crawl — stadium capsule; fill the grid cell (width-first, height capped). */
   const mdRing = isMosaic
     ? mosaicFluidWidth
-      ? 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
+      ? mosaicShrinkWrap
+        ? 'relative mx-auto aspect-[8/5] h-auto w-full max-w-full shrink-0'
+        : 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
@@ -816,9 +816,9 @@ function SeatRingWithLabels({
     if (!isMosaic) return 1
     const w = ringPx.w
     if (!(w > 0)) return 1
-    if (mosaicDensity === 'micro') return clamp(w / 300, 0.68, 0.95)
-    if (mosaicDensity === 'compact') return clamp(w / 280, 0.78, 1.05)
-    if (mosaicDensity === 'medium') return clamp(w / 260, 0.88, 1.15)
+    if (mosaicDensity === 'micro') return clamp(w / 240, 0.82, 1.05)
+    if (mosaicDensity === 'compact') return clamp(w / 230, 0.88, 1.12)
+    if (mosaicDensity === 'medium') return clamp(w / 220, 0.92, 1.2)
     return clamp(w / 220, 1, 1.35)
   }, [isMosaic, mosaicDensity, ringPx.w])
 
@@ -1272,6 +1272,7 @@ function VenueMosaicTableCard({
   })
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
   const feltFillsCell = floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight
+  const mosaicShrinkWrap = shrinkWrapRowHeight || !floorSize.honeycombFillHeight
   const showPotSubtitleStrip = floorSize.showPotSubtitle && mosaicPotSubtitle != null
   const denseMosaicChrome =
     floorSize.size === 'medium' || floorSize.size === 'compact' || floorSize.size === 'micro'
@@ -1288,7 +1289,7 @@ function VenueMosaicTableCard({
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
         className={`@container relative min-h-0 w-full min-w-0 overflow-hidden backdrop-blur-md ${floorSize.cardPaddingClass} ${cardShell} ${
-          shrinkWrapRowHeight
+          shrinkWrapRowHeight || mosaicShrinkWrap
             ? 'flex h-auto flex-col'
             : feltFillsCell && showPotSubtitleStrip
               ? 'grid h-full grid-rows-[auto_minmax(0,1fr)_auto]'
@@ -1298,7 +1299,7 @@ function VenueMosaicTableCard({
         }`}
       >
         <div
-          className={`min-h-0 min-w-0 ${shrinkWrapRowHeight || !feltFillsCell ? `flex flex-col ${floorSize.innerGapClass}` : 'contents'} ${
+          className={`min-h-0 min-w-0 ${shrinkWrapRowHeight || mosaicShrinkWrap || !feltFillsCell ? `flex flex-col ${floorSize.innerGapClass}` : 'contents'} ${
             showFloorShowdownOverlay ? 'opacity-25' : ''
           }`}
         >
@@ -1344,14 +1345,19 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container/size relative z-[1] flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden ${floorSize.ringScaleClass} ${
-            feltFillsCell ? 'col-start-1 row-start-2' : shrinkWrapRowHeight ? 'shrink-0' : 'flex-1'
+          className={`@container/size relative z-[1] w-full overflow-hidden ${floorSize.ringScaleClass} ${
+            feltFillsCell
+              ? 'col-start-1 row-start-2 flex min-h-0 flex-1 items-center justify-center'
+              : mosaicShrinkWrap
+                ? 'shrink-0'
+                : 'flex min-h-0 flex-1 items-center justify-center'
           }`}
         >
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb}
             mosaicDensity={floorSize.size}
+            mosaicShrinkWrap={mosaicShrinkWrap}
             seatedCount={seats}
             seatNames={seatNames}
             seatBankrolls={seatBankrolls}
@@ -1525,7 +1531,7 @@ function VenueAerialFloorGrid({
       <div
         className={`relative grid min-h-0 w-full flex-1 overflow-hidden ${
           denseTuning?.gridInsetClass ?? 'px-4 sm:px-6'
-        } ${shrinkWrapRowHeight ? 'items-start content-start py-3 sm:py-4' : 'items-stretch content-stretch'}`}
+        } ${shrinkWrapRowHeight ? 'content-center items-start' : 'items-stretch content-stretch'}`}
         style={
           {
             gridTemplateRows: floorRowTracks.gridTemplateRows,

@@ -19,6 +19,13 @@ describe('venueFloorRowTrackSpec', () => {
     expect(venueFloorRowTrackSpec(venueBanquetLayout(2).rowCount).shrinkWrapRowHeight).toBe(true)
     expect(venueFloorRowTrackSpec(2).shrinkWrapRowHeight).toBe(false)
   })
+
+  it('shrink-wraps four-row floors so tiles do not stretch with dead space', () => {
+    expect(venueFloorRowTrackSpec(4)).toEqual({
+      gridTemplateRows: 'repeat(4, auto)',
+      shrinkWrapRowHeight: true,
+    })
+  })
 })
 
 describe('venueFloorGridPerspectiveStyle', () => {
@@ -58,7 +65,8 @@ describe('venueFloorTableSize', () => {
 
     expect(large.showdownBrief).toBe(true)
     expect(medium.showdownBrief).toBe(true)
-    expect(medium.honeycombFillHeight).toBe(true)
+    expect(medium.honeycombFillHeight).toBe(false)
+    expect(micro.honeycombFillHeight).toBe(false)
     expect(compact.compactChrome).toBe(true)
     expect(compact.showPotSubtitle).toBe(true)
     expect(micro.showPotSubtitle).toBe(false)
@@ -77,9 +85,9 @@ describe('venueFloorDenseTuning', () => {
     const applied = applyVenueFloorDenseTuning(micro, tuned)
     expect(applied.rowGapRem).toBeLessThan(micro.rowGapRem)
     expect(applied.cellGapRem).toBeLessThan(micro.cellGapRem)
-    expect(applied.potClass).toContain('10px')
-    expect(applied.headerRowClass).toContain('14px')
-    expect(applied.ringScaleClass).toContain('58%')
+    expect(applied.potClass).toContain('1.6vmin')
+    expect(applied.headerRowClass).toContain('items-center')
+    expect(applied.ringScaleClass).toBe('')
     expect(tuned!.paddingBottomRem).toBeLessThan(venueFloorGridPaddingRem(4).bottom)
   })
 

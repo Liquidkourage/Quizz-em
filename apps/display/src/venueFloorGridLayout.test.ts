@@ -77,6 +77,8 @@ describe('venueFloorDenseTuning', () => {
     const applied = applyVenueFloorDenseTuning(micro, tuned)
     expect(applied.rowGapRem).toBeLessThan(micro.rowGapRem)
     expect(applied.cellGapRem).toBeLessThan(micro.cellGapRem)
+    expect(applied.potClass).toContain('8px')
+    expect(applied.headerRowClass).toContain('9px')
     expect(tuned!.paddingBottomRem).toBeLessThan(venueFloorGridPaddingRem(4).bottom)
   })
 

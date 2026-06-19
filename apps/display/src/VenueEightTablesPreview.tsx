@@ -480,14 +480,15 @@ function mosaicWagerStyleFlags(
 function mosaicPhaseLabel(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean, dense = false): string {
   if (showNoMoreBets) return dense ? 'NO BETS' : 'NO MORE BETS'
   const ph = String(row.phase ?? '').trim().toLowerCase()
-  if (ph === 'betting' && row.seated >= 2 && row.isBettingOpen === true) {
-    return dense ? 'WAGER' : 'Wagering'
-  }
   if (dense) {
+    if (ph === 'betting') return 'WAGER'
     if (ph === 'question') return 'Setup'
     if (ph === 'answering') return 'Answer'
     if (ph === 'showdown') return 'Showdown'
     if (ph === 'intermission') return 'Break'
+  }
+  if (ph === 'betting' && row.seated >= 2 && row.isBettingOpen === true) {
+    return 'Wagering'
   }
   return phaseLabel(row.phase)
 }
@@ -503,6 +504,19 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolea
 }
 
 /** Corner phase pill typography — paused betting stays on one line in narrow tiles. */
+function mosaicSeatInitialsClass(density: VenueFloorTableSize | undefined): string {
+  switch (density) {
+    case 'micro':
+      return 'text-[6px]'
+    case 'compact':
+      return 'text-[7px]'
+    case 'medium':
+      return 'text-[8px]'
+    default:
+      return 'text-[clamp(0.5rem,min(7cqw,9cqh),0.8rem)]'
+  }
+}
+
 function mosaicPhaseCornerTypography(
   row: DisplayVenueTileSnapshot,
   showNoMoreBets: boolean,
@@ -1002,7 +1016,9 @@ function SeatRingWithLabels({
                 }
               >
                 {isMosaic && filled && mosaicInitials ? (
-                  <span className="block w-full min-w-0 truncate px-0.5 text-center text-[clamp(0.5rem,min(7cqw,9cqh),0.8rem)] font-black leading-none tracking-tight text-amber-50">
+                  <span
+                    className={`block w-full min-w-0 truncate px-0.5 text-center font-black leading-none tracking-tight text-amber-50 ${mosaicSeatInitialsClass(mosaicDensity)}`}
+                  >
                     {mosaicInitials}
                   </span>
                 ) : null}
@@ -1285,9 +1301,9 @@ function VenueMosaicTableCard({
           }`}
         >
         <div
-          className={`grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,1fr)] items-center gap-x-0.5 overflow-hidden ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] gap-x-0.5 overflow-hidden ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
-          <div className="min-w-0 justify-self-start overflow-hidden">
+          <div className="min-w-0 max-w-[22%] justify-self-start overflow-hidden">
             <div
               className={`truncate font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
             >
@@ -1302,7 +1318,7 @@ function VenueMosaicTableCard({
               <VenuePotAmount
                 amount={pot}
                 prefersReducedMotion={prefersReducedMotion}
-                className={`truncate font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${
+                className={`block truncate font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${
                   ph === 'lobby' || ph === 'question'
                     ? pot > 0
                       ? 'text-yellow-300/75'
@@ -1314,9 +1330,9 @@ function VenueMosaicTableCard({
           ) : (
             <div aria-hidden />
           )}
-          <div className="min-w-0 justify-self-end overflow-hidden">
+          <div className="min-w-0 max-w-[34%] justify-self-end overflow-hidden">
             <span
-              className={`block max-w-full truncate rounded-md font-semibold leading-none ${
+              className={`block max-w-full truncate rounded-sm font-semibold leading-none ${
                 showNoMoreBets ? `${floorSize.phaseChipClass} font-black uppercase` : floorSize.phaseChipClass
               } ${mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)} ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
             >

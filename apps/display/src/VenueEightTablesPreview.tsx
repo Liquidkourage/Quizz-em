@@ -1400,7 +1400,7 @@ function VenueMosaicTableCard({
           }`}
         >
         <div
-          className={`grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-1 ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 items-center gap-x-1 ${denseMosaicChrome ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-[auto_minmax(0,1fr)_auto]'} ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
           {denseMosaicChrome ? (
             <span
@@ -1451,19 +1451,17 @@ function VenueMosaicTableCard({
           ) : (
             <div className="min-w-0" aria-hidden />
           )}
-          <div className="shrink-0 justify-self-end">
-            <span
-              className={`inline-block whitespace-nowrap rounded-sm font-semibold leading-tight ${
-                showNoMoreBets ? `${floorSize.phaseChipClass} font-black uppercase` : floorSize.phaseChipClass
-              } ${
-                denseMosaicChrome
-                  ? 'font-black uppercase tracking-tight'
-                  : mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)
-              } ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
-            >
-              {mosaicPhaseLabel(row, showNoMoreBets, denseMosaicChrome)}
-            </span>
-          </div>
+          {!denseMosaicChrome ? (
+            <div className="shrink-0 justify-self-end">
+              <span
+                className={`inline-block whitespace-nowrap rounded-sm font-semibold leading-tight ${
+                  showNoMoreBets ? `${floorSize.phaseChipClass} font-black uppercase` : floorSize.phaseChipClass
+                } ${mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)} ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
+              >
+                {mosaicPhaseLabel(row, showNoMoreBets, false)}
+              </span>
+            </div>
+          ) : null}
         </div>
 
         <div

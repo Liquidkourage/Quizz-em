@@ -89,14 +89,17 @@ export function venueFloorGridPaddingRem(rowCount: number): { top: number; botto
  */
 export type VenueFloorTableSize = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
 
-/** TV-readable mosaic header type — vmin tracks the display, not broken cqh on @container. */
+/** TV-readable mosaic header type — vmin compensates for venue-wall 0.88 zoom. */
 export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
-  tableNum: 'text-[clamp(14px,1.7vmin,18px)] font-black leading-none',
-  pot: 'text-[clamp(13px,1.6vmin,17px)] font-mono font-black leading-none',
-  phase: 'px-1 py-0.5 text-[clamp(11px,1.35vmin,14px)] font-bold uppercase leading-none',
+  tableNum: 'text-[clamp(16px,2.25vmin,22px)] font-black leading-none',
+  pot: 'text-[clamp(15px,2.05vmin,20px)] font-mono font-black leading-none',
+  phase: 'px-1 py-0.5 text-[clamp(13px,1.7vmin,17px)] font-bold uppercase leading-none',
   headerRow: 'items-center py-0.5',
-  seatInitials: 'text-[clamp(10px,1.25vmin,13px)]',
+  seatInitials: 'text-[clamp(12px,1.55vmin,16px)]',
 } as const
+
+/** Inset tiles on checkerboard rows so half-stagger felts do not overlap neighbors. */
+export const VENUE_FLOOR_MOSAIC_TILE_INSET = 'mx-auto w-[88%] max-w-full'
 
 export type VenueFloorSizeSpec = {
   size: VenueFloorTableSize
@@ -120,6 +123,8 @@ export type VenueFloorSizeSpec = {
   /** “Name to call: $X” strip under the felt — scales with card width (@container). */
   potSubtitleClass: string
   potSubtitleWrapClass: string
+  /** Narrower tile width on dense checkerboard floors — prevents stagger overlap. */
+  tileInsetClass: string
 }
 
 /** Pick felt size tier from banquet row count (and column width at the tightest band). */
@@ -155,6 +160,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         potSubtitleClass:
           'text-[clamp(1rem,6.2cqw,1.65rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(1.1rem,6.8cqw,1.85rem)]',
         potSubtitleWrapClass: 'px-2.5 py-2',
+        tileInsetClass: '',
       }
     case 'large':
       return {
@@ -176,6 +182,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         potSubtitleClass:
           'text-[clamp(0.9rem,5.8cqw,1.45rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(1rem,6.2cqw,1.6rem)]',
         potSubtitleWrapClass: 'px-2 py-1.5',
+        tileInsetClass: '',
       }
     case 'medium':
       return {
@@ -193,8 +200,9 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass: 'text-[clamp(10px,1.2vmin,13px)] font-black leading-tight tracking-tight text-amber-50',
+        potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1.5 py-1',
+        tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
       }
     case 'compact':
       return {
@@ -212,16 +220,17 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass: 'text-[clamp(10px,1.2vmin,13px)] font-black leading-tight tracking-tight text-amber-50',
+        potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
+        tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
       }
     case 'micro':
       return {
         size,
         compactChrome: true,
         showdownBrief: true,
-        rowGapRem: 0.55,
-        cellGapRem: 0.65,
+        rowGapRem: 0.68,
+        cellGapRem: 0.78,
         cardPaddingClass: 'p-0.5 sm:p-1',
         innerGapClass: 'gap-0.5',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
@@ -231,8 +240,9 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: false,
-        potSubtitleClass: 'text-[clamp(10px,1.2vmin,13px)] font-black leading-none tracking-tight text-amber-50',
+        potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-none tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
+        tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
       }
   }
 }
@@ -321,6 +331,7 @@ export type VenueFloorDenseTuning = {
   headerRowClass: string
   potSubtitleClass: string
   ringScaleClass: string
+  tileInsetClass: string
 }
 
 /** Four-row floors (17–20 tables) — keep gaps modest; type scales via cqh on each card. */
@@ -331,8 +342,8 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 0.42 : 0.5,
-    cellGapRem: headline ? 0.5 : 0.58,
+    rowGapRem: headline ? 1.35 : 1.15,
+    cellGapRem: headline ? 0.95 : 1.05,
     paddingTopRem: headline ? 0.15 : 0.25,
     paddingBottomRem: headline ? 0.2 : 0.35,
     gridInsetClass: 'px-2 sm:px-3',
@@ -341,8 +352,9 @@ export function venueFloorDenseTuning(
     potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
     phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
     headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
-    potSubtitleClass: 'text-[clamp(10px,1.2vmin,13px)] font-black leading-none tracking-tight text-amber-50',
+    potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-none tracking-tight text-amber-50',
     ringScaleClass: '',
+    tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
   }
 }
 
@@ -362,5 +374,6 @@ export function applyVenueFloorDenseTuning(
     headerRowClass: tuning.headerRowClass,
     potSubtitleClass: tuning.potSubtitleClass,
     ringScaleClass: tuning.ringScaleClass,
+    tileInsetClass: tuning.tileInsetClass,
   }
 }

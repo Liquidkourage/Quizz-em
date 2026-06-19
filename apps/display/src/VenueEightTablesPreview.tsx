@@ -1288,7 +1288,7 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`@container relative min-h-0 w-full min-w-0 overflow-hidden backdrop-blur-md ${floorSize.cardPaddingClass} ${cardShell} ${
+        className={`@container relative min-h-0 min-w-0 overflow-hidden backdrop-blur-md ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           shrinkWrapRowHeight || mosaicShrinkWrap
             ? 'flex h-auto flex-col'
             : feltFillsCell && showPotSubtitleStrip
@@ -1548,12 +1548,13 @@ function VenueAerialFloorGrid({
           return (
             <div
               key={rowTiles.map((t) => t.tableNum).join('-') || `row-${rowIndex}`}
-              className={`grid w-full min-w-0 overflow-hidden ${
+              className={`relative grid w-full min-w-0 ${
                 shrinkWrapRowHeight ? 'h-auto items-start' : 'h-full min-h-0 items-stretch'
               }`}
               style={{
                 gridTemplateColumns: `repeat(${trackCount}, minmax(0, 1fr))`,
                 gap: `${floorSize.cellGapRem}rem`,
+                zIndex: rowIndex,
               }}
             >
               {Array.from({ length: columns }, (_, colIndex) => {

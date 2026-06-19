@@ -16,15 +16,25 @@ describe('venueFloorRowTrackSpec', () => {
     expect(venueFloorRowTrackSpec(1)).toEqual({
       gridTemplateRows: 'auto',
       shrinkWrapRowHeight: true,
+      fillRowHeight: false,
     })
     expect(venueFloorRowTrackSpec(venueBanquetLayout(2).rowCount).shrinkWrapRowHeight).toBe(true)
     expect(venueFloorRowTrackSpec(2).shrinkWrapRowHeight).toBe(false)
   })
 
-  it('shrink-wraps four-row floors so tiles do not stretch with dead space', () => {
+  it('shrink-wraps four-row floors without a headline fill target', () => {
     expect(venueFloorRowTrackSpec(4)).toEqual({
       gridTemplateRows: 'repeat(4, auto)',
       shrinkWrapRowHeight: true,
+      fillRowHeight: false,
+    })
+  })
+
+  it('fills equal row slots for four-row floors with a headline', () => {
+    expect(venueFloorRowTrackSpec(4, { fillHeight: true })).toEqual({
+      gridTemplateRows: 'repeat(4, minmax(0, 1fr))',
+      shrinkWrapRowHeight: false,
+      fillRowHeight: true,
     })
   })
 })
@@ -86,12 +96,9 @@ describe('venueFloorDenseTuning', () => {
     const applied = applyVenueFloorDenseTuning(micro, tuned)
     expect(applied.rowGapRem).toBeLessThan(micro.rowGapRem)
     expect(applied.cellGapRem).toBeLessThan(micro.cellGapRem)
-    expect(applied.feltAspectClass).toBe('aspect-[2/1]')
-    expect(applied.feltWidthClass).toContain('max-w-[88%]')
-    expect(applied.feltMaxHeightCss).toContain('100dvh')
+    expect(applied.tileInsetClass).toBe('')
     expect(applied.potClass).toContain('2.15vmin')
-    expect(applied.tileInsetClass).toContain('90%')
-    expect(tuned!.paddingBottomRem).toBeLessThan(venueFloorGridPaddingRem(4).bottom)
+    expect(tuned!.paddingBottomRem).toBe(0)
   })
 
   it('is null for three-row floors', () => {

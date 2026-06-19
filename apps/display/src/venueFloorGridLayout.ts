@@ -42,23 +42,36 @@ export function venueBanquetLayout(tableCount: number): VenueBanquetLayout {
   return { columns, rowCount }
 }
 
-/** Single-row floors shrink-wrap table height; four-row floors use content height (no 1fr dead space). */
-export function venueFloorRowTrackSpec(rowCount: number): {
+/** Single-row floors shrink-wrap; four-row + headline fills equal row slots. */
+export function venueFloorRowTrackSpec(
+  rowCount: number,
+  opts?: { fillHeight?: boolean }
+): {
   gridTemplateRows: string
   shrinkWrapRowHeight: boolean
+  fillRowHeight: boolean
 } {
   if (rowCount <= 1) {
-    return { gridTemplateRows: 'auto', shrinkWrapRowHeight: true }
+    return { gridTemplateRows: 'auto', shrinkWrapRowHeight: true, fillRowHeight: false }
   }
   if (rowCount >= 4) {
+    if (opts?.fillHeight) {
+      return {
+        gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
+        shrinkWrapRowHeight: false,
+        fillRowHeight: true,
+      }
+    }
     return {
       gridTemplateRows: `repeat(${rowCount}, auto)`,
       shrinkWrapRowHeight: true,
+      fillRowHeight: false,
     }
   }
   return {
     gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
     shrinkWrapRowHeight: false,
+    fillRowHeight: false,
   }
 }
 
@@ -371,11 +384,11 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 0.28 : 0.55,
-    cellGapRem: headline ? 0.36 : 0.58,
-    paddingTopRem: headline ? 0 : 0.08,
-    paddingBottomRem: headline ? 0 : 0.12,
-    gridInsetClass: headline ? 'px-1.5 sm:px-2' : 'px-2 sm:px-3',
+    rowGapRem: headline ? 0.2 : 0.55,
+    cellGapRem: headline ? 0.28 : 0.58,
+    paddingTopRem: 0,
+    paddingBottomRem: 0,
+    gridInsetClass: headline ? 'px-1 sm:px-1.5' : 'px-2 sm:px-3',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
     tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
     potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
@@ -383,15 +396,8 @@ export function venueFloorDenseTuning(
     headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
     potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-none tracking-tight text-amber-50',
     ringScaleClass: '',
-    tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
-    ...(headline
-      ? {
-          cardPaddingClass: 'px-1 pt-0 pb-0',
-          feltAspectClass: 'aspect-[2/1]',
-          feltWidthClass: 'mx-auto w-auto max-w-[88%]',
-          feltMaxHeightCss: venueFloorHeadlineFeltMaxHeightCss(layout.rowCount),
-        }
-      : {}),
+    tileInsetClass: headline ? '' : VENUE_FLOOR_MOSAIC_TILE_INSET,
+    ...(headline ? { cardPaddingClass: 'px-1 pt-0 pb-0' } : {}),
   }
 }
 

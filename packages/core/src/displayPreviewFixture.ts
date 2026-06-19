@@ -91,11 +91,15 @@ export const DISPLAY_PREVIEW_BANKROLLS = [
   1200, 850, 1100, 950, 1350, 700, 1600, 900,
 ] as const
 
-/** Roster size per numbered table for the live rehearsal seed (tables 1…{@link VENUE_NUMBERED_TABLE_MAX}). */
-export function rehearsalVenueTableRosterSizes(): readonly number[] {
-  return Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, i) =>
-    rehearsalSeatedCountForTable(i + 1)
+/** Roster size per numbered table for the live rehearsal seed (tables 1…tableCount). */
+export function rehearsalVenueTableRosterSizes(
+  tableCount: number = VENUE_NUMBERED_TABLE_MAX
+): readonly number[] {
+  const n = Math.max(
+    1,
+    Math.min(VENUE_NUMBERED_TABLE_MAX, Math.floor(Number.isFinite(tableCount) ? tableCount : VENUE_NUMBERED_TABLE_MAX))
   )
+  return Array.from({ length: n }, (_, i) => rehearsalSeatedCountForTable(i + 1))
 }
 
 export function normalizeDisplayPreviewTableNum(tableId: string): number {

@@ -120,6 +120,7 @@ function HostApp() {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [virtualAddCount, setVirtualAddCount] = useState(2)
+  const [rehearsalTableCount, setRehearsalTableCount] = useState(VENUE_NUMBERED_TABLE_MAX)
   const [hostVenueCode] = useState('HOST01')
   const [hostTableId, setHostTableId] = useState(() =>
     typeof window !== 'undefined'
@@ -1299,13 +1300,36 @@ function HostApp() {
             {(gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby' ? (
               <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
                 <p className="text-sm text-amber-100/90 leading-relaxed">
-                  <strong className="text-amber-50">20-table rehearsal</strong> seeds every felt with{' '}
-                  <span className="font-semibold text-casino-gold">5–8 CPUs</span> — about{' '}
-                  <span className="font-semibold text-casino-gold">130</span> bots venue-wide. Skips the lobby pool.
+                  <strong className="text-amber-50">Venue rehearsal</strong> seeds each felt with{' '}
+                  <span className="font-semibold text-casino-gold">5–8 CPUs</span> (deterministic per table).
+                  Skips the lobby pool.
                 </p>
-                <NeonButton variant="gold" size="small" className="mt-3" onClick={() => seedRehearsalVenue()}>
-                  Seed {VENUE_NUMBERED_TABLE_MAX}-table rehearsal
-                </NeonButton>
+                <div className="mt-3 flex flex-wrap items-end gap-3">
+                  <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-amber-200/80">
+                    Table count
+                    <input
+                      type="number"
+                      min={1}
+                      max={VENUE_NUMBERED_TABLE_MAX}
+                      value={rehearsalTableCount}
+                      onChange={(e) => {
+                        const parsed = Number.parseInt(e.target.value, 10)
+                        if (!Number.isFinite(parsed)) return
+                        setRehearsalTableCount(
+                          Math.max(1, Math.min(VENUE_NUMBERED_TABLE_MAX, parsed))
+                        )
+                      }}
+                      className="w-[4.5rem] rounded-md border border-amber-500/40 bg-black/50 px-2 py-2 text-center text-base font-bold tabular-nums text-amber-50 shadow-inner focus:border-amber-400/70 focus:outline-none focus:ring-1 focus:ring-amber-400/40"
+                    />
+                  </label>
+                  <NeonButton
+                    variant="gold"
+                    size="small"
+                    onClick={() => seedRehearsalVenue(rehearsalTableCount)}
+                  >
+                    Seed rehearsal
+                  </NeonButton>
+                </div>
               </div>
             ) : null}
             <div className="flex flex-wrap gap-2 items-center">

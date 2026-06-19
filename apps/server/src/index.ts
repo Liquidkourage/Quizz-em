@@ -3159,14 +3159,18 @@ io.on('connection', (socket) => {
           if (!isLobbySessionKey(sessionKey)) {
             socket.emit(
               'toast',
-              'Run “Seed 20-table rehearsal” from the lobby session (join host as table LOBBY).',
+              'Run “Seed rehearsal” from the lobby session (join host as table LOBBY).',
             )
             break
           }
           if (!assertVenueHost(socket, gameState)) break
           const vn = normalizeVenueCode(gameState.code)
           const hostIdSnap = gameState.hostId
-          const sizes = rehearsalVenueTableRosterSizes()
+          const rawTableCount = Number((payload as { tableCount?: number })?.tableCount ?? VENUE_NUMBERED_TABLE_MAX)
+          const tableCount = Number.isFinite(rawTableCount)
+            ? Math.max(1, Math.min(VENUE_NUMBERED_TABLE_MAX, Math.floor(rawTableCount)))
+            : VENUE_NUMBERED_TABLE_MAX
+          const sizes = rehearsalVenueTableRosterSizes(tableCount)
           for (const tk of allTableSessionsInVenue(vn)) {
             rooms.delete(tk)
           }
@@ -3210,7 +3214,7 @@ io.on('connection', (socket) => {
           emitDisplayVenueSnapshotNow(vn)
           socket.emit(
             'toast',
-            `Rehearsal: ${VENUE_NUMBERED_TABLE_MAX} tables, ${totalBots} CPUs (${sizes.join(', ')} per table). Host on table 1.`,
+            `Rehearsal: ${tableCount} tables, ${totalBots} CPUs (${sizes.join(', ')} per table). Host on table 1.`,
           )
           gameState = rooms.get(t1Key)!
           break

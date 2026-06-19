@@ -613,9 +613,16 @@ export function clearVirtualPlayers() {
 }
 
 /** Host-only (lobby): seed tables 1…N with 5–8 CPUs each for full-venue rehearsal. */
-export function seedRehearsalVenue() {
+export function seedRehearsalVenue(tableCount: number = VENUE_NUMBERED_TABLE_MAX) {
   if (!socket) return
-  socket.emit('action', { type: 'seedRehearsalVenue' })
+  const n = Math.max(
+    1,
+    Math.min(
+      VENUE_NUMBERED_TABLE_MAX,
+      Math.floor(Number.isFinite(tableCount) ? tableCount : VENUE_NUMBERED_TABLE_MAX)
+    )
+  )
+  socket.emit('action', { type: 'seedRehearsalVenue', payload: { tableCount: n } })
 }
 
 /** Host-only: where TVs should point (venue wall vs single felt). */

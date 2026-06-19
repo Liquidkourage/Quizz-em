@@ -739,6 +739,7 @@ function SeatRingWithLabels({
   mosaicShrinkWrap = false,
   mosaicFeltAspectClass,
   mosaicFeltWidthClass,
+  mosaicFeltMaxHeightCss,
   mosaicCenterPot = null,
   mosaicCenterPotClass = '',
   mosaicCenterPotMuted = 'live' as 'dim' | 'faint' | 'live',
@@ -766,6 +767,7 @@ function SeatRingWithLabels({
   mosaicShrinkWrap?: boolean
   mosaicFeltAspectClass?: string
   mosaicFeltWidthClass?: string
+  mosaicFeltMaxHeightCss?: string
   mosaicCenterPot?: number | null
   mosaicCenterPotClass?: string
   mosaicCenterPotMuted?: 'dim' | 'faint' | 'live'
@@ -815,11 +817,19 @@ function SeatRingWithLabels({
   const mdRing = isMosaic
     ? mosaicFluidWidth
       ? mosaicShrinkWrap
-        ? `relative ${mosaicFeltAspectClass ?? 'aspect-[17/10]'} h-auto shrink-0 ${mosaicFeltWidthClass ?? VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS}`
+        ? `relative ${mosaicFeltAspectClass ?? 'aspect-[17/10]'} h-auto shrink-0 ${
+            mosaicFeltMaxHeightCss != null
+              ? `mx-auto ${mosaicFeltWidthClass ?? 'w-auto max-w-[88%]'}`
+              : mosaicFeltWidthClass ?? VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS
+          }`
         : 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
   const wrap = size === 'lg' ? lgRing : mdRing
+  const ringWrapStyle =
+    isMosaic && mosaicFeltMaxHeightCss != null
+      ? ({ maxHeight: mosaicFeltMaxHeightCss } as CSSProperties)
+      : undefined
   const dot = isMosaic
     ? 'h-[1.35rem] w-[1.35rem] border-[1.5px]'
     : size === 'lg'
@@ -907,7 +917,7 @@ function SeatRingWithLabels({
   const mosaicHideHoleCards = mosaicDensity === 'micro' || mosaicDensity === 'compact'
 
   return (
-    <div ref={ringElRef} className={`@container relative ${isMosaic ? 'overflow-hidden' : 'overflow-visible'} ${wrap}`}>
+    <div ref={ringElRef} className={`@container relative ${isMosaic ? 'overflow-hidden' : 'overflow-visible'} ${wrap}`} style={ringWrapStyle}>
       <div
         className={`absolute border-amber-700/90 shadow-md ${
           size === 'lg'
@@ -1494,6 +1504,7 @@ function VenueMosaicTableCard({
             mosaicShrinkWrap={mosaicShrinkWrap}
             mosaicFeltAspectClass={floorSize.feltAspectClass}
             mosaicFeltWidthClass={floorSize.feltWidthClass}
+            mosaicFeltMaxHeightCss={floorSize.feltMaxHeightCss}
             mosaicCenterPot={potOnFelt ? pot : null}
             mosaicCenterPotClass={VENUE_FLOOR_MOSAIC_HEADER_TYPE.feltPot}
             mosaicCenterPotMuted={potMuted}
@@ -1633,6 +1644,37 @@ function VenueAerialFloorGrid({
   const showdownBrief =
     floorSize.showdownBrief || rowCount >= 2 || (showHeadline && inVenueShowdown)
   const othersStillWagering = useMemo(() => venueHasOpenWagering(tiles), [tiles])
+  const floorHostRef = useRef<HTMLDivElement>(null)
+  const floorContentRef = useRef<HTMLDivElement>(null)
+  const [floorFitZoom, setFloorFitZoom] = useState(1)
+  const shouldFitFloor = showHeadline && rowCount >= 4
+
+  useLayoutEffect(() => {
+    if (!shouldFitFloor) {
+      setFloorFitZoom(1)
+      return
+    }
+    const host = floorHostRef.current
+    const content = floorContentRef.current
+    if (!host || !content) return
+
+    const measure = () => {
+      const avail = host.clientHeight
+      const need = content.scrollHeight
+      if (avail <= 0 || need <= 0) return
+      const next = Math.min(1, avail / need)
+      setFloorFitZoom((prev) => {
+        const clamped = Math.max(0.78, next)
+        return Math.abs(prev - clamped) < 0.004 ? prev : clamped
+      })
+    }
+
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(host)
+    ro.observe(content)
+    return () => ro.disconnect()
+  }, [shouldFitFloor, n, columns, rowCount, floorSize.rowGapRem, floorSize.cellGapRem, floorSize.feltMaxHeightCss])
 
   if (n === 0) return null
 
@@ -1677,8 +1719,10 @@ function VenueAerialFloorGrid({
         }}
       />
 
+      <div ref={floorHostRef} className="relative min-h-0 w-full flex-1 overflow-hidden">
       <div
-        className={`relative grid min-h-0 w-full flex-1 overflow-hidden ${
+        ref={floorContentRef}
+        className={`relative grid w-full ${
           denseTuning?.gridInsetClass ?? 'px-4 sm:px-6'
         } ${shrinkWrapRowHeight ? 'content-start items-start' : 'items-stretch content-stretch'}`}
         style={
@@ -1687,6 +1731,7 @@ function VenueAerialFloorGrid({
             gap: `${floorSize.rowGapRem}rem`,
             paddingTop: `${floorGridPadding.top}rem`,
             paddingBottom: `${floorGridPadding.bottom}rem`,
+            zoom: floorFitZoom < 1 ? floorFitZoom : undefined,
             ...floorGridPerspective,
           } as CSSProperties
         }
@@ -1744,6 +1789,7 @@ function VenueAerialFloorGrid({
             </div>
           )
         })}
+      </div>
       </div>
     </motion.section>
   )
@@ -1959,7 +2005,7 @@ export default function VenueEightTablesPreview({
         ) : floorTiles.length > 0 ? (
           <section
             aria-label="Venue floor — all populated tables"
-            className={`flex min-h-0 flex-1 flex-col ${compactVenueHeadline ? 'gap-0.5' : 'gap-1.5 sm:gap-2'}`}
+            className={`flex min-h-0 flex-1 flex-col ${compactVenueHeadline ? 'gap-0' : 'gap-1.5 sm:gap-2'}`}
           >
             <p className="sr-only" aria-live="polite" aria-atomic="true">
               Venue floor

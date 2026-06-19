@@ -142,6 +142,14 @@ export type VenueFloorSizeSpec = {
   /** Optional mosaic felt override — shorter/narrower when headline steals vertical room. */
   feltAspectClass?: string
   feltWidthClass?: string
+  /** Viewport row budget — caps width-driven felts on wide TVs (four-row + headline). */
+  feltMaxHeightCss?: string
+}
+
+/** Felt height cap for four-row floors with a headline strip. */
+export function venueFloorHeadlineFeltMaxHeightCss(rowCount: number): string {
+  const rows = Math.max(4, Math.floor(rowCount))
+  return `min(8.5rem, calc((100dvh - 9.25rem) / ${rows} * 0.52))`
 }
 
 /** Pick felt size tier from banquet row count (and column width at the tightest band). */
@@ -352,6 +360,7 @@ export type VenueFloorDenseTuning = {
   cardPaddingClass?: string
   feltAspectClass?: string
   feltWidthClass?: string
+  feltMaxHeightCss?: string
 }
 
 /** Four-row floors — tighten gaps and felt so the bottom row stays in view with a headline. */
@@ -362,10 +371,10 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 0.42 : 0.55,
-    cellGapRem: headline ? 0.48 : 0.58,
+    rowGapRem: headline ? 0.28 : 0.55,
+    cellGapRem: headline ? 0.36 : 0.58,
     paddingTopRem: headline ? 0 : 0.08,
-    paddingBottomRem: headline ? 0.05 : 0.12,
+    paddingBottomRem: headline ? 0 : 0.12,
     gridInsetClass: headline ? 'px-1.5 sm:px-2' : 'px-2 sm:px-3',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
     tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
@@ -377,9 +386,10 @@ export function venueFloorDenseTuning(
     tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
     ...(headline
       ? {
-          cardPaddingClass: 'px-1 pt-0.5 pb-0',
-          feltAspectClass: 'aspect-[9/5]',
-          feltWidthClass: 'mx-auto w-[90%] max-w-full',
+          cardPaddingClass: 'px-1 pt-0 pb-0',
+          feltAspectClass: 'aspect-[2/1]',
+          feltWidthClass: 'mx-auto w-auto max-w-[88%]',
+          feltMaxHeightCss: venueFloorHeadlineFeltMaxHeightCss(layout.rowCount),
         }
       : {}),
   }
@@ -405,5 +415,6 @@ export function applyVenueFloorDenseTuning(
     ...(tuning.cardPaddingClass != null ? { cardPaddingClass: tuning.cardPaddingClass } : {}),
     ...(tuning.feltAspectClass != null ? { feltAspectClass: tuning.feltAspectClass } : {}),
     ...(tuning.feltWidthClass != null ? { feltWidthClass: tuning.feltWidthClass } : {}),
+    ...(tuning.feltMaxHeightCss != null ? { feltMaxHeightCss: tuning.feltMaxHeightCss } : {}),
   }
 }

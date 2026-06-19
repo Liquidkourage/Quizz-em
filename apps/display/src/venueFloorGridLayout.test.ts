@@ -5,6 +5,7 @@ import {
   venueFloorDenseTuning,
   venueFloorGridPaddingRem,
   venueFloorGridPerspectiveStyle,
+  venueFloorHeadlineFeltMaxHeightCss,
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorTableSize,
@@ -85,8 +86,9 @@ describe('venueFloorDenseTuning', () => {
     const applied = applyVenueFloorDenseTuning(micro, tuned)
     expect(applied.rowGapRem).toBeLessThan(micro.rowGapRem)
     expect(applied.cellGapRem).toBeLessThan(micro.cellGapRem)
-    expect(applied.feltAspectClass).toBe('aspect-[9/5]')
-    expect(applied.feltWidthClass).toContain('90%')
+    expect(applied.feltAspectClass).toBe('aspect-[2/1]')
+    expect(applied.feltWidthClass).toContain('max-w-[88%]')
+    expect(applied.feltMaxHeightCss).toContain('100dvh')
     expect(applied.potClass).toContain('2.15vmin')
     expect(applied.tileInsetClass).toContain('90%')
     expect(tuned!.paddingBottomRem).toBeLessThan(venueFloorGridPaddingRem(4).bottom)
@@ -94,5 +96,13 @@ describe('venueFloorDenseTuning', () => {
 
   it('is null for three-row floors', () => {
     expect(venueFloorDenseTuning(venueBanquetLayout(12))).toBeNull()
+  })
+})
+
+describe('venueFloorHeadlineFeltMaxHeightCss', () => {
+  it('derives felt cap from viewport row budget', () => {
+    expect(venueFloorHeadlineFeltMaxHeightCss(4)).toBe(
+      'min(8.5rem, calc((100dvh - 9.25rem) / 4 * 0.52))'
+    )
   })
 })

@@ -151,6 +151,8 @@ export type DisplayVenueWallSnapshot = {
   tiles: DisplayVenueTileSnapshot[]
   /** Shared trivia headline: emitted from the current hand’s question through wagering, answering, and post-trivia phases while `round.question` is set. */
   headlineQuestionText: string | null
+  /** Authoritative numeric answer for {@link headlineQuestionText} — same source as the headline felt’s `round.question.answer`. */
+  headlineQuestionAnswer?: number | null
   /** Server epoch ms when a trivia-visible felt is in `answering` with `answerDeadline`; cleared outside that window. */
   answerDeadlineMs: number | null
   /** Numbered felt driving `headlineQuestionText` / `answerDeadlineMs` (lowest table in the hottest phase bucket). */

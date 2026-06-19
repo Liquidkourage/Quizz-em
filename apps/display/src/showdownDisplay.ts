@@ -90,6 +90,89 @@ export function showdownCorrectAnswerFromTile(
   return typeof a === 'number' && Number.isFinite(a) ? a : undefined
 }
 
+/** TV headline / venue-wide correct answer — prefer wall headline, then headline table tile, then consensus. */
+export function resolveVenueShowdownAnswer(
+  wall: { headlineQuestionAnswer?: number | null; headlineTableNum?: number | null } | null,
+  tileRows: DisplayVenueTileSnapshot[]
+): number | undefined {
+  const fromWall = wall?.headlineQuestionAnswer
+  if (typeof fromWall === 'number' && Number.isFinite(fromWall)) return fromWall
+
+  const headlineNum = wall?.headlineTableNum
+  if (headlineNum != null && Number.isFinite(headlineNum)) {
+    const headlineTile = tileRows.find(
+      (t) => t.tableNum === Math.floor(headlineNum) && t.phase === 'showdown'
+    )
+    if (headlineTile) {
+      const a = showdownCorrectAnswerFromTile(headlineTile)
+      if (a != null) return a
+    }
+  }
+
+  const answers = tileRows
+    .filter((t) => t.phase === 'showdown')
+    .map((t) => showdownCorrectAnswerFromTile(t))
+    .filter((a): a is number => typeof a === 'number' && Number.isFinite(a))
+  if (answers.length === 0) return undefined
+
+  const counts = new Map<number, number>()
+  for (const a of answers) counts.set(a, (counts.get(a) ?? 0) + 1)
+  let best = answers[0]!
+  let bestCount = 0
+  for (const [value, count] of counts) {
+    if (count > bestCount) {
+      best = value
+      bestCount = count
+    }
+  }
+  return best
+}
+
+/** Build digit-chip row for the authoritative answer on a felt with a full board. */
+export function showdownCorrectAnswerRowFromTile(
+  tile: DisplayVenueTileSnapshot,
+  answer: number
+): ShowdownResultRow | null {
+  if (!Number.isFinite(answer)) return null
+  const communityBoard = communityBoardFromTile(tile)
+  if (communityBoard == null || communityBoard.length < 5) return null
+
+  let holePair: readonly [number, number] | null = null
+  const holeDigits = tile.seatHoleDigits
+  if (holeDigits != null) {
+    for (const h of holeDigits) {
+      if (h == null || h.length < 2) continue
+      if (
+        typeof h[0] === 'number' &&
+        typeof h[1] === 'number' &&
+        Number.isInteger(h[0]) &&
+        Number.isInteger(h[1])
+      ) {
+        holePair = [h[0], h[1]] as const
+        break
+      }
+    }
+  }
+  if (holePair == null) return null
+
+  const composition = inferCompositionForShowdown(holePair, communityBoard, answer)
+  const answerCards = cardsUsedFromComposition(composition, holePair, communityBoard)
+
+  return {
+    seat: 0,
+    name: '',
+    holes: holePair,
+    submitted: answer,
+    hasFolded: false,
+    communityBoard,
+    answerCommunityIndices: composition
+      ? communityIndicesForPlayer(composition, null)
+      : [],
+    answerCards,
+    chipPayout: null,
+  }
+}
+
 function communityBoardFromTile(tile: DisplayVenueTileSnapshot): readonly number[] | null {
   const digits = tile.communityDigits
   if (!Array.isArray(digits) || digits.length === 0) return null

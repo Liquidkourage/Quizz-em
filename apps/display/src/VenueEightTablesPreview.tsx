@@ -16,7 +16,8 @@ import {
 } from './VenueFloorShowdownOverlay'
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
-import { showdownCorrectAnswerFromTile, showdownRowsFromTile } from './showdownDisplay'
+import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
+import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import { formatVenueBankroll } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
@@ -1304,6 +1305,8 @@ type VenueMosaicTableCardProps = {
   prefersReducedMotion?: boolean
   /** Slightly dim answering tiles while other felts are still in open wagering. */
   dimAnsweringEarly?: boolean
+  /** Venue-wide authoritative answer — overrides per-tile `showdownAnswer` when set. */
+  sharedShowdownAnswer?: number
 }
 
 function VenueMosaicTableCard({
@@ -1314,6 +1317,7 @@ function VenueMosaicTableCard({
   shrinkWrapRowHeight = false,
   prefersReducedMotion = false,
   dimAnsweringEarly = false,
+  sharedShowdownAnswer,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1327,7 +1331,9 @@ function VenueMosaicTableCard({
   const seatLastBettingAction = padSeatLastBettingAction(row.seatLastBettingAction)
   const inShowdown = ph === 'showdown'
   const floorShowdownRows = inShowdown ? showdownRowsFromTile(row) : []
-  const floorShowdownAnswer = inShowdown ? showdownCorrectAnswerFromTile(row) : undefined
+  const floorShowdownAnswer = inShowdown
+    ? (sharedShowdownAnswer ?? showdownCorrectAnswerFromTile(row))
+    : undefined
   const showdownBrief = hideShowdownResults || floorSize.showdownBrief
   /** Mosaic floor never stacks the brown results rail under the felt — overlay or headline only. */
   const mosaicShowdownOverlay =
@@ -1577,22 +1583,13 @@ function venueShowdownQuestionFromTiles(
   return null
 }
 
-function venueShowdownAnswerFromTiles(tileRows: DisplayVenueTileSnapshot[]): number | undefined {
-  for (const t of tileRows) {
-    if (t.phase === 'showdown') {
-      const a = showdownCorrectAnswerFromTile(t)
-      if (a != null) return a
-    }
-  }
-  return undefined
-}
-
 function VenueAerialFloorGrid({
   tiles,
   layoutTableCount,
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
+  sharedShowdownAnswer,
 }: {
   tiles: DisplayVenueTileSnapshot[]
   /** Size felts for the live table count even when empty felts are hidden from the grid. */
@@ -1600,6 +1597,7 @@ function VenueAerialFloorGrid({
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
+  sharedShowdownAnswer?: number
 }) {
   const n = tiles.length
   const banquetLayout = useMemo(
@@ -1732,6 +1730,7 @@ function VenueAerialFloorGrid({
                       shrinkWrapRowHeight={shrinkWrapRowHeight}
                       prefersReducedMotion={prefersReducedMotion}
                       dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
+                      sharedShowdownAnswer={sharedShowdownAnswer}
                     />
                   </div>
                 )
@@ -1750,12 +1749,14 @@ function VenueHeroSpotlightLayout({
   layoutTableCount,
   skipMountIntro,
   prefersReducedMotion,
+  sharedShowdownAnswer,
 }: {
   featured: DisplayVenueTileSnapshot
   companions: DisplayVenueTileSnapshot[]
   layoutTableCount: number
   skipMountIntro: boolean
   prefersReducedMotion: boolean
+  sharedShowdownAnswer?: number
 }) {
   const heroSize = useMemo(() => venueFloorSizeSpec(venueBanquetLayout(1)), [])
   const othersStillWagering = useMemo(() => venueHasOpenWagering(companions), [companions])
@@ -1771,6 +1772,7 @@ function VenueHeroSpotlightLayout({
           shrinkWrapRowHeight={false}
           prefersReducedMotion={prefersReducedMotion}
           dimAnsweringEarly={featured.phase === 'answering' && othersStillWagering}
+          sharedShowdownAnswer={sharedShowdownAnswer}
         />
       </div>
       {companions.length > 0 ? (
@@ -1780,6 +1782,7 @@ function VenueHeroSpotlightLayout({
           showHeadline={false}
           skipMountIntro={skipMountIntro}
           prefersReducedMotion={prefersReducedMotion}
+          sharedShowdownAnswer={sharedShowdownAnswer}
         />
       ) : null}
     </div>
@@ -1838,7 +1841,21 @@ export default function VenueEightTablesPreview({
     return Math.max(floorTiles.length, live)
   }, [wall?.venueLiveTableCount, floorTiles.length])
   const inVenueShowdown = useMemo(() => showdownTableNums(tileRows).length > 0, [tileRows])
-  const venueShowdownAnswer = useMemo(() => venueShowdownAnswerFromTiles(tileRows), [tileRows])
+  const venueShowdownAnswer = useMemo(
+    () => resolveVenueShowdownAnswer(wall, tileRows),
+    [wall, tileRows]
+  )
+  const headlineShowdownTile = useMemo(() => {
+    if (wall?.headlineTableNum != null && Number.isFinite(wall.headlineTableNum)) {
+      const n = Math.floor(wall.headlineTableNum)
+      return tileRows.find((t) => t.tableNum === n && t.phase === 'showdown') ?? null
+    }
+    return tileRows.find((t) => t.phase === 'showdown') ?? null
+  }, [wall?.headlineTableNum, tileRows])
+  const venueShowdownAnswerRow = useMemo(() => {
+    if (headlineShowdownTile == null || venueShowdownAnswer == null) return null
+    return showdownCorrectAnswerRowFromTile(headlineShowdownTile, venueShowdownAnswer)
+  }, [headlineShowdownTile, venueShowdownAnswer])
   const venueShowdownQuestionText = useMemo(
     () => venueShowdownQuestionFromTiles(tileRows, headlineQuestionText),
     [tileRows, headlineQuestionText]
@@ -1894,6 +1911,7 @@ export default function VenueEightTablesPreview({
   }, [floorTiles, hostFocusTable])
 
   const showHeroSpotlight = hostFocusTable != null && featuredTile != null
+  const sharedShowdownAnswer = inVenueShowdown ? venueShowdownAnswer : undefined
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -2045,15 +2063,19 @@ export default function VenueEightTablesPreview({
                     ) : null}
                   {inVenueShowdown && venueShowdownAnswer != null ? (
                     <div
-                      className="flex shrink-0 flex-row items-center justify-center gap-1.5 rounded-lg border border-amber-400/55 bg-amber-950/45 px-2 py-1.5 shadow-[0_0_20px_rgba(251,191,36,0.1)] sm:flex-col sm:px-3 sm:py-2"
+                      className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-amber-400/55 bg-amber-950/45 px-2 py-1.5 shadow-[0_0_20px_rgba(251,191,36,0.1)] sm:min-w-[7rem] sm:px-3 sm:py-2"
                       aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
                     >
                       <span className={`font-semibold uppercase tracking-wide text-amber-200/70 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                         Correct answer
                       </span>
-                      <div className="font-mono text-3xl font-black tracking-tight text-amber-100 sm:text-5xl md:text-6xl xl:text-7xl">
-                        {formatTriviaNumber(venueShowdownAnswer)}
-                      </div>
+                      {venueShowdownAnswerRow != null && venueShowdownAnswerRow.answerCards.length > 0 ? (
+                        <ShowdownFiveCardsUsed row={venueShowdownAnswerRow} size="sm" />
+                      ) : (
+                        <div className="font-mono text-3xl font-black tracking-tight text-amber-100 sm:text-5xl md:text-6xl xl:text-7xl">
+                          {formatTriviaNumber(venueShowdownAnswer)}
+                        </div>
+                      )}
                     </div>
                   ) : headlineAnswering ? (
                     <div
@@ -2109,6 +2131,7 @@ export default function VenueEightTablesPreview({
                       layoutTableCount={floorLayoutTableCount}
                       skipMountIntro={skipMountIntro}
                       prefersReducedMotion={prefersReducedMotion}
+                      sharedShowdownAnswer={sharedShowdownAnswer}
                     />
                   ) : (
                     <>
@@ -2119,6 +2142,7 @@ export default function VenueEightTablesPreview({
                           showHeadline={showHeadline}
                           skipMountIntro={skipMountIntro}
                           prefersReducedMotion={prefersReducedMotion}
+                          sharedShowdownAnswer={sharedShowdownAnswer}
                         />
                       </div>
                     </>

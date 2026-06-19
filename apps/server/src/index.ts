@@ -1830,6 +1830,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
   const headlineSource = pickVenueHeadlineSource(vn)
   const headlineGs = headlineSource?.gs ?? null
   let headlineQuestionText: string | null = null
+  let headlineQuestionAnswer: number | null = null
   let answerDeadlineMs: number | null = null
   let headlineTableNum: number | null = null
   let headlinePhase: string | null = null
@@ -1839,6 +1840,9 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     const q = headlineGs.round?.question
     if (q != null && typeof q.text === 'string' && q.text.trim() !== '') {
       headlineQuestionText = q.text.trim()
+    }
+    if (q != null && typeof q.answer === 'number' && Number.isFinite(q.answer)) {
+      headlineQuestionAnswer = q.answer
     }
     if (headlineGs.phase === 'answering') {
       const venueDeadline = venueShowdownAtMs.get(vn)
@@ -1881,6 +1885,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
   const payload: DisplayVenueWallSnapshot = {
     tiles,
     headlineQuestionText,
+    headlineQuestionAnswer,
     answerDeadlineMs,
     headlineTableNum,
     headlinePhase,

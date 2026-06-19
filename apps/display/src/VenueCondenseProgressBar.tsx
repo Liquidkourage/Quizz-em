@@ -7,16 +7,20 @@ type VenueCondenseProgressBarProps = {
   variant?: 'headline' | 'sidebar' | 'bottom'
 }
 
-function compactCaption(model: VenueCondenseProgressModel): string {
+function headlineCondenseCaptionParts(model: VenueCondenseProgressModel): string[] {
   const { survivors, liveTables, nextAt, nextToTables } = model
   const parts = [`${survivors} remaining`, `${liveTables} ${liveTables === 1 ? 'table' : 'tables'}`]
-  if (liveTables <= 1) return parts.join(' · ')
+  if (liveTables <= 1) return parts
   if (nextAt != null && survivors > nextAt) {
     parts.push(`combine at ${nextAt}`)
   } else if (nextAt != null && nextToTables != null) {
     parts.push(`combining to ${nextToTables} tables`)
   }
-  return parts.join(' · ')
+  return parts
+}
+
+function compactCaption(model: VenueCondenseProgressModel): string {
+  return headlineCondenseCaptionParts(model).join(' · ')
 }
 
 export default function VenueCondenseProgressBar({
@@ -49,17 +53,25 @@ export default function VenueCondenseProgressBar({
         role="img"
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >
-        <p
-          className={`truncate font-semibold tabular-nums text-white/80 ${
-            headline
-              ? `mb-1 text-left ${DISPLAY_TEXT_HEADLINE_CAPTION}`
-              : sidebar
+        {headline ? (
+          <p
+            className={`mb-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-left font-semibold tabular-nums text-white/85 ${DISPLAY_TEXT_HEADLINE_CAPTION}`}
+          >
+            {headlineCondenseCaptionParts(model).map((part) => (
+              <span key={part}>{part}</span>
+            ))}
+          </p>
+        ) : (
+          <p
+            className={`truncate font-semibold tabular-nums text-white/80 ${
+              sidebar
                 ? 'mb-1 text-center text-[10px] leading-tight sm:text-[11px]'
                 : 'mb-1 text-center text-[clamp(0.9rem,2.2vw,1.125rem)] leading-tight'
-          }`}
-        >
-          {compactCaption(model)}
-        </p>
+            }`}
+          >
+            {compactCaption(model)}
+          </p>
+        )}
 
         <div className={`relative ${headline ? 'pb-0 pt-1.5' : sidebar ? 'pt-2.5' : ''}`}>
           {showMarks ? (

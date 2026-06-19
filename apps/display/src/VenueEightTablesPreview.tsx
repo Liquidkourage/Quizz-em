@@ -24,6 +24,8 @@ import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import {
   DISPLAY_TEXT_HEADLINE_BADGE,
   DISPLAY_TEXT_HEADLINE_META,
+  DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT,
+  DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA,
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import {
@@ -200,7 +202,7 @@ function VenueMosaicNoMoreBetsWatermark() {
       aria-hidden
     >
       <span
-        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12 drop-shadow-[0_0_18px_rgba(52,211,153,0.12)]`}
+        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12`}
       >
         NO MORE BETS
       </span>
@@ -2064,12 +2066,12 @@ export default function VenueEightTablesPreview({
                     ) : null}
                     {headlineQuestionDisplay ? (
                       <p
-                        className={`text-balance text-left font-bold leading-snug tracking-tight text-yellow-400 ${
+                        className={`text-balance text-left font-bold tracking-tight text-yellow-400 ${
                           ultraCompactVenueHeadline
-                            ? 'text-base sm:text-lg md:text-xl lg:text-[1.55rem]'
+                            ? DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA
                             : compactVenueHeadline
-                              ? 'text-lg sm:text-xl md:text-[1.45rem] lg:text-[1.75rem] xl:text-[2rem]'
-                              : 'text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem]'
+                              ? DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT
+                              : 'text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem] leading-snug'
                         }`}
                       >
                         {headlineQuestionDisplay}

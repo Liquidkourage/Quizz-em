@@ -24,6 +24,14 @@ export const DISPLAY_TEXT_HEADLINE_META = 'display-text-headline-meta leading-ti
 /** Headline strip — condense progress caption. */
 export const DISPLAY_TEXT_HEADLINE_CAPTION = 'display-text-headline-caption leading-tight'
 
+/** Venue headline question — compact floor (14+ tables). */
+export const DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT =
+  'display-text-headline-question-compact leading-snug'
+
+/** Venue headline question — ultra-compact floor (17+ tables). */
+export const DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA =
+  'display-text-headline-question-ultra leading-snug'
+
 /** @container — primary (~10cqh of the cell). */
 export const DISPLAY_TEXT_PRIMARY_CQ = 'display-text-primary-cq leading-tight'
 

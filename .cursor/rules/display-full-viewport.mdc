@@ -1,0 +1,56 @@
+---
+description: Public display UIs must fill 100% of viewport width and height (apps/display).
+globs: apps/display/**
+alwaysApply: false
+---
+
+# Use the full public display viewport
+
+TV and wall **display** builds (`apps/display/**`) run edge-to-edge on a fixed screen. Every screen and layout must use **100% of available width and height** — no unused letterboxing, floating islands, or clipped content from vertical centering.
+
+## Root shell
+
+- Fill the viewport: `fixed inset-0 overflow-hidden` or `h-dvh w-full overflow-hidden`.
+- Prefer **`dvh`** over `vh` when using viewport height units.
+- Avoid page-level `max-w-*` wrappers (`max-w-7xl`, `max-w-screen-xl`, etc.) that cap content width on full-screen routes.
+
+## Height chain (flex / grid)
+
+- Column layouts: outer `flex flex-col h-full min-h-0`; scrollable/main regions `flex-1 min-h-0`.
+- Every flex/grid ancestor between root and a growing child needs **`min-h-0`** (or `min-w-0` for horizontal shrink).
+- Do **not** use `justify-center` + fixed/min heights on the main stage if it can push content under the header or clip the bottom — distribute space with `flex-1` instead.
+
+## Width chain
+
+- Prefer `w-full max-w-none` on top-level layout rows; let columns share space with `flex-1 min-w-0` or explicit tracks.
+- Fixed-width side panels are fine when the **row still spans full width** and the center column gets `flex-1`.
+- Avoid large horizontal margins/padding that leave permanent empty gutters unless they are intentional inner padding inside a full-bleed shell.
+
+## Content sizing
+
+- Scale typography and spacing with **`clamp()`**, **`vmin`/`vmax`**, or container queries — not fixed px blocks that leave dead space on large TVs.
+- Prefer **`overflow-hidden` + internal layout** over `overflow-y-auto` on the main stage (scroll is a last resort on venue displays).
+- Do not use `h-[calc(100vh-200px)]`-style magic offsets when a flex column with header + `flex-1` main achieves the same fit.
+
+## Checklist before merging display layout changes
+
+- [ ] Root view fills width and height with no obvious unused bands on left/right or top/bottom.
+- [ ] Main content area grows with `flex-1 min-h-0` (or equivalent grid `minmax(0, 1fr)`).
+- [ ] No accidental `max-w-*` or `mx-auto` centering that shrinks the layout on a full-screen route.
+- [ ] Test at wide (16:9 TV) and short heights — nothing overlaps the header or clips below the fold.
+
+## Examples
+
+```tsx
+// ✅ Full viewport shell + growing main
+<div className="fixed inset-0 flex min-h-0 flex-col overflow-hidden">
+  <header className="shrink-0">…</header>
+  <main className="flex min-h-0 flex-1 overflow-hidden">…</main>
+</div>
+
+// ❌ Capped width on a wall screen
+<div className="mx-auto max-w-7xl flex-1">…</div>
+
+// ❌ Vertical centering that steals height from the stage
+<main className="flex flex-1 items-center justify-center min-h-[720px]">…</main>
+```

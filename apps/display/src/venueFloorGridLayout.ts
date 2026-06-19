@@ -102,13 +102,16 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
   headerRow: 'items-center overflow-visible py-0 leading-none',
   seatInitials: 'text-[clamp(12px,1.65vmin,17px)]',
+  /** Matches {@link actingName} size — under-felt call caption during wagering. */
   toCallStrip:
-    'pt-0.5 text-[clamp(12px,1.65vmin,16px)] font-semibold leading-none tracking-tight text-amber-100/90',
+    'pt-0.5 text-[clamp(18px,2.9vmin,28px)] font-black leading-none tracking-tight text-amber-100/90',
 } as const
 
 /** Slightly taller mosaic felt — room for under-table call caption without shrinking type. */
 export const VENUE_FLOOR_MOSAIC_TILE_INSET = 'mx-auto w-[90%] max-w-full'
 export const VENUE_FLOOR_MOSAIC_FELT_ASPECT = '17/10' as const
+/** Narrower felt within the tile — frees vertical chrome for name + to-call type. */
+export const VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS = 'mx-auto w-[93%] max-w-full'
 
 export type VenueFloorSizeSpec = {
   size: VenueFloorTableSize

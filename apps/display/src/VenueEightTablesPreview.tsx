@@ -36,6 +36,7 @@ import {
   type VenueFloorSizeSpec,
   type VenueFloorTableSize,
   VENUE_FLOOR_MOSAIC_HEADER_TYPE,
+  VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS,
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
@@ -789,7 +790,7 @@ function SeatRingWithLabels({
   const mdRing = isMosaic
     ? mosaicFluidWidth
       ? mosaicShrinkWrap
-        ? 'relative mx-auto aspect-[17/10] h-auto w-full max-w-full shrink-0'
+        ? `relative aspect-[17/10] h-auto shrink-0 ${VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS}`
         : 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'

@@ -101,12 +101,14 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
     'truncate text-[clamp(18px,2.9vmin,28px)] font-black leading-none tracking-tight text-cyan-50 drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]',
   phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
   headerRow: 'items-center overflow-visible py-0 leading-none',
-  seatInitials: 'text-[clamp(14px,1.9vmin,20px)]',
+  seatInitials: 'text-[clamp(12px,1.65vmin,17px)]',
+  toCallStrip:
+    'pt-0.5 text-[clamp(12px,1.65vmin,16px)] font-semibold leading-none tracking-tight text-amber-100/90',
 } as const
 
-/** Shorter mosaic aspect + inset so 4 checkerboard rows fit under the headline. */
+/** Slightly taller mosaic felt — room for under-table call caption without shrinking type. */
 export const VENUE_FLOOR_MOSAIC_TILE_INSET = 'mx-auto w-[90%] max-w-full'
-export const VENUE_FLOOR_MOSAIC_FELT_ASPECT = '9/5' as const
+export const VENUE_FLOOR_MOSAIC_FELT_ASPECT = '17/10' as const
 
 export type VenueFloorSizeSpec = {
   size: VenueFloorTableSize
@@ -198,7 +200,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.85,
         cellGapRem: 0.95,
-        cardPaddingClass: 'px-1.5 pt-1 pb-0 sm:px-2 sm:pt-1.5 sm:pb-0',
+        cardPaddingClass: 'px-1.5 pt-1 pb-0.5 sm:px-2 sm:pt-1.5 sm:pb-1',
         innerGapClass: 'gap-0',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
@@ -218,7 +220,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.72,
         cellGapRem: 0.82,
-        cardPaddingClass: 'px-1 pt-1 pb-0 sm:px-1.5 sm:pt-1 sm:pb-0',
+        cardPaddingClass: 'px-1 pt-1 pb-0.5 sm:px-1.5 sm:pt-1 sm:pb-1',
         innerGapClass: 'gap-0',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
@@ -238,7 +240,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.68,
         cellGapRem: 0.78,
-        cardPaddingClass: 'px-1 pt-1 pb-0 sm:px-1.5 sm:pt-1 sm:pb-0',
+        cardPaddingClass: 'px-1 pt-1 pb-0.5 sm:px-1.5 sm:pt-1 sm:pb-1',
         innerGapClass: 'gap-0',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,

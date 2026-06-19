@@ -179,6 +179,14 @@ function mosaicActingPlayerName(
   return raw || `Seat ${actingSeatIndex + 1}`
 }
 
+/** Under-felt caption during live wagering — e.g. “To Call: $40”. */
+function mosaicToCallFooterLabel(actingCallAmount: number | null | undefined): string | null {
+  if (actingCallAmount == null || typeof actingCallAmount !== 'number' || !Number.isFinite(actingCallAmount)) {
+    return null
+  }
+  return `To Call: ${formatVenueBankroll(Math.max(0, Math.floor(actingCallAmount)))}`
+}
+
 function padSeatNames(raw: string[] | undefined): string[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     if (raw != null && raw[i] != null) {
@@ -781,7 +789,7 @@ function SeatRingWithLabels({
   const mdRing = isMosaic
     ? mosaicFluidWidth
       ? mosaicShrinkWrap
-        ? 'relative mx-auto aspect-[9/5] h-auto w-full max-w-full shrink-0'
+        ? 'relative mx-auto aspect-[17/10] h-auto w-full max-w-full shrink-0'
         : 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
@@ -1322,12 +1330,20 @@ function VenueMosaicTableCard({
     seatNames,
     actingCallAmount: row.actingCallAmount,
   })
+  const toCallFooterLabel = mosaicToCallFooterLabel(row.actingCallAmount)
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
-  const feltFillsCell = floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight
-  const mosaicShrinkWrap = shrinkWrapRowHeight || !floorSize.honeycombFillHeight
-  const showPotSubtitleStrip = floorSize.showPotSubtitle && mosaicPotSubtitle != null
   const denseMosaicChrome =
     floorSize.size === 'medium' || floorSize.size === 'compact' || floorSize.size === 'micro'
+  const feltFillsCell = floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight
+  const mosaicShrinkWrap = shrinkWrapRowHeight || !floorSize.honeycombFillHeight
+  const showPotSubtitleStrip =
+    floorSize.showPotSubtitle && !denseMosaicChrome && mosaicPotSubtitle != null
+  const showToCallStrip =
+    denseMosaicChrome &&
+    !showFloorShowdownOverlay &&
+    wageringLive &&
+    actingSeat != null &&
+    toCallFooterLabel != null
   const potOnFelt = denseMosaicChrome && !showFloorShowdownOverlay
   const potMuted =
     ph === 'lobby' || ph === 'question'
@@ -1467,6 +1483,20 @@ function VenueMosaicTableCard({
             answeringPhase={ph === 'answering'}
           />
         </div>
+
+        {showToCallStrip ? (
+          <p
+            className={`shrink-0 text-center ${VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallStrip} ${
+              feltFillsCell ? 'col-start-1 row-start-3 min-w-0' : ''
+            }`}
+            aria-live="polite"
+          >
+            To Call:{' '}
+            <span className="font-mono font-black tabular-nums text-yellow-300">
+              {formatVenueBankroll(Math.max(0, Math.floor(row.actingCallAmount ?? 0)))}
+            </span>
+          </p>
+        ) : null}
 
         {showPotSubtitleStrip ? (
           <div

@@ -204,7 +204,7 @@ function PlayerShowdownRow({
       }`}
     >
       <span
-        className={`flex aspect-square min-h-[max(5vh,7cqh)] min-w-[max(5vh,7cqh)] shrink-0 items-center justify-center rounded-full border font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
+        className={`flex aspect-square min-h-[7cqh] min-w-[7cqh] shrink-0 items-center justify-center rounded-full border font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
           isWinner
             ? 'border-amber-300/70 bg-amber-950 text-amber-100'
             : 'border-amber-800/45 bg-slate-950 text-amber-200/85'

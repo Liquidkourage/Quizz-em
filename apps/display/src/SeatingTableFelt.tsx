@@ -115,7 +115,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
           return (
             <div
               key={seatNum}
-              className={`absolute flex aspect-square min-h-[max(5vh,7cqh)] min-w-[max(5vh,7cqh)] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
+              className={`absolute flex aspect-square min-h-[7cqh] min-w-[7cqh] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
                 filled
                   ? 'border-emerald-300/80 bg-neutral-950/95 text-amber-50 shadow-sm ring-1 ring-emerald-400/25'
                   : 'border-white/20 bg-slate-950/70 text-white/35'
@@ -150,7 +150,7 @@ export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
             className="flex min-h-0 items-center gap-1.5 rounded-lg bg-white/[0.045] px-1.5 py-0.5 ring-1 ring-white/[0.06] sm:gap-2 sm:px-2"
           >
             <span
-              className={`flex aspect-square min-h-[max(5vh,6cqh)] min-w-[max(5vh,6cqh)] shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono font-black tabular-nums text-amber-50 ${DISPLAY_TEXT_BADGE_CQ}`}
+              className={`flex aspect-square min-h-[6cqh] min-w-[6cqh] shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono font-black tabular-nums text-amber-50 ${DISPLAY_TEXT_BADGE_CQ}`}
             >
               {seat.seatNum}
             </span>

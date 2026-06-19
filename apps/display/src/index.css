@@ -238,6 +238,23 @@
     font-size: clamp(2.75cqh, 3.75cqh, 5cqh);
   }
 
+  /** Audience welcome wall — 75% of default @container tiers. */
+  .display-text-welcome-primary-cq {
+    font-size: clamp(2.625cqh, 5.25cqh, 8.25cqh);
+  }
+
+  .display-text-welcome-secondary-cq {
+    font-size: clamp(2.25cqh, 3.375cqh, 6cqh);
+  }
+
+  .display-text-welcome-dense-cq {
+    font-size: clamp(2.0625cqh, 2.8125cqh, 3.75cqh);
+  }
+
+  .display-text-welcome-url-cqw {
+    font-size: clamp(3.75cqw, 5.25cqw, 8.25cqw);
+  }
+
   /** Venue headline strip — smaller than full-screen primary so chips/countdown fit. */
   .display-text-headline {
     font-size: clamp(4vh, 6.5vh, 9vh);

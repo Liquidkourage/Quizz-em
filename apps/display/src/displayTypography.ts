@@ -41,3 +41,12 @@ export const DISPLAY_TEXT_PAIRING_TITLE = 'display-text-pairing-title leading-ti
 export const DISPLAY_TEXT_PAIRING_BODY = 'display-text-pairing-body leading-relaxed'
 
 export const DISPLAY_TEXT_PAIRING_CODE = 'display-text-pairing-code leading-none'
+
+/** Audience welcome wall — ~75% of default @container scale (fits URL + tips without scroll). */
+export const DISPLAY_TEXT_WELCOME_PRIMARY_CQ = 'display-text-welcome-primary-cq leading-tight'
+
+export const DISPLAY_TEXT_WELCOME_SECONDARY_CQ = 'display-text-welcome-secondary-cq leading-tight'
+
+export const DISPLAY_TEXT_WELCOME_DENSE_CQ = 'display-text-welcome-dense-cq leading-tight'
+
+export const DISPLAY_TEXT_WELCOME_URL_CQW = 'display-text-welcome-url-cqw leading-snug'

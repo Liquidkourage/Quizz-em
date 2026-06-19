@@ -95,6 +95,10 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   tableNumBadge:
     'inline-flex min-w-[1.35rem] items-center justify-center rounded-md border-2 border-yellow-400/80 bg-gradient-to-b from-yellow-800/95 to-yellow-950 px-1.5 py-0.5 font-black tabular-nums text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.4)]',
   pot: 'text-[clamp(14px,1.85vmin,19px)] font-mono font-black leading-tight',
+  /** Pot centered on mosaic felt — larger than header pot on dense floors. */
+  feltPot: 'text-[clamp(20px,2.75vmin,30px)] font-mono font-black leading-none',
+  actingName:
+    'truncate text-[clamp(11px,1.4vmin,14px)] font-bold leading-tight tracking-tight text-cyan-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]',
   phase: 'px-1 py-0.5 text-[clamp(11px,1.35vmin,14px)] font-bold uppercase leading-tight',
   headerRow: 'items-center overflow-visible pt-1 pb-0.5',
   seatInitials: 'text-[clamp(12px,1.55vmin,16px)]',

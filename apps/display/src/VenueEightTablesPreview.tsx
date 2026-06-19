@@ -168,6 +168,17 @@ function mosaicPotSubtitleActingToCall(args: {
   return `${name} to call: ${formatVenueBankroll(args.actingCallAmount)}`
 }
 
+/** Player whose turn it is during open wagering. */
+function mosaicActingPlayerName(
+  actingSeatIndex: number | null,
+  seatNames: string[]
+): string | null {
+  if (actingSeatIndex == null) return null
+  if (actingSeatIndex < 0 || actingSeatIndex >= VENUE_SEAT_SLOTS) return null
+  const raw = seatNames[actingSeatIndex]?.trim() ?? ''
+  return raw || `Seat ${actingSeatIndex + 1}`
+}
+
 function padSeatNames(raw: string[] | undefined): string[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     if (raw != null && raw[i] != null) {
@@ -1324,6 +1335,10 @@ function VenueMosaicTableCard({
         ? ('dim' as const)
         : ('faint' as const)
       : ('live' as const)
+  const actingPlayerName =
+    wageringLive && !showFloorShowdownOverlay
+      ? mosaicActingPlayerName(actingSeat, seatNames)
+      : null
 
   const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
@@ -1352,7 +1367,7 @@ function VenueMosaicTableCard({
           }`}
         >
         <div
-          className={`flex shrink-0 items-center gap-x-1 ${potOnFelt ? 'justify-between' : ''} ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-1 ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
           {denseMosaicChrome ? (
             <span
@@ -1367,9 +1382,25 @@ function VenueMosaicTableCard({
               {tn}
             </div>
           )}
-          {!potOnFelt && !showFloorShowdownOverlay ? (
+          {potOnFelt ? (
             <div
-              className="min-w-0 flex-1 px-0.5 text-center"
+              className="min-w-0 px-0.5 text-center"
+              aria-label={actingPlayerName ? `${actingPlayerName} to act` : undefined}
+            >
+              {actingPlayerName ? (
+                <span
+                  className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.actingName} ${
+                    wageringLive ? 'text-cyan-100 motion-safe:animate-pulse motion-safe:[animation-duration:2.4s]' : ''
+                  }`}
+                  title={actingPlayerName}
+                >
+                  {actingPlayerName}
+                </span>
+              ) : null}
+            </div>
+          ) : !showFloorShowdownOverlay ? (
+            <div
+              className="min-w-0 px-0.5 text-center"
               aria-label={`Pot ${formatVenueBankroll(pot)}`}
             >
               <VenuePotAmount
@@ -1384,10 +1415,10 @@ function VenueMosaicTableCard({
                 }`}
               />
             </div>
-          ) : !potOnFelt ? (
-            <div className="min-w-0 flex-1" aria-hidden />
-          ) : null}
-          <div className="shrink-0">
+          ) : (
+            <div className="min-w-0" aria-hidden />
+          )}
+          <div className="shrink-0 justify-self-end">
             <span
               className={`inline-block whitespace-nowrap rounded-sm font-semibold leading-tight ${
                 showNoMoreBets ? `${floorSize.phaseChipClass} font-black uppercase` : floorSize.phaseChipClass
@@ -1417,7 +1448,7 @@ function VenueMosaicTableCard({
             mosaicDensity={floorSize.size}
             mosaicShrinkWrap={mosaicShrinkWrap}
             mosaicCenterPot={potOnFelt ? pot : null}
-            mosaicCenterPotClass={floorSize.potClass}
+            mosaicCenterPotClass={VENUE_FLOOR_MOSAIC_HEADER_TYPE.feltPot}
             mosaicCenterPotMuted={potMuted}
             seatedCount={seats}
             seatNames={seatNames}

@@ -34,10 +34,10 @@ function SeatingTableCard({
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 px-2.5 py-2 sm:gap-2.5 sm:px-3 sm:py-2.5">
-        <div className="flex h-[clamp(5.5rem,24cqh,9.5rem)] shrink-0 items-center justify-center overflow-hidden border-b border-white/[0.06] pb-2">
+        <div className="flex h-[clamp(5rem,20cqh,8.25rem)] shrink-0 items-center justify-center overflow-hidden border-b border-white/[0.06] pb-2">
           <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
         </div>
-        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <SeatingPlayerList seats={table.seats} />
         </div>
       </div>

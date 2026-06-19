@@ -132,23 +132,27 @@ export type SeatingTableSeat = {
   name: string
 }
 
-/** Numbered player roster — full names, sorted by seat. */
+/** Numbered player roster — full names, sorted by seat; rows stretch to fill card height. */
 export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
   const sorted = [...seats].sort((a, b) => a.seatNum - b.seatNum)
+  const rowCount = Math.max(1, Math.ceil(sorted.length / 2))
 
   return (
-    <ul className="grid grid-cols-2 content-start gap-x-2 gap-y-1 sm:gap-x-2.5 sm:gap-y-1.5">
+    <ul
+      className="grid h-full min-h-0 grid-cols-2 gap-x-2 gap-y-1.5 sm:gap-x-2.5 sm:gap-y-2"
+      style={{ gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))` }}
+    >
       {sorted.map((seat) => {
         const { given, suffix } = splitSeatingDisplayName(seat.name)
         return (
           <li
             key={seat.seatNum}
-            className="flex min-w-0 items-center gap-1.5 rounded-md bg-white/[0.045] px-1.5 py-0.5 ring-1 ring-white/[0.06] sm:gap-1.5 sm:px-1.5 sm:py-1"
+            className="flex min-h-0 min-w-0 items-center gap-2 rounded-md bg-white/[0.045] px-2 py-1.5 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-2"
           >
-            <span className="flex h-[1.125rem] w-[1.125rem] shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-[8px] font-black tabular-nums text-amber-50 sm:h-5 sm:w-5 sm:text-[9px]">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-[9px] font-black tabular-nums text-amber-50 sm:h-7 sm:w-7 sm:text-[10px]">
               {seat.seatNum}
             </span>
-            <span className="min-w-0 truncate text-[10px] font-semibold leading-tight text-white sm:text-[11px]">
+            <span className="min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm">
               {given}
               {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}
             </span>

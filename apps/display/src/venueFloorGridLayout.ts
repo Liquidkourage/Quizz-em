@@ -105,6 +105,8 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   /** Matches {@link actingName} size — under-felt call caption during wagering. */
   toCallStrip:
     'pt-0.5 text-[clamp(18px,2.9vmin,28px)] font-black leading-none tracking-tight text-amber-100/90',
+  noMoreBetsWatermark:
+    'pointer-events-none select-none whitespace-nowrap text-center text-[clamp(15px,2.35vmin,24px)] font-black uppercase leading-none tracking-[0.14em] text-emerald-300/35',
 } as const
 
 /** Slightly taller mosaic felt — room for under-table call caption without shrinking type. */
@@ -157,7 +159,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: false,
         showdownBrief: false,
-        rowGapRem: 1.5,
+        rowGapRem: 1.35,
         cellGapRem: 1.75,
         cardPaddingClass: 'overflow-visible p-2 sm:p-2.5',
         innerGapClass: 'gap-1.5 sm:gap-2',
@@ -179,7 +181,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: false,
         showdownBrief: true,
-        rowGapRem: 0.85,
+        rowGapRem: 0.77,
         cellGapRem: 0.95,
         cardPaddingClass: 'overflow-visible p-2 sm:p-2',
         innerGapClass: 'gap-1.5 sm:gap-2',
@@ -201,7 +203,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: false,
         showdownBrief: true,
-        rowGapRem: 0.85,
+        rowGapRem: 0.77,
         cellGapRem: 0.95,
         cardPaddingClass: 'px-1.5 pt-1 pb-0.5 sm:px-2 sm:pt-1.5 sm:pb-1',
         innerGapClass: 'gap-0',
@@ -221,7 +223,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: true,
         showdownBrief: true,
-        rowGapRem: 0.72,
+        rowGapRem: 0.65,
         cellGapRem: 0.82,
         cardPaddingClass: 'px-1 pt-1 pb-0.5 sm:px-1.5 sm:pt-1 sm:pb-1',
         innerGapClass: 'gap-0',
@@ -241,7 +243,7 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         size,
         compactChrome: true,
         showdownBrief: true,
-        rowGapRem: 0.68,
+        rowGapRem: 0.61,
         cellGapRem: 0.78,
         cardPaddingClass: 'px-1 pt-1 pb-0.5 sm:px-1.5 sm:pt-1 sm:pb-1',
         innerGapClass: 'gap-0',
@@ -354,7 +356,7 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 1.05 : 1.1,
+    rowGapRem: headline ? 0.95 : 0.99,
     cellGapRem: headline ? 0.85 : 0.92,
     paddingTopRem: headline ? 0.1 : 0.2,
     paddingBottomRem: headline ? 0.12 : 0.25,

@@ -188,6 +188,22 @@ function mosaicToCallFooterLabel(actingCallAmount: number | null | undefined): s
   return `To Call: ${formatVenueBankroll(Math.max(0, Math.floor(actingCallAmount)))}`
 }
 
+/** Diagonal stamp when wagering is closed on this felt. */
+function VenueMosaicNoMoreBetsWatermark() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-[25] flex items-center justify-center overflow-hidden rounded-xl"
+      aria-hidden
+    >
+      <span
+        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12 drop-shadow-[0_0_18px_rgba(52,211,153,0.12)]`}
+      >
+        NO MORE BETS
+      </span>
+    </div>
+  )
+}
+
 function padSeatNames(raw: string[] | undefined): string[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     if (raw != null && raw[i] != null) {
@@ -1536,6 +1552,10 @@ function VenueMosaicTableCard({
             rows={floorShowdownRows}
             correctAnswer={floorShowdownAnswer}
           />
+        ) : null}
+
+        {showNoMoreBets && seats >= 2 && !showFloorShowdownOverlay ? (
+          <VenueMosaicNoMoreBetsWatermark />
         ) : null}
       </article>
   )

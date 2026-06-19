@@ -243,20 +243,20 @@
     font-size: clamp(4vh, 6.5vh, 9vh);
   }
 
-  /** Pairing gate — 2.5× room-scale (readable on TV at 100% browser zoom). */
+  /** Pairing gate — TV room scale (80% of prior 2.5× bump). */
   .display-text-pairing-label {
-    font-size: clamp(1.75rem, 3.375vmin, 2.375rem);
+    font-size: clamp(1.4rem, 2.7vmin, 1.9rem);
   }
 
   .display-text-pairing-title {
-    font-size: clamp(4.375rem, 10vmin, 6.875rem);
+    font-size: clamp(3.5rem, 8vmin, 5.5rem);
   }
 
   .display-text-pairing-body {
-    font-size: clamp(2.375rem, 4.625vmin, 3rem);
+    font-size: clamp(1.9rem, 3.7vmin, 2.4rem);
   }
 
   .display-text-pairing-code {
-    font-size: clamp(5rem, 12.5vmin, 8.125rem);
+    font-size: clamp(4rem, 10vmin, 6.5rem);
   }
 }

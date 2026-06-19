@@ -224,11 +224,15 @@ export function selectVenueFloorLayout(opts: {
   }
 }
 
+/** Subtle card shrink — pairs with headline gap tuning for a bit more breathing room. */
+export const VENUE_FLOOR_CARD_SLOT_SCALE = 0.97
+
 /** Slot width for a card — sized to the widest row so partial rows stay centered. */
 export function venueFloorCardSlotWidthCss(columns: number, cellGapRem: number): string {
   const cols = Math.max(1, columns)
   const gaps = cols > 1 ? `(${cols} - 1) * ${cellGapRem}rem` : '0rem'
-  return `calc((100% - ${gaps}) / ${cols})`
+  const base = `(100% - ${gaps}) / ${cols}`
+  return `calc((${base}) * ${VENUE_FLOOR_CARD_SLOT_SCALE})`
 }
 
 /** Slice tiles into explicit row groups, e.g. [5, 4, 5]. */

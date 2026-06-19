@@ -76,6 +76,8 @@ describe('selectVenueFloorLayout', () => {
 
 describe('venueFloorCardSlotWidthCss', () => {
   it('derives equal slot widths for centered partial rows', () => {
-    expect(venueFloorCardSlotWidthCss(5, 0.78)).toBe('calc((100% - (5 - 1) * 0.78rem) / 5)')
+    expect(venueFloorCardSlotWidthCss(5, 0.82)).toBe(
+      'calc(((100% - (5 - 1) * 0.82rem) / 5) * 0.97)'
+    )
   })
 })

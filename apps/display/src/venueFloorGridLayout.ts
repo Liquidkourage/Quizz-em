@@ -14,6 +14,7 @@ export {
   venueFloorDensityForCount,
   venueFloorPreferredColumns,
   chunkTilesIntoRowGroups,
+  VENUE_FLOOR_CARD_SLOT_SCALE,
 } from './venueFloorLayout'
 
 /** Tables with at least one seated player — the aerial floor shows these only. */
@@ -377,8 +378,8 @@ export function venueFloorDenseTuning(
   const headline = opts?.withHeadline === true
   if (!headline) return null
   return {
-    rowGapRem: 0.62,
-    cellGapRem: 0.78,
+    rowGapRem: 0.65,
+    cellGapRem: 0.82,
     paddingTopRem: 0,
     paddingBottomRem: 0,
     gridInsetClass: 'px-1.5 sm:px-2',

@@ -33,7 +33,7 @@ export const DISPLAY_TEXT_BADGE_CQ = 'display-text-badge-cq leading-none'
 /** Multi-row lists inside a tall @container (gutter rosters, tips bullets). */
 export const DISPLAY_TEXT_DENSE_CQ = 'display-text-dense-cq leading-tight'
 
-/** Pairing gate — moderate scale; not full 10vh/5vh viewport bands. */
+/** Pairing gate — moderate scale; not full 10vh/5vh viewport bands (2.5× TV room scale). */
 export const DISPLAY_TEXT_PAIRING_LABEL = 'display-text-pairing-label leading-tight'
 
 export const DISPLAY_TEXT_PAIRING_TITLE = 'display-text-pairing-title leading-tight'

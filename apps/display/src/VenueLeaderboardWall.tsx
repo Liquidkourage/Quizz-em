@@ -12,7 +12,6 @@ import {
 import { buildVenueWallTileRows, venueWallBlindsHeadline, buildVenueCondenseProgress, venueWallCondenseHeadline } from './venueWallModel'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import { useVenueHandStackBaselines } from './useVenueHandStackBaselines'
-import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
 function splitLeaderboardName(name: string): { given: string; suffix: string } {
   const trimmed = name.trim()
@@ -26,11 +25,11 @@ function leaderboardGridStyle(rowCount: number): CSSProperties {
 }
 
 const ROW_FONT: CSSProperties = {
-  fontSize: 'clamp(3.5cqh, calc((100cqh - 3.5rem) / var(--lb-rows) * 0.82), 10cqh)',
+  fontSize: 'min(1.65rem, max(0.78rem, calc((100cqh - 3.5rem) / var(--lb-rows) * 0.82)))',
 }
 
 const RANK_FONT: CSSProperties = {
-  fontSize: 'clamp(3cqh, calc((100cqh - 3.5rem) / var(--lb-rows) * 0.68), 8cqh)',
+  fontSize: 'min(1.35rem, max(0.72rem, calc((100cqh - 3.5rem) / var(--lb-rows) * 0.68)))',
 }
 
 export type VenueLeaderboardWallProps = {
@@ -80,10 +79,10 @@ export default function VenueLeaderboardWall({
               </div>
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className={`font-black tracking-tight text-yellow-300 ${DISPLAY_TEXT_PRIMARY}`}>
+              <h1 className="text-2xl font-black tracking-tight text-yellow-300 sm:text-3xl md:text-4xl">
                 Leaderboard
               </h1>
-              <p className={`text-white/70 ${DISPLAY_TEXT_SECONDARY}`}>
+              <p className="text-sm text-white/70 sm:text-base">
                 {rows.length} player{rows.length === 1 ? '' : 's'}
                 {blindsHeadline ? (
                   <>

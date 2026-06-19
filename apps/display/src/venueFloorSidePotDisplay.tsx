@@ -1,8 +1,4 @@
 import type { ShowdownResultRow } from './showdownDisplay'
-import {
-  DISPLAY_TEXT_PRIMARY_CQW,
-  DISPLAY_TEXT_SECONDARY_CQW,
-} from './displayTypography'
 
 export type ShowdownSidePotLine = {
   label: 'Main' | 'Side' | 'Return'
@@ -14,15 +10,15 @@ export type ShowdownSidePotLine = {
 const POT_LAYER_ROW =
   'grid w-full max-w-full min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-baseline gap-x-[clamp(0.15rem,1.2cqw,0.35rem)] px-0.5'
 const POT_LAYER_TAG =
-  `justify-self-end pr-[0.15em] font-black uppercase tracking-[0.1em] ${DISPLAY_TEXT_SECONDARY_CQW}`
+  'justify-self-end pr-[0.15em] font-black uppercase tracking-[0.1em] text-[clamp(0.74rem,7.4cqw,1.14rem)]'
 const POT_LAYER_AMOUNT_MAIN =
-  `justify-self-center text-center font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] ${DISPLAY_TEXT_PRIMARY_CQW}`
+  'justify-self-center text-center font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.32rem,14.4cqw,2.95rem)]'
 const POT_LAYER_AMOUNT_SIDE =
-  `justify-self-center text-center font-mono font-black tabular-nums leading-none text-yellow-300/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] ${DISPLAY_TEXT_PRIMARY_CQW}`
+  'justify-self-center text-center font-mono font-black tabular-nums leading-none text-yellow-300/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] text-[clamp(1.2rem,13cqw,2.55rem)]'
 const POT_LAYER_AMOUNT_RETURN =
-  `justify-self-center text-center font-mono font-bold tabular-nums leading-none text-white/75 ${DISPLAY_TEXT_SECONDARY_CQW}`
+  'justify-self-center text-center font-mono font-bold tabular-nums leading-none text-white/75 text-[clamp(0.98rem,9.8cqw,1.75rem)]'
 const POT_LAYER_NAME =
-  `min-w-0 justify-self-start pl-[0.15em] truncate font-black leading-tight text-amber-50 ${DISPLAY_TEXT_SECONDARY_CQW}`
+  'min-w-0 justify-self-start pl-[0.15em] truncate font-black leading-tight text-amber-50 text-[clamp(0.9rem,9.4cqw,1.55rem)]'
 
 function PotLayerRow({
   line,
@@ -127,9 +123,9 @@ export function resolveShowdownSidePotLines(
 
 export const SHOWDOWN_RIBBON_BAR = 'shrink-0 py-1.5'
 export const SHOWDOWN_RIBBON_LABEL =
-  `font-black uppercase leading-none tracking-[0.16em] ${DISPLAY_TEXT_SECONDARY_CQW}`
+  'font-black uppercase leading-none tracking-[0.16em] text-[clamp(0.74rem,8.2cqw,1.25rem)]'
 const SHOWDOWN_RIBBON_TABLE_NUM =
-  `font-mono font-black tabular-nums leading-none text-yellow-400/95 ${DISPLAY_TEXT_SECONDARY_CQW}`
+  'font-mono font-black tabular-nums leading-none text-yellow-400/95 text-[clamp(0.86rem,7.4cqw,1.2rem)]'
 
 function ShowdownRibbonBar({
   tableNum,

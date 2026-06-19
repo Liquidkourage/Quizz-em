@@ -1,12 +1,6 @@
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import type { CSSProperties } from 'react'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
-import {
-  DISPLAY_TEXT_PRIMARY_CQ,
-  DISPLAY_TEXT_PRIMARY_CQW,
-  DISPLAY_TEXT_SECONDARY_CQ,
-  DISPLAY_TEXT_SECONDARY_CQW,
-} from './displayTypography'
 
 /** Tables with at least one seated player — the aerial floor shows these only. */
 export function populatedVenueTiles(tiles: DisplayVenueTileSnapshot[]): DisplayVenueTileSnapshot[] {
@@ -133,13 +127,15 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 1.75,
         cardPaddingClass: 'overflow-visible p-2 sm:p-2.5',
         innerGapClass: 'gap-1.5 sm:gap-2',
-        tableNumClass: `${DISPLAY_TEXT_PRIMARY_CQ} font-black leading-none`,
-        potClass: `${DISPLAY_TEXT_PRIMARY_CQW} font-mono font-black leading-none`,
-        phaseChipClass: `${DISPLAY_TEXT_SECONDARY_CQ} px-2 py-1 font-bold uppercase leading-none`,
+        tableNumClass: 'text-2xl sm:text-3xl',
+        potClass:
+          'text-[clamp(1.15rem,6.5cqw,2.25rem)] sm:text-[clamp(1.25rem,7cqw,2.4rem)]',
+        phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass: `${DISPLAY_TEXT_SECONDARY_CQW} font-black leading-tight tracking-tight text-amber-50`,
+        potSubtitleClass:
+          'text-[clamp(1rem,6.2cqw,1.65rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(1.1rem,6.8cqw,1.85rem)]',
         potSubtitleWrapClass: 'px-2.5 py-2',
       }
     case 'large':
@@ -151,13 +147,15 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 0.95,
         cardPaddingClass: 'overflow-visible p-2 sm:p-2',
         innerGapClass: 'gap-1.5 sm:gap-2',
-        tableNumClass: `${DISPLAY_TEXT_PRIMARY_CQ} font-black leading-none`,
-        potClass: `${DISPLAY_TEXT_PRIMARY_CQW} font-mono font-black leading-none`,
-        phaseChipClass: `${DISPLAY_TEXT_SECONDARY_CQ} px-2 py-1 font-bold uppercase leading-none`,
+        tableNumClass: 'text-xl sm:text-2xl',
+        potClass:
+          'text-[clamp(1.05rem,6cqw,2rem)] sm:text-[clamp(1.15rem,6.5cqw,2.1rem)]',
+        phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
         honeycombFillHeight: true,
         ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass: `${DISPLAY_TEXT_SECONDARY_CQW} font-black leading-tight tracking-tight text-amber-50`,
+        potSubtitleClass:
+          'text-[clamp(0.9rem,5.8cqw,1.45rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(1rem,6.2cqw,1.6rem)]',
         potSubtitleWrapClass: 'px-2 py-1.5',
       }
     case 'medium':
@@ -169,13 +167,15 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 1.25,
         cardPaddingClass: 'p-1.5 sm:p-2',
         innerGapClass: 'gap-1 sm:gap-1.5',
-        tableNumClass: `${DISPLAY_TEXT_PRIMARY_CQ} font-black leading-none`,
-        potClass: `${DISPLAY_TEXT_PRIMARY_CQ} font-mono font-black leading-none`,
-        phaseChipClass: `${DISPLAY_TEXT_SECONDARY_CQ} px-1.5 py-0.5 font-bold uppercase leading-none`,
+        tableNumClass: 'text-[clamp(0.9rem,min(10cqw,13cqh),1.35rem)] font-black leading-none',
+        potClass: 'text-[clamp(0.85rem,min(9cqw,12cqh),1.25rem)] font-mono font-black leading-none',
+        phaseChipClass:
+          'px-1 py-px text-[clamp(0.62rem,min(7.5cqw,10cqh),0.85rem)] font-bold uppercase leading-none',
         honeycombFillHeight: true,
         ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass: `${DISPLAY_TEXT_SECONDARY_CQ} font-black leading-tight tracking-tight text-amber-50`,
+        potSubtitleClass:
+          'text-[clamp(0.72rem,min(8.5cqh,10cqw),1.05rem)] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1.5 py-1',
       }
     case 'compact':
@@ -187,13 +187,15 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 0.82,
         cardPaddingClass: 'p-1 sm:p-1.5',
         innerGapClass: 'gap-0.5',
-        tableNumClass: `${DISPLAY_TEXT_PRIMARY_CQ} font-black leading-none`,
-        potClass: `${DISPLAY_TEXT_PRIMARY_CQ} font-mono font-black leading-none`,
-        phaseChipClass: `${DISPLAY_TEXT_SECONDARY_CQ} px-1 py-0.5 font-bold uppercase leading-none`,
+        tableNumClass: 'text-[clamp(0.9rem,min(10cqw,13cqh),1.35rem)] font-black leading-none',
+        potClass: 'text-[clamp(0.85rem,min(9cqw,12cqh),1.25rem)] font-mono font-black leading-none',
+        phaseChipClass:
+          'px-1 py-px text-[clamp(0.62rem,min(7.5cqw,10cqh),0.85rem)] font-bold uppercase leading-none',
         honeycombFillHeight: true,
         ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass: `${DISPLAY_TEXT_SECONDARY_CQ} font-black leading-tight tracking-tight text-amber-50`,
+        potSubtitleClass:
+          'text-[clamp(0.72rem,min(8.5cqh,10cqw),1.05rem)] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
       }
     case 'micro':
@@ -205,13 +207,15 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 0.72,
         cardPaddingClass: 'p-0.5 sm:p-1',
         innerGapClass: 'gap-0.5',
-        tableNumClass: `${DISPLAY_TEXT_PRIMARY_CQ} font-black leading-none`,
-        potClass: `${DISPLAY_TEXT_PRIMARY_CQ} font-mono font-black leading-none`,
-        phaseChipClass: `${DISPLAY_TEXT_SECONDARY_CQ} px-1 py-0.5 font-bold uppercase leading-none`,
+        tableNumClass: 'text-[clamp(0.95rem,min(11cqw,14cqh),1.4rem)] font-black leading-none',
+        potClass: 'text-[clamp(0.9rem,min(10cqw,13cqh),1.3rem)] font-mono font-black leading-none',
+        phaseChipClass:
+          'px-1 py-px text-[clamp(0.65rem,min(8cqw,11cqh),0.9rem)] font-bold uppercase leading-none',
         honeycombFillHeight: true,
         ringScaleClass: '',
         showPotSubtitle: false,
-        potSubtitleClass: `${DISPLAY_TEXT_SECONDARY_CQ} font-black leading-none tracking-tight text-amber-50`,
+        potSubtitleClass:
+          'text-[clamp(0.72rem,min(8.5cqh,10cqw),1rem)] font-black leading-none tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
       }
   }

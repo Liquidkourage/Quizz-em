@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import type { VenueFloorShowdownVariantId } from './venueFloorShowdownVariants'
-import { DISPLAY_TEXT_PRIMARY_CQW } from './displayTypography'
 
 export type GuessCardTone =
   | 'amber'
@@ -45,7 +44,14 @@ export function GuessNumberCard({
         : size === 'sm'
           ? 'px-[0.4em] py-[0.3em]'
           : 'px-[0.5em] py-[0.38em]'
-  const text = DISPLAY_TEXT_PRIMARY_CQW
+  const text =
+    size === 'xl'
+      ? 'text-[clamp(1rem,10cqw,1.9rem)]'
+      : size === 'lg'
+        ? 'text-[clamp(0.95rem,9cqw,1.7rem)]'
+        : size === 'sm'
+          ? 'text-[clamp(0.8rem,7.5cqw,1.25rem)]'
+          : 'text-[clamp(0.88rem,8.5cqw,1.5rem)]'
 
   return (
     <div

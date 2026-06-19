@@ -38,15 +38,6 @@ import {
 } from './venueFloorGridLayout'
 import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
-import {
-  DISPLAY_TEXT_BADGE_CQ,
-  DISPLAY_TEXT_HEADLINE,
-  DISPLAY_TEXT_PRIMARY,
-  DISPLAY_TEXT_PRIMARY_CQ,
-  DISPLAY_TEXT_PRIMARY_CQW,
-  DISPLAY_TEXT_SECONDARY,
-  DISPLAY_TEXT_SECONDARY_CQ,
-} from './displayTypography'
 
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
@@ -229,11 +220,14 @@ function MosaicDigitCard({
     size === 'community'
       ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(1.4rem,10.3cqw,2.45rem)] shrink-0'
       : 'h-[clamp(1.1rem,7.4cqw,1.75rem)] w-[clamp(0.8rem,5.3cqw,1.3rem)] shrink-0'
-  const textClass = size === 'community' ? DISPLAY_TEXT_PRIMARY_CQW : DISPLAY_TEXT_BADGE_CQ
+  const textClass =
+    size === 'community'
+      ? 'text-[clamp(1.1rem,8.5cqw,1.75rem)]'
+      : 'text-[clamp(0.58rem,4cqw,0.82rem)]'
   if (faceDown) {
     return (
       <span
-        className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border border-violet-400/50 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 shadow-sm shadow-violet-500/25 ${sizeClass} ${DISPLAY_TEXT_BADGE_CQ}`}
+        className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border border-violet-400/50 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.52rem,3.5cqw,0.75rem)] leading-none shadow-sm shadow-violet-500/25 ${sizeClass}`}
         aria-hidden
       >
         <span className="text-violet-300/80">✦</span>
@@ -487,7 +481,7 @@ function mosaicPhaseLabel(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean
   if (showNoMoreBets) return dense ? 'NO BETS' : 'NO MORE BETS'
   const ph = String(row.phase ?? '').trim().toLowerCase()
   if (ph === 'betting' && row.seated >= 2 && row.isBettingOpen === true) {
-    return 'Wagering'
+    return dense ? 'WAGER' : 'Wagering'
   }
   if (dense) {
     if (ph === 'question') return 'Setup'
@@ -518,9 +512,9 @@ function mosaicPhaseCornerTypography(
     return 'whitespace-nowrap font-black uppercase leading-none tracking-tight'
   }
   if (wageringLive) {
-    return 'font-black uppercase leading-tight tracking-wide'
+    return 'truncate font-black uppercase leading-none tracking-wide'
   }
-  return 'font-bold uppercase leading-tight truncate'
+  return 'truncate font-bold uppercase leading-none'
 }
 function fallbackLabelEllipseScale(size: 'md' | 'lg', feltStacks: boolean): number {
   if (size === 'lg') return feltStacks ? 1.045 : 1.03
@@ -746,8 +740,8 @@ function SeatRingWithLabels({
       : 'h-10 w-10 sm:h-11 sm:w-11'
   const labelClass =
     size === 'lg'
-      ? `max-w-[min(12rem,34vw)] ${DISPLAY_TEXT_PRIMARY_CQ}`
-      : `max-w-[min(7.125rem,46%)] sm:max-w-[min(7.75rem,48%)] ${DISPLAY_TEXT_PRIMARY_CQ}`
+      ? 'max-w-[min(12rem,34vw)] text-[1.125rem] leading-tight sm:text-[1.3rem] sm:leading-snug md:text-[1.5625rem]'
+      : 'max-w-[min(7.125rem,46%)] text-[0.6875rem] leading-tight sm:max-w-[min(7.75rem,48%)] sm:text-xs md:text-sm'
 
   /** Bankroll stack on felt: radial scale toward seat (1 = on rim dot); larger = nearer table edge / seat marker. */
   const chipInnerScale = 0.635
@@ -817,7 +811,7 @@ function SeatRingWithLabels({
   const mosaicHideHoleCards = mosaicDensity === 'micro' || mosaicDensity === 'compact'
 
   return (
-    <div ref={ringElRef} className={`@container relative overflow-visible ${wrap}`}>
+    <div ref={ringElRef} className={`@container relative ${isMosaic ? 'overflow-hidden' : 'overflow-visible'} ${wrap}`}>
       <div
         className={`absolute border-amber-700/90 shadow-md ${
           size === 'lg'
@@ -1008,9 +1002,7 @@ function SeatRingWithLabels({
                 }
               >
                 {isMosaic && filled && mosaicInitials ? (
-                  <span
-                    className={`block w-full min-w-0 px-0.5 text-center font-black tracking-tight text-amber-50 ${DISPLAY_TEXT_BADGE_CQ}`}
-                  >
+                  <span className="block w-full min-w-0 truncate px-0.5 text-center text-[clamp(0.5rem,min(7cqw,9cqh),0.8rem)] font-black leading-none tracking-tight text-amber-50">
                     {mosaicInitials}
                   </span>
                 ) : null}
@@ -1039,7 +1031,10 @@ function SeatRingWithLabels({
               const blindInset =
                 feltSeatStacks && size === 'lg' ? 0.71 : size === 'lg' ? 0.8 : 0.76
               const rp = venueSeatRimPct(i, blindInset, rimW, rimH, 'felt')
-              const badgeText = `${DISPLAY_TEXT_BADGE_CQ} font-black tracking-tight`
+              const badgeText =
+                size === 'lg'
+                  ? 'text-[8px] font-black leading-none tracking-tight sm:text-[9px]'
+                  : 'text-[7px] font-black leading-none tracking-tight sm:text-[8px]'
               return (
                 <div
                   className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center gap-px`}
@@ -1072,7 +1067,9 @@ function SeatRingWithLabels({
                 }}
               >
                 <span
-                  className={`whitespace-nowrap rounded border border-rose-300/90 bg-rose-950/95 px-[3px] py-px font-black uppercase tracking-tight text-rose-100 shadow-[0_1px_4px_rgba(0,0,0,0.85)] ${DISPLAY_TEXT_BADGE_CQ}`}
+                  className={`whitespace-nowrap rounded border border-rose-300/90 bg-rose-950/95 px-[3px] py-px font-black uppercase leading-none tracking-tight text-rose-100 shadow-[0_1px_4px_rgba(0,0,0,0.85)] ${
+                    size === 'lg' ? 'text-[8px] sm:text-[9px]' : 'text-[7px] sm:text-[8px]'
+                  }`}
                 >
                   Out
                 </span>
@@ -1097,9 +1094,7 @@ function SeatRingWithLabels({
                   draggable={false}
                   className="pointer-events-none h-[2.6925rem] w-auto max-w-[4.6rem] shrink-0 select-none object-contain opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:h-[3.0875rem] sm:max-w-[5.35rem]"
                 />
-                <span
-                  className={`max-w-[10rem] text-center font-mono font-extrabold tabular-nums tracking-tight text-amber-50 sm:max-w-[11rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${DISPLAY_TEXT_SECONDARY_CQ}`}
-                >
+                <span className="max-w-[10rem] text-center font-mono text-[1.16rem] font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[11rem] sm:text-[1.26rem] md:text-[1.315rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)]">
                   {formatVenueBankroll(chips)}
                 </span>
               </div>
@@ -1126,7 +1121,7 @@ function SeatRingWithLabels({
                     <>
                       {showMonoStackUnderName ? (
                         <span
-                          className={`mt-0.5 block max-w-full truncate font-mono tabular-nums ${DISPLAY_TEXT_SECONDARY_CQ} ${
+                          className={`mt-0.5 block max-w-full truncate font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
                             isFolded ? 'text-white/40' : 'text-casino-emerald'
                           }`}
                         >
@@ -1149,18 +1144,22 @@ function SeatRingWithLabels({
               >
                 {showActingCallLine ? (
                   <span
-                    className={`whitespace-normal font-bold tabular-nums text-amber-50 shadow-md ${DISPLAY_TEXT_SECONDARY_CQ} ${
+                    className={
                       size === 'lg'
-                        ? 'max-w-[min(100vw-2rem,20rem)] rounded-lg border-2 border-amber-300/45 bg-neutral-950/95 px-2.5 py-1.5 ring-1 ring-amber-400/25'
-                        : 'max-w-[min(90vw,12rem)] rounded-md border-2 border-amber-300/35 bg-neutral-950/95 px-2 py-1'
-                    }`}
+                        ? 'max-w-[min(100vw-2rem,20rem)] whitespace-normal rounded-lg border-2 border-amber-300/45 bg-neutral-950/95 px-2.5 py-1.5 text-sm font-bold tabular-nums leading-snug text-amber-50 shadow-md ring-1 ring-amber-400/25 sm:text-base'
+                        : 'max-w-[min(90vw,12rem)] whitespace-normal rounded-md border-2 border-amber-300/35 bg-neutral-950/95 px-2 py-1 text-[0.65rem] font-bold tabular-nums leading-snug text-amber-50 shadow-md sm:text-xs'
+                    }
                   >
                     {formatActingCallHint(actingCallAmount ?? 0)}
                   </span>
                 ) : null}
                 {lastBetAct != null ? (
                   <span
-                    className={`max-w-full truncate border-2 px-1.5 py-0.5 font-black uppercase tracking-wide shadow-md ${DISPLAY_TEXT_PRIMARY_CQ} ${seatBettingActionPillClass(lastBetAct)}`}
+                    className={`max-w-full truncate border-2 px-1.5 py-0.5 font-black uppercase leading-tight tracking-wide shadow-md ${
+                      size === 'lg'
+                        ? 'text-sm sm:text-base md:text-lg'
+                        : 'text-[0.7rem] sm:text-xs md:text-sm'
+                    } ${seatBettingActionPillClass(lastBetAct)}`}
                   >
                     {seatBettingActionLabel(lastBetAct)}
                   </span>
@@ -1256,7 +1255,8 @@ function VenueMosaicTableCard({
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
   const feltFillsCell = floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight
   const showPotSubtitleStrip = floorSize.showPotSubtitle && mosaicPotSubtitle != null
-  const denseMosaicChrome = floorSize.size === 'compact' || floorSize.size === 'micro'
+  const denseMosaicChrome =
+    floorSize.size === 'medium' || floorSize.size === 'compact' || floorSize.size === 'micro'
 
   const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
@@ -1285,24 +1285,24 @@ function VenueMosaicTableCard({
           }`}
         >
         <div
-          className={`grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-x-1 ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,1fr)] items-center gap-x-0.5 overflow-hidden ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
-          <div className="min-w-0 justify-self-start">
+          <div className="min-w-0 justify-self-start overflow-hidden">
             <div
-              className={`font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
+              className={`truncate font-black tabular-nums leading-none text-yellow-400 ${floorSize.tableNumClass}`}
             >
               {tn}
             </div>
           </div>
           {!showFloorShowdownOverlay ? (
             <div
-              className="min-w-0 justify-self-center px-0.5 text-center"
+              className="min-w-0 max-w-full justify-self-center overflow-hidden px-0.5 text-center"
               aria-label={`Pot ${formatVenueBankroll(pot)}`}
             >
               <VenuePotAmount
                 amount={pot}
                 prefersReducedMotion={prefersReducedMotion}
-                className={`font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${
+                className={`truncate font-mono font-black tabular-nums leading-none tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${
                   ph === 'lobby' || ph === 'question'
                     ? pot > 0
                       ? 'text-yellow-300/75'
@@ -1314,12 +1314,10 @@ function VenueMosaicTableCard({
           ) : (
             <div aria-hidden />
           )}
-          <div className="min-w-0 justify-self-end">
+          <div className="min-w-0 justify-self-end overflow-hidden">
             <span
-              className={`max-w-[min(9rem,46vw)] shrink-0 rounded-md font-semibold leading-tight sm:max-w-[10rem] ${
-                showNoMoreBets
-                  ? `px-1.5 py-0.5 font-black uppercase leading-none ${DISPLAY_TEXT_SECONDARY_CQ}`
-                  : floorSize.phaseChipClass
+              className={`block max-w-full truncate rounded-md font-semibold leading-none ${
+                showNoMoreBets ? `${floorSize.phaseChipClass} font-black uppercase` : floorSize.phaseChipClass
               } ${mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)} ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
             >
               {mosaicPhaseLabel(row, showNoMoreBets, denseMosaicChrome)}
@@ -1757,10 +1755,10 @@ export default function VenueEightTablesPreview({
             initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className={`font-semibold text-white/92 ${DISPLAY_TEXT_PRIMARY}`}>
+            <p className="text-4xl font-semibold leading-snug text-white/92 sm:text-5xl md:text-6xl">
               Felts open here after the host assigns players from the lobby.
             </p>
-            <p className={`mx-auto mt-5 max-w-2xl text-white/65 ${DISPLAY_TEXT_SECONDARY}`}>
+            <p className="mx-auto mt-5 max-w-2xl text-2xl leading-relaxed text-white/65 sm:text-3xl md:text-4xl">
               Guests can keep joining from the briefing screen until seating runs.
             </p>
           </motion.div>
@@ -1814,21 +1812,17 @@ export default function VenueEightTablesPreview({
                     {(headlineSource.tableNum != null && headlinePhaseLabel) || showSetlistCue ? (
                       <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                         {headlineSource.tableNum != null && headlinePhaseLabel ? (
-                          <span
-                            className={`inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-yellow-100/95 ${DISPLAY_TEXT_SECONDARY}`}
-                          >
+                          <span className="inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-yellow-100/95 sm:text-xs">
                             Table {headlineSource.tableNum} · {headlinePhaseLabel}
                           </span>
                         ) : null}
                         {showSetlistCue ? (
-                          <span
-                            className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 ${DISPLAY_TEXT_SECONDARY}`}
-                          >
+                          <span className="inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-100/95 sm:text-xs">
                             Question {setlistCueNumber} of {setlistCueTotal}
                           </span>
                         ) : null}
                         {headlineDivergenceNote ? (
-                          <span className={`font-medium text-white/55 ${DISPLAY_TEXT_SECONDARY}`}>
+                          <span className="text-[10px] font-medium leading-snug text-white/55 sm:text-xs">
                             {headlineDivergenceNote}
                           </span>
                         ) : null}
@@ -1836,16 +1830,20 @@ export default function VenueEightTablesPreview({
                     ) : null}
                     {headlineQuestionDisplay ? (
                       <p
-                        className={`text-balance text-left font-bold tracking-tight text-yellow-400 ${DISPLAY_TEXT_HEADLINE}`}
+                        className={`text-balance text-left font-bold leading-snug tracking-tight text-yellow-400 ${
+                          ultraCompactVenueHeadline
+                            ? 'text-base sm:text-lg md:text-xl lg:text-[1.55rem]'
+                            : compactVenueHeadline
+                              ? 'text-lg sm:text-xl md:text-[1.45rem] lg:text-[1.75rem] xl:text-[2rem]'
+                              : 'text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem]'
+                        }`}
                       >
                         {headlineQuestionDisplay}
                       </p>
                     ) : inVenueShowdown ? (
                       <p className="sr-only">Showdown in progress.</p>
                     ) : inAnsweringCountdown ? (
-                      <p
-                        className={`text-left font-bold tracking-tight text-cyan-200 ${DISPLAY_TEXT_HEADLINE}`}
-                      >
+                      <p className="text-left text-lg font-bold leading-snug tracking-tight text-cyan-200 sm:text-xl md:text-2xl">
                         Answer on your phone now
                       </p>
                     ) : (
@@ -1862,20 +1860,14 @@ export default function VenueEightTablesPreview({
                             : `Blinds ${venueBlindsHeadline.amount}`
                         }
                       >
-                        <span
-                          className={`text-center font-black uppercase tracking-wide text-amber-200/85 ${DISPLAY_TEXT_SECONDARY}`}
-                        >
+                        <span className="text-center text-[10px] font-black uppercase leading-tight tracking-wide text-amber-200/85 sm:text-xs">
                           Blinds
                         </span>
-                        <div
-                          className={`text-center font-mono font-black tabular-nums tracking-tight text-amber-100 ${DISPLAY_TEXT_PRIMARY}`}
-                        >
+                        <div className="text-center font-mono text-xl font-black tabular-nums tracking-tight text-amber-100 sm:text-3xl md:text-4xl">
                           {venueBlindsHeadline.amount}
                         </div>
                         {venueBlindsHeadline.meta ? (
-                          <span
-                            className={`max-w-[8.5rem] text-center font-semibold text-amber-200/65 sm:max-w-[10rem] ${DISPLAY_TEXT_SECONDARY}`}
-                          >
+                          <span className="max-w-[8.5rem] text-center text-[9px] font-semibold leading-tight text-amber-200/65 sm:max-w-[10rem] sm:text-[10px]">
                             {venueBlindsHeadline.meta}
                           </span>
                         ) : null}
@@ -1886,14 +1878,10 @@ export default function VenueEightTablesPreview({
                       className="flex shrink-0 flex-row items-center justify-center gap-1.5 rounded-lg border border-amber-400/55 bg-amber-950/45 px-2 py-1.5 shadow-[0_0_20px_rgba(251,191,36,0.1)] sm:flex-col sm:px-3 sm:py-2"
                       aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
                     >
-                      <span
-                        className={`font-semibold uppercase tracking-wide text-amber-200/70 ${DISPLAY_TEXT_SECONDARY}`}
-                      >
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-200/70 sm:text-xs">
                         Correct answer
                       </span>
-                      <div
-                        className={`font-mono font-black tracking-tight text-amber-100 ${DISPLAY_TEXT_PRIMARY}`}
-                      >
+                      <div className="font-mono text-3xl font-black tracking-tight text-amber-100 sm:text-5xl md:text-6xl xl:text-7xl">
                         {formatTriviaNumber(venueShowdownAnswer)}
                       </div>
                     </div>
@@ -1911,21 +1899,15 @@ export default function VenueEightTablesPreview({
                           : 'Answer on your phone — timer starts when every table finishes wagering'
                       }
                     >
-                      <span
-                        className={`text-center font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_SECONDARY}`}
-                      >
+                      <span className="text-center text-[10px] font-black uppercase leading-tight tracking-wide text-cyan-100/90 sm:text-xs">
                         Answer on your phone
                       </span>
                       {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
-                        <div
-                          className={`text-center font-mono font-black tabular-nums tracking-tight text-cyan-100 ${DISPLAY_TEXT_PRIMARY}`}
-                        >
+                        <div className="text-center font-mono text-3xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-5xl md:text-6xl xl:text-7xl">
                           {timerSeconds}s
                         </div>
                       ) : othersStillWagering ? (
-                        <div
-                          className={`text-center font-semibold text-cyan-200/75 ${DISPLAY_TEXT_SECONDARY}`}
-                        >
+                        <div className="text-center text-[11px] font-semibold leading-snug text-cyan-200/75 sm:text-xs">
                           Waiting for last table
                         </div>
                       ) : null}
@@ -1981,7 +1963,7 @@ export default function VenueEightTablesPreview({
             initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className={`font-semibold text-white/90 ${DISPLAY_TEXT_PRIMARY}`}>
+            <p className="text-2xl font-semibold text-white/90 sm:text-3xl">
               Tables are open — waiting for players to sit.
             </p>
           </motion.div>

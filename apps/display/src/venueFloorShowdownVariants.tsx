@@ -92,22 +92,17 @@ function buildCtx(
   }
 }
 
-import {
-  DISPLAY_TEXT_PRIMARY_CQW,
-  DISPLAY_TEXT_SECONDARY_CQW,
-} from './displayTypography'
-
 const WINNER_NAME_SINGLE =
-  `min-w-0 font-black leading-[1.05] text-amber-50 ${DISPLAY_TEXT_PRIMARY_CQW}`
+  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1.32rem,16.2cqw,3rem)]'
 const WINNER_NAME_SPLIT =
-  `min-w-0 font-black leading-[1.05] text-amber-50 ${DISPLAY_TEXT_PRIMARY_CQW}`
+  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1.05rem,12.2cqw,2.2rem)]'
 
 function winnerNameClass(splitWin: boolean): string {
   return splitWin ? WINNER_NAME_SPLIT : WINNER_NAME_SINGLE
 }
 
 const POT_AMOUNT =
-  `font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] ${DISPLAY_TEXT_PRIMARY_CQW}`
+  'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.25rem,13.2cqw,2.85rem)]'
 
 function HeroPot({ pot, splitWin = false }: { pot: number; splitWin?: boolean }) {
   if (pot <= 0) return null
@@ -116,7 +111,7 @@ function HeroPot({ pot, splitWin = false }: { pot: number; splitWin?: boolean })
       <div className="flex items-baseline justify-center gap-[0.35em]">
         <p className={POT_AMOUNT}>{formatPot(pot)}</p>
         {splitWin ? (
-          <span className={`shrink-0 font-bold uppercase tracking-[0.18em] text-yellow-200/90 ${DISPLAY_TEXT_SECONDARY_CQW}`}>
+          <span className="shrink-0 font-bold uppercase tracking-[0.18em] text-yellow-200/90 text-[clamp(0.58rem,5.4cqw,0.82rem)]">
             each
           </span>
         ) : null}

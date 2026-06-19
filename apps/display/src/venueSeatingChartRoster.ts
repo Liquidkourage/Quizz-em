@@ -6,7 +6,7 @@ export type SeatingChartPlayerEntry = {
   seatNum: number
 }
 
-/** @deprecated Rosters now flex to fill gutter columns; kept for tests/docs reference only. */
+/** Fixed width for left/right roster gutters (center carousel keeps its frame). */
 export const SEATING_CHART_ROSTER_WIDTH_REM = 13.5
 
 /** Players per roster carousel page — tuned for compact gutter rows on a venue display. */

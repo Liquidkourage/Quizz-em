@@ -440,7 +440,7 @@ function DisplayTableInfoBar({
   }
 
   return (
-    <div className="w-full px-4">
+    <div className="mx-auto max-w-4xl px-4">
       <div className="border border-yellow-600 bg-black/90 px-4 py-4 backdrop-blur-md md:rounded-t-lg md:py-5">
         <div className="grid grid-cols-2 gap-4 text-center md:grid-cols-4 md:gap-5">
           <div>
@@ -1493,7 +1493,7 @@ function DisplayTableLive({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <div className="flex w-full flex-col gap-4 rounded-2xl border-2 border-yellow-500/50 bg-black/90 p-5 shadow-2xl backdrop-blur-md sm:flex-row sm:items-stretch">
+            <div className="mx-auto flex max-w-7xl flex-col gap-4 rounded-2xl border-2 border-yellow-500/50 bg-black/90 p-5 shadow-2xl backdrop-blur-md sm:flex-row sm:items-stretch">
               <div className="min-w-0 flex-1 text-center">
                 <div className={`mb-2 font-semibold text-white ${DISPLAY_TEXT_SECONDARY}`}>🎯 Current question</div>
                 <div className={`text-balance font-bold text-yellow-400 ${DISPLAY_TEXT_PRIMARY}`}>
@@ -1541,8 +1541,8 @@ function DisplayTableLive({
             isEmbedded
               ? embeddedHudOverlay
                 ? 'relative flex min-h-0 min-w-0 w-full max-w-none flex-1 overflow-hidden'
-                : 'relative flex min-h-0 min-w-0 w-full flex-1 overflow-hidden'
-              : `relative w-full h-[calc(100vh-200px)] ${
+                : 'relative mx-auto flex min-h-0 min-w-0 w-full max-w-7xl flex-1 overflow-hidden'
+              : `relative mx-auto max-w-7xl h-[calc(100vh-200px)] ${
                   showQuestionStrip ? 'mt-[min(188px,19.5vh)]' : 'mt-[5vh]'
                 }`
           }
@@ -2157,7 +2157,7 @@ function DisplayTableLive({
         <motion.div className={`${dockCls} inset-0 z-[60] flex items-center justify-center p-3 sm:p-6`}>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,rgba(20,80,45,0.35),rgba(0,0,0,0.88)_70%)] backdrop-blur-md" />
           <motion.div
-            className="relative flex h-full w-full max-h-[96vh] min-h-0 flex-col"
+            className="relative w-full max-w-4xl sm:max-w-5xl lg:max-w-6xl"
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 220, damping: 22 }}

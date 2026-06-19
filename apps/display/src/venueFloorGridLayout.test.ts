@@ -9,33 +9,20 @@ import {
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorTableSize,
-  venueFloorTileScale,
-  venueFloorFourRowFitZoom,
-  VENUE_FLOOR_FOUR_ROW_TILE_SCALE,
 } from './venueFloorGridLayout'
 
 describe('venueFloorRowTrackSpec', () => {
-  it('shrink-wraps a single checkerboard row', () => {
+  it('shrink-wraps a single row', () => {
     expect(venueFloorRowTrackSpec(1)).toEqual({
       gridTemplateRows: 'auto',
       shrinkWrapRowHeight: true,
       fillRowHeight: false,
     })
-    expect(venueFloorRowTrackSpec(venueBanquetLayout(2).rowCount).shrinkWrapRowHeight).toBe(true)
-    expect(venueFloorRowTrackSpec(2).shrinkWrapRowHeight).toBe(false)
   })
 
-  it('shrink-wraps four-row floors without a headline fill target', () => {
-    expect(venueFloorRowTrackSpec(4)).toEqual({
-      gridTemplateRows: 'repeat(4, auto)',
-      shrinkWrapRowHeight: true,
-      fillRowHeight: false,
-    })
-  })
-
-  it('fills equal row slots for four-row floors with a headline', () => {
-    expect(venueFloorRowTrackSpec(4, { fillHeight: true })).toEqual({
-      gridTemplateRows: 'repeat(4, minmax(0, 1fr))',
+  it('fills equal row slots for multi-row floors', () => {
+    expect(venueFloorRowTrackSpec(3)).toEqual({
+      gridTemplateRows: 'repeat(3, minmax(0, 1fr))',
       shrinkWrapRowHeight: false,
       fillRowHeight: true,
     })
@@ -50,28 +37,26 @@ describe('venueFloorGridPerspectiveStyle', () => {
 })
 
 describe('venueFloorTableSize', () => {
-  it('maps row count to size tiers', () => {
-    expect(venueFloorTableSize(venueBanquetLayout(1))).toBe('hero')
-    expect(venueFloorTableSize(venueBanquetLayout(2))).toBe('hero')
-    expect(venueFloorTableSize(venueBanquetLayout(4))).toBe('large')
+  it('maps table count to density tiers', () => {
+    expect(venueFloorTableSize(1)).toBe('hero')
+    expect(venueFloorTableSize(2)).toBe('hero')
+    expect(venueFloorTableSize(4)).toBe('large')
     expect(venueBanquetLayout(8).columns).toBe(4)
     expect(venueBanquetLayout(8).rowCount).toBe(2)
-    expect(venueFloorTableSize(venueBanquetLayout(6))).toBe('large')
-    expect(venueFloorTableSize(venueBanquetLayout(7))).toBe('large')
-    expect(venueFloorTableSize(venueBanquetLayout(9))).toBe('medium')
-    expect(venueFloorTableSize(venueBanquetLayout(12))).toBe('medium')
-    expect(venueFloorTableSize(venueBanquetLayout(13))).toBe('compact')
-    expect(venueFloorTableSize(venueBanquetLayout(16))).toBe('compact')
-    expect(venueFloorTableSize(venueBanquetLayout(17))).toBe('micro')
-    expect(venueFloorTableSize(venueBanquetLayout(20))).toBe('micro')
+    expect(venueFloorTableSize(6)).toBe('large')
+    expect(venueFloorTableSize(9)).toBe('medium')
+    expect(venueFloorTableSize(12)).toBe('medium')
+    expect(venueFloorTableSize(13)).toBe('compact')
+    expect(venueFloorTableSize(16)).toBe('micro')
+    expect(venueFloorTableSize(20)).toBe('micro')
   })
 
-  it('tightens gaps as rows increase', () => {
-    const hero = venueFloorSizeSpec(venueBanquetLayout(1))
-    const large = venueFloorSizeSpec(venueBanquetLayout(4))
-    const medium = venueFloorSizeSpec(venueBanquetLayout(9))
-    const compact = venueFloorSizeSpec(venueBanquetLayout(16))
-    const micro = venueFloorSizeSpec(venueBanquetLayout(20))
+  it('tightens gaps as density increases', () => {
+    const hero = venueFloorSizeSpec(1)
+    const large = venueFloorSizeSpec(4)
+    const medium = venueFloorSizeSpec(9)
+    const compact = venueFloorSizeSpec(13)
+    const micro = venueFloorSizeSpec(20)
 
     expect(hero.rowGapRem).toBeGreaterThan(large.rowGapRem)
     expect(medium.rowGapRem).toBeGreaterThan(compact.rowGapRem)
@@ -79,49 +64,39 @@ describe('venueFloorTableSize', () => {
 
     expect(large.showdownBrief).toBe(true)
     expect(medium.showdownBrief).toBe(true)
-    expect(medium.honeycombFillHeight).toBe(false)
     expect(micro.honeycombFillHeight).toBe(false)
     expect(compact.compactChrome).toBe(true)
-    expect(compact.showPotSubtitle).toBe(true)
     expect(micro.showPotSubtitle).toBe(false)
-    expect(micro.showdownBrief).toBe(true)
     expect(venueFloorGridPaddingRem(4).bottom).toBeGreaterThan(venueFloorGridPaddingRem(2).bottom)
   })
 })
 
+describe('venueBanquetLayout', () => {
+  it('selects five columns for fourteen tables', () => {
+    expect(venueBanquetLayout(14)).toMatchObject({ columns: 5, rowCount: 3, tableCount: 14 })
+  })
+})
+
 describe('venueFloorDenseTuning', () => {
-  it('tightens four-row floors when a headline is showing', () => {
+  it('tightens multi-row floors when a headline is showing', () => {
     const layout = venueBanquetLayout(20)
-    expect(layout.rowCount).toBe(4)
     const tuned = venueFloorDenseTuning(layout, { withHeadline: true })
     expect(tuned).not.toBeNull()
-    const micro = venueFloorSizeSpec(layout)
+    const micro = venueFloorSizeSpec(20)
     const applied = applyVenueFloorDenseTuning(micro, tuned)
     expect(applied.rowGapRem).toBeLessThan(micro.rowGapRem)
     expect(applied.cellGapRem).toBeLessThan(micro.cellGapRem)
-    expect(applied.feltMaxHeightCss).toContain('100dvh')
-    expect(applied.potClass).toContain('2.15vmin')
+    expect(applied.tileInsetClass).toBe('')
     expect(tuned!.paddingBottomRem).toBe(0)
   })
 
-  it('is null for three-row floors', () => {
-    expect(venueFloorDenseTuning(venueBanquetLayout(12))).toBeNull()
+  it('is null without a headline', () => {
+    expect(venueFloorDenseTuning(venueBanquetLayout(12), { withHeadline: false })).toBeNull()
   })
 })
 
 describe('venueFloorHeadlineFeltMaxHeightCss', () => {
   it('derives felt cap from viewport row budget', () => {
     expect(venueFloorHeadlineFeltMaxHeightCss(4)).toBe('calc((100dvh - 10rem) / 4 * 0.56)')
-  })
-})
-
-describe('venueFloorTileScale', () => {
-  it('caps four-row floor zoom at 90%', () => {
-    expect(VENUE_FLOOR_FOUR_ROW_TILE_SCALE).toBe(0.9)
-    expect(venueFloorTileScale(3)).toBe(1)
-    expect(venueFloorTileScale(4)).toBe(0.9)
-    expect(venueFloorFourRowFitZoom(900, 1000)).toBe(0.9)
-    expect(venueFloorFourRowFitZoom(800, 1000)).toBe(0.8)
-    expect(venueFloorFourRowFitZoom(950, 900)).toBe(0.9)
   })
 })

@@ -27,18 +27,16 @@ import {
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import {
-  banquetCheckerboardGridColumn,
-  banquetCheckerboardTrackCount,
   chunkTilesIntoBanquetRows,
   populatedVenueTiles,
   venueBanquetLayout,
   applyVenueFloorDenseTuning,
+  venueFloorCardSlotWidthCss,
   venueFloorDenseTuning,
   venueFloorGridPaddingRem,
   venueFloorGridPerspectiveStyle,
-  venueFloorRowTrackSpec,
   venueFloorSizeSpec,
-  venueFloorFourRowFitZoom,
+  type VenueFloorLayoutViewport,
   type VenueFloorSizeSpec,
   type VenueFloorTableSize,
   VENUE_FLOOR_MOSAIC_HEADER_TYPE,
@@ -1319,6 +1317,8 @@ type VenueMosaicTableCardProps = {
   floorSize: VenueFloorSizeSpec
   /** Honeycomb floor — do not stretch card height to fill a row slot. */
   floorHoneycomb?: boolean
+  /** Fill-height grid — stretch card and felt to the row slot. */
+  floorFillHeight?: boolean
   /** Single-row floor — card height follows felt content, not viewport. */
   shrinkWrapRowHeight?: boolean
   prefersReducedMotion?: boolean
@@ -1333,6 +1333,7 @@ function VenueMosaicTableCard({
   hideShowdownResults = false,
   floorSize,
   floorHoneycomb = false,
+  floorFillHeight = false,
   shrinkWrapRowHeight = false,
   prefersReducedMotion = false,
   dimAnsweringEarly = false,
@@ -1380,8 +1381,10 @@ function VenueMosaicTableCard({
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
   const denseMosaicChrome =
     floorSize.size === 'medium' || floorSize.size === 'compact' || floorSize.size === 'micro'
-  const feltFillsCell = floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight
-  const mosaicShrinkWrap = shrinkWrapRowHeight || !floorSize.honeycombFillHeight
+  const feltFillsCell =
+    floorFillHeight || (floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight)
+  const mosaicShrinkWrap =
+    !floorFillHeight && (shrinkWrapRowHeight || !floorSize.honeycombFillHeight)
   const showPotSubtitleStrip =
     floorSize.showPotSubtitle && !denseMosaicChrome && mosaicPotSubtitle != null
   const showToCallStrip =
@@ -1414,19 +1417,25 @@ function VenueMosaicTableCard({
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
         className={`@container relative min-h-0 min-w-0 backdrop-blur-md ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
-          shrinkWrapRowHeight || mosaicShrinkWrap
-            ? 'flex h-auto flex-col'
-            : feltFillsCell && showPotSubtitleStrip
-              ? 'grid h-full grid-rows-[auto_minmax(0,1fr)_auto]'
-              : feltFillsCell
-                ? 'grid h-full grid-rows-[auto_minmax(0,1fr)]'
-                : 'flex h-full flex-col'
+          floorFillHeight
+            ? 'flex h-full min-h-0 w-full flex-col'
+            : shrinkWrapRowHeight || mosaicShrinkWrap
+              ? 'flex h-auto flex-col'
+              : feltFillsCell && showPotSubtitleStrip
+                ? 'grid h-full grid-rows-[auto_minmax(0,1fr)_auto]'
+                : feltFillsCell
+                  ? 'grid h-full grid-rows-[auto_minmax(0,1fr)]'
+                  : 'flex h-full flex-col'
         }`}
       >
         <div
-          className={`min-h-0 min-w-0 ${shrinkWrapRowHeight || mosaicShrinkWrap || !feltFillsCell ? `flex flex-col ${floorSize.innerGapClass}` : 'contents'} ${
-            showFloorShowdownOverlay ? 'opacity-25' : ''
-          }`}
+          className={`min-h-0 min-w-0 ${
+            floorFillHeight
+              ? 'flex min-h-0 flex-1 flex-col'
+              : shrinkWrapRowHeight || mosaicShrinkWrap || !feltFillsCell
+                ? `flex flex-col ${floorSize.innerGapClass}`
+                : 'contents'
+          } ${showFloorShowdownOverlay ? 'opacity-25' : ''}`}
         >
         <div
           className={`grid shrink-0 items-center gap-x-1 ${denseMosaicChrome ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-[auto_minmax(0,1fr)_auto]'} ${floorSize.headerRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
@@ -1494,22 +1503,25 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container/size relative z-[1] w-full shrink-0 overflow-hidden ${floorSize.ringScaleClass} ${
-            feltFillsCell
-              ? 'col-start-1 row-start-2 flex min-h-0 flex-1 items-center justify-center'
-              : mosaicShrinkWrap
-                ? 'shrink-0'
-                : 'flex min-h-0 flex-1 items-center justify-center'
+          className={`@container/size relative z-[1] w-full overflow-hidden ${floorSize.ringScaleClass} ${
+            floorFillHeight
+              ? 'flex min-h-0 flex-1 items-center justify-center'
+              : feltFillsCell
+                ? 'col-start-1 row-start-2 flex min-h-0 flex-1 items-center justify-center'
+                : mosaicShrinkWrap
+                  ? 'shrink-0'
+                  : 'flex min-h-0 flex-1 items-center justify-center'
           }`}
         >
           <SeatRingWithLabels
             ringMode="mosaic"
-            mosaicFluidWidth={floorHoneycomb}
+            mosaicFluidWidth={floorHoneycomb || floorFillHeight}
             mosaicDensity={floorSize.size}
             mosaicShrinkWrap={mosaicShrinkWrap}
+            mosaicFillHeight={floorFillHeight}
             mosaicFeltAspectClass={floorSize.feltAspectClass}
             mosaicFeltWidthClass={floorSize.feltWidthClass}
-            mosaicFeltMaxHeightCss={floorSize.feltMaxHeightCss}
+            mosaicFeltMaxHeightCss={floorFillHeight ? undefined : floorSize.feltMaxHeightCss}
             mosaicCenterPot={potOnFelt ? pot : null}
             mosaicCenterPotClass={VENUE_FLOOR_MOSAIC_HEADER_TYPE.feltPot}
             mosaicCenterPotMuted={potMuted}
@@ -1622,57 +1634,49 @@ function VenueAerialFloorGrid({
   sharedShowdownAnswer?: number
 }) {
   const n = tiles.length
-  const banquetLayout = useMemo(
-    () => venueBanquetLayout(Math.max(n, layoutTableCount)),
-    [n, layoutTableCount],
-  )
-  const { columns, rowCount } = banquetLayout
-  const denseTuning = useMemo(
-    () => venueFloorDenseTuning(banquetLayout, { withHeadline: showHeadline }),
-    [banquetLayout, showHeadline],
-  )
-  const floorSize = useMemo(
-    () => applyVenueFloorDenseTuning(venueFloorSizeSpec(banquetLayout), denseTuning),
-    [banquetLayout, denseTuning],
-  )
-  const floorRowTracks = useMemo(() => venueFloorRowTrackSpec(rowCount), [rowCount])
-  const shrinkWrapRowHeight = floorRowTracks.shrinkWrapRowHeight
-  const fourRowFloor = rowCount >= 4
+  const layoutCount = n > 0 ? n : layoutTableCount
   const floorHostRef = useRef<HTMLDivElement>(null)
-  const floorContentRef = useRef<HTMLDivElement>(null)
-  const fourRowFloorZoomRef = useRef(1)
-  const [fourRowFloorZoom, setFourRowFloorZoom] = useState(1)
+  const [floorViewport, setFloorViewport] = useState<VenueFloorLayoutViewport | undefined>()
 
   useLayoutEffect(() => {
-    if (!fourRowFloor) {
-      fourRowFloorZoomRef.current = 1
-      setFourRowFloorZoom(1)
-      return
-    }
     const host = floorHostRef.current
-    const content = floorContentRef.current
-    if (!host || !content) return
+    if (!host || typeof ResizeObserver === 'undefined') return
 
     const measure = () => {
-      const avail = host.clientHeight
-      let need = content.scrollHeight
-      const currentZoom = fourRowFloorZoomRef.current
-      if (currentZoom > 0 && currentZoom < 1) {
-        need = need / currentZoom
-      }
-      if (!(avail > 0) || !(need > 0)) return
-      const next = venueFloorFourRowFitZoom(avail, need)
-      if (Math.abs(fourRowFloorZoomRef.current - next) < 0.004) return
-      fourRowFloorZoomRef.current = next
-      setFourRowFloorZoom(next)
+      const widthPx = host.clientWidth
+      const heightPx = host.clientHeight
+      if (widthPx <= 0 || heightPx <= 0) return
+      setFloorViewport((prev) =>
+        prev?.widthPx === widthPx && prev.heightPx === heightPx
+          ? prev
+          : { widthPx, heightPx }
+      )
     }
 
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(host)
-    ro.observe(content)
     return () => ro.disconnect()
-  }, [fourRowFloor, n, columns, rowCount, floorSize.rowGapRem, floorSize.cellGapRem, floorSize.feltMaxHeightCss, showHeadline])
+  }, [])
+
+  const floorLayout = useMemo(
+    () =>
+      venueBanquetLayout(layoutCount, {
+        viewport: floorViewport,
+        withHeadline: showHeadline,
+      }),
+    [layoutCount, floorViewport, showHeadline]
+  )
+  const { columns, rowCount } = floorLayout
+  const denseTuning = useMemo(
+    () => venueFloorDenseTuning(floorLayout, { withHeadline: showHeadline }),
+    [floorLayout, showHeadline]
+  )
+  const floorSize = useMemo(
+    () => applyVenueFloorDenseTuning(venueFloorSizeSpec(layoutCount), denseTuning),
+    [layoutCount, denseTuning]
+  )
+  const fillRowHeight = rowCount > 1
   const floorGridPadding = useMemo(() => {
     if (denseTuning) {
       return { top: denseTuning.paddingTopRem, bottom: denseTuning.paddingBottomRem }
@@ -1680,7 +1684,11 @@ function VenueAerialFloorGrid({
     return venueFloorGridPaddingRem(rowCount)
   }, [denseTuning, rowCount])
   const floorGridPerspective = useMemo(() => venueFloorGridPerspectiveStyle(rowCount), [rowCount])
-  const banquetRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
+  const floorRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
+  const cardSlotWidth = useMemo(
+    () => venueFloorCardSlotWidthCss(columns, floorSize.cellGapRem),
+    [columns, floorSize.cellGapRem]
+  )
   const inVenueShowdown = useMemo(() => showdownTableNums(tiles).length > 0, [tiles])
   const showdownBrief =
     floorSize.showdownBrief || rowCount >= 2 || (showHeadline && inVenueShowdown)
@@ -1690,7 +1698,7 @@ function VenueAerialFloorGrid({
 
   return (
     <motion.section
-      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, checkerboard half-stagger`}
+      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, responsive grid`}
       className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
       initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -1729,75 +1737,53 @@ function VenueAerialFloorGrid({
         }}
       />
 
-      <div ref={floorHostRef} className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <div
-        ref={floorContentRef}
-        className={`relative grid w-full ${
+        ref={floorHostRef}
+        className={`relative flex min-h-0 flex-1 flex-col overflow-hidden ${
           denseTuning?.gridInsetClass ?? 'px-4 sm:px-6'
-        } ${shrinkWrapRowHeight ? 'content-start items-start' : 'h-full content-stretch items-stretch'}`}
+        }`}
         style={
           {
-            gridTemplateRows: floorRowTracks.gridTemplateRows,
-            gap: `${floorSize.rowGapRem}rem`,
             paddingTop: `${floorGridPadding.top}rem`,
             paddingBottom: `${floorGridPadding.bottom}rem`,
-            zoom: fourRowFloor && fourRowFloorZoom < 1 ? fourRowFloorZoom : undefined,
             ...floorGridPerspective,
           } as CSSProperties
         }
       >
-        {banquetRows.map((rowTiles, rowIndex) => {
-          const trackCount = banquetCheckerboardTrackCount(columns)
-
-          return (
+        <div
+          className="flex min-h-0 flex-1 flex-col"
+          style={{ gap: `${floorSize.rowGapRem}rem` }}
+        >
+          {floorRows.map((rowTiles, rowIndex) => (
             <div
               key={rowTiles.map((t) => t.tableNum).join('-') || `row-${rowIndex}`}
-              className={`relative grid w-full min-w-0 ${
-                shrinkWrapRowHeight ? 'h-auto items-start' : 'h-full min-h-0 items-stretch'
+              className={`flex min-h-0 w-full items-stretch justify-center ${
+                fillRowHeight ? 'flex-1' : 'flex-none'
               }`}
-              style={{
-                gridTemplateColumns: `repeat(${trackCount}, minmax(0, 1fr))`,
-                gap: `${floorSize.cellGapRem}rem`,
-                zIndex: rowIndex,
-              }}
+              style={{ gap: `${floorSize.cellGapRem}rem` }}
             >
-              {Array.from({ length: columns }, (_, colIndex) => {
-                const row = rowTiles[colIndex]
-                const gridColumn = banquetCheckerboardGridColumn(rowIndex, colIndex)
-                if (row == null) {
-                  return (
-                    <div
-                      key={`pad-${rowIndex}-${colIndex}`}
-                      className="min-h-0 min-w-0"
-                      style={{ gridColumn }}
-                      aria-hidden
-                    />
-                  )
-                }
-
-                return (
-                  <div
-                    key={row.tableNum}
-                    className={`flex min-w-0 w-full flex-col ${shrinkWrapRowHeight ? 'h-auto' : 'h-full min-h-0'}`}
-                    style={{ gridColumn }}
-                  >
-                    <VenueMosaicTableCard
-                      row={row}
-                      hideShowdownResults={showdownBrief}
-                      floorSize={floorSize}
-                      floorHoneycomb
-                      shrinkWrapRowHeight={shrinkWrapRowHeight}
-                      prefersReducedMotion={prefersReducedMotion}
-                      dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
-                      sharedShowdownAnswer={sharedShowdownAnswer}
-                    />
-                  </div>
-                )
-              })}
+              {rowTiles.map((row) => (
+                <div
+                  key={row.tableNum}
+                  className={`flex min-h-0 min-w-0 flex-col ${fillRowHeight ? 'h-full' : 'h-auto'}`}
+                  style={{ flex: `0 0 ${cardSlotWidth}`, maxWidth: cardSlotWidth }}
+                >
+                  <VenueMosaicTableCard
+                    row={row}
+                    hideShowdownResults={showdownBrief}
+                    floorSize={floorSize}
+                    floorHoneycomb
+                    floorFillHeight={fillRowHeight}
+                    shrinkWrapRowHeight={!fillRowHeight}
+                    prefersReducedMotion={prefersReducedMotion}
+                    dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
+                    sharedShowdownAnswer={sharedShowdownAnswer}
+                  />
+                </div>
+              ))}
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
       </div>
     </motion.section>
   )
@@ -1818,7 +1804,7 @@ function VenueHeroSpotlightLayout({
   prefersReducedMotion: boolean
   sharedShowdownAnswer?: number
 }) {
-  const heroSize = useMemo(() => venueFloorSizeSpec(venueBanquetLayout(1)), [])
+  const heroSize = useMemo(() => venueFloorSizeSpec(1), [])
   const othersStillWagering = useMemo(() => venueHasOpenWagering(companions), [companions])
 
   return (
@@ -1861,7 +1847,7 @@ type VenueEightTablesPreviewProps = {
 }
 
 /**
- * Venue wall: A1 checkerboard floor (5×4 half-stagger, uniform tables).
+ * Venue wall: count-aware responsive table grid beneath the headline strip.
  */
 export default function VenueEightTablesPreview({
   wall,

@@ -1,6 +1,19 @@
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import type { CSSProperties } from 'react'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
+import {
+  selectVenueFloorLayout,
+  venueFloorDensityForCount,
+  type VenueFloorLayoutViewport,
+} from './venueFloorLayout'
+
+export type { VenueFloorLayoutPlan, VenueFloorLayoutViewport } from './venueFloorLayout'
+export {
+  selectVenueFloorLayout,
+  venueFloorCardSlotWidthCss,
+  venueFloorDensityForCount,
+  venueFloorPreferredColumns,
+} from './venueFloorLayout'
 
 /** Tables with at least one seated player — the aerial floor shows these only. */
 export function populatedVenueTiles(tiles: DisplayVenueTileSnapshot[]): DisplayVenueTileSnapshot[] {
@@ -10,43 +23,38 @@ export function populatedVenueTiles(tiles: DisplayVenueTileSnapshot[]): DisplayV
 export const VENUE_FLOOR_GRID_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
 
 /**
- * Canonical venue floor: **A1 classic half-stagger** (banquet checkerboard).
- * 5×4 @ 20 tables; odd rows offset by half a column; uniform table size.
+ * Canonical venue floor: count-aware responsive grid with centered partial rows.
+ * Replaces the legacy A1 checkerboard half-stagger for the public wagering wall.
  */
-export const VENUE_FLOOR_LAYOUT_A1 = 'checkerboard-half-stagger' as const
+export const VENUE_FLOOR_LAYOUT_A1 = 'responsive-fill-grid' as const
 
-/** @deprecated Prefer {@link venueFloorSizeSpec} row/cell gaps. */
-export const VENUE_FLOOR_ROW_GAP_REM = 1.25
+/** @deprecated Legacy label — layout is no longer checkerboard-staggered. */
+export const VENUE_FLOOR_LAYOUT_LEGACY_CHECKERBOARD = 'checkerboard-half-stagger' as const
 
-/** @deprecated Prefer {@link venueFloorSizeSpec} row/cell gaps. */
-export const VENUE_FLOOR_CELL_GAP_REM = 1.45
-
-/** Columns for A1 — prefer fewer, wider rows so 5–8 felts fit one TV (4×2 vs 3×3). */
-export function venueBanquetColumns(tableCount: number): number {
-  const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
-  if (n <= 1) return 1
-  if (n <= 4) return 2
-  if (n <= 16) return 4
-  return 5
+/** Columns — delegates to {@link selectVenueFloorLayout}. */
+export function venueBanquetColumns(
+  tableCount: number,
+  opts?: { viewport?: VenueFloorLayoutViewport; withHeadline?: boolean }
+): number {
+  return selectVenueFloorLayout({ tableCount, ...opts }).columns
 }
 
 export type VenueBanquetLayout = {
   columns: number
   rowCount: number
+  tableCount: number
+  density: VenueFloorTableSize
 }
 
-export function venueBanquetLayout(tableCount: number): VenueBanquetLayout {
-  const columns = venueBanquetColumns(tableCount)
-  const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
-  const rowCount = n <= 0 ? 0 : Math.ceil(n / columns)
-  return { columns, rowCount }
+export function venueBanquetLayout(
+  tableCount: number,
+  opts?: { viewport?: VenueFloorLayoutViewport; withHeadline?: boolean }
+): VenueBanquetLayout {
+  return selectVenueFloorLayout({ tableCount, ...opts })
 }
 
-/** Single-row floors shrink-wrap; four-row + headline fills equal row slots. */
-export function venueFloorRowTrackSpec(
-  rowCount: number,
-  opts?: { fillHeight?: boolean }
-): {
+/** Multi-row floors fill equal-height row slots beneath the headline. */
+export function venueFloorRowTrackSpec(rowCount: number): {
   gridTemplateRows: string
   shrinkWrapRowHeight: boolean
   fillRowHeight: boolean
@@ -54,24 +62,10 @@ export function venueFloorRowTrackSpec(
   if (rowCount <= 1) {
     return { gridTemplateRows: 'auto', shrinkWrapRowHeight: true, fillRowHeight: false }
   }
-  if (rowCount >= 4) {
-    if (opts?.fillHeight) {
-      return {
-        gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
-        shrinkWrapRowHeight: false,
-        fillRowHeight: true,
-      }
-    }
-    return {
-      gridTemplateRows: `repeat(${rowCount}, auto)`,
-      shrinkWrapRowHeight: true,
-      fillRowHeight: false,
-    }
-  }
   return {
     gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
     shrinkWrapRowHeight: false,
-    fillRowHeight: false,
+    fillRowHeight: true,
   }
 }
 
@@ -159,38 +153,19 @@ export type VenueFloorSizeSpec = {
   feltMaxHeightCss?: string
 }
 
-/** Felt height cap for four-row floors with a headline strip. */
+/** Felt height cap when not using fill-height rows (legacy path). */
 export function venueFloorHeadlineFeltMaxHeightCss(rowCount: number): string {
-  const rows = Math.max(4, Math.floor(rowCount))
+  const rows = Math.max(1, Math.floor(rowCount))
   return `calc((100dvh - 10rem) / ${rows} * 0.56)`
 }
 
-/** Max uniform zoom for four-row floors — also the shrink target when content fits. */
-export const VENUE_FLOOR_FOUR_ROW_TILE_SCALE = 0.9
-
-export function venueFloorTileScale(rowCount: number): number {
-  return rowCount >= 4 ? VENUE_FLOOR_FOUR_ROW_TILE_SCALE : 1
+/** Pick felt size tier from active table count. */
+export function venueFloorTableSize(tableCount: number): VenueFloorTableSize {
+  return venueFloorDensityForCount(tableCount)
 }
 
-/** Pick the smaller of the four-row shrink cap and the zoom needed to fit the host. */
-export function venueFloorFourRowFitZoom(availPx: number, needPx: number): number {
-  const cap = VENUE_FLOOR_FOUR_ROW_TILE_SCALE
-  if (!(availPx > 0) || !(needPx > 0)) return cap
-  return Math.min(cap, availPx / needPx)
-}
-
-/** Pick felt size tier from banquet row count (and column width at the tightest band). */
-export function venueFloorTableSize(layout: VenueBanquetLayout): VenueFloorTableSize {
-  const { columns, rowCount } = layout
-  if (rowCount <= 1) return 'hero'
-  if (rowCount === 2) return 'large'
-  if (rowCount === 3) return 'medium'
-  if (rowCount === 4 && columns <= 4) return 'compact'
-  return 'micro'
-}
-
-export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSpec {
-  const size = venueFloorTableSize(layout)
+export function venueFloorSizeSpec(tableCount: number): VenueFloorSizeSpec {
+  const size = venueFloorTableSize(tableCount)
   switch (size) {
     case 'hero':
       return {
@@ -390,19 +365,20 @@ export type VenueFloorDenseTuning = {
   feltMaxHeightCss?: string
 }
 
-/** Four-row floors — tighten gaps and felt so the bottom row stays in view with a headline. */
+/** Tighten gaps on multi-row headline floors. */
 export function venueFloorDenseTuning(
   layout: VenueBanquetLayout,
   opts?: { withHeadline?: boolean }
 ): VenueFloorDenseTuning | null {
-  if (layout.rowCount < 4) return null
+  if (layout.rowCount < 2) return null
   const headline = opts?.withHeadline === true
+  if (!headline) return null
   return {
-    rowGapRem: headline ? 0.2 : 0.55,
-    cellGapRem: headline ? 0.28 : 0.58,
+    rowGapRem: 0.35,
+    cellGapRem: 0.45,
     paddingTopRem: 0,
     paddingBottomRem: 0,
-    gridInsetClass: headline ? 'px-1 sm:px-1.5' : 'px-2 sm:px-3',
+    gridInsetClass: 'px-1 sm:px-1.5',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
     tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
     potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
@@ -410,13 +386,8 @@ export function venueFloorDenseTuning(
     headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
     potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-none tracking-tight text-amber-50',
     ringScaleClass: '',
-    tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
-    ...(headline
-      ? {
-          cardPaddingClass: 'px-1 pt-0 pb-0',
-          feltMaxHeightCss: venueFloorHeadlineFeltMaxHeightCss(layout.rowCount),
-        }
-      : {}),
+    tileInsetClass: '',
+    cardPaddingClass: 'px-1 pt-0 pb-0',
   }
 }
 

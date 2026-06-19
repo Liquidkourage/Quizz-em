@@ -6,40 +6,36 @@ alwaysApply: false
 
 # Public display typography (viewport height)
 
-Text on the **venue / TV display** (`apps/display/**`) must stay legible from across a room.
+Text on the **venue / TV display** (`apps/display/**`) must stay legible from across a room. **Every visible text node** must meet these floors:
 
-## Two scopes — do not mix them
+| Role | Minimum size |
+|------|----------------|
+| **Primary** (titles, table numbers, player names, questions, phase labels, countdowns) | **~10% of screen height** (`10vh`, or `clamp` centered on `10vh`) |
+| **Secondary** (subtitles, seat labels, pager counts, metadata, captions) | **≥ 5% of screen height** (`5vh` minimum) |
 
-| Scope | When | Primary | Secondary |
-|-------|------|---------|-----------|
-| **Full viewport** | Page headers, question strip, pairing screen, countdowns | **~10vh** | **≥ 5vh** |
-| **`@container` cell** | Mosaic tile, table card, seat ring inside a tile | **~10cqh** (or `10cqw`) | **≥ 5cqh** |
+Nothing on the display may render smaller than **5vh** — including “fine print”, badges, dots labels, and roster rows.
 
-**Never apply `vh` floors inside small `@container` cells.** `max(5vh, 5cqh)` forces viewport-sized type into a mosaic tile and breaks the 20-table floor.
+## Implementation
 
-Use `display-text-primary` / `display-text-secondary` for viewport copy; use `display-text-primary-cq`, `display-text-secondary-cq`, etc. for container copy.
-
-## Full-viewport implementation
-
-- Prefer **`vh`** over fixed `px`, `rem`, or Tailwind `text-xs` / `text-sm`.
-- Use **`clamp(5vh, 10vh, 12vh)`** for primary; **`clamp(5vh, 5vh, 7vh)`** for secondary.
-
-## @container implementation
-
-- Prefer **`cqh` / `cqw`** with **`clamp(5cqh, 10cqh, …)`** — same *percent-of-box* intent as vh, but relative to the cell.
-- Parent must have **`@container`** (or `@container/size`).
+- Prefer **`vh`** (or **`cqh`** inside a full-viewport container) over fixed `px`, `rem`, or Tailwind `text-xs` / `text-sm` for display copy.
+- Use **`clamp(min, preferred, max)`** when a line must not overflow on short viewports, but keep the **minimum at `5vh`** (primary at **`~10vh`**).
+- Decorative-only elements (pager dots with no text) are exempt; **any legible characters are not**.
 
 ```tsx
-// ❌ BAD — vh floor inside a mosaic tile
-<span className="display-text-primary-cq">$5,000</span>
-// where CSS is max(5vh, 10cqh) → always 5vh, overflows tile
+// ❌ BAD — fixed small type, unreadable on a venue TV
+<p className="text-xs text-white/45">Tables 11–15 of 20</p>
+<h1 className="text-2xl font-black">Seating assignments</h1>
 
-// ✅ GOOD — container-relative only
-// CSS: font-size: clamp(5cqh, 10cqh, 14cqh);
+// ✅ GOOD — secondary ≥ 5vh, primary ~ 10vh
+<p className="text-[5vh] leading-tight text-white/65">Tables 11–15 of 20</p>
+<h1 className="text-[10vh] font-black leading-none">Seating assignments</h1>
+
+// ✅ GOOD — clamp keeps primary near 10vh on tall screens
+<h1 className="text-[clamp(5vh,10vh,12vh)] font-black">Seating assignments</h1>
 ```
 
 ## Checklist before merging display UI changes
 
-- [ ] Viewport headlines/questions use **`display-text-primary`** / **`secondary`** (vh).
-- [ ] Mosaic tiles, felts, and cards use **`*-cq` / `*-cqw`** tokens — **no `vh` in those utilities**.
-- [ ] No display copy uses Tailwind `text-xs`, `text-sm`, or px/rem sizes on venue screens.
+- [ ] No display copy uses Tailwind `text-xs`, `text-sm`, `text-base`, or arbitrary px/rem below **5vh** equivalent.
+- [ ] Headlines, table numbers, player names, and main phase/question text target **~10vh**.
+- [ ] Secondary labels (seat numbers, roster table/seat lines, pager counts) are **≥ 5vh**.

@@ -201,7 +201,7 @@
     animation: venue-roster-scroll var(--venue-roster-secs, 40s) linear infinite;
   }
 
-  /* Full-viewport copy — 5vh / 10vh floors (.cursor/rules/display-typography.mdc) */
+  /* Public display typography — 5vh floor, ~10vh primary (.cursor/rules/display-typography.mdc) */
   .display-text-primary {
     font-size: clamp(5vh, 10vh, 12vh);
   }
@@ -210,27 +210,23 @@
     font-size: clamp(5vh, 5vh, 7vh);
   }
 
-  /*
-   * @container copy (mosaic tiles, table cards) — scale to the CELL, not the viewport.
-   * Never mix in vh here: max(5vh, 5cqh) blows up small tiles on the 20-table floor.
-   */
   .display-text-primary-cq {
-    font-size: clamp(5cqh, 10cqh, 14cqh);
+    font-size: max(5vh, 10cqh);
   }
 
   .display-text-secondary-cq {
-    font-size: clamp(4cqh, 5cqh, 10cqh);
+    font-size: max(5vh, 5cqh);
   }
 
   .display-text-primary-cqw {
-    font-size: clamp(5cqw, 8cqw, 12cqw);
+    font-size: max(5vh, 8cqw);
   }
 
   .display-text-secondary-cqw {
-    font-size: clamp(4cqw, 5cqw, 10cqw);
+    font-size: max(5vh, 5cqw);
   }
 
   .display-text-badge-cq {
-    font-size: clamp(3.5cqh, 5cqh, 8cqh);
+    font-size: max(5vh, 7cqh);
   }
 }

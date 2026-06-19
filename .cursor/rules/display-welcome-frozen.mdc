@@ -1,0 +1,42 @@
+---
+description: Audience join/welcome wall is frozen — do not change unless the user explicitly asks.
+alwaysApply: true
+---
+
+# Join / welcome screen is frozen
+
+The **audience join wall** (QR scan, join URL, room code, player count, How to play) is **approved as-is**. Do **not** modify it unless the user **explicitly countermands** this rule (e.g. “change the join screen”, “resize welcome typography”, “update AudienceWelcomeWall”).
+
+## Protected files and tokens
+
+- `apps/display/src/AudienceWelcomeWall.tsx`
+- `apps/display/src/DisplayRouter.tsx` — only when the change affects welcome/join routing or layout
+- Welcome typography in `apps/display/src/index.css`:
+  - `.display-text-welcome-primary-cq`
+  - `.display-text-welcome-secondary-cq`
+  - `.display-text-welcome-dense-cq`
+  - `.display-text-welcome-url-cqw`
+  - `.display-text-welcome-tips-cq`
+- Welcome exports in `apps/display/src/displayTypography.ts`:
+  - `DISPLAY_TEXT_WELCOME_*`
+
+## Do not change (without explicit user request)
+
+- Copy, layout, spacing, panel proportions, colors, or typography scale on the join/welcome wall
+- QR column, join URL card, attendance tile, or How to play panel structure
+- Refactors that move welcome styles into shared tokens and alter how the screen looks
+- “Drive-by” fixes, responsive tweaks, or viewport-rule cleanups that touch the welcome wall
+
+## Allowed without countermand
+
+- Bug fixes that **only** fix crashes, broken QR/join URL logic, or incorrect player-count **data** — **only if** visual/copy/layout stay identical; mention the exception in the commit message
+- Renames/moves that preserve **pixel-identical** output (rare; prefer leaving files alone)
+
+## When the user countermands
+
+Proceed with their specific join/welcome instructions only for that turn (or scope they name). Do not broaden changes beyond what they asked.
+
+## Checklist before merging any display change
+
+- [ ] Did this diff touch protected welcome files or CSS/tokens above? If yes, did the user explicitly request it?
+- [ ] If the welcome wall was touched without user request, revert those hunks.

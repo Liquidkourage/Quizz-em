@@ -14,16 +14,36 @@ const MAX_COLUMNS = 5
 const GRID_INSET_PX = 28
 const HEADLINE_RESERVE_PX = 168
 
+/** Count-aware stagger row groupings — each pattern must sum to the table count. */
+export const VENUE_FLOOR_STAGGER_PATTERNS: Readonly<Record<number, readonly (readonly number[])[]>> = {
+  7: [[4, 3], [3, 4]],
+  10: [[5, 5], [4, 3, 3]],
+  11: [[5, 3, 3], [4, 4, 3]],
+  12: [[5, 4, 3], [4, 4, 4]],
+  13: [[5, 4, 4], [5, 5, 3]],
+  14: [[5, 4, 5], [5, 5, 4]],
+  15: [[5, 5, 5], [5, 4, 3, 3]],
+  16: [[5, 4, 4, 3], [4, 4, 4, 4], [5, 5, 3, 3]],
+  17: [[5, 5, 4, 3], [5, 4, 4, 4]],
+  18: [[5, 5, 4, 4], [5, 5, 5, 3]],
+  19: [[5, 5, 5, 4], [5, 5, 4, 5]],
+  20: [[5, 5, 5, 5], [5, 5, 4, 3, 3]],
+}
+
 export type VenueFloorLayoutViewport = {
   widthPx: number
   heightPx: number
 }
 
 export type VenueFloorLayoutPlan = {
+  /** Widest row — used for uniform card slot width across all rows. */
   columns: number
   rowCount: number
+  /** Tables per row, e.g. [5, 4, 5] for fourteen tables. */
+  rowSizes: number[]
   tableCount: number
   density: VenueFloorTableSize
+  staggered: boolean
 }
 
 export function venueFloorDensityForCount(tableCount: number): VenueFloorTableSize {
@@ -47,6 +67,17 @@ export function venueFloorPreferredColumns(tableCount: number): number {
   return 5
 }
 
+function uniformRowSizes(tableCount: number, columns: number): number[] {
+  const cols = Math.max(1, columns)
+  const rows: number[] = []
+  let remaining = tableCount
+  while (remaining > 0) {
+    rows.push(Math.min(cols, remaining))
+    remaining -= cols
+  }
+  return rows
+}
+
 function candidateColumnCounts(tableCount: number): number[] {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 0) return [1]
@@ -56,36 +87,84 @@ function candidateColumnCounts(tableCount: number): number[] {
   return Array.from({ length: max - 1 }, (_, i) => i + 2)
 }
 
-function countOnlyLayoutScore(tableCount: number, columns: number, rowCount: number): number {
+type LayoutCandidate = {
+  rowSizes: number[]
+  columns: number
+  rowCount: number
+  staggered: boolean
+}
+
+function layoutCandidates(tableCount: number): LayoutCandidate[] {
+  const seen = new Set<string>()
+  const out: LayoutCandidate[] = []
+
+  const add = (rowSizes: number[]) => {
+    const sum = rowSizes.reduce((a, b) => a + b, 0)
+    if (sum !== tableCount) return
+    const key = rowSizes.join(',')
+    if (seen.has(key)) return
+    seen.add(key)
+    const columns = Math.max(...rowSizes)
+    const staggered = new Set(rowSizes).size > 1
+    out.push({ rowSizes, columns, rowCount: rowSizes.length, staggered })
+  }
+
+  for (const pattern of VENUE_FLOOR_STAGGER_PATTERNS[tableCount] ?? []) {
+    add([...pattern])
+  }
+  for (const columns of candidateColumnCounts(tableCount)) {
+    add(uniformRowSizes(tableCount, columns))
+  }
+
+  return out
+}
+
+function staggerPatternBonus(tableCount: number, rowSizes: number[]): number {
+  const key = rowSizes.join('-')
+  if (tableCount === 14 && key === '5-4-5') return 3_200
+  if (tableCount === 7 && (key === '4-3' || key === '3-4')) return 900
+  if (tableCount === 13 && key === '5-4-4') return 1_100
+  if (tableCount === 12 && key === '5-4-3') return 700
+  if (rowSizes.length >= 3 && new Set(rowSizes).size > 1) {
+    const max = Math.max(...rowSizes)
+    const min = Math.min(...rowSizes)
+    if (max - min === 1) return 450
+  }
+  return 0
+}
+
+function countOnlyLayoutScore(tableCount: number, candidate: LayoutCandidate): number {
+  const { columns, rowCount, rowSizes } = candidate
   const preferred = venueFloorPreferredColumns(tableCount)
   let score = 10_000
   score -= rowCount * 620
   score -= Math.abs(columns - preferred) * 240
   if (tableCount > 8 && columns >= 5) score += 180
   if (tableCount <= 6 && columns === 3 && rowCount === 2) score += 220
+  score += staggerPatternBonus(tableCount, rowSizes)
   return score
 }
 
 function viewportLayoutScore(
   tableCount: number,
-  columns: number,
-  rowCount: number,
+  candidate: LayoutCandidate,
   viewport: VenueFloorLayoutViewport,
   withHeadline: boolean
 ): number {
-  const gapPx = 10
+  const { columns, rowCount, rowSizes } = candidate
+  const gapPx = 14
   const availW = Math.max(0, viewport.widthPx - GRID_INSET_PX)
   const availH = Math.max(
     0,
     viewport.heightPx - GRID_INSET_PX - (withHeadline ? HEADLINE_RESERVE_PX : 0)
   )
   if (availW <= 0 || availH <= 0) {
-    return countOnlyLayoutScore(tableCount, columns, rowCount)
+    return countOnlyLayoutScore(tableCount, candidate)
   }
 
   const cellW = (availW - (columns - 1) * gapPx) / columns
   const cellH = (availH - (rowCount - 1) * gapPx) / rowCount
-  const feltH = Math.min(cellH - CARD_CHROME_PX, (cellW * 0.94) / FELT_ASPECT)
+  const feltH = Math.min(cellH - CARD_CHROME_PX, (cellW * 0.92) / FELT_ASPECT)
   const feltW = feltH * FELT_ASPECT
 
   if (feltW < MIN_FELT_WIDTH_PX || feltH < MIN_FELT_HEIGHT_PX) return Number.NEGATIVE_INFINITY
@@ -93,11 +172,12 @@ function viewportLayoutScore(
   let score = feltW * feltH
   score -= rowCount * 420
   score -= Math.abs(columns - venueFloorPreferredColumns(tableCount)) * 120
+  score += staggerPatternBonus(tableCount, rowSizes)
   return score
 }
 
 /**
- * Choose columns/rows/density for the venue wagering floor.
+ * Choose row grouping / density for the venue wagering floor.
  * Considers table count and (optionally) measured viewport beneath the headline.
  */
 export function selectVenueFloorLayout(opts: {
@@ -110,35 +190,54 @@ export function selectVenueFloorLayout(opts: {
     Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(opts.tableCount))
   )
   if (tableCount <= 0) {
-    return { columns: 1, rowCount: 0, tableCount: 0, density: 'hero' }
+    return {
+      columns: 1,
+      rowCount: 0,
+      rowSizes: [],
+      tableCount: 0,
+      density: 'hero',
+      staggered: false,
+    }
   }
 
-  let bestColumns = 1
+  let best = layoutCandidates(tableCount)[0]!
   let bestScore = Number.NEGATIVE_INFINITY
 
-  for (const columns of candidateColumnCounts(tableCount)) {
-    const rowCount = Math.ceil(tableCount / columns)
+  for (const candidate of layoutCandidates(tableCount)) {
     const score =
       opts.viewport != null
-        ? viewportLayoutScore(tableCount, columns, rowCount, opts.viewport, opts.withHeadline === true)
-        : countOnlyLayoutScore(tableCount, columns, rowCount)
+        ? viewportLayoutScore(tableCount, candidate, opts.viewport, opts.withHeadline === true)
+        : countOnlyLayoutScore(tableCount, candidate)
     if (score > bestScore) {
       bestScore = score
-      bestColumns = columns
+      best = candidate
     }
   }
 
   return {
-    columns: bestColumns,
-    rowCount: Math.ceil(tableCount / bestColumns),
+    columns: best.columns,
+    rowCount: best.rowCount,
+    rowSizes: best.rowSizes,
     tableCount,
     density: venueFloorDensityForCount(tableCount),
+    staggered: best.staggered,
   }
 }
 
-/** Slot width for a card in a centered row — partial rows use the same width as full rows. */
+/** Slot width for a card — sized to the widest row so partial rows stay centered. */
 export function venueFloorCardSlotWidthCss(columns: number, cellGapRem: number): string {
   const cols = Math.max(1, columns)
   const gaps = cols > 1 ? `(${cols} - 1) * ${cellGapRem}rem` : '0rem'
   return `calc((100% - ${gaps}) / ${cols})`
+}
+
+/** Slice tiles into explicit row groups, e.g. [5, 4, 5]. */
+export function chunkTilesIntoRowGroups<T>(tiles: T[], rowSizes: number[]): T[][] {
+  const rows: T[][] = []
+  let index = 0
+  for (const size of rowSizes) {
+    rows.push(tiles.slice(index, index + size))
+    index += size
+  }
+  return rows
 }

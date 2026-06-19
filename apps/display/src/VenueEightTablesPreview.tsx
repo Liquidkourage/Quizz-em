@@ -27,7 +27,7 @@ import {
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import {
-  chunkTilesIntoBanquetRows,
+  chunkTilesIntoRowGroups,
   populatedVenueTiles,
   venueBanquetLayout,
   applyVenueFloorDenseTuning,
@@ -1667,7 +1667,7 @@ function VenueAerialFloorGrid({
       }),
     [layoutCount, floorViewport, showHeadline]
   )
-  const { columns, rowCount } = floorLayout
+  const { columns, rowCount, rowSizes } = floorLayout
   const denseTuning = useMemo(
     () => venueFloorDenseTuning(floorLayout, { withHeadline: showHeadline }),
     [floorLayout, showHeadline]
@@ -1684,7 +1684,7 @@ function VenueAerialFloorGrid({
     return venueFloorGridPaddingRem(rowCount)
   }, [denseTuning, rowCount])
   const floorGridPerspective = useMemo(() => venueFloorGridPerspectiveStyle(rowCount), [rowCount])
-  const floorRows = useMemo(() => chunkTilesIntoBanquetRows(tiles, columns), [tiles, columns])
+  const floorRows = useMemo(() => chunkTilesIntoRowGroups(tiles, rowSizes), [tiles, rowSizes])
   const cardSlotWidth = useMemo(
     () => venueFloorCardSlotWidthCss(columns, floorSize.cellGapRem),
     [columns, floorSize.cellGapRem]
@@ -1698,7 +1698,7 @@ function VenueAerialFloorGrid({
 
   return (
     <motion.section
-      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, responsive grid`}
+      aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, staggered row grid`}
       className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
       initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}

@@ -72,8 +72,14 @@ describe('venueFloorTableSize', () => {
 })
 
 describe('venueBanquetLayout', () => {
-  it('selects five columns for fourteen tables', () => {
-    expect(venueBanquetLayout(14)).toMatchObject({ columns: 5, rowCount: 3, tableCount: 14 })
+  it('selects a 5–4–5 stagger for fourteen tables', () => {
+    expect(venueBanquetLayout(14)).toMatchObject({
+      columns: 5,
+      rowCount: 3,
+      rowSizes: [5, 4, 5],
+      tableCount: 14,
+      staggered: true,
+    })
   })
 })
 
@@ -84,8 +90,8 @@ describe('venueFloorDenseTuning', () => {
     expect(tuned).not.toBeNull()
     const micro = venueFloorSizeSpec(20)
     const applied = applyVenueFloorDenseTuning(micro, tuned)
-    expect(applied.rowGapRem).toBeLessThan(micro.rowGapRem)
-    expect(applied.cellGapRem).toBeLessThan(micro.cellGapRem)
+    expect(applied.rowGapRem).toBe(0.62)
+    expect(applied.cellGapRem).toBe(0.78)
     expect(applied.tileInsetClass).toBe('')
     expect(tuned!.paddingBottomRem).toBe(0)
   })

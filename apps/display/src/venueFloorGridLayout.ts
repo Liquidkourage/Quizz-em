@@ -13,6 +13,7 @@ export {
   venueFloorCardSlotWidthCss,
   venueFloorDensityForCount,
   venueFloorPreferredColumns,
+  chunkTilesIntoRowGroups,
 } from './venueFloorLayout'
 
 /** Tables with at least one seated player — the aerial floor shows these only. */
@@ -42,8 +43,10 @@ export function venueBanquetColumns(
 export type VenueBanquetLayout = {
   columns: number
   rowCount: number
+  rowSizes: number[]
   tableCount: number
   density: VenueFloorTableSize
+  staggered: boolean
 }
 
 export function venueBanquetLayout(
@@ -374,11 +377,11 @@ export function venueFloorDenseTuning(
   const headline = opts?.withHeadline === true
   if (!headline) return null
   return {
-    rowGapRem: 0.35,
-    cellGapRem: 0.45,
+    rowGapRem: 0.62,
+    cellGapRem: 0.78,
     paddingTopRem: 0,
     paddingBottomRem: 0,
-    gridInsetClass: 'px-1 sm:px-1.5',
+    gridInsetClass: 'px-1.5 sm:px-2',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
     tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
     potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,

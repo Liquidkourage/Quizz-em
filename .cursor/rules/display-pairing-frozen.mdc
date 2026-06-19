@@ -1,0 +1,40 @@
+---
+description: Connect display (pairing) screen is frozen — do not change unless the user explicitly asks.
+alwaysApply: true
+---
+
+# Connect display screen is frozen
+
+The **Public TV pairing / “Connect display” landing** (`Quizz'em TV` + 4-letter join code) is **approved as-is**. Do **not** modify it unless the user **explicitly countermands** this rule (e.g. “change the connect display screen”, “resize pairing typography”, “update PairingScreen”).
+
+## Protected files and tokens
+
+- `apps/display/src/PairingScreen.tsx`
+- `apps/display/src/DisplayGate.tsx` — only when the change affects pairing/bootstrap UI
+- Pairing typography in `apps/display/src/index.css`:
+  - `.display-text-pairing-label`
+  - `.display-text-pairing-title`
+  - `.display-text-pairing-body`
+  - `.display-text-pairing-code`
+- Pairing exports in `apps/display/src/displayTypography.ts`:
+  - `DISPLAY_TEXT_PAIRING_*`
+
+## Do not change (without explicit user request)
+
+- Copy, layout, spacing, card width, colors, or typography scale on the pairing screen
+- Refactors that move pairing styles into shared tokens and alter how the screen looks
+- “Drive-by” fixes, responsive tweaks, or viewport-rule cleanups that touch pairing
+
+## Allowed without countermand
+
+- Bug fixes that **only** fix crashes, broken socket pairing, or incorrect join-code **logic** — **only if** visual/copy/layout stay identical; mention the exception in the commit message
+- Renames/moves that preserve **pixel-identical** output (rare; prefer leaving files alone)
+
+## When the user countermands
+
+Proceed with their specific pairing/connect-display instructions only for that turn (or scope they name). Do not broaden changes beyond what they asked.
+
+## Checklist before merging any display change
+
+- [ ] Did this diff touch protected pairing files or CSS/tokens above? If yes, did the user explicitly request it?
+- [ ] If pairing was touched without user request, revert those hunks.

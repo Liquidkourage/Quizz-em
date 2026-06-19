@@ -3,6 +3,7 @@ import {
   applyVenueFloorDenseTuning,
   venueBanquetLayout,
   venueFloorDenseTuning,
+  VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
   venueFloorGridPaddingRem,
   venueFloorGridPerspectiveStyle,
   venueFloorHeadlineFeltMaxHeightCss,
@@ -93,7 +94,7 @@ describe('venueFloorDenseTuning', () => {
     expect(applied.rowGapRem).toBe(0.65)
     expect(applied.cellGapRem).toBe(0.82)
     expect(applied.tileInsetClass).toBe('')
-    expect(tuned!.paddingBottomRem).toBe(0)
+    expect(tuned!.paddingBottomRem).toBe(VENUE_FLOOR_GRID_BOTTOM_SAFE_REM)
   })
 
   it('is null without a headline', () => {

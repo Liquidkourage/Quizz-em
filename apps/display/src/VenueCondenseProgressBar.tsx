@@ -7,6 +7,16 @@ type VenueCondenseProgressBarProps = {
   variant?: 'headline' | 'sidebar' | 'bottom'
 }
 
+function formatHeadlineCondensePart(part: string): string {
+  if (part.startsWith('combine at ')) {
+    return `Combine at ${part.slice('combine at '.length)}`
+  }
+  if (part.startsWith('combining to ')) {
+    return `Combining to ${part.slice('combining to '.length)}`
+  }
+  return part
+}
+
 function headlineCondenseCaptionParts(model: VenueCondenseProgressModel): string[] {
   const { survivors, liveTables, nextAt, nextToTables } = model
   const parts = [`${survivors} remaining`, `${liveTables} ${liveTables === 1 ? 'table' : 'tables'}`]
@@ -19,8 +29,12 @@ function headlineCondenseCaptionParts(model: VenueCondenseProgressModel): string
   return parts
 }
 
+function headlineCondenseCaption(model: VenueCondenseProgressModel): string {
+  return headlineCondenseCaptionParts(model).map(formatHeadlineCondensePart).join(' · ')
+}
+
 function compactCaption(model: VenueCondenseProgressModel): string {
-  return headlineCondenseCaptionParts(model).join(' · ')
+  return headlineCondenseCaption(model)
 }
 
 export default function VenueCondenseProgressBar({
@@ -55,11 +69,9 @@ export default function VenueCondenseProgressBar({
       >
         {headline ? (
           <p
-            className={`mb-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-left font-semibold tabular-nums text-white/85 ${DISPLAY_TEXT_HEADLINE_CAPTION}`}
+            className={`mb-1 truncate text-left font-semibold tabular-nums text-white/85 ${DISPLAY_TEXT_HEADLINE_CAPTION}`}
           >
-            {headlineCondenseCaptionParts(model).map((part) => (
-              <span key={part}>{part}</span>
-            ))}
+            {headlineCondenseCaption(model)}
           </p>
         ) : (
           <p

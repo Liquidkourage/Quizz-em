@@ -282,12 +282,14 @@
 
   /** Venue question when the floor is compact (14+ tables). */
   .display-text-headline-question-compact {
-    font-size: clamp(22px, 2.65vh, 32px);
+    font-size: clamp(23px, 2.78vh, 34px);
+    font-weight: 800;
   }
 
   /** Venue question when the floor is ultra-compact (17+ tables). */
   .display-text-headline-question-ultra {
-    font-size: clamp(20px, 2.4vh, 28px);
+    font-size: clamp(21px, 2.52vh, 29px);
+    font-weight: 800;
   }
 
   /** Pairing gate — TV room scale (80% of prior 2.5× bump). */

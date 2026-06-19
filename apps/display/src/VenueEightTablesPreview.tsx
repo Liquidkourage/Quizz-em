@@ -38,6 +38,7 @@ import {
   venueFloorGridPaddingRem,
   venueFloorGridPerspectiveStyle,
   venueFloorSizeSpec,
+  VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
   type VenueFloorLayoutViewport,
   type VenueFloorSizeSpec,
   type VenueFloorTableSize,
@@ -202,7 +203,7 @@ function VenueMosaicNoMoreBetsWatermark() {
       aria-hidden
     >
       <span
-        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12`}
+        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12 drop-shadow-[0_0_18px_rgba(52,211,153,0.12)]`}
       >
         NO MORE BETS
       </span>
@@ -1546,17 +1547,21 @@ function VenueMosaicTableCard({
         </div>
 
         {showToCallStrip ? (
-          <p
-            className={`shrink-0 text-center ${VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallStrip} ${
+          <div
+            className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallFooterRow} ${
               feltFillsCell ? 'col-start-1 row-start-3 min-w-0' : ''
             }`}
-            aria-live="polite"
           >
-            To Call:{' '}
-            <span className="font-mono font-black tabular-nums text-yellow-300">
-              {formatVenueBankroll(Math.max(0, Math.floor(row.actingCallAmount ?? 0)))}
-            </span>
-          </p>
+            <p
+              className={`min-w-0 text-center ${VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallStrip}`}
+              aria-live="polite"
+            >
+              To Call:{' '}
+              <span className="font-mono font-black tabular-nums text-yellow-300">
+                {formatVenueBankroll(Math.max(0, Math.floor(row.actingCallAmount ?? 0)))}
+              </span>
+            </p>
+          </div>
         ) : null}
 
         {showPotSubtitleStrip ? (
@@ -1747,7 +1752,7 @@ function VenueAerialFloorGrid({
         style={
           {
             paddingTop: `${floorGridPadding.top}rem`,
-            paddingBottom: `${floorGridPadding.bottom}rem`,
+            paddingBottom: `max(${floorGridPadding.bottom}rem, calc(${VENUE_FLOOR_GRID_BOTTOM_SAFE_REM}rem + env(safe-area-inset-bottom, 0px)))`,
             ...floorGridPerspective,
           } as CSSProperties
         }
@@ -2066,12 +2071,12 @@ export default function VenueEightTablesPreview({
                     ) : null}
                     {headlineQuestionDisplay ? (
                       <p
-                        className={`text-balance text-left font-bold tracking-tight text-yellow-400 ${
+                        className={`text-balance text-left tracking-tight text-yellow-400 ${
                           ultraCompactVenueHeadline
                             ? DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA
                             : compactVenueHeadline
                               ? DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT
-                              : 'text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem] leading-snug'
+                              : 'font-bold text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem] leading-snug'
                         }`}
                       >
                         {headlineQuestionDisplay}

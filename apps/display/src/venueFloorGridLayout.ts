@@ -87,6 +87,8 @@ export function venueFloorGridPerspectiveStyle(rowCount: number): Pick<
 }
 
 /** Extra bottom inset on multi-row floors so the last row + action captions stay in view. */
+export const VENUE_FLOOR_GRID_BOTTOM_SAFE_REM = 0.5
+
 export function venueFloorGridPaddingRem(rowCount: number): { top: number; bottom: number } {
   if (rowCount <= 1) return { top: 0.75, bottom: 0.75 }
   if (rowCount === 2) return { top: 0.75, bottom: 0.85 }
@@ -109,15 +111,18 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   /** Pot centered on mosaic felt — scales with tile width, not header chrome. */
   feltPot: 'text-[clamp(24px,3.35vmin,38px)] font-mono font-black leading-none',
   actingName:
-    'truncate text-[clamp(20px,2vh,26px)] font-black leading-none tracking-tight text-cyan-50 drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]',
+    'truncate text-[clamp(20px,2vh,26px)] font-black leading-none tracking-tight text-neutral-50 drop-shadow-[0_1px_2px_rgba(0,0,0,1),0_2px_10px_rgba(0,0,0,0.88)]',
   phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
   headerRow: 'items-center overflow-visible py-0 leading-none',
   seatInitials: 'text-[clamp(11px,1.55vmin,15px)]',
   /** Matches {@link actingName} size — under-felt call caption during wagering. */
   toCallStrip:
-    'pt-0 text-[clamp(20px,2vh,26px)] font-black leading-none tracking-tight text-amber-100/90',
+    'text-[clamp(20px,2vh,26px)] font-black leading-none tracking-tight text-amber-100/90',
+  /** Stable footer row for under-felt “To Call” during wagering. */
+  toCallFooterRow:
+    'flex min-h-[clamp(22px,2.4vh,30px)] shrink-0 items-center justify-center px-1 py-0.5',
   noMoreBetsWatermark:
-    'pointer-events-none max-w-[88%] select-none whitespace-nowrap text-center text-[clamp(16px,2.5vmin,26px)] font-black uppercase leading-none tracking-[0.12em] text-emerald-100/68 drop-shadow-[0_0_1px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.8)]',
+    'pointer-events-none select-none whitespace-nowrap text-center text-[clamp(15px,2.35vmin,24px)] font-black uppercase leading-none tracking-[0.14em] text-emerald-300/35',
 } as const
 
 /** Slightly taller mosaic felt — room for under-table call caption without shrinking type. */
@@ -381,7 +386,7 @@ export function venueFloorDenseTuning(
     rowGapRem: 0.65,
     cellGapRem: 0.82,
     paddingTopRem: 0,
-    paddingBottomRem: 0,
+    paddingBottomRem: VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
     gridInsetClass: 'px-1.5 sm:px-2',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
     tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,

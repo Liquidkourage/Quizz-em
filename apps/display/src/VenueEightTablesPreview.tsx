@@ -507,11 +507,11 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolea
 function mosaicSeatInitialsClass(density: VenueFloorTableSize | undefined): string {
   switch (density) {
     case 'micro':
-      return 'text-[6px]'
-    case 'compact':
-      return 'text-[7px]'
-    case 'medium':
       return 'text-[8px]'
+    case 'compact':
+      return 'text-[9px]'
+    case 'medium':
+      return 'text-[10px]'
     default:
       return 'text-[clamp(0.5rem,min(7cqw,9cqh),0.8rem)]'
   }
@@ -816,9 +816,11 @@ function SeatRingWithLabels({
     if (!isMosaic) return 1
     const w = ringPx.w
     if (!(w > 0)) return 1
-    /** Never shrink seat markers below 1× — dense floors use cqh type on the card chrome instead. */
+    if (mosaicDensity === 'micro') return clamp(w / 300, 0.68, 0.95)
+    if (mosaicDensity === 'compact') return clamp(w / 280, 0.78, 1.05)
+    if (mosaicDensity === 'medium') return clamp(w / 260, 0.88, 1.15)
     return clamp(w / 220, 1, 1.35)
-  }, [isMosaic, ringPx.w])
+  }, [isMosaic, mosaicDensity, ringPx.w])
 
   const mosaicDotPx = 28 * mosaicScale
   const mosaicDotActingPx = 32 * mosaicScale

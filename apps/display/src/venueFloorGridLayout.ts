@@ -174,9 +174,9 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         tableNumClass: 'text-[11px] font-black leading-none',
         potClass: 'text-[10px] font-mono font-black leading-none',
         phaseChipClass: 'px-0.5 py-px text-[9px] font-bold uppercase leading-none',
-        headerRowClass: 'h-[12px] max-h-[12px] items-center',
+        headerRowClass: 'h-[13px] max-h-[13px] items-center',
         honeycombFillHeight: true,
-        ringScaleClass: '',
+        ringScaleClass: 'mx-auto h-full max-h-[74%] w-[90%] max-w-full',
         showPotSubtitle: true,
         potSubtitleClass: 'text-[10px] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1.5 py-1',
@@ -191,11 +191,11 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cardPaddingClass: 'p-1 sm:p-1.5',
         innerGapClass: 'gap-0.5',
         tableNumClass: 'text-[10px] font-black leading-none',
-        potClass: 'text-[9px] font-mono font-black leading-none',
-        phaseChipClass: 'px-0.5 py-px text-[8px] font-bold uppercase leading-none',
-        headerRowClass: 'h-[11px] max-h-[11px] items-center',
+        potClass: 'text-[10px] font-mono font-black leading-none',
+        phaseChipClass: 'px-0.5 py-px text-[9px] font-bold uppercase leading-none',
+        headerRowClass: 'h-[13px] max-h-[13px] items-center',
         honeycombFillHeight: true,
-        ringScaleClass: '',
+        ringScaleClass: 'mx-auto h-full max-h-[68%] w-[88%] max-w-full',
         showPotSubtitle: true,
         potSubtitleClass: 'text-[9px] font-black leading-tight tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
@@ -209,12 +209,12 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         cellGapRem: 0.72,
         cardPaddingClass: 'p-0.5 sm:p-1',
         innerGapClass: 'gap-0.5',
-        tableNumClass: 'text-[9px] font-black leading-none',
-        potClass: 'text-[8px] font-mono font-black leading-none',
-        phaseChipClass: 'px-0.5 py-px text-[7px] font-bold uppercase leading-none',
-        headerRowClass: 'h-[10px] max-h-[10px] items-center',
+        tableNumClass: 'text-[10px] font-black leading-none',
+        potClass: 'text-[10px] font-mono font-black leading-none',
+        phaseChipClass: 'px-0.5 py-px text-[9px] font-bold uppercase leading-none',
+        headerRowClass: 'h-[14px] max-h-[14px] items-center',
         honeycombFillHeight: true,
-        ringScaleClass: '',
+        ringScaleClass: 'mx-auto h-full max-h-[62%] w-[84%] max-w-full',
         showPotSubtitle: false,
         potSubtitleClass: 'text-[8px] font-black leading-none tracking-tight text-amber-50',
         potSubtitleWrapClass: 'px-1 py-0.5',
@@ -305,6 +305,7 @@ export type VenueFloorDenseTuning = {
   phaseChipClass: string
   headerRowClass: string
   potSubtitleClass: string
+  ringScaleClass: string
 }
 
 /** Four-row floors (17–20 tables) — keep gaps modest; type scales via cqh on each card. */
@@ -315,19 +316,18 @@ export function venueFloorDenseTuning(
   if (layout.rowCount < 4) return null
   const headline = opts?.withHeadline === true
   return {
-    rowGapRem: headline ? 0.38 : 0.48,
-    cellGapRem: headline ? 0.48 : 0.58,
-    paddingTopRem: headline ? 0.2 : 0.3,
-    paddingBottomRem: headline ? 0.3 : 0.5,
-    gridInsetClass: 'px-2 sm:px-2.5',
+    rowGapRem: headline ? 0.52 : 0.58,
+    cellGapRem: headline ? 0.62 : 0.68,
+    paddingTopRem: headline ? 0.25 : 0.35,
+    paddingBottomRem: headline ? 0.35 : 0.55,
+    gridInsetClass: 'px-2.5 sm:px-3',
     potSubtitleWrapClass: 'px-0.5 py-0.5',
-    tableNumClass: headline ? 'text-[8px] font-black leading-none' : 'text-[9px] font-black leading-none',
-    potClass: headline ? 'text-[8px] font-mono font-black leading-none' : 'text-[8px] font-mono font-black leading-none',
-    phaseChipClass: headline
-      ? 'px-0.5 py-px text-[7px] font-bold uppercase leading-none'
-      : 'px-0.5 py-px text-[7px] font-bold uppercase leading-none',
-    headerRowClass: headline ? 'h-[9px] max-h-[9px] items-center' : 'h-[10px] max-h-[10px] items-center',
-    potSubtitleClass: 'text-[8px] font-black leading-none tracking-tight text-amber-50',
+    tableNumClass: 'text-[10px] font-black leading-none',
+    potClass: 'text-[10px] font-mono font-black leading-none',
+    phaseChipClass: 'px-0.5 py-px text-[9px] font-bold uppercase leading-none',
+    headerRowClass: 'h-[14px] max-h-[14px] items-center',
+    potSubtitleClass: 'text-[9px] font-black leading-none tracking-tight text-amber-50',
+    ringScaleClass: 'mx-auto h-full max-h-[58%] w-[82%] max-w-full',
   }
 }
 
@@ -346,5 +346,6 @@ export function applyVenueFloorDenseTuning(
     phaseChipClass: tuning.phaseChipClass,
     headerRowClass: tuning.headerRowClass,
     potSubtitleClass: tuning.potSubtitleClass,
+    ringScaleClass: tuning.ringScaleClass,
   }
 }

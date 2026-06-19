@@ -6,6 +6,8 @@
  * *_CQ / *_CQW / BADGE_CQ / DENSE_CQ → inside @container cells (tiles, panels, rosters).
  */
 
+import type { VenueFloorPublicTypographyTier } from './venueFloorGridLayout'
+
 /** Full-viewport primary (~10vh). */
 export const DISPLAY_TEXT_PRIMARY = 'display-text-primary leading-tight'
 
@@ -24,13 +26,35 @@ export const DISPLAY_TEXT_HEADLINE_META = 'display-text-headline-meta leading-ti
 /** Headline strip — condense progress caption. */
 export const DISPLAY_TEXT_HEADLINE_CAPTION = 'display-text-headline-caption leading-tight'
 
-/** Venue headline question — compact floor (14+ tables). */
+export const DISPLAY_TEXT_HEADLINE_CAPTION_SPACIOUS =
+  'display-text-headline-caption-spacious leading-tight'
+
+export const DISPLAY_TEXT_HEADLINE_CAPTION_COMPACT =
+  'display-text-headline-caption-compact leading-tight'
+
+/** Venue headline question — spacious floor (1–8 tables). */
+export const DISPLAY_TEXT_HEADLINE_QUESTION_SPACIOUS =
+  'display-text-headline-question-spacious leading-snug'
+
+/** Venue headline question — standard floor (9–15 tables). */
 export const DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT =
   'display-text-headline-question-compact leading-snug'
 
-/** Venue headline question — ultra-compact floor (17+ tables). */
+/** Venue headline question — compact floor (16–20 tables). */
 export const DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA =
   'display-text-headline-question-ultra leading-snug'
+
+export function displayHeadlineQuestionClass(tier: VenueFloorPublicTypographyTier): string {
+  if (tier === 'spacious') return DISPLAY_TEXT_HEADLINE_QUESTION_SPACIOUS
+  if (tier === 'standard') return DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT
+  return DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA
+}
+
+export function displayHeadlineCaptionClass(tier: VenueFloorPublicTypographyTier): string {
+  if (tier === 'spacious') return DISPLAY_TEXT_HEADLINE_CAPTION_SPACIOUS
+  if (tier === 'standard') return DISPLAY_TEXT_HEADLINE_CAPTION
+  return DISPLAY_TEXT_HEADLINE_CAPTION_COMPACT
+}
 
 /** @container — primary (~10cqh of the cell). */
 export const DISPLAY_TEXT_PRIMARY_CQ = 'display-text-primary-cq leading-tight'

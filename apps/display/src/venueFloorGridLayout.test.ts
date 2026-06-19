@@ -7,6 +7,8 @@ import {
   venueFloorGridPaddingRem,
   venueFloorGridPerspectiveStyle,
   venueFloorHeadlineFeltMaxHeightCss,
+  venueFloorMosaicTypography,
+  venueFloorPublicTypographyTier,
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorTableSize,
@@ -81,6 +83,28 @@ describe('venueBanquetLayout', () => {
       tableCount: 14,
       staggered: true,
     })
+  })
+})
+
+describe('venueFloorPublicTypographyTier', () => {
+  it('maps table counts to typography tiers', () => {
+    expect(venueFloorPublicTypographyTier(4)).toBe('spacious')
+    expect(venueFloorPublicTypographyTier(8)).toBe('spacious')
+    expect(venueFloorPublicTypographyTier(9)).toBe('standard')
+    expect(venueFloorPublicTypographyTier(14)).toBe('standard')
+    expect(venueFloorPublicTypographyTier(15)).toBe('standard')
+    expect(venueFloorPublicTypographyTier(16)).toBe('compact')
+    expect(venueFloorPublicTypographyTier(20)).toBe('compact')
+  })
+})
+
+describe('venueFloorMosaicTypography', () => {
+  it('returns tier-specific mosaic type scales', () => {
+    const standard = venueFloorMosaicTypography(14)
+    const compact = venueFloorMosaicTypography(18)
+    expect(standard.feltPot).toContain('3.35vh')
+    expect(compact.actingName).toContain('1.9vh')
+    expect(standard.noMoreBetsOffsetClass).not.toBe(compact.noMoreBetsOffsetClass)
   })
 })
 

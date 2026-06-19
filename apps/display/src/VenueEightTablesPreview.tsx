@@ -24,8 +24,8 @@ import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import {
   DISPLAY_TEXT_HEADLINE_BADGE,
   DISPLAY_TEXT_HEADLINE_META,
-  DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT,
-  DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA,
+  displayHeadlineCaptionClass,
+  displayHeadlineQuestionClass,
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import {
@@ -39,7 +39,10 @@ import {
   venueFloorGridPerspectiveStyle,
   venueFloorSizeSpec,
   VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
+  venueFloorMosaicTypography,
+  venueFloorPublicTypographyTier,
   type VenueFloorLayoutViewport,
+  type VenueFloorMosaicTypography,
   type VenueFloorSizeSpec,
   type VenueFloorTableSize,
   VENUE_FLOOR_MOSAIC_HEADER_TYPE,
@@ -196,14 +199,14 @@ function mosaicToCallFooterLabel(actingCallAmount: number | null | undefined): s
 }
 
 /** Diagonal stamp when wagering is closed on this felt. */
-function VenueMosaicNoMoreBetsWatermark() {
+function VenueMosaicNoMoreBetsWatermark({ offsetClass }: { offsetClass: string }) {
   return (
     <div
       className="pointer-events-none absolute inset-0 z-[25] flex items-center justify-center overflow-hidden rounded-xl"
       aria-hidden
     >
       <span
-        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12 translate-y-[18%] drop-shadow-[0_0_18px_rgba(52,211,153,0.12)]`}
+        className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark} -rotate-12 ${offsetClass} drop-shadow-[0_0_18px_rgba(52,211,153,0.12)]`}
       >
         NO MORE BETS
       </span>
@@ -1329,6 +1332,8 @@ type VenueMosaicTableCardProps = {
   dimAnsweringEarly?: boolean
   /** Venue-wide authoritative answer — overrides per-tile `showdownAnswer` when set. */
   sharedShowdownAnswer?: number
+  /** Table-count-aware mosaic typography from {@link venueFloorMosaicTypography}. */
+  mosaicTypography: VenueFloorMosaicTypography
 }
 
 function VenueMosaicTableCard({
@@ -1341,6 +1346,7 @@ function VenueMosaicTableCard({
   prefersReducedMotion = false,
   dimAnsweringEarly = false,
   sharedShowdownAnswer,
+  mosaicTypography,
 }: VenueMosaicTableCardProps) {
   const tn = row.tableNum
   const seats = row.seated
@@ -1445,7 +1451,7 @@ function VenueMosaicTableCard({
         >
           {denseMosaicChrome ? (
             <span
-              className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNumBadge} ${floorSize.tableNumClass}`}
+              className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNumBadge} ${mosaicTypography.tableNum}`}
             >
               {tn}
             </span>
@@ -1463,7 +1469,7 @@ function VenueMosaicTableCard({
             >
               {actingPlayerName ? (
                 <span
-                  className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.actingName} ${
+                  className={`${mosaicTypography.actingName} ${
                     wageringLive ? 'motion-safe:animate-pulse motion-safe:[animation-duration:2.4s]' : ''
                   }`}
                   title={actingPlayerName}
@@ -1526,7 +1532,7 @@ function VenueMosaicTableCard({
             mosaicFeltWidthClass={floorSize.feltWidthClass}
             mosaicFeltMaxHeightCss={floorFillHeight ? undefined : floorSize.feltMaxHeightCss}
             mosaicCenterPot={potOnFelt ? pot : null}
-            mosaicCenterPotClass={VENUE_FLOOR_MOSAIC_HEADER_TYPE.feltPot}
+            mosaicCenterPotClass={mosaicTypography.feltPot}
             mosaicCenterPotMuted={potMuted}
             seatedCount={seats}
             seatNames={seatNames}
@@ -1556,8 +1562,8 @@ function VenueMosaicTableCard({
               className="flex min-w-0 items-baseline justify-center gap-x-1 text-center"
               aria-live="polite"
             >
-              <span className={VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallLabel}>To Call:</span>
-              <span className={VENUE_FLOOR_MOSAIC_HEADER_TYPE.toCallAmount}>
+              <span className={mosaicTypography.toCallLabel}>To Call:</span>
+              <span className={mosaicTypography.toCallAmount}>
                 {formatVenueBankroll(Math.max(0, Math.floor(row.actingCallAmount ?? 0)))}
               </span>
             </p>
@@ -1604,7 +1610,7 @@ function VenueMosaicTableCard({
         ) : null}
 
         {showNoMoreBets && seats >= 2 && !showFloorShowdownOverlay ? (
-          <VenueMosaicNoMoreBetsWatermark />
+          <VenueMosaicNoMoreBetsWatermark offsetClass={mosaicTypography.noMoreBetsOffsetClass} />
         ) : null}
       </article>
   )
@@ -1692,6 +1698,7 @@ function VenueAerialFloorGrid({
   }, [denseTuning, rowCount])
   const floorGridPerspective = useMemo(() => venueFloorGridPerspectiveStyle(rowCount), [rowCount])
   const floorRows = useMemo(() => chunkTilesIntoRowGroups(tiles, rowSizes), [tiles, rowSizes])
+  const mosaicTypography = useMemo(() => venueFloorMosaicTypography(layoutCount), [layoutCount])
   const cardSlotWidth = useMemo(
     () => venueFloorCardSlotWidthCss(columns, floorSize.cellGapRem),
     [columns, floorSize.cellGapRem]
@@ -1785,6 +1792,7 @@ function VenueAerialFloorGrid({
                     prefersReducedMotion={prefersReducedMotion}
                     dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
                     sharedShowdownAnswer={sharedShowdownAnswer}
+                    mosaicTypography={mosaicTypography}
                   />
                 </div>
               ))}
@@ -1812,6 +1820,7 @@ function VenueHeroSpotlightLayout({
   sharedShowdownAnswer?: number
 }) {
   const heroSize = useMemo(() => venueFloorSizeSpec(1), [])
+  const heroTypography = useMemo(() => venueFloorMosaicTypography(1), [])
   const othersStillWagering = useMemo(() => venueHasOpenWagering(companions), [companions])
 
   return (
@@ -1826,6 +1835,7 @@ function VenueHeroSpotlightLayout({
           prefersReducedMotion={prefersReducedMotion}
           dimAnsweringEarly={featured.phase === 'answering' && othersStillWagering}
           sharedShowdownAnswer={sharedShowdownAnswer}
+          mosaicTypography={heroTypography}
         />
       </div>
       {companions.length > 0 ? (
@@ -1952,6 +1962,18 @@ export default function VenueEightTablesPreview({
 
   const compactVenueHeadline = floorLayoutTableCount >= 14
   const ultraCompactVenueHeadline = floorLayoutTableCount >= 17
+  const publicTypographyTier = useMemo(
+    () => venueFloorPublicTypographyTier(floorLayoutTableCount),
+    [floorLayoutTableCount],
+  )
+  const headlineQuestionClass = useMemo(
+    () => displayHeadlineQuestionClass(publicTypographyTier),
+    [publicTypographyTier],
+  )
+  const headlineCaptionClass = useMemo(
+    () => displayHeadlineCaptionClass(publicTypographyTier),
+    [publicTypographyTier],
+  )
 
   const featuredTile = useMemo(() => {
     if (hostFocusTable == null) return null
@@ -2071,13 +2093,7 @@ export default function VenueEightTablesPreview({
                     ) : null}
                     {headlineQuestionDisplay ? (
                       <p
-                        className={`text-balance text-left tracking-tight text-yellow-400 ${
-                          ultraCompactVenueHeadline
-                            ? DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA
-                            : compactVenueHeadline
-                              ? DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT
-                              : 'font-bold text-xl sm:text-2xl sm:leading-snug md:text-[1.65rem] md:leading-snug lg:text-[2rem] xl:text-[2.35rem] 2xl:text-[2.5rem] leading-snug'
-                        }`}
+                        className={`text-balance text-left tracking-tight text-yellow-400 ${headlineQuestionClass}`}
                       >
                         {headlineQuestionDisplay}
                       </p>
@@ -2162,7 +2178,11 @@ export default function VenueEightTablesPreview({
                 </motion.div>
                 </div>
                 {condenseProgress != null && tileRows.length > 0 ? (
-                  <VenueCondenseProgressBar model={condenseProgress} variant="headline" />
+                  <VenueCondenseProgressBar
+                    model={condenseProgress}
+                    variant="headline"
+                    captionClass={headlineCaptionClass}
+                  />
                 ) : null}
               </motion.div>
             ) : null}

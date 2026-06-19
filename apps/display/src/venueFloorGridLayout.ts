@@ -110,23 +110,76 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   pot: 'text-[clamp(16px,2.15vmin,22px)] font-mono font-black leading-none',
   /** Pot centered on mosaic felt — scales with tile width, not header chrome. */
   feltPot: 'text-[clamp(24px,3.35vmin,38px)] font-mono font-black leading-none',
-  actingName:
-    'truncate text-[clamp(19px,2.05vh,27px)] font-bold leading-none tracking-tight text-[rgba(245,245,240,0.92)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]',
   phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
   headerRow: 'items-center overflow-visible py-0 leading-none',
   seatInitials: 'text-[clamp(11px,1.55vmin,15px)]',
-  /** Under-felt “To Call” label during wagering. */
-  toCallLabel:
-    'text-[clamp(18px,1.85vh,21px)] font-bold leading-none tracking-tight text-amber-100/88',
-  /** Under-felt “To Call” amount — emphasized over the label. */
-  toCallAmount:
-    'text-[clamp(21px,2.1vh,25px)] font-mono font-black leading-none tabular-nums text-yellow-300',
   /** Stable footer row for under-felt “To Call” during wagering. */
   toCallFooterRow:
     'flex min-h-[clamp(22px,2.4vh,30px)] shrink-0 items-center justify-center px-1 py-0.5',
   noMoreBetsWatermark:
     'pointer-events-none select-none whitespace-nowrap text-center text-[clamp(15px,2.35vmin,24px)] font-black uppercase leading-none tracking-[0.12em] text-emerald-300/35',
 } as const
+
+/** Public-display typography bands keyed by active table count (1–8 / 9–15 / 16–20). */
+export type VenueFloorPublicTypographyTier = 'spacious' | 'standard' | 'compact'
+
+export function venueFloorPublicTypographyTier(tableCount: number): VenueFloorPublicTypographyTier {
+  const n = Math.max(1, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
+  if (n <= 8) return 'spacious'
+  if (n <= 15) return 'standard'
+  return 'compact'
+}
+
+export type VenueFloorMosaicTypography = {
+  actingName: string
+  feltPot: string
+  tableNum: string
+  toCallLabel: string
+  toCallAmount: string
+  noMoreBetsOffsetClass: string
+}
+
+const MOSAIC_ACTING_NAME_BASE =
+  'truncate font-bold leading-none tracking-tight text-[rgba(245,245,240,0.94)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]'
+const MOSAIC_FELT_POT_BASE = 'font-mono font-black leading-none'
+const MOSAIC_TABLE_NUM_BASE = 'font-black leading-none tabular-nums'
+const MOSAIC_TO_CALL_LABEL_BASE =
+  'font-bold leading-none tracking-tight text-amber-100/90'
+const MOSAIC_TO_CALL_AMOUNT_BASE =
+  'font-mono font-extrabold leading-none tabular-nums text-yellow-300'
+
+const VENUE_FLOOR_MOSAIC_TYPOGRAPHY: Record<VenueFloorPublicTypographyTier, VenueFloorMosaicTypography> =
+  {
+    spacious: {
+      actingName: `${MOSAIC_ACTING_NAME_BASE} text-[clamp(24px,2.6vh,32px)]`,
+      feltPot: `${MOSAIC_FELT_POT_BASE} text-[clamp(28px,3.5vh,40px)]`,
+      tableNum: `${MOSAIC_TABLE_NUM_BASE} text-[clamp(20px,2vh,24px)]`,
+      toCallLabel: `${MOSAIC_TO_CALL_LABEL_BASE} text-[clamp(18px,1.9vh,22px)]`,
+      toCallAmount: `${MOSAIC_TO_CALL_AMOUNT_BASE} text-[clamp(22px,2.25vh,28px)]`,
+      noMoreBetsOffsetClass: 'translate-y-[16%]',
+    },
+    standard: {
+      actingName: `${MOSAIC_ACTING_NAME_BASE} text-[clamp(20px,2.2vh,27px)]`,
+      feltPot: `${MOSAIC_FELT_POT_BASE} text-[clamp(26px,3.35vh,38px)]`,
+      tableNum: `${MOSAIC_TABLE_NUM_BASE} text-[clamp(18px,1.9vh,22px)]`,
+      toCallLabel: `${MOSAIC_TO_CALL_LABEL_BASE} text-[clamp(16px,1.8vh,21px)]`,
+      toCallAmount: `${MOSAIC_TO_CALL_AMOUNT_BASE} text-[clamp(19px,2.15vh,26px)]`,
+      noMoreBetsOffsetClass: 'translate-y-[24%]',
+    },
+    compact: {
+      actingName: `${MOSAIC_ACTING_NAME_BASE} text-[clamp(18px,1.9vh,23px)]`,
+      feltPot: `${MOSAIC_FELT_POT_BASE} text-[clamp(24px,3.2vh,36px)]`,
+      tableNum: `${MOSAIC_TABLE_NUM_BASE} text-[clamp(18px,1.7vh,20px)]`,
+      toCallLabel: `${MOSAIC_TO_CALL_LABEL_BASE} text-[clamp(15px,1.65vh,19px)]`,
+      toCallAmount: `${MOSAIC_TO_CALL_AMOUNT_BASE} text-[clamp(18px,2vh,24px)]`,
+      noMoreBetsOffsetClass: 'translate-y-[28%]',
+    },
+  }
+
+/** Table-count-aware mosaic card typography — recomputed when active table count changes. */
+export function venueFloorMosaicTypography(tableCount: number): VenueFloorMosaicTypography {
+  return VENUE_FLOOR_MOSAIC_TYPOGRAPHY[venueFloorPublicTypographyTier(tableCount)]
+}
 
 /** Slightly taller mosaic felt — room for under-table call caption without shrinking type. */
 export const VENUE_FLOOR_MOSAIC_TILE_INSET = 'mx-auto w-[90%] max-w-full'

@@ -276,19 +276,34 @@
   }
 
   /** Headline condense / progress caption under the question row. */
+  .display-text-headline-caption-spacious {
+    font-size: clamp(19px, 1.9vh, 23px);
+  }
+
+  /** Headline condense / progress caption under the question row. */
   .display-text-headline-caption {
     font-size: clamp(18px, 1.8vh, 22px);
   }
 
-  /** Venue question when the floor is compact (14+ tables). */
-  .display-text-headline-question-compact {
-    font-size: clamp(24px, 2.9vh, 36px);
+  .display-text-headline-caption-compact {
+    font-size: clamp(16px, 1.65vh, 20px);
+  }
+
+  /** Venue question when the floor is spacious (1–8 tables). */
+  .display-text-headline-question-spacious {
+    font-size: clamp(28px, 3.2vh, 40px);
     font-weight: 700;
   }
 
-  /** Venue question when the floor is ultra-compact (17+ tables). */
+  /** Venue question when the floor is standard (9–15 tables). */
+  .display-text-headline-question-compact {
+    font-size: clamp(25px, 3vh, 38px);
+    font-weight: 700;
+  }
+
+  /** Venue question when the floor is compact (16–20 tables). */
   .display-text-headline-question-ultra {
-    font-size: clamp(22px, 2.65vh, 31px);
+    font-size: clamp(22px, 2.7vh, 32px);
     font-weight: 700;
   }
 

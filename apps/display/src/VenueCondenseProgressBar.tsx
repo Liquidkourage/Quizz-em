@@ -6,6 +6,8 @@ type VenueCondenseProgressBarProps = {
   model: VenueCondenseProgressModel
   /** headline = full-width under venue headline; sidebar = stacks rail; bottom = fallback strip */
   variant?: 'headline' | 'sidebar' | 'bottom'
+  /** Override caption typography (table-count tier from parent). */
+  captionClass?: string
 }
 
 function formatHeadlineCondensePart(part: string): string {
@@ -41,6 +43,7 @@ function compactCaption(model: VenueCondenseProgressModel): string {
 export default function VenueCondenseProgressBar({
   model,
   variant = 'bottom',
+  captionClass = DISPLAY_TEXT_HEADLINE_CAPTION,
 }: VenueCondenseProgressBarProps) {
   const { survivors, peakSurvivors, liveTables, fillPct, marks, nextAt } = model
   if (liveTables <= 1 && marks.length === 0) return null
@@ -70,7 +73,7 @@ export default function VenueCondenseProgressBar({
       >
         {headline ? (
           <p
-            className={`mb-1 flex min-w-0 items-center truncate text-left font-semibold tabular-nums text-white/85 ${DISPLAY_TEXT_HEADLINE_CAPTION}`}
+            className={`mb-1 flex min-w-0 items-center truncate text-left font-semibold tabular-nums text-white/85 ${captionClass}`}
           >
             {headlineCondenseCaptionParts(model).map((part, index) => (
               <Fragment key={part}>

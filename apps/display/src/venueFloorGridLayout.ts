@@ -91,17 +91,17 @@ export type VenueFloorTableSize = 'hero' | 'large' | 'medium' | 'compact' | 'mic
 
 /** TV-readable mosaic header type — vmin compensates for venue-wall 0.88 zoom. */
 export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
-  tableNum: 'text-[clamp(16px,2.25vmin,22px)] font-black leading-tight',
+  tableNum: 'text-[clamp(18px,2.55vmin,26px)] font-black leading-none',
   tableNumBadge:
-    'inline-flex min-w-[1.35rem] items-center justify-center rounded-md border-2 border-yellow-400/80 bg-gradient-to-b from-yellow-800/95 to-yellow-950 px-1.5 py-0.5 font-black tabular-nums text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.4)]',
-  pot: 'text-[clamp(14px,1.85vmin,19px)] font-mono font-black leading-tight',
-  /** Pot centered on mosaic felt — larger than header pot on dense floors. */
-  feltPot: 'text-[clamp(20px,2.75vmin,30px)] font-mono font-black leading-none',
+    'inline-flex min-w-[1.5rem] items-center justify-center rounded-md border-2 border-yellow-400/80 bg-gradient-to-b from-yellow-800/95 to-yellow-950 px-1.5 py-px font-black tabular-nums leading-none text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.4)]',
+  pot: 'text-[clamp(16px,2.15vmin,22px)] font-mono font-black leading-none',
+  /** Pot centered on mosaic felt — scales with tile width, not header chrome. */
+  feltPot: 'text-[clamp(24px,3.35vmin,38px)] font-mono font-black leading-none',
   actingName:
-    'truncate text-[clamp(11px,1.4vmin,14px)] font-bold leading-tight tracking-tight text-cyan-100 drop-shadow-[0_1px_6px_rgba(0,0,0,0.85)]',
-  phase: 'px-1 py-0.5 text-[clamp(11px,1.35vmin,14px)] font-bold uppercase leading-tight',
-  headerRow: 'items-center overflow-visible pt-1 pb-0.5',
-  seatInitials: 'text-[clamp(12px,1.55vmin,16px)]',
+    'truncate text-[clamp(18px,2.9vmin,28px)] font-black leading-none tracking-tight text-cyan-50 drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]',
+  phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
+  headerRow: 'items-center overflow-visible py-0 leading-none',
+  seatInitials: 'text-[clamp(14px,1.9vmin,20px)]',
 } as const
 
 /** Shorter mosaic aspect + inset so 4 checkerboard rows fit under the headline. */
@@ -198,8 +198,8 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.85,
         cellGapRem: 0.95,
-        cardPaddingClass: 'px-1.5 pt-1.5 pb-0.5 sm:px-2 sm:pt-2 sm:pb-1',
-        innerGapClass: 'gap-1 sm:gap-1.5',
+        cardPaddingClass: 'px-1.5 pt-1 pb-0 sm:px-2 sm:pt-1.5 sm:pb-0',
+        innerGapClass: 'gap-0',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
         phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
@@ -218,8 +218,8 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.72,
         cellGapRem: 0.82,
-        cardPaddingClass: 'px-1 pt-1.5 pb-0.5 sm:px-1.5 sm:pt-2 sm:pb-0.5',
-        innerGapClass: 'gap-0.5',
+        cardPaddingClass: 'px-1 pt-1 pb-0 sm:px-1.5 sm:pt-1 sm:pb-0',
+        innerGapClass: 'gap-0',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
         phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
@@ -238,8 +238,8 @@ export function venueFloorSizeSpec(layout: VenueBanquetLayout): VenueFloorSizeSp
         showdownBrief: true,
         rowGapRem: 0.68,
         cellGapRem: 0.78,
-        cardPaddingClass: 'px-1 pt-1.5 pb-0.5 sm:px-1.5 sm:pt-2 sm:pb-0.5',
-        innerGapClass: 'gap-0.5',
+        cardPaddingClass: 'px-1 pt-1 pb-0 sm:px-1.5 sm:pt-1 sm:pb-0',
+        innerGapClass: 'gap-0',
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
         phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,

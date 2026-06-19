@@ -1390,7 +1390,7 @@ function VenueMosaicTableCard({
               {actingPlayerName ? (
                 <span
                   className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.actingName} ${
-                    wageringLive ? 'text-cyan-100 motion-safe:animate-pulse motion-safe:[animation-duration:2.4s]' : ''
+                    wageringLive ? 'motion-safe:animate-pulse motion-safe:[animation-duration:2.4s]' : ''
                   }`}
                   title={actingPlayerName}
                 >
@@ -1434,7 +1434,7 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container/size relative z-[1] w-full overflow-hidden ${floorSize.ringScaleClass} ${
+          className={`@container/size relative z-[1] w-full shrink-0 overflow-hidden ${floorSize.ringScaleClass} ${
             feltFillsCell
               ? 'col-start-1 row-start-2 flex min-h-0 flex-1 items-center justify-center'
               : mosaicShrinkWrap

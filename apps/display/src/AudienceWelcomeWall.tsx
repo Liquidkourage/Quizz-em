@@ -383,7 +383,7 @@ function WelcomeNewPlayerTipsPanel({
   reducedMotion: boolean
 }) {
   const bulletClass =
-    `text-balance font-medium text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
+    `text-balance font-semibold text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
 
   const tips = [
     "Quizz'em is a trivia game played exactly like Texas Hold'em—answers are numeric, cards are single digits (e.g. 99, 1492, 90210).",
@@ -460,9 +460,9 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
   const venueMono =
     `max-w-full break-all text-center font-mono font-black leading-none tracking-[0.06em] uppercase text-transparent bg-gradient-to-br from-yellow-200 via-yellow-400 to-amber-600 bg-clip-text [-webkit-background-clip:text] [filter:drop-shadow(0_2px_4px_rgba(0,0,0,.9))] ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
-  /** Join card URL — compact; caps cqw growth so long hosts do not dominate the panel. */
+  /** Join card URL — goldilocks scale: capped so long hosts fit, large enough for the room. */
   const joinUrlText =
-    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.02em] text-amber-50 ${DISPLAY_TEXT_WELCOME_URL_CQW} [text-shadow:0_0_22px_rgba(254,249,231,0.45),0_0_58px_rgba(251,191,36,0.42),0_0_112px_rgba(234,179,8,0.22),0_0_28px_rgba(239,68,68,0.12),0_1px_0_rgba(0,0,0,0.9)]`
+    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.03em] text-amber-50 ${DISPLAY_TEXT_WELCOME_URL_CQW} [text-shadow:0_0_22px_rgba(254,249,231,0.45),0_0_58px_rgba(251,191,36,0.42),0_0_112px_rgba(234,179,8,0.22),0_0_28px_rgba(239,68,68,0.12),0_1px_0_rgba(0,0,0,0.9)]`
 
   /** Tighter attendance strip on landscape 1080p-class TVs (≥1024 wide, ≤1080 tall); skips narrow/portrait. */
   const statTile1080 =

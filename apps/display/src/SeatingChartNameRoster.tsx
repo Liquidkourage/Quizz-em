@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  DISPLAY_TEXT_DENSE_CQ,
-  DISPLAY_TEXT_SECONDARY_CQ,
-} from './displayTypography'
-import {
   SEATING_CHART_ROSTER_PAGE_MS,
   SEATING_CHART_ROSTER_PAGE_SIZE,
   SEATING_CHART_ROSTER_WIDTH_REM,
@@ -15,11 +11,11 @@ import {
 
 function SeatingChartRosterRow({ entry }: { entry: SeatingChartPlayerEntry }) {
   return (
-    <li className="min-w-0 border-b border-white/[0.07] py-[0.1rem] last:border-b-0">
-      <p className={`truncate font-semibold text-white ${DISPLAY_TEXT_DENSE_CQ}`}>
+    <li className="flex min-h-[2.35rem] shrink-0 flex-col justify-center border-b border-white/[0.07] py-0.5 last:border-b-0">
+      <p className="truncate text-xs font-semibold leading-tight text-white sm:text-[0.8125rem]">
         {entry.name.trim()}
       </p>
-      <p className={`mt-0.5 truncate font-medium text-amber-200/75 ${DISPLAY_TEXT_DENSE_CQ}`}>
+      <p className="mt-0.5 truncate text-[10px] font-medium leading-none text-amber-200/75 sm:text-[11px]">
         Table {entry.tableNum}, Seat {entry.seatNum}
       </p>
     </li>
@@ -62,7 +58,7 @@ export default function SeatingChartNameRoster({
 
   return (
     <aside
-      className={`@container/size flex min-h-0 shrink-0 flex-col overflow-hidden border-white/10 py-1 ${
+      className={`flex min-h-0 shrink-0 flex-col overflow-hidden border-white/10 py-1 ${
         align === 'left' ? 'border-r pr-2 pl-3 sm:pl-4' : 'border-l pl-2 pr-3 sm:pr-4'
       }`}
       style={{ width: `${SEATING_CHART_ROSTER_WIDTH_REM}rem` }}
@@ -73,15 +69,15 @@ export default function SeatingChartNameRoster({
           align === 'right' ? 'flex-row-reverse text-right' : ''
         }`}
       >
-        <h2 className={`font-black uppercase tracking-[0.16em] text-amber-300/90 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
+        <h2 className="text-xs font-black uppercase tracking-[0.16em] text-amber-300/90 sm:text-sm">
           {title}
         </h2>
         {pageCount > 1 ? (
-          <p className={`font-medium tabular-nums text-white/45 ${DISPLAY_TEXT_DENSE_CQ}`}>
+          <p className="text-[10px] font-medium tabular-nums text-white/45 sm:text-[11px]">
             {rangeStart}–{rangeEnd} of {entries.length}
           </p>
         ) : (
-          <p className={`font-medium tabular-nums text-white/45 ${DISPLAY_TEXT_DENSE_CQ}`}>
+          <p className="text-[10px] font-medium tabular-nums text-white/45 sm:text-[11px]">
             {entries.length} players
           </p>
         )}
@@ -91,14 +87,17 @@ export default function SeatingChartNameRoster({
         <AnimatePresence mode="wait" initial={false}>
           <motion.ul
             key={pageIndex}
-            className="absolute inset-0 flex flex-col"
+            className="flex h-full min-h-0 flex-col overflow-hidden"
             initial={{ opacity: 0, x: align === 'left' ? -10 : 10 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: align === 'left' ? 10 : -10 }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
             {pageEntries.map((entry) => (
-              <SeatingChartRosterRow key={`${entry.tableNum}-${entry.seatNum}-${entry.name}`} entry={entry} />
+              <SeatingChartRosterRow
+                key={`${pageIndex}-${entry.tableNum}-${entry.seatNum}-${entry.name}`}
+                entry={entry}
+              />
             ))}
           </motion.ul>
         </AnimatePresence>

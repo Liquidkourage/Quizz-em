@@ -10,7 +10,6 @@ import {
   SEATING_CHART_CARD_WIDTH_CSS,
   SEATING_CHART_FRAME_WIDTH_CSS,
   SEATING_CHART_GAP_X_REM,
-  SEATING_CHART_GRID_MAX_WIDTH_REM,
   SEATING_CHART_PAGE_MS,
   seatingChartPageCount,
   seatingChartPageLabel,
@@ -18,7 +17,6 @@ import {
   seatingChartWBottomLeftCss,
   seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
-import { DISPLAY_TEXT_PRIMARY, DISPLAY_TEXT_PRIMARY_CQ, DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
 function SeatingTableCard({
   table,
@@ -27,20 +25,20 @@ function SeatingTableCard({
 }) {
   return (
     <article
-      className="@container flex h-full w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
+      className="@container flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
       aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
     >
-      <header className="flex shrink-0 items-center border-b border-amber-500/25 bg-gradient-to-r from-amber-500/18 via-amber-400/12 to-amber-500/18 px-5 py-2.5 sm:px-6 sm:py-3">
-        <span className={`font-black tabular-nums leading-none text-amber-50 ${DISPLAY_TEXT_PRIMARY_CQ}`}>
+      <header className="flex shrink-0 items-center border-b border-amber-500/25 bg-gradient-to-r from-amber-500/18 via-amber-400/12 to-amber-500/18 px-4 py-2 sm:px-5 sm:py-2.5">
+        <span className="text-xl font-black tabular-nums leading-none text-amber-50 sm:text-2xl">
           {table.tableNum}
         </span>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-2 px-3 py-2 sm:px-4 sm:py-3">
-        <div className="flex min-h-0 items-center justify-center overflow-hidden border-b border-white/[0.06] pb-2 sm:pb-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 px-2.5 py-2 sm:gap-2.5 sm:px-3 sm:py-2.5">
+        <div className="flex h-[clamp(5.5rem,24cqh,9.5rem)] shrink-0 items-center justify-center overflow-hidden border-b border-white/[0.06] pb-2">
           <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
         </div>
-        <div className="flex min-h-0 flex-col justify-center overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain">
           <SeatingPlayerList seats={table.seats} />
         </div>
       </div>
@@ -51,7 +49,7 @@ function SeatingTableCard({
 function SeatingChartCardSlot({ table }: { table: ReturnType<typeof seatingChartTablesFromTiles>[number] }) {
   return (
     <div
-      className="flex h-full min-h-0 shrink-0"
+      className="flex h-full min-h-[11rem] min-w-0 shrink-0"
       style={{ width: SEATING_CHART_CARD_WIDTH_CSS }}
     >
       <SeatingTableCard table={table} />
@@ -71,7 +69,7 @@ function SeatingChartWPage({
   return (
     <div className="flex h-full min-h-0 w-full max-h-full flex-1 flex-col items-center">
       <div
-        className="mx-auto flex h-full min-h-0 w-full max-w-full flex-col gap-y-4 sm:gap-y-5"
+        className="mx-auto flex h-full min-h-0 w-full max-w-full flex-col gap-y-3 sm:gap-y-4"
         style={{
           width: SEATING_CHART_FRAME_WIDTH_CSS,
         }}
@@ -118,7 +116,7 @@ function SeatingChartPager({
 }) {
   return (
     <div className="flex flex-col items-center gap-2.5" aria-live="polite">
-      <p className={`font-medium tabular-nums text-white/60 ${DISPLAY_TEXT_SECONDARY}`}>
+      <p className="text-sm font-medium tabular-nums text-white/60 sm:text-base">
         Tables {tableRange} of {tableTotal}
       </p>
       <div className="flex items-center gap-2.5" aria-hidden>
@@ -191,20 +189,17 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
 
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden text-white">
         <header className="shrink-0 border-b border-yellow-700/25 bg-black/35 px-6 py-3 backdrop-blur-md sm:px-8 sm:py-3.5">
-          <div
-            className="mx-auto flex w-full items-center gap-x-5 gap-y-3 sm:gap-x-6"
-            style={{ maxWidth: `${SEATING_CHART_GRID_MAX_WIDTH_REM}rem` }}
-          >
+          <div className="flex w-full max-w-none items-center gap-x-5 gap-y-3 sm:gap-x-6">
             <div className="w-[clamp(5.5rem,min(14vw,8rem),9rem)] shrink-0">
               <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
                 <QuizzEmWordmark layout="fill" />
               </div>
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className={`font-black tracking-tight text-yellow-300 ${DISPLAY_TEXT_PRIMARY}`}>
+              <h1 className="text-2xl font-black tracking-tight text-yellow-300 sm:text-3xl">
                 Seating assignments
               </h1>
-              <p className={`mt-0.5 text-white/65 ${DISPLAY_TEXT_SECONDARY}`}>
+              <p className="mt-0.5 text-sm text-white/65 sm:text-base">
                 <span className="font-semibold tabular-nums text-amber-200/90">{totalSeated}</span> players
                 across{' '}
                 <span className="font-semibold tabular-nums text-amber-200/90">{tables.length}</span> tables

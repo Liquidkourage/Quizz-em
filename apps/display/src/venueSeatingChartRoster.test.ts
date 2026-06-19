@@ -57,7 +57,7 @@ describe('seatingChartRosterHalves', () => {
 
 describe('seatingChartRosterPageEntries', () => {
   it('pages long rosters', () => {
-    const total = SEATING_CHART_ROSTER_PAGE_SIZE + 8
+    const total = SEATING_CHART_ROSTER_PAGE_SIZE + 4
     const entries = Array.from({ length: total }, (_, i) => ({
       name: `Player ${i}`,
       tableNum: 1,

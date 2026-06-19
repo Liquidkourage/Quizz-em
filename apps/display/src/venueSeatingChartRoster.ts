@@ -7,10 +7,10 @@ export type SeatingChartPlayerEntry = {
 }
 
 /** Fixed width for left/right roster gutters (center carousel keeps its frame). */
-export const SEATING_CHART_ROSTER_WIDTH_REM = 13.5
+export const SEATING_CHART_ROSTER_WIDTH_REM = 15.5
 
-/** Players per roster carousel page — tuned for compact gutter rows on a venue display. */
-export const SEATING_CHART_ROSTER_PAGE_SIZE = 22
+/** Players per roster carousel page — must fit gutter height without overlapping rows. */
+export const SEATING_CHART_ROSTER_PAGE_SIZE = 14
 
 /** Dwell time on each roster page (ms). */
 export const SEATING_CHART_ROSTER_PAGE_MS = 8_000

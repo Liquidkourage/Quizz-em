@@ -1,10 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { capsuleBorderRadiusCss } from './tableRimGeometry'
-import {
-  DISPLAY_TEXT_BADGE_CQ,
-  DISPLAY_TEXT_DENSE_CQ,
-} from './displayTypography'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
 const FELT_INSET = { top: 0.1, right: 0.06, bottom: 0.13, left: 0.06 }
@@ -90,7 +86,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
   return (
     <div
       ref={wrapRef}
-      className="relative mx-auto aspect-[8/5] h-full max-h-full w-auto max-w-full"
+      className="relative mx-auto h-full max-h-full w-full max-w-full"
       role="img"
       aria-label="Seat positions around the table"
     >
@@ -115,7 +111,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
           return (
             <div
               key={seatNum}
-              className={`absolute flex aspect-square min-h-[7cqh] min-w-[7cqh] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono font-black tabular-nums ${DISPLAY_TEXT_BADGE_CQ} ${
+              className={`absolute flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono text-[9px] font-black tabular-nums sm:h-6 sm:w-6 sm:text-[10px] ${
                 filled
                   ? 'border-emerald-300/80 bg-neutral-950/95 text-amber-50 shadow-sm ring-1 ring-emerald-400/25'
                   : 'border-white/20 bg-slate-950/70 text-white/35'
@@ -141,20 +137,18 @@ export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
   const sorted = [...seats].sort((a, b) => a.seatNum - b.seatNum)
 
   return (
-    <ul className="grid h-full min-h-0 grid-cols-2 content-center gap-x-2 gap-y-0.5 sm:gap-x-3">
+    <ul className="grid grid-cols-2 content-start gap-x-2 gap-y-1 sm:gap-x-2.5 sm:gap-y-1.5">
       {sorted.map((seat) => {
         const { given, suffix } = splitSeatingDisplayName(seat.name)
         return (
           <li
             key={seat.seatNum}
-            className="flex min-h-0 items-center gap-1.5 rounded-lg bg-white/[0.045] px-1.5 py-0.5 ring-1 ring-white/[0.06] sm:gap-2 sm:px-2"
+            className="flex min-w-0 items-center gap-1.5 rounded-md bg-white/[0.045] px-1.5 py-1 ring-1 ring-white/[0.06] sm:gap-2 sm:px-2 sm:py-1.5"
           >
-            <span
-              className={`flex aspect-square min-h-[6cqh] min-w-[6cqh] shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono font-black tabular-nums text-amber-50 ${DISPLAY_TEXT_BADGE_CQ}`}
-            >
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-[9px] font-black tabular-nums text-amber-50 sm:h-6 sm:w-6 sm:text-[10px]">
               {seat.seatNum}
             </span>
-            <span className={`min-w-0 font-semibold text-white ${DISPLAY_TEXT_DENSE_CQ}`}>
+            <span className="min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm">
               {given}
               {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}
             </span>

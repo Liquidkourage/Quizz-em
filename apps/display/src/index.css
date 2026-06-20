@@ -313,17 +313,17 @@
 
   .venue-floor-typography-standard {
     --vfd-question-size: 39px;
-    --vfd-summary-size: 22px;
-    --vfd-player-name-size: 28px;
+    --vfd-summary-size: 25px;
+    --vfd-player-name-size: 32px;
     --vfd-stack-size: 41px;
-    --vfd-to-call-label-size: 22px;
-    --vfd-to-call-amount-size: 27px;
+    --vfd-to-call-label-size: 24px;
+    --vfd-to-call-amount-size: 31px;
     --vfd-table-number-size: 22px;
     --vfd-seat-initial-size: 15px;
     --vfd-watermark-size: 24px;
-    --vfd-title-row-min-h: 32px;
-    --vfd-footer-row-min-h: 33px;
-    --vfd-felt-max-height: 93%;
+    --vfd-title-row-min-h: 36px;
+    --vfd-footer-row-min-h: 38px;
+    --vfd-felt-max-height: 89%;
     --vfd-blinds-amount-size: 36px;
   }
 

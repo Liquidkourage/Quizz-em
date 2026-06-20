@@ -126,12 +126,17 @@ export const VENUE_FLOOR_MOSAIC_CHROME = {
   headerRow: 'items-center overflow-visible py-0 leading-none',
 } as const
 
-/** @deprecated Use {@link VENUE_FLOOR_MOSAIC_CHROME}. */
+/**
+ * Legacy header helpers. **9+ tables (dense mosaic)** use {@link MOSAIC_TYPOGRAPHY_CLASSES}
+ * and `--vfd-*` tokens — not the clamp strings below.
+ * `tableNum` / `pot` clamp classes apply only on the non-dense path (hero/large, ≤8 tables).
+ */
 export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   ...VENUE_FLOOR_MOSAIC_CHROME,
+  /** Non-dense mosaic only — dense cards use `.vfd-mosaic-table-num`. */
   tableNum: 'text-[clamp(18px,2.55vmin,26px)] font-black leading-none',
+  /** Non-dense mosaic only — dense cards use header pot row, not this class. */
   pot: 'text-[clamp(16px,2.15vmin,22px)] font-mono font-black leading-none',
-  feltPot: 'text-[clamp(24px,3.35vmin,38px)] font-mono font-black leading-none',
   phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
   seatInitials: 'vfd-mosaic-seat-initial',
   toCallFooterRow: 'vfd-mosaic-footer-row',
@@ -185,7 +190,7 @@ const MOSAIC_TYPOGRAPHY_CLASSES: Omit<VenueFloorMosaicTypography, 'rootClass' | 
 
 const NO_MORE_BETS_OFFSET_BY_TIER: Record<VenueFloorPublicTypographyTier, string> = {
   spacious: 'translate-y-[16%]',
-  standard: 'translate-y-[24%]',
+  standard: 'translate-y-[22%]',
   compact: 'translate-y-[28%]',
 }
 

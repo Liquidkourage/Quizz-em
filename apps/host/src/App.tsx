@@ -344,6 +344,9 @@ function HostApp() {
     }
   }
 
+  const feltAutoAlert = useHostVenueAutoAlerts(venueFeltBeat)
+  const venueAutoAlert = toastVenueAlert ?? feltAutoAlert
+
   if (!gameState) {
     return (
       <div className="min-h-screen bg-casino-gradient flex items-center justify-center">
@@ -413,9 +416,6 @@ function HostApp() {
         behind the mosaic — deal still runs on every seated table.
       </p>
     ) : null
-
-  const feltAutoAlert = useHostVenueAutoAlerts(venueFeltBeat)
-  const venueAutoAlert = toastVenueAlert ?? feltAutoAlert
 
   const draftSetlist =
     setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined

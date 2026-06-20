@@ -95,9 +95,31 @@ export function venueLeaderboardColumnRangeLabel(column: VenueLeaderboardColumnM
 }
 
 export function venueLeaderboardPageCount(totalPlayers: number): number {
+  return venueLeaderboardPageSizes(totalPlayers).length
+}
+
+/** Avoid a tiny tail page (e.g. 64 + 1) — rebalance when the remainder is too small to fill a screen. */
+export function venueLeaderboardPageSizes(totalPlayers: number): number[] {
   const n = Math.max(0, Math.floor(totalPlayers))
-  if (n === 0) return 0
-  return Math.ceil(n / LEADERBOARD_MAX_PLAYERS_PER_PAGE)
+  if (n === 0) return []
+  if (n <= LEADERBOARD_MAX_PLAYERS_PER_PAGE) return [n]
+
+  const naivePageCount = Math.ceil(n / LEADERBOARD_MAX_PLAYERS_PER_PAGE)
+  const remainder = n % LEADERBOARD_MAX_PLAYERS_PER_PAGE
+
+  if (remainder === 0) {
+    return Array(naivePageCount).fill(LEADERBOARD_MAX_PLAYERS_PER_PAGE)
+  }
+
+  /** Last page should feel like a leaderboard column, not a single lonely row. */
+  const minLastPage = Math.max(8, Math.floor(LEADERBOARD_MAX_ROWS_PER_COLUMN / 2))
+  if (remainder >= minLastPage) {
+    return [...Array(naivePageCount - 1).fill(LEADERBOARD_MAX_PLAYERS_PER_PAGE), remainder]
+  }
+
+  const base = Math.floor(n / naivePageCount)
+  const extra = n % naivePageCount
+  return Array.from({ length: naivePageCount }, (_, p) => base + (p < extra ? 1 : 0))
 }
 
 function buildLeaderboardPage(
@@ -127,16 +149,17 @@ export function buildVenueLeaderboardPresentation(
   rows: readonly VenueLeaderboardRow[]
 ): VenueLeaderboardPresentationModel {
   const totalPlayers = rows.length
-  const pageCount = venueLeaderboardPageCount(totalPlayers)
+  const pageSizes = venueLeaderboardPageSizes(totalPlayers)
+  const pageCount = pageSizes.length
   const pages: VenueLeaderboardPageModel[] = []
 
+  let rankOffset = 0
   for (let p = 0; p < pageCount; p++) {
-    const slice = rows.slice(
-      p * LEADERBOARD_MAX_PLAYERS_PER_PAGE,
-      (p + 1) * LEADERBOARD_MAX_PLAYERS_PER_PAGE
-    )
-    const ranked = attachRanks(slice, p * LEADERBOARD_MAX_PLAYERS_PER_PAGE)
+    const size = pageSizes[p]!
+    const slice = rows.slice(rankOffset, rankOffset + size)
+    const ranked = attachRanks(slice, rankOffset)
     pages.push(buildLeaderboardPage(ranked, p + 1, pageCount))
+    rankOffset += size
   }
 
   return { pages, totalPlayers }

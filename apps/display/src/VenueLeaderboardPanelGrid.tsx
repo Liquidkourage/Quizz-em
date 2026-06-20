@@ -117,10 +117,23 @@ function LeaderboardRankRow({ row, rank, zebra, podium }: RowProps) {
 
 function columnGridStyle(column: VenueLeaderboardColumnModel, podiumColumn: boolean): CSSProperties {
   const rows = column.gridRowCount
+  const filled = column.players.length
+  /** Sparse columns (e.g. after bad pagination) must not stretch one row to full viewport height. */
+  const stretchRows = filled >= 8
+  const rowTrack = stretchRows ? 'minmax(0, 1fr)' : 'auto'
+
   if (!podiumColumn) {
     return {
       ['--lb-rows' as string]: rows,
-      gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+      gridTemplateRows: `repeat(${rows}, ${rowTrack})`,
+      alignContent: stretchRows ? undefined : 'start',
+    }
+  }
+  if (!stretchRows) {
+    return {
+      ['--lb-rows' as string]: rows,
+      gridTemplateRows: `repeat(${rows}, auto)`,
+      alignContent: 'start',
     }
   }
   return {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
-  collapseDuplicateAnswerStartPopups,
+  collapseRedundantVenuePopups,
   detectDisplayVenueStatePopups,
   snapshotDisplayVenueBeat,
 } from './displayVenueStatePopups'
@@ -50,12 +50,66 @@ describe('detectDisplayVenueStatePopups', () => {
     expect(popups.some((p) => p.kind === 'answer-window-start')).toBe(true)
   })
 
-  it('drops queued R2 close when answer window follows', () => {
-    const queued = collapseDuplicateAnswerStartPopups([
-      { kind: 'round2-complete', title: 'Post-board wagering closed' },
-      { kind: 'answer-window-start', title: 'Answer on your phone' },
+  it('shows only board dealt when R1 closes then board appears on next beat', () => {
+    const prev = snapshotDisplayVenueBeat(null, [
+      tile({ tableNum: 1, phase: 'betting', bettingRound: 1, isBettingOpen: true }),
+      tile({ tableNum: 2, phase: 'betting', bettingRound: 1, isBettingOpen: true }),
     ])
-    expect(queued.map((p) => p.kind)).toEqual(['answer-window-start'])
+    const mid = snapshotDisplayVenueBeat(null, [
+      tile({ tableNum: 1, phase: 'betting', bettingRound: 1, isBettingOpen: false }),
+      tile({ tableNum: 2, phase: 'betting', bettingRound: 1, isBettingOpen: false }),
+    ])
+    const next = snapshotDisplayVenueBeat(null, [
+      tile({
+        tableNum: 1,
+        phase: 'betting',
+        bettingRound: 2,
+        isBettingOpen: true,
+        communityDigits: [1, 2, 3, 4, 5],
+      }),
+      tile({
+        tableNum: 2,
+        phase: 'betting',
+        bettingRound: 2,
+        isBettingOpen: true,
+        communityDigits: [1, 2, 3, 4, 5],
+      }),
+    ])
+    expect(detectDisplayVenueStatePopups(prev, mid)).toEqual([])
+    expect(detectDisplayVenueStatePopups(mid, next).map((p) => p.kind)).toEqual(['board-dealt'])
+  })
+
+  it('shows only answer window when R2 closes and countdown arms together', () => {
+    const prev = snapshotDisplayVenueBeat(
+      { answerDeadlineMs: null } as never,
+      [
+        tile({ tableNum: 1, phase: 'betting', bettingRound: 2, isBettingOpen: true }),
+        tile({ tableNum: 2, phase: 'betting', bettingRound: 2, isBettingOpen: true }),
+      ],
+    )
+    const next = snapshotDisplayVenueBeat(
+      { answerDeadlineMs: Date.now() + 45_000 } as never,
+      [
+        tile({ tableNum: 1, phase: 'answering' }),
+        tile({ tableNum: 2, phase: 'answering' }),
+      ],
+    )
+    expect(detectDisplayVenueStatePopups(prev, next).map((p) => p.kind)).toEqual(['answer-window-start'])
+  })
+
+  it('drops queued lead-in popups when the follow-up beat arrives', () => {
+    expect(
+      collapseRedundantVenuePopups([
+        { kind: 'round1-complete', title: 'Pre-board wagering closed' },
+        { kind: 'board-dealt', title: 'Board is out' },
+      ]).map((p) => p.kind),
+    ).toEqual(['board-dealt'])
+    expect(
+      collapseRedundantVenuePopups([
+        { kind: 'round2-complete', title: 'Post-board wagering closed' },
+        { kind: 'answer-window-start', title: 'Answer on your phone' },
+      ]).map((p) => p.kind),
+    ).toEqual(['answer-window-start'])
   })
 
   it('announces board dealt when community cards appear', () => {

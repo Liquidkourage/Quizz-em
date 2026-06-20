@@ -77,15 +77,8 @@ export function detectDisplayVenueStatePopups(
 
   const out: DisplayVenueStatePopup[] = []
 
-  if (prev.round1AnyOpen && !next.round1AnyOpen && !next.anyPostBoard) {
-    out.push({
-      kind: 'round1-complete',
-      title: 'Pre-board wagering closed',
-      detail: 'Community cards are coming up.',
-    })
-  }
-
-  if (!prev.anyPostBoard && next.anyPostBoard) {
+  const boardDealing = !prev.anyPostBoard && next.anyPostBoard
+  if (boardDealing) {
     out.push({
       kind: 'board-dealt',
       title: 'Board is out',
@@ -127,15 +120,28 @@ export function detectDisplayVenueStatePopups(
     })
   }
 
-  return collapseDuplicateAnswerStartPopups(out)
+  return collapseRedundantVenuePopups(out)
 }
 
-/** Prefer the answer countdown over a trailing "R2 closed" when both queue together. */
+/** Prefer the stronger follow-up beat over a redundant lead-in popup. */
+export function collapseRedundantVenuePopups(
+  popups: DisplayVenueStatePopup[],
+): DisplayVenueStatePopup[] {
+  let next = popups
+  if (next.some((p) => p.kind === 'board-dealt')) {
+    next = next.filter((p) => p.kind !== 'round1-complete')
+  }
+  if (next.some((p) => p.kind === 'answer-window-start')) {
+    next = next.filter((p) => p.kind !== 'round2-complete')
+  }
+  return next
+}
+
+/** @deprecated Use collapseRedundantVenuePopups */
 export function collapseDuplicateAnswerStartPopups(
   popups: DisplayVenueStatePopup[],
 ): DisplayVenueStatePopup[] {
-  if (!popups.some((p) => p.kind === 'answer-window-start')) return popups
-  return popups.filter((p) => p.kind !== 'round2-complete')
+  return collapseRedundantVenuePopups(popups)
 }
 
 export function displayVenueStatePopupTone(

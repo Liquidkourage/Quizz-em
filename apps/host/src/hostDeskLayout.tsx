@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { Children, useEffect, useState, type ReactNode } from 'react'
 import { NeonButton } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
 import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload, VenueBlindsSnapshot } from '@qhe/net'
@@ -1338,5 +1338,325 @@ export function HostBlindsControls({
         </div>
       ) : null}
     </div>
+  )
+}
+
+const RUN_STEP_SHORT: Partial<Record<RunOfShowStepId, string>> = {
+  assign: 'Seat',
+  start: 'Start',
+  question: 'Q',
+  'close-bet-1': 'R1',
+  'deal-board': 'Board',
+  'close-bet-2': 'R2',
+  'start-answer': 'Answer',
+  reveal: 'Reveal',
+  'end-round': 'Pay',
+}
+
+/** One-row TV routing — floor, leaderboard, live spotlight chips, overflow grid. */
+export function HostTvBar({
+  livelyTableNums,
+  tableMax,
+  onVenueFloor,
+  onLeaderboard,
+  onSpotlight,
+}: {
+  livelyTableNums: number[]
+  tableMax: number
+  onVenueFloor: () => void
+  onLeaderboard: () => void
+  onSpotlight: (n: number) => void
+}) {
+  const livelySet = new Set(livelyTableNums)
+  const quietNums = Array.from({ length: Math.min(20, tableMax) }, (_, i) => i + 1).filter(
+    (n) => !livelySet.has(n),
+  )
+
+  return (
+    <div
+      className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-2"
+      role="group"
+      aria-label="Public display routing"
+    >
+      <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">TVs</span>
+      <NeonButton variant="emerald" size="small" type="button" onClick={onVenueFloor}>
+        Floor
+      </NeonButton>
+      <NeonButton variant="purple" size="small" type="button" onClick={onLeaderboard}>
+        Leaderboard
+      </NeonButton>
+      {livelyTableNums.length > 0 ? (
+        <>
+          <span className="hidden h-4 w-px bg-white/15 sm:block" aria-hidden />
+          {livelyTableNums.map((n) => (
+            <NeonButton
+              key={n}
+              variant="gold"
+              size="small"
+              type="button"
+              className="!px-2 !py-1 text-xs ring-2 ring-amber-400/60"
+              title={`Spotlight table ${n} on every TV`}
+              onClick={() => onSpotlight(n)}
+            >
+              ● {n}
+            </NeonButton>
+          ))}
+        </>
+      ) : null}
+      {quietNums.length > 0 ? (
+        <details className="relative ml-auto">
+          <summary className="cursor-pointer list-none rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/55 hover:bg-white/10 [&::-webkit-details-marker]:hidden">
+            Highlight table ▾
+          </summary>
+          <div className="absolute right-0 z-50 mt-1 flex max-w-[min(18rem,90vw)] flex-wrap gap-1 rounded-lg border border-white/15 bg-zinc-950/95 p-2 shadow-xl backdrop-blur-md">
+            {quietNums.map((n) => (
+              <NeonButton
+                key={n}
+                variant="gold"
+                size="small"
+                type="button"
+                className="!min-w-[2rem] !px-2 !py-1 text-xs"
+                onClick={() => onSpotlight(n)}
+              >
+                {n}
+              </NeonButton>
+            ))}
+          </div>
+        </details>
+      ) : null}
+    </div>
+  )
+}
+
+/** Sticky run bar: headline, status, primary cue, TV routing. */
+export function HostRunBar({
+  items,
+  statusLine,
+  headline,
+  tvBar,
+}: {
+  items: HostDockItem[]
+  statusLine?: ReactNode
+  headline?: { title: string; detail?: string }
+  tvBar?: ReactNode
+}) {
+  if (items.length === 0 && !statusLine && !headline && !tvBar) return null
+  return (
+    <div className="sticky top-0 z-40 mb-3 rounded-xl border border-casino-emerald/40 bg-black/90 p-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-3">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+        {headline ? (
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-casino-emerald/90">
+              Do this now
+            </p>
+            <p className="mt-0.5 text-base font-bold leading-snug text-white sm:text-lg">{headline.title}</p>
+            {headline.detail ? (
+              <p className="mt-0.5 text-xs leading-snug text-white/55">{headline.detail}</p>
+            ) : null}
+          </div>
+        ) : null}
+        {statusLine ? <div className="shrink-0 lg:max-w-[min(100%,28rem)]">{statusLine}</div> : null}
+      </div>
+      {items.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Primary show cues">
+          {items.map((item) => (
+            <NeonButton
+              key={item.id}
+              variant={item.variant}
+              size="normal"
+              disabled={item.disabled}
+              onClick={item.onClick}
+              className="!px-4 !py-2.5 !text-base !font-bold"
+            >
+              {item.label}
+            </NeonButton>
+          ))}
+        </div>
+      ) : null}
+      {tvBar}
+    </div>
+  )
+}
+
+/** Compact horizontal floor awareness — tap a table to spotlight it on TVs. */
+export function HostFloorStrip({
+  rows,
+  brief,
+  onSpotlight,
+}: {
+  rows: HostVenueFeltBeatRow[] | null
+  brief: HostVenueFloorBriefPayload | null
+  onSpotlight: (tableNum: number) => void
+}) {
+  const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(rows)
+  const actionByTable = new Map((brief?.actionRows ?? []).map((r) => [r.tableNum, r]))
+  const seated =
+    rows?.filter((r) => r.active && r.seated > 0).sort((a, b) => a.tableNum - b.tableNum) ?? []
+  const hasLiveCountdown =
+    rows?.some((r) => r.phase === 'answering' && r.answerDeadlineMs != null) ?? false
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!hasLiveCountdown) return
+    const id = window.setInterval(() => setTick((n) => n + 1), 1000)
+    return () => clearInterval(id)
+  }, [hasLiveCountdown])
+
+  if (rows == null && brief == null) return null
+
+  return (
+    <div className="mb-3 rounded-xl border border-white/10 bg-black/30 px-2.5 py-2 sm:px-3">
+      <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">
+          Floor
+          {brief != null ? (
+            <span className="ml-2 font-normal normal-case tracking-normal text-white/35">
+              {brief.liveTableCount} tables · {brief.fieldPlayerCount} players
+            </span>
+          ) : null}
+        </p>
+        {lockstepMisaligned ? (
+          <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-200">
+            Tables out of sync
+          </span>
+        ) : seated.length >= 2 ? (
+          <span className="text-[10px] font-semibold text-emerald-300/80">In sync</span>
+        ) : null}
+      </div>
+      {lockstepMisaligned ? (
+        <p className="mb-2 text-xs font-medium text-amber-100/90">
+          Amber tables differ from the majority — align before venue-wide cues.
+        </p>
+      ) : null}
+      {seated.length === 0 ? (
+        <p className="text-sm text-white/50">No seated tables yet.</p>
+      ) : (
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 overscroll-x-contain">
+          {seated.map((row) => {
+            const action = actionByTable.get(row.tableNum)
+            const drift = outlierTableNums.has(row.tableNum)
+            const phaseLabel = HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
+            const countdownSec =
+              row.phase === 'answering' && row.answerDeadlineMs != null
+                ? Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
+                : null
+            return (
+              <button
+                key={row.tableNum}
+                type="button"
+                title={`Spotlight table ${row.tableNum} on TVs`}
+                onClick={() => onSpotlight(row.tableNum)}
+                className={`shrink-0 rounded-lg border px-2.5 py-1.5 text-left transition-colors hover:border-casino-emerald/50 hover:bg-emerald-950/20 ${
+                  action?.interestingAction
+                    ? 'border-amber-400/55 bg-amber-950/30'
+                    : drift
+                      ? 'border-amber-400/70 bg-amber-950/25'
+                      : 'border-white/15 bg-black/35'
+                }`}
+              >
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs font-black tabular-nums text-yellow-300/95">T{row.tableNum}</span>
+                  <span className="text-[10px] font-semibold text-white/75">{phaseLabel}</span>
+                  {countdownSec != null ? (
+                    <span className="font-mono text-[10px] font-bold tabular-nums text-casino-gold">
+                      {countdownSec}s
+                    </span>
+                  ) : null}
+                </div>
+                {action?.actingSummary ? (
+                  <p className="mt-0.5 max-w-[12rem] truncate text-[10px] font-medium text-amber-100/85">
+                    {action.actingSummary}
+                  </p>
+                ) : action != null && action.pot > 0 ? (
+                  <p className="mt-0.5 text-[10px] text-white/45">Pot {formatHostFloorMoney(action.pot)}</p>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Slim round progress — dots instead of a full duplicate checklist. */
+export function HostRunProgressDots({ steps }: { steps: RunOfShowStep[] }) {
+  const visible = steps.filter((s) => s.state !== 'skipped')
+  const current = visible.find((s) => s.state === 'current')
+  if (visible.length === 0) return null
+
+  return (
+    <div className="mb-3 rounded-xl border border-white/8 bg-black/20 px-2.5 py-2 sm:px-3">
+      <ol className="flex flex-wrap items-center gap-x-1 gap-y-1" aria-label="Round progress">
+        {visible.map((step, i) => {
+          const short = RUN_STEP_SHORT[step.id as RunOfShowStepId] ?? step.label.split(' ')[0]
+          const isCurrent = step.state === 'current'
+          const isDone = step.state === 'done'
+          return (
+            <li key={step.id} className="flex items-center gap-1">
+              {i > 0 ? <span className="text-white/15" aria-hidden>›</span> : null}
+              <span
+                className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                  isCurrent
+                    ? 'bg-casino-emerald text-black shadow-[0_0_12px_rgba(0,255,180,0.35)]'
+                    : isDone
+                      ? 'text-casino-emerald/75'
+                      : 'text-white/30'
+                }`}
+                aria-current={isCurrent ? 'step' : undefined}
+              >
+                {isDone ? '✓ ' : ''}
+                {short}
+              </span>
+            </li>
+          )
+        })}
+      </ol>
+      {current ? (
+        <p className="mt-1.5 text-xs leading-snug text-white/50">
+          <span className="font-semibold text-white/70">{current.label}</span>
+          {' — '}
+          {current.hint}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+/** Context for the current hand only — no duplicate primary CTAs. */
+export function HostThisHandPanel({
+  show,
+  children,
+}: {
+  show: boolean
+  children?: ReactNode
+}) {
+  if (!show || !children) return null
+  let hasContent = false
+  Children.forEach(children, (child) => {
+    if (child != null && child !== false) hasContent = true
+  })
+  if (!hasContent) return null
+  return (
+    <div className="mb-3 rounded-xl border border-white/10 bg-black/25 p-3 sm:p-4">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">This hand</p>
+      <div className="space-y-2">{children}</div>
+    </div>
+  )
+}
+
+/** Backstage: diagnostics, rehearsal, overrides — off the live scroll path. */
+export function HostAdvancedPanel({
+  summary = 'Advanced — rehearsal, overrides, diagnostics',
+  defaultOpen = false,
+  children,
+}: {
+  summary?: ReactNode
+  defaultOpen?: boolean
+  children: ReactNode
+}) {
+  return (
+    <HostCollapsible summary={summary} defaultOpen={defaultOpen} className="mb-4">
+      <div className="space-y-4">{children}</div>
+    </HostCollapsible>
   )
 }

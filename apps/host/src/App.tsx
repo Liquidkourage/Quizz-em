@@ -42,13 +42,15 @@ import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress, isSetlistTargetLength } from '@qhe/core'
 import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
 import {
-  HostActionFloorBanner,
+  HostAdvancedPanel,
   HostCollapsible,
+  HostFloorStrip,
   HostLiveStatusLine,
-  HostPhaseDock,
+  HostRunBar,
+  HostRunProgressDots,
+  HostThisHandPanel,
+  HostTvBar,
   HostBlindsControls,
-  HostPublicTvsPanel,
-  HostRunOfShowPanel,
   HostVenueFeltBeatStrip,
   HostVenueFloorBriefPanel,
   buildHostPhaseDockItems,
@@ -70,7 +72,7 @@ import HostVenueAutoAlertBanner from './HostVenueAutoAlertBanner.tsx'
 import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
 
 const HOST_TABS = [
-  { id: 'live' as const, label: 'Run show', hint: 'Follow the checklist — one cue at a time' },
+  { id: 'live' as const, label: 'Run show', hint: 'One cue at a time — TVs up top' },
   { id: 'content' as const, label: 'Content', hint: 'Bank & setlists' },
 ]
 
@@ -501,6 +503,13 @@ function HostApp() {
     onClearTableBlinds: clearTableBlindsOverride,
   }
 
+  const showVenueFloorOnTvs = () =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'floor' })
+  const showLeaderboardOnTvs = () =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
+  const spotlightTableOnTvs = (n: number) =>
+    displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
+
   return (
     <div className="host-root min-h-screen bg-casino-gradient relative overflow-hidden">
       {/* Backdrop — static gradient so the desk stays readable during long hosts */}
@@ -570,7 +579,7 @@ function HostApp() {
             </div>
           </div>
 
-          <HostCollapsible summary="Setup — pair TV, password, sync help" className="mt-3">
+          <HostCollapsible summary="Setup — pair TV, password, diagnostics" className="mt-3">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Pair TV</span>
@@ -641,9 +650,9 @@ function HostApp() {
               )}
 
               <p className="text-xs leading-relaxed text-white/50">
-                Cues from this panel apply venue-wide under{' '}
-                <span className="font-mono text-white/65">{gameState.code}</span> — questions, blinds, dealing, timers,
-                and round transitions fan out to every table.
+                Pair displays here. Route TVs (floor, leaderboard, spotlight) from the sticky run bar on{' '}
+                <strong className="text-white/70">Run show</strong>. Cues apply venue-wide under{' '}
+                <span className="font-mono text-white/65">{gameState.code}</span>.
               </p>
 
               <label className="flex flex-wrap items-center gap-2 text-sm text-white/60">
@@ -711,15 +720,6 @@ function HostApp() {
             })}
           </div>
         </nav>
-
-        {livelyGameplayTableNums.length > 0 ? (
-          <HostActionFloorBanner
-            tableNums={livelyGameplayTableNums}
-            onSpotlight={(n) =>
-              displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
-            }
-          />
-        ) : null}
 
         {hostTab === 'content' && (
         <>
@@ -1139,7 +1139,7 @@ function HostApp() {
 
         {hostTab === 'live' && (
         <>
-        <HostPhaseDock
+        <HostRunBar
           items={phaseDockItems}
           headline={runOfShowHeadline}
           statusLine={
@@ -1149,15 +1149,39 @@ function HostApp() {
               virtualSeatCount={virtualSeatCount}
             />
           }
-        />
-        <HostVenueFeltBeatStrip rows={venueFeltBeat} hostTableId={hostTableId} />
-        <HostVenueFloorBriefPanel
-          brief={venueFloorBrief}
-          hostPlayerLabel={hostPlayerLabel}
-          hostTableId={hostTableId}
+          tvBar={
+            <HostTvBar
+              livelyTableNums={livelyGameplayTableNums}
+              tableMax={VENUE_NUMBERED_TABLE_MAX}
+              onVenueFloor={showVenueFloorOnTvs}
+              onLeaderboard={showLeaderboardOnTvs}
+              onSpotlight={spotlightTableOnTvs}
+            />
+          }
         />
 
-        <HostRunOfShowPanel steps={runOfShowSteps}>
+        <HostFloorStrip
+          rows={venueFeltBeat}
+          brief={venueFloorBrief}
+          onSpotlight={spotlightTableOnTvs}
+        />
+
+        <HostRunProgressDots steps={runOfShowSteps} />
+
+        <HostThisHandPanel
+          show={
+            currentRunStepId === 'assign' ||
+            currentRunStepId === 'start' ||
+            currentRunStepId === 'question' ||
+            showRunOfShowBlinds ||
+            currentRunStepId === 'deal-board' ||
+            currentRunStepId === 'close-bet-1' ||
+            currentRunStepId === 'close-bet-2' ||
+            currentRunStepId === 'start-answer' ||
+            currentRunStepId === 'end-round' ||
+            gameState.phase === 'showdown'
+          }
+        >
           {currentRunStepId === 'assign' &&
           gameState.phase === 'lobby' &&
           (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
@@ -1187,24 +1211,6 @@ function HostApp() {
 
           {currentRunStepId === 'start' || currentRunStepId === 'question' ? (
             <div className="space-y-2">
-              <div className="flex flex-wrap gap-2">
-                <NeonButton
-                  variant="purple"
-                  size="small"
-                  onClick={handleSetRandomQuestion}
-                  disabled={gameState.phase !== 'lobby' && gameState.phase !== 'question'}
-                >
-                  Random from bank
-                </NeonButton>
-                <NeonButton
-                  variant="purple"
-                  size="small"
-                  onClick={() => nextQuestionFromSetlist()}
-                  disabled={gameState.phase !== 'lobby' && gameState.phase !== 'question'}
-                >
-                  Next from setlist
-                </NeonButton>
-              </div>
               <select
                 className="w-full max-w-md rounded-lg border border-white/25 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]"
                 value={activeSetlistId ?? ''}
@@ -1254,7 +1260,7 @@ function HostApp() {
           hostControlState.phase === 'betting' ? (
             <p className="text-xs text-white/50">
               Players act on their phones. Use the button above when every table is quiet — or open{' '}
-              <strong className="text-white/70">Host overrides</strong> below to force advance.
+              <strong className="text-white/70">Advanced</strong> below to force advance.
             </p>
           ) : null}
 
@@ -1290,200 +1296,176 @@ function HostApp() {
             <p className="text-xs text-amber-200/90">{startAnswerHint}</p>
           ) : null}
 
+          {gameState.phase === 'showdown' ? (
+            <>
+              <div className="text-center text-white">
+                <div className="text-xs text-white/70">Correct answer</div>
+                <div className="text-3xl font-extrabold text-casino-gold">
+                  {formatTriviaNumber(gameState.round.question?.answer)}
+                </div>
+              </div>
+              {(() => {
+                const correct = gameState.round.question?.answer
+                const rows = gameState.players
+                  .map((p, seatIdx) => {
+                    const hasAnswer = typeof p.submittedAnswer === 'number'
+                    const distance = hasAnswer && typeof correct === 'number'
+                      ? Math.abs((p.submittedAnswer as number) - correct)
+                      : Infinity
+                    return { player: p, seat: seatIdx + 1, hasAnswer, distance }
+                  })
+                  .sort((a, b) => a.distance - b.distance)
+                const winnerId = rows.length && rows[0].distance !== Infinity ? rows[0].player.id : undefined
+                return (
+                  <div className="overflow-x-auto rounded-lg border border-white/10">
+                    <table className="min-w-full text-left text-sm text-white/90">
+                      <thead>
+                        <tr className="text-white/70">
+                          <th className="py-2 px-3">Seat</th>
+                          <th className="py-2 px-3">Player</th>
+                          <th className="py-2 px-3">Submitted</th>
+                          <th className="py-2 px-3">Distance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map(({ player, seat, hasAnswer, distance }) => (
+                          <tr key={player.id} className={player.id === winnerId ? 'bg-white/10' : ''}>
+                            <td className="py-2 px-3 tabular-nums text-white/80">{seat}</td>
+                            <td className="py-2 px-3 font-bold text-casino-emerald">{hostPlayerLabel(player.name)}</td>
+                            <td className="py-2 px-3">{hasAnswer ? formatTriviaNumber(player.submittedAnswer) : '—'}</td>
+                            <td className="py-2 px-3">
+                              {hasAnswer && typeof correct === 'number' ? formatTriviaNumber(distance) : '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              })()}
+            </>
+          ) : null}
+
           {currentRunStepId === 'end-round' && hostControlState.phase === 'showdown' ? (
             <p className="text-xs text-white/50">
-              After payout, tap <strong className="text-white/70">Start the round</strong> for the next hand.
+              After payout, use <strong className="text-white/70">Start the round</strong> for the next hand.
             </p>
           ) : null}
-        </HostRunOfShowPanel>
+        </HostThisHandPanel>
 
-        <HostCollapsible summary="Rehearsal & test bots" className="mb-4">
-          <section aria-labelledby="live-rehearsal-heading" className="space-y-3">
-            <p className="text-xs text-white/60 leading-relaxed">
-              Bot players for dry runs. Cap {gameState.maxPlayers} · roster {gameState.players.length} (
-              {virtualSeatCount} CPU).
-            </p>
-            {(gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby' ? (
-              <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
-                <p className="text-sm text-amber-100/90 leading-relaxed">
-                  <strong className="text-amber-50">Venue rehearsal</strong> seeds each felt with{' '}
-                  <span className="font-semibold text-casino-gold">5–8 CPUs</span> (deterministic per table).
-                  Skips the lobby pool.
-                </p>
-                <div className="mt-3 flex flex-wrap items-end gap-3">
-                  <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-amber-200/80">
-                    Table count
-                    <input
-                      type="number"
-                      min={1}
-                      max={VENUE_NUMBERED_TABLE_MAX}
-                      value={rehearsalTableCount}
-                      onChange={(e) => {
-                        const parsed = Number.parseInt(e.target.value, 10)
-                        if (!Number.isFinite(parsed)) return
-                        setRehearsalTableCount(
-                          Math.max(1, Math.min(VENUE_NUMBERED_TABLE_MAX, parsed))
-                        )
-                      }}
-                      className="w-[4.5rem] rounded-md border border-amber-500/40 bg-black/50 px-2 py-2 text-center text-base font-bold tabular-nums text-amber-50 shadow-inner focus:border-amber-400/70 focus:outline-none focus:ring-1 focus:ring-amber-400/40"
-                    />
-                  </label>
-                  <NeonButton
-                    variant="gold"
-                    size="small"
-                    onClick={() => seedRehearsalVenue(rehearsalTableCount)}
-                  >
-                    Seed rehearsal
-                  </NeonButton>
+        <HostAdvancedPanel>
+          <HostCollapsible summary="Rehearsal & test bots" className="mb-0">
+            <section aria-labelledby="live-rehearsal-heading" className="space-y-3">
+              <p className="text-xs text-white/60 leading-relaxed">
+                Bot players for dry runs. Cap {gameState.maxPlayers} · roster {gameState.players.length} (
+                {virtualSeatCount} CPU).
+              </p>
+              {(gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby' ? (
+                <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
+                  <p className="text-sm text-amber-100/90 leading-relaxed">
+                    <strong className="text-amber-50">Venue rehearsal</strong> seeds each felt with{' '}
+                    <span className="font-semibold text-casino-gold">5–8 CPUs</span> (deterministic per table).
+                    Skips the lobby pool.
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-end gap-3">
+                    <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-amber-200/80">
+                      Table count
+                      <input
+                        type="number"
+                        min={1}
+                        max={VENUE_NUMBERED_TABLE_MAX}
+                        value={rehearsalTableCount}
+                        onChange={(e) => {
+                          const parsed = Number.parseInt(e.target.value, 10)
+                          if (!Number.isFinite(parsed)) return
+                          setRehearsalTableCount(
+                            Math.max(1, Math.min(VENUE_NUMBERED_TABLE_MAX, parsed))
+                          )
+                        }}
+                        className="w-[4.5rem] rounded-md border border-amber-500/40 bg-black/50 px-2 py-2 text-center text-base font-bold tabular-nums text-amber-50 shadow-inner focus:border-amber-400/70 focus:outline-none focus:ring-1 focus:ring-amber-400/40"
+                      />
+                    </label>
+                    <NeonButton
+                      variant="gold"
+                      size="small"
+                      onClick={() => seedRehearsalVenue(rehearsalTableCount)}
+                    >
+                      Seed rehearsal
+                    </NeonButton>
+                  </div>
                 </div>
-              </div>
-            ) : null}
-            <div className="flex flex-wrap gap-2 items-center">
-              <div
-                className="flex flex-wrap gap-1.5 rounded-lg border border-white/20 bg-black/40 p-1"
-                role="group"
-                aria-label="Number of virtual CPUs to add"
-              >
-                {[1, 2, 5, 10, 15, 20].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    disabled={atPlayerCap}
-                    onClick={() => setVirtualAddCount(n)}
-                    className={`min-w-[2.75rem] rounded-md px-2.5 py-2.5 text-center text-base font-bold tabular-nums transition-colors disabled:opacity-40 ${
-                      virtualAddCount === n
-                        ? 'border border-amber-400/60 bg-amber-500/25 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.2)]'
-                        : 'border border-transparent text-white/75 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-              <NeonButton variant="gold" size="small" disabled={atPlayerCap} onClick={() => addVirtualPlayers(virtualAddCount)}>
-                Add CPU seats
-              </NeonButton>
-              <NeonButton variant="purple" size="small" onClick={() => clearVirtualPlayers()}>
-                Clear all CPUs
-              </NeonButton>
-            </div>
-            {atPlayerCap && (
-              <p className="text-xs text-amber-200/85">At max players — clear CPUs or remove humans first.</p>
-            )}
-          </section>
-        </HostCollapsible>
-
-        <HostCollapsible summary="Host overrides — wagering, blinds, reset" className="mb-4">
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <NeonButton
-                variant="gold"
-                size="normal"
-                onClick={() => adminAdvanceTurn()}
-                disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
-                className="w-full"
-              >
-                Force next player
-              </NeonButton>
-              <NeonButton
-                variant="red"
-                size="normal"
-                onClick={() => adminCloseBetting()}
-                disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
-                className="w-full"
-              >
-                Close betting
-              </NeonButton>
-            </div>
-            <HostBlindsControls {...hostBlindsControlProps} />
-            <NeonButton variant="gold" size="normal" onClick={handleNewGame} className="w-full">
-              New game (hard reset — clears all tables)
-            </NeonButton>
-          </div>
-        </HostCollapsible>
-
-        {gameState.phase === 'showdown' && (
-          <Card variant="glass" hover={false} className="mb-4 p-4 sm:p-5">
-            <h2 className="mb-3 text-lg font-semibold tracking-tight text-white">Showdown</h2>
-            <div className="mb-4 text-center text-white">
-              <div className="text-xs text-white/70">Correct Answer</div>
-              <div className="text-3xl font-extrabold text-casino-gold">
-                {formatTriviaNumber(gameState.round.question?.answer)}
-              </div>
-            </div>
-
-            {(() => {
-              const correct = gameState.round.question?.answer
-              const rows = gameState.players
-                .map((p, seatIdx) => {
-                  const hasAnswer = typeof p.submittedAnswer === 'number'
-                  const distance = hasAnswer && typeof correct === 'number'
-                    ? Math.abs((p.submittedAnswer as number) - correct)
-                    : Infinity
-                  return { player: p, seat: seatIdx + 1, hasAnswer, distance }
-                })
-                .sort((a, b) => a.distance - b.distance)
-
-              const winnerId = rows.length && rows[0].distance !== Infinity ? rows[0].player.id : undefined
-
-              return (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-left text-white/90">
-                    <thead>
-                      <tr className="text-white/70">
-                        <th className="py-2 px-3">Seat</th>
-                        <th className="py-2 px-3">Player</th>
-                        <th className="py-2 px-3">Submitted</th>
-                        <th className="py-2 px-3">Distance</th>
-                        <th className="py-2 px-3">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map(({ player, seat, hasAnswer, distance }) => (
-                        <tr key={player.id} className={`${player.id === winnerId ? 'bg-white/10' : ''}`}>
-                          <td className="py-2 px-3 tabular-nums text-white/80">{seat}</td>
-                          <td className="py-2 px-3 font-bold text-casino-emerald">{hostPlayerLabel(player.name)}</td>
-                          <td className="py-2 px-3">{hasAnswer ? formatTriviaNumber(player.submittedAnswer) : '—'}</td>
-                          <td className="py-2 px-3">
-                            {hasAnswer && typeof correct === 'number' ? formatTriviaNumber(distance) : '—'}
-                          </td>
-                          <td className="py-2 px-3">
-                            {player.hasFolded ? (
-                              <span className="text-red-400 font-semibold">FOLDED</span>
-                            ) : hasAnswer ? (
-                              player.id === winnerId ? <span className="text-casino-gold font-extrabold">WINNER</span> : <span className="text-white/70">Submitted</span>
-                            ) : (
-                              <span className="text-white/50">No Answer</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              ) : null}
+              <div className="flex flex-wrap gap-2 items-center">
+                <div
+                  className="flex flex-wrap gap-1.5 rounded-lg border border-white/20 bg-black/40 p-1"
+                  role="group"
+                  aria-label="Number of virtual CPUs to add"
+                >
+                  {[1, 2, 5, 10, 15, 20].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      disabled={atPlayerCap}
+                      onClick={() => setVirtualAddCount(n)}
+                      className={`min-w-[2.75rem] rounded-md px-2.5 py-2.5 text-center text-base font-bold tabular-nums transition-colors disabled:opacity-40 ${
+                        virtualAddCount === n
+                          ? 'border border-amber-400/60 bg-amber-500/25 text-amber-100 shadow-[0_0_12px_rgba(251,191,36,0.2)]'
+                          : 'border border-transparent text-white/75 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
                 </div>
-              )
-            })()}
+                <NeonButton variant="gold" size="small" disabled={atPlayerCap} onClick={() => addVirtualPlayers(virtualAddCount)}>
+                  Add CPU seats
+                </NeonButton>
+                <NeonButton variant="purple" size="small" onClick={() => clearVirtualPlayers()}>
+                  Clear all CPUs
+                </NeonButton>
+              </div>
+              {atPlayerCap && (
+                <p className="text-xs text-amber-200/85">At max players — clear CPUs or remove humans first.</p>
+              )}
+            </section>
+          </HostCollapsible>
 
-            <p className="mt-4 text-center text-xs text-white/45">
-              Use <strong className="text-white/65">End round &amp; pay out</strong> in the sticky bar above when ready.
-            </p>
-          </Card>
-        )}
+          <HostCollapsible summary="Host overrides — wagering, blinds, reset" className="mb-0">
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <NeonButton
+                  variant="gold"
+                  size="normal"
+                  onClick={() => adminAdvanceTurn()}
+                  disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
+                  className="w-full"
+                >
+                  Force next player
+                </NeonButton>
+                <NeonButton
+                  variant="red"
+                  size="normal"
+                  onClick={() => adminCloseBetting()}
+                  disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
+                  className="w-full"
+                >
+                  Close betting
+                </NeonButton>
+              </div>
+              <HostBlindsControls {...hostBlindsControlProps} />
+              <NeonButton variant="gold" size="normal" onClick={handleNewGame} className="w-full">
+                New game (hard reset — clears all tables)
+              </NeonButton>
+            </div>
+          </HostCollapsible>
 
-        <HostPublicTvsPanel
-          venueCode={gameState.code}
-          tableMax={VENUE_NUMBERED_TABLE_MAX}
-          livelyTableNums={livelyGameplayTableNums}
-          onVenueFloor={() =>
-            displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'floor' })
-          }
-          onLeaderboard={() =>
-            displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
-          }
-          onSpotlight={(n) =>
-            displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
-          }
-        />
+          <HostVenueFeltBeatStrip rows={venueFeltBeat} hostTableId={hostTableId} />
+          <HostVenueFloorBriefPanel
+            brief={venueFloorBrief}
+            hostPlayerLabel={hostPlayerLabel}
+            hostTableId={hostTableId}
+          />
+        </HostAdvancedPanel>
 
         </>
         )}

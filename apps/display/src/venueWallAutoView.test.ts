@@ -3,6 +3,7 @@ import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   INITIAL_VENUE_WALL_AUTO_VIEW_STATE,
   stepVenueWallAutoView,
+  venueWallFloorIsLive,
 } from './venueWallAutoView'
 
 function tile(phase: string, tableNum = 1): DisplayVenueTileSnapshot {
@@ -42,5 +43,16 @@ describe('stepVenueWallAutoView', () => {
   it('does not auto-leaderboard pre-show lobby', () => {
     const { view } = stepVenueWallAutoView(INITIAL_VENUE_WALL_AUTO_VIEW_STATE, [tile('lobby')], null)
     expect(view).toBe(null)
+  })
+})
+
+describe('venueWallFloorIsLive', () => {
+  it('is true when headline is wagering even if tiles still lobby', () => {
+    expect(venueWallFloorIsLive([tile('lobby')], 'betting')).toBe(true)
+  })
+
+  it('is false when every tile and headline are lobby', () => {
+    expect(venueWallFloorIsLive([tile('lobby')], 'lobby')).toBe(false)
+    expect(venueWallFloorIsLive([tile('lobby')], null)).toBe(false)
   })
 })

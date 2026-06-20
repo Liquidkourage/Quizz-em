@@ -16,6 +16,7 @@ import VenueLeaderboardWall from './VenueLeaderboardWall.tsx'
 import { buildVenueWallTileRows, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
+import { venueWallFloorIsLive } from './venueWallAutoView.ts'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -72,9 +73,12 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
 
   /** All layouts are venue wall; legacy `singleTable` payloads are normalized server-side. */
   const onVenueWallLayout = true
-  /** Hide join hero once any numbered table has left lobby (tiles stay in sync via venue snapshot). */
-  const mosaicShowsLiveFelts =
-    venueWall?.tiles?.some((t) => t.phase !== 'lobby') ?? false
+  const tileRows = useMemo(() => buildVenueWallTileRows(venueWall), [venueWall])
+  /** Hide join hero once the floor is live (tile phase or server headline — keeps every TV in sync). */
+  const venueFloorIsLive = useMemo(
+    () => venueWallFloorIsLive(tileRows, venueWall?.headlinePhase ?? null),
+    [tileRows, venueWall?.headlinePhase],
+  )
   /**
    * Until the first venue snapshot arrives, `venueWall` is null — treat that as briefing so we never
    * flash `VenueEightTablesPreview` rehearsal tiles before `AudienceWelcomeWall` (TV pair / cold load).
@@ -82,11 +86,10 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   const audienceBriefing =
     onVenueWallLayout &&
     (venueWall === null ||
-      (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !mosaicShowsLiveFelts))
+      (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !venueFloorIsLive))
 
   const autoWallView = useVenueWallAutoView(venueWall)
   const wallView = autoWallView ?? layout.wallView ?? 'floor'
-  const tileRows = useMemo(() => buildVenueWallTileRows(venueWall), [venueWall])
   const showSeatingChart =
     onVenueWallLayout &&
     !audienceBriefing &&

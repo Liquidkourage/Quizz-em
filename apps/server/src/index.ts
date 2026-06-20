@@ -1348,6 +1348,15 @@ function markVenueShowStarted(code: string): void {
   }
 }
 
+/** Drop the join hero once any seated felt leaves lobby (covers setlist/bank paths that skip Start Game). */
+function syncVenueAudienceWelcomeFromTiles(vnRaw: string, tiles: DisplayVenueTileSnapshot[]): void {
+  const vn = normalizeVenueCode(vnRaw)
+  if (venueAudienceWelcomeExpired.has(vn)) return
+  if (tiles.some((t) => t.seated > 0 && t.phase !== 'lobby')) {
+    venueAudienceWelcomeExpired.add(vn)
+  }
+}
+
 function tableNumFromSessionKey(venueCode: string, sessionKey: string): number | null {
   const vn = normalizeVenueCode(venueCode)
   const pref = `${vn}:`
@@ -1826,6 +1835,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
   }
 
   const blindsSnap = hostLibraryBlindsPayload(vn)
+  syncVenueAudienceWelcomeFromTiles(vn, tiles)
 
   const headlineSource = pickVenueHeadlineSource(vn)
   const headlineGs = headlineSource?.gs ?? null

@@ -55,6 +55,7 @@ import {
   buildHostRunOfShowSteps,
   formatVenueBlindsSummary,
   hostControlGameStateFromBeat,
+  hostHeaderPhaseDisplay,
   hostRunOfShowHeadline,
   resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
@@ -418,6 +419,7 @@ function HostApp() {
     setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
 
   const hostControlState = hostControlGameStateFromBeat(gameState, venueFeltBeat)
+  const headerPhase = hostHeaderPhaseDisplay(gameState, hostControlState)
   const controlRound = hostControlState.round
   const controlBettingRound = controlRound.bettingRound ?? 0
   const controlCommunityLen = controlRound.communityCards?.length ?? 0
@@ -561,9 +563,16 @@ function HostApp() {
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
               <span className="text-sm uppercase tracking-wider text-white/35">Phase</span>
-              <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3 py-1 text-base font-bold capitalize text-casino-emerald">
-                {gameState.phase}
-              </span>
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3 py-1 text-base font-bold capitalize text-casino-emerald">
+                  {headerPhase.phase}
+                </span>
+                {headerPhase.floorMirrored ? (
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/40">
+                    Venue floor · lobby pool idle
+                  </span>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -1243,7 +1252,7 @@ function HostApp() {
           {currentRunStepId === 'deal-board' ? dealCommunityHostStaleNote : null}
 
           {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
-          gameState.phase === 'betting' ? (
+          hostControlState.phase === 'betting' ? (
             <p className="text-xs text-white/50">
               Players act on their phones. Use the button above when every table is quiet — or open{' '}
               <strong className="text-white/70">Host overrides</strong> below to force advance.
@@ -1278,13 +1287,13 @@ function HostApp() {
             </div>
           ) : null}
 
-          {currentRunStepId === 'start-answer' && startAnswerBlocked && gameState.phase === 'betting' ? (
+          {currentRunStepId === 'start-answer' && startAnswerBlocked && hostControlState.phase === 'betting' ? (
             <p className="text-xs text-white/50">
               Needs full board (5 community cards) and both wagering rounds closed.
             </p>
           ) : null}
 
-          {currentRunStepId === 'end-round' && gameState.phase === 'showdown' ? (
+          {currentRunStepId === 'end-round' && hostControlState.phase === 'showdown' ? (
             <p className="text-xs text-white/50">
               After payout, tap <strong className="text-white/70">Start the round</strong> for the next hand.
             </p>

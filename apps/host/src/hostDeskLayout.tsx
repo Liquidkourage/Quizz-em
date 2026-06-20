@@ -413,6 +413,19 @@ export function buildHostRunOfShowSteps(
   })
 }
 
+/** Header phase when the host watches LOBBY but numbered felts are mid-hand. */
+export function hostHeaderPhaseDisplay(
+  gameState: GameState,
+  hostControlState: GameState,
+): { phase: string; floorMirrored: boolean } {
+  const tableId = gameState.tableId ?? ''
+  const floorMirrored = tableId === LOBBY_TABLE_ID && hostControlState.phase !== gameState.phase
+  return {
+    phase: floorMirrored ? hostControlState.phase : gameState.phase,
+    floorMirrored,
+  }
+}
+
 export function hostRunOfShowHeadline(
   gameState: GameState,
   venueBeat?: HostVenueFeltBeatRow[] | null,

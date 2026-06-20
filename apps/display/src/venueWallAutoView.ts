@@ -32,6 +32,14 @@ export function venueWallLiveFloorActive(
   return tiles.some((t) => LIVE_FLOOR_PHASES.has(t.phase))
 }
 
+/** True once any felt (or the shared headline) has left lobby — exits the join hero on all displays. */
+export function venueWallFloorIsLive(
+  tiles: DisplayVenueTileSnapshot[],
+  headlinePhase: string | null | undefined,
+): boolean {
+  return venueWallLiveFloorActive(tiles, headlinePhase)
+}
+
 function venueWallAllLobby(tiles: DisplayVenueTileSnapshot[]): boolean {
   return tiles.length > 0 && tiles.every((t) => t.phase === 'lobby')
 }

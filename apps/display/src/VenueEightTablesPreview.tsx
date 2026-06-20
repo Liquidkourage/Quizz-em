@@ -1386,8 +1386,8 @@ function VenueMosaicTableCard({
   })
   const toCallFooterLabel = mosaicToCallFooterLabel(row.actingCallAmount)
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
-  const denseMosaicChrome =
-    floorSize.size === 'medium' || floorSize.size === 'compact' || floorSize.size === 'micro'
+  /** Unified mosaic card chrome (badge, acting name, pot-on-felt, To Call footer) for 3+ tables. Hero (1–2) keeps spacious layout. */
+  const denseMosaicChrome = floorSize.size !== 'hero'
   const feltFillsCell =
     floorFillHeight || (floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight)
   const mosaicShrinkWrap =

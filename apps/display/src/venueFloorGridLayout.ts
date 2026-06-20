@@ -404,20 +404,18 @@ export function venueFloorSizeSpec(tableCount: number): VenueFloorSizeSpec {
         showdownBrief: true,
         rowGapRem: 0.77,
         cellGapRem: 0.95,
-        cardPaddingClass: 'overflow-visible p-2 sm:p-2',
-        innerGapClass: 'gap-1.5 sm:gap-2',
-        tableNumClass: 'text-xl sm:text-2xl',
-        potClass:
-          'text-[clamp(1.05rem,6cqw,2rem)] sm:text-[clamp(1.15rem,6.5cqw,2.1rem)]',
-        phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
-        headerRowClass: 'items-center',
+        cardPaddingClass: 'px-1.5 pt-1 pb-0.5 sm:px-2 sm:pt-1.5 sm:pb-1',
+        innerGapClass: 'gap-0',
+        tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
+        potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
+        phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
+        headerRowClass: VENUE_FLOOR_MOSAIC_CHROME.headerRow,
         honeycombFillHeight: true,
         ringScaleClass: '',
         showPotSubtitle: true,
-        potSubtitleClass:
-          'text-[clamp(0.9rem,5.8cqw,1.45rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(1rem,6.2cqw,1.6rem)]',
-        potSubtitleWrapClass: 'px-2 py-1.5',
-        tileInsetClass: '',
+        potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-tight tracking-tight text-amber-50',
+        potSubtitleWrapClass: 'px-1.5 py-1',
+        tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
       }
     case 'medium':
       return {

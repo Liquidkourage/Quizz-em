@@ -8,7 +8,7 @@ import {
   resolveShowdownSidePotLines,
   SidePotRibbon,
   SplitPotRibbon,
-  WinnerRibbon,
+  WinnerTitleStrip,
   ShowdownPotWinnerList,
   type ShowdownSidePotLine,
 } from './venueFloorSidePotDisplay'
@@ -17,10 +17,10 @@ import {
 export type VenueFloorShowdownVariantId = 8
 
 /**
- * Locked venue-floor showdown overlay (mosaic tiles).
- * - Side pot: cyan ribbon + type · $amount · winner rows + compact digit cards
- * - Single winner: amber Winner ribbon + name + pot + digit cards
- * - Split pot: gradient ribbon + names + $N each + digit cards
+ * Venue-floor showdown overlay (mosaic tiles) — hybrid layout:
+ * - Plain winner: mosaic table badge + light “Winner” label; name → pot → digit cards
+ * - Split pot: full gradient ribbon bar + names + $N each + digit cards
+ * - Side pot: full teal ribbon + MAIN | $ | name grid + compact digit cards
  */
 
 export type FloorShowdownCtx = {
@@ -183,12 +183,10 @@ function ShowdownStack({ ctx, className = '' }: { ctx: FloorShowdownCtx; classNa
   }
 
   return (
-    <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
-      <div className="flex w-full min-h-0 flex-1 items-end justify-center pb-2">
-        <WinnerBlock ctx={ctx} layout="line" />
-      </div>
-      <div className="w-full shrink-0 py-2.5">{FloorPotBlock(ctx)}</div>
-      <div className="flex w-full min-h-0 flex-1 items-start justify-center overflow-hidden pt-2">
+    <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-y-[clamp(0.15rem,1.8cqw,0.45rem)] ${className}`}>
+      <WinnerBlock ctx={ctx} layout="line" />
+      <div className="w-full shrink-0">{FloorPotBlock(ctx)}</div>
+      <div className="flex w-full shrink-0 items-center justify-center pt-0.5">
         {GuessBlock(ctx)}
       </div>
     </div>
@@ -221,10 +219,10 @@ export function VenueFloorShowdownByVariant({
       aria-label={ariaLabel}
     >
       {ctx.sidePotLines != null ? <SidePotRibbon tableNum={tableNum} /> : null}
-      {!ctx.splitWin && ctx.sidePotLines == null ? <WinnerRibbon tableNum={tableNum} /> : null}
+      {!ctx.splitWin && ctx.sidePotLines == null ? <WinnerTitleStrip tableNum={tableNum} /> : null}
       {ctx.splitWin && ctx.sidePotLines == null ? <SplitPotRibbon tableNum={tableNum} /> : null}
       <div
-        className={`flex min-h-0 flex-1 flex-col ${sidePot ? 'px-2 py-1.5' : 'px-2.5 py-3'}`}
+        className={`flex min-h-0 flex-1 flex-col ${sidePot ? 'px-2 py-1' : 'px-2.5 pb-2 pt-0'}`}
       >
         <ShowdownStack ctx={ctx} className="min-h-0 flex-1 justify-center" />
       </div>

@@ -1,4 +1,17 @@
 import type { ShowdownResultRow } from './showdownDisplay'
+import { VENUE_FLOOR_MOSAIC_CHROME } from './venueFloorGridLayout'
+
+/** Same gold badge as wagering mosaic cards — consistent table id on showdown overlays. */
+export function ShowdownTableBadge({ tableNum }: { tableNum: number }) {
+  return (
+    <span
+      className={`${VENUE_FLOOR_MOSAIC_CHROME.tableNumBadge} vfd-mosaic-table-num`}
+      aria-hidden
+    >
+      {tableNum}
+    </span>
+  )
+}
 
 export type ShowdownSidePotLine = {
   label: 'Main' | 'Side' | 'Return'
@@ -19,6 +32,8 @@ const POT_LAYER_AMOUNT_RETURN =
   'justify-self-center text-center font-mono font-bold tabular-nums leading-none text-white/75 text-[clamp(0.98rem,9.8cqw,1.75rem)]'
 const POT_LAYER_NAME =
   'min-w-0 justify-self-start pl-[0.15em] truncate font-black leading-tight text-amber-50 text-[clamp(0.9rem,9.4cqw,1.55rem)]'
+const POT_LAYER_NAME_SIDE =
+  'min-w-0 justify-self-start pl-[0.15em] truncate font-semibold leading-tight text-amber-50/92 text-[clamp(0.78rem,8cqw,1.28rem)]'
 
 function PotLayerRow({
   line,
@@ -51,7 +66,7 @@ export function ShowdownPotWinnerList({ lines }: { lines: readonly ShowdownSideP
             <PotLayerRow
               key={`${line.label}:${line.name}`}
               line={line}
-              tagClass="text-amber-300/90"
+              tagClass="text-amber-200"
               amountClass={POT_LAYER_AMOUNT_MAIN}
             />
           )
@@ -61,8 +76,9 @@ export function ShowdownPotWinnerList({ lines }: { lines: readonly ShowdownSideP
             <PotLayerRow
               key={`${line.label}:${line.name}`}
               line={line}
-              tagClass="text-cyan-300/90"
+              tagClass="text-cyan-200"
               amountClass={POT_LAYER_AMOUNT_SIDE}
+              nameClass={POT_LAYER_NAME_SIDE}
             />
           )
         }
@@ -121,11 +137,21 @@ export function resolveShowdownSidePotLines(
   return lines.length >= 2 ? lines : null
 }
 
-export const SHOWDOWN_RIBBON_BAR = 'shrink-0 py-1.5'
+export const SHOWDOWN_RIBBON_BAR = 'relative shrink-0 py-1.5'
 export const SHOWDOWN_RIBBON_LABEL =
   'font-black uppercase leading-none tracking-[0.16em] text-[clamp(0.74rem,8.2cqw,1.25rem)]'
-const SHOWDOWN_RIBBON_TABLE_NUM =
-  'font-mono font-black tabular-nums leading-none text-yellow-400/95 text-[clamp(0.86rem,7.4cqw,1.2rem)]'
+
+/** Plain winner — light title strip (no full-width bar); saves vertical space on dense floors. */
+export function WinnerTitleStrip({ tableNum }: { tableNum?: number } = {}) {
+  return (
+    <div className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-1 px-1.5 pb-0.5 pt-1">
+      {tableNum != null ? <ShowdownTableBadge tableNum={tableNum} /> : <span className="w-0" aria-hidden />}
+      <p className="text-center font-black uppercase leading-none tracking-[0.14em] text-amber-200/92 text-[clamp(0.68rem,7.2cqw,1.05rem)]">
+        Winner
+      </p>
+    </div>
+  )
+}
 
 function ShowdownRibbonBar({
   tableNum,
@@ -140,15 +166,14 @@ function ShowdownRibbonBar({
 }) {
   return (
     <div
-      className={`${SHOWDOWN_RIBBON_BAR} ${barClassName} grid grid-cols-[1fr_auto_1fr] items-center px-1.5 sm:px-2`}
+      className={`${SHOWDOWN_RIBBON_BAR} ${barClassName} flex items-center justify-center px-1.5 sm:px-2`}
     >
-      <span className={`${SHOWDOWN_RIBBON_TABLE_NUM} justify-self-start`}>
-        {tableNum ?? ''}
-      </span>
-      <p className={`${SHOWDOWN_RIBBON_LABEL} ${labelClassName} justify-self-center text-center`}>
-        {label}
-      </p>
-      <span className="justify-self-end" aria-hidden />
+      {tableNum != null ? (
+        <span className="absolute left-1.5 top-1/2 -translate-y-1/2 sm:left-2">
+          <ShowdownTableBadge tableNum={tableNum} />
+        </span>
+      ) : null}
+      <p className={`${SHOWDOWN_RIBBON_LABEL} ${labelClassName} px-6 text-center`}>{label}</p>
     </div>
   )
 }
@@ -157,29 +182,23 @@ export function SidePotRibbon({ tableNum }: { tableNum?: number } = {}) {
   return (
     <ShowdownRibbonBar
       tableNum={tableNum}
-      barClassName="bg-cyan-900/90"
-      labelClassName="text-cyan-100"
+      barClassName="bg-gradient-to-r from-cyan-950/98 via-teal-800/95 to-cyan-950/98 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)]"
+      labelClassName="text-cyan-50"
       label="Side pot"
     />
   )
 }
 
+/** @deprecated Use {@link WinnerTitleStrip} for plain winners on mosaic tiles. */
 export function WinnerRibbon({ tableNum }: { tableNum?: number } = {}) {
-  return (
-    <ShowdownRibbonBar
-      tableNum={tableNum}
-      barClassName="bg-amber-900/92"
-      labelClassName="text-amber-100"
-      label="Winner"
-    />
-  )
+  return <WinnerTitleStrip tableNum={tableNum} />
 }
 
 export function SplitPotRibbon({ tableNum }: { tableNum?: number } = {}) {
   return (
     <ShowdownRibbonBar
       tableNum={tableNum}
-      barClassName="bg-gradient-to-r from-rose-700/95 via-amber-600/95 to-rose-700/95"
+      barClassName="bg-gradient-to-r from-rose-800/98 via-amber-600/96 to-rose-800/98 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
       labelClassName="text-white"
       label="Split pot"
     />

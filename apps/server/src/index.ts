@@ -953,6 +953,70 @@ function executeVenueShowdown(vnRaw: string) {
   io.to(hostVenueRoom(vn)).emit('toast', 'Answer window closed — showdown on all tables.')
 }
 
+/** Deal five community cards on every seated pre-board felt (round 2 opens). */
+function dealCommunityBoardForVenue(
+  vnRaw: string,
+  opts?: { auto?: boolean },
+): boolean {
+  const vn = normalizeVenueCode(vnRaw)
+  const rows = venuePlayableSnapshots(vn)
+  if (rows.length === 0) return false
+
+  const ready = rows.every(
+    (r) =>
+      r.gs.phase === 'betting' &&
+      r.gs.round.bettingRound === 1 &&
+      (r.gs.round.communityCards?.length ?? 0) < 5 &&
+      (opts?.auto ? r.gs.round.isBettingOpen !== true : true),
+  )
+  if (!ready) return false
+
+  clearVenueWageringOrchestrationState(vn)
+  let anyDealt = false
+  let anyAutoClosed = false
+  for (const { tk } of rows) {
+    let gs = rooms.get(tk)
+    if (!gs) continue
+    if (gs.round.isBettingOpen) {
+      gs = adminCloseBetting(gs)
+      anyAutoClosed = true
+    }
+    const communityBefore = gs.round.communityCards.length
+    gs = dealCommunityCards(gs)
+    const dealt = gs.round.communityCards.length > communityBefore
+    if (dealt) anyDealt = true
+    rooms.set(tk, gs)
+    if (dealt) {
+      emitVenueTableState(tk, gs, { skipOrchestration: true })
+      if (tableIsCpuOnly(gs)) {
+        enqueueCpuOnlyVpDrain(tk)
+      } else {
+        gs = runVirtualPlayerSimulation(gs)
+        rooms.set(tk, gs)
+        emitVenueTableState(tk, gs, { skipOrchestration: true })
+      }
+      io.to(tk).emit('dealingCommunityCards')
+      const boardTableNum = tableNumFromSessionKey(gs.code, tk)
+      if (boardTableNum != null) {
+        io.to(displayVenueRoom(vn)).emit('dealingCommunityCards', {
+          tableNum: boardTableNum,
+        })
+      }
+    } else {
+      emitVenueTableState(tk, gs, { skipOrchestration: true })
+    }
+  }
+  if (anyDealt) {
+    const msg = opts?.auto
+      ? 'Round 1 complete — board dealt on every table.'
+      : anyAutoClosed
+        ? 'Closed round 1 + dealt board — wagering round 2 (every table at this venue).'
+        : 'Board complete — wagering round 2 (every table at this venue).'
+    io.to(hostVenueRoom(vn)).emit('toast', msg)
+  }
+  return anyDealt
+}
+
 function applyVenueWageringOrchestration(venueCode: string) {
   const vn = normalizeVenueCode(venueCode)
   if (venueOrchestrationGuard.has(vn)) return
@@ -964,6 +1028,13 @@ function applyVenueWageringOrchestration(venueCode: string) {
       getState: (tk) => rooms.get(tk),
       currentShowdownAtMs: venueShowdownAtMs.get(vn),
     })
+
+    if (plan.dealCommunityBoard) {
+      if (dealCommunityBoardForVenue(vn, { auto: true })) {
+        emitDisplayVenueSnapshotNow(vn)
+        return
+      }
+    }
 
     if (plan.cancelShowdown) {
       clearVenueShowdownTimer(vn)
@@ -2666,47 +2737,9 @@ io.on('connection', (socket) => {
             'be in pre-board wagering (round 1, board empty) before dealing community cards',
           )
           if (!lockBoard) break
-          clearVenueWageringOrchestrationState(gameState.code)
-          let anyDealt = false
-          let anyAutoClosed = false
-          for (const { tk } of lockBoard) {
-            let gs = rooms.get(tk)
-            if (gs.round.isBettingOpen) {
-              gs = adminCloseBetting(gs)
-              anyAutoClosed = true
-            }
-            const communityBefore = gs.round.communityCards.length
-            gs = dealCommunityCards(gs)
-            const dealt = gs.round.communityCards.length > communityBefore
-            if (dealt) anyDealt = true
-            rooms.set(tk, gs)
-            if (dealt) {
-              emitVenueTableState(tk, gs)
-              if (tableIsCpuOnly(gs)) {
-                enqueueCpuOnlyVpDrain(tk)
-              } else {
-                gs = runVirtualPlayerSimulation(gs)
-                rooms.set(tk, gs)
-                emitVenueTableState(tk, gs)
-              }
-              io.to(tk).emit('dealingCommunityCards')
-              const boardTableNum = tableNumFromSessionKey(gs.code, tk)
-              if (boardTableNum != null) {
-                io.to(displayVenueRoom(normalizeVenueCode(gs.code))).emit('dealingCommunityCards', {
-                  tableNum: boardTableNum,
-                })
-              }
-            } else {
-              emitVenueTableState(tk, gs)
-            }
-          }
-          if (anyDealt) {
-            socket.emit(
-              'toast',
-              anyAutoClosed
-                ? 'Closed round 1 + dealt board — wagering round 2 (every table at this venue).'
-                : 'Board complete — wagering round 2 (every table at this venue).',
-            )
+          const vnBoard = normalizeVenueCode(gameState.code)
+          if (dealCommunityBoardForVenue(vnBoard, { auto: false })) {
+            emitDisplayVenueSnapshotNow(vnBoard)
           } else {
             socket.emit('toast', 'Board failed to deal — reload from host if this persists.')
           }

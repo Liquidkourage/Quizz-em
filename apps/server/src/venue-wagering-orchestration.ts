@@ -3,6 +3,40 @@ import type { GameState } from '@qhe/core'
 /** Grace period after the last table closes post-board wagering before venue-wide showdown. */
 export const VENUE_POST_BOARD_SHOWDOWN_GRACE_MS = 45_000
 
+export function isPreBoardWageringStreet(gs: GameState): boolean {
+  if (gs.players.length === 0) return false
+  if (gs.phase !== 'betting') return false
+  if (gs.round.bettingRound !== 1) return false
+  return (gs.round.communityCards?.length ?? 0) < 5
+}
+
+export function isPreBoardWageringClosed(gs: GameState): boolean {
+  return isPreBoardWageringStreet(gs) && gs.round.isBettingOpen !== true
+}
+
+export function countOpenPreBoardWageringTables(
+  seatedTableKeys: string[],
+  getState: (sessionKey: string) => GameState | undefined,
+): number {
+  return seatedTableKeys.filter((tk) => {
+    const gs = getState(tk)
+    return gs != null && gs.players.length > 0 && isPreBoardWageringStreet(gs) && gs.round.isBettingOpen === true
+  }).length
+}
+
+export function venueAllPreBoardWageringComplete(
+  seatedTableKeys: string[],
+  getState: (sessionKey: string) => GameState | undefined,
+): boolean {
+  const seated = seatedTableKeys.filter((tk) => {
+    const gs = getState(tk)
+    return gs != null && gs.players.length > 0
+  })
+  if (seated.length === 0) return false
+  if (countOpenPreBoardWageringTables(seatedTableKeys, getState) > 0) return false
+  return seated.every((tk) => isPreBoardWageringClosed(getState(tk)!))
+}
+
 export function isPostBoardWageringStreet(gs: GameState): boolean {
   if (gs.players.length === 0) return false
   if (gs.phase !== 'betting') return false
@@ -85,6 +119,8 @@ export type VenueWageringOrchestrationPlan = {
   tableUpdates: { sessionKey: string; gameState: GameState; answerDeadlineMs: number | null }[]
   scheduleShowdownAtMs: number | null
   cancelShowdown: boolean
+  /** Every seated felt finished round 1 — deal the five community cards venue-wide. */
+  dealCommunityBoard: boolean
 }
 
 export function planVenueWageringOrchestration(args: {
@@ -99,6 +135,7 @@ export function planVenueWageringOrchestration(args: {
   const inWave = venueInPostBoardAnswerWave(args.seatedTableKeys, args.getState)
   const allComplete = venueAllPostBoardWageringComplete(args.seatedTableKeys, args.getState)
   const openWageringCount = countOpenPostBoardWageringTables(args.seatedTableKeys, args.getState)
+  const dealCommunityBoard = venueAllPreBoardWageringComplete(args.seatedTableKeys, args.getState)
 
   let showdownAt = args.currentShowdownAtMs
   let scheduleShowdownAtMs: number | null = null
@@ -133,5 +170,6 @@ export function planVenueWageringOrchestration(args: {
     tableUpdates,
     scheduleShowdownAtMs,
     cancelShowdown: !inWave,
+    dealCommunityBoard,
   }
 }

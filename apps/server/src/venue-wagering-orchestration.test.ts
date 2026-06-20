@@ -7,6 +7,7 @@ import {
   planVenueWageringOrchestration,
   VENUE_POST_BOARD_SHOWDOWN_GRACE_MS,
   venueAllPostBoardWageringComplete,
+  venueAllPreBoardWageringComplete,
 } from './venue-wagering-orchestration'
 
 function postBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<typeof createEmptyGame> } {
@@ -23,7 +24,56 @@ function postBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<ty
   return { key: 'V:1', gs }
 }
 
+function preBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<typeof createEmptyGame> } {
+  let gs = createEmptyGame('V', '', '1')
+  gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
+  gs = addVirtualPlayers(gs, playerCount)
+  gs = startGame(gs)
+  gs = setQuestion(gs, SAMPLE_QUESTIONS[0]!)
+  gs = dealInitialCards(gs)
+  gs = runVirtualPlayerSimulation(gs)
+  expect(gs.round.bettingRound).toBe(1)
+  expect(gs.round.isBettingOpen).toBe(false)
+  return { key: 'V:1', gs }
+}
+
 describe('venue wagering orchestration', () => {
+  it('requests community board when every seated table finished round 1', () => {
+    const t1 = preBoardClosedTable()
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: [t1.key],
+      getState: (tk) => (tk === t1.key ? t1.gs : undefined),
+      currentShowdownAtMs: undefined,
+      nowMs: 500_000,
+    })
+    expect(plan.dealCommunityBoard).toBe(true)
+    expect(venueAllPreBoardWageringComplete([t1.key], (tk) => (tk === t1.key ? t1.gs : undefined))).toBe(true)
+  })
+
+  it('does not deal the board while one table still has round 1 open', () => {
+    const done = preBoardClosedTable()
+    let open = createEmptyGame('V', '', '2')
+    open = { ...open, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
+    open = addVirtualPlayers(open, 3)
+    open = startGame(open)
+    open = setQuestion(open, SAMPLE_QUESTIONS[0]!)
+    open = dealInitialCards(open)
+    expect(open.round.isBettingOpen).toBe(true)
+
+    const states = new Map([
+      [done.key, done.gs],
+      ['V:2', open],
+    ])
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: [done.key, 'V:2'],
+      getState: (tk) => states.get(tk),
+      currentShowdownAtMs: undefined,
+      nowMs: 600_000,
+    })
+    expect(plan.dealCommunityBoard).toBe(false)
+    expect(venueAllPreBoardWageringComplete([done.key, 'V:2'], (tk) => states.get(tk))).toBe(false)
+  })
+
   it('opens answering with the 45s venue deadline when only one table is seated', () => {
     const { key, gs } = postBoardClosedTable()
     const plan = planVenueWageringOrchestration({

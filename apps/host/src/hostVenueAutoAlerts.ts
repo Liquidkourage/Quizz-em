@@ -126,6 +126,13 @@ export function detectVenueAutoAlerts(
 /** Promote server venue-wide auto toasts into the same banner treatment. */
 export function hostVenueAutoAlertFromToast(message: string): HostVenueAutoAlert | null {
   const m = message.trim()
+  if (m.includes('board dealt')) {
+    return {
+      kind: 'round1-all-in',
+      title: 'Board dealt',
+      detail: m,
+    }
+  }
   if (m.includes('showdown in 45 seconds')) {
     return {
       kind: 'answer-window-started',

@@ -1,4 +1,5 @@
 import type { GameState } from '@qhe/core'
+import { isAllInRunout } from '@qhe/core'
 
 /** Grace period after the last table closes post-board wagering before venue-wide showdown. */
 export const VENUE_POST_BOARD_SHOWDOWN_GRACE_MS = 45_000
@@ -80,7 +81,10 @@ export function seatedTableFinishedPostBoardWagering(gs: GameState): boolean {
   if (gs.phase === 'answering' || gs.phase === 'showdown' || gs.phase === 'reveal' || gs.phase === 'payout') {
     return true
   }
-  return isPostBoardWageringClosed(gs)
+  if (!isPostBoardWageringClosed(gs)) return false
+  /** All-in runout: board is out but host must still open the answer window. */
+  if (isAllInRunout(gs)) return false
+  return true
 }
 
 export function venueAllPostBoardWageringComplete(
@@ -149,6 +153,7 @@ export function planVenueWageringOrchestration(args: {
     if (!gs || gs.players.length === 0) continue
 
     if (isPostBoardWageringClosed(gs)) {
+      if (isAllInRunout(gs)) continue
       const deadline = allComplete && showdownAt != null ? showdownAt : null
       const next = openAnsweringPhase(gs, deadline)
       if (next.phase !== gs.phase || next.round.answerDeadline !== gs.round.answerDeadline) {

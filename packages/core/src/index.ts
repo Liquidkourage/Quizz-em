@@ -916,6 +916,21 @@ function isBettingComplete(state: GameState): boolean {
   return actedCount >= activeCount;
 }
 
+/** No one left who can act — every chip-eligible player still in the hand is all-in (or folded). */
+export function isAllInRunout(state: GameState): boolean {
+  if (state.phase !== 'betting') return false;
+  if (state.round.isBettingOpen === true) return false;
+
+  let stillContesting = 0;
+  let canAct = 0;
+  for (const p of state.players) {
+    if (p.hasFolded || !inChipContest(p)) continue;
+    stillContesting++;
+    if (!p.isAllIn) canAct++;
+  }
+  return stillContesting >= 2 && canAct === 0;
+}
+
 /**
  * When the action seat is folded, all-in, or off the roster, advance or close wagering so
  * CPU drains and venue lockstep do not stall with an open clock on a dead seat.

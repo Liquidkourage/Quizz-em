@@ -10,6 +10,20 @@ import {
   venueAllPreBoardWageringComplete,
 } from './venue-wagering-orchestration'
 
+function allInRunoutPostBoardTable(): { key: string; gs: ReturnType<typeof createEmptyGame> } {
+  const closed = postBoardClosedTable()
+  const gs = {
+    ...closed.gs,
+    players: closed.gs.players.map((p) => ({
+      ...p,
+      bankroll: 0,
+      isAllIn: !p.hasFolded,
+    })),
+  }
+  expect(isPostBoardWageringClosed(gs)).toBe(true)
+  return { key: closed.key, gs }
+}
+
 function postBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<typeof createEmptyGame> } {
   let gs = createEmptyGame('V', '', '1')
   gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
@@ -86,6 +100,19 @@ describe('venue wagering orchestration', () => {
     expect(plan.tableUpdates[0]!.gameState.phase).toBe('answering')
     expect(plan.tableUpdates[0]!.answerDeadlineMs).toBe(1_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
     expect(plan.scheduleShowdownAtMs).toBe(1_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
+  })
+
+  it('does not auto-open answering on an all-in runout — host starts the answer window', () => {
+    const { key, gs } = allInRunoutPostBoardTable()
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: [key],
+      getState: (tk) => (tk === key ? gs : undefined),
+      currentShowdownAtMs: undefined,
+      nowMs: 1_500_000,
+    })
+    expect(plan.tableUpdates).toHaveLength(0)
+    expect(plan.scheduleShowdownAtMs).toBeNull()
+    expect(venueAllPostBoardWageringComplete([key], (tk) => (tk === key ? gs : undefined))).toBe(false)
   })
 
   it('waits for the last table before arming the venue showdown timer', () => {

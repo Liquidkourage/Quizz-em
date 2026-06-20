@@ -1474,6 +1474,10 @@ function VenueMosaicTableCard({
                 >
                   {actingPlayerName}
                 </span>
+              ) : denseMosaicChrome ? (
+                <span className={`${mosaicTypography.actingName} invisible`} aria-hidden>
+                  {'\u00A0'}
+                </span>
               ) : null}
             </div>
           ) : !showFloorShowdownOverlay ? (
@@ -1551,21 +1555,24 @@ function VenueMosaicTableCard({
           />
         </div>
 
-        {showToCallStrip ? (
+        {denseMosaicChrome && !showFloorShowdownOverlay ? (
           <div
             className={`${mosaicTypography.footerRowClass} ${
               feltFillsCell ? 'col-start-1 row-start-3 min-w-0' : ''
             }`}
+            aria-hidden={!showToCallStrip}
           >
-            <p
-              className="flex min-w-0 items-baseline justify-center gap-x-1 text-center"
-              aria-live="polite"
-            >
-              <span className={mosaicTypography.toCallLabel}>To Call:</span>
-              <span className={mosaicTypography.toCallAmount}>
-                {formatVenueBankroll(Math.max(0, Math.floor(row.actingCallAmount ?? 0)))}
-              </span>
-            </p>
+            {showToCallStrip ? (
+              <p
+                className="flex min-w-0 items-baseline justify-center gap-x-1 text-center"
+                aria-live="polite"
+              >
+                <span className={mosaicTypography.toCallLabel}>To Call:</span>
+                <span className={mosaicTypography.toCallAmount}>
+                  {formatVenueBankroll(Math.max(0, Math.floor(row.actingCallAmount ?? 0)))}
+                </span>
+              </p>
+            ) : null}
           </div>
         ) : null}
 

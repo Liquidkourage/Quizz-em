@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import {
   pickShowdownFloorChipRow,
@@ -16,12 +17,7 @@ import {
 /** Locked layout id (only floor stack ships). */
 export type VenueFloorShowdownVariantId = 8
 
-/**
- * Venue-floor showdown overlay (mosaic tiles) — hybrid layout:
- * - Plain winner: mosaic table badge + light “Winner” label; name → pot → digit cards
- * - Split pot: full gradient ribbon bar + names + $N each + digit cards
- * - Side pot: full teal ribbon + MAIN | $ | name grid + compact digit cards
- */
+export type FloorShowdownCardVariant = 'winner' | 'split' | 'side'
 
 export type FloorShowdownCtx = {
   pot: number
@@ -33,6 +29,7 @@ export type FloorShowdownCtx = {
   splitWin: boolean
   ariaLabel: string
   sidePotLines: ShowdownSidePotLine[] | null
+  variant: FloorShowdownCardVariant
 }
 
 function formatPot(amount: number): string {
@@ -74,6 +71,9 @@ function buildCtx(
       ? sidePotLines.map((l) => `${l.label} ${formatPot(l.amount)} ${l.name}`).join(', ')
       : null
 
+  const variant: FloorShowdownCardVariant =
+    sidePotLines != null ? 'side' : displaySplit ? 'split' : 'winner'
+
   return {
     pot: displayPot,
     label,
@@ -83,6 +83,7 @@ function buildCtx(
     extraWinners,
     splitWin: displaySplit,
     sidePotLines,
+    variant,
     ariaLabel:
       layerSummary != null
         ? `Side pots: ${layerSummary}`
@@ -95,102 +96,96 @@ function buildCtx(
 const WINNER_NAME_SINGLE =
   'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1.32rem,16.2cqw,3rem)]'
 const WINNER_NAME_SPLIT =
-  'min-w-0 font-black leading-[1.05] text-amber-50 text-[clamp(1.05rem,12.2cqw,2.2rem)]'
-
-function winnerNameClass(splitWin: boolean): string {
-  return splitWin ? WINNER_NAME_SPLIT : WINNER_NAME_SINGLE
-}
+  'min-w-0 font-black leading-[1.08] text-amber-50 text-[clamp(1.08rem,12.8cqw,2.35rem)]'
 
 const POT_AMOUNT =
   'font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.25rem,13.2cqw,2.85rem)]'
 
-function HeroPot({ pot, splitWin = false }: { pot: number; splitWin?: boolean }) {
-  if (pot <= 0) return null
+const POT_EACH =
+  'shrink-0 font-bold uppercase tracking-[0.14em] text-yellow-200/95 text-[clamp(0.82rem,7.2cqw,1.12rem)]'
+
+const RESULT_GAP = 'gap-y-[clamp(0.2rem,2.4cqw,0.5rem)]'
+const ANSWER_GAP = 'pt-[clamp(0.2rem,2cqw,0.45rem)]'
+
+function GuessBlock({ chipRow }: { chipRow: ShowdownResultRow | null }) {
+  if (!chipRow) return null
+  return <ShowdownFiveCardsUsed row={chipRow} size="floor" />
+}
+
+function ShowdownWinnerCardContent({ ctx }: { ctx: FloorShowdownCtx }) {
+  const name = ctx.winners[0]?.name ?? ''
   return (
-    <div className="text-center">
-      <div className="flex items-baseline justify-center gap-[0.35em]">
-        <p className={POT_AMOUNT}>{formatPot(pot)}</p>
-        {splitWin ? (
-          <span className="shrink-0 font-bold uppercase tracking-[0.18em] text-yellow-200/90 text-[clamp(0.58rem,5.4cqw,0.82rem)]">
-            each
-          </span>
-        ) : null}
+    <div
+      className={`flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center px-2.5 ${RESULT_GAP}`}
+    >
+      <p className={`${WINNER_NAME_SINGLE} max-w-full truncate text-center`}>{name}</p>
+      {ctx.pot > 0 ? (
+        <div className="text-center">
+          <p className={POT_AMOUNT}>{formatPot(ctx.pot)}</p>
+        </div>
+      ) : null}
+      <div className={`flex w-full shrink-0 items-center justify-center ${ANSWER_GAP}`}>
+        <GuessBlock chipRow={ctx.chipRow} />
       </div>
     </div>
   )
 }
 
-function WinnerBlock({ ctx, layout = 'line' }: { ctx: FloorShowdownCtx; layout?: 'pills' | 'line' }) {
-  const nameClass = winnerNameClass(ctx.splitWin)
-  if (layout === 'line') {
-    return (
-      <div className="min-w-0 text-center">
-        <p className={`${nameClass} truncate`}>
-          {ctx.winners.map((w) => w.name).join(' · ')}
-          {ctx.extraWinners > 0 ? ` +${ctx.extraWinners}` : ''}
-        </p>
-      </div>
-    )
-  }
+function ShowdownSplitPotCardContent({ ctx, allWinners }: { ctx: FloorShowdownCtx; allWinners: ShowdownResultRow[] }) {
   return (
-    <div className="flex min-w-0 flex-col items-center gap-1">
-      <div className="flex max-w-full flex-wrap justify-center gap-1">
-        {ctx.namePills.map((w) => (
-          <span
-            key={`${w.seat}:${w.name}`}
-            className="inline-flex max-w-full min-w-0 rounded-full border-2 border-amber-400/80 bg-amber-950/95 px-2 py-0.5 shadow-[0_0_10px_rgba(251,191,36,0.3)]"
-          >
-            <span className={`${nameClass} truncate`}>{w.name}</span>
-          </span>
+    <div
+      className={`flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center px-2.5 ${RESULT_GAP}`}
+    >
+      <div className="flex max-w-full flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-center">
+        {allWinners.map((w, index) => (
+          <Fragment key={`${w.seat}:${w.name}`}>
+            {index > 0 ? (
+              <span className="shrink-0 text-amber-200/55" aria-hidden>
+                ·
+              </span>
+            ) : null}
+            <span className={`${WINNER_NAME_SPLIT} max-w-[min(100%,14rem)] truncate`}>{w.name}</span>
+          </Fragment>
         ))}
       </div>
-      {ctx.extraWinners > 0 ? (
-        <p className="text-[clamp(0.65rem,6cqw,0.9rem)] font-bold text-amber-200/80">+{ctx.extraWinners} more</p>
+      {ctx.pot > 0 ? (
+        <div className="flex items-baseline justify-center gap-[0.4em]">
+          <p className={POT_AMOUNT}>{formatPot(ctx.pot)}</p>
+          <span className={POT_EACH}>each</span>
+        </div>
       ) : null}
-    </div>
-  )
-}
-
-function GuessBlock(ctx: FloorShowdownCtx) {
-  if (!ctx.chipRow) return null
-  return (
-    <ShowdownFiveCardsUsed
-      row={ctx.chipRow}
-      size={ctx.sidePotLines != null ? 'floor-compact' : 'floor'}
-    />
-  )
-}
-
-function FloorPotBlock(ctx: FloorShowdownCtx) {
-  if (ctx.sidePotLines != null) {
-    return <ShowdownPotWinnerList lines={ctx.sidePotLines} />
-  }
-  return <HeroPot pot={ctx.pot} splitWin={ctx.splitWin} />
-}
-
-function ShowdownStack({ ctx, className = '' }: { ctx: FloorShowdownCtx; className?: string }) {
-  if (ctx.sidePotLines != null) {
-    return (
-      <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center ${className}`}>
-        <div className="flex w-full min-h-0 flex-1 items-stretch justify-center overflow-hidden pb-2">
-          {FloorPotBlock(ctx)}
-        </div>
-        <div className="flex w-full shrink-0 items-end justify-center pb-1.5 pt-0.5">
-          {GuessBlock(ctx)}
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className={`flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-y-[clamp(0.15rem,1.8cqw,0.45rem)] ${className}`}>
-      <WinnerBlock ctx={ctx} layout="line" />
-      <div className="w-full shrink-0">{FloorPotBlock(ctx)}</div>
-      <div className="flex w-full shrink-0 items-center justify-center pt-0.5">
-        {GuessBlock(ctx)}
+      <div className={`flex w-full shrink-0 items-center justify-center ${ANSWER_GAP}`}>
+        <GuessBlock chipRow={ctx.chipRow} />
       </div>
     </div>
   )
+}
+
+function ShowdownSidePotCardContent({ ctx }: { ctx: FloorShowdownCtx }) {
+  if (ctx.sidePotLines == null) return null
+  return (
+    <div
+      className={`flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center px-2 ${RESULT_GAP}`}
+    >
+      <div className="w-full max-w-full shrink-0">
+        <ShowdownPotWinnerList lines={ctx.sidePotLines} />
+      </div>
+      <div className={`flex w-full shrink-0 items-center justify-center ${ANSWER_GAP}`}>
+        <GuessBlock chipRow={ctx.chipRow} />
+      </div>
+    </div>
+  )
+}
+
+function ShowdownCardBody({ ctx, allWinners }: { ctx: FloorShowdownCtx; allWinners: ShowdownResultRow[] }) {
+  switch (ctx.variant) {
+    case 'side':
+      return <ShowdownSidePotCardContent ctx={ctx} />
+    case 'split':
+      return <ShowdownSplitPotCardContent ctx={ctx} allWinners={allWinners} />
+    default:
+      return <ShowdownWinnerCardContent ctx={ctx} />
+  }
 }
 
 export function VenueFloorShowdownByVariant({
@@ -208,7 +203,14 @@ export function VenueFloorShowdownByVariant({
   const ctx = buildCtx(pot, rows, correctAnswer)
   if (ctx == null) return null
 
-  const sidePot = ctx.sidePotLines != null
+  const { winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
+  const allWinners = rows.filter(
+    (r) =>
+      winnerKeys.has(`${r.seat}:${r.name}`) &&
+      r.name.trim() !== '' &&
+      !r.hasFolded
+  )
+
   const ariaLabel =
     tableNum != null ? `Table ${tableNum}. ${ctx.ariaLabel}` : ctx.ariaLabel
 
@@ -218,15 +220,12 @@ export function VenueFloorShowdownByVariant({
       role="group"
       aria-label={ariaLabel}
     >
-      {ctx.sidePotLines != null ? <SidePotRibbon tableNum={tableNum} /> : null}
-      {!ctx.splitWin && ctx.sidePotLines == null ? <WinnerTitleStrip tableNum={tableNum} /> : null}
-      {ctx.splitWin && ctx.sidePotLines == null ? <SplitPotRibbon tableNum={tableNum} /> : null}
-      <div
-        className={`flex min-h-0 flex-1 flex-col ${sidePot ? 'px-2 py-1' : 'px-2.5 pb-2 pt-0'}`}
-      >
-        <ShowdownStack ctx={ctx} className="min-h-0 flex-1 justify-center" />
+      {ctx.variant === 'side' ? <SidePotRibbon tableNum={tableNum} /> : null}
+      {ctx.variant === 'winner' ? <WinnerTitleStrip tableNum={tableNum} /> : null}
+      {ctx.variant === 'split' ? <SplitPotRibbon tableNum={tableNum} /> : null}
+      <div className="flex min-h-0 flex-1 flex-col pb-2 pt-0">
+        <ShowdownCardBody ctx={ctx} allWinners={allWinners} />
       </div>
     </div>
   )
 }
-

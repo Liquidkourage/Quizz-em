@@ -19,76 +19,76 @@ export type ShowdownSidePotLine = {
   name: string
 }
 
-/** Equal side columns so the amount column sits on the tile’s horizontal center. */
-const POT_LAYER_ROW =
-  'grid w-full max-w-full min-w-0 flex-1 grid-cols-[1fr_auto_1fr] items-baseline gap-x-[clamp(0.15rem,1.2cqw,0.35rem)] px-0.5'
-const POT_LAYER_TAG =
-  'justify-self-end pr-[0.15em] font-black uppercase tracking-[0.1em] text-[clamp(0.74rem,7.4cqw,1.14rem)]'
-const POT_LAYER_AMOUNT_MAIN =
-  'justify-self-center text-center font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.32rem,14.4cqw,2.95rem)]'
-const POT_LAYER_AMOUNT_SIDE =
-  'justify-self-center text-center font-mono font-black tabular-nums leading-none text-yellow-300/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] text-[clamp(1.2rem,13cqw,2.55rem)]'
-const POT_LAYER_AMOUNT_RETURN =
-  'justify-self-center text-center font-mono font-bold tabular-nums leading-none text-white/75 text-[clamp(0.98rem,9.8cqw,1.75rem)]'
-const POT_LAYER_NAME =
-  'min-w-0 justify-self-start pl-[0.15em] truncate font-black leading-tight text-amber-50 text-[clamp(0.9rem,9.4cqw,1.55rem)]'
-const POT_LAYER_NAME_SIDE =
-  'min-w-0 justify-self-start pl-[0.15em] truncate font-semibold leading-tight text-amber-50/92 text-[clamp(0.78rem,8cqw,1.28rem)]'
+const LEDGER_ROW =
+  'grid w-full min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-[clamp(0.45rem,3.2cqw,0.85rem)]'
+const LEDGER_LABEL =
+  'font-black uppercase tracking-[0.12em] text-[clamp(0.82rem,7.8cqw,1.2rem)]'
+const LEDGER_NAME =
+  'min-w-0 truncate font-black leading-tight text-amber-50 text-[clamp(0.95rem,9.8cqw,1.65rem)]'
+const LEDGER_NAME_SECONDARY =
+  'min-w-0 truncate font-semibold leading-tight text-amber-50/92 text-[clamp(0.88rem,8.6cqw,1.45rem)]'
+const LEDGER_AMOUNT_MAIN =
+  'shrink-0 text-right font-mono font-black tabular-nums leading-none text-yellow-300 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] text-[clamp(1.28rem,14.2cqw,2.85rem)]'
+const LEDGER_AMOUNT_SIDE =
+  'shrink-0 text-right font-mono font-black tabular-nums leading-none text-yellow-300/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] text-[clamp(1.12rem,12.4cqw,2.45rem)]'
+const LEDGER_AMOUNT_RETURN =
+  'shrink-0 text-right font-mono font-bold tabular-nums leading-none text-white/75 text-[clamp(0.95rem,9.6cqw,1.65rem)]'
 
-function PotLayerRow({
+function PotLedgerRow({
   line,
-  tagClass,
+  labelClass,
   amountClass,
-  nameClass = POT_LAYER_NAME,
+  nameClass = LEDGER_NAME,
 }: {
   line: ShowdownSidePotLine
-  tagClass: string
+  labelClass: string
   amountClass: string
   nameClass?: string
 }) {
   return (
-    <p className={POT_LAYER_ROW}>
-      <span className={`${POT_LAYER_TAG} ${tagClass}`}>{line.label}</span>
-      <span className={amountClass}>${line.amount.toLocaleString()}</span>
+    <div className={LEDGER_ROW}>
+      <span className={`${LEDGER_LABEL} ${labelClass}`}>{line.label}</span>
       <span className={nameClass} title={line.name}>
         {line.name}
       </span>
-    </p>
+      <span className={amountClass}>${line.amount.toLocaleString()}</span>
+    </div>
   )
 }
 
+/** Compact payout ledger — label, winner name, amount per row. */
 export function ShowdownPotWinnerList({ lines }: { lines: readonly ShowdownSidePotLine[] }) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col items-stretch justify-evenly gap-y-0.5 py-0.5">
+    <div className="flex w-full max-w-full min-w-0 flex-col gap-y-[clamp(0.35rem,2.8cqw,0.7rem)]">
       {lines.map((line) => {
         if (line.label === 'Main') {
           return (
-            <PotLayerRow
+            <PotLedgerRow
               key={`${line.label}:${line.name}`}
               line={line}
-              tagClass="text-amber-200"
-              amountClass={POT_LAYER_AMOUNT_MAIN}
+              labelClass="text-amber-200"
+              amountClass={LEDGER_AMOUNT_MAIN}
             />
           )
         }
         if (line.label === 'Side') {
           return (
-            <PotLayerRow
+            <PotLedgerRow
               key={`${line.label}:${line.name}`}
               line={line}
-              tagClass="text-cyan-200"
-              amountClass={POT_LAYER_AMOUNT_SIDE}
-              nameClass={POT_LAYER_NAME_SIDE}
+              labelClass="text-cyan-200"
+              amountClass={LEDGER_AMOUNT_SIDE}
+              nameClass={LEDGER_NAME_SECONDARY}
             />
           )
         }
         return (
-          <PotLayerRow
+          <PotLedgerRow
             key={`${line.label}:${line.name}`}
             line={line}
-            tagClass="text-white/45"
-            amountClass={POT_LAYER_AMOUNT_RETURN}
-            nameClass={`${POT_LAYER_NAME} text-white/60`}
+            labelClass="text-white/45"
+            amountClass={LEDGER_AMOUNT_RETURN}
+            nameClass={`${LEDGER_NAME} text-white/60`}
           />
         )
       })}

@@ -19,6 +19,8 @@ import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { venueWallFloorIsLive } from './venueWallAutoView.ts'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
+import { useDisplayVenueStatePopups } from './useDisplayVenueStatePopups'
+import DisplayVenueStatePopup from './DisplayVenueStatePopup.tsx'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -257,6 +259,10 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   const showVenueMosaicShell =
     onVenueWallLayout && !audienceBriefing && !showSeatingChart && !showLeaderboard
 
+  const statePopup = useDisplayVenueStatePopups(
+    showVenueMosaicShell && !bustAnnouncement.visible ? venueWall : null,
+  )
+
   return (
     <>
     <AnimatePresence mode="sync">
@@ -320,6 +326,9 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     <AnimatePresence>
       {bustAnnouncement.visible && bustAnnouncement.busts.length > 0 ? (
         <VenueBustAnnouncement key="venue-bust-announcement" busts={bustAnnouncement.busts} />
+      ) : null}
+      {statePopup.visible && statePopup.popup ? (
+        <DisplayVenueStatePopup key={`${statePopup.popup.kind}-${statePopup.popup.title}`} popup={statePopup.popup} />
       ) : null}
     </AnimatePresence>
     </>

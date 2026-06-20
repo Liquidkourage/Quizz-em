@@ -282,12 +282,23 @@
     font-size: var(--vfd-summary-size);
   }
 
-  /** Venue headline question — size from venue-floor typography tier. */
-  .display-text-headline-question-spacious,
-  .display-text-headline-question-compact,
-  .display-text-headline-question-ultra {
-    font-size: var(--vfd-question-size);
+  /** Venue headline question — viewport-scaled for room readability (not fixed px tokens). */
+  .display-text-headline-question-spacious {
+    font-size: clamp(4vh, 6.5vh, 8.5vh);
     font-weight: 700;
+    line-height: 1.22;
+  }
+
+  .display-text-headline-question-compact {
+    font-size: clamp(3.75vh, 5.75vh, 7.5vh);
+    font-weight: 700;
+    line-height: 1.22;
+  }
+
+  .display-text-headline-question-ultra {
+    font-size: clamp(3.5vh, 5.25vh, 7vh);
+    font-weight: 700;
+    line-height: 1.2;
   }
 
   /**
@@ -296,7 +307,6 @@
    * sizes on the venue wall match the eagle-eye targets at 1920×1080.
    */
   .venue-floor-typography-spacious {
-    --vfd-question-size: 45px;
     --vfd-summary-size: 24px;
     --vfd-player-name-size: 30px;
     --vfd-stack-size: 45px;
@@ -312,7 +322,6 @@
   }
 
   .venue-floor-typography-standard {
-    --vfd-question-size: 39px;
     --vfd-summary-size: 25px;
     --vfd-player-name-size: 32px;
     --vfd-stack-size: 41px;
@@ -328,7 +337,6 @@
   }
 
   .venue-floor-typography-compact {
-    --vfd-question-size: 36px;
     --vfd-summary-size: 20px;
     --vfd-player-name-size: 25px;
     --vfd-stack-size: 39px;

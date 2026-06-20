@@ -818,11 +818,11 @@ function SeatRingWithLabels({
   /** Spotlight hero — wide capsule; mosaic tiles use smaller md ring below. */
   const lgRing =
     'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
-  /** Mosaic crawl — stadium capsule; fill the grid cell (width-first, height capped). */
+  /** Mosaic crawl — stadium capsule; fit cell with width-first sizing so aspect ratio holds. */
   const mdRing = isMosaic
     ? mosaicFluidWidth
       ? mosaicFillHeight
-        ? `relative mx-auto aspect-[17/10] h-full max-h-full w-auto max-w-full min-h-0 min-w-0`
+        ? `relative mx-auto aspect-[17/10] h-auto w-full max-h-full max-w-full min-h-0 min-w-0`
         : mosaicShrinkWrap
           ? `relative ${mosaicFeltAspectClass ?? 'aspect-[17/10]'} h-auto shrink-0 ${
               mosaicFeltMaxHeightCss != null

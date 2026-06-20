@@ -81,10 +81,35 @@ export function seatedTableFinishedPostBoardWagering(gs: GameState): boolean {
   if (gs.phase === 'answering' || gs.phase === 'showdown' || gs.phase === 'reveal' || gs.phase === 'payout') {
     return true
   }
-  if (!isPostBoardWageringClosed(gs)) return false
-  /** All-in runout: board is out but host must still open the answer window. */
-  if (isAllInRunout(gs)) return false
-  return true
+  return isPostBoardWageringClosed(gs)
+}
+
+function venuePeerInAnswerFlow(
+  seatedTableKeys: string[],
+  getState: (sessionKey: string) => GameState | undefined,
+  excludeKey: string,
+): boolean {
+  return seatedTableKeys.some((tk) => {
+    if (tk === excludeKey) return false
+    const gs = getState(tk)
+    if (!gs || gs.players.length === 0) return false
+    return (
+      gs.phase === 'answering' ||
+      gs.phase === 'showdown' ||
+      gs.phase === 'reveal' ||
+      gs.phase === 'payout'
+    )
+  })
+}
+
+function venueAnyAllInRunoutAwaitingHost(
+  seatedTableKeys: string[],
+  getState: (sessionKey: string) => GameState | undefined,
+): boolean {
+  return seatedTableKeys.some((tk) => {
+    const gs = getState(tk)
+    return gs != null && gs.players.length > 0 && isAllInRunout(gs)
+  })
 }
 
 export function venueAllPostBoardWageringComplete(
@@ -143,7 +168,8 @@ export function planVenueWageringOrchestration(args: {
 
   let showdownAt = args.currentShowdownAtMs
   let scheduleShowdownAtMs: number | null = null
-  if (allComplete && openWageringCount === 0 && showdownAt == null) {
+  const allInRunoutAwaitingHost = venueAnyAllInRunoutAwaitingHost(args.seatedTableKeys, args.getState)
+  if (allComplete && openWageringCount === 0 && showdownAt == null && !allInRunoutAwaitingHost) {
     showdownAt = nowMs + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS
     scheduleShowdownAtMs = showdownAt
   }
@@ -153,7 +179,10 @@ export function planVenueWageringOrchestration(args: {
     if (!gs || gs.players.length === 0) continue
 
     if (isPostBoardWageringClosed(gs)) {
-      if (isAllInRunout(gs)) continue
+      /** Hold all-in runout for the host unless another felt already advanced (avoid lockstep deadlock). */
+      if (isAllInRunout(gs) && !venuePeerInAnswerFlow(args.seatedTableKeys, args.getState, tk)) {
+        continue
+      }
       const deadline = allComplete && showdownAt != null ? showdownAt : null
       const next = openAnsweringPhase(gs, deadline)
       if (next.phase !== gs.phase || next.round.answerDeadline !== gs.round.answerDeadline) {

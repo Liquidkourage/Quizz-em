@@ -4,6 +4,7 @@ import {
   DISPLAY_PREVIEW_TABLES,
   VENUE_WALL_SEAT_SLOTS,
   displayBlindSeatIndices,
+  isVenueTileWageringPaused,
   listVenueCondenseMilestones,
   rehearsalSeatDisplayName,
 } from '@qhe/core'
@@ -89,6 +90,16 @@ export function venueWallPhaseLabel(ph: string): string {
   if (ph === 'payout') return 'Payout'
   if (ph === 'intermission') return 'Break'
   return ph
+}
+
+/** Phase label for a specific felt — respects closed wagering / all-in runout. */
+export function venueWallTilePhaseLabel(row: DisplayVenueTileSnapshot): string {
+  const ph = String(row.phase ?? '').trim().toLowerCase()
+  if (ph === 'betting' && row.seated >= 2) {
+    if (isVenueTileWageringPaused(row)) return 'All bets are in!'
+    if (row.isBettingOpen === true) return 'Wagering'
+  }
+  return venueWallPhaseLabel(row.phase)
 }
 
 /** Which numbered felt drives the sticky headline strip (server field with tile fallback). */

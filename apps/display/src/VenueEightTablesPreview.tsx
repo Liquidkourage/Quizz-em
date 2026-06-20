@@ -18,7 +18,7 @@ import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
-import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, venueWallTilePhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import { formatVenueBankroll } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import {
@@ -1938,8 +1938,13 @@ export default function VenueEightTablesPreview({
     () => venueHeadlineDivergenceNote(tileRows, headlineSource.phase),
     [tileRows, headlineSource.phase]
   )
-  const headlinePhaseLabel =
-    headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
+  const headlinePhaseLabel = useMemo(() => {
+    if (headlineSource.tableNum != null) {
+      const row = tileRows.find((t) => t.tableNum === headlineSource.tableNum)
+      if (row != null) return venueWallTilePhaseLabel(row)
+    }
+    return headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
+  }, [headlineSource.tableNum, headlineSource.phase, tileRows])
   const venueBlindsHeadline = useMemo(() => venueWallBlindsHeadline(wall), [wall])
   const condenseHeadline = useMemo(() => venueWallCondenseHeadline(wall), [wall])
   useEffect(() => {

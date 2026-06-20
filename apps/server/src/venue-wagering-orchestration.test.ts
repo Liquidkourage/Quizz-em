@@ -112,7 +112,25 @@ describe('venue wagering orchestration', () => {
     })
     expect(plan.tableUpdates).toHaveLength(0)
     expect(plan.scheduleShowdownAtMs).toBeNull()
-    expect(venueAllPostBoardWageringComplete([key], (tk) => (tk === key ? gs : undefined))).toBe(false)
+    expect(venueAllPostBoardWageringComplete([key], (tk) => (tk === key ? gs : undefined))).toBe(true)
+  })
+
+  it('pulls an all-in runout into answering when another table already advanced', () => {
+    const runout = allInRunoutPostBoardTable()
+    const peer = postBoardClosedTable()
+    const peerAnswering = openAnsweringPhase(peer.gs, null)
+    const states = new Map([
+      [runout.key, runout.gs],
+      ['V:2', peerAnswering],
+    ])
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: [runout.key, 'V:2'],
+      getState: (tk) => states.get(tk),
+      currentShowdownAtMs: undefined,
+      nowMs: 1_600_000,
+    })
+    expect(plan.tableUpdates.some((u) => u.sessionKey === runout.key && u.gameState.phase === 'answering')).toBe(true)
+    expect(plan.scheduleShowdownAtMs).toBeNull()
   })
 
   it('waits for the last table before arming the venue showdown timer', () => {

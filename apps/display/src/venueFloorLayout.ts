@@ -14,6 +14,14 @@ const MAX_COLUMNS = 5
 const GRID_INSET_PX = 28
 const HEADLINE_RESERVE_PX = 168
 
+/**
+ * Venue floor layout — single source of truth for row grouping and card slot width.
+ *
+ * {@link selectVenueFloorLayout} chooses row patterns (e.g. 5–4–5 for 14 tables) from
+ * {@link VENUE_FLOOR_STAGGER_PATTERNS} plus uniform grid fallbacks, scored by table count
+ * and optional viewport measurement. Spacing and typography live in venueFloorGridLayout.ts.
+ */
+
 /** Count-aware stagger row groupings — each pattern must sum to the table count. */
 export const VENUE_FLOOR_STAGGER_PATTERNS: Readonly<Record<number, readonly (readonly number[])[]>> = {
   7: [[4, 3], [3, 4]],

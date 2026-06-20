@@ -3,15 +3,17 @@ import {
   applyVenueFloorDenseTuning,
   venueBanquetLayout,
   venueFloorDenseTuning,
+  venueFloorGridPaddingForLayout,
+  venueFloorSpacingSpec,
   VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
   venueFloorGridPaddingRem,
   venueFloorGridPerspectiveStyle,
-  venueFloorHeadlineFeltMaxHeightCss,
   venueFloorMosaicTypography,
   venueFloorPublicTypographyTier,
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorTableSize,
+  VENUE_FLOOR_MOSAIC_HEADER_TYPE,
 } from './venueFloorGridLayout'
 
 describe('venueFloorRowTrackSpec', () => {
@@ -105,13 +107,33 @@ describe('venueFloorMosaicTypography', () => {
     expect(standard.rootClass).toBe('venue-floor-typography-standard')
     expect(standard.feltPot).toContain('vfd-mosaic-stack')
     expect(standard.actingName).toContain('vfd-mosaic-player-name')
+    expect(VENUE_FLOOR_MOSAIC_HEADER_TYPE.seatInitials).toBe('vfd-mosaic-seat-initial')
+    expect(VENUE_FLOOR_MOSAIC_HEADER_TYPE.noMoreBetsWatermark).toBe('vfd-mosaic-watermark')
     expect(compact.rootClass).toBe('venue-floor-typography-compact')
     expect(standard.noMoreBetsOffsetClass).not.toBe(compact.noMoreBetsOffsetClass)
     expect(standard.feltMaxHeightClass).toBe('vfd-mosaic-felt-cap')
   })
 })
 
-describe('venueFloorDenseTuning', () => {
+describe('venueFloorSpacingSpec', () => {
+  it('tightens multi-row floors when a headline is showing', () => {
+    const layout = venueBanquetLayout(20)
+    const spec = venueFloorSpacingSpec(20, layout, { withHeadline: true })
+    expect(spec.rowGapRem).toBe(0.65)
+    expect(spec.cellGapRem).toBe(0.82)
+    const padding = venueFloorGridPaddingForLayout(layout.rowCount, { withHeadline: true })
+    expect(padding.bottom).toBe(VENUE_FLOOR_GRID_BOTTOM_SAFE_REM)
+  })
+
+  it('matches base size spec without headline', () => {
+    const layout = venueBanquetLayout(12)
+    const base = venueFloorSizeSpec(12)
+    const spec = venueFloorSpacingSpec(12, layout, { withHeadline: false })
+    expect(spec).toEqual(base)
+  })
+})
+
+describe('venueFloorDenseTuning (deprecated shim)', () => {
   it('tightens multi-row floors when a headline is showing', () => {
     const layout = venueBanquetLayout(20)
     const tuned = venueFloorDenseTuning(layout, { withHeadline: true })
@@ -126,11 +148,5 @@ describe('venueFloorDenseTuning', () => {
 
   it('is null without a headline', () => {
     expect(venueFloorDenseTuning(venueBanquetLayout(12), { withHeadline: false })).toBeNull()
-  })
-})
-
-describe('venueFloorHeadlineFeltMaxHeightCss', () => {
-  it('derives felt cap from viewport row budget', () => {
-    expect(venueFloorHeadlineFeltMaxHeightCss(4)).toBe('calc((100dvh - 10rem) / 4 * 0.56)')
   })
 })

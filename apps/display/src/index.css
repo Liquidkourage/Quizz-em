@@ -303,6 +303,8 @@
     --vfd-to-call-label-size: 24px;
     --vfd-to-call-amount-size: 30px;
     --vfd-table-number-size: 24px;
+    --vfd-seat-initial-size: 17px;
+    --vfd-watermark-size: 27px;
     --vfd-title-row-min-h: 34px;
     --vfd-footer-row-min-h: 34px;
     --vfd-felt-max-height: 94%;
@@ -317,6 +319,8 @@
     --vfd-to-call-label-size: 22px;
     --vfd-to-call-amount-size: 27px;
     --vfd-table-number-size: 22px;
+    --vfd-seat-initial-size: 15px;
+    --vfd-watermark-size: 24px;
     --vfd-title-row-min-h: 32px;
     --vfd-footer-row-min-h: 33px;
     --vfd-felt-max-height: 93%;
@@ -331,6 +335,8 @@
     --vfd-to-call-label-size: 20px;
     --vfd-to-call-amount-size: 25px;
     --vfd-table-number-size: 20px;
+    --vfd-seat-initial-size: 14px;
+    --vfd-watermark-size: 22px;
     --vfd-title-row-min-h: 30px;
     --vfd-footer-row-min-h: 31px;
     --vfd-felt-max-height: 92%;
@@ -374,6 +380,23 @@
 
   .vfd-mosaic-felt-cap {
     max-height: var(--vfd-felt-max-height);
+  }
+
+  .vfd-mosaic-seat-initial {
+    font-size: var(--vfd-seat-initial-size);
+  }
+
+  .vfd-mosaic-watermark {
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    text-align: center;
+    font-size: var(--vfd-watermark-size);
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    color: rgb(110 231 183 / 0.35);
   }
 
   .vfd-blinds-amount {

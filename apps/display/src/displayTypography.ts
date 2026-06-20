@@ -2,6 +2,11 @@
  * Public display typography.
  * @see .cursor/rules/display-typography.mdc
  *
+ * **Venue eagle-eye wall (mosaic + headline):** font sizes come from `--vfd-*` CSS variables
+ * set by `.venue-floor-typography-{spacious|standard|compact}` in `index.css`.
+ * Use {@link venueFloorMosaicTypography} / {@link displayHeadlineQuestionClass} — not raw
+ * Tailwind `text-[clamp(...)]` on mosaic card elements (Tailwind maps arbitrary props to color).
+ *
  * PRIMARY / SECONDARY → full-viewport bands only (headline, question strip).
  * *_CQ / *_CQW / BADGE_CQ / DENSE_CQ → inside @container cells (tiles, panels, rosters).
  */

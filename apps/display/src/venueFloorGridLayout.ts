@@ -25,6 +25,23 @@ export function populatedVenueTiles(tiles: DisplayVenueTileSnapshot[]): DisplayV
 export const VENUE_FLOOR_GRID_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
 
 /**
+ * ## Public eagle-eye display — spacing & typography
+ *
+ * **Layout** (row groups, columns, card slot width): {@link selectVenueFloorLayout} in
+ * `venueFloorLayout.ts`.
+ *
+ * **Spacing** (gaps, padding, card chrome): {@link venueFloorSpacingSpec} ←
+ * {@link venueFloorSizeSpec} + headline multi-row overrides.
+ *
+ * **Typography** (font sizes): `venue-floor-typography-{spacious|standard|compact}` on the
+ * venue wall root sets `--vfd-*` tokens in `index.css`; mosaic cards consume
+ * {@link venueFloorMosaicTypography} utility classes (`.vfd-mosaic-*`).
+ *
+ * **Visual scale**: `VENUE_WALL_UI_SCALE` (0.88 zoom) on the venue wall frame — token
+ * px values are pre-compensated (~css × 0.88 = rendered target).
+ */
+
+/**
  * Canonical venue floor: count-aware responsive grid with centered partial rows.
  * Replaces the legacy A1 checkerboard half-stagger for the public wagering wall.
  */
@@ -97,27 +114,28 @@ export function venueFloorGridPaddingRem(rowCount: number): { top: number; botto
 }
 
 /**
- * Table card density tier — driven primarily by how many checkerboard rows the floor needs.
- * More rows ⇒ smaller uniform felts so the whole venue fits one viewport.
+ * Spacing / chrome density from active table count (hero → micro).
+ * Distinct from {@link VenueFloorPublicTypographyTier} which drives `--vfd-*` font tokens.
  */
 export type VenueFloorTableSize = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
 
-/** TV-readable mosaic header type — vmin compensates for venue-wall 0.88 zoom. */
-export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
-  tableNum: 'text-[clamp(18px,2.55vmin,26px)] font-black leading-none',
+/** Mosaic card chrome — structural classes only; font sizes come from `--vfd-*` utilities. */
+export const VENUE_FLOOR_MOSAIC_CHROME = {
   tableNumBadge:
     'inline-flex min-w-[1.5rem] items-center justify-center rounded-md border-2 border-yellow-400/80 bg-gradient-to-b from-yellow-800/95 to-yellow-950 px-1.5 py-px font-black tabular-nums leading-none text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.4)]',
+  headerRow: 'items-center overflow-visible py-0 leading-none',
+} as const
+
+/** @deprecated Use {@link VENUE_FLOOR_MOSAIC_CHROME}. */
+export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
+  ...VENUE_FLOOR_MOSAIC_CHROME,
+  tableNum: 'text-[clamp(18px,2.55vmin,26px)] font-black leading-none',
   pot: 'text-[clamp(16px,2.15vmin,22px)] font-mono font-black leading-none',
-  /** Pot centered on mosaic felt — scales with tile width, not header chrome. */
   feltPot: 'text-[clamp(24px,3.35vmin,38px)] font-mono font-black leading-none',
   phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
-  headerRow: 'items-center overflow-visible py-0 leading-none',
-  seatInitials: 'text-[clamp(11px,1.55vmin,15px)]',
-  /** Stable footer row for under-felt “To Call” during wagering. */
-  toCallFooterRow:
-    'flex shrink-0 items-center justify-center px-1 py-0.5 min-h-[var(--vfd-footer-row-min-h,22px)]',
-  noMoreBetsWatermark:
-    'pointer-events-none select-none whitespace-nowrap text-center text-[clamp(15px,2.35vmin,24px)] font-black uppercase leading-none tracking-[0.12em] text-emerald-300/35',
+  seatInitials: 'vfd-mosaic-seat-initial',
+  toCallFooterRow: 'vfd-mosaic-footer-row',
+  noMoreBetsWatermark: 'vfd-mosaic-watermark',
 } as const
 
 /** Public-display typography bands keyed by active table count (1–8 / 9–15 / 16–20). */
@@ -153,11 +171,8 @@ const MOSAIC_TO_CALL_LABEL_BASE =
 const MOSAIC_TO_CALL_AMOUNT_BASE =
   'font-mono font-extrabold leading-none tabular-nums text-yellow-300'
 
-const VENUE_FLOOR_MOSAIC_TYPOGRAPHY: Record<
-  VenueFloorPublicTypographyTier,
-  Omit<VenueFloorMosaicTypography, 'rootClass'>
-> = {
-  spacious: {
+const MOSAIC_TYPOGRAPHY_CLASSES: Omit<VenueFloorMosaicTypography, 'rootClass' | 'noMoreBetsOffsetClass'> =
+  {
     actingName: `${MOSAIC_ACTING_NAME_BASE} vfd-mosaic-player-name`,
     feltPot: `${MOSAIC_FELT_POT_BASE} vfd-mosaic-stack`,
     tableNum: `${MOSAIC_TABLE_NUM_BASE} vfd-mosaic-table-num`,
@@ -166,30 +181,12 @@ const VENUE_FLOOR_MOSAIC_TYPOGRAPHY: Record<
     titleRowClass: 'vfd-mosaic-title-row',
     footerRowClass: 'vfd-mosaic-footer-row',
     feltMaxHeightClass: 'vfd-mosaic-felt-cap',
-    noMoreBetsOffsetClass: 'translate-y-[16%]',
-  },
-  standard: {
-    actingName: `${MOSAIC_ACTING_NAME_BASE} vfd-mosaic-player-name`,
-    feltPot: `${MOSAIC_FELT_POT_BASE} vfd-mosaic-stack`,
-    tableNum: `${MOSAIC_TABLE_NUM_BASE} vfd-mosaic-table-num`,
-    toCallLabel: `${MOSAIC_TO_CALL_LABEL_BASE} vfd-mosaic-to-call-label`,
-    toCallAmount: `${MOSAIC_TO_CALL_AMOUNT_BASE} vfd-mosaic-to-call-amount`,
-    titleRowClass: 'vfd-mosaic-title-row',
-    footerRowClass: 'vfd-mosaic-footer-row',
-    feltMaxHeightClass: 'vfd-mosaic-felt-cap',
-    noMoreBetsOffsetClass: 'translate-y-[24%]',
-  },
-  compact: {
-    actingName: `${MOSAIC_ACTING_NAME_BASE} vfd-mosaic-player-name`,
-    feltPot: `${MOSAIC_FELT_POT_BASE} vfd-mosaic-stack`,
-    tableNum: `${MOSAIC_TABLE_NUM_BASE} vfd-mosaic-table-num`,
-    toCallLabel: `${MOSAIC_TO_CALL_LABEL_BASE} vfd-mosaic-to-call-label`,
-    toCallAmount: `${MOSAIC_TO_CALL_AMOUNT_BASE} vfd-mosaic-to-call-amount`,
-    titleRowClass: 'vfd-mosaic-title-row',
-    footerRowClass: 'vfd-mosaic-footer-row',
-    feltMaxHeightClass: 'vfd-mosaic-felt-cap',
-    noMoreBetsOffsetClass: 'translate-y-[28%]',
-  },
+  }
+
+const NO_MORE_BETS_OFFSET_BY_TIER: Record<VenueFloorPublicTypographyTier, string> = {
+  spacious: 'translate-y-[16%]',
+  standard: 'translate-y-[24%]',
+  compact: 'translate-y-[28%]',
 }
 
 /** Table-count-aware mosaic card typography — recomputed when active table count changes. */
@@ -197,7 +194,8 @@ export function venueFloorMosaicTypography(tableCount: number): VenueFloorMosaic
   const tier = venueFloorPublicTypographyTier(tableCount)
   return {
     rootClass: `venue-floor-typography-${tier}`,
-    ...VENUE_FLOOR_MOSAIC_TYPOGRAPHY[tier],
+    ...MOSAIC_TYPOGRAPHY_CLASSES,
+    noMoreBetsOffsetClass: NO_MORE_BETS_OFFSET_BY_TIER[tier],
   }
 }
 
@@ -231,20 +229,140 @@ export type VenueFloorSizeSpec = {
   potSubtitleWrapClass: string
   /** Narrower tile width on dense checkerboard floors — prevents stagger overlap. */
   tileInsetClass: string
-  /** Optional mosaic felt override — shorter/narrower when headline steals vertical room. */
+  /** Optional mosaic felt override — unused on fill-height multi-row floors. */
   feltAspectClass?: string
   feltWidthClass?: string
-  /** Viewport row budget — caps width-driven felts on wide TVs (four-row + headline). */
-  feltMaxHeightCss?: string
 }
 
-/** Felt height cap when not using fill-height rows (legacy path). */
-export function venueFloorHeadlineFeltMaxHeightCss(rowCount: number): string {
-  const rows = Math.max(1, Math.floor(rowCount))
-  return `calc((100dvh - 10rem) / ${rows} * 0.56)`
+/** Headline + multi-row floors tighten gaps and padding in one place. */
+function headlineMultiRowSpacingOverrides(
+  layout: Pick<VenueBanquetLayout, 'rowCount'>,
+  withHeadline: boolean
+): Partial<VenueFloorSizeSpec> & {
+  paddingTopRem?: number
+  paddingBottomRem?: number
+  gridInsetClass?: string
+} | null {
+  if (!withHeadline || layout.rowCount < 2) return null
+  return {
+    rowGapRem: 0.65,
+    cellGapRem: 0.82,
+    paddingTopRem: 0,
+    paddingBottomRem: VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
+    gridInsetClass: 'px-1.5 sm:px-2',
+    potSubtitleWrapClass: 'px-0.5 py-0.5',
+    tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
+    potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
+    phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
+    headerRowClass: VENUE_FLOOR_MOSAIC_CHROME.headerRow,
+    potSubtitleClass:
+      'text-[clamp(12px,1.5vmin,16px)] font-black leading-none tracking-tight text-amber-50',
+    ringScaleClass: '',
+    tileInsetClass: '',
+    cardPaddingClass: 'px-1 pt-0 pb-0',
+  }
 }
 
-/** Pick felt size tier from active table count. */
+/**
+ * Spacing spec for the aerial floor — merges count-based density with headline multi-row tuning.
+ * Single entry point for {@link VenueAerialFloorGrid}.
+ */
+export function venueFloorSpacingSpec(
+  tableCount: number,
+  layout: Pick<VenueBanquetLayout, 'rowCount'>,
+  opts?: { withHeadline?: boolean }
+): VenueFloorSizeSpec {
+  const base = venueFloorSizeSpec(tableCount)
+  const overrides = headlineMultiRowSpacingOverrides(layout, opts?.withHeadline === true)
+  if (overrides == null) return base
+  const { paddingTopRem: _pt, paddingBottomRem: _pb, gridInsetClass: _gi, ...specOverrides } =
+    overrides
+  return { ...base, ...specOverrides }
+}
+
+/** Grid padding for the floor host — uses headline overrides when present. */
+export function venueFloorGridPaddingForLayout(
+  rowCount: number,
+  opts?: { withHeadline?: boolean }
+): { top: number; bottom: number } {
+  const overrides = headlineMultiRowSpacingOverrides({ rowCount }, opts?.withHeadline === true)
+  if (overrides?.paddingTopRem != null && overrides.paddingBottomRem != null) {
+    return { top: overrides.paddingTopRem, bottom: overrides.paddingBottomRem }
+  }
+  return venueFloorGridPaddingRem(rowCount)
+}
+
+/** Grid horizontal inset when headline multi-row tuning is active. */
+export function venueFloorGridInsetClass(
+  rowCount: number,
+  opts?: { withHeadline?: boolean }
+): string | null {
+  return headlineMultiRowSpacingOverrides({ rowCount }, opts?.withHeadline === true)?.gridInsetClass ?? null
+}
+
+export type VenueFloorDenseTuning = {
+  rowGapRem: number
+  cellGapRem: number
+  paddingTopRem: number
+  paddingBottomRem: number
+  gridInsetClass: string
+  potSubtitleWrapClass: string
+  tableNumClass: string
+  potClass: string
+  phaseChipClass: string
+  headerRowClass: string
+  potSubtitleClass: string
+  ringScaleClass: string
+  tileInsetClass: string
+  cardPaddingClass?: string
+}
+
+/** @deprecated Use {@link venueFloorSpacingSpec}. */
+export function venueFloorDenseTuning(
+  layout: VenueBanquetLayout,
+  opts?: { withHeadline?: boolean }
+): VenueFloorDenseTuning | null {
+  const overrides = headlineMultiRowSpacingOverrides(layout, opts?.withHeadline === true)
+  if (overrides == null) return null
+  return {
+    rowGapRem: overrides.rowGapRem!,
+    cellGapRem: overrides.cellGapRem!,
+    paddingTopRem: overrides.paddingTopRem!,
+    paddingBottomRem: overrides.paddingBottomRem!,
+    gridInsetClass: overrides.gridInsetClass!,
+    potSubtitleWrapClass: overrides.potSubtitleWrapClass!,
+    tableNumClass: overrides.tableNumClass!,
+    potClass: overrides.potClass!,
+    phaseChipClass: overrides.phaseChipClass!,
+    headerRowClass: overrides.headerRowClass!,
+    potSubtitleClass: overrides.potSubtitleClass!,
+    ringScaleClass: overrides.ringScaleClass!,
+    tileInsetClass: overrides.tileInsetClass!,
+    cardPaddingClass: overrides.cardPaddingClass,
+  }
+}
+
+/** @deprecated Use {@link venueFloorSpacingSpec}. */
+export function applyVenueFloorDenseTuning(
+  spec: VenueFloorSizeSpec,
+  tuning: VenueFloorDenseTuning | null
+): VenueFloorSizeSpec {
+  if (!tuning) return spec
+  return {
+    ...spec,
+    rowGapRem: tuning.rowGapRem,
+    cellGapRem: tuning.cellGapRem,
+    potSubtitleWrapClass: tuning.potSubtitleWrapClass,
+    tableNumClass: tuning.tableNumClass,
+    potClass: tuning.potClass,
+    phaseChipClass: tuning.phaseChipClass,
+    headerRowClass: tuning.headerRowClass,
+    potSubtitleClass: tuning.potSubtitleClass,
+    ringScaleClass: tuning.ringScaleClass,
+    tileInsetClass: tuning.tileInsetClass,
+    ...(tuning.cardPaddingClass != null ? { cardPaddingClass: tuning.cardPaddingClass } : {}),
+  }
+}
 export function venueFloorTableSize(tableCount: number): VenueFloorTableSize {
   return venueFloorDensityForCount(tableCount)
 }
@@ -308,7 +426,7 @@ export function venueFloorSizeSpec(tableCount: number): VenueFloorSizeSpec {
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
         phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
-        headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
+        headerRowClass: VENUE_FLOOR_MOSAIC_CHROME.headerRow,
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: true,
@@ -328,7 +446,7 @@ export function venueFloorSizeSpec(tableCount: number): VenueFloorSizeSpec {
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
         phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
-        headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
+        headerRowClass: VENUE_FLOOR_MOSAIC_CHROME.headerRow,
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: true,
@@ -348,7 +466,7 @@ export function venueFloorSizeSpec(tableCount: number): VenueFloorSizeSpec {
         tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
         potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
         phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
-        headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
+        headerRowClass: VENUE_FLOOR_MOSAIC_CHROME.headerRow,
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: false,
@@ -356,146 +474,5 @@ export function venueFloorSizeSpec(tableCount: number): VenueFloorSizeSpec {
         potSubtitleWrapClass: 'px-1 py-0.5',
         tileInsetClass: VENUE_FLOOR_MOSAIC_TILE_INSET,
       }
-  }
-}
-
-/** Slice tables into equal-width banquet rows (last row may be short — pad in UI). */
-export function chunkTilesIntoBanquetRows<T>(
-  tiles: T[],
-  columns: number
-): T[][] {
-  const cols = Math.max(1, columns)
-  const rows: T[][] = []
-  for (let i = 0; i < tiles.length; i += cols) {
-    rows.push(tiles.slice(i, i + cols))
-  }
-  return rows
-}
-
-/**
- * A1 checkerboard: 2 tracks per table; odd rows start on track 2 so the last table
- * needs one extra track (e.g. 5 tables ⇒ 11 tracks, not 10 — otherwise 10 / span 2 clips).
- */
-export function banquetCheckerboardTrackCount(columns: number): number {
-  const cols = Math.max(1, columns)
-  return cols * 2 + 1
-}
-
-/**
- * `grid-column` for table `colIndex` in `rowIndex` (1-based line / span 2).
- * Even rows: 1, 3, 5… — odd rows: 2, 4, 6…
- */
-export function banquetCheckerboardGridColumn(rowIndex: number, colIndex: number): string {
-  const start = rowIndex % 2 === 1 ? colIndex * 2 + 2 : colIndex * 2 + 1
-  return `${start} / span 2`
-}
-
-/** @deprecated Margin-based stagger did not render; use {@link banquetCheckerboardGridColumn}. */
-export function banquetRowIsCheckerOffset(rowIndex: number): boolean {
-  return rowIndex % 2 === 1
-}
-
-/** @deprecated */
-export function banquetRowOffsetCss(columns: number): string {
-  const cols = Math.max(1, columns)
-  return `calc(50% / ${cols})`
-}
-
-/** @deprecated Use {@link venueFloorSizeSpec}. */
-export function venueFloorShowdownBrief(columns: number): boolean {
-  return columns > 4
-}
-
-/** @deprecated Use {@link venueFloorSizeSpec}. */
-export function venueFloorCompact(columns: number): boolean {
-  return columns >= 4
-}
-
-/** @deprecated Use {@link venueBanquetLayout}. */
-export function venueFloorHexLayout(tableCount: number): {
-  rowSizes: number[]
-  maxInRow: number
-} {
-  const { columns, rowCount } = venueBanquetLayout(tableCount)
-  const rowSizes = Array.from({ length: rowCount }, () => columns)
-  return { rowSizes, maxInRow: columns }
-}
-
-/** @deprecated Use {@link chunkTilesIntoBanquetRows}. */
-export function chunkTilesForHexRows<T>(
-  tiles: T[],
-  rowSizes: number[]
-): T[][] {
-  const columns = rowSizes[0] ?? 1
-  return chunkTilesIntoBanquetRows(tiles, columns)
-}
-
-export type VenueFloorDenseTuning = {
-  rowGapRem: number
-  cellGapRem: number
-  paddingTopRem: number
-  paddingBottomRem: number
-  gridInsetClass: string
-  potSubtitleWrapClass: string
-  tableNumClass: string
-  potClass: string
-  phaseChipClass: string
-  headerRowClass: string
-  potSubtitleClass: string
-  ringScaleClass: string
-  tileInsetClass: string
-  cardPaddingClass?: string
-  feltAspectClass?: string
-  feltWidthClass?: string
-  feltMaxHeightCss?: string
-}
-
-/** Tighten gaps on multi-row headline floors. */
-export function venueFloorDenseTuning(
-  layout: VenueBanquetLayout,
-  opts?: { withHeadline?: boolean }
-): VenueFloorDenseTuning | null {
-  if (layout.rowCount < 2) return null
-  const headline = opts?.withHeadline === true
-  if (!headline) return null
-  return {
-    rowGapRem: 0.65,
-    cellGapRem: 0.82,
-    paddingTopRem: 0,
-    paddingBottomRem: VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
-    gridInsetClass: 'px-1.5 sm:px-2',
-    potSubtitleWrapClass: 'px-0.5 py-0.5',
-    tableNumClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNum,
-    potClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.pot,
-    phaseChipClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.phase,
-    headerRowClass: VENUE_FLOOR_MOSAIC_HEADER_TYPE.headerRow,
-    potSubtitleClass: 'text-[clamp(12px,1.5vmin,16px)] font-black leading-none tracking-tight text-amber-50',
-    ringScaleClass: '',
-    tileInsetClass: '',
-    cardPaddingClass: 'px-1 pt-0 pb-0',
-  }
-}
-
-export function applyVenueFloorDenseTuning(
-  spec: VenueFloorSizeSpec,
-  tuning: VenueFloorDenseTuning | null
-): VenueFloorSizeSpec {
-  if (!tuning) return spec
-  return {
-    ...spec,
-    rowGapRem: tuning.rowGapRem,
-    cellGapRem: tuning.cellGapRem,
-    potSubtitleWrapClass: tuning.potSubtitleWrapClass,
-    tableNumClass: tuning.tableNumClass,
-    potClass: tuning.potClass,
-    phaseChipClass: tuning.phaseChipClass,
-    headerRowClass: tuning.headerRowClass,
-    potSubtitleClass: tuning.potSubtitleClass,
-    ringScaleClass: tuning.ringScaleClass,
-    tileInsetClass: tuning.tileInsetClass,
-    ...(tuning.cardPaddingClass != null ? { cardPaddingClass: tuning.cardPaddingClass } : {}),
-    ...(tuning.feltAspectClass != null ? { feltAspectClass: tuning.feltAspectClass } : {}),
-    ...(tuning.feltWidthClass != null ? { feltWidthClass: tuning.feltWidthClass } : {}),
-    ...(tuning.feltMaxHeightCss != null ? { feltMaxHeightCss: tuning.feltMaxHeightCss } : {}),
   }
 }

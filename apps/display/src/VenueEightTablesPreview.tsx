@@ -32,12 +32,12 @@ import {
   chunkTilesIntoRowGroups,
   populatedVenueTiles,
   venueBanquetLayout,
-  applyVenueFloorDenseTuning,
   venueFloorCardSlotWidthCss,
-  venueFloorDenseTuning,
-  venueFloorGridPaddingRem,
+  venueFloorGridPaddingForLayout,
+  venueFloorGridInsetClass,
   venueFloorGridPerspectiveStyle,
   venueFloorSizeSpec,
+  venueFloorSpacingSpec,
   VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
   venueFloorMosaicTypography,
   venueFloorPublicTypographyTier,
@@ -45,6 +45,7 @@ import {
   type VenueFloorMosaicTypography,
   type VenueFloorSizeSpec,
   type VenueFloorTableSize,
+  VENUE_FLOOR_MOSAIC_CHROME,
   VENUE_FLOOR_MOSAIC_HEADER_TYPE,
   VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS,
 } from './venueFloorGridLayout'
@@ -578,12 +579,9 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolea
   return phaseAccent(row.phase)
 }
 
-/** Corner phase pill typography — paused betting stays on one line in narrow tiles. */
-function mosaicSeatInitialsClass(density: VenueFloorTableSize | undefined): string {
-  if (density === 'micro' || density === 'compact' || density === 'medium') {
-    return VENUE_FLOOR_MOSAIC_HEADER_TYPE.seatInitials
-  }
-  return 'text-[clamp(0.5rem,min(7cqw,9cqh),0.8rem)]'
+/** Seat-marker initials on mosaic felts — size from `--vfd-seat-initial-size`. */
+function mosaicSeatInitialsClass(_density: VenueFloorTableSize | undefined): string {
+  return VENUE_FLOOR_MOSAIC_HEADER_TYPE.seatInitials
 }
 
 function mosaicPhaseCornerTypography(
@@ -1451,7 +1449,7 @@ function VenueMosaicTableCard({
         >
           {denseMosaicChrome ? (
             <span
-              className={`${VENUE_FLOOR_MOSAIC_HEADER_TYPE.tableNumBadge} ${mosaicTypography.tableNum}`}
+              className={`${VENUE_FLOOR_MOSAIC_CHROME.tableNumBadge} ${mosaicTypography.tableNum}`}
             >
               {tn}
             </span>
@@ -1532,7 +1530,6 @@ function VenueMosaicTableCard({
             mosaicFillHeight={floorFillHeight}
             mosaicFeltAspectClass={floorSize.feltAspectClass}
             mosaicFeltWidthClass={floorSize.feltWidthClass}
-            mosaicFeltMaxHeightCss={floorFillHeight ? undefined : floorSize.feltMaxHeightCss}
             mosaicCenterPot={potOnFelt ? pot : null}
             mosaicCenterPotClass={mosaicTypography.feltPot}
             mosaicCenterPotMuted={potMuted}
@@ -1683,21 +1680,17 @@ function VenueAerialFloorGrid({
     [layoutCount, floorViewport, showHeadline]
   )
   const { columns, rowCount, rowSizes } = floorLayout
-  const denseTuning = useMemo(
-    () => venueFloorDenseTuning(floorLayout, { withHeadline: showHeadline }),
-    [floorLayout, showHeadline]
-  )
   const floorSize = useMemo(
-    () => applyVenueFloorDenseTuning(venueFloorSizeSpec(layoutCount), denseTuning),
-    [layoutCount, denseTuning]
+    () => venueFloorSpacingSpec(layoutCount, floorLayout, { withHeadline: showHeadline }),
+    [layoutCount, floorLayout, showHeadline]
   )
   const fillRowHeight = rowCount > 1
-  const floorGridPadding = useMemo(() => {
-    if (denseTuning) {
-      return { top: denseTuning.paddingTopRem, bottom: denseTuning.paddingBottomRem }
-    }
-    return venueFloorGridPaddingRem(rowCount)
-  }, [denseTuning, rowCount])
+  const floorGridPadding = useMemo(
+    () => venueFloorGridPaddingForLayout(rowCount, { withHeadline: showHeadline }),
+    [rowCount, showHeadline]
+  )
+  const gridInsetClass =
+    venueFloorGridInsetClass(rowCount, { withHeadline: showHeadline }) ?? 'px-4 sm:px-6'
   const floorGridPerspective = useMemo(() => venueFloorGridPerspectiveStyle(rowCount), [rowCount])
   const floorRows = useMemo(() => chunkTilesIntoRowGroups(tiles, rowSizes), [tiles, rowSizes])
   const mosaicTypography = useMemo(() => venueFloorMosaicTypography(layoutCount), [layoutCount])
@@ -1755,9 +1748,7 @@ function VenueAerialFloorGrid({
 
       <div
         ref={floorHostRef}
-        className={`relative flex min-h-0 flex-1 flex-col overflow-hidden ${
-          denseTuning?.gridInsetClass ?? 'px-4 sm:px-6'
-        }`}
+        className={`relative flex min-h-0 flex-1 flex-col overflow-hidden ${gridInsetClass}`}
         style={
           {
             paddingTop: `${floorGridPadding.top}rem`,

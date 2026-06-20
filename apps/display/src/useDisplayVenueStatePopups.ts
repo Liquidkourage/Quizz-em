@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { buildVenueWallTileRows } from './venueWallModel'
 import {
+  collapseDuplicateAnswerStartPopups,
   detectDisplayVenueStatePopups,
   DISPLAY_STATE_POPUP_DWELL_MS,
   DISPLAY_STATE_POPUP_DWELL_REDUCED_MS,
@@ -40,7 +41,11 @@ export function useDisplayVenueStatePopups(
     const detected = detectDisplayVenueStatePopups(prevBeat, nextBeat)
     if (detected.length === 0) return
 
+    if (detected.some((p) => p.kind === 'answer-window-start')) {
+      queueRef.current = queueRef.current.filter((p) => p.kind !== 'round2-complete')
+    }
     queueRef.current.push(...detected)
+    queueRef.current = collapseDuplicateAnswerStartPopups(queueRef.current)
 
     const drain = () => {
       if (drainingRef.current) return

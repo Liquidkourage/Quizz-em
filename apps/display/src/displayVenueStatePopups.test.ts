@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
+  collapseDuplicateAnswerStartPopups,
   detectDisplayVenueStatePopups,
   snapshotDisplayVenueBeat,
 } from './displayVenueStatePopups'
@@ -47,6 +48,14 @@ describe('detectDisplayVenueStatePopups', () => {
     )
     const popups = detectDisplayVenueStatePopups(prev, next)
     expect(popups.some((p) => p.kind === 'answer-window-start')).toBe(true)
+  })
+
+  it('drops queued R2 close when answer window follows', () => {
+    const queued = collapseDuplicateAnswerStartPopups([
+      { kind: 'round2-complete', title: 'Post-board wagering closed' },
+      { kind: 'answer-window-start', title: 'Answer on your phone' },
+    ])
+    expect(queued.map((p) => p.kind)).toEqual(['answer-window-start'])
   })
 
   it('announces board dealt when community cards appear', () => {

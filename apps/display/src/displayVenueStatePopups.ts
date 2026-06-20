@@ -93,7 +93,10 @@ export function detectDisplayVenueStatePopups(
     })
   }
 
-  if (prev.round2AnyOpen && !next.round2AnyOpen) {
+  const answerWindowOpening =
+    prev.answerDeadlineMs == null && next.answerDeadlineMs != null && !next.openWagering
+
+  if (prev.round2AnyOpen && !next.round2AnyOpen && !answerWindowOpening) {
     out.push({
       kind: 'round2-complete',
       title: 'Post-board wagering closed',
@@ -102,7 +105,7 @@ export function detectDisplayVenueStatePopups(
   }
 
   /** Venue-wide countdown only — not when one felt can answer while others still bet. */
-  if (prev.answerDeadlineMs == null && next.answerDeadlineMs != null && !next.openWagering) {
+  if (answerWindowOpening) {
     out.push({
       kind: 'answer-window-start',
       title: 'Answer on your phone',
@@ -124,7 +127,15 @@ export function detectDisplayVenueStatePopups(
     })
   }
 
-  return out
+  return collapseDuplicateAnswerStartPopups(out)
+}
+
+/** Prefer the answer countdown over a trailing "R2 closed" when both queue together. */
+export function collapseDuplicateAnswerStartPopups(
+  popups: DisplayVenueStatePopup[],
+): DisplayVenueStatePopup[] {
+  if (!popups.some((p) => p.kind === 'answer-window-start')) return popups
+  return popups.filter((p) => p.kind !== 'round2-complete')
 }
 
 export function displayVenueStatePopupTone(

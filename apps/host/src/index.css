@@ -12,9 +12,10 @@
     overflow-x: hidden;
   }
 
-  /* Slightly larger type for host control desk (readable at arm’s length). */
+  /* Host control desk — readable at arm’s length on a laptop during a live show. */
   .host-root {
-    font-size: clamp(14px, 0.35vw + 13px, 16px);
+    font-size: clamp(18px, 0.65vw + 16px, 22px);
+    line-height: 1.45;
   }
 }
 
@@ -189,4 +190,40 @@
     transform: translateY(-100px) rotate(360deg);
     opacity: 0;
   }
+}
+
+/* Host desk: bump Tailwind text steps one notch (must follow @tailwind utilities). */
+.host-root .text-xs {
+  font-size: 0.875rem;
+  line-height: 1.35rem;
+}
+
+.host-root .text-sm {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.host-root .text-base {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.host-root .text-lg {
+  font-size: 1.3125rem;
+  line-height: 1.875rem;
+}
+
+.host-root .text-xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.host-root .text-2xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.host-root .text-3xl {
+  font-size: 2.125rem;
+  line-height: 2.375rem;
 }

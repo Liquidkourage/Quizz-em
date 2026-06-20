@@ -537,9 +537,9 @@ function HostApp() {
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 mx-auto max-w-6xl px-4 pb-6 pt-3 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-4 sm:px-6 lg:px-8">
         <motion.header
-          className="mb-4 rounded-xl border border-white/10 bg-black/35 px-3 py-3 shadow-lg shadow-black/20 backdrop-blur-md sm:px-4"
+          className="mb-4 rounded-xl border border-white/10 bg-black/35 px-4 py-4 shadow-lg shadow-black/20 backdrop-blur-md sm:px-5"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
@@ -548,13 +548,13 @@ function HostApp() {
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <div className="flex items-center gap-2">
                 <PokerChip size="md" className="opacity-95" />
-                <span className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+                <span className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   {'Quizz\u2019em'} <span className="font-normal text-white/40">·</span>{' '}
                   <span className="font-semibold text-casino-emerald">Host</span>
                 </span>
               </div>
               <span className="hidden h-8 w-px bg-white/15 lg:block" aria-hidden />
-              <div className="flex flex-wrap items-center gap-2 text-sm">
+              <div className="flex flex-wrap items-center gap-2 text-base">
                 <span className="rounded-full border border-white/15 bg-black/40 px-3 py-1 font-mono font-semibold text-white/90 tabular-nums">
                   {gameState.code}
                 </span>
@@ -565,13 +565,13 @@ function HostApp() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-              <span className="text-sm uppercase tracking-wider text-white/35">Phase</span>
+              <span className="text-base uppercase tracking-wider text-white/35">Phase</span>
               <div className="flex flex-col items-end gap-0.5">
-                <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3 py-1 text-base font-bold capitalize text-casino-emerald">
+                <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3.5 py-1.5 text-lg font-bold capitalize text-casino-emerald">
                   {headerPhase.phase}
                 </span>
                 {headerPhase.floorMirrored ? (
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/40">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
                     Venue floor · lobby pool idle
                   </span>
                 ) : null}
@@ -606,7 +606,7 @@ function HostApp() {
                 <NeonButton
                   variant="gold"
                   size="small"
-                  className="!px-3 !py-1.5"
+                  className="!px-4 !py-2"
                   disabled={tvPairCode.length !== 4}
                   onClick={() => {
                     if (tvPairCode.length !== 4) return
@@ -679,7 +679,7 @@ function HostApp() {
         </motion.header>
 
         <nav
-          className="mb-4 rounded-xl border border-white/10 bg-black/25 p-1 backdrop-blur-sm"
+          className="mb-4 rounded-xl border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm"
           role="tablist"
           aria-label="Host sections"
         >
@@ -693,7 +693,7 @@ function HostApp() {
                   role="tab"
                   aria-selected={active}
                   title={t.hint}
-                  className={`min-h-[40px] flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold transition-colors sm:flex-none sm:text-left sm:min-w-[8.5rem] ${
+                  className={`min-h-[52px] flex-1 rounded-lg px-4 py-2.5 text-center text-base font-semibold transition-colors sm:flex-none sm:text-left sm:min-w-[9.5rem] ${
                     active
                       ? 'bg-white/14 text-white shadow-inner ring-1 ring-casino-emerald/35'
                       : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'
@@ -704,14 +704,14 @@ function HostApp() {
                     <span>{t.label}</span>
                     {t.id === 'live' && livelyGameplayTableNums.length > 0 ? (
                       <span
-                        className={`relative flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 px-1.5 text-[11px] font-black tabular-nums text-black shadow-[0_0_12px_rgba(251,191,36,0.85)] ${hostTab !== 'live' ? 'motion-safe:animate-pulse' : ''}`}
+                        className={`relative flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 px-2 text-xs font-black tabular-nums text-black shadow-[0_0_12px_rgba(251,191,36,0.85)] ${hostTab !== 'live' ? 'motion-safe:animate-pulse' : ''}`}
                       >
                         {livelyGameplayTableNums.length > 99 ? '99+' : livelyGameplayTableNums.length}
                       </span>
                     ) : null}
                   </span>
                   {active ? (
-                    <span className="mt-0.5 hidden text-[10px] font-normal capitalize tracking-wide text-casino-emerald/85 sm:block">
+                    <span className="mt-0.5 hidden text-xs font-normal capitalize tracking-wide text-casino-emerald/85 sm:block">
                       {t.hint}
                     </span>
                   ) : null}
@@ -789,7 +789,7 @@ function HostApp() {
                 </NeonButton>
               </div>
               <HostCollapsible summary="Import formats &amp; storage" className="mt-2">
-                <p className="text-[11px] leading-relaxed text-white/50">
+                <p className="text-sm leading-relaxed text-white/50">
                   Auto-saved on change. Postgres via <span className="font-mono">DATABASE_URL</span> on Railway; locally SQLite{' '}
                   <span className="text-white/60">venue-libraries.sqlite</span>. CSV columns: text, answer; optional category,
                   difficulty. JSON: top-level array or object with a questions array.
@@ -1267,7 +1267,7 @@ function HostApp() {
           {currentRunStepId === 'start-answer' ? (
             <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
               <div className="flex flex-col gap-0.5">
-                <label htmlFor="answer-window-sec" className="text-[10px] font-semibold uppercase tracking-wide text-white/48">
+                <label htmlFor="answer-window-sec" className="text-xs font-semibold uppercase tracking-wide text-white/48">
                   Countdown (sec)
                 </label>
                 <input

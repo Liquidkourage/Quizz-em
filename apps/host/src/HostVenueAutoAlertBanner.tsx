@@ -35,7 +35,7 @@ export default function HostVenueAutoAlertBanner({ alert }: { alert: HostVenueAu
       <div
         className={`w-full max-w-2xl rounded-2xl border px-5 py-4 backdrop-blur-md sm:px-6 sm:py-5 ${TONE_CLASS[tone]}`}
       >
-        <p className={`text-[11px] font-bold uppercase tracking-[0.2em] ${LABEL_CLASS[tone]}`}>
+        <p className={`text-xs font-bold uppercase tracking-[0.2em] ${LABEL_CLASS[tone]}`}>
           Venue auto-update
         </p>
         <p className="mt-1 text-xl font-bold leading-snug text-white sm:text-2xl">{alert.title}</p>

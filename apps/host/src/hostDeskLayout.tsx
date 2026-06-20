@@ -36,14 +36,14 @@ export function HostCollapsible({
       className={`group rounded-xl border border-white/10 bg-black/25 open:border-white/[0.14] [&_summary::-webkit-details-marker]:hidden ${className}`}
       open={forceOpen || defaultOpen || undefined}
     >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-white/75 hover:bg-white/[0.04] hover:text-white/88">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-4 py-3 text-base font-semibold text-white/75 hover:bg-white/[0.04] hover:text-white/88">
         <span className="flex min-w-0 items-center gap-2">
           {summary}
           {badge}
         </span>
         <span className="shrink-0 text-white/35 transition-transform group-open:rotate-180">▼</span>
       </summary>
-      <div className="border-t border-white/10 px-3 py-3">{children}</div>
+      <div className="border-t border-white/10 px-4 py-4">{children}</div>
     </details>
   )
 }
@@ -626,7 +626,7 @@ export function HostPhaseDock({
     <div className="sticky top-0 z-40 mb-4 rounded-xl border border-casino-emerald/40 bg-black/88 p-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.45)] backdrop-blur-md sm:p-3">
       {headline ? (
         <div className="mb-2 border-b border-white/10 pb-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-casino-emerald/90">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-casino-emerald/90">
             Do this now
           </p>
           <p className="mt-0.5 text-base font-bold leading-snug text-white">{headline.title}</p>
@@ -647,7 +647,7 @@ export function HostPhaseDock({
               size="normal"
               disabled={item.disabled}
               onClick={item.onClick}
-              className="!px-4 !py-2.5 !text-base !font-bold"
+              className="!px-5 !py-3 !text-lg !font-bold"
             >
               {item.label}
             </NeonButton>
@@ -801,7 +801,7 @@ export function HostVenueFeltBeatStrip({
       className="mb-4"
       badge={
         lockstepMisaligned ? (
-          <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-200">
+          <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-200">
             Misaligned
           </span>
         ) : rows != null ? (
@@ -864,7 +864,7 @@ export function HostVenueFeltBeatStrip({
                             : `In sync with majority — ${sig}`
                           : undefined
                 }
-                className={`rounded-md border px-1.5 py-1 text-center sm:min-h-[3.75rem] ${
+                className={`rounded-md border px-2 py-1.5 text-center sm:min-h-[4.5rem] ${
                   row.active
                     ? drift
                       ? 'border-amber-400/85 bg-amber-950/25'
@@ -872,11 +872,11 @@ export function HostVenueFeltBeatStrip({
                     : 'border-white/10 bg-black/22 opacity-75'
                 } ${watching ? 'ring-1 ring-cyan-400/65' : ''}`}
               >
-                <div className="text-[10px] font-bold tabular-nums text-yellow-400/90">{row.tableNum}</div>
-                <div className="truncate text-[10px] font-semibold leading-tight text-white/85">
+                <div className="text-xs font-bold tabular-nums text-yellow-400/90">{row.tableNum}</div>
+                <div className="truncate text-xs font-semibold leading-tight text-white/85">
                   {phaseLabel}
                 </div>
-                <div className="text-[9px] tabular-nums text-white/45">
+                <div className="text-xs tabular-nums text-white/45">
                   {row.active ? `${row.seated}p` : '—'}
                   {countdownSec != null ? (
                     <span className="block font-mono text-casino-gold">{countdownSec}s</span>
@@ -940,7 +940,7 @@ export function HostVenueFloorBriefPanel({
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
           <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/45">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Table action
             </p>
             {rows.length === 0 ? (
@@ -965,7 +965,7 @@ export function HostVenueFloorBriefPanel({
                         <span className="text-sm font-bold text-white/90">
                           T{row.tableNum}
                           {watching ? (
-                            <span className="ml-1.5 text-[10px] font-semibold uppercase text-emerald-300">
+                            <span className="ml-1.5 text-xs font-semibold uppercase text-emerald-300">
                               You
                             </span>
                           ) : null}
@@ -985,7 +985,7 @@ export function HostVenueFloorBriefPanel({
                           {row.recentActions.map((a, i) => (
                             <span
                               key={`${row.tableNum}-${a.seat}-${i}`}
-                              className="rounded-full border border-white/15 bg-black/35 px-2 py-0.5 text-[10px] font-semibold text-white/75"
+                              className="rounded-full border border-white/15 bg-black/35 px-2 py-0.5 text-xs font-semibold text-white/75"
                             >
                               {hostPlayerLabel(a.name)}{' '}
                               <span className="text-white/45">
@@ -1003,7 +1003,7 @@ export function HostVenueFloorBriefPanel({
           </div>
 
           <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/45">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Busts
             </p>
             {brief.busts.length === 0 ? (
@@ -1024,7 +1024,7 @@ export function HostVenueFloorBriefPanel({
           </div>
 
           <div>
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/45">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Big wins
               <span className="ml-1 font-normal normal-case text-white/35">
                 (≥ {formatHostFloorMoney(brief.bigWinMinAmount)})
@@ -1090,7 +1090,7 @@ export function HostRunOfShowPanel({
             >
               <div className="flex items-start gap-2.5">
                 <span
-                  className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black tabular-nums ${
+                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-black tabular-nums ${
                     isDone
                       ? 'bg-casino-emerald/25 text-casino-emerald'
                       : isCurrent
@@ -1157,7 +1157,6 @@ export function HostActionFloorBanner({
             variant="gold"
             size="small"
             type="button"
-            className="!px-2 !py-1 text-xs"
             title={`Highlight Table ${n} on the venue wall`}
             onClick={() => onSpotlight(n)}
           >
@@ -1201,7 +1200,7 @@ export function HostPublicTvsPanel({
         </NeonButton>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] uppercase tracking-wide text-white/35">Highlight</span>
+        <span className="text-xs uppercase tracking-wide text-white/35">Highlight</span>
         {Array.from({ length: Math.min(20, tableMax) }, (_, i) => i + 1).map((n) => {
           const lively = livelyTableNums.includes(n)
           return (
@@ -1209,7 +1208,7 @@ export function HostPublicTvsPanel({
               key={n}
               variant="gold"
               size="small"
-              className={`!min-w-[2rem] !px-2 !py-1 ${lively ? 'ring-2 ring-amber-400/70' : ''}`}
+              className={`!min-w-[2.75rem] ${lively ? 'ring-2 ring-amber-400/70' : ''}`}
               onClick={() => onSpotlight(n)}
             >
               {n}
@@ -1283,7 +1282,7 @@ export function HostBlindsControls({
       ) : null}
       <div className={`flex flex-wrap items-end gap-2 ${compact ? '' : 'md:grid md:grid-cols-3 md:items-end md:gap-3'}`}>
         <div className="flex flex-col gap-0.5">
-          <label className="text-[10px] font-semibold uppercase tracking-wide text-white/48">Small blind</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-white/48">Small blind</label>
           <input
             type="number"
             min={1}
@@ -1293,7 +1292,7 @@ export function HostBlindsControls({
           />
         </div>
         <div className="flex flex-col gap-0.5">
-          <label className="text-[10px] font-semibold uppercase tracking-wide text-white/48">Big blind</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-white/48">Big blind</label>
           <input
             type="number"
             min={1}
@@ -1308,7 +1307,7 @@ export function HostBlindsControls({
       </div>
       <div className="flex flex-wrap items-end gap-2 border-t border-white/10 pt-2">
         <div className="flex flex-col gap-0.5">
-          <label className="text-[10px] font-semibold uppercase tracking-wide text-white/48">
+          <label className="text-xs font-semibold uppercase tracking-wide text-white/48">
             Level up every (hands)
           </label>
           <input
@@ -1326,7 +1325,7 @@ export function HostBlindsControls({
       </div>
       {showTableOverride ? (
         <div className="flex flex-wrap items-end gap-2 border-t border-white/10 pt-2">
-          <p className="w-full text-[10px] font-semibold uppercase tracking-wide text-white/48">
+          <p className="w-full text-xs font-semibold uppercase tracking-wide text-white/48">
             Per-table override (table {tableNum})
           </p>
           <NeonButton variant="emerald" size={compact ? 'small' : 'normal'} type="button" onClick={onSaveTableBlinds}>
@@ -1378,11 +1377,11 @@ export function HostTvBar({
       role="group"
       aria-label="Public display routing"
     >
-      <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">TVs</span>
-      <NeonButton variant="emerald" size="small" type="button" onClick={onVenueFloor}>
+      <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/35">TVs</span>
+      <NeonButton variant="emerald" size="normal" type="button" onClick={onVenueFloor}>
         Floor
       </NeonButton>
-      <NeonButton variant="purple" size="small" type="button" onClick={onLeaderboard}>
+      <NeonButton variant="purple" size="normal" type="button" onClick={onLeaderboard}>
         Leaderboard
       </NeonButton>
       {livelyTableNums.length > 0 ? (
@@ -1394,7 +1393,7 @@ export function HostTvBar({
               variant="gold"
               size="small"
               type="button"
-              className="!px-2 !py-1 text-xs ring-2 ring-amber-400/60"
+              className="ring-2 ring-amber-400/60"
               title={`Spotlight table ${n} on every TV`}
               onClick={() => onSpotlight(n)}
             >
@@ -1405,7 +1404,7 @@ export function HostTvBar({
       ) : null}
       {quietNums.length > 0 ? (
         <details className="relative ml-auto">
-          <summary className="cursor-pointer list-none rounded-md border border-white/15 bg-white/5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/55 hover:bg-white/10 [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none rounded-md border border-white/15 bg-white/5 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white/55 hover:bg-white/10 [&::-webkit-details-marker]:hidden">
             Highlight table ▾
           </summary>
           <div className="absolute right-0 z-50 mt-1 flex max-w-[min(18rem,90vw)] flex-wrap gap-1 rounded-lg border border-white/15 bg-zinc-950/95 p-2 shadow-xl backdrop-blur-md">
@@ -1415,7 +1414,7 @@ export function HostTvBar({
                 variant="gold"
                 size="small"
                 type="button"
-                className="!min-w-[2rem] !px-2 !py-1 text-xs"
+                className="!min-w-[2.75rem]"
                 onClick={() => onSpotlight(n)}
               >
                 {n}
@@ -1442,14 +1441,14 @@ export function HostRunBar({
 }) {
   if (items.length === 0 && !statusLine && !headline && !tvBar) return null
   return (
-    <div className="sticky top-0 z-40 mb-3 rounded-xl border border-casino-emerald/40 bg-black/90 p-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-3">
+    <div className="sticky top-0 z-40 mb-3 rounded-xl border border-casino-emerald/40 bg-black/90 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-4">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
         {headline ? (
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-casino-emerald/90">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-casino-emerald/90">
               Do this now
             </p>
-            <p className="mt-0.5 text-base font-bold leading-snug text-white sm:text-lg">{headline.title}</p>
+            <p className="mt-0.5 text-lg font-bold leading-snug text-white sm:text-xl">{headline.title}</p>
             {headline.detail ? (
               <p className="mt-0.5 text-xs leading-snug text-white/55">{headline.detail}</p>
             ) : null}
@@ -1466,7 +1465,7 @@ export function HostRunBar({
               size="normal"
               disabled={item.disabled}
               onClick={item.onClick}
-              className="!px-4 !py-2.5 !text-base !font-bold"
+              className="!px-5 !py-3 !text-lg !font-bold"
             >
               {item.label}
             </NeonButton>
@@ -1504,9 +1503,9 @@ export function HostFloorStrip({
   if (rows == null && brief == null) return null
 
   return (
-    <div className="mb-3 rounded-xl border border-white/10 bg-black/30 px-2.5 py-2 sm:px-3">
+    <div className="mb-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 sm:px-4 sm:py-3">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/40">
           Floor
           {brief != null ? (
             <span className="ml-2 font-normal normal-case tracking-normal text-white/35">
@@ -1515,11 +1514,11 @@ export function HostFloorStrip({
           ) : null}
         </p>
         {lockstepMisaligned ? (
-          <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-200">
+          <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-200">
             Tables out of sync
           </span>
         ) : seated.length >= 2 ? (
-          <span className="text-[10px] font-semibold text-emerald-300/80">In sync</span>
+          <span className="text-xs font-semibold text-emerald-300/80">In sync</span>
         ) : null}
       </div>
       {lockstepMisaligned ? (
@@ -1545,7 +1544,7 @@ export function HostFloorStrip({
                 type="button"
                 title={`Spotlight table ${row.tableNum} on TVs`}
                 onClick={() => onSpotlight(row.tableNum)}
-                className={`shrink-0 rounded-lg border px-2.5 py-1.5 text-left transition-colors hover:border-casino-emerald/50 hover:bg-emerald-950/20 ${
+                className={`shrink-0 rounded-lg border px-3 py-2 text-left transition-colors hover:border-casino-emerald/50 hover:bg-emerald-950/20 ${
                   action?.interestingAction
                     ? 'border-amber-400/55 bg-amber-950/30'
                     : drift
@@ -1555,19 +1554,19 @@ export function HostFloorStrip({
               >
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-xs font-black tabular-nums text-yellow-300/95">T{row.tableNum}</span>
-                  <span className="text-[10px] font-semibold text-white/75">{phaseLabel}</span>
+                  <span className="text-xs font-semibold text-white/75">{phaseLabel}</span>
                   {countdownSec != null ? (
-                    <span className="font-mono text-[10px] font-bold tabular-nums text-casino-gold">
+                    <span className="font-mono text-xs font-bold tabular-nums text-casino-gold">
                       {countdownSec}s
                     </span>
                   ) : null}
                 </div>
                 {action?.actingSummary ? (
-                  <p className="mt-0.5 max-w-[12rem] truncate text-[10px] font-medium text-amber-100/85">
+                  <p className="mt-0.5 max-w-[12rem] truncate text-xs font-medium text-amber-100/85">
                     {action.actingSummary}
                   </p>
                 ) : action != null && action.pot > 0 ? (
-                  <p className="mt-0.5 text-[10px] text-white/45">Pot {formatHostFloorMoney(action.pot)}</p>
+                  <p className="mt-0.5 text-xs text-white/45">Pot {formatHostFloorMoney(action.pot)}</p>
                 ) : null}
               </button>
             )
@@ -1585,7 +1584,7 @@ export function HostRunProgressDots({ steps }: { steps: RunOfShowStep[] }) {
   if (visible.length === 0) return null
 
   return (
-    <div className="mb-3 rounded-xl border border-white/8 bg-black/20 px-2.5 py-2 sm:px-3">
+    <div className="mb-3 rounded-xl border border-white/8 bg-black/20 px-3 py-2.5 sm:px-4 sm:py-3">
       <ol className="flex flex-wrap items-center gap-x-1 gap-y-1" aria-label="Round progress">
         {visible.map((step, i) => {
           const short = RUN_STEP_SHORT[step.id as RunOfShowStepId] ?? step.label.split(' ')[0]
@@ -1595,7 +1594,7 @@ export function HostRunProgressDots({ steps }: { steps: RunOfShowStep[] }) {
             <li key={step.id} className="flex items-center gap-1">
               {i > 0 ? <span className="text-white/15" aria-hidden>›</span> : null}
               <span
-                className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                className={`rounded-md px-2 py-1 text-sm font-bold uppercase tracking-wide ${
                   isCurrent
                     ? 'bg-casino-emerald text-black shadow-[0_0_12px_rgba(0,255,180,0.35)]'
                     : isDone
@@ -1638,7 +1637,7 @@ export function HostThisHandPanel({
   if (!hasContent) return null
   return (
     <div className="mb-3 rounded-xl border border-white/10 bg-black/25 p-3 sm:p-4">
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">This hand</p>
+      <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-white/40">This hand</p>
       <div className="space-y-2">{children}</div>
     </div>
   )

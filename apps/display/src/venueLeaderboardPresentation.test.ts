@@ -107,4 +107,24 @@ describe('venueLeaderboardPageColumnCount', () => {
     expect(venueLeaderboardPageColumnCount(64, true)).toBe(4)
     expect(venueLeaderboardPageColumnCount(32, true)).toBe(2)
   })
+
+  it('uses two columns on page 1 for 9–16 players', () => {
+    expect(venueLeaderboardPageColumnCount(15, true)).toBe(2)
+  })
+})
+
+describe('venueLeaderboardSplitPageColumns', () => {
+  it('gives each column its own gridRowCount for balanced typography', () => {
+    const ranked = mockRows(15).map((row, i) => ({ ...row, rank: i + 1 }))
+    const columns = venueLeaderboardSplitPageColumns(ranked, 2)
+    expect(columns).toHaveLength(2)
+    expect(columns[0]!.players).toHaveLength(8)
+    expect(columns[0]!.gridRowCount).toBe(8)
+    expect(columns[1]!.players).toHaveLength(7)
+    expect(columns[1]!.gridRowCount).toBe(7)
+    expect(columns[0]!.rankStart).toBe(1)
+    expect(columns[0]!.rankEnd).toBe(8)
+    expect(columns[1]!.rankStart).toBe(9)
+    expect(columns[1]!.rankEnd).toBe(15)
+  })
 })

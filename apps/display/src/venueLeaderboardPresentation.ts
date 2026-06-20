@@ -15,7 +15,7 @@ export type VenueLeaderboardColumnModel = {
   rankStart: number
   rankEnd: number
   players: VenueLeaderboardRankedPlayer[]
-  /** Uniform grid row count (includes empty slots in short columns). */
+  /** Row count for this column's grid and container-query typography. */
   gridRowCount: number
 }
 
@@ -84,7 +84,8 @@ export function venueLeaderboardSplitPageColumns(
       rankStart: col[0]!.rank,
       rankEnd: col[col.length - 1]!.rank,
       players: col,
-      gridRowCount: rowCount,
+      /** Per-column row count — drives grid + container-query type (not the page-wide max). */
+      gridRowCount: col.length,
     }))
 }
 

@@ -101,9 +101,16 @@ export default function VenueCondenseProgressBar({
           </p>
         )}
 
-        <div className={`relative ${headline ? 'pb-0 pt-1.5' : sidebar ? 'pt-2.5' : ''}`}>
+        <div className={`relative ${headline ? 'pb-0 pt-6 sm:pt-7' : sidebar ? 'pt-2.5' : ''}`}>
+          {showCombineCallout && headline && showMarks ? (
+            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-end justify-between px-0.5 text-[11px] font-bold tabular-nums text-white/55 sm:text-xs">
+              <span>{survivors}</span>
+              <span>0</span>
+            </div>
+          ) : null}
+
           {showMarks ? (
-            <div className={`absolute inset-x-0 top-0 ${headline ? 'h-3' : 'h-2.5'}`} aria-hidden>
+            <div className={`absolute inset-x-0 ${headline && showCombineCallout ? 'top-4 sm:top-5' : 'top-0'} ${headline ? 'h-3' : 'h-2.5'}`} aria-hidden>
               {marks.map((mark) => (
                 <span
                   key={`${mark.atSurvivors}-${mark.toTables}`}
@@ -132,21 +139,31 @@ export default function VenueCondenseProgressBar({
 
           {showMarks && nextAt != null && survivors > nextAt ? (
             showCombineCallout && headline ? (
-              <div
-                className="absolute bottom-full z-10 mb-1 -translate-x-1/2"
-                style={{
-                  left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
-                }}
-              >
-                <div className="whitespace-nowrap rounded-md border border-violet-400/45 bg-violet-950/95 px-2.5 py-1 text-center shadow-[0_4px_16px_rgba(0,0,0,0.45)]">
-                  <p className="text-[10px] font-black uppercase leading-none tracking-[0.14em] text-violet-200/90 sm:text-[11px]">
-                    Next combine
-                  </p>
-                  <p className="mt-0.5 font-mono text-sm font-bold tabular-nums leading-none text-amber-200 sm:text-base">
-                    {nextAt} players
-                  </p>
-                </div>
-              </div>
+              (() => {
+                const markerPct = marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0
+                return (
+                  <div
+                    className="absolute bottom-full z-10 -translate-x-1/2"
+                    style={{ left: `${markerPct}%` }}
+                  >
+                    <div className="mb-0 flex flex-col items-center">
+                      <div className="whitespace-nowrap rounded-md border border-violet-400/50 bg-violet-950/95 px-3 py-1.5 text-center shadow-[0_4px_18px_rgba(0,0,0,0.5)]">
+                        <p className="text-[11px] font-black uppercase leading-none tracking-[0.16em] text-violet-100/90 sm:text-xs">
+                          Next combine
+                        </p>
+                        <p className="mt-1 font-mono text-base font-bold tabular-nums leading-none text-amber-200 sm:text-lg">
+                          {nextAt} players
+                        </p>
+                      </div>
+                      <span className="block h-3 w-px bg-amber-300/85" aria-hidden />
+                      <span
+                        className="block h-3 w-1 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.65)]"
+                        aria-hidden
+                      />
+                    </div>
+                  </div>
+                )
+              })()
             ) : (
               <span
                 className={`absolute -translate-x-1/2 font-mono font-bold tabular-nums text-amber-200/95 ${

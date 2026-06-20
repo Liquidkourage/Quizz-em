@@ -403,10 +403,10 @@
     font-size: var(--vfd-blinds-amount-size);
   }
 
-  /** Venue eagle-eye leaderboard wall — typography and column chrome. */
+  /** Venue eagle-eye leaderboard wall — typography and panel chrome. */
   .venue-lb-title {
     font-family: Orbitron, monospace;
-    font-size: clamp(2rem, 4.2vmin, 3rem);
+    font-size: clamp(2.625rem, 4.8vmin, 3.125rem);
     font-weight: 900;
     letter-spacing: 0.08em;
     line-height: 1.05;
@@ -414,45 +414,91 @@
   }
 
   .venue-lb-meta {
-    font-size: clamp(0.95rem, 1.65vmin, 1.25rem);
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-size: clamp(1.05rem, 1.75vmin, 1.3125rem);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .venue-lb-page-label {
+    font-size: clamp(0.95rem, 1.5vmin, 1.125rem);
+  }
+
+  .venue-lb-page-range {
+    font-size: clamp(1rem, 1.65vmin, 1.25rem);
+  }
+
+  .venue-lb-answer-label {
+    font-size: clamp(0.75rem, 1.2vmin, 0.875rem);
+  }
+
+  .venue-lb-answer-value {
+    font-size: clamp(1.75rem, 3.2vmin, 2.25rem);
   }
 
   .venue-lb-column-header {
-    font-size: clamp(0.85rem, 1.35vmin, 1.05rem);
+    font-size: clamp(0.95rem, 1.45vmin, 1.125rem);
     font-weight: 800;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
+  .venue-lb-panel {
+    border: 1px solid rgba(217, 119, 6, 0.28);
+    border-radius: 0.5rem;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.72) 0%, rgba(2, 6, 23, 0.88) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(251, 191, 36, 0.08),
+      0 8px 24px rgba(0, 0, 0, 0.28);
+  }
+
   .venue-lb-row-rank {
-    font-size: min(1.2rem, max(0.72rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.62)));
+    font-size: clamp(1.05rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.72), 1.25rem);
   }
 
   .venue-lb-row-name {
-    font-size: min(1.45rem, max(0.82rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.78)));
+    font-size: clamp(1.15rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.82), 1.375rem);
   }
 
   .venue-lb-row-stack {
-    font-size: min(1.5rem, max(0.85rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.82)));
+    font-size: clamp(1.2rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.86), 1.4375rem);
   }
 
   .venue-lb-row-rank-top {
-    font-size: min(1.65rem, max(0.95rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.88)));
+    font-size: clamp(1.45rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.95), 1.875rem);
   }
 
   .venue-lb-row-name-top {
-    font-size: min(1.75rem, max(1rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.95)));
+    font-size: clamp(1.5rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1), 1.75rem);
   }
 
   .venue-lb-row-stack-top {
-    font-size: min(1.85rem, max(1.05rem, calc((100cqh - 2rem) / var(--lb-rows) * 1)));
+    font-size: clamp(1.55rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.05), 1.875rem);
   }
 
-  .venue-lb-footer {
-    font-size: clamp(0.72rem, 1.15vmin, 0.88rem);
-    font-weight: 600;
+  .venue-lb-stat-label {
+    font-size: clamp(0.9rem, 1.35vmin, 1.125rem);
+    font-weight: 700;
+  }
+
+  .venue-lb-stat-value {
+    font-size: clamp(1.05rem, 1.65vmin, 1.375rem);
+  }
+
+  .venue-lb-ribbon {
+    min-height: clamp(3.25rem, 6vh, 4.25rem);
+  }
+
+  .venue-lb-condense-caption {
+    font-size: clamp(1.05rem, 1.75vmin, 1.375rem);
+    font-weight: 700;
+  }
+
+  .venue-lb-standard-row {
+    min-height: 0;
+  }
+
+  .venue-lb-podium-row {
+    min-height: 0;
   }
 
   /** Pairing gate — TV room scale (80% of prior 2.5× bump). */

@@ -101,18 +101,17 @@ export function venueLeaderboardRowsFromTiles(
   return out
 }
 
-/** Column count for eagle-eye leaderboard — 1–4 columns by field size, more for oversized fields. */
+  /** @deprecated Use {@link buildVenueLeaderboardPresentation} — capped at 4 columns via pagination. */
 export function venueLeaderboardColumns(playerCount: number): number {
   const n = Math.max(0, Math.floor(playerCount))
-  if (n <= 16) return 1
+  if (n <= 8) return 1
+  if (n <= 16) return 2
   if (n <= 32) return 2
   if (n <= 48) return 3
-  if (n <= 64) return 4
-  if (n <= 110) return 5
-  return 6
+  return 4
 }
 
-/** Inclusive global rank range label for a column, e.g. `1–16`. */
+/** @deprecated Use column.rankStart/rankEnd from presentation model. */
 export function venueLeaderboardColumnRangeLabel(
   colIndex: number,
   rowCount: number,
@@ -120,17 +119,17 @@ export function venueLeaderboardColumnRangeLabel(
 ): string {
   const start = colIndex * rowCount + 1
   const end = Math.min((colIndex + 1) * rowCount, totalPlayers)
-  return `${start}–${end}`
+  return start === end ? `${start}` : `${start}–${end}`
 }
 
-/** Column-major split matching CSS `grid-auto-flow: column`. */
+/** @deprecated Use {@link venueLeaderboardSplitPageColumns}. */
 export function venueLeaderboardSplitColumns(
   rows: readonly VenueLeaderboardRow[],
   columnCount: number
 ): { columns: VenueLeaderboardRow[][]; rowCount: number } {
   const n = rows.length
-  const cols = Math.max(1, columnCount)
-  const rowCount = Math.max(1, Math.ceil(n / cols))
+  const cols = Math.min(4, Math.max(1, columnCount))
+  const rowCount = Math.min(16, Math.max(1, Math.ceil(n / cols)))
   const columns: VenueLeaderboardRow[][] = Array.from({ length: cols }, () => [])
   for (let i = 0; i < n; i++) {
     const colIndex = Math.floor(i / rowCount)

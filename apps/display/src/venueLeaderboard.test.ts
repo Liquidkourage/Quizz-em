@@ -2,12 +2,10 @@ import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   captureVenueHandStackBaselines,
-  venueLeaderboardColumnRangeLabel,
   venueLeaderboardColumns,
   venueLeaderboardFooterStats,
   venueLeaderboardPlayerKey,
   venueLeaderboardRowsFromTiles,
-  venueLeaderboardSplitColumns,
 } from './venueLeaderboard'
 
 function tile(partial: Partial<DisplayVenueTileSnapshot> & { tableNum: number }): DisplayVenueTileSnapshot {
@@ -66,31 +64,9 @@ describe('venueLeaderboardRowsFromTiles', () => {
 })
 
 describe('venueLeaderboardColumns', () => {
-  it('adds columns as player count grows', () => {
-    expect(venueLeaderboardColumns(12)).toBeLessThan(venueLeaderboardColumns(120))
-  })
-
-  it('uses four columns at 64 players', () => {
-    expect(venueLeaderboardColumns(64)).toBe(4)
-    expect(venueLeaderboardColumns(16)).toBe(1)
-    expect(venueLeaderboardColumns(32)).toBe(2)
-  })
-})
-
-describe('venueLeaderboardSplitColumns', () => {
-  it('labels column ranges for 64 players', () => {
-    const rows = Array.from({ length: 64 }, (_, i) => ({
-      name: `P${i}`,
-      tableNum: 1,
-      seatNum: 1,
-      bankroll: 1000 - i,
-      stackDelta: null,
-    }))
-    const { columns, rowCount } = venueLeaderboardSplitColumns(rows, 4)
-    expect(columns.length).toBe(4)
-    expect(rowCount).toBe(16)
-    expect(venueLeaderboardColumnRangeLabel(0, rowCount, 64)).toBe('1–16')
-    expect(venueLeaderboardColumnRangeLabel(3, rowCount, 64)).toBe('49–64')
+  it('caps at four columns', () => {
+    expect(venueLeaderboardColumns(79)).toBe(4)
+    expect(venueLeaderboardColumns(120)).toBe(4)
   })
 })
 

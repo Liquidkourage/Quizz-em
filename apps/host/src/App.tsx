@@ -64,6 +64,10 @@ import {
   hostDealCommunityGate,
   hostStartAnswerGate,
 } from './hostVenueActionGates'
+import { hostVenueAutoAlertFromToast } from './hostVenueAutoAlerts'
+import { useHostVenueAutoAlerts } from './useHostVenueAutoAlerts'
+import HostVenueAutoAlertBanner from './HostVenueAutoAlertBanner.tsx'
+import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
 
 const HOST_TABS = [
   { id: 'live' as const, label: 'Run show', hint: 'Follow the checklist — one cue at a time' },
@@ -98,6 +102,7 @@ function clampVenueAnswerWindow(v: number): number {
 function HostApp() {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [toastVenueAlert, setToastVenueAlert] = useState<HostVenueAutoAlert | null>(null)
   const [virtualAddCount, setVirtualAddCount] = useState(2)
   const [rehearsalTableCount, setRehearsalTableCount] = useState(VENUE_NUMBERED_TABLE_MAX)
   const [hostVenueCode] = useState('HOST01')
@@ -170,6 +175,12 @@ function HostApp() {
 
   useEffect(() => {
     const unsubscribe = onToast((message) => {
+      const venueAlert = hostVenueAutoAlertFromToast(message)
+      if (venueAlert) {
+        setToastVenueAlert(venueAlert)
+        window.setTimeout(() => setToastVenueAlert(null), 7500)
+        return
+      }
       setToastMessage(message)
       setTimeout(() => setToastMessage(null), 3000)
     })
@@ -403,6 +414,9 @@ function HostApp() {
       </p>
     ) : null
 
+  const feltAutoAlert = useHostVenueAutoAlerts(venueFeltBeat)
+  const venueAutoAlert = toastVenueAlert ?? feltAutoAlert
+
   const draftSetlist =
     setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
 
@@ -498,6 +512,9 @@ function HostApp() {
 
       {/* Toast Messages */}
       <AnimatePresence>
+        {venueAutoAlert ? (
+          <HostVenueAutoAlertBanner key={venueAutoAlert.kind + venueAutoAlert.title} alert={venueAutoAlert} />
+        ) : null}
         {toastMessage && (
           <motion.div
             className="fixed top-4 right-4 z-50 rounded-xl border border-white/20 bg-glass-gradient p-5 text-lg text-white shadow-lg backdrop-blur-md"

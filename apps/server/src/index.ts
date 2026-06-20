@@ -977,15 +977,31 @@ function applyVenueWageringOrchestration(venueCode: string) {
 
     if (plan.tableUpdates.length === 0) return
 
+    let openedAnsweringWithTimer = false
     for (const update of plan.tableUpdates) {
+      const prev = rooms.get(update.sessionKey)
       let gs = runVirtualPlayerSimulation(update.gameState)
       rooms.set(update.sessionKey, gs)
       io.to(update.sessionKey).emit('state', gs)
+      if (
+        prev?.phase !== 'answering' &&
+        gs.phase === 'answering' &&
+        update.answerDeadlineMs != null
+      ) {
+        openedAnsweringWithTimer = true
+      }
       if (update.answerDeadlineMs != null) {
         scheduleTableAnswerReveal(update.sessionKey, update.answerDeadlineMs)
       } else {
         clearTableAnswerTimer(update.sessionKey)
       }
+    }
+    if (openedAnsweringWithTimer && plan.scheduleShowdownAtMs != null) {
+      const sec = Math.max(1, Math.round((plan.scheduleShowdownAtMs - Date.now()) / 1000))
+      io.to(hostVenueRoom(vn)).emit(
+        'toast',
+        `Answer window started — ${sec}s countdown on all tables.`,
+      )
     }
     emitDisplayVenueSnapshotNow(vn)
   } finally {

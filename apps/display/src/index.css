@@ -403,6 +403,58 @@
     font-size: var(--vfd-blinds-amount-size);
   }
 
+  /** Venue eagle-eye leaderboard wall — typography and column chrome. */
+  .venue-lb-title {
+    font-family: Orbitron, monospace;
+    font-size: clamp(2rem, 4.2vmin, 3rem);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1.05;
+    text-transform: uppercase;
+  }
+
+  .venue-lb-meta {
+    font-size: clamp(0.95rem, 1.65vmin, 1.25rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .venue-lb-column-header {
+    font-size: clamp(0.85rem, 1.35vmin, 1.05rem);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .venue-lb-row-rank {
+    font-size: min(1.2rem, max(0.72rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.62)));
+  }
+
+  .venue-lb-row-name {
+    font-size: min(1.45rem, max(0.82rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.78)));
+  }
+
+  .venue-lb-row-stack {
+    font-size: min(1.5rem, max(0.85rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.82)));
+  }
+
+  .venue-lb-row-rank-top {
+    font-size: min(1.65rem, max(0.95rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.88)));
+  }
+
+  .venue-lb-row-name-top {
+    font-size: min(1.75rem, max(1rem, calc((100cqh - 2rem) / var(--lb-rows) * 0.95)));
+  }
+
+  .venue-lb-row-stack-top {
+    font-size: min(1.85rem, max(1.05rem, calc((100cqh - 2rem) / var(--lb-rows) * 1)));
+  }
+
+  .venue-lb-footer {
+    font-size: clamp(0.72rem, 1.15vmin, 0.88rem);
+    font-weight: 600;
+  }
+
   /** Pairing gate — TV room scale (80% of prior 2.5× bump). */
   .display-text-pairing-label {
     font-size: clamp(1.4rem, 2.7vmin, 1.9rem);

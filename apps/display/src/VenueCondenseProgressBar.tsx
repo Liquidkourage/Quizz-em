@@ -8,6 +8,8 @@ type VenueCondenseProgressBarProps = {
   variant?: 'headline' | 'sidebar' | 'bottom'
   /** Override caption typography (table-count tier from parent). */
   captionClass?: string
+  /** Leaderboard-style callout above the next-combine marker. */
+  showCombineCallout?: boolean
 }
 
 function formatHeadlineCondensePart(part: string): string {
@@ -44,6 +46,7 @@ export default function VenueCondenseProgressBar({
   model,
   variant = 'bottom',
   captionClass = DISPLAY_TEXT_HEADLINE_CAPTION,
+  showCombineCallout = false,
 }: VenueCondenseProgressBarProps) {
   const { survivors, peakSurvivors, liveTables, fillPct, marks, nextAt } = model
   if (liveTables <= 1 && marks.length === 0) return null
@@ -128,17 +131,35 @@ export default function VenueCondenseProgressBar({
           </div>
 
           {showMarks && nextAt != null && survivors > nextAt ? (
-            <span
-              className={`absolute -translate-x-1/2 font-mono font-bold tabular-nums text-amber-200/95 ${
-                headline ? `-top-0.5 ${DISPLAY_TEXT_HEADLINE_META}` : '-top-0.5 text-[8px]'
-              }`}
-              style={{
-                left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
-              }}
-              aria-hidden
-            >
-              {nextAt}
-            </span>
+            showCombineCallout && headline ? (
+              <div
+                className="absolute bottom-full z-10 mb-1 -translate-x-1/2"
+                style={{
+                  left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
+                }}
+              >
+                <div className="whitespace-nowrap rounded-md border border-violet-400/45 bg-violet-950/95 px-2.5 py-1 text-center shadow-[0_4px_16px_rgba(0,0,0,0.45)]">
+                  <p className="text-[10px] font-black uppercase leading-none tracking-[0.14em] text-violet-200/90 sm:text-[11px]">
+                    Next combine
+                  </p>
+                  <p className="mt-0.5 font-mono text-sm font-bold tabular-nums leading-none text-amber-200 sm:text-base">
+                    {nextAt} players
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <span
+                className={`absolute -translate-x-1/2 font-mono font-bold tabular-nums text-amber-200/95 ${
+                  headline ? `-top-0.5 ${DISPLAY_TEXT_HEADLINE_META}` : '-top-0.5 text-[8px]'
+                }`}
+                style={{
+                  left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
+                }}
+                aria-hidden
+              >
+                {nextAt}
+              </span>
+            )
           ) : null}
         </div>
       </div>

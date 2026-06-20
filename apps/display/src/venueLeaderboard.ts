@@ -101,12 +101,69 @@ export function venueLeaderboardRowsFromTiles(
   return out
 }
 
-/** Column count so ~130 players fit one TV viewport. */
+/** Column count for eagle-eye leaderboard — 1–4 columns by field size, more for oversized fields. */
 export function venueLeaderboardColumns(playerCount: number): number {
   const n = Math.max(0, Math.floor(playerCount))
-  if (n <= 16) return 2
-  if (n <= 36) return 3
-  if (n <= 72) return 4
+  if (n <= 16) return 1
+  if (n <= 32) return 2
+  if (n <= 48) return 3
+  if (n <= 64) return 4
   if (n <= 110) return 5
   return 6
+}
+
+/** Inclusive global rank range label for a column, e.g. `1–16`. */
+export function venueLeaderboardColumnRangeLabel(
+  colIndex: number,
+  rowCount: number,
+  totalPlayers: number
+): string {
+  const start = colIndex * rowCount + 1
+  const end = Math.min((colIndex + 1) * rowCount, totalPlayers)
+  return `${start}–${end}`
+}
+
+/** Column-major split matching CSS `grid-auto-flow: column`. */
+export function venueLeaderboardSplitColumns(
+  rows: readonly VenueLeaderboardRow[],
+  columnCount: number
+): { columns: VenueLeaderboardRow[][]; rowCount: number } {
+  const n = rows.length
+  const cols = Math.max(1, columnCount)
+  const rowCount = Math.max(1, Math.ceil(n / cols))
+  const columns: VenueLeaderboardRow[][] = Array.from({ length: cols }, () => [])
+  for (let i = 0; i < n; i++) {
+    const colIndex = Math.floor(i / rowCount)
+    columns[colIndex]!.push(rows[i]!)
+  }
+  return { columns: columns.filter((c) => c.length > 0), rowCount }
+}
+
+export type VenueLeaderboardFooterStats = {
+  topName: string
+  topStack: number
+  averageStack: number
+  medianStack: number
+  liveTables: number
+}
+
+/** Client-side footer stats from ranked rows — no API changes. */
+export function venueLeaderboardFooterStats(
+  rows: readonly VenueLeaderboardRow[],
+  liveTables: number
+): VenueLeaderboardFooterStats | null {
+  if (rows.length === 0) return null
+  const stacks = rows.map((r) => r.bankroll).sort((a, b) => a - b)
+  const sum = stacks.reduce((acc, v) => acc + v, 0)
+  const mid = Math.floor(stacks.length / 2)
+  const median =
+    stacks.length % 2 === 0 ? Math.round((stacks[mid - 1]! + stacks[mid]!) / 2) : stacks[mid]!
+  const top = rows[0]!
+  return {
+    topName: top.name,
+    topStack: top.bankroll,
+    averageStack: Math.round(sum / stacks.length),
+    medianStack: median,
+    liveTables: Math.max(0, Math.floor(liveTables)),
+  }
 }

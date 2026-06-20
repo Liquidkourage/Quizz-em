@@ -59,6 +59,11 @@ import {
   hostRunOfShowHeadline,
   resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
+import {
+  hostCloseBettingGate,
+  hostDealCommunityGate,
+  hostStartAnswerGate,
+} from './hostVenueActionGates'
 
 const HOST_TABS = [
   { id: 'live' as const, label: 'Run show', hint: 'Follow the checklist — one cue at a time' },
@@ -83,33 +88,6 @@ function hostPlayerLabel(raw: string): string {
   const m = last.match(/[A-Za-z]/)
   const L = m ? m[0].toUpperCase() : ''
   return L ? `${first} ${L}.` : first
-}
-
-/** Round 1, no board — matches server `requireAllSeatedTablesSatisfy` for deal community. */
-function feltPreBoardReady(row: HostVenueFeltBeatRow): boolean {
-  if (row.phase !== 'betting') return false
-  if (row.street === 'Pre-board') return true
-  const sig = row.phaseStrictSig ?? ''
-  const m = /^bet\|(\d+)\|[TF]\|cc(\d+)$/.exec(sig)
-  return m != null && m[1] === '1' && m[2] === '0'
-}
-
-/** Venue-wide gate for Deal Community Cards — uses felt beat, not the host tab’s lagging `gameState`. */
-function venueDealCommunityLockstepHint(rows: HostVenueFeltBeatRow[] | null): string | null {
-  if (!rows) return null
-  const seated = rows.filter((r) => r.active && r.seated > 0)
-  if (seated.length === 0) {
-    return 'No seated tables at this venue — assign from lobby or seed rehearsal first.'
-  }
-  const notPreBoard = seated.filter((r) => !feltPreBoardReady(r))
-  if (notPreBoard.length > 0) {
-    const nums = notPreBoard
-      .map((r) => r.tableNum)
-      .sort((a, b) => a - b)
-      .join(', ')
-    return `Tables ${nums} are not ready for the board (need wagering round 1, no community cards yet). Check Venue felts · beat.`
-  }
-  return null
 }
 
 /** Match server clamp in apps/server venue-answer-window-settings. */
@@ -381,34 +359,44 @@ function HostApp() {
     )
   }
 
-  const round = gameState.round
-  const bettingRound = round.bettingRound ?? 0
-  const communityLen = round.communityCards?.length ?? 0
   const virtualSeatCount = gameState.players.filter(p => p.id.startsWith('vp:')).length
   const atPlayerCap = gameState.players.length >= gameState.maxPlayers
   const hasVenueFeltBeat =
     venueFeltBeat != null && venueFeltBeat.some((r) => r.active && r.seated > 0)
-  const venueCommunityHint = venueDealCommunityLockstepHint(venueFeltBeat)
+
+  const hostControlState = hostControlGameStateFromBeat(gameState, venueFeltBeat)
+  const headerPhase = hostHeaderPhaseDisplay(gameState, hostControlState)
+  const controlRound = hostControlState.round
+  const controlBettingRound = controlRound.bettingRound ?? 0
+  const controlCommunityLen = controlRound.communityCards?.length ?? 0
+
+  const dealCommunityGate = hostDealCommunityGate({
+    hasVenueBeat: hasVenueFeltBeat,
+    venueBeat: venueFeltBeat,
+    controlState: hostControlState,
+  })
+  const closeBettingGate = hostCloseBettingGate({
+    hasVenueBeat: hasVenueFeltBeat,
+    venueBeat: venueFeltBeat,
+    controlState: hostControlState,
+  })
+  const startAnswerGate = hostStartAnswerGate({
+    hasVenueBeat: hasVenueFeltBeat,
+    venueBeat: venueFeltBeat,
+    controlState: hostControlState,
+  })
+
+  const dealCommunityBlocked = dealCommunityGate.blocked
+  const dealCommunityHint = dealCommunityGate.hint
+  const closeBetBlocked = closeBettingGate.blocked
+  const closeBetHint = closeBettingGate.hint
+  const startAnswerBlocked = startAnswerGate.blocked
+  const startAnswerHint = startAnswerGate.hint
+
   const hostPreBoardReady =
-    gameState.phase === 'betting' && bettingRound === 1 && communityLen < 5
-  const dealCommunityBlocked = hasVenueFeltBeat
-    ? venueCommunityHint != null
-    : gameState.phase !== 'betting' || bettingRound !== 1 || communityLen >= 5
-  const dealCommunityHint =
-    venueCommunityHint ??
-    (dealCommunityBlocked
-      ? gameState.phase !== 'betting'
-        ? 'Available during wagering (betting phase).'
-        : bettingRound !== 1
-          ? 'Board already dealt — you are in wagering round 2.'
-          : communityLen >= 5
-            ? 'Board is already complete.'
-            : ''
-      : (round as { isBettingOpen?: boolean }).isBettingOpen
-        ? 'Will close wagering round 1 + deal the board on every seated table in one click.'
-        : null)
+    hostControlState.phase === 'betting' && controlBettingRound === 1 && controlCommunityLen < 5
   const dealCommunityHostStaleNote =
-    hasVenueFeltBeat && venueCommunityHint == null && !hostPreBoardReady ? (
+    hasVenueFeltBeat && dealCommunityHint == null && !hostPreBoardReady ? (
       <p className="text-sm text-cyan-200/85">
         Venue felts are ready for the board. Your control table ({gameState.tableId ?? '1'}) may be
         behind the mosaic — deal still runs on every seated table.
@@ -417,18 +405,6 @@ function HostApp() {
 
   const draftSetlist =
     setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
-
-  const hostControlState = hostControlGameStateFromBeat(gameState, venueFeltBeat)
-  const headerPhase = hostHeaderPhaseDisplay(gameState, hostControlState)
-  const controlRound = hostControlState.round
-  const controlBettingRound = controlRound.bettingRound ?? 0
-  const controlCommunityLen = controlRound.communityCards?.length ?? 0
-  const controlBettingOpen = controlRound.isBettingOpen !== false
-
-  const startAnswerBlocked =
-    hostControlState.phase !== 'betting' ||
-    controlBettingOpen ||
-    controlCommunityLen < 5
 
   const activeSetlist = activeSetlistId != null ? setlists.find((s) => s.id === activeSetlistId) : undefined
   const hasActiveSetlist =
@@ -440,6 +416,7 @@ function HostApp() {
     gameState: hostControlState,
     answerWindowSeconds,
     dealCommunityBlocked,
+    closeBetBlocked,
     startAnswerBlocked,
     communityLen: controlCommunityLen,
     bettingRound: controlBettingRound,
@@ -1252,6 +1229,11 @@ function HostApp() {
           {currentRunStepId === 'deal-board' ? dealCommunityHostStaleNote : null}
 
           {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
+          closeBetHint ? (
+            <p className="text-xs text-amber-200/90">{closeBetHint}</p>
+          ) : null}
+
+          {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
           hostControlState.phase === 'betting' ? (
             <p className="text-xs text-white/50">
               Players act on their phones. Use the button above when every table is quiet — or open{' '}
@@ -1287,10 +1269,8 @@ function HostApp() {
             </div>
           ) : null}
 
-          {currentRunStepId === 'start-answer' && startAnswerBlocked && hostControlState.phase === 'betting' ? (
-            <p className="text-xs text-white/50">
-              Needs full board (5 community cards) and both wagering rounds closed.
-            </p>
+          {currentRunStepId === 'start-answer' && startAnswerBlocked && startAnswerHint ? (
+            <p className="text-xs text-amber-200/90">{startAnswerHint}</p>
           ) : null}
 
           {currentRunStepId === 'end-round' && hostControlState.phase === 'showdown' ? (

@@ -95,7 +95,10 @@ import { applyVenueCondenseAfterRound, venueCondenseSnapshotFromRooms } from './
 import {
   buildHostVenueFloorBrief,
   clearVenueHostLog,
+  getVenueLastHandDisplay,
   recordVenueHostHandResults,
+  setVenueLastHandDisplay,
+  clearVenueLastHandDisplay,
 } from './venue-host-log'
 import {
   coerceImportQuestions,
@@ -1892,6 +1895,8 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     chipSurvivorCount: condenseCounts.chipSurvivorCount,
   })
 
+  const lastHandDisplay = getVenueLastHandDisplay(vn)
+
   const payload: DisplayVenueWallSnapshot = {
     tiles,
     headlineQuestionText,
@@ -1915,6 +1920,12 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     venueChipSurvivorCount: condenseCounts.chipSurvivorCount,
     venueNextCondenseAtSurvivors: condenseDisplay.nextCondenseAtSurvivors,
     venueTargetTablesAfterCondense: condenseDisplay.targetTablesAfterCondense,
+    ...(lastHandDisplay != null && lastHandDisplay.busts.length > 0
+      ? {
+          lastHandBusts: lastHandDisplay.busts.map((b) => ({ name: b.name, tableNum: b.tableNum })),
+          lastHandEndMs: lastHandDisplay.endMs,
+        }
+      : {}),
   }
   io.to(displayVenueRoom(vn)).emit('displayVenueSnapshot', payload)
   emitPlayerVenueBriefNow(vn)
@@ -2378,6 +2389,7 @@ io.on('connection', (socket) => {
             break
           }
           clearVenueWageringOrchestrationState(gameState.code)
+          clearVenueLastHandDisplay(vnStart)
           for (const { tk } of rowsStart) {
             let gs = rooms.get(tk)
             gs = startGame(gs)
@@ -3020,7 +3032,8 @@ io.on('connection', (socket) => {
             if (!gs) continue
             handResultRows.push({ tableNum: n, before: gs, after: endRound(gs) })
           }
-          recordVenueHostHandResults(vnEnd, handResultRows)
+          const handBusts = recordVenueHostHandResults(vnEnd, handResultRows)
+          setVenueLastHandDisplay(vnEnd, handBusts)
           for (let i = 0; i < handResultRows.length; i++) {
             const tk = lockEnd[i]!.tk
             rooms.set(tk, handResultRows[i]!.after)

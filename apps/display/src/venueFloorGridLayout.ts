@@ -168,7 +168,7 @@ export type VenueFloorMosaicTypography = {
 }
 
 const MOSAIC_ACTING_NAME_BASE =
-  'truncate font-bold leading-none tracking-tight text-[rgba(245,245,240,0.96)] drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]'
+  'truncate font-bold leading-none tracking-tight text-[rgba(245,245,240,0.96)]'
 const MOSAIC_FELT_POT_BASE = 'font-mono font-black leading-none'
 const MOSAIC_TABLE_NUM_BASE = 'font-black leading-none tabular-nums'
 const MOSAIC_TO_CALL_LABEL_BASE =

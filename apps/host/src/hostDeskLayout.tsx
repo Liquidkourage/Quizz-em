@@ -498,6 +498,7 @@ export function buildHostPhaseDockItems(args: {
   gameState: GameState
   answerWindowSeconds: number
   dealCommunityBlocked: boolean
+  closeBetBlocked: boolean
   startAnswerBlocked: boolean
   communityLen: number
   bettingRound: number
@@ -516,6 +517,7 @@ export function buildHostPhaseDockItems(args: {
     gameState,
     answerWindowSeconds,
     dealCommunityBlocked,
+    closeBetBlocked,
     startAnswerBlocked,
     communityLen,
     bettingRound,
@@ -570,6 +572,7 @@ export function buildHostPhaseDockItems(args: {
           id: 'close-bet',
           label: bettingRound <= 1 ? 'Finish wagering (round 1)' : 'Finish wagering (round 2)',
           onClick: () => adminCloseBetting(),
+          disabled: closeBetBlocked,
           variant: 'red',
         },
       ]

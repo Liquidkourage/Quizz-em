@@ -1039,11 +1039,10 @@ function SeatRingWithLabels({
         const actionPanelBelowPx =
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
         const seatDotClass = (() => {
-          if (isActing && prefersReducedMotion) {
-            return 'border-[3px] border-amber-200/95 bg-neutral-950 shadow-[0_0_14px_rgba(234,179,8,0.4)]'
-          }
           if (isActing) {
-            return 'border-[3px] border-amber-300/85 bg-neutral-950 shadow-[0_0_14px_rgba(234,179,8,0.35)] ring-1 ring-amber-400/25'
+            return prefersReducedMotion
+              ? 'border-[3px] border-amber-400/95 bg-white shadow-[0_0_14px_rgba(234,179,8,0.4)]'
+              : 'border-[3px] border-amber-400/90 bg-white shadow-[0_0_14px_rgba(234,179,8,0.35)] ring-1 ring-amber-400/25'
           }
           if (answerLocked) {
             return 'border-[3px] border-cyan-300/95 bg-cyan-950/90 shadow-[0_0_14px_rgba(34,211,238,0.55)] ring-2 ring-cyan-400/50'
@@ -1122,7 +1121,9 @@ function SeatRingWithLabels({
               >
                 {isMosaic && filled && mosaicInitials ? (
                   <span
-                    className={`block w-full min-w-0 truncate px-0.5 text-center font-black leading-none tracking-tight text-amber-50 ${mosaicSeatInitialsClass(mosaicDensity)}`}
+                    className={`block w-full min-w-0 truncate px-0.5 text-center font-black leading-none tracking-tight ${
+                      isActing ? 'text-black' : 'text-amber-50'
+                    } ${mosaicSeatInitialsClass(mosaicDensity)}`}
                   >
                     {mosaicInitials}
                   </span>
@@ -1466,12 +1467,7 @@ function VenueMosaicTableCard({
               aria-label={actingPlayerName ? `${actingPlayerName} to act` : undefined}
             >
               {actingPlayerName ? (
-                <span
-                  className={`${mosaicTypography.actingName} ${
-                    wageringLive ? 'motion-safe:animate-pulse motion-safe:[animation-duration:2.4s]' : ''
-                  }`}
-                  title={actingPlayerName}
-                >
+                <span className={mosaicTypography.actingName} title={actingPlayerName}>
                   {actingPlayerName}
                 </span>
               ) : denseMosaicChrome ? (

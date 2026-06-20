@@ -195,6 +195,16 @@ export type DisplayVenueWallSnapshot = {
    * mosaic tile phases, or local mosaic force.
    */
   showAudienceWelcome: boolean
+  /** Players eliminated on the most recent paid hand (cleared when the next hand opens). */
+  lastHandBusts?: DisplayVenueBustEntry[]
+  /** Server epoch ms when that hand ended; pairs with {@link lastHandBusts}. */
+  lastHandEndMs?: number | null
+}
+
+/** Public display: one player busted on the last completed hand. */
+export type DisplayVenueBustEntry = {
+  name: string
+  tableNum: number
 }
 
 /** Host-only (HOST:{venue}): numbered felts with “something happening now” spotlight cue. */

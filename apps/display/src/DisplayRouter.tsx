@@ -17,6 +17,8 @@ import { buildVenueWallTileRows, venueWallShowSeatingChart } from './venueWallMo
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { venueWallFloorIsLive } from './venueWallAutoView.ts'
+import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
+import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -89,17 +91,27 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !venueFloorIsLive))
 
   const autoWallView = useVenueWallAutoView(venueWall)
-  const wallView = autoWallView ?? layout.wallView ?? 'floor'
-  const showSeatingChart =
+  const wallViewBeforeBust = autoWallView ?? layout.wallView ?? 'floor'
+  const wouldShowSeatingChart =
     onVenueWallLayout &&
     !audienceBriefing &&
     !mosaicForcedByHost &&
-    wallView !== 'leaderboard' &&
+    wallViewBeforeBust !== 'leaderboard' &&
     venueWallShowSeatingChart(venueWall, tileRows)
+  const leaderboardRequested =
+    onVenueWallLayout &&
+    !audienceBriefing &&
+    !wouldShowSeatingChart &&
+    venueWall != null &&
+    wallViewBeforeBust === 'leaderboard'
+  const bustAnnouncement = useVenueBustAnnouncement(venueWall, leaderboardRequested)
+  const wallView = bustAnnouncement.visible ? 'floor' : wallViewBeforeBust
+  const showSeatingChart = wouldShowSeatingChart && !bustAnnouncement.visible
   const showLeaderboard =
     onVenueWallLayout &&
     !audienceBriefing &&
     !showSeatingChart &&
+    !bustAnnouncement.visible &&
     wallView === 'leaderboard' &&
     venueWall != null
 
@@ -224,6 +236,11 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
             : null,
         /** Older servers never sent this — keep briefing until reconnect to a newer build. */
         showAudienceWelcome: p.showAudienceWelcome !== false,
+        lastHandBusts: Array.isArray(p.lastHandBusts) ? p.lastHandBusts : undefined,
+        lastHandEndMs:
+          typeof p.lastHandEndMs === 'number' && Number.isFinite(p.lastHandEndMs)
+            ? Math.floor(p.lastHandEndMs)
+            : null,
       }
       setVenueWall(next)
     })
@@ -241,6 +258,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     onVenueWallLayout && !audienceBriefing && !showSeatingChart && !showLeaderboard
 
   return (
+    <>
     <AnimatePresence mode="sync">
       {showBriefingHero && (
         <motion.div
@@ -299,5 +317,11 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
         </motion.div>
       )}
     </AnimatePresence>
+    <AnimatePresence>
+      {bustAnnouncement.visible && bustAnnouncement.busts.length > 0 ? (
+        <VenueBustAnnouncement key="venue-bust-announcement" busts={bustAnnouncement.busts} />
+      ) : null}
+    </AnimatePresence>
+    </>
   )
 }

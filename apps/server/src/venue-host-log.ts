@@ -16,6 +16,13 @@ type VenueHostLog = {
 
 const venueHostLogs = new Map<string, VenueHostLog>()
 
+type VenueLastHandDisplay = {
+  endMs: number
+  busts: HostVenueBustEntry[]
+}
+
+const venueLastHandDisplay = new Map<string, VenueLastHandDisplay>()
+
 function logForVenue(vn: string): VenueHostLog {
   let log = venueHostLogs.get(vn)
   if (!log) {
@@ -27,6 +34,19 @@ function logForVenue(vn: string): VenueHostLog {
 
 export function clearVenueHostLog(vn: string): void {
   venueHostLogs.delete(vn)
+  venueLastHandDisplay.delete(vn)
+}
+
+export function setVenueLastHandDisplay(vn: string, busts: HostVenueBustEntry[]): void {
+  venueLastHandDisplay.set(vn, { endMs: Date.now(), busts })
+}
+
+export function getVenueLastHandDisplay(vn: string): VenueLastHandDisplay | null {
+  return venueLastHandDisplay.get(vn) ?? null
+}
+
+export function clearVenueLastHandDisplay(vn: string): void {
+  venueLastHandDisplay.delete(vn)
 }
 
 function bigWinThreshold(gs: GameState): number {
@@ -98,9 +118,10 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
 export function recordVenueHostHandResults(
   vn: string,
   rows: { tableNum: number; before: GameState; after: GameState }[],
-): void {
+): HostVenueBustEntry[] {
   const log = logForVenue(vn)
   const now = Date.now()
+  const handBusts: HostVenueBustEntry[] = []
 
   for (const { tableNum, before, after } of rows) {
     const threshold = bigWinThreshold(before)
@@ -119,12 +140,15 @@ export function recordVenueHostHandResults(
       if (afterIds.has(p.id)) continue
       const name = p.name.trim()
       if (!name) continue
-      log.busts.unshift({ name, tableNum, atMs: now })
+      const entry = { name, tableNum, atMs: now }
+      handBusts.push(entry)
+      log.busts.unshift(entry)
     }
   }
 
   log.busts = log.busts.slice(0, LOG_CAP)
   log.bigWinners = log.bigWinners.slice(0, LOG_CAP)
+  return handBusts
 }
 
 export function buildHostVenueFloorBrief(args: {

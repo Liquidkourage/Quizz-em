@@ -9,6 +9,7 @@ import {
   stadiumHoleCardScale,
   stadiumSeatPointPx,
 } from './stadiumSeatLayout'
+import { CardFaceGraphic } from './CardFaceGraphic'
 import { PokerTableGraphic, SeatCupholderMarker, type SeatCupholderState } from './tableGraphics'
 
 export type StadiumTableSeat = {
@@ -101,17 +102,16 @@ export function StadiumTableSeats({
           {communityDigits != null && communityDigits.length > 0 ? (
             <div className="flex items-center gap-0.5">
               {communityDigits.slice(0, 5).map((digit, i) => (
-                <span
+                <CardFaceGraphic
                   key={i}
-                  className="inline-flex items-center justify-center rounded border border-cyan-400/50 bg-neutral-950/95 font-mono font-black tabular-nums text-cyan-200 shadow-sm"
+                  digit={digit}
+                  className="shrink-0 rounded-[3px] shadow-sm"
                   style={{
                     width: Math.max(14, cupSizePx * 0.55),
-                    height: Math.max(18, cupSizePx * 0.72),
-                    fontSize: Math.max(8, cupSizePx * 0.32),
+                    height: Math.max(20, cupSizePx * 0.77),
                   }}
-                >
-                  {digit}
-                </span>
+                  alt=""
+                />
               ))}
             </div>
           ) : null}

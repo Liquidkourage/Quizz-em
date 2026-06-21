@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { formatTriviaNumber } from '@qhe/core'
-import { PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
+import { CardFaceGraphic, PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import {
   formatHoleDigits,
   sortShowdownRowsByDistance,
@@ -77,19 +77,15 @@ function DigitChip({
 }) {
   const dim =
     size === 'sm'
-      ? 'h-6 min-w-[1.125rem] px-0.5'
-      : 'h-7 min-w-[1.35rem] px-1'
-  const textClass = size === 'sm' ? DISPLAY_TEXT_BADGE_CQ : DISPLAY_TEXT_SECONDARY_CQ
+      ? 'h-6 w-[1.05rem] shrink-0'
+      : 'h-7 w-[1.22rem] shrink-0'
   return (
-    <span
-      className={`inline-flex items-center justify-center rounded border font-mono font-black tabular-nums ${dim} ${textClass} ${
-        active
-          ? 'border-emerald-400/70 bg-emerald-950/90 text-emerald-100 shadow-[0_0_8px_rgba(52,211,153,0.3)]'
-          : 'border-white/12 bg-black/35 text-white/30'
-      }`}
-    >
-      {digit}
-    </span>
+    <CardFaceGraphic
+      digit={digit}
+      dimmed={!active}
+      className={`rounded-[3px] shadow-sm ${dim}`}
+      alt={`${digit}`}
+    />
   )
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
+  CardFaceGraphic,
   FeltHoleCardPair,
   PokerTableGraphic,
   QuizzEmWordmark,
@@ -311,31 +312,15 @@ function MosaicDigitCard({
     size === 'community'
       ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(1.4rem,10.3cqw,2.45rem)] shrink-0'
       : 'h-[clamp(1.1rem,7.4cqw,1.75rem)] w-[clamp(0.8rem,5.3cqw,1.3rem)] shrink-0'
-  const textClass =
-    size === 'community'
-      ? 'text-[clamp(1.1rem,8.5cqw,1.75rem)]'
-      : 'text-[clamp(0.58rem,4cqw,0.82rem)]'
-  if (faceDown) {
-    return (
-      <span
-        className={`inline-flex shrink-0 items-center justify-center rounded-[3px] border border-violet-400/50 bg-gradient-to-br from-violet-950/95 via-neutral-950 to-violet-900/90 text-[clamp(0.52rem,3.5cqw,0.75rem)] leading-none shadow-sm shadow-violet-500/25 ${sizeClass}`}
-        aria-hidden
-      >
-        <span className="text-violet-300/80">✦</span>
-      </span>
-    )
-  }
   return (
-    <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-[4px] border font-mono font-black tabular-nums leading-none shadow-sm ${
-        dimmed
-          ? 'border-white/15 bg-black/40 text-white/35'
-          : 'border-cyan-400/55 bg-neutral-950/95 text-cyan-200 shadow-[0_0_8px_rgba(34,211,238,0.3)]'
-      } ${sizeClass} ${textClass}`}
+    <CardFaceGraphic
+      digit={digit ?? 0}
+      faceDown={faceDown}
+      dimmed={dimmed}
+      className={`rounded-[3px] shadow-sm ${sizeClass}`}
+      alt=""
       aria-hidden
-    >
-      {digit}
-    </span>
+    />
   )
 }
 

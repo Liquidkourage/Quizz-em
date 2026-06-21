@@ -1,14 +1,10 @@
 import { Fragment } from 'react'
+import { CardFaceGraphic } from '@qhe/ui'
 import type { ShowdownResultRow } from './showdownDisplay'
 
 export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-compact'
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
-
-const FLOOR_CHIP_DIM =
-  'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0 border-2 px-[0.06em] text-[clamp(1.72rem,22.2cqw,3rem)]'
-const FLOOR_COMPACT_CHIP_DIM =
-  'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.03rem,12.8cqw,1.8rem)] shrink-0 border-2 px-[0.05em] text-[clamp(1.35rem,16.1cqw,2.3rem)]'
 
 function DigitChip({
   digit,
@@ -19,30 +15,26 @@ function DigitChip({
   variant: DigitChipVariant
   size?: ShowdownChipSize
 }) {
+  void variant
   const dim =
     size === 'floor'
-      ? FLOOR_CHIP_DIM
+      ? 'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0'
       : size === 'floor-compact'
-        ? FLOOR_COMPACT_CHIP_DIM
+        ? 'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.03rem,12.8cqw,1.8rem)] shrink-0'
         : size === 'lg'
-        ? 'h-9 w-[1.65rem] shrink-0 px-1 text-base sm:h-10 sm:w-[1.85rem] sm:text-lg'
-        : size === 'xs'
-          ? 'h-5 w-[0.95rem] shrink-0 px-0.5 text-[0.55rem]'
-          : size === 'sm'
-            ? 'h-6 w-[1.125rem] shrink-0 px-0.5 text-[0.65rem]'
-            : 'h-7 w-[1.35rem] shrink-0 px-1 text-xs'
-  const styles: Record<DigitChipVariant, string> = {
-    hole: 'border-amber-400/85 bg-amber-950/90 text-amber-50 shadow-[0_0_8px_rgba(251,191,36,0.35)]',
-    board:
-      'border-emerald-400/70 bg-emerald-950/90 text-emerald-100 shadow-[0_0_8px_rgba(52,211,153,0.25)]',
-    inactive: 'border-white/12 bg-black/35 text-white/30',
-  }
+          ? 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]'
+          : size === 'xs'
+            ? 'h-5 w-[0.95rem] shrink-0'
+            : size === 'sm'
+              ? 'h-6 w-[1.125rem] shrink-0'
+              : 'h-7 w-[1.35rem] shrink-0'
   return (
-    <span
-      className={`inline-flex items-center justify-center rounded-[4px] border font-mono font-black tabular-nums leading-none ${dim} ${styles[variant]}`}
-    >
-      {digit}
-    </span>
+    <CardFaceGraphic
+      digit={digit}
+      dimmed={variant === 'inactive'}
+      className={`rounded-[3px] shadow-sm ${dim}`}
+      alt={`${digit}`}
+    />
   )
 }
 

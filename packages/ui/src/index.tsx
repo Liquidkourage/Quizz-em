@@ -3,6 +3,19 @@ import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 import { PokerChip } from './PokerChip';
 export { NumericPlayingCard } from './NumericPlayingCard';
+export {
+  CardFaceGraphic,
+  cardFaceInlineSizeStyle,
+  cardFaceSizeFromWidth,
+  type CardFaceGraphicProps,
+} from './CardFaceGraphic';
+export {
+  CARD_FACE_ASPECT,
+  CARD_FACE_IMAGE_SRCS,
+  cardFaceImageSrc,
+  clampCardDigit,
+  type CardDigit,
+} from './cardFaceAssets';
 
 export function NeonButton({ 
   children, 

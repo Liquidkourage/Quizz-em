@@ -3,7 +3,7 @@ import { clsx } from 'clsx'
 import { CardFaceGraphic } from '@qhe/ui'
 import type { ShowdownResultRow } from './showdownDisplay'
 
-export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-compact'
+export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-compact' | 'stage'
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
@@ -13,6 +13,8 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
     'h-[max(2.75rem,min(4.25rem,32cqw))] w-[max(1.85rem,min(2.85rem,21.5cqw))] shrink-0',
   'floor-compact':
     'h-[max(2.15rem,min(3.25rem,26cqw))] w-[max(1.42rem,min(2.15rem,17.5cqw))] shrink-0',
+  stage:
+    'h-[max(0.9rem,min(1.45rem,10.5cqw))] w-[max(0.6rem,min(0.98rem,7.2cqw))] shrink-0',
   lg: 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]',
   md: 'h-7 w-[1.35rem] shrink-0',
   sm: 'h-[max(1.65rem,7.5cqw)] w-[max(1.05rem,5cqw)] shrink-0',
@@ -22,6 +24,7 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
 const decimalDotClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'h-[max(0.32rem,min(0.44rem,2.2cqw))] w-[max(0.32rem,min(0.44rem,2.2cqw))]',
   'floor-compact': 'h-[max(0.26rem,min(0.36rem,1.8cqw))] w-[max(0.26rem,min(0.36rem,1.8cqw))]',
+  stage: 'h-[max(0.18rem,min(0.28rem,1.5cqw))] w-[max(0.18rem,min(0.28rem,1.5cqw))]',
   lg: 'h-1.5 w-1.5 sm:h-[0.42rem] sm:w-[0.42rem]',
   md: 'h-[0.34rem] w-[0.34rem]',
   sm: 'h-[0.3rem] w-[0.3rem]',
@@ -107,6 +110,8 @@ export function ShowdownFiveCardsUsed({
       ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[max(0.12rem,min(0.38rem,1.4cqw))]'
       : size === 'floor-compact'
         ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[max(0.1rem,min(0.3rem,1.1cqw))]'
+        : size === 'stage'
+          ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[max(0.06rem,min(0.22rem,0.95cqw))]'
         : size === 'lg'
           ? 'flex flex-nowrap items-center justify-center gap-1'
           : 'flex flex-wrap items-center justify-center gap-0.5'

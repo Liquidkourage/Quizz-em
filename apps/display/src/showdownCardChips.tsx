@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { clsx } from 'clsx'
+import { CardFaceGraphic } from '@qhe/ui'
 import type { ShowdownResultRow } from './showdownDisplay'
 
 export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-compact'
@@ -7,21 +8,12 @@ export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-comp
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
 const shellClassBySize: Record<ShowdownChipSize, string> = {
-  floor: 'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0',
-  'floor-compact': 'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.03rem,12.8cqw,1.8rem)] shrink-0',
+  floor: 'h-[clamp(2.35rem,30cqw,4rem)] w-[clamp(1.55rem,20cqw,2.65rem)] shrink-0',
+  'floor-compact': 'h-[clamp(1.85rem,22.5cqw,3.1rem)] w-[clamp(1.22rem,15cqw,2.05rem)] shrink-0',
   lg: 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]',
   md: 'h-7 w-[1.35rem] shrink-0',
   sm: 'h-6 w-[1.125rem] shrink-0',
   xs: 'h-5 w-[0.95rem] shrink-0',
-}
-
-const glyphClassBySize: Record<ShowdownChipSize, string> = {
-  floor: 'text-[clamp(1.05rem,13.8cqw,2.15rem)]',
-  'floor-compact': 'text-[clamp(0.82rem,10.5cqw,1.65rem)]',
-  lg: 'text-[1.05rem] sm:text-[1.2rem]',
-  md: 'text-[0.95rem]',
-  sm: 'text-[0.72rem]',
-  xs: 'text-[0.62rem]',
 }
 
 const decimalDotClassBySize: Record<ShowdownChipSize, string> = {
@@ -42,17 +34,14 @@ function DigitChip({
   variant: DigitChipVariant
   size?: ShowdownChipSize
 }) {
-  const dimmed = variant === 'inactive'
-
   return (
-    <div className={shellClassBySize[size]} aria-hidden>
-      <div
-        className={clsx('vfd-showdown-winner-digit', dimmed && 'vfd-showdown-winner-digit--dimmed')}
-      >
-        <span className={clsx('vfd-showdown-winner-digit__glyph', glyphClassBySize[size])}>
-          {digit}
-        </span>
-      </div>
+    <div className={shellClassBySize[size]}>
+      <CardFaceGraphic
+        digit={digit}
+        dimmed={variant === 'inactive'}
+        className="block h-full w-full"
+        alt={`${digit}`}
+      />
     </div>
   )
 }
@@ -112,9 +101,9 @@ export function ShowdownFiveCardsUsed({
 
   const wrapClass =
     size === 'floor'
-      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.18rem,1.25cqw,0.48rem)]'
+      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.15rem,1.1cqw,0.42rem)]'
       : size === 'floor-compact'
-        ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.14rem,1cqw,0.38rem)]'
+        ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.12rem,0.9cqw,0.34rem)]'
         : size === 'lg'
           ? 'flex flex-nowrap items-center justify-center gap-1'
           : 'flex flex-wrap items-center justify-center gap-0.5'

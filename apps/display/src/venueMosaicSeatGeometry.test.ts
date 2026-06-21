@@ -41,7 +41,17 @@ describe('venueMosaicSeatGeometry', () => {
     const cornerHole = mosaicSeatHoleLayout(1, 8, w, h)
     const cornerFrac = insetFrac(cornerCup, cornerHole, center)
 
-    expect(cornerFrac).toBeGreaterThan(0.2)
+    expect(cornerFrac).toBeGreaterThan(0.28)
     expect(cornerFrac).toBeLessThan(0.42)
+  })
+
+  it('leaves pole and side inset unchanged when corner bump applies', () => {
+    const poleCup = mosaicSeatDotPct(0, 8, w, h)
+    const poleHole = mosaicSeatHoleLayout(0, 8, w, h)
+    const sideCup = mosaicSeatDotPct(2, 8, w, h)
+    const sideHole = mosaicSeatHoleLayout(2, 8, w, h)
+
+    expect(insetFrac(poleCup, poleHole, center)).toBeCloseTo(0.42, 2)
+    expect(insetFrac(sideCup, sideHole, center)).toBeCloseTo(0.2, 2)
   })
 })

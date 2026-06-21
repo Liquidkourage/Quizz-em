@@ -22,15 +22,18 @@ const MOSAIC_SEAT_RAIL_INSET_PX = 12
 const MOSAIC_HOLE_CARD_INWARD_FRAC_POLE = 0.42
 /** Hole cards at 3 / 9 — stay closer to the cup on the wider side span. */
 const MOSAIC_HOLE_CARD_INWARD_FRAC_SIDE = 0.2
+/** Extra inward nudge on diagonal arc seats — fanned cards clear the rail lip. */
+const MOSAIC_HOLE_CARD_CORNER_INWARD_BUMP = 0.1
 
 /** Blend pole → side inset by how horizontal the seat is (0 = 12/6, 1 = 3/9). */
 function mosaicHoleCardInwardFrac(outX: number, outY: number): number {
   const len = Math.hypot(outX, outY) || 1
   const horizBias = Math.abs(outX) / len
-  return (
+  const base =
     MOSAIC_HOLE_CARD_INWARD_FRAC_POLE +
     (MOSAIC_HOLE_CARD_INWARD_FRAC_SIDE - MOSAIC_HOLE_CARD_INWARD_FRAC_POLE) * horizBias
-  )
+  const cornerWeight = 4 * horizBias * (1 - horizBias)
+  return base + MOSAIC_HOLE_CARD_CORNER_INWARD_BUMP * cornerWeight
 }
 
 /** Fan each card from the rail edge; wider spread toward the pot. */

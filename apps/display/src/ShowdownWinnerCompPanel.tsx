@@ -36,7 +36,7 @@ function ShowdownStagePotAmount({ amount, each = false }: { amount: number; each
   return (
     <div className="flex items-baseline justify-center gap-[0.3em]">
       <span
-        className="vfd-mosaic-stack vfd-mosaic-dollar vfd-mosaic-dollar--live leading-none text-[clamp(0.95rem,11cqw,1.85rem)]"
+        className="vfd-mosaic-stack vfd-mosaic-dollar vfd-mosaic-dollar--live vfd-showdown-stage-pot leading-none"
         aria-label={`$${digits}`}
       >
         <span className="vfd-mosaic-dollar-sign" aria-hidden>
@@ -45,7 +45,7 @@ function ShowdownStagePotAmount({ amount, each = false }: { amount: number; each
         <span className="vfd-mosaic-dollar-digits">{digits}</span>
       </span>
       {each ? (
-        <span className="font-bold uppercase tracking-[0.12em] text-[#e2ad1a]/90 text-[clamp(0.38rem,3.6cqw,0.58rem)]">
+        <span className="font-bold uppercase tracking-[0.12em] text-[#e2ad1a]/90 text-[0.55em]">
           each
         </span>
       ) : null}
@@ -58,7 +58,7 @@ function ShowdownStageName({ names }: { names: readonly string[] }) {
 
   if (names.length === 1) {
     return (
-      <p className="max-w-full truncate font-black leading-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)] text-[clamp(0.62rem,7.2cqw,1.1rem)]">
+      <p className="vfd-showdown-stage-name max-w-full truncate font-black leading-none text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
         {names[0]}
       </p>
     )
@@ -73,7 +73,7 @@ function ShowdownStageName({ names }: { names: readonly string[] }) {
               ·
             </span>
           ) : null}
-          <span className="max-w-[min(100%,5.5rem)] truncate font-black leading-tight text-white text-[clamp(0.42rem,4.6cqw,0.78rem)]">
+          <span className="vfd-showdown-stage-name max-w-[min(100%,5.5rem)] truncate font-black leading-none text-white">
             {name}
           </span>
         </Fragment>
@@ -95,12 +95,47 @@ function formatWinnerDifference(
 function ShowdownStageDifference({ value }: { value: string }) {
   return (
     <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--difference">
-      <p className="font-bold uppercase tracking-[0.14em] text-white/80 text-[clamp(0.28rem,2.6cqw,0.46rem)]">
+      <p className="vfd-showdown-stage-diff-label font-bold uppercase tracking-[0.12em] text-white/85">
         Difference
       </p>
-      <p className="vfd-showdown-difference-value font-black tabular-nums leading-none text-[clamp(0.46rem,4.4cqw,0.72rem)]">
+      <p className="vfd-showdown-stage-diff-value vfd-showdown-difference-value font-black tabular-nums leading-none">
         {value}
       </p>
+    </div>
+  )
+}
+
+function ShowdownStageLaurelStack({
+  names,
+  pot,
+  each,
+  chipRow,
+  showSideLedger,
+  sidePotLines,
+}: {
+  names: readonly string[]
+  pot: number
+  each: boolean
+  chipRow: ShowdownResultRow | null
+  showSideLedger: boolean
+  sidePotLines?: readonly ShowdownSidePotLine[] | null
+}) {
+  return (
+    <div className="vfd-showdown-stage-laurel-stack">
+      <ShowdownStageName names={names} />
+      {pot > 0 ? <ShowdownStagePotAmount amount={pot} each={each} /> : null}
+      <div className="vfd-showdown-stage-cards">
+        {showSideLedger ? (
+          <div className="flex w-full flex-col items-center gap-[0.12em] px-[2%]">
+            <ShowdownPotWinnerList lines={sidePotLines!} />
+            {chipRow != null ? <ShowdownFiveCardsUsed row={chipRow} size="stage" /> : null}
+          </div>
+        ) : chipRow != null ? (
+          <ShowdownFiveCardsUsed row={chipRow} size="stage" />
+        ) : (
+          <span className="text-[0.5rem] text-white/30">—</span>
+        )}
+      </div>
     </div>
   )
 }
@@ -136,32 +171,22 @@ function ShowdownStageTemplate({
           draggable={false}
         />
 
-        <ShowdownStageHeader title={headerTitle} />
+        <div className="vfd-showdown-stage-overlay" aria-hidden>
+          <ShowdownStageHeader title={headerTitle} />
 
-        <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--name">
-          <ShowdownStageName names={names} />
-        </div>
-
-        {pot > 0 ? (
-          <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--pot">
-            <ShowdownStagePotAmount amount={pot} each={each} />
+          <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
+            <ShowdownStageLaurelStack
+              names={names}
+              pot={pot}
+              each={each}
+              chipRow={chipRow}
+              showSideLedger={showSideLedger}
+              sidePotLines={sidePotLines}
+            />
           </div>
-        ) : null}
 
-        <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--cards">
-          {showSideLedger ? (
-            <div className="flex w-full flex-col items-center gap-[0.15em] px-[2%]">
-              <ShowdownPotWinnerList lines={sidePotLines} />
-              {chipRow != null ? <ShowdownFiveCardsUsed row={chipRow} size="stage" /> : null}
-            </div>
-          ) : chipRow != null ? (
-            <ShowdownFiveCardsUsed row={chipRow} size="stage" />
-          ) : (
-            <span className="text-[0.5rem] text-white/30">—</span>
-          )}
+          {difference != null ? <ShowdownStageDifference value={difference} /> : null}
         </div>
-
-        {difference != null ? <ShowdownStageDifference value={difference} /> : null}
       </div>
     </div>
   )

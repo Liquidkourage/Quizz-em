@@ -40,7 +40,7 @@
     background: #000;
   }
 
-  /** Winner stage template (1728×2160 art) — percentage slots aligned to plaque regions. */
+  /** Winner stage template (1728×2160 art) — overlay grid aligned to art regions. */
   .vfd-showdown-stage {
     position: relative;
     display: flex;
@@ -58,6 +58,7 @@
     max-width: 100%;
     max-height: 100%;
     aspect-ratio: 1728 / 2160;
+    container-type: size;
   }
 
   .vfd-showdown-stage-art {
@@ -71,6 +72,12 @@
     user-select: none;
   }
 
+  .vfd-showdown-stage-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
   .vfd-showdown-stage-slot {
     position: absolute;
     left: 50%;
@@ -82,33 +89,63 @@
     transform: translateX(-50%);
   }
 
+  /** Just below baked-in crown — WINNER strip only (crown is in the PNG). */
   .vfd-showdown-stage-slot--header {
-    top: 11.5%;
+    top: 12.8%;
     width: 72%;
+    transform: translate(-50%, -50%);
   }
 
-  /** Laurel upper band — name sits directly under WINNER (Carla M. comp). */
-  .vfd-showdown-stage-slot--name {
-    top: 17.5%;
-    width: 78%;
+  /**
+   * Laurel void — name, pot, and cards stay grouped so they scale together
+   * instead of drifting on small mosaic tiles.
+   */
+  .vfd-showdown-stage-slot--laurel {
+    top: 15%;
+    width: 84%;
+    height: 34%;
+    transform: translateX(-50%);
+    justify-content: center;
   }
 
-  /** Gold pot below name, still inside laurel. */
-  .vfd-showdown-stage-slot--pot {
-    top: 25.5%;
-    width: 70%;
+  .vfd-showdown-stage-laurel-stack {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: max(0.04rem, 2.2cqh);
+    font-size: max(0.38rem, min(5.2cqw, 0.95rem));
   }
 
-  /** Five cards below pot, centered in laurel void. */
-  .vfd-showdown-stage-slot--cards {
-    top: 36%;
-    width: 86%;
+  .vfd-showdown-stage-name {
+    font-size: 1.05em;
   }
 
-  /** Podium front plaque — not the bottom ornate frame. */
+  .vfd-showdown-stage-pot {
+    font-size: 1.55em;
+  }
+
+  .vfd-showdown-stage-cards {
+    width: 100%;
+    margin-top: max(0.02rem, 0.4cqh);
+  }
+
+  /** Centered on the mahogany podium plaque (not the top disc or bottom frame). */
   .vfd-showdown-stage-slot--difference {
-    top: 65.5%;
-    width: 42%;
+    top: 69.2%;
+    width: 38%;
+    gap: max(0.02rem, 0.8cqh);
+    transform: translate(-50%, -50%);
+  }
+
+  .vfd-showdown-stage-diff-label {
+    font-size: max(0.28rem, min(2.8cqw, 0.48rem));
+    line-height: 1;
+  }
+
+  .vfd-showdown-stage-diff-value {
+    font-size: max(0.42rem, min(4.6cqw, 0.78rem));
   }
 
   .vfd-showdown-difference-value {

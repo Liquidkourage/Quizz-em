@@ -40,7 +40,7 @@ import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, venueWallTilePhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
-import { formatVenueBankroll } from './venueLeaderboard'
+import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import {
   DISPLAY_TEXT_HEADLINE_BADGE,
@@ -97,30 +97,76 @@ function usePrefersReducedMotion(): boolean {
   return reduced
 }
 
+/** Bungee dollar display — raised smaller $, skew, embossed shadow. */
+function MosaicBungeeDollarAmount({
+  amount,
+  className,
+  prefersReducedMotion = false,
+  pulseOnChange = false,
+}: {
+  amount: number
+  className?: string
+  prefersReducedMotion?: boolean
+  pulseOnChange?: boolean
+}) {
+  const label = formatVenueBankroll(amount)
+  const digits = formatVenueBankrollDigits(amount)
+  const body = (
+    <span className="vfd-mosaic-dollar">
+      <span className="vfd-mosaic-dollar-sign" aria-hidden>
+        $
+      </span>
+      <span className="vfd-mosaic-dollar-digits">{digits}</span>
+    </span>
+  )
+
+  if (pulseOnChange && !prefersReducedMotion) {
+    return (
+      <motion.span
+        key={label}
+        className={className}
+        aria-label={label}
+        initial={{ scale: 1.12, opacity: 0.72 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {body}
+      </motion.span>
+    )
+  }
+
+  return (
+    <span className={className} aria-label={label}>
+      {body}
+    </span>
+  )
+}
+
+function mosaicBungeeDollarColorClass(muted: 'dim' | 'faint' | 'live' | undefined): string {
+  if (muted === 'faint') return 'text-yellow-300/40'
+  if (muted === 'dim') return 'text-yellow-300/75'
+  return 'text-yellow-200'
+}
+
 /** Pot dollars — pulses when the venue snapshot posts a new amount. */
 function VenuePotAmount({
   amount,
   className,
   prefersReducedMotion,
+  potMuted = 'live',
 }: {
   amount: number
   className: string
   prefersReducedMotion: boolean
+  potMuted?: 'dim' | 'faint' | 'live'
 }) {
-  const label = formatVenueBankroll(amount)
-  if (prefersReducedMotion) {
-    return <span className={className}>{label}</span>
-  }
   return (
-    <motion.span
-      key={label}
-      className={className}
-      initial={{ scale: 1.12, opacity: 0.72 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {label}
-    </motion.span>
+    <MosaicBungeeDollarAmount
+      amount={amount}
+      className={`${className} ${mosaicBungeeDollarColorClass(potMuted)}`}
+      prefersReducedMotion={prefersReducedMotion}
+      pulseOnChange
+    />
   )
 }
 
@@ -175,13 +221,8 @@ function VenueMosaicFeltCenterStack({
           <VenuePotAmount
             amount={pot}
             prefersReducedMotion={prefersReducedMotion}
-            className={`block truncate font-mono font-black tabular-nums leading-tight tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] ${potClass} ${
-              potMuted === 'faint'
-                ? 'text-yellow-300/40'
-                : potMuted === 'dim'
-                  ? 'text-yellow-300/75'
-                  : 'text-yellow-300'
-            }`}
+            potMuted={potMuted}
+            className={`block truncate ${potClass}`}
           />
         ) : null}
       </div>
@@ -1457,13 +1498,14 @@ function VenueMosaicTableCard({
               <VenuePotAmount
                 amount={pot}
                 prefersReducedMotion={prefersReducedMotion}
-                className={`block truncate tabular-nums leading-tight tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${mosaicTypography.feltPot} ${
+                potMuted={
                   ph === 'lobby' || ph === 'question'
                     ? pot > 0
-                      ? 'text-yellow-300/75'
-                      : 'text-yellow-300/40'
-                    : 'text-yellow-300'
-                }`}
+                      ? 'dim'
+                      : 'faint'
+                    : 'live'
+                }
+                className={`block truncate ${floorSize.potClass} ${mosaicTypography.feltPot}`}
               />
             </div>
           ) : (
@@ -1537,9 +1579,10 @@ function VenueMosaicTableCard({
                 aria-live="polite"
               >
                 <span className={mosaicTypography.toCallLabel}>To Call:</span>
-                <span className={mosaicTypography.toCallAmount}>
-                  {formatVenueBankroll(Math.max(0, Math.floor(row.actingCallAmount ?? 0)))}
-                </span>
+                <MosaicBungeeDollarAmount
+                  amount={Math.max(0, Math.floor(row.actingCallAmount ?? 0))}
+                  className={`${mosaicTypography.toCallAmount} text-yellow-200`}
+                />
               </p>
             ) : null}
           </div>

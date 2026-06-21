@@ -386,10 +386,31 @@
   .vfd-mosaic-to-call-amount {
     font-family: 'Bungee', system-ui, sans-serif;
     font-weight: 400;
-    /* Bungee has no italic cut — oblique slants the Regular face (~Montserrat 8deg). */
-    font-style: oblique 8deg;
+    font-style: normal;
     font-synthesis: none;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  /** Bungee dollars — skew + offset shadow (no native italic). */
+  .vfd-mosaic-dollar {
+    display: inline-block;
+    transform: skewX(-9deg);
+    transform-origin: 50% 55%;
+    text-shadow:
+      1px 2px 0 rgba(0, 0, 0, 0.58),
+      2px 3px 0 rgba(0, 0, 0, 0.28);
+  }
+
+  .vfd-mosaic-dollar-sign {
+    font-size: 0.68em;
+    vertical-align: 0.2em;
+    margin-right: 0.05em;
+  }
+
+  .vfd-mosaic-dollar-digits {
+    font-size: 1em;
   }
 
   .vfd-mosaic-title-row {

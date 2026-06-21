@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   captureVenueHandStackBaselines,
+  formatVenueBankroll,
+  formatVenueBankrollDigits,
   venueLeaderboardColumns,
   venueLeaderboardFooterStats,
   venueLeaderboardPlayerKey,
@@ -79,5 +81,13 @@ describe('venueLeaderboardFooterStats', () => {
     expect(stats?.topStack).toBe(200)
     expect(stats?.averageStack).toBe(150)
     expect(stats?.liveTables).toBe(3)
+  })
+})
+
+describe('formatVenueBankrollDigits', () => {
+  it('formats digits without the currency sign', () => {
+    expect(formatVenueBankrollDigits(160)).toBe('160')
+    expect(formatVenueBankroll(160)).toBe('$160')
+    expect(formatVenueBankrollDigits(7030)).toBe('7,030')
   })
 })

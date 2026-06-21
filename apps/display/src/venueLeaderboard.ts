@@ -15,8 +15,13 @@ export function venueLeaderboardPlayerKey(tableNum: number, seatNum: number, nam
 }
 
 export function formatVenueBankroll(amount: number): string {
+  return `$${formatVenueBankrollDigits(amount)}`
+}
+
+/** Digits only (no currency sign) — pairs with mosaic Bungee dollar markup. */
+export function formatVenueBankrollDigits(amount: number): string {
   const n = Number.isFinite(amount) ? Math.round(amount) : 0
-  return `$${Math.max(0, n).toLocaleString()}`
+  return Math.max(0, n).toLocaleString()
 }
 
 export function formatVenueStackDelta(delta: number): string {

@@ -8,5 +8,6 @@ export default defineConfig({
   clean: true,
   loader: {
     '.png': 'file',
+    '.svg': 'file',
   },
 })

@@ -1,15 +1,15 @@
-import cardFace0 from './assets/card-faces/digit-0.png'
-import cardFace1 from './assets/card-faces/digit-1.png'
-import cardFace2 from './assets/card-faces/digit-2.png'
-import cardFace3 from './assets/card-faces/digit-3.png'
-import cardFace4 from './assets/card-faces/digit-4.png'
-import cardFace5 from './assets/card-faces/digit-5.png'
-import cardFace6 from './assets/card-faces/digit-6.png'
-import cardFace7 from './assets/card-faces/digit-7.png'
-import cardFace8 from './assets/card-faces/digit-8.png'
-import cardFace9 from './assets/card-faces/digit-9.png'
+import cardFace0 from './assets/card-faces/digit-0.svg'
+import cardFace1 from './assets/card-faces/digit-1.svg'
+import cardFace2 from './assets/card-faces/digit-2.svg'
+import cardFace3 from './assets/card-faces/digit-3.svg'
+import cardFace4 from './assets/card-faces/digit-4.svg'
+import cardFace5 from './assets/card-faces/digit-5.svg'
+import cardFace6 from './assets/card-faces/digit-6.svg'
+import cardFace7 from './assets/card-faces/digit-7.svg'
+import cardFace8 from './assets/card-faces/digit-8.svg'
+import cardFace9 from './assets/card-faces/digit-9.svg'
 
-/** Official digit card fronts (500×700, 5:7) — user-supplied artwork. */
+/** Official digit card fronts (500×700 SVG, 5:7) — user-supplied artwork. */
 export const CARD_FACE_IMAGE_SRCS = [
   cardFace0,
   cardFace1,

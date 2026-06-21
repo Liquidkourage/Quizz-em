@@ -386,7 +386,9 @@
   .vfd-mosaic-to-call-amount {
     font-family: 'Bungee', system-ui, sans-serif;
     font-weight: 400;
-    font-style: normal;
+    /* Bungee has no italic cut — oblique slants the Regular face (~Montserrat 8deg). */
+    font-style: oblique 8deg;
+    font-synthesis: none;
     font-variant-numeric: tabular-nums;
   }
 

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FeltHoleCardPair, PokerTableGraphic, QuizzEmWordmark, SeatCupholderMarker, STADIUM_BLIND_BADGE_RADIAL, STADIUM_CHIP_STACK_RADIAL, STADIUM_CUPHOLDER_RADIAL, STADIUM_HOLE_CARDS_RADIAL, stadiumCupholderSizePx, stadiumHoleCardScale, stadiumSeatPointPx } from '@qhe/ui'
+import { FeltHoleCardPair, PokerTableGraphic, QuizzEmWordmark, SeatCupholderMarker, STADIUM_BLIND_BADGE_RADIAL, STADIUM_CHIP_STACK_RADIAL, STADIUM_CUPHOLDER_RADIAL, STADIUM_HOLE_CARDS_RADIAL, stadiumCupholderSizePx, stadiumHoleCardScale, stadiumMosaicCupholderSizePx, stadiumMosaicHoleCardScale, stadiumSeatPointPx, type StadiumMosaicDensity } from '@qhe/ui'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -684,7 +684,7 @@ function computeSeatLabelAnchorsPct(args: {
  * Eight seat positions around the mini felt; optional name chips just outside each chair.
  */
 function SeatRingWithLabels({
-  seatedCount,
+  seatedCount: _seatedCount,
   seatNames,
   seatBankrolls,
   size = 'md',
@@ -832,9 +832,15 @@ function SeatRingWithLabels({
 
   const rimW = ringPx.w
   const rimH = ringPx.h
-  const cupSizePx = stadiumCupholderSizePx(rimW)
-  const holeCardScale = stadiumHoleCardScale(rimW)
-  const seatCountForLayout = isMosaic ? seatedCount : VENUE_SEAT_SLOTS
+  const mosaicDensityTier = mosaicDensity as StadiumMosaicDensity | undefined
+  const cupSizePx = isMosaic
+    ? stadiumMosaicCupholderSizePx(rimW, mosaicDensityTier)
+    : stadiumCupholderSizePx(rimW)
+  const holeCardScale = isMosaic
+    ? stadiumMosaicHoleCardScale(rimW, mosaicDensityTier)
+    : stadiumHoleCardScale(rimW)
+  /** Physical seat slots (0–7) — always distribute around the full eight-seat stadium. */
+  const seatCountForLayout = VENUE_SEAT_SLOTS
 
   const showFeltBoardCenter =
     isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)
@@ -864,7 +870,8 @@ function SeatRingWithLabels({
         />
       ) : null}
       {Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
-        const filled = i < seatedCount
+        const raw = seatNames[i]?.trim() ?? ''
+        const filled = raw.length > 0
         if (isMosaic && !filled) return null
 
         const seatRimPt = stadiumSeatPointPx(
@@ -887,7 +894,6 @@ function SeatRingWithLabels({
         const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && size === 'lg'))
         const fallbackPos = venueSeatRimPct(i, fb, rimW, rimH)
         const labelPos = anchored ?? fallbackPos
-        const raw = seatNames[i]?.trim() ?? ''
         const mosaicInitials =
           isMosaic && raw.length > 0
             ? raw

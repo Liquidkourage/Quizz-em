@@ -90,6 +90,49 @@ const CUPHOLDER_WIDTH_FRAC = 32 / STADIUM_REFERENCE_TABLE_WIDTH_PX
 const HOLE_CARD_SCALE_AT_REFERENCE = 0.58
 const HOLE_CARD_OVERLAP_AT_REFERENCE_PX = -30
 
+/** Nominal honeycomb mosaic cell width (matches legacy `32 * mosaicScale` at ~220px). */
+export const STADIUM_MOSAIC_REFERENCE_WIDTH_PX = 220
+
+const MOSAIC_CUPHOLDER_PX_AT_REFERENCE = 32
+const MOSAIC_HOLE_CARD_SCALE_AT_REFERENCE = 0.38
+
+export type StadiumMosaicDensity = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
+
+function clampMosaic(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n))
+}
+
+/** Legacy mosaic scale factor from measured felt width and floor density tier. */
+export function stadiumMosaicScaleForWidth(
+  tableWidthPx: number,
+  density?: StadiumMosaicDensity
+): number {
+  const w = tableWidthPx > 0 ? tableWidthPx : STADIUM_MOSAIC_REFERENCE_WIDTH_PX
+  if (density === 'micro') return clampMosaic(w / 240, 0.82, 1.05)
+  if (density === 'compact') return clampMosaic(w / 230, 0.88, 1.12)
+  if (density === 'medium') return clampMosaic(w / 220, 0.92, 1.2)
+  return clampMosaic(w / STADIUM_MOSAIC_REFERENCE_WIDTH_PX, 1, 1.35)
+}
+
+/** Cupholder diameter on venue mosaic / honeycomb felts. */
+export function stadiumMosaicCupholderSizePx(
+  tableWidthPx: number,
+  density?: StadiumMosaicDensity
+): number {
+  return Math.max(
+    10,
+    Math.round(MOSAIC_CUPHOLDER_PX_AT_REFERENCE * stadiumMosaicScaleForWidth(tableWidthPx, density))
+  )
+}
+
+/** Hole-card scale on venue mosaic felts (`NumericPlayingCard` `small`). */
+export function stadiumMosaicHoleCardScale(
+  tableWidthPx: number,
+  density?: StadiumMosaicDensity
+): number {
+  return MOSAIC_HOLE_CARD_SCALE_AT_REFERENCE * stadiumMosaicScaleForWidth(tableWidthPx, density)
+}
+
 /** Cupholder diameter proportional to rendered table width. */
 export function stadiumCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : STADIUM_REFERENCE_TABLE_WIDTH_PX

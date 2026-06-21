@@ -269,12 +269,17 @@ export {
   stadiumCupholderSizePx,
   stadiumHoleCardScale,
   stadiumHoleCardOverlapPx,
+  stadiumMosaicCupholderSizePx,
+  stadiumMosaicHoleCardScale,
+  stadiumMosaicScaleForWidth,
+  STADIUM_MOSAIC_REFERENCE_WIDTH_PX,
   STADIUM_CUPHOLDER_RADIAL,
   STADIUM_HOLE_CARDS_RADIAL,
   STADIUM_BLIND_BADGE_RADIAL,
   STADIUM_CHIP_STACK_RADIAL,
   STADIUM_NAME_LABEL_RADIAL,
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
+  type StadiumMosaicDensity,
   type StadiumSeatPoint,
 } from './stadiumSeatLayout';
 export default {};

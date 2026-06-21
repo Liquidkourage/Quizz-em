@@ -95,6 +95,8 @@ export const STADIUM_MOSAIC_REFERENCE_WIDTH_PX = 220
 
 const MOSAIC_CUPHOLDER_PX_AT_REFERENCE = 32
 const MOSAIC_HOLE_CARD_SCALE_AT_REFERENCE = 0.38
+/** Hole-card width on mosaic felts at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX}. */
+const MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE = 20
 
 export type StadiumMosaicDensity = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
 
@@ -131,6 +133,31 @@ export function stadiumMosaicHoleCardScale(
   density?: StadiumMosaicDensity
 ): number {
   return MOSAIC_HOLE_CARD_SCALE_AT_REFERENCE * stadiumMosaicScaleForWidth(tableWidthPx, density)
+}
+
+/** Uniform hole-card width on venue mosaic felts (all seats on one table). */
+export function stadiumMosaicHoleCardWidthPx(
+  tableWidthPx: number,
+  density?: StadiumMosaicDensity
+): number {
+  return Math.max(
+    9,
+    Math.round(MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE * stadiumMosaicScaleForWidth(tableWidthPx, density))
+  )
+}
+
+/** Hole-card height at 5:7 aspect. */
+export function stadiumMosaicHoleCardHeightPx(
+  tableWidthPx: number,
+  density?: StadiumMosaicDensity
+): number {
+  const w = stadiumMosaicHoleCardWidthPx(tableWidthPx, density)
+  return Math.max(13, Math.round((w * 7) / 5))
+}
+
+/** Horizontal overlap between fanned mosaic hole cards. */
+export function stadiumMosaicHoleCardOverlapPx(cardWidthPx: number): number {
+  return Math.max(3, Math.round(cardWidthPx * 0.36))
 }
 
 /** Cupholder diameter proportional to rendered table width. */

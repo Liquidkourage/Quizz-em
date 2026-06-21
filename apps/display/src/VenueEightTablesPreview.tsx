@@ -14,6 +14,9 @@ import {
   stadiumHoleCardScale,
   stadiumMosaicCupholderSizePx,
   stadiumMosaicHoleCardScale,
+  stadiumMosaicHoleCardWidthPx,
+  stadiumMosaicHoleCardHeightPx,
+  stadiumMosaicHoleCardOverlapPx,
   stadiumSeatPointPx,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
@@ -296,55 +299,104 @@ function padSeatHoleDigits(
 
 const SEAT_LAYER_FELT_HOLE = 'z-[19]'
 
-/** Digit card for mosaic felts — scales with @container on the ring. */
+/** Community / center board card — scales with @container on the ring. */
 function MosaicDigitCard({
   digit,
   dimmed = false,
   faceDown = false,
   size = 'hole',
-  className = '',
+  widthPx,
+  heightPx,
 }: {
   digit?: number
   dimmed?: boolean
   faceDown?: boolean
   size?: 'hole' | 'community'
-  className?: string
+  widthPx?: number
+  heightPx?: number
 }) {
   const sizeClass =
     size === 'community'
       ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(1.4rem,10.3cqw,2.45rem)] shrink-0'
-      : 'h-[clamp(1.2rem,10.5cqw,1.85rem)] w-[clamp(0.85rem,7.35cqw,1.32rem)] shrink-0'
+      : undefined
+  const sizeStyle =
+    widthPx != null && heightPx != null ? { width: widthPx, height: heightPx } : undefined
   return (
     <CardFaceGraphic
       digit={digit ?? 0}
       faceDown={faceDown}
       dimmed={dimmed}
-      className={`${sizeClass} ${className}`.trim()}
+      className={sizeClass ?? 'block shrink-0'}
+      style={sizeStyle}
       alt=""
       aria-hidden
     />
   )
 }
 
-/** Two fanned face-down hole cards for mosaic tiles — rail edge anchored, SVG backs. */
-function MosaicHoleCardPair({ rotateDeg }: { rotateDeg: number }) {
-  const fan = MOSAIC_HOLE_CARD_FAN_DEG
-  const overlap = '-ml-[clamp(0.22rem,1.85cqw,0.42rem)]'
+/** Face-down hole card at a fixed pixel size (uniform per table). */
+function MosaicHoleCard({
+  widthPx,
+  heightPx,
+  fanDeg = 0,
+  overlapPx = 0,
+}: {
+  widthPx: number
+  heightPx: number
+  fanDeg?: number
+  overlapPx?: number
+}) {
   return (
     <div
-      className="pointer-events-none flex items-end justify-center"
+      className="shrink-0"
+      style={{
+        width: widthPx,
+        height: heightPx,
+        marginLeft: overlapPx,
+        transform: fanDeg !== 0 ? `rotate(${fanDeg}deg)` : undefined,
+        transformOrigin: '50% 50%',
+      }}
+    >
+      <CardFaceGraphic
+        faceDown
+        digit={0}
+        className="block h-full w-full"
+        alt=""
+        aria-hidden
+      />
+    </div>
+  )
+}
+
+/** Two fanned face-down hole cards — fixed px size, centered on layout point. */
+function MosaicHoleCardPair({
+  rotateDeg,
+  cardWidthPx,
+  cardHeightPx,
+  overlapPx,
+}: {
+  rotateDeg: number
+  cardWidthPx: number
+  cardHeightPx: number
+  overlapPx: number
+}) {
+  const fan = MOSAIC_HOLE_CARD_FAN_DEG
+  return (
+    <div
+      className="pointer-events-none flex items-center justify-center"
       style={{
         transform: `rotate(${rotateDeg}deg)`,
-        transformOrigin: '50% 100%',
+        transformOrigin: '50% 50%',
       }}
       aria-hidden
     >
-      <div className="origin-bottom" style={{ transform: `rotate(-${fan}deg)` }}>
-        <MosaicDigitCard size="hole" faceDown />
-      </div>
-      <div className={`origin-bottom ${overlap}`} style={{ transform: `rotate(${fan}deg)` }}>
-        <MosaicDigitCard size="hole" faceDown />
-      </div>
+      <MosaicHoleCard widthPx={cardWidthPx} heightPx={cardHeightPx} fanDeg={-fan} />
+      <MosaicHoleCard
+        widthPx={cardWidthPx}
+        heightPx={cardHeightPx}
+        fanDeg={fan}
+        overlapPx={-overlapPx}
+      />
     </div>
   )
 }
@@ -865,6 +917,15 @@ function SeatRingWithLabels({
   const holeCardScale = isMosaic
     ? stadiumMosaicHoleCardScale(rimW, mosaicDensityTier)
     : stadiumHoleCardScale(rimW)
+  const mosaicHoleCardW = isMosaic
+    ? stadiumMosaicHoleCardWidthPx(rimW, mosaicDensityTier)
+    : 0
+  const mosaicHoleCardH = isMosaic
+    ? stadiumMosaicHoleCardHeightPx(rimW, mosaicDensityTier)
+    : 0
+  const mosaicHoleCardOverlap = isMosaic
+    ? stadiumMosaicHoleCardOverlapPx(mosaicHoleCardW)
+    : 0
   /** Physical seat slots (0–7) — always distribute around the full eight-seat stadium. */
   const seatCountForLayout = VENUE_SEAT_SLOTS
 
@@ -1045,12 +1106,17 @@ function SeatRingWithLabels({
                 style={{
                   left: `${holeLayout.leftPct}%`,
                   top: `${holeLayout.topPct}%`,
-                  transform: isMosaic ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
+                  transform: 'translate(-50%, -50%)',
                 }}
                 aria-label="Two hole cards"
               >
                 {isMosaic ? (
-                  <MosaicHoleCardPair rotateDeg={holeLayout.rotateDeg} />
+                  <MosaicHoleCardPair
+                    rotateDeg={holeLayout.rotateDeg}
+                    cardWidthPx={mosaicHoleCardW}
+                    cardHeightPx={mosaicHoleCardH}
+                    overlapPx={mosaicHoleCardOverlap}
+                  />
                 ) : (
                   <FeltHoleCardPair
                     rotateDeg={holeLayout.rotateDeg}

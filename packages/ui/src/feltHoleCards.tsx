@@ -60,6 +60,7 @@ export function FeltHoleCardPair({
             faceDown={faceDown}
             animated={animated}
             backDesign="star"
+            compact
           />
         </div>
       ))}

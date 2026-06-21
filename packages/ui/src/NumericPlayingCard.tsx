@@ -17,6 +17,7 @@ export function NumericPlayingCard({
   style = 'neon',
   neonVariant = 'matrix',
   backDesign = 'star',
+  compact = false,
 }: {
   digit: number
   size?: 'small' | 'normal' | 'large'
@@ -26,6 +27,8 @@ export function NumericPlayingCard({
   style?: 'glass' | 'solid' | 'gradient' | 'neon'
   neonVariant?: 'standard' | 'pulse' | 'flicker' | 'rainbow' | 'matrix'
   backDesign?: 'spade' | 'diamond' | 'club' | 'heart' | 'star' | 'crown' | 'joker' | 'geometric' | 'circuit' | 'cosmic' | 'neon'
+  /** Drop outer margin — use on felt / scaled hole-card pairs. */
+  compact?: boolean
 }) {
   void variant
   void style
@@ -35,10 +38,17 @@ export function NumericPlayingCard({
   const styles = SIZE_STYLES[size]
   const CardRoot = animated ? motion.div : 'div'
 
+  const shellStyle = compact
+    ? { width: styles.width, height: styles.height, margin: 0, borderRadius: '12px', position: 'relative' as const, overflow: 'hidden' as const, boxShadow: '0 4px 16px rgba(0,0,0,0.45)' }
+    : { width: styles.width, height: styles.height, margin: '10px', borderRadius: '12px', position: 'relative' as const, overflow: 'hidden' as const, boxShadow: '0 4px 16px rgba(0,0,0,0.45)' }
+
   if (faceDown) {
+    const backStyle = compact
+      ? { width: styles.width, height: styles.height, margin: 0, borderRadius: '12px', position: 'relative' as const, overflow: 'hidden' as const, boxShadow: '0 4px 16px rgba(0,0,0,0.45)' }
+      : cardBackShellStyle(styles.width, styles.height)
     return (
       <CardRoot
-        style={cardBackShellStyle(styles.width, styles.height)}
+        style={backStyle}
         initial={animated ? { rotateY: 180, opacity: 0 } : undefined}
         animate={animated ? { rotateY: 180, opacity: 1 } : undefined}
         transition={animated ? { type: 'spring', stiffness: 200, damping: 18 } : undefined}
@@ -51,15 +61,7 @@ export function NumericPlayingCard({
 
   return (
     <CardRoot
-      style={{
-        width: styles.width,
-        height: styles.height,
-        margin: '10px',
-        borderRadius: '12px',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.45)',
-      }}
+      style={shellStyle}
       initial={animated ? { rotateY: -10, opacity: 0 } : undefined}
       animate={animated ? { rotateY: 0, opacity: 1 } : undefined}
       transition={animated ? { type: 'spring', stiffness: 200, damping: 18 } : undefined}

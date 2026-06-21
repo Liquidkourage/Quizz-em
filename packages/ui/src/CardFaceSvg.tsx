@@ -24,7 +24,7 @@ export function CardFaceSvg({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={style}
-      aria-hidden
+      shapeRendering="geometricPrecision"
       {...props}
     >
       <defs>

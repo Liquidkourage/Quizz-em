@@ -302,25 +302,47 @@ function MosaicDigitCard({
   dimmed = false,
   faceDown = false,
   size = 'hole',
+  className = '',
 }: {
   digit?: number
   dimmed?: boolean
   faceDown?: boolean
   size?: 'hole' | 'community'
+  className?: string
 }) {
   const sizeClass =
     size === 'community'
       ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(1.4rem,10.3cqw,2.45rem)] shrink-0'
-      : 'h-[clamp(1.1rem,7.4cqw,1.75rem)] w-[clamp(0.8rem,5.3cqw,1.3rem)] shrink-0'
+      : 'h-[clamp(1.2rem,10.5cqw,1.85rem)] w-[clamp(0.85rem,7.35cqw,1.32rem)] shrink-0'
   return (
     <CardFaceGraphic
       digit={digit ?? 0}
       faceDown={faceDown}
       dimmed={dimmed}
-      className={`rounded-[3px] shadow-sm ${sizeClass}`}
+      className={`rounded-[3px] shadow-[0_1px_4px_rgba(0,0,0,0.65)] ${sizeClass} ${className}`.trim()}
       alt=""
       aria-hidden
     />
+  )
+}
+
+/** Two fanned hole cards for mosaic tiles — no hero margins, face-up digits. */
+function MosaicHoleCardPair({
+  digits,
+  rotateDeg,
+}: {
+  digits: readonly [number, number]
+  rotateDeg: number
+}) {
+  return (
+    <div
+      className="flex items-end justify-center"
+      style={{ transform: `rotate(${rotateDeg}deg)` }}
+      aria-hidden
+    >
+      <MosaicDigitCard digit={digits[0]} size="hole" />
+      <MosaicDigitCard digit={digits[1]} size="hole" className="-ml-[clamp(0.22rem,1.85cqw,0.42rem)]" />
+    </div>
   )
 }
 
@@ -1024,12 +1046,19 @@ function SeatRingWithLabels({
                 }}
                 aria-label="Two hole cards"
               >
-                <FeltHoleCardPair
-                  rotateDeg={holeLayout.rotateDeg}
-                  scale={holeCardScale}
-                  faceDown
-                  digits={seatHoleDigits[i]}
-                />
+                {isMosaic ? (
+                  <MosaicHoleCardPair
+                    digits={seatHoleDigits[i]!}
+                    rotateDeg={holeLayout.rotateDeg}
+                  />
+                ) : (
+                  <FeltHoleCardPair
+                    rotateDeg={holeLayout.rotateDeg}
+                    scale={holeCardScale}
+                    faceDown={false}
+                    digits={seatHoleDigits[i]}
+                  />
+                )}
               </div>
             ) : null}
             {isMosaic ? null : (() => {

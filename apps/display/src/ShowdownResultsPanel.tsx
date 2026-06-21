@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { formatTriviaNumber } from '@qhe/core'
-import { PokerChip } from '@qhe/ui'
+import { PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import {
   formatHoleDigits,
   sortShowdownRowsByDistance,
@@ -21,6 +21,49 @@ type ShowdownResultsPanelProps = {
   winnerName?: string
   compact?: boolean
   className?: string
+}
+
+const SHOWDOWN_SEAT_SLOTS = 8
+
+function seatInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  return parts
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+function showdownRowsToStadiumSeats(
+  rows: ShowdownResultRow[],
+  winnerKeys: ReadonlySet<string>,
+  compact: boolean
+): StadiumTableSeat[] {
+  return rows
+    .filter((r) => r.name.trim() !== '')
+    .map((row) => {
+      const isWinner = winnerKeys.has(`${row.seat}:${row.name}`)
+      return {
+        index: row.seat - 1,
+        label: seatInitials(row.name),
+        labelClassName: compact ? 'text-[7px] font-black' : 'text-[8px] font-black sm:text-[9px]',
+        state: row.hasFolded ? 'folded' : isWinner ? 'winner' : 'default',
+        holeDigits: row.holes,
+        faceDown: false,
+        holeVariant: isWinner ? 'gold' : 'cyan',
+        'aria-label': `${row.name}, seat ${row.seat}`,
+        nameTag: (
+          <span
+            className={`max-w-full truncate font-bold text-white ${
+              compact ? 'text-[0.55rem] leading-none' : 'text-xs leading-tight'
+            }`}
+          >
+            {row.name}
+          </span>
+        ),
+      }
+    })
 }
 
 function DigitChip({
@@ -97,35 +140,6 @@ function BoardPickChips({
       {slots.map((digit, i) => (
         <DigitChip key={i} digit={digit} active={chosen.has(i)} size={size} />
       ))}
-    </motion.div>
-  )
-}
-
-function SharedCommunityBoard({
-  board,
-  className = '',
-}: {
-  board: readonly number[] | null
-  className?: string
-}) {
-  if (board == null || board.length === 0) return null
-  return (
-    <motion.div
-      className={`flex flex-wrap items-center justify-center gap-3 rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 sm:px-4 ${className}`}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <p className={`font-bold uppercase tracking-[0.16em] text-amber-200/75 ${DISPLAY_TEXT_SECONDARY}`}>
-        The board
-      </p>
-      <motion.div className="flex items-center gap-1">
-        {board.slice(0, 5).map((digit, i) => (
-          <DigitChip key={i} digit={digit} active size="md" />
-        ))}
-      </motion.div>
-      <p className={`hidden text-white/40 sm:block ${DISPLAY_TEXT_SECONDARY}`}>
-        Highlighted picks in each row
-      </p>
     </motion.div>
   )
 }
@@ -278,6 +292,7 @@ export default function ShowdownResultsPanel({
   const { rows: sorted, winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '')
   const sharedBoard = activeRows[0]?.communityBoard ?? null
+  const stadiumSeats = showdownRowsToStadiumSeats(activeRows, winnerKeys, compact)
 
   if (compact) {
     return (
@@ -295,6 +310,13 @@ export default function ShowdownResultsPanel({
             {formatTriviaNumber(correctAnswer)}
           </p>
         </motion.div>
+        <StadiumTableSeats
+          seatCount={SHOWDOWN_SEAT_SLOTS}
+          seats={stadiumSeats}
+          hideEmptySeats
+          communityDigits={sharedBoard ?? undefined}
+          aspectClassName="aspect-[8/5] w-full"
+        />
         <motion.div className="max-h-52 space-y-1 overflow-y-auto overscroll-y-contain" role="group">
           {activeRows.map((row, idx) => (
             <PlayerShowdownRow
@@ -348,7 +370,13 @@ export default function ShowdownResultsPanel({
           </motion.div>
         ) : null}
 
-        <SharedCommunityBoard board={sharedBoard} />
+        <StadiumTableSeats
+          seatCount={SHOWDOWN_SEAT_SLOTS}
+          seats={stadiumSeats}
+          hideEmptySeats
+          communityDigits={sharedBoard ?? undefined}
+          aspectClassName="aspect-[14/8] w-full max-w-3xl mx-auto"
+        />
 
         {/* Column labels — desktop */}
         <motion.div

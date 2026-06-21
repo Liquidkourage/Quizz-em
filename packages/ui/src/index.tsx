@@ -254,6 +254,7 @@ export {
   type SeatCupholderState,
 } from './tableGraphics';
 export { FeltHoleCardPair, type FeltHoleCardPairProps } from './feltHoleCards';
+export { StadiumTableSeats, type StadiumTableSeat, type StadiumTableSeatsProps } from './StadiumTableSeats';
 export {
   capsuleBoundaryHitPx,
   capsuleOuterBoundaryHitPx,
@@ -272,6 +273,7 @@ export {
   STADIUM_HOLE_CARDS_RADIAL,
   STADIUM_BLIND_BADGE_RADIAL,
   STADIUM_CHIP_STACK_RADIAL,
+  STADIUM_NAME_LABEL_RADIAL,
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumSeatPoint,
 } from './stadiumSeatLayout';

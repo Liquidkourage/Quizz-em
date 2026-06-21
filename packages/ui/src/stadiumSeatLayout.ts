@@ -83,6 +83,9 @@ export const STADIUM_BLIND_BADGE_RADIAL = 0.92
 /** Chip stacks on the felt between hole cards and the pot. */
 export const STADIUM_CHIP_STACK_RADIAL = 0.58
 
+/** Player name / bankroll tags just outside the rail. */
+export const STADIUM_NAME_LABEL_RADIAL = 1.06
+
 const CUPHOLDER_WIDTH_FRAC = 32 / STADIUM_REFERENCE_TABLE_WIDTH_PX
 const HOLE_CARD_SCALE_AT_REFERENCE = 0.58
 const HOLE_CARD_OVERLAP_AT_REFERENCE_PX = -30

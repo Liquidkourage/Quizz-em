@@ -1,7 +1,7 @@
+import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { formatTriviaNumber } from '@qhe/core'
-import { PokerChip } from '@qhe/ui'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
+import { PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import {
   sortShowdownRowsByDistance,
   type ShowdownResultRow,
@@ -9,12 +9,13 @@ import {
 import type { ShowdownWallDensity } from './showdownWallLayout'
 import { SHOWDOWN_FELT_STYLE } from './showdownTheme'
 
+const VENUE_SEAT_SLOTS = 8
+
 type ShowdownTableCardProps = {
   tableNum: number
   correctAnswer: number | undefined
   pot: number
   rows: ShowdownResultRow[]
-  /** Scales typography and player layout for the full-screen venue wall grid. */
   density?: ShowdownWallDensity
   className?: string
 }
@@ -23,105 +24,71 @@ function formatChipPayout(amount: number): string {
   return `+$${amount.toLocaleString()}`
 }
 
-/** One player cell in the per-table results grid — readable at venue-wall scale. */
-function PlayerResultTile({
-  row,
-  correctAnswer,
-  isWinner,
-  density,
-}: {
-  row: ShowdownResultRow
-  correctAnswer: number | undefined
-  isWinner: boolean
-  density: ShowdownWallDensity
-}) {
-  const compact = density === 'compact'
-  const hasGuess =
-    !row.hasFolded && row.submitted != null && typeof correctAnswer === 'number'
-  const distance =
-    hasGuess && typeof correctAnswer === 'number'
-      ? Math.abs(row.submitted! - correctAnswer)
-      : null
-
-  return (
-    <div
-      className={`grid min-w-0 grid-rows-[auto_auto_auto] gap-1 rounded-lg border ${
-        compact ? 'p-1.5' : 'gap-1.5 p-2'
-      } ${
-        isWinner
-          ? 'border-amber-400/60 bg-gradient-to-b from-amber-950/55 to-amber-950/25 shadow-[inset_0_0_0_1px_rgba(251,191,36,0.2)]'
-          : 'border-white/12 bg-black/35'
-      }`}
-      aria-label={`${row.name}, seat ${row.seat}`}
-    >
-      <div className="flex min-w-0 items-center gap-1.5">
-        <span
-          className={`flex shrink-0 items-center justify-center rounded-full font-mono font-black tabular-nums ${
-            compact ? 'h-6 w-6 text-[0.65rem]' : 'h-8 w-8 text-xs sm:text-sm'
-          } ${isWinner ? 'bg-amber-500/30 text-amber-50' : 'bg-black/45 text-white/75'}`}
-        >
-          {row.seat}
-        </span>
-        <p
-          className={`min-w-0 flex-1 truncate font-bold leading-tight text-white ${
-            compact ? 'text-xs' : 'text-sm sm:text-base'
-          }`}
-        >
-          {row.name}
-        </p>
-        {isWinner && !compact ? <PokerChip size="sm" className="shrink-0 opacity-90" /> : null}
-      </div>
-
-      {!compact ? (
-        <ShowdownFiveCardsUsed row={row} size="md" />
-      ) : null}
-
-      <div
-        className={`grid items-end gap-x-2 ${
-          row.chipPayout != null && row.chipPayout > 0 ? 'grid-cols-[1fr_auto]' : 'grid-cols-1'
-        }`}
-      >
-        <div className="min-w-0 leading-none">
-          <p
-            className={`font-mono font-black tabular-nums text-amber-50 ${
-              compact ? 'text-base' : 'text-xl sm:text-2xl'
-            }`}
-          >
-            {hasGuess ? formatTriviaNumber(row.submitted) : '—'}
-          </p>
-          {distance != null ? (
-            <p
-              className={`mt-0.5 font-mono font-bold tabular-nums ${
-                compact ? 'text-[0.65rem]' : 'text-xs'
-              } ${isWinner ? 'text-emerald-300' : 'text-white/45'}`}
-            >
-              ±{formatTriviaNumber(distance)}
-            </p>
-          ) : null}
-        </div>
-        {row.chipPayout != null && row.chipPayout > 0 ? (
-          <p
-            className={`shrink-0 font-mono font-black tabular-nums text-emerald-300 ${
-              compact ? 'text-xs' : 'text-sm sm:text-base'
-            }`}
-          >
-            {formatChipPayout(row.chipPayout)}
-          </p>
-        ) : null}
-      </div>
-    </div>
-  )
+function seatInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  return parts
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
-function playerGridColumns(playerCount: number, density: ShowdownWallDensity): number {
-  if (density === 'full') {
-    if (playerCount <= 2) return playerCount
-    if (playerCount <= 4) return 2
-    if (playerCount <= 6) return 3
-    return 2
-  }
-  /** Venue wall with many tables: always 2-wide player grid inside each felt. */
-  return 2
+function rowsToStadiumSeats(
+  rows: ShowdownResultRow[],
+  winnerKeys: ReadonlySet<string>,
+  correctAnswer: number | undefined,
+  compact: boolean
+): StadiumTableSeat[] {
+  return rows.map((row) => {
+    const key = `${row.seat}:${row.name}`
+    const isWinner = winnerKeys.has(key)
+    const hasGuess =
+      !row.hasFolded && row.submitted != null && typeof correctAnswer === 'number'
+    const distance =
+      hasGuess && typeof correctAnswer === 'number'
+        ? Math.abs(row.submitted! - correctAnswer)
+        : null
+
+    const tagText = compact ? 'text-[0.55rem] leading-none' : 'text-[0.62rem] sm:text-xs leading-tight'
+    const guessText = compact ? 'text-[0.65rem]' : 'text-sm sm:text-base'
+
+    return {
+      index: row.seat - 1,
+      label: seatInitials(row.name),
+      labelClassName: compact
+        ? 'text-[7px] font-black'
+        : 'text-[8px] font-black sm:text-[9px]',
+      state: row.hasFolded ? 'folded' : isWinner ? 'winner' : 'default',
+      holeDigits: row.holes,
+      faceDown: false,
+      holeVariant: isWinner ? 'gold' : 'cyan',
+      'aria-label': `${row.name}, seat ${row.seat}${isWinner ? ', winner' : ''}`,
+      nameTag: (
+        <>
+          <span className={`max-w-full truncate font-bold text-white ${tagText}`}>{row.name}</span>
+          <span className={`font-mono font-black tabular-nums text-amber-100 ${guessText}`}>
+            {hasGuess ? formatTriviaNumber(row.submitted) : '—'}
+          </span>
+          {distance != null ? (
+            <span
+              className={`font-mono font-bold tabular-nums ${tagText} ${
+                isWinner ? 'text-emerald-300' : 'text-white/45'
+              }`}
+            >
+              ±{formatTriviaNumber(distance)}
+            </span>
+          ) : null}
+          {row.chipPayout != null && row.chipPayout > 0 ? (
+            <span className={`font-mono font-black tabular-nums text-emerald-300 ${tagText}`}>
+              {formatChipPayout(row.chipPayout)}
+            </span>
+          ) : null}
+        </>
+      ),
+      nameTagClassName: isWinner ? 'drop-shadow-[0_0_6px_rgba(251,191,36,0.45)]' : undefined,
+    }
+  })
 }
 
 export default function ShowdownTableCard({
@@ -134,11 +101,16 @@ export default function ShowdownTableCard({
 }: ShowdownTableCardProps) {
   const { rows: sorted, winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '' && !r.hasFolded)
-  const displayRows = activeRows
   const winnerRows = activeRows.filter((r) => winnerKeys.has(`${r.seat}:${r.name}`))
   const compact = density === 'compact'
-  const playerCols = playerGridColumns(displayRows.length, density)
   const potShown = typeof pot === 'number' && Number.isFinite(pot) && pot > 0 ? Math.round(pot) : 0
+
+  const communityBoard = activeRows[0]?.communityBoard ?? null
+
+  const stadiumSeats = useMemo(
+    () => rowsToStadiumSeats(sorted.filter((r) => r.name.trim() !== ''), winnerKeys, correctAnswer, compact),
+    [sorted, winnerKeys, correctAnswer, compact]
+  )
 
   return (
     <motion.article
@@ -200,26 +172,28 @@ export default function ShowdownTableCard({
       ) : null}
 
       <div
-        className={`min-h-0 flex-1 overflow-y-auto overscroll-y-contain ${compact ? 'p-1.5' : 'p-2 sm:p-2.5'}`}
+        className={`min-h-0 flex-1 p-1.5 sm:p-2 ${compact ? '' : 'sm:p-2.5'}`}
         role="group"
         aria-label={`Table ${tableNum} showdown results`}
       >
-        <div
-          className={`grid ${compact ? 'gap-1.5' : 'gap-2 sm:gap-2.5'}`}
-          style={{
-            gridTemplateColumns: `repeat(${playerCols}, minmax(0, 1fr))`,
-          }}
-        >
-          {displayRows.map((row) => (
-            <PlayerResultTile
-              key={`${row.seat}:${row.name}`}
-              row={row}
-              correctAnswer={correctAnswer}
-              isWinner={winnerKeys.has(`${row.seat}:${row.name}`)}
-              density={density}
-            />
-          ))}
-        </div>
+        <StadiumTableSeats
+          seatCount={VENUE_SEAT_SLOTS}
+          seats={stadiumSeats}
+          hideEmptySeats
+          communityDigits={communityBoard ?? undefined}
+          aspectClassName={compact ? 'aspect-[8/5] h-full min-h-0' : 'aspect-[8/5] h-full min-h-0'}
+          centerContent={
+            potShown > 0 ? (
+              <span
+                className={`rounded border border-yellow-500/40 bg-black/55 px-1.5 py-0.5 font-mono font-black tabular-nums text-yellow-200 ${
+                  compact ? 'text-[0.55rem]' : 'text-xs'
+                }`}
+              >
+                ${potShown.toLocaleString()}
+              </span>
+            ) : null
+          }
+        />
       </div>
     </motion.article>
   )

@@ -43,7 +43,7 @@ import AnswerComposer from './components/AnswerComposer'
 import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
 import AnswerMobileDock from './components/AnswerMobileDock'
-import OtherPlayersGrid from './components/OtherPlayersGrid'
+import TableFeltView from './components/TableFeltView'
 
 function PlayerApp() {
   const [joinPrefs, setJoinPrefs] = useState<PlayerJoinPrefs>(() => readPlayerJoinPrefs())
@@ -228,7 +228,7 @@ function PlayerApp() {
 
         {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
 
-        <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} />
+        <GameInfoCard gameState={gameState} />
 
         {currentPlayer ? <RevealShowdownPanel gameState={gameState} currentPlayer={currentPlayer} /> : null}
 
@@ -278,7 +278,7 @@ function PlayerApp() {
           ) : null}
         </div>
 
-        <OtherPlayersGrid gameState={gameState} playerName={playerName} />
+        <TableFeltView gameState={gameState} playerName={playerName} />
       </div>
 
       {needsMobileBetDock && bettingCtx && currentPlayer ? (

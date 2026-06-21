@@ -143,9 +143,9 @@ function MosaicBungeeDollarAmount({
 }
 
 function mosaicBungeeDollarColorClass(muted: 'dim' | 'faint' | 'live' | undefined): string {
-  if (muted === 'faint') return 'text-yellow-300/40'
-  if (muted === 'dim') return 'text-yellow-300/75'
-  return 'text-yellow-200'
+  if (muted === 'faint') return 'vfd-mosaic-dollar--faint'
+  if (muted === 'dim') return 'vfd-mosaic-dollar--dim'
+  return 'vfd-mosaic-dollar--live'
 }
 
 /** Pot dollars — pulses when the venue snapshot posts a new amount. */
@@ -1581,7 +1581,7 @@ function VenueMosaicTableCard({
                 <span className={mosaicTypography.toCallLabel}>To Call:</span>
                 <MosaicBungeeDollarAmount
                   amount={Math.max(0, Math.floor(row.actingCallAmount ?? 0))}
-                  className={`${mosaicTypography.toCallAmount} text-yellow-200`}
+                  className={`${mosaicTypography.toCallAmount} vfd-mosaic-dollar--live`}
                 />
               </p>
             ) : null}

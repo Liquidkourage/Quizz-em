@@ -174,7 +174,7 @@ const MOSAIC_TABLE_NUM_BASE = 'leading-none tabular-nums'
 const MOSAIC_TO_CALL_LABEL_BASE =
   'leading-none tracking-tight text-amber-100/92'
 const MOSAIC_TO_CALL_AMOUNT_BASE =
-  'leading-none tabular-nums text-yellow-300'
+  'leading-none tabular-nums'
 
 const MOSAIC_TYPOGRAPHY_CLASSES: Omit<VenueFloorMosaicTypography, 'rootClass' | 'noMoreBetsOffsetClass'> =
   {

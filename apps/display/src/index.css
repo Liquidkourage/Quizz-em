@@ -413,6 +413,18 @@
     font-size: 1em;
   }
 
+  .vfd-mosaic-dollar--live {
+    color: #e2ad1a;
+  }
+
+  .vfd-mosaic-dollar--dim {
+    color: rgb(226 173 26 / 0.78);
+  }
+
+  .vfd-mosaic-dollar--faint {
+    color: rgb(226 173 26 / 0.42);
+  }
+
   .vfd-mosaic-title-row {
     min-height: var(--vfd-title-row-min-h);
     align-items: center;

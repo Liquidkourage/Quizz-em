@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { QuizzEmWordmark } from '@qhe/ui'
+import { CupholderGraphic, PokerTableGraphic, QuizzEmWordmark } from '@qhe/ui'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -49,7 +49,7 @@ import {
   VENUE_FLOOR_MOSAIC_HEADER_TYPE,
   VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS,
 } from './venueFloorGridLayout'
-import { capsuleBorderRadiusCss, capsuleBoundaryHitPx } from './tableRimGeometry'
+import { capsuleBoundaryHitPx } from './tableRimGeometry'
 import { nowOnServerClock } from './serverClock'
 
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
@@ -386,14 +386,12 @@ function seatBettingActionPillClass(action: SeatBettingAction): string {
 
 /** Mini-table wrapper aspect (width / height). */
 const VENUE_RING_ASPECT_MD = 8 / 5
-const VENUE_RING_ASPECT_LG = 14 / 8
 
 /** Amber rail — mosaic uses full wrapper; full mode insets slightly. */
 const VENUE_RAIL_INSET_TOP = 0.02
 const VENUE_RAIL_INSET_RIGHT = 0.02
 const VENUE_RAIL_INSET_BOTTOM = 0.02
 const VENUE_RAIL_INSET_LEFT = 0.02
-const VENUE_RAIL_INSET_MOSAIC = 0
 
 /** Green felt inset inside the rail. */
 const VENUE_FELT_INSET_TOP = 0.1
@@ -809,12 +807,6 @@ function SeatRingWithLabels({
     communityDigitsIn?.filter((d) => Number.isInteger(d) && d >= 0 && d <= 9) ?? []
   const prefersReducedMotion = usePrefersReducedMotion()
   const isMosaic = ringMode === 'mosaic'
-  const ringAspect = size === 'lg' ? VENUE_RING_ASPECT_LG : VENUE_RING_ASPECT_MD
-  const railInsetTop = isMosaic ? VENUE_RAIL_INSET_MOSAIC : VENUE_RAIL_INSET_TOP
-  const railInsetRight = isMosaic ? VENUE_RAIL_INSET_MOSAIC : VENUE_RAIL_INSET_RIGHT
-  const railInsetBottom = isMosaic ? VENUE_RAIL_INSET_MOSAIC : VENUE_RAIL_INSET_BOTTOM
-  const railInsetLeft = isMosaic ? VENUE_RAIL_INSET_MOSAIC : VENUE_RAIL_INSET_LEFT
-  const feltBounds = venueFeltBoundsFrac()
   /** Spotlight hero — wide capsule; mosaic tiles use smaller md ring below. */
   const lgRing =
     'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
@@ -892,19 +884,6 @@ function SeatRingWithLabels({
 
   const rimW = ringPx.w
   const rimH = ringPx.h
-  const railW = rimW * (1 - railInsetLeft - railInsetRight)
-  const railH = rimH * (1 - railInsetTop - railInsetBottom)
-  const railBorderRadius =
-    railW > 0 && railH > 0
-      ? capsuleBorderRadiusCss(railW, railH)
-      : capsuleBorderRadiusCss(220 * ringAspect, 220)
-  const feltBorderRadius =
-    rimW > 0 && rimH > 0
-      ? capsuleBorderRadiusCss(
-          rimW * feltBounds.innerW,
-          rimH * feltBounds.innerH
-        )
-      : railBorderRadius
 
   const showFeltBoardCenter =
     isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)
@@ -925,58 +904,16 @@ function SeatRingWithLabels({
 
   return (
     <div ref={ringElRef} className={`@container relative ${isMosaic ? 'overflow-hidden' : 'overflow-visible'} ${wrap}`} style={ringWrapStyle}>
-      <div
-        className={`absolute border-amber-700/90 shadow-md ${
-          size === 'lg'
-            ? 'border-2 bg-gradient-to-br from-amber-900 via-amber-800 to-amber-950 sm:border-[3px]'
-            : 'border-2 bg-gradient-to-br from-amber-900 via-amber-800 to-amber-950'
-        }`}
-        style={{
-          top: `${railInsetTop * 100}%`,
-          right: `${railInsetRight * 100}%`,
-          bottom: `${railInsetBottom * 100}%`,
-          left: `${railInsetLeft * 100}%`,
-          borderRadius: railBorderRadius,
-        }}
-      />
-      <div
-        className={`absolute shadow-inner ${
-          size === 'lg' ? 'border-2 sm:border-[3px]' : 'border-2'
-        } ${
-          isMosaic && betsInPaused
-            ? 'border-transparent brightness-[0.72] saturate-[0.45]'
-            : 'border-amber-700/70'
-        }`}
-        style={{
-          top: `${VENUE_FELT_INSET_TOP * 100}%`,
-          right: `${VENUE_FELT_INSET_RIGHT * 100}%`,
-          bottom: `${VENUE_FELT_INSET_BOTTOM * 100}%`,
-          left: `${VENUE_FELT_INSET_LEFT * 100}%`,
-          borderRadius: feltBorderRadius,
-          background: isMosaic && betsInPaused
-            ? 'linear-gradient(135deg, #1a4a30 0%, #0f2818 100%)'
-            : `
-            repeating-linear-gradient(
-              45deg,
-              #245c36 0px,
-              #245c36 2px,
-              #1b4528 2px,
-              #1b4528 4px
-            ),
-            linear-gradient(135deg, #2d7a4a, #1e502e)
-            `,
-        }}
-      />
+      <div className="absolute inset-0" aria-hidden>
+        <PokerTableGraphic
+          className={`h-full w-full drop-shadow-md ${
+            isMosaic && betsInPaused ? 'brightness-[0.72] saturate-[0.45]' : ''
+          }`}
+        />
+      </div>
       {isMosaic && betsInPaused ? (
         <div
-          className="pointer-events-none absolute z-[11] bg-emerald-500/12"
-          style={{
-            top: `${VENUE_FELT_INSET_TOP * 100}%`,
-            right: `${VENUE_FELT_INSET_RIGHT * 100}%`,
-            bottom: `${VENUE_FELT_INSET_BOTTOM * 100}%`,
-            left: `${VENUE_FELT_INSET_LEFT * 100}%`,
-            borderRadius: feltBorderRadius,
-          }}
+          className="pointer-events-none absolute inset-0 z-[11] bg-emerald-500/12"
           aria-hidden
         />
       ) : null}
@@ -1038,23 +975,6 @@ function SeatRingWithLabels({
         /** Below the name/stack cluster — keeps CHECK / CALL off the felt center. */
         const actionPanelBelowPx =
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
-        const seatDotClass = (() => {
-          if (isActing) {
-            return prefersReducedMotion
-              ? 'border-[3px] border-amber-400/95 bg-white shadow-[0_0_14px_rgba(234,179,8,0.4)]'
-              : 'border-[3px] border-amber-400/90 bg-white shadow-[0_0_14px_rgba(234,179,8,0.35)] ring-1 ring-amber-400/25'
-          }
-          if (answerLocked) {
-            return 'border-[3px] border-cyan-300/95 bg-cyan-950/90 shadow-[0_0_14px_rgba(34,211,238,0.55)] ring-2 ring-cyan-400/50'
-          }
-          if (isWinner) {
-            return 'border-[3px] border-amber-300/95 bg-amber-950/95 shadow-[0_0_14px_rgba(251,191,36,0.5)] ring-2 ring-amber-400/45'
-          }
-          if (isFolded) {
-            return 'border-rose-500/50 bg-black/50 shadow-inner opacity-[0.78] saturate-[0.7]'
-          }
-          return filled ? 'border-emerald-300/70 bg-black/85' : 'border-white/20 bg-black/35'
-        })()
         const actingSoftPulse = isMosaic
           ? 'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden'
           : size === 'lg'
@@ -1090,9 +1010,15 @@ function SeatRingWithLabels({
                 />
               ) : null}
               <div
-                className={`relative z-[2] flex shrink-0 items-center justify-center ${
-                  isMosaic ? '' : isActing || answerLocked || isWinner ? dotActing : dot
-                } rounded-full border-2 shadow ${seatDotClass}`}
+                className={`relative z-[2] shrink-0 overflow-hidden rounded-full shadow ${
+                  isActing
+                    ? 'ring-2 ring-amber-400/90 shadow-[0_0_14px_rgba(234,179,8,0.35)]'
+                    : answerLocked
+                      ? 'ring-2 ring-cyan-400/50 shadow-[0_0_14px_rgba(34,211,238,0.55)]'
+                      : isWinner
+                        ? 'ring-2 ring-amber-400/45 shadow-[0_0_14px_rgba(251,191,36,0.5)]'
+                        : ''
+                } ${isMosaic ? '' : isActing || answerLocked || isWinner ? dotActing : dot}`}
                 style={
                   isMosaic
                     ? {
@@ -1119,9 +1045,10 @@ function SeatRingWithLabels({
                     : `Seat ${i + 1}, empty`
                 }
               >
+                <CupholderGraphic dimmed={isFolded || !filled} className="h-full w-full" />
                 {isMosaic && filled && mosaicInitials ? (
                   <span
-                    className={`block w-full min-w-0 truncate px-0.5 text-center font-black leading-none tracking-tight ${
+                    className={`absolute inset-0 flex items-center justify-center truncate px-0.5 text-center font-black leading-none tracking-tight ${
                       isActing ? 'text-black' : 'text-amber-50'
                     } ${mosaicSeatInitialsClass(mosaicDensity)}`}
                   >

@@ -1,9 +1,8 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { CupholderGraphic, PokerTableGraphic } from '@qhe/ui'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
-import { capsuleBorderRadiusCss } from './tableRimGeometry'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
-const FELT_INSET = { top: 0.1, right: 0.06, bottom: 0.13, left: 0.06 }
 const FELT_ASPECT = 8 / 5
 
 function splitSeatingDisplayName(name: string): { given: string; suffix: string } {
@@ -11,53 +10,6 @@ function splitSeatingDisplayName(name: string): { given: string; suffix: string 
   const match = trimmed.match(/^(.+?)\s+([A-Za-z]\.?)$/)
   if (match) return { given: match[1]!, suffix: match[2]! }
   return { given: trimmed, suffix: '' }
-}
-
-function SeatingMiniFelt({
-  widthPx,
-  heightPx,
-}: {
-  widthPx: number
-  heightPx: number
-}) {
-  const railRadius =
-    widthPx > 0 && heightPx > 0 ? capsuleBorderRadiusCss(widthPx, heightPx) : '50% / 50%'
-  const feltRadius =
-    widthPx > 0 && heightPx > 0
-      ? capsuleBorderRadiusCss(
-          widthPx * (1 - FELT_INSET.left - FELT_INSET.right),
-          heightPx * (1 - FELT_INSET.top - FELT_INSET.bottom)
-        )
-      : '50% / 50%'
-
-  return (
-    <>
-      <div
-        className="absolute inset-0 border border-amber-700/85 bg-gradient-to-br from-amber-900 via-amber-800 to-amber-950 shadow-md"
-        style={{ borderRadius: railRadius }}
-      />
-      <div
-        className="absolute border border-amber-700/60 shadow-inner"
-        style={{
-          top: `${FELT_INSET.top * 100}%`,
-          right: `${FELT_INSET.right * 100}%`,
-          bottom: `${FELT_INSET.bottom * 100}%`,
-          left: `${FELT_INSET.left * 100}%`,
-          borderRadius: feltRadius,
-          background: `
-            repeating-linear-gradient(
-              45deg,
-              #245c36 0px,
-              #245c36 2px,
-              #1b4528 2px,
-              #1b4528 4px
-            ),
-            linear-gradient(135deg, #2d7a4a, #1e502e)
-          `,
-        }}
-      />
-    </>
-  )
 }
 
 /** Reference diagram — all eight seat numbers at physical positions around a small felt. */
@@ -95,7 +47,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
           className="absolute"
           style={{ left: feltLeft, top: feltTop, width: feltW, height: feltH }}
         >
-          <SeatingMiniFelt widthPx={feltW} heightPx={feltH} />
+          <PokerTableGraphic className="h-full w-full drop-shadow-md" />
         </div>
       ) : null}
 
@@ -111,15 +63,18 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
           return (
             <div
               key={seatNum}
-              className={`absolute flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border font-mono text-[9px] font-black tabular-nums sm:h-6 sm:w-6 sm:text-[10px] ${
-                filled
-                  ? 'border-emerald-300/80 bg-neutral-950/95 text-amber-50 shadow-sm ring-1 ring-emerald-400/25'
-                  : 'border-white/20 bg-slate-950/70 text-white/35'
-              }`}
+              className="absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 sm:h-6 sm:w-6"
               style={{ left, top }}
               aria-hidden
             >
-              {seatNum}
+              <CupholderGraphic dimmed={!filled} className="h-full w-full" />
+              <span
+                className={`absolute inset-0 flex items-center justify-center font-mono text-[9px] font-black tabular-nums sm:text-[10px] ${
+                  filled ? 'text-amber-50' : 'text-white/35'
+                }`}
+              >
+                {seatNum}
+              </span>
             </div>
           )
         })}
@@ -149,8 +104,11 @@ export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
             key={seat.seatNum}
             className="flex min-h-0 min-w-0 items-center gap-2 rounded-md bg-white/[0.045] px-2 py-1.5 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-2"
           >
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-300/70 bg-neutral-950/95 font-mono text-[9px] font-black tabular-nums text-amber-50 sm:h-7 sm:w-7 sm:text-[10px]">
-              {seat.seatNum}
+            <span className="relative flex h-6 w-6 shrink-0 items-center justify-center sm:h-7 sm:w-7">
+              <CupholderGraphic className="absolute inset-0" />
+              <span className="relative font-mono text-[9px] font-black tabular-nums text-amber-50 sm:text-[10px]">
+                {seat.seatNum}
+              </span>
             </span>
             <span className="min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm">
               {given}

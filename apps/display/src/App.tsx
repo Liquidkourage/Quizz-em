@@ -1,7 +1,7 @@
 ﻿import { Fragment, useEffect, useState, useCallback, useRef, useLayoutEffect, useMemo } from 'react'
 import type { RefObject } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { NumericPlayingCard, PokerChip } from '@qhe/ui'
+import { NumericPlayingCard, PokerChip, PokerTableGraphic, CupholderGraphic } from '@qhe/ui'
 import { onState, onToast, onDealingCards, onDealingCommunityCards, type DisplayVenueTileSnapshot } from '@qhe/net'
 import type { GameState, GamePhase, PlayerState, SeatBettingAction, NumericCard } from '@qhe/core'
 import {
@@ -1934,67 +1934,35 @@ function DisplayTableLive({
             className="absolute left-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
             style={{ top: `calc(50% + ${displayTableLiftPx}px)` }}
           >
-            {/* Table shadow */}
             <div
-              className="absolute inset-0 rounded-full bg-black/40 blur-lg transform translate-y-2"
+              className="absolute inset-0 translate-y-2 rounded-full bg-black/40 blur-lg"
               style={{ width: HERO_RAIL_SHADOW_W_PX, height: HERO_RAIL_SHADOW_H_PX }}
             />
-            
-            {/* Table base/rail */}
+
             <div
-              className="bg-gradient-to-br from-amber-800 via-amber-700 to-amber-900 rounded-full border-8 border-amber-600 shadow-2xl relative"
+              className="relative"
               style={{ width: HERO_RAIL_W_PX, height: HERO_RAIL_H_PX }}
             >
-                            {/* FELT SURFACE - Direct application to rail padding */}
-              <div
-                className="absolute inset-2 rounded-full border-4 border-amber-500"
-                style={{
-                  background: `
-                    repeating-linear-gradient(
-                      45deg,
-                      #2d5a3d 0px,
-                      #2d5a3d 2px,
-                      #1f4429 2px,
-                      #1f4429 4px
-                    ),
-                    repeating-linear-gradient(
-                      -45deg,
-                      transparent 0px,
-                      transparent 2px,
-                      rgba(0, 0, 0, 0.15) 2px,
-                      rgba(0, 0, 0, 0.15) 4px
-                    ),
-                    linear-gradient(135deg, #2d7a4a, #1e5a33, #2d7a4a)
-                  `,
-                  backgroundSize: '4px 4px, 4px 4px, 100% 100%'
-                }}
-              >
-                {/* Table markings - betting lines */}
-                <div className="absolute inset-8 border-2 border-white/20 rounded-full"></div>
-                <div className="absolute inset-12 border border-white/10 rounded-full"></div>
-              </div>
-                
+              <PokerTableGraphic className="absolute inset-0 h-full w-full drop-shadow-2xl" />
 
-
-              {/* Cup holders centered on the middle rail stripe - one per player */}
               {displayGameState.players.map((_, index) => {
                 const { leftPx, topPx } = heroSeatRimPx(index, displayGameState.players.length)
                 const actingHere = heroBettingHud.acting === index && heroBettingHud.open
                 return (
                   <div
                     key={`cupholder-${index}`}
-                    className={
-                      actingHere
-                        ? 'absolute z-[125] bg-amber-800 rounded-full border-2 border-cyan-300 ring-2 ring-cyan-400/70 shadow-[0_0_16px_rgba(34,211,238,0.45)] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center'
-                        : 'absolute z-[120] bg-amber-800 rounded-full border-2 border-amber-600 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center'
-                    }
+                    className={`absolute z-[120] -translate-x-1/2 -translate-y-1/2 ${
+                      actingHere ? 'z-[125] ring-2 ring-cyan-400/70 rounded-full shadow-[0_0_16px_rgba(34,211,238,0.45)]' : ''
+                    }`}
                     style={{
                       left: `${leftPx}px`,
                       top: `${topPx}px`,
                       width: '32px',
                       height: '32px',
                     }}
-                  />
+                  >
+                    <CupholderGraphic className="h-full w-full" />
+                  </div>
                 )
               })}
 

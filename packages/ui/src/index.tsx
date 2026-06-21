@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 import { PokerChip } from './PokerChip';
+import { CardBackGraphic, cardBackShellStyle } from './tableGraphics';
 
 export function NeonButton({ 
   children, 
@@ -283,236 +284,19 @@ export function NumericPlayingCard({
   const styles = sizeStyles[size];
   const colors = variantColors[variant];
 
-  // Card back designs
+  // Card back — official artwork asset
   if (faceDown) {
-    const backDesigns = {
-      spade: '♠',
-      diamond: '♦',
-      club: '♣',
-      heart: '♥',
-      star: '✦',
-      crown: '👑',
-      joker: '🃏',
-      geometric: '◆',
-      circuit: '⚡',
-      cosmic: '⭐',
-      neon: '✦',
-    };
-
-    const backPatterns = {
-      spade: `repeating-linear-gradient(
-        45deg,
-        ${colors.accent}20,
-        ${colors.accent}20 2px,
-        transparent 2px,
-        transparent 8px
-      )`,
-      diamond: `radial-gradient(
-        circle at 25% 25%,
-        ${colors.accent}15 1px,
-        transparent 1px
-      ),
-      radial-gradient(
-        circle at 75% 75%,
-        ${colors.accent}15 1px,
-        transparent 1px
-      )`,
-      club: `repeating-linear-gradient(
-        30deg,
-        ${colors.accent}18,
-        ${colors.accent}18 3px,
-        transparent 3px,
-        transparent 6px
-      )`,
-      heart: `conic-gradient(
-        from 0deg,
-        ${colors.accent}40,
-        transparent 60deg,
-        ${colors.accent}40,
-        transparent 120deg,
-        ${colors.accent}40,
-        transparent 180deg,
-        ${colors.accent}40,
-        transparent 240deg,
-        ${colors.accent}40,
-        transparent 300deg,
-        ${colors.accent}40
-      )`,
-      star: `conic-gradient(
-        from 0deg,
-        rgba(0,255,180,0.4),
-        transparent 60deg,
-        rgba(0,255,180,0.4),
-        transparent 120deg,
-        rgba(0,255,180,0.4),
-        transparent 180deg,
-        rgba(0,255,180,0.4),
-        transparent 240deg,
-        rgba(0,255,180,0.4),
-        transparent 300deg,
-        rgba(0,255,180,0.4)
-      )`,
-      crown: `linear-gradient(
-        45deg,
-        ${colors.accent}20 25%,
-        transparent 25%,
-        transparent 75%,
-        ${colors.accent}20 75%
-      )`,
-      joker: `repeating-linear-gradient(
-        45deg,
-        ${colors.accent}15,
-        ${colors.accent}15 1px,
-        transparent 1px,
-        transparent 2px
-      ),
-      repeating-linear-gradient(
-        -45deg,
-        ${colors.accent}15,
-        ${colors.accent}15 1px,
-        transparent 1px,
-        transparent 2px
-      )`,
-      geometric: `repeating-linear-gradient(
-        45deg,
-        ${colors.accent}15 0px,
-        ${colors.accent}15 1px,
-        transparent 1px,
-        transparent 6px
-      ),
-      repeating-linear-gradient(
-        -45deg,
-        ${colors.accent}15 0px,
-        ${colors.accent}15 1px,
-        transparent 1px,
-        transparent 6px
-      )`,
-      circuit: `repeating-linear-gradient(
-        90deg,
-        ${colors.accent}12,
-        ${colors.accent}12 1px,
-        transparent 1px,
-        transparent 3px
-      ),
-      repeating-linear-gradient(
-        0deg,
-        ${colors.accent}12,
-        ${colors.accent}12 1px,
-        transparent 1px,
-        transparent 3px
-      )`,
-      cosmic: `radial-gradient(
-        circle at 20% 20%,
-        ${colors.accent}30 2px,
-        transparent 2px
-      ),
-      radial-gradient(
-        circle at 80% 80%,
-        ${colors.accent}25 2px,
-        transparent 2px
-      ),
-      radial-gradient(
-        circle at 40% 60%,
-        ${colors.accent}20 2px,
-        transparent 2px
-      ),
-      radial-gradient(
-        circle at 60% 40%,
-        ${colors.accent}22 2px,
-        transparent 2px
-      ),
-      radial-gradient(
-        circle at 10% 50%,
-        ${colors.accent}15 1px,
-        transparent 1px
-      ),
-      radial-gradient(
-        circle at 90% 50%,
-        ${colors.accent}15 1px,
-        transparent 1px
-      )`,
-      neon: `repeating-linear-gradient(
-        45deg,
-        ${colors.accent}25,
-        ${colors.accent}25 2px,
-        transparent 2px,
-        transparent 4px
-      ),
-      repeating-linear-gradient(
-        -45deg,
-        ${colors.accent}20,
-        ${colors.accent}20 1px,
-        transparent 1px,
-        transparent 3px
-      )`,
-    };
-
-    const backStyle = {
-      width: styles.width,
-      height: styles.height,
-      background: 'linear-gradient(135deg, #0f1a2e, #1a2e4a, #0f1a2e)',
-      border: `2px solid ${colors.border}`,
-      borderRadius: '12px',
-      position: 'relative' as const,
-      overflow: 'hidden' as const,
-      margin: '10px',
-      boxShadow: `0 0 20px ${colors.glow}`,
-    };
-
     const CardRoot = animated ? motion.div : 'div';
 
     return (
       <CardRoot
-        style={{
-          width: styles.width,
-          height: styles.height,
-          margin: '10px',
-          background: 'linear-gradient(135deg, #0f1a2e, #1a2e4a, #0f1a2e)',
-          border: `2px solid ${colors.border}`,
-          borderRadius: '12px',
-          position: 'relative',
-          overflow: 'hidden',
-          boxShadow: `0 0 20px ${colors.glow}`,
-        }}
+        style={cardBackShellStyle(styles.width, styles.height)}
         initial={animated ? { rotateY: 180, opacity: 0 } : undefined}
         animate={animated ? { rotateY: 180, opacity: 1 } : undefined}
         transition={animated ? { type: 'spring', stiffness: 200, damping: 18 } : undefined}
         whileHover={animated ? { scale: 1.05 } : undefined}
       >
-        {/* Card back pattern */}
-        <div style={{
-          position: 'absolute',
-          inset: '4px',
-          background: backPatterns[backDesign],
-          borderRadius: '8px',
-        }} />
-        
-        {/* Center logo */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '20px',
-          color: colors.accent,
-          fontWeight: 'bold',
-          transform: 'translateY(5px)',
-        }}>
-          <div style={{
-            background: 'rgba(0,0,0,0.4)',
-            borderRadius: '50%',
-            width: '32px',
-            height: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: `2px solid ${colors.accent}`,
-            boxShadow: `0 0 15px ${colors.accent}`,
-          }}>
-            {backDesigns[backDesign]}
-          </div>
-        </div>
+        <CardBackGraphic className="absolute inset-0" />
       </CardRoot>
     );
   }
@@ -644,4 +428,10 @@ export function NumericPlayingCard({
 
 export { PokerChip };
 export { QuizzEmWordmark, type QuizzEmWordmarkProps } from './QuizzEmWordmark';
+export {
+  PokerTableGraphic,
+  CupholderGraphic,
+  CardBackGraphic,
+  CARD_BACK_IMAGE_SRC,
+} from './tableGraphics';
 export default {};

@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
+import { ShowdownLaurelWreath } from './ShowdownLaurelWreath'
 import {
   pickShowdownFloorChipRow,
   sortShowdownRowsByDistance,
@@ -109,7 +110,17 @@ const ANSWER_GAP = 'pt-[clamp(0.2rem,2cqw,0.45rem)]'
 
 function GuessBlock({ chipRow }: { chipRow: ShowdownResultRow | null }) {
   if (!chipRow) return null
-  return <ShowdownFiveCardsUsed row={chipRow} size="floor" />
+  return (
+    <div
+      className="relative flex w-full max-w-full items-center justify-center"
+      data-showdown-laurel-wrap
+    >
+      <ShowdownLaurelWreath className="absolute inset-x-[2%] top-[-18%] h-[clamp(2.4rem,34cqw,4.5rem)] w-[min(100%,26rem)] max-w-none -translate-y-[8%]" />
+      <div className="relative z-10 w-full px-[10%] pt-[clamp(0.55rem,4.5cqw,1rem)]">
+        <ShowdownFiveCardsUsed row={chipRow} size="floor" />
+      </div>
+    </div>
+  )
 }
 
 function ShowdownWinnerCardContent({ ctx }: { ctx: FloorShowdownCtx }) {

@@ -1,7 +1,7 @@
 import type { CSSProperties, ImgHTMLAttributes, ReactNode, SVGAttributes } from 'react'
 import { clsx } from 'clsx'
 import { CardBackSvg } from './CardBackSvg'
-import pokerTableImg from './assets/poker-table.png'
+import pokerTableImg from './assets/poker-table.svg'
 import cupholderImg from './assets/cupholder.png'
 import cardBackImg from './assets/card-back.png'
 

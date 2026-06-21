@@ -1429,7 +1429,7 @@ function VenueMosaicTableCard({
             </span>
           ) : (
             <div
-              className={`shrink-0 font-black tabular-nums leading-tight text-yellow-400 ${floorSize.tableNumClass}`}
+              className={`shrink-0 tabular-nums leading-tight text-yellow-400 ${floorSize.tableNumClass} ${mosaicTypography.tableNum}`}
             >
               {tn}
             </div>
@@ -1457,7 +1457,7 @@ function VenueMosaicTableCard({
               <VenuePotAmount
                 amount={pot}
                 prefersReducedMotion={prefersReducedMotion}
-                className={`block truncate font-mono font-black tabular-nums leading-tight tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${
+                className={`block truncate tabular-nums leading-tight tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] ${floorSize.potClass} ${mosaicTypography.feltPot} ${
                   ph === 'lobby' || ph === 'question'
                     ? pot > 0
                       ? 'text-yellow-300/75'

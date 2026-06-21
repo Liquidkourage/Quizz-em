@@ -122,7 +122,7 @@ export type VenueFloorTableSize = 'hero' | 'large' | 'medium' | 'compact' | 'mic
 /** Mosaic card chrome — structural classes only; font sizes come from `--vfd-*` utilities. */
 export const VENUE_FLOOR_MOSAIC_CHROME = {
   tableNumBadge:
-    'inline-flex min-w-[1.5rem] items-center justify-center rounded-md border-2 border-yellow-400/80 bg-gradient-to-b from-yellow-800/95 to-yellow-950 px-1.5 py-px font-black tabular-nums leading-none text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.4)]',
+    'inline-flex min-w-[1.5rem] items-center justify-center rounded-md border-2 border-yellow-400/80 bg-gradient-to-b from-yellow-800/95 to-yellow-950 px-1.5 py-px tabular-nums leading-none text-yellow-100 shadow-[0_0_14px_rgba(251,191,36,0.4)]',
   headerRow: 'items-center overflow-visible py-0 leading-none',
 } as const
 
@@ -134,9 +134,9 @@ export const VENUE_FLOOR_MOSAIC_CHROME = {
 export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   ...VENUE_FLOOR_MOSAIC_CHROME,
   /** Non-dense mosaic only — dense cards use `.vfd-mosaic-table-num`. */
-  tableNum: 'text-[clamp(18px,2.55vmin,26px)] font-black leading-none',
+  tableNum: 'text-[clamp(18px,2.55vmin,26px)] vfd-mosaic-table-num leading-none',
   /** Non-dense mosaic only — dense cards use header pot row, not this class. */
-  pot: 'text-[clamp(16px,2.15vmin,22px)] font-mono font-black leading-none',
+  pot: 'text-[clamp(16px,2.15vmin,22px)] vfd-mosaic-stack leading-none',
   phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
   seatInitials: 'vfd-mosaic-seat-initial',
   toCallFooterRow: 'vfd-mosaic-footer-row',
@@ -168,13 +168,13 @@ export type VenueFloorMosaicTypography = {
 }
 
 const MOSAIC_ACTING_NAME_BASE =
-  'truncate font-bold leading-none tracking-tight text-[rgba(245,245,240,0.96)]'
-const MOSAIC_FELT_POT_BASE = 'font-mono font-black leading-none'
-const MOSAIC_TABLE_NUM_BASE = 'font-black leading-none tabular-nums'
+  'truncate leading-none tracking-tight text-[rgba(245,245,240,0.96)]'
+const MOSAIC_FELT_POT_BASE = 'leading-none'
+const MOSAIC_TABLE_NUM_BASE = 'leading-none tabular-nums'
 const MOSAIC_TO_CALL_LABEL_BASE =
-  'font-bold leading-none tracking-tight text-amber-100/92'
+  'leading-none tracking-tight text-amber-100/92'
 const MOSAIC_TO_CALL_AMOUNT_BASE =
-  'font-mono font-extrabold leading-none tabular-nums text-yellow-300'
+  'leading-none tabular-nums text-yellow-300'
 
 const MOSAIC_TYPOGRAPHY_CLASSES: Omit<VenueFloorMosaicTypography, 'rootClass' | 'noMoreBetsOffsetClass'> =
   {

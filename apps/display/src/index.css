@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Montserrat:ital,wght@1,600;1,700;1,800&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -351,7 +351,7 @@
     --vfd-blinds-amount-size: 34px;
   }
 
-  /** Mosaic card typography — font-size via CSS vars (not Tailwind text-[var] which maps to color). */
+  /** Mosaic card typography — sizes via CSS vars; Bungee dollars, Montserrat Italic labels. */
   .vfd-mosaic-player-name {
     font-size: var(--vfd-player-name-size);
   }
@@ -370,6 +370,24 @@
 
   .vfd-mosaic-to-call-amount {
     font-size: var(--vfd-to-call-amount-size);
+  }
+
+  .vfd-mosaic-player-name,
+  .vfd-mosaic-table-num,
+  .vfd-mosaic-to-call-label,
+  .vfd-mosaic-seat-initial,
+  .vfd-mosaic-watermark {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-style: italic;
+    font-weight: 700;
+  }
+
+  .vfd-mosaic-stack,
+  .vfd-mosaic-to-call-amount {
+    font-family: 'Bungee', system-ui, sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-variant-numeric: tabular-nums;
   }
 
   .vfd-mosaic-title-row {
@@ -400,7 +418,6 @@
     white-space: nowrap;
     text-align: center;
     font-size: var(--vfd-watermark-size);
-    font-weight: 900;
     text-transform: uppercase;
     line-height: 1;
     letter-spacing: 0.12em;

@@ -16,7 +16,7 @@ function DigitChip({
   size?: ShowdownChipSize
 }) {
   void variant
-  const dim =
+  const shellClass =
     size === 'floor'
       ? 'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0'
       : size === 'floor-compact'
@@ -29,12 +29,14 @@ function DigitChip({
               ? 'h-6 w-[1.125rem] shrink-0'
               : 'h-7 w-[1.35rem] shrink-0'
   return (
-    <CardFaceGraphic
-      digit={digit}
-      dimmed={variant === 'inactive'}
-      className={`rounded-[3px] shadow-sm ${dim}`}
-      alt={`${digit}`}
-    />
+    <div className={shellClass}>
+      <CardFaceGraphic
+        digit={digit}
+        dimmed={variant === 'inactive'}
+        className="block h-full w-full rounded-[3px] shadow-sm"
+        alt={`${digit}`}
+      />
+    </div>
   )
 }
 

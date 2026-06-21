@@ -75,17 +75,19 @@ function DigitChip({
   active: boolean
   size?: 'sm' | 'md'
 }) {
-  const dim =
+  const shellClass =
     size === 'sm'
       ? 'h-6 w-[1.05rem] shrink-0'
       : 'h-7 w-[1.22rem] shrink-0'
   return (
-    <CardFaceGraphic
-      digit={digit}
-      dimmed={!active}
-      className={`rounded-[3px] shadow-sm ${dim}`}
-      alt={`${digit}`}
-    />
+    <div className={shellClass}>
+      <CardFaceGraphic
+        digit={digit}
+        dimmed={!active}
+        className="block h-full w-full rounded-[3px] shadow-sm"
+        alt={`${digit}`}
+      />
+    </div>
   )
 }
 

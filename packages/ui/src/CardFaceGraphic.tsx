@@ -29,7 +29,7 @@ export function CardFaceGraphic({
     return (
       <CardBackSvg
         className={clsx(
-          'pointer-events-none block h-full w-full select-none',
+          'pointer-events-none block select-none',
           dimmed && 'opacity-45 saturate-[0.65]',
           className
         )}
@@ -51,7 +51,7 @@ export function CardFaceGraphic({
       aria-hidden={decorative ? true : undefined}
       aria-label={decorative ? undefined : resolvedAlt}
       className={clsx(
-        'pointer-events-none block h-full w-full select-none',
+        'pointer-events-none block select-none',
         dimmed && 'opacity-40 saturate-[0.55]',
         className
       )}

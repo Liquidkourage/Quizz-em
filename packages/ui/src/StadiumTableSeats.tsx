@@ -101,18 +101,19 @@ export function StadiumTableSeats({
           {centerContent}
           {communityDigits != null && communityDigits.length > 0 ? (
             <div className="flex items-center gap-0.5">
-              {communityDigits.slice(0, 5).map((digit, i) => (
-                <CardFaceGraphic
-                  key={i}
-                  digit={digit}
-                  className="shrink-0 rounded-[3px] shadow-sm"
-                  style={{
-                    width: Math.max(14, cupSizePx * 0.55),
-                    height: Math.max(20, cupSizePx * 0.77),
-                  }}
-                  alt=""
-                />
-              ))}
+              {communityDigits.slice(0, 5).map((digit, i) => {
+                const cardW = Math.max(14, cupSizePx * 0.55)
+                const cardH = Math.max(20, cupSizePx * 0.77)
+                return (
+                  <div key={i} className="shrink-0" style={{ width: cardW, height: cardH }}>
+                    <CardFaceGraphic
+                      digit={digit}
+                      className="block h-full w-full rounded-[3px] shadow-sm"
+                      alt=""
+                    />
+                  </div>
+                )
+              })}
             </div>
           ) : null}
         </div>

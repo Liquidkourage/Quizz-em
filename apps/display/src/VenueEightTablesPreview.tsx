@@ -334,41 +334,7 @@ function MosaicDigitCard({
   )
 }
 
-/** Face-down hole card at a fixed pixel size (uniform per table). */
-function MosaicHoleCard({
-  widthPx,
-  heightPx,
-  fanDeg = 0,
-  overlapPx = 0,
-}: {
-  widthPx: number
-  heightPx: number
-  fanDeg?: number
-  overlapPx?: number
-}) {
-  return (
-    <div
-      className="shrink-0"
-      style={{
-        width: widthPx,
-        height: heightPx,
-        marginLeft: overlapPx,
-        transform: fanDeg !== 0 ? `rotate(${fanDeg}deg)` : undefined,
-        transformOrigin: '50% 50%',
-      }}
-    >
-      <CardFaceGraphic
-        faceDown
-        digit={0}
-        className="block h-full w-full"
-        alt=""
-        aria-hidden
-      />
-    </div>
-  )
-}
-
-/** Two fanned face-down hole cards — fixed px size, centered on layout point. */
+/** Two fanned face-down hole cards — rail edge pinned, fan opens toward the pot. */
 function MosaicHoleCardPair({
   rotateDeg,
   cardWidthPx,
@@ -381,22 +347,32 @@ function MosaicHoleCardPair({
   overlapPx: number
 }) {
   const fan = MOSAIC_HOLE_CARD_FAN_DEG
+  const cardShell = (fanDeg: number, overlap = 0) => (
+    <div
+      className="shrink-0"
+      style={{
+        width: cardWidthPx,
+        height: cardHeightPx,
+        marginLeft: overlap,
+        transformOrigin: '50% 100%',
+        transform: fanDeg !== 0 ? `rotate(${fanDeg}deg)` : undefined,
+      }}
+    >
+      <CardFaceGraphic faceDown digit={0} className="block h-full w-full" alt="" aria-hidden />
+    </div>
+  )
+
   return (
     <div
-      className="pointer-events-none flex items-center justify-center"
+      className="pointer-events-none flex items-end justify-center"
       style={{
         transform: `rotate(${rotateDeg}deg)`,
-        transformOrigin: '50% 50%',
+        transformOrigin: '50% 100%',
       }}
       aria-hidden
     >
-      <MosaicHoleCard widthPx={cardWidthPx} heightPx={cardHeightPx} fanDeg={-fan} />
-      <MosaicHoleCard
-        widthPx={cardWidthPx}
-        heightPx={cardHeightPx}
-        fanDeg={fan}
-        overlapPx={-overlapPx}
-      />
+      {cardShell(fan)}
+      {cardShell(-fan, -overlapPx)}
     </div>
   )
 }
@@ -1106,7 +1082,7 @@ function SeatRingWithLabels({
                 style={{
                   left: `${holeLayout.leftPct}%`,
                   top: `${holeLayout.topPct}%`,
-                  transform: 'translate(-50%, -50%)',
+                  transform: isMosaic ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
                 }}
                 aria-label="Two hole cards"
               >

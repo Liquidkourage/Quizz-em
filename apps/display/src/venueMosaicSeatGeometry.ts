@@ -18,11 +18,11 @@ const VENUE_FELT_INSET_LEFT = 0.06
 /** Pull cupholder centers slightly inward from the rail midline (px at authoring scale). */
 const MOSAIC_SEAT_RAIL_INSET_PX = 12
 
-/** Hole cards: fraction from cup toward felt center — keeps backs on green felt inside rail. */
-const MOSAIC_HOLE_CARD_INWARD_FRAC = 0.26
+/** Hole cards: fraction from cup toward felt center — fully on green, below rail lip. */
+const MOSAIC_HOLE_CARD_INWARD_FRAC = 0.42
 
-/** Small fan on each hole card (degrees). */
-export const MOSAIC_HOLE_CARD_FAN_DEG = 5
+/** Fan each card from the rail edge; wider spread toward the pot. */
+export const MOSAIC_HOLE_CARD_FAN_DEG = 8
 
 function mosaicRailRectPx(w: number, h: number) {
   const ww = w > 0 ? w : MOSAIC_RING_FALLBACK_W_PX

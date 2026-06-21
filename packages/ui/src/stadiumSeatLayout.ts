@@ -96,7 +96,7 @@ export const STADIUM_MOSAIC_REFERENCE_WIDTH_PX = 220
 const MOSAIC_CUPHOLDER_PX_AT_REFERENCE = 32
 const MOSAIC_HOLE_CARD_SCALE_AT_REFERENCE = 0.38
 /** Hole-card width on mosaic felts at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX}. */
-const MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE = 20
+const MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE = 16
 
 export type StadiumMosaicDensity = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
 
@@ -141,7 +141,7 @@ export function stadiumMosaicHoleCardWidthPx(
   density?: StadiumMosaicDensity
 ): number {
   return Math.max(
-    9,
+    8,
     Math.round(MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE * stadiumMosaicScaleForWidth(tableWidthPx, density))
   )
 }

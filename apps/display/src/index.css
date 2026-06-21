@@ -83,28 +83,32 @@
   }
 
   .vfd-showdown-stage-slot--header {
-    top: 9.5%;
+    top: 11.5%;
     width: 72%;
   }
 
-  .vfd-showdown-stage-slot--cards {
-    top: 27%;
-    width: 88%;
-  }
-
-  .vfd-showdown-stage-slot--pot {
-    top: 50.5%;
-    width: 54%;
-  }
-
+  /** Laurel upper band — name sits directly under WINNER (Carla M. comp). */
   .vfd-showdown-stage-slot--name {
-    top: 63.8%;
-    width: 44%;
+    top: 17.5%;
+    width: 78%;
   }
 
+  /** Gold pot below name, still inside laurel. */
+  .vfd-showdown-stage-slot--pot {
+    top: 25.5%;
+    width: 70%;
+  }
+
+  /** Five cards below pot, centered in laurel void. */
+  .vfd-showdown-stage-slot--cards {
+    top: 36%;
+    width: 86%;
+  }
+
+  /** Podium front plaque — not the bottom ornate frame. */
   .vfd-showdown-stage-slot--difference {
-    top: 84.2%;
-    width: 40%;
+    top: 65.5%;
+    width: 42%;
   }
 
   .vfd-showdown-difference-value {

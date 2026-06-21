@@ -36,7 +36,7 @@ function ShowdownStagePotAmount({ amount, each = false }: { amount: number; each
   return (
     <div className="flex items-baseline justify-center gap-[0.3em]">
       <span
-        className="vfd-mosaic-stack vfd-mosaic-dollar vfd-mosaic-dollar--live leading-none text-[clamp(0.82rem,9.5cqw,1.55rem)]"
+        className="vfd-mosaic-stack vfd-mosaic-dollar vfd-mosaic-dollar--live leading-none text-[clamp(0.95rem,11cqw,1.85rem)]"
         aria-label={`$${digits}`}
       >
         <span className="vfd-mosaic-dollar-sign" aria-hidden>
@@ -58,7 +58,7 @@ function ShowdownStageName({ names }: { names: readonly string[] }) {
 
   if (names.length === 1) {
     return (
-      <p className="max-w-full truncate font-black leading-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)] text-[clamp(0.52rem,5.8cqw,0.95rem)]">
+      <p className="max-w-full truncate font-black leading-tight text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)] text-[clamp(0.62rem,7.2cqw,1.1rem)]">
         {names[0]}
       </p>
     )
@@ -138,6 +138,16 @@ function ShowdownStageTemplate({
 
         <ShowdownStageHeader title={headerTitle} />
 
+        <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--name">
+          <ShowdownStageName names={names} />
+        </div>
+
+        {pot > 0 ? (
+          <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--pot">
+            <ShowdownStagePotAmount amount={pot} each={each} />
+          </div>
+        ) : null}
+
         <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--cards">
           {showSideLedger ? (
             <div className="flex w-full flex-col items-center gap-[0.15em] px-[2%]">
@@ -149,16 +159,6 @@ function ShowdownStageTemplate({
           ) : (
             <span className="text-[0.5rem] text-white/30">—</span>
           )}
-        </div>
-
-        {pot > 0 ? (
-          <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--pot">
-            <ShowdownStagePotAmount amount={pot} each={each} />
-          </div>
-        ) : null}
-
-        <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--name">
-          <ShowdownStageName names={names} />
         </div>
 
         {difference != null ? <ShowdownStageDifference value={difference} /> : null}

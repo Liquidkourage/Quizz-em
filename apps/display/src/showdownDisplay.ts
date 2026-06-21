@@ -51,6 +51,61 @@ function inferCompositionForShowdown(
   return inferAnswerComposition(hand, community, submitted)
 }
 
+function compositionsEqual(
+  a: readonly AnswerCardPick[],
+  b: readonly AnswerCardPick[]
+): boolean {
+  if (a.length !== b.length) return false
+  return a.every((pick, i) => pick.source === b[i]!.source && pick.index === b[i]!.index)
+}
+
+function holePairForCompositionOnTile(
+  tile: DisplayVenueTileSnapshot,
+  composition: readonly AnswerCardPick[]
+): readonly [number, number] | null {
+  const comps = tile.seatAnswerCompositions
+  const holes = tile.seatHoleDigits
+  if (comps != null && holes != null) {
+    for (let i = 0; i < comps.length; i++) {
+      const stored = comps[i]
+      if (stored != null && compositionsEqual(stored, composition)) {
+        const h = holes[i]
+        if (
+          h != null &&
+          h.length >= 2 &&
+          typeof h[0] === 'number' &&
+          typeof h[1] === 'number'
+        ) {
+          return [h[0], h[1]]
+        }
+      }
+    }
+  }
+  if (holes != null) {
+    for (const h of holes) {
+      if (h == null || h.length < 2) continue
+      if (typeof h[0] === 'number' && typeof h[1] === 'number') {
+        return [h[0], h[1]]
+      }
+    }
+  }
+  return null
+}
+
+function compositionForTileSeat(
+  tile: DisplayVenueTileSnapshot,
+  seatIndex: number,
+  holePair: readonly [number, number] | null,
+  communityBoard: readonly number[] | null,
+  submitted: number | null
+): readonly AnswerCardPick[] | null {
+  const stored = tile.seatAnswerCompositions?.[seatIndex]
+  if (stored != null && stored.length === PLAYER_ANSWER_DIGIT_CARD_COUNT) {
+    return stored
+  }
+  return inferCompositionForShowdown(holePair, communityBoard, submitted)
+}
+
 /** Map stored/inferred composition to the five digits actually used (not both holes by default). */
 export function cardsUsedFromComposition(
   composition: readonly AnswerCardPick[] | null | undefined,
@@ -131,7 +186,8 @@ export function resolveVenueShowdownAnswer(
 /** Build digit-chip row for the authoritative answer on a felt with a full board. */
 export function showdownCorrectAnswerRowFromTile(
   tile: DisplayVenueTileSnapshot,
-  answer: number
+  answer: number,
+  compositionOverride?: readonly AnswerCardPick[] | null
 ): ShowdownResultRow | null {
   if (!Number.isFinite(answer)) return null
   const communityBoard = communityBoardFromTile(tile)
@@ -139,7 +195,14 @@ export function showdownCorrectAnswerRowFromTile(
 
   let holePair: readonly [number, number] | null = null
   const holeDigits = tile.seatHoleDigits
-  if (holeDigits != null) {
+  const composition =
+    compositionOverride != null && compositionOverride.length === PLAYER_ANSWER_DIGIT_CARD_COUNT
+      ? compositionOverride
+      : null
+
+  if (composition != null) {
+    holePair = holePairForCompositionOnTile(tile, composition)
+  } else if (holeDigits != null) {
     for (const h of holeDigits) {
       if (h == null || h.length < 2) continue
       if (
@@ -153,10 +216,11 @@ export function showdownCorrectAnswerRowFromTile(
       }
     }
   }
-  if (holePair == null) return null
 
-  const composition = inferCompositionForShowdown(holePair, communityBoard, answer)
-  const answerCards = cardsUsedFromComposition(composition, holePair, communityBoard)
+  const resolvedComposition =
+    composition ??
+    (holePair != null ? inferCompositionForShowdown(holePair, communityBoard, answer) : null)
+  const answerCards = cardsUsedFromComposition(resolvedComposition, holePair, communityBoard)
 
   return {
     seat: 0,
@@ -165,8 +229,8 @@ export function showdownCorrectAnswerRowFromTile(
     submitted: answer,
     hasFolded: false,
     communityBoard,
-    answerCommunityIndices: composition
-      ? communityIndicesForPlayer(composition, null)
+    answerCommunityIndices: resolvedComposition
+      ? communityIndicesForPlayer(resolvedComposition, null)
       : [],
     answerCards,
     chipPayout: null,
@@ -215,7 +279,7 @@ export function showdownRowsFromTile(tile: DisplayVenueTileSnapshot): ShowdownRe
     }
     const composition =
       !hasFolded && submitted != null
-        ? inferCompositionForShowdown(holePair, communityBoard, submitted)
+        ? compositionForTileSeat(tile, i, holePair, communityBoard, submitted)
         : null
     const answerCommunityIndices =
       !hasFolded && submitted != null

@@ -29,11 +29,17 @@ export default defineConfig({
     },
   },
   server: {
-    port: 7777,
+    port: 7780,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:7777',
         changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://localhost:7777',
+        changeOrigin: true,
+        ws: true,
       },
     },
   },

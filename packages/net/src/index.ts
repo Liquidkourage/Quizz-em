@@ -140,6 +140,11 @@ export type DisplayVenueTileSnapshot = {
    */
   seatAnswerCommunityIndices?: (readonly number[] | null)[]
   /**
+   * Parallel to `seatNames`: the five hole/community picks each player used to build their answer.
+   * Authoritative from the game engine — display should prefer this over re-inferring composition.
+   */
+  seatAnswerCompositions?: (readonly { source: 'hole' | 'community'; index: number }[] | null)[]
+  /**
    * Parallel to `seatNames`: projected chips won when the host ends the round (side pots + returns).
    * Omitted when not in showdown / reveal or older servers.
    */
@@ -153,6 +158,8 @@ export type DisplayVenueWallSnapshot = {
   headlineQuestionText: string | null
   /** Authoritative numeric answer for {@link headlineQuestionText} — same source as the headline felt’s `round.question.answer`. */
   headlineQuestionAnswer?: number | null
+  /** Five card picks that compose {@link headlineQuestionAnswer} on the headline felt (when known). */
+  headlineAnswerComposition?: readonly { source: 'hole' | 'community'; index: number }[] | null
   /** Server epoch ms when a trivia-visible felt is in `answering` with `answerDeadline`; cleared outside that window. */
   answerDeadlineMs: number | null
   /** Numbered felt driving `headlineQuestionText` / `answerDeadlineMs` (lowest table in the hottest phase bucket). */

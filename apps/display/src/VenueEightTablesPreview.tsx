@@ -1929,8 +1929,12 @@ export default function VenueEightTablesPreview({
   }, [wall?.headlineTableNum, tileRows])
   const venueShowdownAnswerRow = useMemo(() => {
     if (headlineShowdownTile == null || venueShowdownAnswer == null) return null
-    return showdownCorrectAnswerRowFromTile(headlineShowdownTile, venueShowdownAnswer)
-  }, [headlineShowdownTile, venueShowdownAnswer])
+    return showdownCorrectAnswerRowFromTile(
+      headlineShowdownTile,
+      venueShowdownAnswer,
+      wall?.headlineAnswerComposition ?? null
+    )
+  }, [headlineShowdownTile, venueShowdownAnswer, wall?.headlineAnswerComposition])
   const venueShowdownQuestionText = useMemo(
     () => venueShowdownQuestionFromTiles(tileRows, headlineQuestionText),
     [tileRows, headlineQuestionText]

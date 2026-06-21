@@ -20,6 +20,8 @@ import {
   submitAnswer,
   answerCompositionForPlayer,
   communityIndicesFromAnswerComposition,
+  inferAnswerComposition,
+  PLAYER_ANSWER_DIGIT_CARD_COUNT,
   revealAnswer,
   endRound,
   isSubmittedAnswerComposableFromDeal,
@@ -1849,6 +1851,9 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     let showdownQuestionText: string | null | undefined
     let seatSubmittedAnswers: (number | null)[] | undefined
     let seatAnswerCommunityIndices: (readonly number[] | null)[] | undefined
+    let seatAnswerCompositions:
+      | (readonly { source: 'hole' | 'community'; index: number }[] | null)[]
+      | undefined
     let seatChipPayout: (number | null)[] | undefined
     if (gs.phase === 'answering' || gs.phase === 'showdown' || gs.phase === 'reveal') {
       seatSubmittedAnswers = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
@@ -1872,6 +1877,12 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
         if (comp == null) return null
         const idx = communityIndicesFromAnswerComposition(comp)
         return idx.length > 0 ? idx : null
+      })
+      seatAnswerCompositions = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
+        const p = gs.players[i]
+        if (p == null || p.hasFolded || typeof p.submittedAnswer !== 'number') return null
+        const comp = answerCompositionForPlayer(p, gs.round.communityCards)
+        return comp != null && comp.length === PLAYER_ANSWER_DIGIT_CARD_COUNT ? comp : null
       })
       const payoutById = previewChipPayoutByPlayerId(gs)
       seatChipPayout = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
@@ -1899,6 +1910,10 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       ...(seatAnswerCommunityIndices != null &&
       seatAnswerCommunityIndices.some((x) => x != null && x.length > 0)
         ? { seatAnswerCommunityIndices }
+        : {}),
+      ...(seatAnswerCompositions != null &&
+      seatAnswerCompositions.some((x) => x != null && x.length > 0)
+        ? { seatAnswerCompositions }
         : {}),
       ...(seatChipPayout != null && seatChipPayout.some((x) => x != null && x > 0)
         ? { seatChipPayout }
@@ -1931,6 +1946,8 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
   const headlineGs = headlineSource?.gs ?? null
   let headlineQuestionText: string | null = null
   let headlineQuestionAnswer: number | null = null
+  let headlineAnswerComposition: readonly { source: 'hole' | 'community'; index: number }[] | null =
+    null
   let answerDeadlineMs: number | null = null
   let headlineTableNum: number | null = null
   let headlinePhase: string | null = null
@@ -1943,6 +1960,25 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     }
     if (q != null && typeof q.answer === 'number' && Number.isFinite(q.answer)) {
       headlineQuestionAnswer = q.answer
+      if (headlineGs.round.communityCards.length >= 5) {
+        for (const p of headlineGs.players) {
+          if (p.hand.length < 2) continue
+          const comp = answerCompositionForPlayer(p, headlineGs.round.communityCards)
+          if (comp != null && comp.length === PLAYER_ANSWER_DIGIT_CARD_COUNT) {
+            headlineAnswerComposition = comp
+            break
+          }
+          const inferred = inferAnswerComposition(
+            p.hand,
+            headlineGs.round.communityCards,
+            q.answer
+          )
+          if (inferred != null && inferred.length === PLAYER_ANSWER_DIGIT_CARD_COUNT) {
+            headlineAnswerComposition = inferred
+            break
+          }
+        }
+      }
     }
     if (headlineGs.phase === 'answering') {
       const venueDeadline = venueShowdownAtMs.get(vn)
@@ -1988,6 +2024,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     tiles,
     headlineQuestionText,
     headlineQuestionAnswer,
+    headlineAnswerComposition,
     answerDeadlineMs,
     headlineTableNum,
     headlinePhase,

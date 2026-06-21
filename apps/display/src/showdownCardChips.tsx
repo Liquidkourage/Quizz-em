@@ -7,21 +7,24 @@ export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-comp
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
+/** Sized shells for official card SVGs — floor uses px mins so art reads on dense honeycomb tiles. */
 const shellClassBySize: Record<ShowdownChipSize, string> = {
-  floor: 'h-[clamp(2.35rem,30cqw,4rem)] w-[clamp(1.55rem,20cqw,2.65rem)] shrink-0',
-  'floor-compact': 'h-[clamp(1.85rem,22.5cqw,3.1rem)] w-[clamp(1.22rem,15cqw,2.05rem)] shrink-0',
+  floor:
+    'h-[max(2.75rem,min(4.25rem,32cqw))] w-[max(1.85rem,min(2.85rem,21.5cqw))] shrink-0',
+  'floor-compact':
+    'h-[max(2.15rem,min(3.25rem,26cqw))] w-[max(1.42rem,min(2.15rem,17.5cqw))] shrink-0',
   lg: 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]',
   md: 'h-7 w-[1.35rem] shrink-0',
-  sm: 'h-6 w-[1.125rem] shrink-0',
+  sm: 'h-[max(1.65rem,7.5cqw)] w-[max(1.05rem,5cqw)] shrink-0',
   xs: 'h-5 w-[0.95rem] shrink-0',
 }
 
 const decimalDotClassBySize: Record<ShowdownChipSize, string> = {
-  floor: 'h-[clamp(0.28rem,1.85cqw,0.44rem)] w-[clamp(0.28rem,1.85cqw,0.44rem)]',
-  'floor-compact': 'h-[clamp(0.22rem,1.45cqw,0.36rem)] w-[clamp(0.22rem,1.45cqw,0.36rem)]',
+  floor: 'h-[max(0.32rem,min(0.44rem,2.2cqw))] w-[max(0.32rem,min(0.44rem,2.2cqw))]',
+  'floor-compact': 'h-[max(0.26rem,min(0.36rem,1.8cqw))] w-[max(0.26rem,min(0.36rem,1.8cqw))]',
   lg: 'h-1.5 w-1.5 sm:h-[0.42rem] sm:w-[0.42rem]',
   md: 'h-[0.34rem] w-[0.34rem]',
-  sm: 'h-[0.28rem] w-[0.28rem]',
+  sm: 'h-[0.3rem] w-[0.3rem]',
   xs: 'h-[0.22rem] w-[0.22rem]',
 }
 
@@ -39,7 +42,7 @@ function DigitChip({
       <CardFaceGraphic
         digit={digit}
         dimmed={variant === 'inactive'}
-        className="block h-full w-full"
+        className="block h-full w-full drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)]"
         alt={`${digit}`}
       />
     </div>
@@ -101,9 +104,9 @@ export function ShowdownFiveCardsUsed({
 
   const wrapClass =
     size === 'floor'
-      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.15rem,1.1cqw,0.42rem)]'
+      ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[max(0.12rem,min(0.38rem,1.4cqw))]'
       : size === 'floor-compact'
-        ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.12rem,0.9cqw,0.34rem)]'
+        ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[max(0.1rem,min(0.3rem,1.1cqw))]'
         : size === 'lg'
           ? 'flex flex-nowrap items-center justify-center gap-1'
           : 'flex flex-wrap items-center justify-center gap-0.5'
@@ -113,7 +116,11 @@ export function ShowdownFiveCardsUsed({
     .join(', ')
 
   return (
-    <div className={wrapClass} aria-label={`Cards used: ${ariaLabelDigits}`}>
+    <div
+      className={wrapClass}
+      data-showdown-winner-cards={size}
+      aria-label={`Cards used: ${ariaLabelDigits}`}
+    >
       {cards.map((c, i) => (
         <Fragment key={i}>
           {i === decimalAfter ? <DecimalDot size={size} /> : null}

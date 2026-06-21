@@ -1,18 +1,21 @@
-import type { CSSProperties, ImgHTMLAttributes } from 'react'
+import type { CSSProperties, SVGAttributes } from 'react'
 import { clsx } from 'clsx'
+import { CardFaceSvg } from './CardFaceSvg'
 import { CardBackGraphic } from './tableGraphics'
-import { cardFaceImageSrc } from './cardFaceAssets'
+import { CARD_FACE_ASPECT } from './cardFaceAssets'
 
-export type CardFaceGraphicProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt'> & {
+export type CardFaceGraphicProps = {
   digit: number
   /** Render the shared card-back asset instead of a digit face. */
   faceDown?: boolean
   /** Muted styling for inactive / folded picks in showdown rows. */
   dimmed?: boolean
+  className?: string
+  style?: CSSProperties
   alt?: string
-}
+} & Omit<SVGAttributes<SVGSVGElement>, 'children'>
 
-/** Official digit card front (0–9) or card back when `faceDown`. */
+/** Official digit card front (0–9 SVG) or card back when `faceDown`. */
 export function CardFaceGraphic({
   digit,
   faceDown = false,
@@ -20,7 +23,6 @@ export function CardFaceGraphic({
   className,
   style,
   alt,
-  draggable = false,
   ...props
 }: CardFaceGraphicProps) {
   if (faceDown) {
@@ -37,14 +39,16 @@ export function CardFaceGraphic({
   }
 
   const resolvedAlt = alt ?? `Playing card ${digit}`
+  const decorative = alt === ''
 
   return (
-    <img
-      src={cardFaceImageSrc(digit)}
-      alt={resolvedAlt}
-      draggable={draggable}
+    <CardFaceSvg
+      digit={digit}
+      role={decorative ? undefined : 'img'}
+      aria-hidden={decorative ? true : undefined}
+      aria-label={decorative ? undefined : resolvedAlt}
       className={clsx(
-        'pointer-events-none select-none object-cover',
+        'pointer-events-none block h-full w-full select-none',
         dimmed && 'opacity-40 saturate-[0.55]',
         className
       )}
@@ -57,7 +61,7 @@ export function CardFaceGraphic({
 /** Width and height for a card face at a given width (5:7 aspect). */
 export function cardFaceSizeFromWidth(widthPx: number): { width: number; height: number } {
   const width = Math.max(1, widthPx)
-  return { width, height: Math.round(width / (5 / 7)) }
+  return { width, height: Math.round(width / CARD_FACE_ASPECT) }
 }
 
 export function cardFaceInlineSizeStyle(widthPx: number): CSSProperties {

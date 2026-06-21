@@ -9,10 +9,9 @@ export {
   cardFaceSizeFromWidth,
   type CardFaceGraphicProps,
 } from './CardFaceGraphic';
+export { CardFaceSvg, CARD_FACE_VIEWBOX } from './CardFaceSvg';
 export {
   CARD_FACE_ASPECT,
-  CARD_FACE_IMAGE_SRCS,
-  cardFaceImageSrc,
   clampCardDigit,
   type CardDigit,
 } from './cardFaceAssets';

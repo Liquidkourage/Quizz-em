@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { CupholderGraphic, PokerTableGraphic } from '@qhe/ui'
+import { PokerTableGraphic, SeatCupholderMarker } from '@qhe/ui'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
@@ -63,18 +63,16 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
           return (
             <div
               key={seatNum}
-              className="absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 sm:h-6 sm:w-6"
+              className="absolute -translate-x-1/2 -translate-y-1/2"
               style={{ left, top }}
               aria-hidden
             >
-              <CupholderGraphic dimmed={!filled} className="h-full w-full" />
-              <span
-                className={`absolute inset-0 flex items-center justify-center font-mono text-[9px] font-black tabular-nums sm:text-[10px] ${
-                  filled ? 'text-amber-50' : 'text-white/35'
-                }`}
-              >
-                {seatNum}
-              </span>
+              <SeatCupholderMarker
+                sizeClassName="h-5 w-5 sm:h-6 sm:w-6"
+                label={seatNum}
+                labelClassName="font-mono text-[9px] tabular-nums sm:text-[10px]"
+                state={filled ? 'default' : 'empty'}
+              />
             </div>
           )
         })}
@@ -104,12 +102,11 @@ export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
             key={seat.seatNum}
             className="flex min-h-0 min-w-0 items-center gap-2 rounded-md bg-white/[0.045] px-2 py-1.5 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-2"
           >
-            <span className="relative flex h-6 w-6 shrink-0 items-center justify-center sm:h-7 sm:w-7">
-              <CupholderGraphic className="absolute inset-0" />
-              <span className="relative font-mono text-[9px] font-black tabular-nums text-amber-50 sm:text-[10px]">
-                {seat.seatNum}
-              </span>
-            </span>
+            <SeatCupholderMarker
+              sizeClassName="h-6 w-6 sm:h-7 sm:w-7"
+              label={seat.seatNum}
+              labelClassName="font-mono text-[9px] tabular-nums sm:text-[10px]"
+            />
             <span className="min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm">
               {given}
               {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}

@@ -431,7 +431,9 @@ export { QuizzEmWordmark, type QuizzEmWordmarkProps } from './QuizzEmWordmark';
 export {
   PokerTableGraphic,
   CupholderGraphic,
+  SeatCupholderMarker,
   CardBackGraphic,
   CARD_BACK_IMAGE_SRC,
+  type SeatCupholderState,
 } from './tableGraphics';
 export default {};

@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CupholderGraphic, PokerTableGraphic, QuizzEmWordmark } from '@qhe/ui'
+import { PokerTableGraphic, QuizzEmWordmark, SeatCupholderMarker } from '@qhe/ui'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -898,8 +898,7 @@ function SeatRingWithLabels({
     return clamp(w / 220, 1, 1.35)
   }, [isMosaic, mosaicDensity, ringPx.w])
 
-  const mosaicDotPx = 28 * mosaicScale
-  const mosaicDotActingPx = 32 * mosaicScale
+  const mosaicDotPx = 32 * mosaicScale
   const mosaicHideHoleCards = mosaicDensity === 'micro' || mosaicDensity === 'compact'
 
   return (
@@ -994,40 +993,37 @@ function SeatRingWithLabels({
                 <span
                   aria-hidden
                   className={`${actingSoftPulse} motion-safe:animate-pulse motion-safe:[animation-duration:2.8s]`}
-                  style={isMosaic ? { width: mosaicDotActingPx, height: mosaicDotActingPx } : undefined}
+                  style={isMosaic ? { width: mosaicDotPx, height: mosaicDotPx } : undefined}
                 />
               ) : answerLocked && !prefersReducedMotion ? (
                 <span
                   aria-hidden
                   className={`${actingSoftPulse} bg-cyan-400/20 motion-safe:animate-pulse motion-safe:[animation-duration:2.2s]`}
-                  style={isMosaic ? { width: mosaicDotActingPx, height: mosaicDotActingPx } : undefined}
+                  style={isMosaic ? { width: mosaicDotPx, height: mosaicDotPx } : undefined}
                 />
               ) : isWinner && !prefersReducedMotion ? (
                 <span
                   aria-hidden
                   className={`${actingSoftPulse} bg-amber-400/18 motion-safe:animate-pulse motion-safe:[animation-duration:3.2s]`}
-                  style={isMosaic ? { width: mosaicDotActingPx, height: mosaicDotActingPx } : undefined}
+                  style={isMosaic ? { width: mosaicDotPx, height: mosaicDotPx } : undefined}
                 />
               ) : null}
-              <div
-                className={`relative z-[2] shrink-0 overflow-hidden rounded-full shadow ${
-                  isActing
-                    ? 'ring-2 ring-amber-400/90 shadow-[0_0_14px_rgba(234,179,8,0.35)]'
-                    : answerLocked
-                      ? 'ring-2 ring-cyan-400/50 shadow-[0_0_14px_rgba(34,211,238,0.55)]'
-                      : isWinner
-                        ? 'ring-2 ring-amber-400/45 shadow-[0_0_14px_rgba(251,191,36,0.5)]'
-                        : ''
-                } ${isMosaic ? '' : isActing || answerLocked || isWinner ? dotActing : dot}`}
-                style={
-                  isMosaic
-                    ? {
-                        width: isActing || answerLocked || isWinner ? mosaicDotActingPx : mosaicDotPx,
-                        height: isActing || answerLocked || isWinner ? mosaicDotActingPx : mosaicDotPx,
-                      }
-                    : undefined
+              <SeatCupholderMarker
+                sizePx={isMosaic ? mosaicDotPx : undefined}
+                sizeClassName={isMosaic ? undefined : isActing || answerLocked || isWinner ? dotActing : dot}
+                label={isMosaic && filled && mosaicInitials ? mosaicInitials : undefined}
+                labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
+                state={
+                  isFolded
+                    ? 'folded'
+                    : isActing
+                      ? 'acting'
+                      : answerLocked
+                        ? 'answerLocked'
+                        : isWinner
+                          ? 'winner'
+                          : 'default'
                 }
-                aria-current={isActing ? true : undefined}
                 aria-label={
                   raw
                     ? [
@@ -1044,18 +1040,7 @@ function SeatRingWithLabels({
                         .join(', ')
                     : `Seat ${i + 1}, empty`
                 }
-              >
-                <CupholderGraphic dimmed={isFolded || !filled} className="h-full w-full" />
-                {isMosaic && filled && mosaicInitials ? (
-                  <span
-                    className={`absolute inset-0 flex items-center justify-center truncate px-0.5 text-center font-black leading-none tracking-tight ${
-                      isActing ? 'text-black' : 'text-amber-50'
-                    } ${mosaicSeatInitialsClass(mosaicDensity)}`}
-                  >
-                    {mosaicInitials}
-                  </span>
-                ) : null}
-              </div>
+              />
             </div>
             {isMosaic && filled && !isFolded && seatHoleDigits[i] != null && !mosaicHideHoleCards ? (() => {
               const holePos = mosaicSeatInwardPct(i, seatedCount, rimW, rimH)

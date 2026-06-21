@@ -1,7 +1,7 @@
 ﻿import { Fragment, useEffect, useState, useCallback, useRef, useLayoutEffect, useMemo } from 'react'
 import type { RefObject } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { NumericPlayingCard, PokerChip, PokerTableGraphic, CupholderGraphic } from '@qhe/ui'
+import { NumericPlayingCard, PokerChip, PokerTableGraphic, SeatCupholderMarker } from '@qhe/ui'
 import { onState, onToast, onDealingCards, onDealingCommunityCards, type DisplayVenueTileSnapshot } from '@qhe/net'
 import type { GameState, GamePhase, PlayerState, SeatBettingAction, NumericCard } from '@qhe/core'
 import {
@@ -1951,17 +1951,20 @@ function DisplayTableLive({
                 return (
                   <div
                     key={`cupholder-${index}`}
-                    className={`absolute z-[120] -translate-x-1/2 -translate-y-1/2 ${
-                      actingHere ? 'z-[125] ring-2 ring-cyan-400/70 rounded-full shadow-[0_0_16px_rgba(34,211,238,0.45)]' : ''
-                    }`}
+                    className="absolute -translate-x-1/2 -translate-y-1/2"
                     style={{
                       left: `${leftPx}px`,
                       top: `${topPx}px`,
-                      width: '32px',
-                      height: '32px',
                     }}
                   >
-                    <CupholderGraphic className="h-full w-full" />
+                    <SeatCupholderMarker
+                      sizePx={32}
+                      className={
+                        actingHere
+                          ? 'z-[125] ring-2 ring-cyan-400/70 shadow-[0_0_16px_rgba(34,211,238,0.45)]'
+                          : 'z-[120]'
+                      }
+                    />
                   </div>
                 )
               })}

@@ -10,6 +10,7 @@ export {
   type CardFaceGraphicProps,
 } from './CardFaceGraphic';
 export { CardFaceSvg, CARD_FACE_VIEWBOX } from './CardFaceSvg';
+export { CardBackSvg } from './CardBackSvg';
 export {
   CARD_FACE_ASPECT,
   clampCardDigit,

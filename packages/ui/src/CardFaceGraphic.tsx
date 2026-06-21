@@ -1,7 +1,7 @@
 import type { CSSProperties, SVGAttributes } from 'react'
 import { clsx } from 'clsx'
+import { CardBackSvg } from './CardBackSvg'
 import { CardFaceSvg } from './CardFaceSvg'
-import { CardBackGraphic } from './tableGraphics'
 import { CARD_FACE_ASPECT } from './cardFaceAssets'
 
 export type CardFaceGraphicProps = {
@@ -27,14 +27,17 @@ export function CardFaceGraphic({
 }: CardFaceGraphicProps) {
   if (faceDown) {
     return (
-      <span
-        className={clsx('relative inline-block overflow-hidden', dimmed && 'opacity-45 saturate-[0.65]', className)}
+      <CardBackSvg
+        className={clsx(
+          'pointer-events-none block h-full w-full select-none',
+          dimmed && 'opacity-45 saturate-[0.65]',
+          className
+        )}
         style={style}
-        aria-hidden={alt == null || alt.length === 0 ? true : undefined}
-        aria-label={alt}
-      >
-        <CardBackGraphic className="block h-full w-full object-cover" />
-      </span>
+        aria-hidden={alt === '' ? true : undefined}
+        aria-label={alt === '' ? undefined : alt}
+        {...props}
+      />
     )
   }
 

@@ -12,8 +12,11 @@ const VENUE_FELT_INSET_LEFT = 0.06
 /** Pull cupholder centers slightly inward from the rail midline (px at authoring scale). */
 const MOSAIC_SEAT_RAIL_INSET_PX = 12
 
-/** Hole cards: fraction of the way from rail cup toward felt center. */
-const MOSAIC_HOLE_CARD_INWARD_FRAC = 0.14
+/** Hole cards: anchor slightly inward from cup toward felt center (rail-facing edge). */
+const MOSAIC_HOLE_CARD_ANCHOR_INWARD_FRAC = 0.11
+
+/** Small fan on each hole card (degrees). */
+export const MOSAIC_HOLE_CARD_FAN_DEG = 7
 
 /** Green felt center in ring wrapper % (0–100). */
 export function venueMosaicFeltCenterPct(): { leftPct: number; topPct: number } {
@@ -86,13 +89,13 @@ export function mosaicSeatDotPct(
   return { leftPct: (x / ww) * 100, topPct: (y / hh) * 100 }
 }
 
-/** Hole cards on the felt just inside the cupholder, rotated to face the rail. */
+/** Hole-card anchor on felt just inside the cup; cards fan inward toward the pot. */
 export function mosaicSeatHoleLayout(
   seatIndex: number,
   seatCount: number,
   w: number,
   h: number,
-  inwardFrac = MOSAIC_HOLE_CARD_INWARD_FRAC
+  inwardFrac = MOSAIC_HOLE_CARD_ANCHOR_INWARD_FRAC
 ): { leftPct: number; topPct: number; rotateDeg: number } {
   const outer = mosaicSeatDotPct(seatIndex, seatCount, w, h)
   const center = venueMosaicFeltCenterPct()
@@ -105,10 +108,11 @@ export function mosaicSeatHoleLayout(
   const oy = (outer.topPct / 100) * hh
   const ccx = (center.leftPct / 100) * ww
   const ccy = (center.topPct / 100) * hh
-  const nx = ox - ccx
-  const ny = oy - ccy
-  const len = Math.hypot(nx, ny) || 1
-  const rotateDeg = (Math.atan2(ny / len, nx / len) * 180) / Math.PI + 90
+  /** Outward from felt center toward the rail — top edge of each card faces the cup. */
+  const outX = ox - ccx
+  const outY = oy - ccy
+  const len = Math.hypot(outX, outY) || 1
+  const rotateDeg = (Math.atan2(outY / len, outX / len) * 180) / Math.PI + 90
 
   return { leftPct, topPct, rotateDeg }
 }

@@ -17,7 +17,7 @@ import {
   stadiumSeatPointPx,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
-import { mosaicSeatDotPct, mosaicSeatHoleLayout } from './venueMosaicSeatGeometry'
+import { mosaicSeatDotPct, mosaicSeatHoleLayout, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -319,29 +319,32 @@ function MosaicDigitCard({
       digit={digit ?? 0}
       faceDown={faceDown}
       dimmed={dimmed}
-      className={`rounded-[3px] shadow-[0_1px_4px_rgba(0,0,0,0.65)] ${sizeClass} ${className}`.trim()}
+      className={`${sizeClass} ${className}`.trim()}
       alt=""
       aria-hidden
     />
   )
 }
 
-/** Two fanned hole cards for mosaic tiles — no hero margins, face-up digits. */
-function MosaicHoleCardPair({
-  digits,
-  rotateDeg,
-}: {
-  digits: readonly [number, number]
-  rotateDeg: number
-}) {
+/** Two fanned face-down hole cards for mosaic tiles — rail edge anchored, SVG backs. */
+function MosaicHoleCardPair({ rotateDeg }: { rotateDeg: number }) {
+  const fan = MOSAIC_HOLE_CARD_FAN_DEG
+  const overlap = '-ml-[clamp(0.22rem,1.85cqw,0.42rem)]'
   return (
     <div
-      className="flex items-end justify-center"
-      style={{ transform: `rotate(${rotateDeg}deg)` }}
+      className="pointer-events-none flex items-end justify-center"
+      style={{
+        transform: `rotate(${rotateDeg}deg)`,
+        transformOrigin: '50% 100%',
+      }}
       aria-hidden
     >
-      <MosaicDigitCard digit={digits[0]} size="hole" />
-      <MosaicDigitCard digit={digits[1]} size="hole" className="-ml-[clamp(0.22rem,1.85cqw,0.42rem)]" />
+      <div className="origin-bottom" style={{ transform: `rotate(-${fan}deg)` }}>
+        <MosaicDigitCard size="hole" faceDown />
+      </div>
+      <div className={`origin-bottom ${overlap}`} style={{ transform: `rotate(${fan}deg)` }}>
+        <MosaicDigitCard size="hole" faceDown />
+      </div>
     </div>
   )
 }
@@ -913,7 +916,7 @@ function SeatRingWithLabels({
               return { leftPct: pt.leftPct, topPct: pt.topPct }
             })()
         const chipPt = isMosaic
-          ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, 0.42)
+          ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, 0.28)
           : stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
         const chipPos = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
         const holeLayout = isMosaic
@@ -1042,20 +1045,17 @@ function SeatRingWithLabels({
                 style={{
                   left: `${holeLayout.leftPct}%`,
                   top: `${holeLayout.topPct}%`,
-                  transform: 'translate(-50%, -50%)',
+                  transform: isMosaic ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
                 }}
                 aria-label="Two hole cards"
               >
                 {isMosaic ? (
-                  <MosaicHoleCardPair
-                    digits={seatHoleDigits[i]!}
-                    rotateDeg={holeLayout.rotateDeg}
-                  />
+                  <MosaicHoleCardPair rotateDeg={holeLayout.rotateDeg} />
                 ) : (
                   <FeltHoleCardPair
                     rotateDeg={holeLayout.rotateDeg}
                     scale={holeCardScale}
-                    faceDown={false}
+                    faceDown
                     digits={seatHoleDigits[i]}
                   />
                 )}

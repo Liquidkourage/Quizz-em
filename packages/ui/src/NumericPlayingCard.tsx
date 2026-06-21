@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
+import { CardBackSvg } from './CardBackSvg'
 import { CardFaceGraphic } from './CardFaceGraphic'
-import { CardBackGraphic, cardBackShellStyle } from './tableGraphics'
 
 const SIZE_STYLES = {
   small: { width: '64px', height: '96px' },
@@ -43,9 +43,7 @@ export function NumericPlayingCard({
     : { width: styles.width, height: styles.height, margin: '10px', borderRadius: '12px', position: 'relative' as const, overflow: 'hidden' as const, boxShadow: '0 4px 16px rgba(0,0,0,0.45)' }
 
   if (faceDown) {
-    const backStyle = compact
-      ? { width: styles.width, height: styles.height, margin: 0, borderRadius: '12px', position: 'relative' as const, overflow: 'hidden' as const, boxShadow: '0 4px 16px rgba(0,0,0,0.45)' }
-      : cardBackShellStyle(styles.width, styles.height)
+    const backStyle = compact ? shellStyle : { ...shellStyle, margin: '10px' }
     return (
       <CardRoot
         style={backStyle}
@@ -54,7 +52,7 @@ export function NumericPlayingCard({
         transition={animated ? { type: 'spring', stiffness: 200, damping: 18 } : undefined}
         whileHover={animated ? { scale: 1.05 } : undefined}
       >
-        <CardBackGraphic className="absolute inset-0" />
+        <CardBackSvg className="absolute inset-0 h-full w-full" />
       </CardRoot>
     )
   }

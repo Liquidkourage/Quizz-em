@@ -1,10 +1,11 @@
-import type { CSSProperties, ImgHTMLAttributes, ReactNode } from 'react'
+import type { CSSProperties, ImgHTMLAttributes, ReactNode, SVGAttributes } from 'react'
 import { clsx } from 'clsx'
+import { CardBackSvg } from './CardBackSvg'
 import pokerTableImg from './assets/poker-table.png'
 import cupholderImg from './assets/cupholder.png'
 import cardBackImg from './assets/card-back.png'
 
-/** Card-back image URL for consumers that need a raw src. */
+/** Card-back PNG URL — legacy; prefer {@link CardBackSvg}. */
 export const CARD_BACK_IMAGE_SRC = cardBackImg
 
 export type SeatCupholderState = 'default' | 'acting' | 'answerLocked' | 'winner' | 'folded' | 'empty'
@@ -124,20 +125,19 @@ export function SeatCupholderMarker({
   )
 }
 
-/** Official playing-card back face. */
+/** Official playing-card back face (vector). */
 export function CardBackGraphic({
   className,
   style,
   alt = '',
   ...props
-}: Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt'> & { alt?: string }) {
+}: Omit<SVGAttributes<SVGSVGElement>, 'children'> & { alt?: string }) {
   return (
-    <img
-      src={cardBackImg}
-      alt={alt}
-      draggable={false}
-      className={clsx('pointer-events-none h-full w-full select-none object-cover', className)}
+    <CardBackSvg
+      className={clsx('pointer-events-none h-full w-full select-none', className)}
       style={style}
+      aria-label={alt || undefined}
+      aria-hidden={alt ? undefined : true}
       {...props}
     />
   )

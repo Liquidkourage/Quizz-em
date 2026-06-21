@@ -17,6 +17,8 @@ import {
   stadiumMosaicHoleCardWidthPx,
   stadiumMosaicHoleCardHeightPx,
   stadiumMosaicHoleCardOverlapPx,
+  stadiumMosaicCommunityCardWidthPx,
+  stadiumMosaicCommunityCardHeightPx,
   stadiumSeatPointPx,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
@@ -904,8 +906,12 @@ function SeatRingWithLabels({
   const mosaicHoleCardOverlap = isMosaic
     ? stadiumMosaicHoleCardOverlapPx(mosaicHoleCardW)
     : 0
-  const mosaicCommunityCardW = isMosaic ? Math.max(10, Math.round(cupSizePx * 0.55)) : 0
-  const mosaicCommunityCardH = isMosaic ? Math.max(14, Math.round(cupSizePx * 0.77)) : 0
+  const mosaicCommunityCardW = isMosaic
+    ? stadiumMosaicCommunityCardWidthPx(rimW, mosaicDensityTier)
+    : 0
+  const mosaicCommunityCardH = isMosaic
+    ? stadiumMosaicCommunityCardHeightPx(rimW, mosaicDensityTier)
+    : 0
   /** Physical seat slots (0–7) — always distribute around the full eight-seat stadium. */
   const seatCountForLayout = VENUE_SEAT_SLOTS
 

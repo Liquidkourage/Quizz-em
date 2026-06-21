@@ -96,7 +96,9 @@ export const STADIUM_MOSAIC_REFERENCE_WIDTH_PX = 220
 const MOSAIC_CUPHOLDER_PX_AT_REFERENCE = 32
 const MOSAIC_HOLE_CARD_SCALE_AT_REFERENCE = 0.38
 /** Hole-card width on mosaic felts at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX}. */
-const MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE = 16
+const MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE = 20
+/** Community board card width at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX} (~10.5% of ring). */
+const MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE = 24
 
 export type StadiumMosaicDensity = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
 
@@ -141,9 +143,29 @@ export function stadiumMosaicHoleCardWidthPx(
   density?: StadiumMosaicDensity
 ): number {
   return Math.max(
-    8,
+    10,
     Math.round(MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE * stadiumMosaicScaleForWidth(tableWidthPx, density))
   )
+}
+
+/** Community board card width on venue mosaic felts. */
+export function stadiumMosaicCommunityCardWidthPx(
+  tableWidthPx: number,
+  density?: StadiumMosaicDensity
+): number {
+  return Math.max(
+    14,
+    Math.round(MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE * stadiumMosaicScaleForWidth(tableWidthPx, density))
+  )
+}
+
+/** Community board card height at 5:7 aspect. */
+export function stadiumMosaicCommunityCardHeightPx(
+  tableWidthPx: number,
+  density?: StadiumMosaicDensity
+): number {
+  const w = stadiumMosaicCommunityCardWidthPx(tableWidthPx, density)
+  return Math.max(18, Math.round((w * 7) / 5))
 }
 
 /** Hole-card height at 5:7 aspect. */
@@ -152,7 +174,7 @@ export function stadiumMosaicHoleCardHeightPx(
   density?: StadiumMosaicDensity
 ): number {
   const w = stadiumMosaicHoleCardWidthPx(tableWidthPx, density)
-  return Math.max(13, Math.round((w * 7) / 5))
+  return Math.max(14, Math.round((w * 7) / 5))
 }
 
 /** Horizontal overlap between fanned mosaic hole cards. */

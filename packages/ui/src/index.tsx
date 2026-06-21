@@ -287,6 +287,8 @@ export {
   stadiumMosaicHoleCardWidthPx,
   stadiumMosaicHoleCardHeightPx,
   stadiumMosaicHoleCardOverlapPx,
+  stadiumMosaicCommunityCardWidthPx,
+  stadiumMosaicCommunityCardHeightPx,
   stadiumMosaicScaleForWidth,
   STADIUM_MOSAIC_REFERENCE_WIDTH_PX,
   STADIUM_CUPHOLDER_RADIAL,

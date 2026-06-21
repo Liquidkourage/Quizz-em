@@ -15,7 +15,11 @@ import {
   resolveShowdownDisplayPot,
 } from './VenueFloorShowdownOverlay'
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
-import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
+import {
+  STADIUM_CUPHOLDER_RADIAL,
+  STADIUM_HOLE_CARDS_RADIAL,
+  stadiumSeatPointPx,
+} from './stadiumSeatLayout'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, venueWallTilePhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
@@ -324,40 +328,36 @@ function MosaicDigitCard({
   )
 }
 
-/** Two face-down hole cards — bottom card peeking out from under the top card. */
-function MosaicHoleCardPair() {
+/** Two face-down hole cards — fanned, rotated to face the rail. */
+function MosaicHoleCardPair({ rotateDeg = 0 }: { rotateDeg?: number }) {
   return (
     <div
       className="relative shrink-0"
       style={{
-        width: 'clamp(1.25rem, 8.9cqw, 2rem)',
-        height: 'clamp(1.25rem, 8.5cqw, 1.95rem)',
+        width: 'clamp(1.35rem, 9.5cqw, 2.15rem)',
+        height: 'clamp(1.35rem, 9.1cqw, 2.05rem)',
+        transform: `rotate(${rotateDeg}deg)`,
       }}
       aria-hidden
     >
-      <span className="absolute bottom-0 left-0 z-[1] -rotate-[3deg] origin-[85%_100%]">
+      <span className="absolute bottom-0 left-0 z-[1] -rotate-[8deg] origin-[85%_100%]">
         <MosaicDigitCard faceDown />
       </span>
-      <span className="absolute bottom-[12%] left-[30%] z-[2] rotate-[3deg] origin-[15%_100%] shadow-[0_1px_3px_rgba(0,0,0,0.55)]">
+      <span className="absolute bottom-[10%] left-[28%] z-[2] rotate-[8deg] origin-[15%_100%] shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
         <MosaicDigitCard faceDown />
       </span>
     </div>
   )
 }
 
-function mosaicSeatInwardPct(
+function mosaicSeatHoleCardsLayout(
   seatIndex: number,
   seatCount: number,
   w: number,
-  h: number,
-  inwardFrac = 0.12
-): { leftPct: number; topPct: number } {
-  const outer = mosaicSeatDotPct(seatIndex, seatCount, w, h)
-  const center = venueMosaicFeltCenterPct()
-  return {
-    leftPct: outer.leftPct + (center.leftPct - outer.leftPct) * inwardFrac,
-    topPct: outer.topPct + (center.topPct - outer.topPct) * inwardFrac,
-  }
+  h: number
+): { leftPct: number; topPct: number; rotateDeg: number } {
+  const pt = stadiumSeatPointPx(seatIndex, seatCount, w, h, STADIUM_HOLE_CARDS_RADIAL)
+  return { leftPct: pt.leftPct, topPct: pt.topPct, rotateDeg: pt.rotateDeg }
 }
 
 const SEAT_BETTING_ACTION_LABELS: Record<SeatBettingAction, string> = {
@@ -929,9 +929,13 @@ function SeatRingWithLabels({
         const filled = i < seatedCount
         if (isMosaic && !filled) return null
 
-        const seatRim = isMosaic
-          ? mosaicSeatDotPct(i, seatedCount, rimW, rimH)
-          : venueSeatRimPct(i, 1, rimW, rimH)
+        const seatRimPt = stadiumSeatPointPx(
+          i,
+          isMosaic ? seatedCount : VENUE_SEAT_SLOTS,
+          rimW,
+          rimH,
+          STADIUM_CUPHOLDER_RADIAL
+        )
         const chipPos = venueSeatRimPct(i, chipInnerScale, rimW, rimH, 'felt')
         const anchored = labelAnchorsPct[i]
         const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && size === 'lg'))
@@ -984,8 +988,8 @@ function SeatRingWithLabels({
             <div
               className={`absolute flex items-center justify-center ${SEAT_LAYER_DOT}`}
               style={{
-                left: `${seatRim.leftPct}%`,
-                top: `${seatRim.topPct}%`,
+                left: `${seatRimPt.leftPct}%`,
+                top: `${seatRimPt.topPct}%`,
                 transform: 'translate(-50%, -50%)',
               }}
             >
@@ -1043,18 +1047,18 @@ function SeatRingWithLabels({
               />
             </div>
             {isMosaic && filled && !isFolded && seatHoleDigits[i] != null && !mosaicHideHoleCards ? (() => {
-              const holePos = mosaicSeatInwardPct(i, seatedCount, rimW, rimH)
+              const holeLayout = mosaicSeatHoleCardsLayout(i, seatedCount, rimW, rimH)
               return (
                 <div
                   className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
                   style={{
-                    left: `${holePos.leftPct}%`,
-                    top: `${holePos.topPct}%`,
+                    left: `${holeLayout.leftPct}%`,
+                    top: `${holeLayout.topPct}%`,
                     transform: 'translate(-50%, -50%)',
                   }}
                   aria-label="Two hole cards"
                 >
-                  <MosaicHoleCardPair />
+                  <MosaicHoleCardPair rotateDeg={holeLayout.rotateDeg} />
                 </div>
               )
             })() : null}

@@ -25,13 +25,16 @@ import seatChipStackImg from './assets/seat-chip-stack.png'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { showdownRowsFromGameState } from './showdownDisplay'
 import { nowOnServerClock } from './serverClock'
+import {
+  STADIUM_CUPHOLDER_RADIAL,
+  STADIUM_HOLE_CARDS_RADIAL,
+  stadiumSeatPointPx,
+} from './stadiumSeatLayout'
 
 /** Authoring viewport (logical px). Embedded venue heroes scale uniformly to fit the measured game plane; fullscreen uses live `gw/gh`. */
 const EMBEDDED_FELT_LAYOUT_W = 1280
 const EMBEDDED_FELT_LAYOUT_H = 940
 
-/** Seat HUD panel — match Tailwind `w-[120px] min-h-[118px] p-3 border-2` on the player stack in {@link DisplayTableLive}. */
-const SEAT_HUD_PANEL_MIN_H_PX = 118
 /** {@link NumericPlayingCard} `normal` — packages/ui `sizeStyles.normal` */
 const PLAYING_CARD_NORMAL_W_PX = 80
 const PLAYING_CARD_NORMAL_H_PX = 112
@@ -39,14 +42,6 @@ const PLAYING_CARD_NORMAL_H_PX = 112
 const PLAYING_CARD_MARGIN_PX = 10
 const PLAYING_CARD_LAYOUT_W_PX = PLAYING_CARD_NORMAL_W_PX + 2 * PLAYING_CARD_MARGIN_PX
 const PLAYING_CARD_LAYOUT_H_PX = PLAYING_CARD_NORMAL_H_PX + 2 * PLAYING_CARD_MARGIN_PX
-/** Second hole-card wrapper `marginLeft` — must match seat hand markup. */
-const HOLE_HAND_STACK_OVERLAP_PX = -50
-/** Two-card row width in panel-local px: 100 + (100 - 50) overlap extent. */
-const HOLE_HAND_ROW_W_PX = PLAYING_CARD_LAYOUT_W_PX + PLAYING_CARD_LAYOUT_W_PX + HOLE_HAND_STACK_OVERLAP_PX
-/** Tailwind `scale-[1.40625]` on the seat HUD panel. */
-const SEAT_HUD_PANEL_SCALE = 1.40625
-/** Tailwind `scale-50` on each hole-card wrapper (`origin-bottom`). */
-const HOLE_CARD_WRAPPER_SCALE = 0.5
 /** Mid-hand join: reveal persisted hole cards only if no `dealingCards` event follows. */
 const HOLE_MIDJOIN_REVEAL_MS = 800
 /** Flight-only nudge (plane px): negative Y = up, negative X = left. Does not move static seat cards. */
@@ -65,45 +60,6 @@ const COMMUNITY_CARD_SLOT_SCALE = 1.5
 /** {@link NumericPlayingCard} `small` + 10px margin — must match static community anchors. */
 const COMMUNITY_PLAYING_CARD_LAYOUT_W_PX = COMMUNITY_CARD_SLOT_W_PX + 2 * PLAYING_CARD_MARGIN_PX
 const COMMUNITY_PLAYING_CARD_LAYOUT_H_PX = COMMUNITY_CARD_SLOT_H_PX + 2 * PLAYING_CARD_MARGIN_PX
-
-function holeCardLayoutLeftFromPanelCenterPx(cardIndex: number): number {
-  const rowHalfW = HOLE_HAND_ROW_W_PX / 2
-  const firstLeft = -rowHalfW
-  return cardIndex === 0
-    ? firstLeft
-    : firstLeft + PLAYING_CARD_LAYOUT_W_PX + HOLE_HAND_STACK_OVERLAP_PX
-}
-
-/**
- * Visual top-left of a hole card in the game-plane coordinate system.
- * Mirrors: seat center → panel `scale-[1.40625]` → hand `bottom-0` → wrapper `scale-50 origin-bottom`.
- */
-function holeCardVisualTopLeftInPlanePx(
-  planeW: number,
-  planeH: number,
-  seatDx: number,
-  seatDy: number,
-  cardIndex: number
-): { x: number; y: number; scale: number } {
-  const cs = SEAT_HUD_PANEL_SCALE
-  const inner = HOLE_CARD_WRAPPER_SCALE
-  const playerCenterX = planeW / 2 + seatDx
-  const playerCenterY = planeH / 2 + seatDy
-
-  const layoutLeftFromPanelCenter = holeCardLayoutLeftFromPanelCenterPx(cardIndex)
-  const layoutTopFromPanelCenter = SEAT_HUD_PANEL_MIN_H_PX / 2 - PLAYING_CARD_LAYOUT_H_PX
-
-  const visualLeftFromPanelCenter =
-    layoutLeftFromPanelCenter + (PLAYING_CARD_LAYOUT_W_PX * (1 - inner)) / 2
-  const visualTopFromPanelCenter =
-    layoutTopFromPanelCenter + PLAYING_CARD_LAYOUT_H_PX * (1 - inner)
-
-  return {
-    x: playerCenterX + visualLeftFromPanelCenter * cs,
-    y: playerCenterY + visualTopFromPanelCenter * cs,
-    scale: inner * cs,
-  }
-}
 
 type CardPlaneEndpoint = { x: number; y: number; scale: number }
 
@@ -170,69 +126,32 @@ const HERO_RAIL_H_PX = HERO_RAIL_BASE_H_PX
 const HERO_RAIL_SHADOW_W_PX = Math.round(842 * HERO_TABLE_WIDTH_SCALE)
 const HERO_RAIL_SHADOW_H_PX = 637
 
-/** Cupholder orbit — tuned at 810×605; horizontal radius tracks elongated rail width. */
-const HERO_CUPHOLDER_CENTER_X = () => Math.round(HERO_RAIL_W_PX / 2 - 11)
-const HERO_CUPHOLDER_CENTER_Y = 293
-const HERO_CUPHOLDER_RADIUS_X = () => Math.round(HERO_RAIL_W_PX / 2 - 13)
-const HERO_CUPHOLDER_RADIUS_Y = 316
-
-/**
- * Offset px from {@link HERO_CUPHOLDER_ORIGIN} — matches rail ellipse + flat top/bottom belt.
- */
-function heroSeatCupOffsets(index: number, total: number): { ox: number; oy: number } {
-  const angle = (index / total) * 2 * Math.PI - Math.PI / 2
-  const baseRadiusX = HERO_CUPHOLDER_RADIUS_X()
-  const baseRadiusY = HERO_CUPHOLDER_RADIUS_Y
-  let ox = Math.cos(angle) * baseRadiusX
-  let oy = Math.sin(angle) * baseRadiusY
-  const normalizedAngle = ((angle + Math.PI / 2) % (2 * Math.PI)) / (2 * Math.PI)
-  const isTopRegion = normalizedAngle > 0.9 || normalizedAngle < 0.1
-  const isBottomRegion = normalizedAngle > 0.4 && normalizedAngle < 0.6
-  const isCorner =
-    (normalizedAngle > 0.125 && normalizedAngle < 0.375) ||
-    (normalizedAngle > 0.625 && normalizedAngle < 0.875)
-  if (isTopRegion) {
-    const bowAmount = Math.abs(Math.cos(angle)) * 24.3
-    oy = -291.6 + bowAmount
-  } else if (isBottomRegion) {
-    const bowAmount = Math.abs(Math.cos(angle)) * 24.3
-    oy = 291.6 - bowAmount
-  } else if (isCorner) {
-    ox = Math.cos(angle) * (baseRadiusX + 0.81)
-    oy = Math.sin(angle) * (baseRadiusY + 0.81)
-  }
-  return { ox, oy }
-}
+/** Felt hole cards — `NumericPlayingCard` small scaled on the table. */
+const HERO_FELT_HOLE_CARD_SCALE = 0.58
+const HERO_FELT_HOLE_CARD_OVERLAP_PX = -30
 
 function heroSeatRimPx(index: number, total: number): { leftPx: number; topPx: number } {
-  const { ox, oy } = heroSeatCupOffsets(index, total)
-  return {
-    leftPx: HERO_CUPHOLDER_ORIGIN.left + ox,
-    topPx: HERO_CUPHOLDER_ORIGIN.top + oy,
-  }
+  const pt = stadiumSeatPointPx(index, total, HERO_RAIL_W_PX, HERO_RAIL_H_PX, STADIUM_CUPHOLDER_RADIAL)
+  return { leftPx: pt.x, topPx: pt.y }
 }
 
-/** Visual center-ish under pot / community arc (px, same coords as cupholders). */
-const HERO_TABLE_POT_ANCHOR = {
-  get cx() {
-    return Math.round(HERO_CUPHOLDER_CENTER_X() + 12)
-  },
-  cy: 298,
+function heroSeatHoleCardsPx(index: number, total: number) {
+  return stadiumSeatPointPx(index, total, HERO_RAIL_W_PX, HERO_RAIL_H_PX, STADIUM_HOLE_CARDS_RADIAL)
+}
+
+const HERO_TABLE_CENTER = {
+  cx: HERO_RAIL_W_PX / 2,
+  cy: HERO_RAIL_H_PX / 2,
 } as const
-const HERO_CUPHOLDER_ORIGIN = {
-  get left() {
-    return HERO_CUPHOLDER_CENTER_X()
-  },
-  top: HERO_CUPHOLDER_CENTER_Y,
-} as const
+
 function heroFeltPointTowardPot(
   rimLeftPx: number,
   rimTopPx: number,
   frac: number
 ): { leftPx: number; topPx: number } {
   return {
-    leftPx: rimLeftPx + (HERO_TABLE_POT_ANCHOR.cx - rimLeftPx) * frac,
-    topPx: rimTopPx + (HERO_TABLE_POT_ANCHOR.cy - rimTopPx) * frac,
+    leftPx: rimLeftPx + (HERO_TABLE_CENTER.cx - rimLeftPx) * frac,
+    topPx: rimTopPx + (HERO_TABLE_CENTER.cy - rimTopPx) * frac,
   }
 }
 
@@ -245,8 +164,8 @@ function heroFeltSeatAssetPositions(
   rimTopPx: number,
   seatIndex: number
 ): { blindPx: { leftPx: number; topPx: number }; chipPx: { leftPx: number; topPx: number } } {
-  const dx = HERO_TABLE_POT_ANCHOR.cx - rimLeftPx
-  const dy = HERO_TABLE_POT_ANCHOR.cy - rimTopPx
+  const dx = HERO_TABLE_CENTER.cx - rimLeftPx
+  const dy = HERO_TABLE_CENTER.cy - rimTopPx
   const len = Math.hypot(dx, dy) || 1
   const ux = dx / len
   const uy = dy / len
@@ -1312,20 +1231,28 @@ function DisplayTableLive({
    * (that only reads the first `px` group and misplaces animations until static cards replace them).
    */
   const getPlayerSeatOffsetFromPlaneCenterPx = (index: number, total: number) => {
-    const { ox: cupholderX, oy: cupholderY } = heroSeatCupOffsets(index, total)
-    const cupholderDistance = Math.sqrt(cupholderX * cupholderX + cupholderY * cupholderY) || 1
-    const directionX = cupholderX / cupholderDistance
-    const directionY = cupholderY / cupholderDistance
-    /** Bumped from 142 → 178 so larger HUD cards clear the rim (BTN/SB/BB pucks + chip stacks). */
+    const rim = stadiumSeatPointPx(index, total, HERO_RAIL_W_PX, HERO_RAIL_H_PX, STADIUM_CUPHOLDER_RADIAL)
+    const tableLeft = fdW / 2 - HERO_RAIL_W_PX / 2
+    const tableTop = fdH / 2 + displayTableLiftPx - HERO_RAIL_H_PX / 2
+    const cupX = tableLeft + rim.x
+    const cupY = tableTop + rim.y
     let extensionDistance = 178
     const isCornerPosition = index % 2 === 1
     extensionDistance = isCornerPosition ? extensionDistance * 1.05 : extensionDistance * 0.95
-    const playerX = cupholderX + directionX * extensionDistance
-    const playerY = cupholderY + directionY * extensionDistance
+    const hudX = cupX + rim.nx * extensionDistance
+    const hudY = cupY + rim.ny * extensionDistance
     return {
-      dx: playerX - 55,
-      dy: playerY + displayTableLiftPx - 60,
+      dx: hudX - fdW / 2 - 55,
+      dy: hudY - fdH / 2 - 60,
     }
+  }
+
+  /** Felt hole-card pair center in plane px (for deal flights when DOM measure is unavailable). */
+  const feltHoleCardPairCenterInPlanePx = (seatIndex: number, total: number) => {
+    const hole = heroSeatHoleCardsPx(seatIndex, total)
+    const tableLeft = fdW / 2 - HERO_RAIL_W_PX / 2
+    const tableTop = fdH / 2 + displayTableLiftPx - HERO_RAIL_H_PX / 2
+    return { x: tableLeft + hole.x, y: tableTop + hole.y, rotateDeg: hole.rotateDeg }
   }
 
   // Calculate player positions around the table (perfectly aligned with cupholders / felt overlays)
@@ -1610,19 +1537,23 @@ function DisplayTableLive({
                 {dealingCards.map((dealingCard) => {
                   const endpointKey = `${dealingCard.playerIndex}-${dealingCard.cardIndex}`
                   const measured = holeCardDealEndpointsRef.current.get(endpointKey)
-                  const { dx, dy } = getPlayerSeatOffsetFromPlaneCenterPx(
+                  const feltCenter = feltHoleCardPairCenterInPlanePx(
                     dealingCard.playerIndex,
                     displayGameState.players.length
                   )
                   const rawEndpoint =
                     measured ??
-                    holeCardVisualTopLeftInPlanePx(
-                      fdW,
-                      fdH,
-                      dx,
-                      dy,
-                      dealingCard.cardIndex
-                    )
+                    (() => {
+                      const cardW = COMMUNITY_CARD_SLOT_W_PX * HERO_FELT_HOLE_CARD_SCALE
+                      const cardH = COMMUNITY_CARD_SLOT_H_PX * HERO_FELT_HOLE_CARD_SCALE
+                      const cardOffsetX =
+                        dealingCard.cardIndex === 0 ? -cardW * 0.35 : cardW * 0.15
+                      return {
+                        x: feltCenter.x + cardOffsetX - cardW / 2,
+                        y: feltCenter.y - cardH * 0.85,
+                        scale: HERO_FELT_HOLE_CARD_SCALE,
+                      }
+                    })()
                   const { x: finalX, y: finalY, scale: finalScale } =
                     tuneHoleCardDealFlightEndpoint(rawEndpoint)
 
@@ -1803,8 +1734,8 @@ function DisplayTableLive({
             const lastBetAct = heroBettingHud.lastActs?.[index] ?? null
             const hideFoldBanner = heroBettingHud.showSeatPills && lastBetAct === 'fold'
             /** Top-half seats: anchor action/call bubble above the tile so it doesn't sit on BTN/SB/BB pucks. */
-            const { oy: seatCupY } = heroSeatCupOffsets(index, displayGameState.players.length)
-            const bubbleAbove = seatCupY < -8
+            const { topPx: seatCupY } = heroSeatRimPx(index, displayGameState.players.length)
+            const bubbleAbove = seatCupY < HERO_RAIL_H_PX / 2
             return (
               <motion.div 
                 key={player.id} 
@@ -1852,48 +1783,6 @@ function DisplayTableLive({
                   </div>
                   <div className="mb-1 text-2xl font-bold leading-tight text-yellow-400">{player.name}</div>
                   <div className="sr-only">${formatHeroStackMoney(player.bankroll)}</div>
-                  
-                  {/* Player's hand - docked at bottom edge with overlapping cards */}
-                  {(() => {
-                    if (player.hasFolded) return null
-                    const handToShow =
-                      player.hand.length > 0 ? player.hand : (postDealHoleHands[index] ?? [])
-                    const showRealHand =
-                      !isDealing &&
-                      handToShow.length > 0 &&
-                      (hasDealtCards || (postDealHoleHands[index]?.length ?? 0) > 0)
-                    const hideForDealFlight = isDealing || !showRealHand
-                    return (
-                      <motion.div
-                        className={`absolute bottom-3 left-1/2 flex -translate-x-1/2 ${
-                          hideForDealFlight ? 'pointer-events-none opacity-0' : ''
-                        }`}
-                        aria-hidden={hideForDealFlight}
-                      >
-                        {[0, 1].map((cardIndex) => {
-                          const card = handToShow[cardIndex]
-                          return (
-                            <motion.div
-                              key={cardIndex}
-                              ref={(el) => registerHoleCardAnchor(index, cardIndex, el)}
-                              className="transform origin-bottom scale-50"
-                              style={{ marginLeft: cardIndex === 0 ? '0' : '-50px' }}
-                            >
-                              <NumericPlayingCard
-                                digit={showRealHand && card ? card.digit : 0}
-                                variant="cyan"
-                                size="normal"
-                                faceDown={!showRealHand || displayGameState.phase !== 'showdown'}
-                                backDesign="star"
-                              />
-                            </motion.div>
-                          )
-                        })}
-                      </motion.div>
-                    )
-                  })()}
-
-                  {/* Player status */}
                   {player.hasFolded && !hideFoldBanner && (
                     <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-red-400 font-black text-xl tracking-wider">FOLDED</div>
                   )}
@@ -1965,6 +1854,57 @@ function DisplayTableLive({
                           : 'z-[120]'
                       }
                     />
+                  </div>
+                )
+              })}
+
+              {displayGameState.players.map((player, index) => {
+                const total = displayGameState.players.length
+                const holeLayout = heroSeatHoleCardsPx(index, total)
+                if (player.hasFolded) return null
+                const handToShow =
+                  player.hand.length > 0 ? player.hand : (postDealHoleHands[index] ?? [])
+                const showRealHand =
+                  !isDealing &&
+                  handToShow.length > 0 &&
+                  (hasDealtCards || (postDealHoleHands[index]?.length ?? 0) > 0)
+                const hideForDealFlight = isDealing || !showRealHand
+                if (hideForDealFlight && !isDealing) return null
+                return (
+                  <div
+                    key={`felt-holes-${player.id}`}
+                    className={`pointer-events-none absolute z-[122] flex items-end justify-center ${
+                      hideForDealFlight ? 'opacity-0' : ''
+                    }`}
+                    style={{
+                      left: `${holeLayout.x}px`,
+                      top: `${holeLayout.y}px`,
+                      transform: `translate(-50%, -50%) rotate(${holeLayout.rotateDeg}deg)`,
+                    }}
+                    aria-hidden={hideForDealFlight}
+                  >
+                    {[0, 1].map((cardIndex) => {
+                      const card = handToShow[cardIndex]
+                      return (
+                        <div
+                          key={cardIndex}
+                          ref={(el) => registerHoleCardAnchor(index, cardIndex, el)}
+                          className="origin-bottom"
+                          style={{
+                            marginLeft: cardIndex === 0 ? 0 : HERO_FELT_HOLE_CARD_OVERLAP_PX,
+                            transform: `scale(${HERO_FELT_HOLE_CARD_SCALE})`,
+                          }}
+                        >
+                          <NumericPlayingCard
+                            digit={showRealHand && card ? card.digit : 0}
+                            variant="cyan"
+                            size="small"
+                            faceDown={!showRealHand || displayGameState.phase !== 'showdown'}
+                            backDesign="star"
+                          />
+                        </div>
+                      )
+                    })}
                   </div>
                 )
               })}

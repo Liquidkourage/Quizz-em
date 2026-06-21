@@ -4,7 +4,7 @@ import {
   STADIUM_HOLE_CARDS_RADIAL,
   stadiumSeatPointPx,
   stadiumSeatThetaRad,
-} from './stadiumSeatLayout'
+} from '@qhe/ui'
 
 describe('stadiumSeatLayout', () => {
   it('places seat 0 at the top center on the rail', () => {

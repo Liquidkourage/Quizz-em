@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PokerTableGraphic, QuizzEmWordmark, SeatCupholderMarker } from '@qhe/ui'
+import { FeltHoleCardPair, PokerTableGraphic, QuizzEmWordmark, SeatCupholderMarker, STADIUM_BLIND_BADGE_RADIAL, STADIUM_CHIP_STACK_RADIAL, STADIUM_CUPHOLDER_RADIAL, STADIUM_HOLE_CARDS_RADIAL, stadiumCupholderSizePx, stadiumHoleCardScale, stadiumSeatPointPx } from '@qhe/ui'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -15,11 +15,6 @@ import {
   resolveShowdownDisplayPot,
 } from './VenueFloorShowdownOverlay'
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
-import {
-  STADIUM_CUPHOLDER_RADIAL,
-  STADIUM_HOLE_CARDS_RADIAL,
-  stadiumSeatPointPx,
-} from './stadiumSeatLayout'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, venueWallTilePhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
@@ -328,38 +323,6 @@ function MosaicDigitCard({
   )
 }
 
-/** Two face-down hole cards — fanned, rotated to face the rail. */
-function MosaicHoleCardPair({ rotateDeg = 0 }: { rotateDeg?: number }) {
-  return (
-    <div
-      className="relative shrink-0"
-      style={{
-        width: 'clamp(1.35rem, 9.5cqw, 2.15rem)',
-        height: 'clamp(1.35rem, 9.1cqw, 2.05rem)',
-        transform: `rotate(${rotateDeg}deg)`,
-      }}
-      aria-hidden
-    >
-      <span className="absolute bottom-0 left-0 z-[1] -rotate-[8deg] origin-[85%_100%]">
-        <MosaicDigitCard faceDown />
-      </span>
-      <span className="absolute bottom-[10%] left-[28%] z-[2] rotate-[8deg] origin-[15%_100%] shadow-[0_1px_4px_rgba(0,0,0,0.55)]">
-        <MosaicDigitCard faceDown />
-      </span>
-    </div>
-  )
-}
-
-function mosaicSeatHoleCardsLayout(
-  seatIndex: number,
-  seatCount: number,
-  w: number,
-  h: number
-): { leftPct: number; topPct: number; rotateDeg: number } {
-  const pt = stadiumSeatPointPx(seatIndex, seatCount, w, h, STADIUM_HOLE_CARDS_RADIAL)
-  return { leftPct: pt.leftPct, topPct: pt.topPct, rotateDeg: pt.rotateDeg }
-}
-
 const SEAT_BETTING_ACTION_LABELS: Record<SeatBettingAction, string> = {
   check: 'CHECK',
   call: 'CALL',
@@ -600,7 +563,7 @@ function fallbackLabelEllipseScale(size: 'md' | 'lg', feltStacks: boolean): numb
   return feltStacks ? 1.04 : 1.025
 }
 
-/** Dot diameters match Tailwind classes on seat markers ({@link SeatRingWithLabels}). */
+/** Cupholder size scales with measured felt width via {@link stadiumCupholderSizePx}. */
 function seatDotDiameterPx(
   rootRemPx: number,
   size: 'md' | 'lg',
@@ -795,10 +758,6 @@ function SeatRingWithLabels({
   seatSubmittedAnswers?: (number | null)[]
   answeringPhase?: boolean
 }) {
-  function clamp(n: number, lo: number, hi: number) {
-    return Math.max(lo, Math.min(hi, n))
-  }
-
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
   const seatHoleDigits = padSeatHoleDigits(seatHoleDigitsIn)
@@ -829,24 +788,13 @@ function SeatRingWithLabels({
     isMosaic && mosaicFeltMaxHeightCss != null && !mosaicFillHeight
       ? ({ maxHeight: mosaicFeltMaxHeightCss } as CSSProperties)
       : undefined
-  const dot = isMosaic
-    ? 'h-[1.35rem] w-[1.35rem] border-[1.5px]'
-    : size === 'lg'
-      ? 'h-[2.8375rem] w-[2.8375rem] sm:h-[3.15rem] sm:w-[3.15rem]'
-      : 'h-7 w-7'
-  /** Larger rim marker for the player on the clock — reads from the back of the room. */
-  const dotActing = isMosaic
-    ? 'h-[1.6rem] w-[1.6rem] border-[2px] ring-2 ring-cyan-400/70'
-    : size === 'lg'
-      ? 'h-[3.5rem] w-[3.5rem] sm:h-16 sm:w-16 md:h-[4.25rem] md:w-[4.25rem]'
-      : 'h-10 w-10 sm:h-11 sm:w-11'
   const labelClass =
     size === 'lg'
       ? 'max-w-[min(12rem,34vw)] text-[1.125rem] leading-tight sm:text-[1.3rem] sm:leading-snug md:text-[1.5625rem]'
       : 'max-w-[min(7.125rem,46%)] text-[0.6875rem] leading-tight sm:max-w-[min(7.75rem,48%)] sm:text-xs md:text-sm'
 
-  /** Bankroll stack on felt: radial scale toward seat (1 = on rim dot); larger = nearer table edge / seat marker. */
-  const chipInnerScale = 0.635
+  /** Bankroll stack on felt — stadium radial toward the pot. */
+  const chipInnerScale = STADIUM_CHIP_STACK_RADIAL
 
   const ringElRef = useRef<HTMLDivElement>(null)
   const [ringPx, setRingPx] = useState({ w: 0, h: 0 })
@@ -884,22 +832,12 @@ function SeatRingWithLabels({
 
   const rimW = ringPx.w
   const rimH = ringPx.h
+  const cupSizePx = stadiumCupholderSizePx(rimW)
+  const holeCardScale = stadiumHoleCardScale(rimW)
+  const seatCountForLayout = isMosaic ? seatedCount : VENUE_SEAT_SLOTS
 
   const showFeltBoardCenter =
     isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)
-
-  const mosaicScale = useMemo(() => {
-    if (!isMosaic) return 1
-    const w = ringPx.w
-    if (!(w > 0)) return 1
-    if (mosaicDensity === 'micro') return clamp(w / 240, 0.82, 1.05)
-    if (mosaicDensity === 'compact') return clamp(w / 230, 0.88, 1.12)
-    if (mosaicDensity === 'medium') return clamp(w / 220, 0.92, 1.2)
-    return clamp(w / 220, 1, 1.35)
-  }, [isMosaic, mosaicDensity, ringPx.w])
-
-  const mosaicDotPx = 32 * mosaicScale
-  const mosaicHideHoleCards = mosaicDensity === 'micro' || mosaicDensity === 'compact'
 
   return (
     <div ref={ringElRef} className={`@container relative ${isMosaic ? 'overflow-hidden' : 'overflow-visible'} ${wrap}`} style={ringWrapStyle}>
@@ -931,12 +869,20 @@ function SeatRingWithLabels({
 
         const seatRimPt = stadiumSeatPointPx(
           i,
-          isMosaic ? seatedCount : VENUE_SEAT_SLOTS,
+          seatCountForLayout,
           rimW,
           rimH,
           STADIUM_CUPHOLDER_RADIAL
         )
-        const chipPos = venueSeatRimPct(i, chipInnerScale, rimW, rimH, 'felt')
+        const chipPt = stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
+        const chipPos = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
+        const holeLayout = stadiumSeatPointPx(
+          i,
+          seatCountForLayout,
+          rimW,
+          rimH,
+          STADIUM_HOLE_CARDS_RADIAL
+        )
         const anchored = labelAnchorsPct[i]
         const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && size === 'lg'))
         const fallbackPos = venueSeatRimPct(i, fb, rimW, rimH)
@@ -978,11 +924,8 @@ function SeatRingWithLabels({
         /** Below the name/stack cluster — keeps CHECK / CALL off the felt center. */
         const actionPanelBelowPx =
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
-        const actingSoftPulse = isMosaic
-          ? 'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden'
-          : size === 'lg'
-            ? 'pointer-events-none absolute left-1/2 top-1/2 z-0 h-[4.5rem] w-[4.5rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden sm:h-[5rem] sm:w-[5rem]'
-            : 'pointer-events-none absolute left-1/2 top-1/2 z-0 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/10 motion-reduce:hidden sm:h-[3.75rem] sm:w-[3.75rem]'
+        const actingSoftPulse =
+          'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden motion-safe:animate-pulse'
         return (
           <div key={i}>
             <div
@@ -996,25 +939,24 @@ function SeatRingWithLabels({
               {isActing && !prefersReducedMotion ? (
                 <span
                   aria-hidden
-                  className={`${actingSoftPulse} motion-safe:animate-pulse motion-safe:[animation-duration:2.8s]`}
-                  style={isMosaic ? { width: mosaicDotPx, height: mosaicDotPx } : undefined}
+                  className={`${actingSoftPulse} motion-safe:[animation-duration:2.8s]`}
+                  style={{ width: cupSizePx * 1.15, height: cupSizePx * 1.15 }}
                 />
               ) : answerLocked && !prefersReducedMotion ? (
                 <span
                   aria-hidden
-                  className={`${actingSoftPulse} bg-cyan-400/20 motion-safe:animate-pulse motion-safe:[animation-duration:2.2s]`}
-                  style={isMosaic ? { width: mosaicDotPx, height: mosaicDotPx } : undefined}
+                  className={`${actingSoftPulse} bg-cyan-400/20 motion-safe:[animation-duration:2.2s]`}
+                  style={{ width: cupSizePx * 1.15, height: cupSizePx * 1.15 }}
                 />
               ) : isWinner && !prefersReducedMotion ? (
                 <span
                   aria-hidden
-                  className={`${actingSoftPulse} bg-amber-400/18 motion-safe:animate-pulse motion-safe:[animation-duration:3.2s]`}
-                  style={isMosaic ? { width: mosaicDotPx, height: mosaicDotPx } : undefined}
+                  className={`${actingSoftPulse} bg-amber-400/18 motion-safe:[animation-duration:3.2s]`}
+                  style={{ width: cupSizePx * 1.15, height: cupSizePx * 1.15 }}
                 />
               ) : null}
               <SeatCupholderMarker
-                sizePx={isMosaic ? mosaicDotPx : undefined}
-                sizeClassName={isMosaic ? undefined : isActing || answerLocked || isWinner ? dotActing : dot}
+                sizePx={cupSizePx}
                 label={isMosaic && filled && mosaicInitials ? mosaicInitials : undefined}
                 labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
                 state={
@@ -1046,29 +988,35 @@ function SeatRingWithLabels({
                 }
               />
             </div>
-            {isMosaic && filled && !isFolded && seatHoleDigits[i] != null && !mosaicHideHoleCards ? (() => {
-              const holeLayout = mosaicSeatHoleCardsLayout(i, seatedCount, rimW, rimH)
-              return (
-                <div
-                  className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
-                  style={{
-                    left: `${holeLayout.leftPct}%`,
-                    top: `${holeLayout.topPct}%`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                  aria-label="Two hole cards"
-                >
-                  <MosaicHoleCardPair rotateDeg={holeLayout.rotateDeg} />
-                </div>
-              )
-            })() : null}
+            {filled && !isFolded && seatHoleDigits[i] != null ? (
+              <div
+                className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
+                style={{
+                  left: `${holeLayout.leftPct}%`,
+                  top: `${holeLayout.topPct}%`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                aria-label="Two hole cards"
+              >
+                <FeltHoleCardPair
+                  rotateDeg={holeLayout.rotateDeg}
+                  scale={holeCardScale}
+                  faceDown
+                  digits={seatHoleDigits[i]}
+                />
+              </div>
+            ) : null}
             {isMosaic ? null : (() => {
               if (blindSeats == null) return null
               const tags = blindTagsForSeat(i, blindSeats)
               if (tags.length === 0) return null
-              const blindInset =
-                feltSeatStacks && size === 'lg' ? 0.71 : size === 'lg' ? 0.8 : 0.76
-              const rp = venueSeatRimPct(i, blindInset, rimW, rimH, 'felt')
+              const blindPt = stadiumSeatPointPx(
+                i,
+                seatCountForLayout,
+                rimW,
+                rimH,
+                STADIUM_BLIND_BADGE_RADIAL
+              )
               const badgeText =
                 size === 'lg'
                   ? 'text-[8px] font-black leading-none tracking-tight sm:text-[9px]'
@@ -1077,8 +1025,8 @@ function SeatRingWithLabels({
                 <div
                   className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center gap-px`}
                   style={{
-                    left: `${rp.leftPct}%`,
-                    top: `${rp.topPct}%`,
+                    left: `${blindPt.leftPct}%`,
+                    top: `${blindPt.topPct}%`,
                     transform: 'translate(-50%, -50%)',
                   }}
                 >
@@ -1099,8 +1047,8 @@ function SeatRingWithLabels({
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center`}
                 style={{
-                  left: `${venueSeatRimPct(i, 0.58, rimW, rimH, 'felt').leftPct}%`,
-                  top: `${venueSeatRimPct(i, 0.58, rimW, rimH, 'felt').topPct}%`,
+                  left: `${chipPt.leftPct}%`,
+                  top: `${chipPt.topPct}%`,
                   transform: 'translate(-50%, -50%)',
                 }}
               >

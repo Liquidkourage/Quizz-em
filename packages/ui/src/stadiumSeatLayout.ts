@@ -1,5 +1,8 @@
 import { capsuleBoundaryHitPx } from './tableRimGeometry'
 
+/** Authoring table width where hero cupholders are 32px and hole cards use scale 0.58. */
+export const STADIUM_REFERENCE_TABLE_WIDTH_PX = 1134
+
 /** Seat 0 = clock top; advances counter-clockwise (viewed from above). */
 export function stadiumSeatThetaRad(seatIndex: number, seatCount: number): number {
   const n = Math.max(1, Math.floor(seatCount))
@@ -73,3 +76,32 @@ export const STADIUM_CUPHOLDER_RADIAL = 1
 
 /** Hole cards on the felt just inside the rail, toward the pot. */
 export const STADIUM_HOLE_CARDS_RADIAL = 0.86
+
+/** Blind / dealer badges between cupholders and hole cards. */
+export const STADIUM_BLIND_BADGE_RADIAL = 0.92
+
+/** Chip stacks on the felt between hole cards and the pot. */
+export const STADIUM_CHIP_STACK_RADIAL = 0.58
+
+const CUPHOLDER_WIDTH_FRAC = 32 / STADIUM_REFERENCE_TABLE_WIDTH_PX
+const HOLE_CARD_SCALE_AT_REFERENCE = 0.58
+const HOLE_CARD_OVERLAP_AT_REFERENCE_PX = -30
+
+/** Cupholder diameter proportional to rendered table width. */
+export function stadiumCupholderSizePx(tableWidthPx: number): number {
+  const w = tableWidthPx > 0 ? tableWidthPx : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  return Math.max(8, Math.round(w * CUPHOLDER_WIDTH_FRAC))
+}
+
+/** Scale for {@link NumericPlayingCard} `small` on the felt at this table width. */
+export function stadiumHoleCardScale(tableWidthPx: number): number {
+  const w = tableWidthPx > 0 ? tableWidthPx : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  return HOLE_CARD_SCALE_AT_REFERENCE * (w / STADIUM_REFERENCE_TABLE_WIDTH_PX)
+}
+
+/** Horizontal overlap between the two hole cards at the given scale. */
+export function stadiumHoleCardOverlapPx(scale: number): number {
+  return Math.round(
+    HOLE_CARD_OVERLAP_AT_REFERENCE_PX * (scale / HOLE_CARD_SCALE_AT_REFERENCE)
+  )
+}

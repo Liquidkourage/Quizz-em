@@ -1,7 +1,7 @@
 ﻿import { Fragment, useEffect, useState, useCallback, useRef, useLayoutEffect, useMemo } from 'react'
 import type { RefObject } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { NumericPlayingCard, PokerChip, PokerTableGraphic, SeatCupholderMarker } from '@qhe/ui'
+import { NumericPlayingCard, PokerChip, PokerTableGraphic, SeatCupholderMarker, FeltHoleCardPair, stadiumCupholderSizePx, stadiumHoleCardScale, STADIUM_CUPHOLDER_RADIAL, STADIUM_HOLE_CARDS_RADIAL, stadiumSeatPointPx } from '@qhe/ui'
 import { onState, onToast, onDealingCards, onDealingCommunityCards, type DisplayVenueTileSnapshot } from '@qhe/net'
 import type { GameState, GamePhase, PlayerState, SeatBettingAction, NumericCard } from '@qhe/core'
 import {
@@ -25,11 +25,6 @@ import seatChipStackImg from './assets/seat-chip-stack.png'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { showdownRowsFromGameState } from './showdownDisplay'
 import { nowOnServerClock } from './serverClock'
-import {
-  STADIUM_CUPHOLDER_RADIAL,
-  STADIUM_HOLE_CARDS_RADIAL,
-  stadiumSeatPointPx,
-} from './stadiumSeatLayout'
 
 /** Authoring viewport (logical px). Embedded venue heroes scale uniformly to fit the measured game plane; fullscreen uses live `gw/gh`. */
 const EMBEDDED_FELT_LAYOUT_W = 1280
@@ -125,10 +120,6 @@ const HERO_RAIL_W_PX = Math.round(HERO_RAIL_BASE_W_PX * HERO_TABLE_WIDTH_SCALE)
 const HERO_RAIL_H_PX = HERO_RAIL_BASE_H_PX
 const HERO_RAIL_SHADOW_W_PX = Math.round(842 * HERO_TABLE_WIDTH_SCALE)
 const HERO_RAIL_SHADOW_H_PX = 637
-
-/** Felt hole cards — `NumericPlayingCard` small scaled on the table. */
-const HERO_FELT_HOLE_CARD_SCALE = 0.58
-const HERO_FELT_HOLE_CARD_OVERLAP_PX = -30
 
 function heroSeatRimPx(index: number, total: number): { leftPx: number; topPx: number } {
   const pt = stadiumSeatPointPx(index, total, HERO_RAIL_W_PX, HERO_RAIL_H_PX, STADIUM_CUPHOLDER_RADIAL)
@@ -1541,17 +1532,18 @@ function DisplayTableLive({
                     dealingCard.playerIndex,
                     displayGameState.players.length
                   )
+                  const holeCardScale = stadiumHoleCardScale(HERO_RAIL_W_PX)
                   const rawEndpoint =
                     measured ??
                     (() => {
-                      const cardW = COMMUNITY_CARD_SLOT_W_PX * HERO_FELT_HOLE_CARD_SCALE
-                      const cardH = COMMUNITY_CARD_SLOT_H_PX * HERO_FELT_HOLE_CARD_SCALE
+                      const cardW = COMMUNITY_CARD_SLOT_W_PX * holeCardScale
+                      const cardH = COMMUNITY_CARD_SLOT_H_PX * holeCardScale
                       const cardOffsetX =
                         dealingCard.cardIndex === 0 ? -cardW * 0.35 : cardW * 0.15
                       return {
                         x: feltCenter.x + cardOffsetX - cardW / 2,
                         y: feltCenter.y - cardH * 0.85,
-                        scale: HERO_FELT_HOLE_CARD_SCALE,
+                        scale: holeCardScale,
                       }
                     })()
                   const { x: finalX, y: finalY, scale: finalScale } =
@@ -1847,7 +1839,7 @@ function DisplayTableLive({
                     }}
                   >
                     <SeatCupholderMarker
-                      sizePx={32}
+                      sizePx={stadiumCupholderSizePx(HERO_RAIL_W_PX)}
                       className={
                         actingHere
                           ? 'z-[125] ring-2 ring-cyan-400/70 shadow-[0_0_16px_rgba(34,211,238,0.45)]'
@@ -1873,38 +1865,30 @@ function DisplayTableLive({
                 return (
                   <div
                     key={`felt-holes-${player.id}`}
-                    className={`pointer-events-none absolute z-[122] flex items-end justify-center ${
+                    className={`pointer-events-none absolute z-[122] -translate-x-1/2 -translate-y-1/2 ${
                       hideForDealFlight ? 'opacity-0' : ''
                     }`}
                     style={{
                       left: `${holeLayout.x}px`,
                       top: `${holeLayout.y}px`,
-                      transform: `translate(-50%, -50%) rotate(${holeLayout.rotateDeg}deg)`,
                     }}
                     aria-hidden={hideForDealFlight}
                   >
-                    {[0, 1].map((cardIndex) => {
-                      const card = handToShow[cardIndex]
-                      return (
-                        <div
-                          key={cardIndex}
-                          ref={(el) => registerHoleCardAnchor(index, cardIndex, el)}
-                          className="origin-bottom"
-                          style={{
-                            marginLeft: cardIndex === 0 ? 0 : HERO_FELT_HOLE_CARD_OVERLAP_PX,
-                            transform: `scale(${HERO_FELT_HOLE_CARD_SCALE})`,
-                          }}
-                        >
-                          <NumericPlayingCard
-                            digit={showRealHand && card ? card.digit : 0}
-                            variant="cyan"
-                            size="small"
-                            faceDown={!showRealHand || displayGameState.phase !== 'showdown'}
-                            backDesign="star"
-                          />
-                        </div>
-                      )
-                    })}
+                    <FeltHoleCardPair
+                      rotateDeg={holeLayout.rotateDeg}
+                      scale={stadiumHoleCardScale(HERO_RAIL_W_PX)}
+                      faceDown={!showRealHand || displayGameState.phase !== 'showdown'}
+                      digits={
+                        showRealHand && displayGameState.phase === 'showdown'
+                          ? ([handToShow[0]?.digit ?? 0, handToShow[1]?.digit ?? 0] as const)
+                          : null
+                      }
+                      cardRefs={[
+                        (el) => registerHoleCardAnchor(index, 0, el),
+                        (el) => registerHoleCardAnchor(index, 1, el),
+                      ]}
+                      hidden={hideForDealFlight}
+                    />
                   </div>
                 )
               })}

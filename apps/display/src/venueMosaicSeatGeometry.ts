@@ -1,7 +1,7 @@
 import {
   STADIUM_CUPHOLDER_RADIAL,
   stadiumSeatPointPx,
-} from './stadiumSeatLayout'
+} from '@qhe/ui'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
 /** Authoring size for mosaic seat layout before ResizeObserver (16.5rem × 8.75rem @ 16px). */

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { PokerTableGraphic, SeatCupholderMarker } from '@qhe/ui'
+import { PokerTableGraphic, SeatCupholderMarker, stadiumCupholderSizePx } from '@qhe/ui'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
@@ -68,7 +68,7 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
               aria-hidden
             >
               <SeatCupholderMarker
-                sizeClassName="h-5 w-5 sm:h-6 sm:w-6"
+                sizePx={stadiumCupholderSizePx(feltW)}
                 label={seatNum}
                 labelClassName="font-mono text-[9px] tabular-nums sm:text-[10px]"
                 state={filled ? 'default' : 'empty'}

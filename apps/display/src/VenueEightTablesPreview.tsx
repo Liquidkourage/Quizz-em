@@ -125,12 +125,16 @@ function VenuePotAmount({
 /** Community board and/or pot — centered on mosaic felt. */
 function VenueMosaicFeltCenterStack({
   communityDigits,
+  communityCardWidthPx,
+  communityCardHeightPx,
   pot,
   potClass,
   potMuted,
   prefersReducedMotion,
 }: {
   communityDigits: number[]
+  communityCardWidthPx: number
+  communityCardHeightPx: number
   pot?: number | null
   potClass?: string
   potMuted?: 'dim' | 'faint' | 'live'
@@ -156,7 +160,12 @@ function VenueMosaicFeltCenterStack({
         {communityDigits.length > 0 ? (
           <div className="flex items-center justify-center gap-0.5 sm:gap-1">
             {communityDigits.map((digit, i) => (
-              <MosaicDigitCard key={`${i}-${digit}`} digit={digit} size="community" />
+              <MosaicDigitCard
+                key={`${i}-${digit}`}
+                digit={digit}
+                widthPx={communityCardWidthPx}
+                heightPx={communityCardHeightPx}
+              />
             ))}
           </div>
         ) : null}
@@ -299,38 +308,31 @@ function padSeatHoleDigits(
 
 const SEAT_LAYER_FELT_HOLE = 'z-[19]'
 
-/** Community / center board card — scales with @container on the ring. */
+/** Community / center board card — fixed px from measured ring (same pattern as hole cards). */
 function MosaicDigitCard({
   digit,
   dimmed = false,
   faceDown = false,
-  size = 'hole',
   widthPx,
   heightPx,
 }: {
   digit?: number
   dimmed?: boolean
   faceDown?: boolean
-  size?: 'hole' | 'community'
-  widthPx?: number
-  heightPx?: number
+  widthPx: number
+  heightPx: number
 }) {
-  const sizeClass =
-    size === 'community'
-      ? 'h-[clamp(2.1rem,15.5cqw,3.65rem)] w-[clamp(1.4rem,10.3cqw,2.45rem)] shrink-0'
-      : undefined
-  const sizeStyle =
-    widthPx != null && heightPx != null ? { width: widthPx, height: heightPx } : undefined
   return (
-    <CardFaceGraphic
-      digit={digit ?? 0}
-      faceDown={faceDown}
-      dimmed={dimmed}
-      className={sizeClass ?? 'block shrink-0'}
-      style={sizeStyle}
-      alt=""
-      aria-hidden
-    />
+    <div className="shrink-0" style={{ width: widthPx, height: heightPx }}>
+      <CardFaceGraphic
+        digit={digit ?? 0}
+        faceDown={faceDown}
+        dimmed={dimmed}
+        className="block h-full w-full"
+        alt=""
+        aria-hidden
+      />
+    </div>
   )
 }
 
@@ -902,6 +904,8 @@ function SeatRingWithLabels({
   const mosaicHoleCardOverlap = isMosaic
     ? stadiumMosaicHoleCardOverlapPx(mosaicHoleCardW)
     : 0
+  const mosaicCommunityCardW = isMosaic ? Math.max(10, Math.round(cupSizePx * 0.55)) : 0
+  const mosaicCommunityCardH = isMosaic ? Math.max(14, Math.round(cupSizePx * 0.77)) : 0
   /** Physical seat slots (0–7) — always distribute around the full eight-seat stadium. */
   const seatCountForLayout = VENUE_SEAT_SLOTS
 
@@ -928,6 +932,8 @@ function SeatRingWithLabels({
       {showFeltBoardCenter ? (
         <VenueMosaicFeltCenterStack
           communityDigits={communityDigits}
+          communityCardWidthPx={mosaicCommunityCardW}
+          communityCardHeightPx={mosaicCommunityCardH}
           pot={mosaicCenterPot}
           potClass={mosaicCenterPotClass}
           potMuted={mosaicCenterPotMuted}

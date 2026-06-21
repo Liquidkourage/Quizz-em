@@ -1,10 +1,37 @@
 import { Fragment } from 'react'
-import { CardFaceGraphic } from '@qhe/ui'
+import { clsx } from 'clsx'
 import type { ShowdownResultRow } from './showdownDisplay'
 
 export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-compact'
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
+
+const shellClassBySize: Record<ShowdownChipSize, string> = {
+  floor: 'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0',
+  'floor-compact': 'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.03rem,12.8cqw,1.8rem)] shrink-0',
+  lg: 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]',
+  md: 'h-7 w-[1.35rem] shrink-0',
+  sm: 'h-6 w-[1.125rem] shrink-0',
+  xs: 'h-5 w-[0.95rem] shrink-0',
+}
+
+const glyphClassBySize: Record<ShowdownChipSize, string> = {
+  floor: 'text-[clamp(1.05rem,13.8cqw,2.15rem)]',
+  'floor-compact': 'text-[clamp(0.82rem,10.5cqw,1.65rem)]',
+  lg: 'text-[1.05rem] sm:text-[1.2rem]',
+  md: 'text-[0.95rem]',
+  sm: 'text-[0.72rem]',
+  xs: 'text-[0.62rem]',
+}
+
+const decimalDotClassBySize: Record<ShowdownChipSize, string> = {
+  floor: 'h-[clamp(0.28rem,1.85cqw,0.44rem)] w-[clamp(0.28rem,1.85cqw,0.44rem)]',
+  'floor-compact': 'h-[clamp(0.22rem,1.45cqw,0.36rem)] w-[clamp(0.22rem,1.45cqw,0.36rem)]',
+  lg: 'h-1.5 w-1.5 sm:h-[0.42rem] sm:w-[0.42rem]',
+  md: 'h-[0.34rem] w-[0.34rem]',
+  sm: 'h-[0.28rem] w-[0.28rem]',
+  xs: 'h-[0.22rem] w-[0.22rem]',
+}
 
 function DigitChip({
   digit,
@@ -15,51 +42,29 @@ function DigitChip({
   variant: DigitChipVariant
   size?: ShowdownChipSize
 }) {
-  void variant
-  const shellClass =
-    size === 'floor'
-      ? 'h-[clamp(2rem,26.5cqw,3.5rem)] w-[clamp(1.33rem,17.7cqw,2.33rem)] shrink-0'
-      : size === 'floor-compact'
-        ? 'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[clamp(1.03rem,12.8cqw,1.8rem)] shrink-0'
-        : size === 'lg'
-          ? 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]'
-          : size === 'xs'
-            ? 'h-5 w-[0.95rem] shrink-0'
-            : size === 'sm'
-              ? 'h-6 w-[1.125rem] shrink-0'
-              : 'h-7 w-[1.35rem] shrink-0'
+  const dimmed = variant === 'inactive'
+
   return (
-    <div className={shellClass}>
-      <CardFaceGraphic
-        digit={digit}
-        dimmed={variant === 'inactive'}
-        className="block h-full w-full rounded-[3px] shadow-sm"
-        alt={`${digit}`}
-      />
+    <div className={shellClassBySize[size]} aria-hidden>
+      <div
+        className={clsx('vfd-showdown-winner-digit', dimmed && 'vfd-showdown-winner-digit--dimmed')}
+      >
+        <span className={clsx('vfd-showdown-winner-digit__glyph', glyphClassBySize[size])}>
+          {digit}
+        </span>
+      </div>
     </div>
   )
 }
 
-/** Decimal point glyph that sits between two digit chips (sized to match). */
+/** Gold decimal marker between two digit tiles (matches winner comp). */
 function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
-  const dim =
-    size === 'floor'
-      ? 'h-[clamp(2rem,26.5cqw,3.5rem)] w-[0.22em] text-[clamp(1.72rem,22.2cqw,3rem)]'
-      : size === 'floor-compact'
-        ? 'h-[clamp(1.55rem,19.2cqw,2.7rem)] w-[0.2em] text-[clamp(1.35rem,16.1cqw,2.3rem)]'
-        : size === 'lg'
-        ? 'h-9 w-3 text-2xl sm:h-10 sm:w-4 sm:text-3xl'
-        : size === 'xs'
-          ? 'h-5 w-1.5 text-sm'
-          : size === 'sm'
-            ? 'h-6 w-2 text-base'
-            : 'h-7 w-2.5 text-lg'
   return (
     <span
       aria-hidden
-      className={`inline-flex items-end justify-center font-mono font-black leading-none text-amber-200 ${dim}`}
+      className={clsx('inline-flex shrink-0 items-center justify-center', shellClassBySize[size])}
     >
-      .
+      <span className={clsx('vfd-showdown-winner-decimal', decimalDotClassBySize[size])} />
     </span>
   )
 }
@@ -111,8 +116,8 @@ export function ShowdownFiveCardsUsed({
       : size === 'floor-compact'
         ? 'flex w-full max-w-full flex-nowrap items-center justify-center gap-[clamp(0.14rem,1cqw,0.38rem)]'
         : size === 'lg'
-        ? 'flex flex-nowrap items-center justify-center gap-1'
-        : 'flex flex-wrap items-center justify-center gap-0.5'
+          ? 'flex flex-nowrap items-center justify-center gap-1'
+          : 'flex flex-wrap items-center justify-center gap-0.5'
 
   const ariaLabelDigits = cards
     .map((c, i) => (i === decimalAfter ? `. ${c.digit}` : `${c.digit}`))

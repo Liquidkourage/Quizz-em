@@ -1,21 +1,18 @@
-import type { CSSProperties, SVGAttributes } from 'react'
+import type { CSSProperties, ImgHTMLAttributes } from 'react'
 import { clsx } from 'clsx'
 import { CardBackSvg } from './CardBackSvg'
-import { CardFaceSvg } from './CardFaceSvg'
-import { CARD_FACE_ASPECT } from './cardFaceAssets'
+import { CARD_FACE_ASPECT, cardFaceImageSrc } from './cardFaceAssets'
 
-export type CardFaceGraphicProps = {
+export type CardFaceGraphicProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt'> & {
   digit: number
   /** Render the shared card-back asset instead of a digit face. */
   faceDown?: boolean
   /** Muted styling for inactive / folded picks in showdown rows. */
   dimmed?: boolean
-  className?: string
-  style?: CSSProperties
   alt?: string
-} & Omit<SVGAttributes<SVGSVGElement>, 'children'>
+}
 
-/** Official digit card front (0–9 SVG) or card back when `faceDown`. */
+/** Official digit card front (0–9 artwork) or vector card back when `faceDown`. */
 export function CardFaceGraphic({
   digit,
   faceDown = false,
@@ -23,6 +20,7 @@ export function CardFaceGraphic({
   className,
   style,
   alt,
+  draggable = false,
   ...props
 }: CardFaceGraphicProps) {
   if (faceDown) {
@@ -36,7 +34,6 @@ export function CardFaceGraphic({
         style={style}
         aria-hidden={alt === '' ? true : undefined}
         aria-label={alt === '' ? undefined : alt}
-        {...props}
       />
     )
   }
@@ -45,13 +42,13 @@ export function CardFaceGraphic({
   const decorative = alt === ''
 
   return (
-    <CardFaceSvg
-      digit={digit}
-      role={decorative ? undefined : 'img'}
+    <img
+      src={cardFaceImageSrc(digit)}
+      alt={decorative ? '' : resolvedAlt}
+      draggable={draggable}
       aria-hidden={decorative ? true : undefined}
-      aria-label={decorative ? undefined : resolvedAlt}
       className={clsx(
-        'pointer-events-none block select-none',
+        'pointer-events-none block h-full w-full select-none object-contain',
         dimmed && 'opacity-40 saturate-[0.55]',
         className
       )}

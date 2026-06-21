@@ -18,8 +18,20 @@ const VENUE_FELT_INSET_LEFT = 0.06
 /** Pull cupholder centers slightly inward from the rail midline (px at authoring scale). */
 const MOSAIC_SEAT_RAIL_INSET_PX = 12
 
-/** Hole cards: fraction from cup toward felt center — fully on green, below rail lip. */
-const MOSAIC_HOLE_CARD_INWARD_FRAC = 0.42
+/** Hole cards at 12 / 6 — fraction from cup toward felt center. */
+const MOSAIC_HOLE_CARD_INWARD_FRAC_POLE = 0.42
+/** Hole cards at 3 / 9 — stay closer to the cup on the wider side span. */
+const MOSAIC_HOLE_CARD_INWARD_FRAC_SIDE = 0.2
+
+/** Blend pole → side inset by how horizontal the seat is (0 = 12/6, 1 = 3/9). */
+function mosaicHoleCardInwardFrac(outX: number, outY: number): number {
+  const len = Math.hypot(outX, outY) || 1
+  const horizBias = Math.abs(outX) / len
+  return (
+    MOSAIC_HOLE_CARD_INWARD_FRAC_POLE +
+    (MOSAIC_HOLE_CARD_INWARD_FRAC_SIDE - MOSAIC_HOLE_CARD_INWARD_FRAC_POLE) * horizBias
+  )
+}
 
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8
@@ -135,12 +147,10 @@ export function mosaicSeatHoleLayout(
   seatCount: number,
   w: number,
   h: number,
-  inwardFrac = MOSAIC_HOLE_CARD_INWARD_FRAC
+  inwardFrac?: number
 ): { leftPct: number; topPct: number; rotateDeg: number } {
   const outer = mosaicSeatDotPct(seatIndex, seatCount, w, h)
   const center = venueMosaicFeltCenterPct()
-  const leftPct = outer.leftPct + (center.leftPct - outer.leftPct) * inwardFrac
-  const topPct = outer.topPct + (center.topPct - outer.topPct) * inwardFrac
 
   const rail = mosaicRailRectPx(w, h)
   const ox = (outer.leftPct / 100) * rail.wrapW
@@ -150,6 +160,9 @@ export function mosaicSeatHoleLayout(
   const outX = ox - ccx
   const outY = oy - ccy
   const len = Math.hypot(outX, outY) || 1
+  const frac = inwardFrac ?? mosaicHoleCardInwardFrac(outX, outY)
+  const leftPct = outer.leftPct + (center.leftPct - outer.leftPct) * frac
+  const topPct = outer.topPct + (center.topPct - outer.topPct) * frac
   const rotateDeg = (Math.atan2(outY / len, outX / len) * 180) / Math.PI + 90
 
   return { leftPct, topPct, rotateDeg }

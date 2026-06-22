@@ -20,7 +20,7 @@ function ShowdownStageHeaderStrip({ title }: { title: string }) {
     <div className="flex w-full items-center gap-[0.35em]">
       <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
       <ShowdownGoldDiamond />
-      <span className="shrink-0 font-black uppercase tracking-[0.2em] text-[#e2ad1a] drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] text-[clamp(0.42rem,4.2cqw,0.72rem)]">
+      <span className="vfd-showdown-stage-title shrink-0 font-black uppercase tracking-[0.2em] text-[#e2ad1a]">
         {title}
       </span>
       <ShowdownGoldDiamond />
@@ -32,21 +32,13 @@ function ShowdownStageHeaderStrip({ title }: { title: string }) {
 function ShowdownStageCrownBlock({
   title,
   names,
-  variant,
 }: {
   title: string
   names: readonly string[]
-  variant: 'winner' | 'split' | 'side'
 }) {
-  const showHeader = variant !== 'winner'
-
   return (
-    <div
-      className={`vfd-showdown-stage-slot vfd-showdown-stage-slot--crown${
-        showHeader ? ' vfd-showdown-stage-slot--crown-labelled' : ''
-      }`}
-    >
-      {showHeader ? <ShowdownStageHeaderStrip title={title} /> : null}
+    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--crown">
+      <ShowdownStageHeaderStrip title={title} />
       <ShowdownStageName names={names} />
     </div>
   )
@@ -116,9 +108,7 @@ function formatWinnerDifference(
 function ShowdownStageDifference({ value }: { value: string }) {
   return (
     <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--difference">
-      <p className="vfd-showdown-stage-diff-label font-bold uppercase tracking-[0.12em] text-white/85">
-        Difference
-      </p>
+      <p className="vfd-showdown-stage-diff-label font-bold uppercase leading-none">Difference</p>
       <p className="vfd-showdown-stage-diff-value vfd-showdown-difference-value font-black tabular-nums leading-none">
         {value}
       </p>
@@ -126,34 +116,27 @@ function ShowdownStageDifference({ value }: { value: string }) {
   )
 }
 
-function ShowdownStageLaurelStack({
-  pot,
-  each,
+function ShowdownStageCardsBlock({
   chipRow,
   showSideLedger,
   sidePotLines,
 }: {
-  pot: number
-  each: boolean
   chipRow: ShowdownResultRow | null
   showSideLedger: boolean
   sidePotLines?: readonly ShowdownSidePotLine[] | null
 }) {
   return (
-    <div className="vfd-showdown-stage-laurel-stack">
-      {pot > 0 ? <ShowdownStagePotAmount amount={pot} each={each} /> : null}
-      <div className="vfd-showdown-stage-cards">
-        {showSideLedger ? (
-          <div className="flex w-full flex-col items-center gap-[0.12em] px-[2%]">
-            <ShowdownPotWinnerList lines={sidePotLines!} />
-            {chipRow != null ? <ShowdownFiveCardsUsed row={chipRow} size="stage" /> : null}
-          </div>
-        ) : chipRow != null ? (
-          <ShowdownFiveCardsUsed row={chipRow} size="stage" />
-        ) : (
-          <span className="text-[0.5rem] text-white/30">—</span>
-        )}
-      </div>
+    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--cards">
+      {showSideLedger ? (
+        <div className="flex w-full flex-col items-center gap-[0.12em] px-[2%]">
+          <ShowdownPotWinnerList lines={sidePotLines!} />
+          {chipRow != null ? <ShowdownFiveCardsUsed row={chipRow} size="stage" /> : null}
+        </div>
+      ) : chipRow != null ? (
+        <ShowdownFiveCardsUsed row={chipRow} size="stage" />
+      ) : (
+        <span className="text-[0.5rem] text-white/30">—</span>
+      )}
     </div>
   )
 }
@@ -166,7 +149,6 @@ function ShowdownStageTemplate({
   chipRow,
   correctAnswer,
   sidePotLines,
-  variant,
 }: {
   headerTitle: string
   names: readonly string[]
@@ -175,7 +157,6 @@ function ShowdownStageTemplate({
   chipRow: ShowdownResultRow | null
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
-  variant: 'winner' | 'split' | 'side'
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const showSideLedger = sidePotLines != null && sidePotLines.length > 0
@@ -195,17 +176,19 @@ function ShowdownStageTemplate({
           <ShowdownWinnerStageArtPortal artBox={artBox} />
           <div className="vfd-showdown-stage-overlay" aria-hidden>
             <div className="vfd-showdown-stage-zoom-frame">
-              <ShowdownStageCrownBlock title={headerTitle} names={names} variant={variant} />
+              <ShowdownStageCrownBlock title={headerTitle} names={names} />
 
-              <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
-                <ShowdownStageLaurelStack
-                  pot={pot}
-                  each={each}
-                  chipRow={chipRow}
-                  showSideLedger={showSideLedger}
-                  sidePotLines={sidePotLines}
-                />
-              </div>
+              {pot > 0 ? (
+                <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--pot">
+                  <ShowdownStagePotAmount amount={pot} each={each} />
+                </div>
+              ) : null}
+
+              <ShowdownStageCardsBlock
+                chipRow={chipRow}
+                showSideLedger={showSideLedger}
+                sidePotLines={sidePotLines}
+              />
 
               {difference != null ? <ShowdownStageDifference value={difference} /> : null}
             </div>
@@ -246,7 +229,6 @@ export function ShowdownWinnerCompPanel({
         chipRow={chipRow}
         correctAnswer={correctAnswer}
         sidePotLines={sidePotLines}
-        variant={variant}
       />
     </div>
   )

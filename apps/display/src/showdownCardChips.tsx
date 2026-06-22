@@ -14,7 +14,7 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
   'floor-compact':
     'h-[max(2.15rem,min(3.25rem,26cqw))] w-[max(1.42rem,min(2.15rem,17.5cqw))] shrink-0',
   stage:
-    'h-[max(0.92rem,min(1.55rem,11.5cqw))] w-[max(0.64rem,min(1.05rem,8cqw))] shrink-0',
+    'h-[max(2.3rem,min(3.88rem,28.75cqw))] w-[max(1.6rem,min(2.63rem,20cqw))] shrink-0',
   lg: 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]',
   md: 'h-7 w-[1.35rem] shrink-0',
   sm: 'h-[max(1.65rem,7.5cqw)] w-[max(1.05rem,5cqw)] shrink-0',
@@ -24,7 +24,7 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
 const decimalShellClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'h-[max(2.75rem,min(4.25rem,32cqw))]',
   'floor-compact': 'h-[max(2.15rem,min(3.25rem,26cqw))]',
-  stage: 'h-[max(0.92rem,min(1.55rem,11.5cqw))]',
+  stage: 'h-[max(2.3rem,min(3.88rem,28.75cqw))]',
   lg: 'h-9 sm:h-10',
   md: 'h-7',
   sm: 'h-[max(1.65rem,7.5cqw)]',
@@ -34,7 +34,7 @@ const decimalShellClassBySize: Record<ShowdownChipSize, string> = {
 const decimalMarkClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'text-[max(0.55rem,min(0.82rem,4.2cqw))]',
   'floor-compact': 'text-[max(0.48rem,min(0.72rem,3.6cqw))]',
-  stage: 'text-[max(0.34rem,min(0.56rem,2.9cqw))]',
+  stage: 'text-[max(0.85rem,min(1.4rem,7.25cqw))]',
   lg: 'text-base sm:text-lg',
   md: 'text-sm',
   sm: 'text-[max(0.55rem,2.6cqw)]',

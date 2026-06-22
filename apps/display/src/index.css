@@ -123,77 +123,88 @@
     transform: translateX(-50%);
   }
 
-  /** Name under baked-in crown (winner) or label strip (split / side). */
+  /** Winner / split label between crown decorations, then large name. */
   .vfd-showdown-stage-slot--crown {
-    top: 19%;
-    width: 62%;
+    top: 11%;
+    width: 74%;
     transform: translateX(-50%);
     justify-content: flex-start;
-    gap: 0;
-    font-size: max(0.34rem, min(4.4cqw, 0.82rem));
+    gap: max(0.08rem, 1.1cqh);
+    font-size: max(0.38rem, min(4.8cqw, 0.9rem));
   }
 
-  .vfd-showdown-stage-slot--crown-labelled {
-    top: 10%;
-    gap: max(0.05rem, 0.85cqh);
-    font-size: max(0.36rem, min(4.6cqw, 0.86rem));
-  }
-
-  /** Wreath void — pot centered, cards tucked under. */
-  .vfd-showdown-stage-slot--laurel {
-    top: 36.5%;
-    width: 52%;
-    height: 28%;
-    transform: translateX(-50%);
-    justify-content: center;
-  }
-
-  .vfd-showdown-stage-laurel-stack {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: max(0.01rem, 0.42cqh);
-    font-size: max(0.36rem, min(4.6cqw, 0.86rem));
+  .vfd-showdown-stage-title {
+    font-size: max(0.42rem, min(4.6cqw, 0.78rem));
+    line-height: 1;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.92));
   }
 
   .vfd-showdown-stage-name {
-    font-size: 1em;
+    font-size: max(1.55em, min(7.2cqw, 1.35rem));
     line-height: 1.05;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.015em;
+  }
+
+  /** Pot centered on the 40% height line. */
+  .vfd-showdown-stage-slot--pot {
+    top: 40%;
+    width: 62%;
+    transform: translate(-50%, -50%);
+    font-size: max(0.42rem, min(5.8cqw, 1.05rem));
   }
 
   .vfd-showdown-stage-pot {
-    font-size: 1.42em;
+    font-size: 1.55em;
   }
 
-  .vfd-showdown-stage-cards {
-    width: 100%;
-    margin-top: -0.06em;
+  /** Digit cards below the pot, inside the wreath. */
+  .vfd-showdown-stage-slot--cards {
+    top: 52%;
+    width: 92%;
+    height: 24%;
+    transform: translateX(-50%);
+    justify-content: center;
   }
 
-  /** Difference readout on the podium top disc. */
+  /** Difference block on the gold nameplate. */
   .vfd-showdown-stage-slot--difference {
-    top: 74%;
-    width: 38%;
-    gap: max(0.01rem, 0.28cqh);
-    transform: translate(-50%, -50%);
+    top: 77.5%;
+    width: 42%;
+    height: 10%;
+    transform: translateX(-50%);
+    justify-content: flex-start;
+    gap: max(0.04rem, 0.55cqh);
   }
 
   .vfd-showdown-stage-diff-label {
-    font-size: max(0.24rem, min(2.2cqw, 0.4rem));
-    line-height: 1;
-    letter-spacing: 0.1em;
+    width: 100%;
+    font-size: max(0.34rem, min(4.2cqw, 0.68rem));
+    line-height: 1.05;
+    letter-spacing: 0.11em;
+    color: #fff4dc;
+    -webkit-text-stroke: 0.45px #000;
+    paint-order: stroke fill;
+    text-shadow:
+      -1px 0 #000,
+      1px 0 #000,
+      0 -1px #000,
+      0 1px #000,
+      0 2px 4px rgba(0, 0, 0, 0.75);
   }
 
   .vfd-showdown-stage-diff-value {
-    font-size: max(0.38rem, min(3.8cqw, 0.66rem));
+    width: 100%;
+    font-size: max(0.52rem, min(5.8cqw, 0.95rem));
+    line-height: 1;
   }
 
   .vfd-showdown-difference-value {
-    color: #ff5a2e;
-    text-shadow: 0 1px 2px rgb(0 0 0 / 0.65);
+    color: #3d0818;
+    -webkit-text-stroke: 0.35px rgba(255, 244, 220, 0.55);
+    paint-order: stroke fill;
+    text-shadow:
+      0 0 1px rgba(255, 248, 230, 0.65),
+      0 1px 2px rgba(0, 0, 0, 0.45);
   }
 
   /* Typography */

@@ -1457,7 +1457,7 @@ function VenueMosaicTableCard({
               : shrinkWrapRowHeight || mosaicShrinkWrap || !feltFillsCell
                 ? `flex flex-col ${floorSize.innerGapClass}`
                 : 'contents'
-          } ${showFloorShowdownOverlay ? 'opacity-25' : ''}`}
+          } ${showFloorShowdownOverlay ? 'hidden' : ''}`}
         >
         <div
           className={`grid shrink-0 gap-x-1 ${denseMosaicChrome ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-[auto_minmax(0,1fr)_auto]'} ${floorSize.headerRowClass} ${denseMosaicChrome ? mosaicTypography.titleRowClass : ''} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}

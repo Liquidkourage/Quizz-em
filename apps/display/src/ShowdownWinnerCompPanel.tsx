@@ -149,28 +149,6 @@ function ShowdownStageLaurelStack({
   )
 }
 
-function ShowdownStagePenguinArt() {
-  return (
-    <div className="vfd-showdown-stage-penguin" aria-hidden>
-      <svg viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <ellipse cx="100" cy="128" rx="62" ry="78" fill="#1a1a1f" />
-        <ellipse cx="100" cy="136" rx="42" ry="54" fill="#f5f5f5" />
-        <ellipse cx="100" cy="52" rx="44" ry="40" fill="#1a1a1f" />
-        <ellipse cx="100" cy="58" rx="28" ry="26" fill="#f5f5f5" />
-        <circle cx="86" cy="48" r="7" fill="#fff" />
-        <circle cx="114" cy="48" r="7" fill="#fff" />
-        <circle cx="86" cy="48" r="3.5" fill="#1a1a1f" />
-        <circle cx="114" cy="48" r="3.5" fill="#1a1a1f" />
-        <path d="M100 58 L88 68 L112 68 Z" fill="#f59e0b" />
-        <ellipse cx="72" cy="198" rx="16" ry="10" fill="#f59e0b" />
-        <ellipse cx="128" cy="198" rx="16" ry="10" fill="#f59e0b" />
-        <ellipse cx="58" cy="118" rx="14" ry="36" fill="#1a1a1f" transform="rotate(18 58 118)" />
-        <ellipse cx="142" cy="118" rx="14" ry="36" fill="#1a1a1f" transform="rotate(-18 142 118)" />
-      </svg>
-    </div>
-  )
-}
-
 function ShowdownStageTemplate({
   headerTitle,
   names,
@@ -194,7 +172,6 @@ function ShowdownStageTemplate({
   return (
     <div className="vfd-showdown-stage" data-showdown-winner-comp>
       <div className="vfd-showdown-stage-frame">
-        <ShowdownStagePenguinArt />
         <div className="vfd-showdown-stage-overlay" aria-hidden>
           <ShowdownStageCrownBlock title={headerTitle} names={names} />
 

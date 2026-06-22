@@ -61,9 +61,28 @@
     container-type: size;
   }
 
+  /** Test background art — centered on the pink showdown fill. */
+  .vfd-showdown-stage-penguin {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .vfd-showdown-stage-penguin svg {
+    width: min(68%, 78cqw);
+    max-height: 72%;
+    height: auto;
+    opacity: 0.92;
+  }
+
   .vfd-showdown-stage-overlay {
     position: absolute;
     inset: 0;
+    z-index: 1;
     pointer-events: none;
   }
 

@@ -51,7 +51,7 @@
     box-shadow: none !important;
   }
 
-  /** Winner stage — full composition via contain; art renders outside venue-wall zoom. */
+  /** Winner stage — cover fill (height-first, even horizontal crop); art outside venue-wall zoom. */
   .vfd-showdown-stage {
     position: relative;
     width: 100%;

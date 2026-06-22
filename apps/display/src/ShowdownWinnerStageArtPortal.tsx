@@ -70,7 +70,7 @@ function PortaledArt({ clip }: { clip: ArtClip }) {
           display: 'block',
           width: '100%',
           height: '100%',
-          objectFit: 'contain',
+          objectFit: 'cover',
           objectPosition: 'center center',
         }}
       />

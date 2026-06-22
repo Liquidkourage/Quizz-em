@@ -96,12 +96,14 @@ function ShowdownStageSidePotSummary({ lines }: { lines: readonly ShowdownSidePo
           >
             {line.label}
           </span>
-          <span className="vfd-showdown-stage-side-ledger-name" title={line.name}>
-            {line.name}
-          </span>
-          <span className="vfd-showdown-stage-side-ledger-amount">
-            ${line.amount.toLocaleString()}
-          </span>
+          <div className="vfd-showdown-stage-side-ledger-detail">
+            <span className="vfd-showdown-stage-side-ledger-name" title={line.name}>
+              {line.name}
+            </span>
+            <span className="vfd-showdown-stage-side-ledger-amount">
+              ${line.amount.toLocaleString()}
+            </span>
+          </div>
         </div>
       ))}
     </div>

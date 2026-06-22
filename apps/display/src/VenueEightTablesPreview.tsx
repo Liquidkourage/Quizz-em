@@ -1453,8 +1453,11 @@ function VenueMosaicTableCard({
   })
   const toCallFooterLabel = mosaicToCallFooterLabel(row.actingCallAmount)
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
-  /** Unified mosaic card chrome (badge, acting name, pot-on-felt, To Call footer) for 3+ tables. Hero (1–2) keeps spacious layout. */
-  const denseMosaicChrome = floorSize.size !== 'hero'
+  /** Unified mosaic card chrome (badge, acting name, pot-on-felt) for dense grids. 4-up keeps header pot layout. */
+  const spaciousTileChrome =
+    floorSize.size === 'hero' ||
+    (layoutTableCount <= 4 && floorSize.size === 'large')
+  const denseMosaicChrome = !spaciousTileChrome
   const feltFillsCell =
     floorFillHeight || (floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight)
   const mosaicShrinkWrap =

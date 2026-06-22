@@ -307,8 +307,8 @@
   }
 
   .vfd-showdown-stage-slot--side-ledger {
-    top: 28%;
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 1%);
+    top: 34%;
+    width: calc(var(--vfd-stage-safe-width, 83.333%) - 6%);
     transform: translateX(-50%);
     font-size: var(--vfd-stage-ledger-size);
   }
@@ -317,21 +317,31 @@
     display: flex;
     width: 100%;
     flex-direction: column;
-    gap: max(0.22rem, 2.2cqh);
+    gap: max(0.28rem, 2.6cqh);
   }
 
   .vfd-showdown-stage-side-ledger-row {
-    display: grid;
+    display: flex;
     width: 100%;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    max-width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: max(0.1rem, 0.75cqh);
+    padding: max(0.04rem, 0.35cqh) max(0.08rem, 0.45cqw);
+  }
+
+  .vfd-showdown-stage-side-ledger-detail {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
     align-items: baseline;
-    gap: max(0.28rem, 1.8cqw);
-    padding: max(0.04rem, 0.35cqh) max(0.12rem, 0.6cqw);
+    justify-content: center;
+    gap: max(0.28rem, 1.4cqw);
   }
 
   .vfd-showdown-stage-side-ledger-label {
     font-family: 'Montserrat', system-ui, sans-serif;
-    font-size: max(0.72em, min(3.8cqw, 6.4cqh));
+    font-size: max(0.68em, min(3.4cqw, 5.8cqh));
     font-weight: 900;
     letter-spacing: 0.14em;
     line-height: 1;
@@ -347,11 +357,13 @@
   }
 
   .vfd-showdown-stage-side-ledger-name {
+    min-width: 0;
+    max-width: 62%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    text-align: left;
-    font-size: max(0.88em, min(5.2cqw, 8.7cqh));
+    text-align: right;
+    font-size: max(0.82em, min(4.6cqw, 7.6cqh));
     font-weight: 800;
     line-height: 1.05;
     color: #fff;
@@ -359,8 +371,9 @@
   }
 
   .vfd-showdown-stage-side-ledger-amount {
+    flex: 0 0 auto;
     font-family: 'Bungee', system-ui, sans-serif;
-    font-size: min(7.2cqw, 12cqh);
+    font-size: min(5.6cqw, 9.4cqh);
     line-height: 1;
     color: #e2ad1a;
     white-space: nowrap;
@@ -423,9 +436,59 @@
   }
 
   .vfd-showdown-stage-slot--crown-winner {
-    top: 25%;
+    top: 29%;
     width: calc(var(--vfd-stage-safe-width, 83.333%) - 1%);
     gap: 0;
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--side-banner {
+    width: calc(var(--vfd-stage-safe-width, 83.333%) - 14%);
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-variant-banner-text {
+    font-size: max(0.36rem, min(3.2cqw, 5.6cqh));
+    letter-spacing: 0.06em;
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--side-banner ~ .vfd-showdown-stage-slot--side-ledger {
+    top: 41%;
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--side-ledger {
+    top: 38%;
+    width: calc(var(--vfd-stage-safe-width, 83.333%) - 10%);
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-side-ledger-detail {
+    flex-direction: column;
+    align-items: center;
+    gap: max(0.08rem, 0.45cqh);
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-side-ledger-name {
+    max-width: 100%;
+    text-align: center;
+    font-size: max(0.78em, min(4.2cqw, 7cqh));
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-side-ledger-amount {
+    font-size: min(5cqw, 8.4cqh);
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--crown-winner {
+    top: 31.5%;
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--crown-split {
+    top: 28%;
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--pot {
+    top: 42%;
+  }
+
+  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--cards {
+    top: 52%;
   }
 
   .vfd-showdown-stage-title {

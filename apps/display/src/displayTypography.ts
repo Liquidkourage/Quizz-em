@@ -27,10 +27,6 @@ export const DISPLAY_TEXT_HEADLINE_BADGE = 'display-text-headline-badge leading-
 export const DISPLAY_TEXT_HEADLINE_SETLIST_BADGE =
   'display-text-headline-setlist-badge leading-none'
 
-/** Headline condense stats pill — beside setlist cue. */
-export const DISPLAY_TEXT_HEADLINE_STATS_PILL =
-  'display-text-headline-stats-pill leading-tight'
-
 /** Headline condense stats — raw numbers only (no progress bar). */
 export const DISPLAY_TEXT_HEADLINE_STATS = 'display-text-headline-stats leading-tight'
 

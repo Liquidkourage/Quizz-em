@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Winner stage preview — Alice C.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bungee&family=Montserrat:ital,wght@0,700;0,900;1,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0b1220;
+      }
+
+      .tile {
+        --vfd-stage-art-scale: 1.2;
+        position: relative;
+        width: 403px;
+        height: 241px;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 2px solid rgba(226, 173, 26, 0.55);
+        background: #000;
+      }
+
+      .tile__art-portal,
+      .tile__overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .zoom-frame {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: calc(100% * var(--vfd-stage-art-scale));
+        height: calc(100% * var(--vfd-stage-art-scale));
+        transform: translate(-50%, -50%);
+        overflow: hidden;
+      }
+
+      .zoom-frame img {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        height: 100%;
+        width: auto;
+        max-width: none;
+        transform: translateX(-50%);
+      }
+
+      .slot {
+        position: absolute;
+        left: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transform: translateX(-50%);
+      }
+
+      .slot--name {
+        top: 25%;
+        width: 68%;
+      }
+
+      .name {
+        margin: 0;
+        max-width: 100%;
+        font-family: Montserrat, system-ui, sans-serif;
+        font-size: 1.48rem;
+        font-weight: 900;
+        line-height: 1.05;
+        color: #fff;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .slot--pot {
+        top: 40%;
+        width: 58%;
+        transform: translate(-50%, -50%);
+      }
+
+      .pot {
+        display: inline-block;
+        transform: skewX(-9deg);
+        font-family: Bungee, system-ui, sans-serif;
+        font-size: 1.65rem;
+        line-height: 1;
+        color: #e2ad1a;
+        text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.58), 2px 3px 0 rgba(0, 0, 0, 0.28);
+      }
+
+      .pot-sign {
+        font-size: 0.68em;
+        vertical-align: 0.2em;
+        margin-right: 0.05em;
+      }
+
+      .slot--cards {
+        top: 50.5%;
+        width: 84%;
+        height: 18%;
+        justify-content: center;
+      }
+
+      .cards {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 3px;
+      }
+
+      .card {
+        height: 72px;
+        width: 47px;
+        border-radius: 4px;
+        border: 1px solid rgba(226, 173, 26, 0.65);
+        background: linear-gradient(180deg, #10182a 0%, #060a12 100%);
+        color: #e2ad1a;
+        font-family: Bungee, system-ui, sans-serif;
+        font-size: 1.05rem;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+      }
+
+      .dot {
+        align-self: flex-end;
+        margin: 0 1px 8px;
+        color: #e2ad1a;
+        font-family: Bungee, system-ui, sans-serif;
+        font-size: 1rem;
+        line-height: 1;
+      }
+
+      .slot--diff {
+        top: 86.2%;
+        width: 44%;
+        height: 7.5%;
+        transform: translate(-50%, -50%);
+        justify-content: center;
+      }
+
+      .diff {
+        margin: 0;
+        width: 100%;
+        font-family: Bungee, system-ui, sans-serif;
+        font-size: 1.22rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: #220610;
+        -webkit-text-stroke: 0.45px rgba(255, 248, 230, 0.7);
+        text-shadow: 0 0 2px rgba(255, 250, 235, 0.75), 0 1px 3px rgba(0, 0, 0, 0.55);
+      }
+
+      .badge {
+        position: absolute;
+        left: 4px;
+        top: 4px;
+        z-index: 2;
+        border-radius: 6px;
+        border: 1px solid rgba(226, 173, 26, 0.85);
+        background: rgba(0, 0, 0, 0.72);
+        padding: 2px 7px;
+        font-family: Montserrat, system-ui, sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        font-style: italic;
+        color: #e2ad1a;
+      }
+    </style>
+  </head>
+  <body>
+    <article class="tile" aria-label="Winner stage preview — Alice C.">
+      <div class="tile__art-portal">
+        <div class="zoom-frame">
+          <img src="./assets/winner-stage-card-C3Sa-RFa.png" alt="" />
+        </div>
+      </div>
+      <div class="tile__overlay">
+        <div class="zoom-frame">
+          <div class="slot slot--name">
+            <p class="name">Alice C.</p>
+          </div>
+          <div class="slot slot--pot">
+            <span class="pot"><span class="pot-sign">$</span>6,000</span>
+          </div>
+          <div class="slot slot--cards">
+            <div class="cards" aria-label="Cards used: 3, 2, . 0, 3, 4">
+              <div class="card">3</div>
+              <div class="card">2</div>
+              <span class="dot">.</span>
+              <div class="card">0</div>
+              <div class="card">3</div>
+              <div class="card">4</div>
+            </div>
+          </div>
+          <div class="slot slot--diff">
+            <p class="diff">+0.034</p>
+          </div>
+        </div>
+      </div>
+      <span class="badge">13</span>
+    </article>
+  </body>
+</html>

@@ -58,7 +58,6 @@ function ShowdownStageVariantBanner({ variant }: { variant: 'split' | 'side' }) 
           isSplit ? ' vfd-showdown-stage-variant-banner--split' : ' vfd-showdown-stage-variant-banner--side'
         }`}
       >
-        <ShowdownGoldDiamond />
         <span className="vfd-showdown-stage-variant-banner-text">
           {isSplit ? (
             <>
@@ -72,7 +71,6 @@ function ShowdownStageVariantBanner({ variant }: { variant: 'split' | 'side' }) 
             </>
           )}
         </span>
-        <ShowdownGoldDiamond />
       </div>
     </div>
   )
@@ -392,6 +390,7 @@ function ShowdownStageTemplate({
       className="vfd-showdown-stage"
       data-showdown-winner-comp
       data-stage-art-layout={artLayout}
+      data-stage-variant={variant}
       style={{ ['--vfd-stage-art-scale' as string]: String(artScale) }}
     >
       <div className="vfd-showdown-stage-frame">

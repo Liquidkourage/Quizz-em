@@ -808,6 +808,28 @@
     line-height: 1.2;
   }
 
+  .display-text-headline-question-dense {
+    font-size: clamp(2.65vh, 4vh, 5.5vh);
+    font-weight: 700;
+    line-height: 1.18;
+  }
+
+  .display-text-headline-blinds-label {
+    font-size: clamp(14px, 2.15vmin, 22px);
+  }
+
+  .vfd-headline-blinds-amount-headline {
+    font-size: clamp(22px, 3.4vmin, 38px);
+  }
+
+  .display-text-headline-blinds-meta-headline {
+    font-size: clamp(12px, 1.75vmin, 17px);
+  }
+
+  .display-text-headline-phase-badge {
+    font-size: clamp(14px, 2.25vmin, 22px);
+  }
+
   /**
    * Venue-floor mosaic density — felt cap only on wall root.
    * Tile typography is set per-card via {@link venueMosaicTileTypographyStyle}.

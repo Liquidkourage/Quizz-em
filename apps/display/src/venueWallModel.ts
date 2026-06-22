@@ -102,6 +102,32 @@ export function venueWallTilePhaseLabel(row: DisplayVenueTileSnapshot): string {
   return venueWallPhaseLabel(row.phase)
 }
 
+/** Audience-facing phase line for the sticky headline strip. */
+export function venueHeadlinePhaseBadge(
+  tileRows: DisplayVenueTileSnapshot[],
+  phase: string | null,
+  inVenueShowdown: boolean,
+): string | null {
+  if (inVenueShowdown) return 'Showdown'
+  if (phase == null) return null
+  const ph = phase.toLowerCase()
+  if (ph === 'answering') return 'Answering'
+  if (ph === 'betting') {
+    const open = tileRows.filter((t) => t.seated >= 2 && t.phase === 'betting')
+    const round2 = open.filter((t) => t.bettingRound === 2).length
+    const round1 = open.filter((t) => t.bettingRound === 1).length
+    const roundLabel = round2 > round1 ? 'Round 2' : round1 > 0 ? 'Round 1' : null
+    const anyOpen = open.some((t) => t.isBettingOpen === true)
+    if (!anyOpen) {
+      return roundLabel != null ? `${roundLabel} · Bets closed` : 'Bets closed'
+    }
+    return roundLabel != null ? `${roundLabel} · Wagering` : 'Wagering'
+  }
+  if (ph === 'question') return 'Question setup'
+  if (ph === 'showdown' || ph === 'reveal' || ph === 'payout') return venueWallPhaseLabel(ph)
+  return null
+}
+
 /** Which numbered felt drives the sticky headline strip (server field with tile fallback). */
 export function resolveVenueHeadlineSource(
   wall: DisplayVenueWallSnapshot | null,

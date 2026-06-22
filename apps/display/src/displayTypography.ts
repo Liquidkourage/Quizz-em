@@ -77,6 +77,24 @@ export const DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT =
 export const DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA =
   'display-text-headline-question-ultra leading-snug'
 
+/** Venue headline question — dense mosaic (14+ tables). */
+export const DISPLAY_TEXT_HEADLINE_QUESTION_DENSE =
+  'display-text-headline-question-dense leading-snug'
+
+/** Headline blinds panel — always room-readable (not mosaic tier). */
+export const DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_LABEL =
+  'display-text-headline-blinds-label leading-none'
+
+export const DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_AMOUNT =
+  'vfd-headline-blinds-amount-headline leading-none'
+
+export const DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_META =
+  'display-text-headline-blinds-meta-headline leading-tight'
+
+/** Headline phase / round status chip. */
+export const DISPLAY_TEXT_HEADLINE_PHASE_BADGE =
+  'display-text-headline-phase-badge leading-none'
+
 export function displayHeadlineQuestionClass(tier: VenueFloorPublicTypographyTier): string {
   if (tier === 'spacious') return DISPLAY_TEXT_HEADLINE_QUESTION_SPACIOUS
   if (tier === 'standard') return DISPLAY_TEXT_HEADLINE_QUESTION_COMPACT

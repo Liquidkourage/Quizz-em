@@ -125,11 +125,13 @@ describe('venueFloorMosaicTypography', () => {
 })
 
 describe('venueMosaicTileTypographyStyle', () => {
-  it('scales stack size with measured tile width', () => {
+  it('scales stack size with measured tile width up to the large-density cap', () => {
     const narrow = venueMosaicTileTypographyStyle('standard', 220, 'large') as Record<string, string>
     const wide = venueMosaicTileTypographyStyle('standard', 440, 'large') as Record<string, string>
+    const huge = venueMosaicTileTypographyStyle('standard', 660, 'large') as Record<string, string>
     expect(Number.parseFloat(narrow['--vfd-stack-size'])).toBe(41)
-    expect(Number.parseFloat(wide['--vfd-stack-size'])).toBe(82)
+    expect(Number.parseFloat(wide['--vfd-stack-size'])).toBe(55)
+    expect(Number.parseFloat(huge['--vfd-stack-size'])).toBe(55)
   })
 
   it('returns empty style until tile width is known', () => {

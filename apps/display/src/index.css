@@ -72,18 +72,18 @@
     inset: 0;
     overflow: hidden;
     container-type: size;
-    --vfd-stage-name-size: min(7.4cqw, 12.4cqh);
-    --vfd-stage-name-split-size: min(6.2cqw, 10.4cqh);
-    --vfd-stage-name-split-triple-size: min(5.6cqw, 9.4cqh);
-    --vfd-stage-name-split-quad-size: min(5.1cqw, 8.6cqh);
-    --vfd-stage-pot-size: min(9cqw, 15cqh);
-    --vfd-stage-pot-each-size: min(5.6cqw, 9.4cqh);
-    --vfd-stage-diff-size: min(6.8cqw, 11.2cqh);
-    --vfd-stage-banner-text-size: min(5.6cqw, 9.4cqh);
-    --vfd-stage-ledger-size: min(5.8cqw, 9.7cqh);
-    --vfd-stage-ledger-pot-size: min(7.2cqw, 12cqh);
-    --vfd-stage-card-h: max(1.78rem, min(22.25cqw, 16.5cqh));
-    --vfd-stage-card-w: max(1.24rem, min(15.5cqw, 11.5cqh));
+    --vfd-stage-name-size: min(7.4cqw, 11cqh);
+    --vfd-stage-name-split-size: min(6.2cqw, 9.5cqh);
+    --vfd-stage-name-split-triple-size: min(5.6cqw, 8.8cqh);
+    --vfd-stage-name-split-quad-size: min(5.1cqw, 8.2cqh);
+    --vfd-stage-pot-size: min(9cqw, 13cqh);
+    --vfd-stage-pot-each-size: min(5.6cqw, 9cqh);
+    --vfd-stage-diff-size: min(6.8cqw, 9.5cqh);
+    --vfd-stage-banner-text-size: min(5.6cqw, 8.5cqh);
+    --vfd-stage-ledger-size: min(5.8cqw, 8.5cqh);
+    --vfd-stage-ledger-pot-size: min(7.2cqw, 10.5cqh);
+    --vfd-stage-card-h: max(1.78rem, min(20cqw, 14.5cqh));
+    --vfd-stage-card-w: max(1.24rem, min(14cqw, 10.2cqh));
     --vfd-stage-card-gap: min(0.85cqw, 0.5cqh);
   }
 
@@ -506,9 +506,9 @@
   }
 
   .vfd-showdown-stage-slot--side-ledger ~ .vfd-showdown-stage-slot--cards {
-    top: 58%;
-    width: 72%;
-    height: 14%;
+    top: 62%;
+    width: 70%;
+    height: 13%;
   }
 
   .vfd-showdown-stage-title {

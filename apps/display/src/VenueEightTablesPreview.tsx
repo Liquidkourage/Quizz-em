@@ -1453,10 +1453,10 @@ function VenueMosaicTableCard({
   })
   const toCallFooterLabel = mosaicToCallFooterLabel(row.actingCallAmount)
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
-  /** Unified mosaic card chrome (badge, acting name, pot-on-felt) for dense grids. 4-up keeps header pot layout. */
+  /** Unified mosaic card chrome (badge, acting name, pot-on-felt) for dense grids only. */
   const spaciousTileChrome =
     floorSize.size === 'hero' ||
-    (layoutTableCount <= 4 && floorSize.size === 'large')
+    (layoutTableCount <= 8 && floorSize.size === 'large')
   const denseMosaicChrome = !spaciousTileChrome
   const feltFillsCell =
     floorFillHeight || (floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight)
@@ -1757,7 +1757,7 @@ function VenueAerialFloorGrid({
       }),
     [layoutCount, floorViewport, showHeadline]
   )
-  const { rowCount, rowSizes } = floorLayout
+  const { rowCount, rowSizes, columns: floorColumns } = floorLayout
   const floorSize = useMemo(
     () => venueFloorSpacingSpec(layoutCount, floorLayout, { withHeadline: showHeadline }),
     [layoutCount, floorLayout, showHeadline]
@@ -1780,8 +1780,8 @@ function VenueAerialFloorGrid({
   const floorRows = useMemo(() => chunkTilesIntoRowGroups(tiles, rowSizes), [tiles, rowSizes])
   const mosaicTypography = useMemo(() => venueFloorMosaicTypography(layoutCount), [layoutCount])
   const cardSlotWidthForRow = useCallback(
-    (tablesInRow: number) => venueFloorCardSlotWidthCss(tablesInRow, floorSize.cellGapRem),
-    [floorSize.cellGapRem]
+    () => venueFloorCardSlotWidthCss(floorColumns, floorSize.cellGapRem),
+    [floorColumns, floorSize.cellGapRem]
   )
   const showdownBrief =
     floorSize.showdownBrief || rowCount >= 2 || (showHeadline && inVenueShowdown)
@@ -1854,7 +1854,7 @@ function VenueAerialFloorGrid({
               style={{ gap: `${floorSize.cellGapRem}rem` }}
             >
               {rowTiles.map((row) => {
-                const rowSlotWidth = cardSlotWidthForRow(rowTiles.length)
+                const rowSlotWidth = cardSlotWidthForRow()
                 return (
                 <div
                   key={row.tableNum}

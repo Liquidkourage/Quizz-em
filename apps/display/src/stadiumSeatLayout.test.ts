@@ -37,10 +37,11 @@ describe('stadiumSeatLayout', () => {
 })
 
 describe('stadiumMosaicScaleForWidth', () => {
-  it('scales hero felts proportionally without a ceiling', () => {
+  it('caps hero felts so spotlight tiles do not blow up', () => {
     const wide = 660
-    expect(stadiumMosaicScaleForWidth(wide, 'hero')).toBeCloseTo(wide / STADIUM_MOSAIC_REFERENCE_WIDTH_PX, 5)
-    expect(stadiumMosaicCommunityCardWidthPx(wide, 'hero')).toBeGreaterThan(48)
+    expect(stadiumMosaicScaleForWidth(wide, 'hero')).toBe(1.55)
+    expect(stadiumMosaicScaleForWidth(wide, 'large')).toBe(1.35)
+    expect(stadiumMosaicCommunityCardWidthPx(wide, 'hero')).toBeLessThan(40)
   })
 
   it('keeps dense micro tiles capped', () => {

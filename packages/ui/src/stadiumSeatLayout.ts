@@ -113,8 +113,8 @@ export function stadiumMosaicScaleForWidth(
 ): number {
   const w = tableWidthPx > 0 ? tableWidthPx : STADIUM_MOSAIC_REFERENCE_WIDTH_PX
   const proportional = w / STADIUM_MOSAIC_REFERENCE_WIDTH_PX
-  if (density === 'hero') return Math.max(1, proportional)
-  if (density === 'large') return Math.max(1, proportional)
+  if (density === 'hero') return clampMosaic(proportional, 1, 1.55)
+  if (density === 'large') return clampMosaic(proportional, 1, 1.35)
   if (density === 'micro') return clampMosaic(w / 240, 0.82, 1.05)
   if (density === 'compact') return clampMosaic(w / 230, 0.88, 1.12)
   if (density === 'medium') return clampMosaic(w / 220, 0.92, 1.2)

@@ -15,7 +15,28 @@ function ShowdownGoldDiamond() {
   )
 }
 
-function ShowdownStageHeaderStrip({ title }: { title: string }) {
+function ShowdownStageHeaderStrip({
+  title,
+  variant,
+}: {
+  title: string
+  variant: 'winner' | 'split' | 'side'
+}) {
+  if (variant === 'split') {
+    return (
+      <div className="vfd-showdown-stage-split-header flex w-full items-center gap-[0.35em]">
+        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
+        <ShowdownGoldDiamond />
+        <span className="vfd-showdown-stage-split-title flex shrink-0 flex-col items-center leading-none">
+          <span>Split</span>
+          <span>Pot</span>
+        </span>
+        <ShowdownGoldDiamond />
+        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
+      </div>
+    )
+  }
+
   return (
     <div className="flex w-full items-center gap-[0.35em]">
       <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
@@ -43,11 +64,15 @@ function ShowdownStageCrownBlock({
   return (
     <div
       className={`vfd-showdown-stage-slot vfd-showdown-stage-slot--crown${
-        showTitleStrip ? '' : ' vfd-showdown-stage-slot--crown-winner'
+        showTitleStrip
+          ? variant === 'split'
+            ? ' vfd-showdown-stage-slot--crown-split'
+            : ' vfd-showdown-stage-slot--crown-labelled'
+          : ' vfd-showdown-stage-slot--crown-winner'
       }`}
     >
-      {showTitleStrip ? <ShowdownStageHeaderStrip title={title} /> : null}
-      <ShowdownStageName names={names} />
+      {showTitleStrip ? <ShowdownStageHeaderStrip title={title} variant={variant} /> : null}
+      <ShowdownStageName names={names} variant={variant} />
     </div>
   )
 }
@@ -55,10 +80,14 @@ function ShowdownStageCrownBlock({
 function ShowdownStagePotAmount({ amount, each = false }: { amount: number; each?: boolean }) {
   const digits = formatVenueBankrollDigits(Math.max(0, Math.round(amount)))
   return (
-    <div className="flex items-baseline justify-center gap-[0.3em]">
+    <div
+      className={`flex flex-col items-center justify-center leading-none ${
+        each ? 'gap-[0.12em]' : ''
+      }`}
+    >
       <span
-        className="vfd-mosaic-stack vfd-mosaic-dollar vfd-mosaic-dollar--live vfd-showdown-stage-pot leading-none"
-        aria-label={`$${digits}`}
+        className="vfd-mosaic-stack vfd-mosaic-dollar vfd-mosaic-dollar--live vfd-showdown-stage-pot inline-flex items-baseline justify-center gap-[0.3em]"
+        aria-label={`$${digits}${each ? ' each' : ''}`}
       >
         <span className="vfd-mosaic-dollar-sign" aria-hidden>
           $
@@ -66,7 +95,7 @@ function ShowdownStagePotAmount({ amount, each = false }: { amount: number; each
         <span className="vfd-mosaic-dollar-digits">{digits}</span>
       </span>
       {each ? (
-        <span className="font-bold uppercase tracking-[0.12em] text-[#e2ad1a]/90 text-[0.55em]">
+        <span className="vfd-showdown-stage-pot-each font-black uppercase tracking-[0.14em] text-[#fff4dc]">
           each
         </span>
       ) : null}
@@ -74,8 +103,34 @@ function ShowdownStagePotAmount({ amount, each = false }: { amount: number; each
   )
 }
 
-function ShowdownStageName({ names }: { names: readonly string[] }) {
+function ShowdownStageName({
+  names,
+  variant,
+}: {
+  names: readonly string[]
+  variant: 'winner' | 'split' | 'side'
+}) {
   if (names.length === 0) return null
+
+  if (variant === 'split' && names.length > 1) {
+    return (
+      <div className="vfd-showdown-stage-split-names flex max-w-full flex-col items-center gap-[0.06em] text-center">
+        {names.slice(0, 3).map((name) => (
+          <p
+            key={name}
+            className="vfd-showdown-stage-name vfd-showdown-stage-name--split max-w-full truncate font-black leading-none text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]"
+          >
+            {name}
+          </p>
+        ))}
+        {names.length > 3 ? (
+          <p className="vfd-showdown-stage-name vfd-showdown-stage-name--split-more font-black leading-none text-white/75">
+            +{names.length - 3} more
+          </p>
+        ) : null}
+      </div>
+    )
+  }
 
   if (names.length === 1) {
     return (

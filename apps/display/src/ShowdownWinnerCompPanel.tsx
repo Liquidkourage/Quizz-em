@@ -15,18 +15,31 @@ function ShowdownGoldDiamond() {
   )
 }
 
-function ShowdownStageHeader({ title }: { title: string }) {
+function ShowdownStageHeaderStrip({ title }: { title: string }) {
   return (
-    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--header">
-      <div className="flex w-full items-center gap-[0.35em]">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
-        <ShowdownGoldDiamond />
-        <span className="shrink-0 font-black uppercase tracking-[0.2em] text-[#e2ad1a] drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] text-[clamp(0.42rem,4.2cqw,0.72rem)]">
-          {title}
-        </span>
-        <ShowdownGoldDiamond />
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
-      </div>
+    <div className="flex w-full items-center gap-[0.35em]">
+      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
+      <ShowdownGoldDiamond />
+      <span className="shrink-0 font-black uppercase tracking-[0.2em] text-[#e2ad1a] drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] text-[clamp(0.42rem,4.2cqw,0.72rem)]">
+        {title}
+      </span>
+      <ShowdownGoldDiamond />
+      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
+    </div>
+  )
+}
+
+function ShowdownStageCrownBlock({
+  title,
+  names,
+}: {
+  title: string
+  names: readonly string[]
+}) {
+  return (
+    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--crown">
+      <ShowdownStageHeaderStrip title={title} />
+      <ShowdownStageName names={names} />
     </div>
   )
 }
@@ -106,14 +119,12 @@ function ShowdownStageDifference({ value }: { value: string }) {
 }
 
 function ShowdownStageLaurelStack({
-  names,
   pot,
   each,
   chipRow,
   showSideLedger,
   sidePotLines,
 }: {
-  names: readonly string[]
   pot: number
   each: boolean
   chipRow: ShowdownResultRow | null
@@ -122,7 +133,6 @@ function ShowdownStageLaurelStack({
 }) {
   return (
     <div className="vfd-showdown-stage-laurel-stack">
-      <ShowdownStageName names={names} />
       {pot > 0 ? <ShowdownStagePotAmount amount={pot} each={each} /> : null}
       <div className="vfd-showdown-stage-cards">
         {showSideLedger ? (
@@ -173,11 +183,10 @@ function ShowdownStageTemplate({
           />
 
           <div className="vfd-showdown-stage-overlay" aria-hidden>
-            <ShowdownStageHeader title={headerTitle} />
+            <ShowdownStageCrownBlock title={headerTitle} names={names} />
 
             <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
               <ShowdownStageLaurelStack
-                names={names}
                 pot={pot}
                 each={each}
                 chipRow={chipRow}

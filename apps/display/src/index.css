@@ -47,7 +47,7 @@
 
   /**
    * Winner stage template (1728×2160 art).
-   * Native aspect ratio, max-fit contain — no stretch or zoom. Text overlays share the art box.
+   * Full-bleed cover on the tile; text overlays share the same box (percentages track the art).
    */
   .vfd-showdown-stage {
     position: relative;
@@ -60,27 +60,23 @@
   .vfd-showdown-stage-frame {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     overflow: hidden;
     container-type: size;
   }
 
   .vfd-showdown-stage-art-box {
-    position: relative;
-    aspect-ratio: 1728 / 2160;
-    width: min(100cqw, calc(100cqh * 1728 / 2160));
-    height: min(100cqh, calc(100cqw * 2160 / 1728));
-    max-width: 100%;
-    max-height: 100%;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
   }
 
   .vfd-showdown-stage-art {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: center 44%;
     pointer-events: none;
     user-select: none;
   }
@@ -102,18 +98,21 @@
     transform: translateX(-50%);
   }
 
-  /** Just below baked-in crown — WINNER strip only (crown is in the PNG). */
-  .vfd-showdown-stage-slot--header {
-    top: 12.8%;
-    width: 72%;
-    transform: translate(-50%, -50%);
+  /** WINNER strip + name — directly under the baked-in crown. */
+  .vfd-showdown-stage-slot--crown {
+    top: 13.2%;
+    width: 68%;
+    transform: translateX(-50%);
+    justify-content: flex-start;
+    gap: max(0.04rem, 0.9cqh);
+    font-size: max(0.38rem, min(5cqw, 0.92rem));
   }
 
-  /** Laurel void — name, pot, and cards (percentages relative to native art box). */
+  /** Wreath void — pot centered, cards tucked under. */
   .vfd-showdown-stage-slot--laurel {
-    top: 15%;
-    width: 84%;
-    height: 36%;
+    top: 36%;
+    width: 58%;
+    height: 26%;
     transform: translateX(-50%);
     justify-content: center;
   }
@@ -124,38 +123,39 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: max(0.03rem, 1.8cqh);
+    gap: max(0.02rem, 0.65cqh);
     font-size: max(0.38rem, min(5.2cqw, 0.95rem));
   }
 
   .vfd-showdown-stage-name {
-    font-size: 1.05em;
+    font-size: 1.08em;
+    line-height: 1.05;
   }
 
   .vfd-showdown-stage-pot {
-    font-size: 1.55em;
+    font-size: 1.62em;
   }
 
   .vfd-showdown-stage-cards {
     width: 100%;
-    margin-top: max(0.02rem, 0.4cqh);
+    margin-top: 0;
   }
 
-  /** Centered on the mahogany podium plaque. */
+  /** Mahogany nameplate on the podium face. */
   .vfd-showdown-stage-slot--difference {
-    top: 69.2%;
-    width: 38%;
-    gap: max(0.02rem, 0.8cqh);
+    top: 76.8%;
+    width: 36%;
+    gap: max(0.015rem, 0.35cqh);
     transform: translate(-50%, -50%);
   }
 
   .vfd-showdown-stage-diff-label {
-    font-size: max(0.28rem, min(2.8cqw, 0.48rem));
+    font-size: max(0.26rem, min(2.5cqw, 0.44rem));
     line-height: 1;
   }
 
   .vfd-showdown-stage-diff-value {
-    font-size: max(0.42rem, min(4.6cqw, 0.78rem));
+    font-size: max(0.4rem, min(4.2cqw, 0.72rem));
   }
 
   .vfd-showdown-difference-value {

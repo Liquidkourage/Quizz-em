@@ -84,11 +84,6 @@
     --vfd-stage-ledger-pot-size: min(7.2cqw, 12cqh);
   }
 
-  .vfd-showdown-stage-frame .vfd-mosaic-stack.vfd-showdown-stage-pot,
-  .vfd-showdown-stage-frame .vfd-mosaic-stack.vfd-showdown-stage-pot-inline-each {
-    font-size: var(--vfd-stage-pot-size);
-  }
-
   /** Mosaic tile during showdown — portaled art covers the tile. */
   .vfd-mosaic-tile--showdown-overlay {
     background: transparent !important;
@@ -341,7 +336,7 @@
 
   .vfd-showdown-stage-side-ledger-amount {
     font-family: 'Bungee', system-ui, sans-serif;
-    font-size: var(--vfd-stage-ledger-pot-size);
+    font-size: min(7.2cqw, 12cqh);
     line-height: 1;
     color: #e2ad1a;
     white-space: nowrap;
@@ -352,15 +347,53 @@
     gap: max(0.08em, 0.5cqw);
   }
 
+  /** Pot centered on the 40% height line. */
+  .vfd-showdown-stage-slot--pot {
+    top: 40%;
+    width: calc(var(--vfd-stage-safe-width, 83.333%) - 10%);
+    transform: translate(-50%, -50%);
+  }
+
+  .vfd-showdown-stage-frame .vfd-showdown-stage-pot,
+  .vfd-showdown-stage-frame .vfd-showdown-stage-pot-inline-each {
+    font-family: 'Bungee', system-ui, sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-synthesis: none;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-size: min(9cqw, 15cqh);
+  }
+
+  .vfd-showdown-stage-frame .vfd-showdown-stage-pot .vfd-mosaic-dollar-sign {
+    font-size: 0.68em;
+  }
+
+  .vfd-showdown-stage-frame .vfd-showdown-stage-pot .vfd-mosaic-dollar-digits {
+    font-size: 1em;
+  }
+
   .vfd-showdown-stage-pot-each-inline {
     font-family: 'Montserrat', system-ui, sans-serif;
-    font-size: var(--vfd-stage-pot-each-size);
+    font-size: min(5.6cqw, 9.4cqh);
     font-weight: 900;
     font-style: italic;
     letter-spacing: 0.14em;
     line-height: 1;
     align-self: baseline;
     transform: translateY(0.06em);
+    color: #fff8e8;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  }
+
+  .vfd-showdown-stage-pot-each {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-size: min(5.6cqw, 9.4cqh);
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 0.18em;
+    line-height: 1;
     color: #fff8e8;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   }
@@ -399,29 +432,6 @@
 
   .vfd-showdown-stage-slot--crown-winner .vfd-showdown-stage-name {
     font-size: var(--vfd-stage-name-size);
-  }
-
-  .vfd-showdown-stage-pot-each {
-    font-family: 'Montserrat', system-ui, sans-serif;
-    font-size: var(--vfd-stage-pot-each-size);
-    font-weight: 900;
-    font-style: italic;
-    letter-spacing: 0.18em;
-    line-height: 1;
-    color: #fff8e8;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-  }
-
-  /** Pot centered on the 40% height line. */
-  .vfd-showdown-stage-slot--pot {
-    top: 40%;
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 10%);
-    transform: translate(-50%, -50%);
-    font-size: var(--vfd-stage-pot-size);
-  }
-
-  .vfd-showdown-stage-pot {
-    font-size: 1em;
   }
 
   /** Digit cards in the lower wreath — below pot, above podium. */

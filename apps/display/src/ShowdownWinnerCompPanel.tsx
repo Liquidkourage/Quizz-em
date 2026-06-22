@@ -1,9 +1,14 @@
 import { Fragment } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
+import winnerStageArt from './assets/winner-stage.png'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import { ShowdownPotWinnerList, type ShowdownSidePotLine } from './venueFloorSidePotDisplay'
+
+/** Native pixels — keep in sync with `assets/winner-stage.png`. */
+const WINNER_STAGE_WIDTH = 3238
+const WINNER_STAGE_HEIGHT = 1942
 
 function ShowdownGoldDiamond() {
   return (
@@ -172,20 +177,34 @@ function ShowdownStageTemplate({
   return (
     <div className="vfd-showdown-stage" data-showdown-winner-comp>
       <div className="vfd-showdown-stage-frame">
-        <div className="vfd-showdown-stage-overlay" aria-hidden>
-          <ShowdownStageCrownBlock title={headerTitle} names={names} />
-
-          <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
-            <ShowdownStageLaurelStack
-              pot={pot}
-              each={each}
-              chipRow={chipRow}
-              showSideLedger={showSideLedger}
-              sidePotLines={sidePotLines}
+        <div className="vfd-showdown-stage-art-box">
+          <div className="vfd-showdown-stage-art-inner">
+            <img
+              src={winnerStageArt}
+              alt=""
+              aria-hidden
+              className="vfd-showdown-stage-art"
+              width={WINNER_STAGE_WIDTH}
+              height={WINNER_STAGE_HEIGHT}
+              draggable={false}
             />
-          </div>
 
-          {difference != null ? <ShowdownStageDifference value={difference} /> : null}
+            <div className="vfd-showdown-stage-overlay" aria-hidden>
+              <ShowdownStageCrownBlock title={headerTitle} names={names} />
+
+              <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
+                <ShowdownStageLaurelStack
+                  pot={pot}
+                  each={each}
+                  chipRow={chipRow}
+                  showSideLedger={showSideLedger}
+                  sidePotLines={sidePotLines}
+                />
+              </div>
+
+              {difference != null ? <ShowdownStageDifference value={difference} /> : null}
+            </div>
+          </div>
         </div>
       </div>
     </div>

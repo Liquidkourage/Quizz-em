@@ -78,7 +78,7 @@
     --vfd-stage-name-split-quad-size: min(5.1cqw, 8.6cqh);
     --vfd-stage-pot-size: min(9cqw, 15cqh);
     --vfd-stage-pot-each-size: min(5.6cqw, 9.4cqh);
-    --vfd-stage-diff-size: min(11.5cqw, 19.2cqh);
+    --vfd-stage-diff-size: min(6.8cqw, 11.2cqh);
     --vfd-stage-banner-text-size: min(6.8cqw, 11.4cqh);
     --vfd-stage-ledger-size: min(5.8cqw, 9.7cqh);
     --vfd-stage-ledger-pot-size: min(7.2cqw, 12cqh);
@@ -462,11 +462,11 @@
     width: var(--vfd-stage-card-w);
   }
 
-  /** ± value centered on the gold nameplate — reversed knock-out on gold. */
+  /** ± value centered on the gold nameplate — dark ink on gold (see winner-stage-preview.html). */
   .vfd-showdown-stage-slot--difference {
     top: 86.2%;
-    width: 48%;
-    height: 9%;
+    width: 44%;
+    height: 7.5%;
     transform: translate(-50%, -50%);
     justify-content: center;
     gap: 0;
@@ -475,26 +475,23 @@
 
   .vfd-showdown-stage-diff-value {
     width: 100%;
-    font-family: 'Montserrat', system-ui, sans-serif;
+    font-family: 'Bungee', system-ui, sans-serif;
     font-size: var(--vfd-stage-diff-size);
-    font-weight: 700;
-    font-style: italic;
+    font-weight: 400;
+    font-style: normal;
     font-synthesis: none;
-    line-height: 0.95;
-    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: -0.02em;
   }
 
   .vfd-showdown-difference-value {
-    color: #fff6dc;
-    -webkit-text-stroke: 1.15px #120508;
+    color: #220610;
+    -webkit-text-stroke: 0.45px rgba(255, 248, 230, 0.7);
     paint-order: stroke fill;
     text-shadow:
-      -1.5px -1.5px 0 #000,
-      1.5px -1.5px 0 #000,
-      -1.5px 1.5px 0 #000,
-      1.5px 1.5px 0 #000,
-      0 2px 0 #000,
-      0 0 10px rgba(255, 228, 150, 0.5);
+      0 0 2px rgba(255, 250, 235, 0.75),
+      0 1px 3px rgba(0, 0, 0, 0.55);
   }
 
   /* Typography */

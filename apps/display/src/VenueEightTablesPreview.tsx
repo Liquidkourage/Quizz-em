@@ -644,9 +644,14 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolea
   return phaseAccent(row.phase)
 }
 
-/** Seat-marker initials on mosaic felts — size from `--vfd-seat-initial-size`. */
+/** Seat-marker initials on mosaic felts — font size set from cupholder diameter. */
 function mosaicSeatInitialsClass(_density: VenueFloorTableSize | undefined): string {
   return VENUE_FLOOR_MOSAIC_HEADER_TYPE.seatInitials
+}
+
+/** Initials font size tracks cupholder diameter on mosaic felts. */
+function mosaicSeatInitialFontPx(cupSizePx: number): number {
+  return Math.max(8, Math.round(cupSizePx * 0.45))
 }
 
 function mosaicPhaseCornerTypography(
@@ -1105,6 +1110,7 @@ function SeatRingWithLabels({
                 sizePx={cupSizePx}
                 label={isMosaic && filled && mosaicInitials ? mosaicInitials : undefined}
                 labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
+                labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(cupSizePx) : undefined}
                 state={
                   isFolded
                     ? 'folded'
@@ -1443,7 +1449,7 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`@container relative min-h-0 min-w-0 ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
+        className={`@container/size relative min-h-0 min-w-0 ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           showFloorShowdownOverlay && shrinkWrapRowHeight
             ? 'vfd-mosaic-tile--showdown-aspect flex w-full flex-col'
             : floorFillHeight

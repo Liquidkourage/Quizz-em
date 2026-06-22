@@ -143,10 +143,10 @@ export const VENUE_FLOOR_MOSAIC_CHROME = {
 export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
   ...VENUE_FLOOR_MOSAIC_CHROME,
   /** Non-dense mosaic only — dense cards use `.vfd-mosaic-table-num`. */
-  tableNum: 'text-[clamp(18px,2.55vmin,26px)] vfd-mosaic-table-num leading-none',
+  tableNum: 'vfd-mosaic-table-num leading-none',
   /** Non-dense mosaic only — dense cards use header pot row, not this class. */
-  pot: 'text-[clamp(16px,2.15vmin,22px)] vfd-mosaic-stack leading-none',
-  phase: 'px-1.5 py-px text-[clamp(13px,1.85vmin,17px)] font-bold uppercase leading-none',
+  pot: 'vfd-mosaic-stack leading-none',
+  phase: 'px-1.5 py-px font-bold uppercase leading-none text-[max(0.62rem,min(3.8cqw,6.4cqh))]',
   seatInitials: 'vfd-mosaic-seat-initial',
   toCallFooterRow: 'vfd-mosaic-footer-row',
   noMoreBetsWatermark: 'vfd-mosaic-watermark',
@@ -393,16 +393,15 @@ export function venueFloorSizeSpec(tableCount: number): VenueFloorSizeSpec {
         cellGapRem: 1.75,
         cardPaddingClass: 'overflow-visible p-2 sm:p-2.5',
         innerGapClass: 'gap-1.5 sm:gap-2',
-        tableNumClass: 'text-2xl sm:text-3xl',
-        potClass:
-          'text-[clamp(1.15rem,6.5cqw,2.25rem)] sm:text-[clamp(1.25rem,7cqw,2.4rem)]',
-        phaseChipClass: 'px-2 py-1 text-[10px] sm:px-2.5 sm:py-1.5 sm:text-xs',
+        tableNumClass: 'leading-none text-yellow-400',
+        potClass: '',
+        phaseChipClass: 'px-2 py-1 text-[max(0.62rem,min(3.8cqw,6.4cqh))] sm:px-2.5 sm:py-1.5',
         headerRowClass: 'items-center',
         honeycombFillHeight: false,
         ringScaleClass: '',
         showPotSubtitle: true,
         potSubtitleClass:
-          'text-[clamp(1rem,6.2cqw,1.65rem)] font-black leading-tight tracking-tight text-amber-50 sm:text-[clamp(1.1rem,6.8cqw,1.85rem)]',
+          'font-black leading-tight tracking-tight text-amber-50 vfd-mosaic-stack',
         potSubtitleWrapClass: 'px-2.5 py-2',
         tileInsetClass: '',
       }

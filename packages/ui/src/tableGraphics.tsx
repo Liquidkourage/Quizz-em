@@ -73,6 +73,7 @@ export function SeatCupholderMarker({
   state = 'default',
   label,
   labelClassName,
+  labelFontSizePx,
   sizePx,
   sizeClassName,
   className,
@@ -83,6 +84,8 @@ export function SeatCupholderMarker({
   state?: SeatCupholderState
   label?: ReactNode
   labelClassName?: string
+  /** Mosaic felts — scale initials with cupholder diameter. */
+  labelFontSizePx?: number
   /** Fixed square size in px — preferred for mosaic / hero felts. */
   sizePx?: number
   /** Tailwind size classes when px sizing is not used (e.g. spotlight hero). */
@@ -116,6 +119,7 @@ export function SeatCupholderMarker({
             'absolute inset-0 flex items-center justify-center truncate px-0.5 text-center font-black leading-none tracking-tight text-amber-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95),0_0_6px_rgba(0,0,0,0.85)]',
             labelClassName
           )}
+          style={labelFontSizePx != null ? { fontSize: labelFontSizePx } : undefined}
         >
           {label}
         </span>

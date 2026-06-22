@@ -174,7 +174,7 @@
     transform: translateX(-50%);
     justify-content: flex-start;
     gap: max(0.08rem, 1.1cqh);
-    font-size: max(0.38rem, min(4.8cqw, 0.9rem));
+    font-size: max(0.38rem, min(4.8cqw, 8cqh));
   }
 
   .vfd-showdown-stage-slot--crown-labelled {
@@ -250,7 +250,7 @@
     top: 25.4%;
     width: calc(var(--vfd-stage-safe-width, 83.333%) - 1%);
     gap: 0;
-    font-size: max(0.38rem, min(4.6cqw, 0.88rem));
+    font-size: max(0.38rem, min(4.6cqw, 7.7cqh));
     padding-top: max(0.18rem, 1.2cqh);
   }
 
@@ -414,13 +414,13 @@
   }
 
   .vfd-showdown-stage-title {
-    font-size: max(0.42rem, min(4.6cqw, 0.78rem));
+    font-size: max(0.42rem, min(4.6cqw, 7.7cqh));
     line-height: 1;
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.92));
   }
 
   .vfd-showdown-stage-split-dot {
-    font-size: max(1em, min(7.8cqw, 1.35rem));
+    font-size: max(1em, min(7.8cqw, 13cqh));
     line-height: 1;
   }
 
@@ -771,53 +771,49 @@
   }
 
   /**
-   * Venue-floor public-display typography tiers.
-   * CSS px values are zoom-compensated for {@link VENUE_WALL_UI_SCALE} (0.88) so rendered
-   * sizes on the venue wall match the eagle-eye targets at 1920×1080.
+   * Venue-floor mosaic typography tiers — container-query tokens (tile is @container/size).
+   * Calibrated from ~220×129px reference cells; scales with each mosaic tile.
    */
   .venue-floor-typography-spacious {
-    --vfd-summary-size: 24px;
-    --vfd-player-name-size: 30px;
-    --vfd-stack-size: 45px;
-    --vfd-to-call-label-size: 24px;
-    --vfd-to-call-amount-size: 30px;
-    --vfd-table-number-size: 24px;
-    --vfd-seat-initial-size: 17px;
-    --vfd-watermark-size: 27px;
-    --vfd-title-row-min-h: 34px;
-    --vfd-footer-row-min-h: 34px;
+    --vfd-summary-size: max(0.68rem, min(5.5cqw, 9.2cqh));
+    --vfd-player-name-size: max(0.72rem, min(7.5cqw, 12.5cqh));
+    --vfd-stack-size: max(0.72rem, min(9cqw, 15cqh));
+    --vfd-to-call-label-size: max(0.68rem, min(5.5cqw, 9.2cqh));
+    --vfd-to-call-amount-size: max(0.72rem, min(7.5cqw, 12.5cqh));
+    --vfd-table-number-size: max(0.68rem, min(5.5cqw, 9.2cqh));
+    --vfd-watermark-size: max(0.72rem, min(6.2cqw, 10.4cqh));
+    --vfd-title-row-min-h: max(1.25rem, 4.5cqh);
+    --vfd-footer-row-min-h: max(1.25rem, 4.5cqh);
     --vfd-felt-max-height: 94%;
-    --vfd-blinds-amount-size: 39px;
+    --vfd-blinds-amount-size: max(0.85rem, min(7.8cqw, 13cqh));
   }
 
   .venue-floor-typography-standard {
-    --vfd-summary-size: 25px;
-    --vfd-player-name-size: 32px;
-    --vfd-stack-size: 41px;
-    --vfd-to-call-label-size: 24px;
-    --vfd-to-call-amount-size: 31px;
-    --vfd-table-number-size: 22px;
-    --vfd-seat-initial-size: 15px;
-    --vfd-watermark-size: 24px;
-    --vfd-title-row-min-h: 36px;
-    --vfd-footer-row-min-h: 38px;
+    --vfd-summary-size: max(0.68rem, min(5.7cqw, 9.5cqh));
+    --vfd-player-name-size: max(0.72rem, min(8.2cqw, 13.6cqh));
+    --vfd-stack-size: max(0.72rem, min(9cqw, 15cqh));
+    --vfd-to-call-label-size: max(0.65rem, min(5.5cqw, 9.2cqh));
+    --vfd-to-call-amount-size: max(0.72rem, min(7.9cqw, 13.2cqh));
+    --vfd-table-number-size: max(0.62rem, min(5cqw, 8.4cqh));
+    --vfd-watermark-size: max(0.68rem, min(5.5cqw, 9.2cqh));
+    --vfd-title-row-min-h: max(1.2rem, 4.8cqh);
+    --vfd-footer-row-min-h: max(1.25rem, 5cqh);
     --vfd-felt-max-height: 89%;
-    --vfd-blinds-amount-size: 36px;
+    --vfd-blinds-amount-size: max(0.8rem, min(7.2cqw, 12cqh));
   }
 
   .venue-floor-typography-compact {
-    --vfd-summary-size: 20px;
-    --vfd-player-name-size: 25px;
-    --vfd-stack-size: 39px;
-    --vfd-to-call-label-size: 20px;
-    --vfd-to-call-amount-size: 25px;
-    --vfd-table-number-size: 20px;
-    --vfd-seat-initial-size: 14px;
-    --vfd-watermark-size: 22px;
-    --vfd-title-row-min-h: 30px;
-    --vfd-footer-row-min-h: 31px;
+    --vfd-summary-size: max(0.62rem, min(4.8cqw, 8cqh));
+    --vfd-player-name-size: max(0.65rem, min(6.2cqw, 10.4cqh));
+    --vfd-stack-size: max(0.68rem, min(8.2cqw, 13.6cqh));
+    --vfd-to-call-label-size: max(0.62rem, min(4.8cqw, 8cqh));
+    --vfd-to-call-amount-size: max(0.65rem, min(6.2cqw, 10.4cqh));
+    --vfd-table-number-size: max(0.62rem, min(4.8cqw, 8cqh));
+    --vfd-watermark-size: max(0.62rem, min(5.1cqw, 8.6cqh));
+    --vfd-title-row-min-h: max(1.1rem, 4.2cqh);
+    --vfd-footer-row-min-h: max(1.15rem, 4.4cqh);
     --vfd-felt-max-height: 92%;
-    --vfd-blinds-amount-size: 34px;
+    --vfd-blinds-amount-size: max(0.75rem, min(6.8cqw, 11.4cqh));
   }
 
   /** Mosaic card typography — sizes via CSS vars; Bungee dollars, Montserrat Italic labels. */
@@ -913,7 +909,7 @@
   }
 
   .vfd-mosaic-seat-initial {
-    font-size: var(--vfd-seat-initial-size);
+    line-height: 1;
   }
 
   .vfd-mosaic-watermark {

@@ -6,7 +6,10 @@ import winnerStageCardArt from './assets/winner-stage-card.png'
 export const WINNER_STAGE_CARD_WIDTH = 2400
 export const WINNER_STAGE_CARD_HEIGHT = 1439
 
-/** Virtual art frame — 120% of tile clip, centered; outer portal crops to tile bounds. */
+/** Art aspect — tiles narrower than this use width-first fit (see index.css @container). */
+export const WINNER_STAGE_CARD_ASPECT = WINNER_STAGE_CARD_WIDTH / WINNER_STAGE_CARD_HEIGHT
+
+/** Virtual art frame — 120% of tile clip on landscape tiles; 100% on tall/narrow cells. */
 export const WINNER_STAGE_ART_SCALE = 1.2
 
 export const SHOWDOWN_ART_PORTAL_ROOT_ID = 'vfd-showdown-art-portal-root'

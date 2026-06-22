@@ -112,7 +112,8 @@
     position: absolute;
     inset: 0;
     overflow: hidden;
-    background: #040308;
+    /** Must stay transparent — winner art is portaled behind this box (see ShowdownWinnerStageArtPortal). */
+    background: transparent;
   }
 
   .vfd-showdown-stage-art {

@@ -45,8 +45,8 @@
 
   /**
    * Winner stage template (1728×2160 art).
-   * Art box uses max-fit contain (no crop) while filling as much of the tile as possible.
-   * Text overlays live inside the art box so % slots stay aligned with the PNG.
+   * Width-first sizing: span the tile edge-to-edge (no side letterboxing); excess
+   * height is clipped. Text overlays live inside the art box.
    */
   .vfd-showdown-stage {
     position: relative;
@@ -69,9 +69,9 @@
     top: 50%;
     left: 50%;
     aspect-ratio: 1728 / 2160;
-    width: min(100cqw, calc(100cqh * 1728 / 2160));
-    height: min(100cqh, calc(100cqw * 2160 / 1728));
-    transform: translate(-50%, -50%) scale(var(--stage-fill-scale));
+    width: calc(100cqw * var(--stage-fill-scale));
+    height: auto;
+    transform: translate(-50%, -50%);
     transform-origin: center center;
   }
 

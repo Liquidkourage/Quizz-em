@@ -49,7 +49,6 @@ import {
   displayHeadlineQuestionClass,
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
-import { SHOWDOWN_ART_PORTAL_ROOT_ID } from './ShowdownWinnerStageArtPortal'
 import {
   chunkTilesIntoRowGroups,
   populatedVenueTiles,
@@ -1439,7 +1438,7 @@ function VenueMosaicTableCard({
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`@container relative min-h-0 min-w-0 ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
+        className={`@container relative min-h-0 min-w-0 ${showFloorShowdownOverlay ? '' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           floorFillHeight
             ? 'flex h-full min-h-0 w-full flex-col'
             : shrinkWrapRowHeight || mosaicShrinkWrap
@@ -1458,7 +1457,7 @@ function VenueMosaicTableCard({
               : shrinkWrapRowHeight || mosaicShrinkWrap || !feltFillsCell
                 ? `flex flex-col ${floorSize.innerGapClass}`
                 : 'contents'
-          } ${showFloorShowdownOverlay ? 'hidden' : ''}`}
+          } ${showFloorShowdownOverlay ? 'opacity-25' : ''}`}
         >
         <div
           className={`grid shrink-0 gap-x-1 ${denseMosaicChrome ? 'grid-cols-[auto_minmax(0,1fr)]' : 'grid-cols-[auto_minmax(0,1fr)_auto]'} ${floorSize.headerRowClass} ${denseMosaicChrome ? mosaicTypography.titleRowClass : ''} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
@@ -2020,11 +2019,6 @@ export default function VenueEightTablesPreview({
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div
-        id={SHOWDOWN_ART_PORTAL_ROOT_ID}
-        className="pointer-events-none fixed inset-0 z-[9]"
-        aria-hidden
-      />
       <div
         className={`relative flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
         style={venueWallUiScaleFrameStyle()}

@@ -1,7 +1,6 @@
-import { Fragment, useCallback, useState } from 'react'
+import { Fragment } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
-import { ShowdownWinnerStageArtPortal } from './ShowdownWinnerStageArtPortal'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import { ShowdownPotWinnerList, type ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -169,33 +168,24 @@ function ShowdownStageTemplate({
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const showSideLedger = sidePotLines != null && sidePotLines.length > 0
-  const [artBox, setArtBox] = useState<HTMLDivElement | null>(null)
-  const bindArtBoxRef = useCallback((node: HTMLDivElement | null) => {
-    setArtBox(node)
-  }, [])
 
   return (
     <div className="vfd-showdown-stage" data-showdown-winner-comp>
-      <ShowdownWinnerStageArtPortal artBox={artBox} />
       <div className="vfd-showdown-stage-frame">
-        <div ref={bindArtBoxRef} className="vfd-showdown-stage-art-box">
-          <div className="vfd-showdown-stage-art-inner">
-            <div className="vfd-showdown-stage-overlay" aria-hidden>
-              <ShowdownStageCrownBlock title={headerTitle} names={names} />
+        <div className="vfd-showdown-stage-overlay" aria-hidden>
+          <ShowdownStageCrownBlock title={headerTitle} names={names} />
 
-              <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
-                <ShowdownStageLaurelStack
-                  pot={pot}
-                  each={each}
-                  chipRow={chipRow}
-                  showSideLedger={showSideLedger}
-                  sidePotLines={sidePotLines}
-                />
-              </div>
-
-              {difference != null ? <ShowdownStageDifference value={difference} /> : null}
-            </div>
+          <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
+            <ShowdownStageLaurelStack
+              pot={pot}
+              each={each}
+              chipRow={chipRow}
+              showSideLedger={showSideLedger}
+              sidePotLines={sidePotLines}
+            />
           </div>
+
+          {difference != null ? <ShowdownStageDifference value={difference} /> : null}
         </div>
       </div>
     </div>

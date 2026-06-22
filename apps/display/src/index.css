@@ -38,23 +38,13 @@
       0 1px 2px rgb(0 0 0 / 0.75);
   }
 
-  /** Winner stage overlay — fills the mosaic tile edge to edge. */
+  /** Winner stage overlay — text-only; no background image. */
   .vfd-showdown-winner-comp {
-    background: transparent;
     width: 100%;
     height: 100%;
   }
 
-  /** Mosaic tile during winner overlay — art is portaled outside the zoom frame. */
-  .vfd-mosaic-tile--showdown-overlay {
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  /**
-   * Winner stage template (3238×1942 art — landscape mosaic tile aspect).
-   * Full-bleed cover; 120% layout zoom crops edges — scales down from source only (no transform upscale).
-   */
+  /** Winner stage template — foreground text slots only. */
   .vfd-showdown-stage {
     position: relative;
     width: 100%;
@@ -68,35 +58,6 @@
     inset: 0;
     overflow: hidden;
     container-type: size;
-  }
-
-  .vfd-showdown-stage-art-box {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-  }
-
-  /** Larger layout box — zooms by cropping; negative inset avoids subpixel translate blur. */
-  .vfd-showdown-stage-art-inner {
-    --stage-art-scale: 1.2;
-    position: absolute;
-    inset: calc((1 - var(--stage-art-scale)) / 2 * 100%);
-  }
-
-  .vfd-showdown-stage-art {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center;
-    image-rendering: auto;
-    pointer-events: none;
-    user-select: none;
-  }
-
-  /** Portaled art — rasterized once at viewport px, not under venue-wall zoom. */
-  .vfd-showdown-stage-art--portaled {
-    image-rendering: auto;
   }
 
   .vfd-showdown-stage-overlay {

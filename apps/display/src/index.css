@@ -61,13 +61,15 @@
   }
 
   .vfd-showdown-stage-art-box {
+    --stage-fill-scale: 1.2;
     position: absolute;
     top: 50%;
     left: 50%;
     aspect-ratio: 1728 / 2160;
     width: min(100cqw, calc(100cqh * 1728 / 2160));
     height: min(100cqh, calc(100cqw * 2160 / 1728));
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(var(--stage-fill-scale));
+    transform-origin: center center;
   }
 
   .vfd-showdown-stage-art {

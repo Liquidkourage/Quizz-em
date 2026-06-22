@@ -4,7 +4,7 @@ import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { ShowdownWinnerStageArtPortal, WINNER_STAGE_ART_SCALE } from './ShowdownWinnerStageArtPortal'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
-import { ShowdownPotWinnerList, type ShowdownSidePotLine } from './venueFloorSidePotDisplay'
+import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
 
 function ShowdownGoldDiamond() {
   return (
@@ -22,7 +22,7 @@ function ShowdownStageHeaderStrip({
   title: string
   variant: 'winner' | 'split' | 'side'
 }) {
-  if (variant === 'split') {
+  if (variant === 'split' || variant === 'side') {
     return null
   }
 
@@ -35,6 +35,41 @@ function ShowdownStageHeaderStrip({
       </span>
       <ShowdownGoldDiamond />
       <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
+    </div>
+  )
+}
+
+function ShowdownStageSideBanner() {
+  return (
+    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--side-banner">
+      <div className="vfd-showdown-stage-side-banner">
+        <span className="vfd-showdown-stage-side-banner-text">
+          <span className="vfd-showdown-stage-side-banner-side">Side</span>
+          <span className="vfd-showdown-stage-side-banner-pot">Pot</span>
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function ShowdownStageSidePotSummary({ lines }: { lines: readonly ShowdownSidePotLine[] }) {
+  return (
+    <div className="vfd-showdown-stage-side-ledger">
+      {lines.map((line) => (
+        <div key={`${line.label}:${line.name}`} className="vfd-showdown-stage-side-ledger-row">
+          <span
+            className={`vfd-showdown-stage-side-ledger-label vfd-showdown-stage-side-ledger-label--${line.label.toLowerCase()}`}
+          >
+            {line.label}
+          </span>
+          <span className="vfd-showdown-stage-side-ledger-name" title={line.name}>
+            {line.name}
+          </span>
+          <span className="vfd-showdown-stage-side-ledger-amount">
+            ${line.amount.toLocaleString()}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }
@@ -61,16 +96,18 @@ function ShowdownStageCrownBlock({
   names: readonly string[]
   variant: 'winner' | 'split' | 'side'
 }) {
-  const showTitleStrip = variant !== 'winner' && variant !== 'split'
+  const showTitleStrip = variant !== 'winner' && variant !== 'split' && variant !== 'side'
 
   return (
     <div
       className={`vfd-showdown-stage-slot vfd-showdown-stage-slot--crown${
         variant === 'split'
           ? ' vfd-showdown-stage-slot--crown-split'
-          : showTitleStrip
-            ? ' vfd-showdown-stage-slot--crown-labelled'
-            : ' vfd-showdown-stage-slot--crown-winner'
+          : variant === 'side'
+            ? ' vfd-showdown-stage-slot--crown-side'
+            : showTitleStrip
+              ? ' vfd-showdown-stage-slot--crown-labelled'
+              : ' vfd-showdown-stage-slot--crown-winner'
       }`}
     >
       {showTitleStrip ? <ShowdownStageHeaderStrip title={title} variant={variant} /> : null}
@@ -188,23 +225,10 @@ function ShowdownStageDifference({ value }: { value: string }) {
   )
 }
 
-function ShowdownStageCardsBlock({
-  chipRow,
-  showSideLedger,
-  sidePotLines,
-}: {
-  chipRow: ShowdownResultRow | null
-  showSideLedger: boolean
-  sidePotLines?: readonly ShowdownSidePotLine[] | null
-}) {
+function ShowdownStageCardsBlock({ chipRow }: { chipRow: ShowdownResultRow | null }) {
   return (
     <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--cards">
-      {showSideLedger ? (
-        <div className="flex w-full flex-col items-center gap-[0.12em] px-[2%]">
-          <ShowdownPotWinnerList lines={sidePotLines!} />
-          {chipRow != null ? <ShowdownFiveCardsUsed row={chipRow} size="stage" /> : null}
-        </div>
-      ) : chipRow != null ? (
+      {chipRow != null ? (
         <ShowdownFiveCardsUsed row={chipRow} size="stage" />
       ) : (
         <span className="text-[0.5rem] text-white/30">—</span>
@@ -233,7 +257,11 @@ function ShowdownStageTemplate({
   variant: 'winner' | 'split' | 'side'
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
-  const showSideLedger = sidePotLines != null && sidePotLines.length > 0
+  const sideWinnerName = sidePotLines?.find((line) => line.label === 'Side')?.name
+  const crownNames =
+    variant === 'side' && sideWinnerName != null && sideWinnerName.length > 0
+      ? [sideWinnerName]
+      : names
   const [artBox, setArtBox] = useState<HTMLDivElement | null>(null)
   const bindArtBoxRef = useCallback((node: HTMLDivElement | null) => {
     setArtBox(node)
@@ -251,19 +279,20 @@ function ShowdownStageTemplate({
           <div className="vfd-showdown-stage-overlay" aria-hidden>
             <div className="vfd-showdown-stage-zoom-frame">
               {variant === 'split' ? <ShowdownStageSplitBanner /> : null}
-              <ShowdownStageCrownBlock title={headerTitle} names={names} variant={variant} />
+              {variant === 'side' ? <ShowdownStageSideBanner /> : null}
+              <ShowdownStageCrownBlock title={headerTitle} names={crownNames} variant={variant} />
 
-              {pot > 0 ? (
+              {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
+                <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--pot vfd-showdown-stage-slot--side-ledger">
+                  <ShowdownStageSidePotSummary lines={sidePotLines} />
+                </div>
+              ) : pot > 0 ? (
                 <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--pot">
                   <ShowdownStagePotAmount amount={pot} each={each} />
                 </div>
               ) : null}
 
-              <ShowdownStageCardsBlock
-                chipRow={chipRow}
-                showSideLedger={showSideLedger}
-                sidePotLines={sidePotLines}
-              />
+              <ShowdownStageCardsBlock chipRow={chipRow} />
 
               {difference != null ? <ShowdownStageDifference value={difference} /> : null}
             </div>

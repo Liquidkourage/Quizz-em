@@ -38,6 +38,43 @@
       0 1px 2px rgb(0 0 0 / 0.75);
   }
 
+  [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-point {
+    position: relative;
+    min-width: max(0.72rem, 3.6cqw);
+    margin-inline: max(0.06rem, 0.45cqw);
+    align-self: center;
+  }
+
+  [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-point::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(0.62rem, 3.1cqw);
+    height: max(0.62rem, 3.1cqw);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #fff8dc 0%, #f5c842 42%, #c99212 100%);
+    box-shadow:
+      0 0 10px rgba(251, 191, 36, 0.75),
+      0 1px 3px rgba(0, 0, 0, 0.65),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    z-index: 0;
+  }
+
+  [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-mark {
+    position: relative;
+    z-index: 1;
+    font-size: max(1.2rem, min(2.05rem, 10.5cqw));
+    font-weight: 900;
+    line-height: 1;
+    color: #1a0a02;
+    transform: translateY(0);
+    -webkit-text-stroke: 0.45px rgba(255, 248, 220, 0.85);
+    text-shadow: none;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55));
+  }
+
   /** Winner stage overlay — text above portaled art. */
   .vfd-showdown-winner-comp {
     width: 100%;
@@ -188,11 +225,132 @@
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 
+  .vfd-showdown-stage-slot--side-banner {
+    top: 2.8%;
+    width: 92%;
+    transform: translateX(-50%);
+    justify-content: flex-start;
+  }
+
+  .vfd-showdown-stage-side-banner {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border-radius: max(3px, 0.55cqw);
+    border: 1px solid rgba(224, 255, 252, 0.92);
+    padding: max(0.16rem, 0.72cqh) max(0.55rem, 2cqw);
+    background: linear-gradient(
+      180deg,
+      rgba(224, 255, 252, 0.98) 0%,
+      rgba(125, 211, 252, 0.96) 42%,
+      rgba(20, 148, 160, 0.94) 100%
+    );
+    box-shadow:
+      0 0 16px rgba(45, 212, 191, 0.72),
+      inset 0 1px 0 rgba(255, 255, 255, 0.92),
+      0 2px 8px rgba(0, 0, 0, 0.48);
+  }
+
+  .vfd-showdown-stage-side-banner-text {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.28em;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-size: max(0.64rem, min(8.2cqw, 1.24rem));
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .vfd-showdown-stage-side-banner-side {
+    color: #082f49;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  .vfd-showdown-stage-side-banner-pot {
+    color: #155e75;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+
   .vfd-showdown-stage-slot--crown-split {
     top: 24.8%;
     width: 90%;
     gap: 0;
     font-size: max(0.42rem, min(5.2cqw, 0.98rem));
+  }
+
+  .vfd-showdown-stage-slot--crown-side {
+    top: 24.8%;
+    width: 68%;
+    gap: 0;
+  }
+
+  .vfd-showdown-stage-slot--side-ledger {
+    top: 40%;
+    width: 88%;
+    transform: translate(-50%, -50%);
+    font-size: max(0.38rem, min(5.2cqw, 0.92rem));
+  }
+
+  .vfd-showdown-stage-side-ledger {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: max(0.12rem, 1.4cqh);
+  }
+
+  .vfd-showdown-stage-side-ledger-row {
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: max(0.22rem, 1.4cqw);
+    border-radius: max(2px, 0.35cqw);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.42);
+    padding: max(0.08rem, 0.55cqh) max(0.32rem, 1.4cqw);
+  }
+
+  .vfd-showdown-stage-side-ledger-label {
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-size: max(0.62em, min(3.2cqw, 0.52rem));
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .vfd-showdown-stage-side-ledger-label--main {
+    color: #fbbf24;
+  }
+
+  .vfd-showdown-stage-side-ledger-label--side {
+    color: #67e8f9;
+  }
+
+  .vfd-showdown-stage-side-ledger-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+    font-size: max(0.78em, min(4.6cqw, 0.72rem));
+    font-weight: 800;
+    line-height: 1.05;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  }
+
+  .vfd-showdown-stage-side-ledger-amount {
+    font-family: 'Bungee', system-ui, sans-serif;
+    font-size: max(0.9em, min(5.4cqw, 0.88rem));
+    line-height: 1;
+    color: #e2ad1a;
+    white-space: nowrap;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.75));
   }
 
   .vfd-showdown-stage-slot--crown-winner {

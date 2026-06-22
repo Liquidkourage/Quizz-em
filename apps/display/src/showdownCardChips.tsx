@@ -34,7 +34,7 @@ const decimalShellClassBySize: Record<ShowdownChipSize, string> = {
 const decimalMarkClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'text-[max(0.55rem,min(0.82rem,4.2cqw))]',
   'floor-compact': 'text-[max(0.48rem,min(0.72rem,3.6cqw))]',
-  stage: 'text-[max(0.66rem,min(1.08rem,5.6cqw))]',
+  stage: 'text-[max(1.05rem,min(1.85rem,9.5cqw))]',
   lg: 'text-base sm:text-lg',
   md: 'text-sm',
   sm: 'text-[max(0.55rem,2.6cqw)]',
@@ -69,7 +69,7 @@ function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
       aria-hidden
       className={clsx(
         'vfd-showdown-decimal-point inline-flex w-auto min-w-0 shrink-0 items-end justify-center self-end px-0 leading-none',
-        '-mx-[0.14em]',
+        size === 'stage' ? '-mx-[0.04em]' : '-mx-[0.14em]',
         decimalShellClassBySize[size]
       )}
     >
@@ -127,7 +127,7 @@ export function ShowdownFiveCardsUsed({
       : size === 'floor-compact'
         ? 'flex w-full max-w-full flex-nowrap items-end justify-center gap-[max(0.05rem,min(0.18rem,0.85cqw))]'
         : size === 'stage'
-          ? 'flex w-full max-w-full flex-nowrap items-end justify-center gap-[max(0.03rem,min(0.1rem,0.55cqw))]'
+          ? 'flex w-full max-w-full flex-nowrap items-end justify-center gap-[max(0.05rem,min(0.18rem,0.85cqw))]'
         : size === 'lg'
           ? 'flex flex-nowrap items-end justify-center gap-1'
           : 'flex flex-wrap items-end justify-center gap-0.5'

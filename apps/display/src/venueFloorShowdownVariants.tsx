@@ -115,7 +115,7 @@ export function VenueFloorShowdownByVariant({
 
   return (
     <div
-      className="@container vfd-showdown-winner-comp pointer-events-none absolute inset-0 z-[125] flex flex-col overflow-hidden rounded-[inherit]"
+      className="@container vfd-showdown-winner-comp pointer-events-none absolute inset-0 z-[125] overflow-hidden rounded-[inherit]"
       role="group"
       aria-label={ariaLabel}
     >

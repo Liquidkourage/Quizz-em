@@ -215,7 +215,7 @@ export function ShowdownWinnerCompPanel({
   const each = variant === 'split'
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col items-stretch justify-center overflow-hidden">
+    <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden">
       <ShowdownStageTemplate
         headerTitle={headerTitle}
         names={names}

@@ -38,15 +38,17 @@
       0 1px 2px rgb(0 0 0 / 0.75);
   }
 
-  /** Winner stage overlay — black matches template art letterboxing. */
+  /** Winner stage overlay — fills the mosaic tile edge to edge. */
   .vfd-showdown-winner-comp {
     background: #000;
+    width: 100%;
+    height: 100%;
   }
 
   /**
    * Winner stage template (1728×2160 art).
-   * Fill the tile footprint and stretch horizontally (object-fit: fill) so wide
-   * mosaic cards get edge-to-edge trophy art without growing taller.
+   * Full-card footprint: stretch to tile aspect (object-fit: fill) and zoom in so
+   * the trophy art fills the card, not the PNG’s outer black margins.
    */
   .vfd-showdown-stage {
     position: relative;
@@ -64,26 +66,27 @@
   }
 
   .vfd-showdown-stage-art-box {
-    --stage-stretch-x: 1.1;
+    --stage-full-card-zoom: 1.32;
     position: absolute;
-    inset: 0;
+    top: 50%;
+    left: 50%;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    transform: translate(-50%, -50%) scale(var(--stage-full-card-zoom));
+    transform-origin: center center;
   }
 
   .vfd-showdown-stage-art {
     display: block;
-    width: calc(100% * var(--stage-stretch-x));
+    width: 100%;
     height: 100%;
-    margin-left: calc((100% - 100% * var(--stage-stretch-x)) / 2);
     object-fit: fill;
     pointer-events: none;
     user-select: none;
   }
 
   .vfd-showdown-stage-overlay {
-    --stage-text-shift-y: 13%;
+    --stage-text-shift-y: 11%;
     position: absolute;
     inset: 0;
     pointer-events: none;

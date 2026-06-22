@@ -70,15 +70,11 @@
     overflow: hidden;
   }
 
-  /** Larger layout box — zooms by cropping, not post-raster transform (keeps downscale sharp). */
+  /** Larger layout box — zooms by cropping; negative inset avoids subpixel translate blur. */
   .vfd-showdown-stage-art-inner {
     --stage-art-scale: 1.2;
     position: absolute;
-    width: calc(100% * var(--stage-art-scale));
-    height: calc(100% * var(--stage-art-scale));
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    inset: calc((1 - var(--stage-art-scale)) / 2 * 100%);
   }
 
   .vfd-showdown-stage-art {
@@ -87,6 +83,8 @@
     height: 100%;
     object-fit: cover;
     object-position: center center;
+    image-rendering: high-quality;
+    image-rendering: -webkit-optimize-contrast;
     pointer-events: none;
     user-select: none;
   }

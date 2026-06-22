@@ -1,6 +1,10 @@
 import { Fragment } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
 import winnerStageArt from './assets/winner-stage.png'
+
+/** Native pixels — keep in sync with `assets/winner-stage.png`. */
+const WINNER_STAGE_WIDTH = 1619
+const WINNER_STAGE_HEIGHT = 971
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
@@ -180,6 +184,8 @@ function ShowdownStageTemplate({
               alt=""
               aria-hidden
               className="vfd-showdown-stage-art"
+              width={WINNER_STAGE_WIDTH}
+              height={WINNER_STAGE_HEIGHT}
               draggable={false}
             />
 

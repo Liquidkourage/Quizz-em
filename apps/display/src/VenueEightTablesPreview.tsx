@@ -1710,14 +1710,18 @@ function VenueAerialFloorGrid({
   )
   const gridInsetClass =
     venueFloorGridInsetClass(rowCount, { withHeadline: showHeadline }) ?? 'px-4 sm:px-6'
-  const floorGridPerspective = useMemo(() => venueFloorGridPerspectiveStyle(rowCount), [rowCount])
+  const inVenueShowdown = useMemo(() => showdownTableNums(tiles).length > 0, [tiles])
+  /** 3D floor tilt softens raster art — stay flat while winner overlays are up. */
+  const floorGridPerspective = useMemo(
+    () => (inVenueShowdown ? {} : venueFloorGridPerspectiveStyle(rowCount)),
+    [rowCount, inVenueShowdown]
+  )
   const floorRows = useMemo(() => chunkTilesIntoRowGroups(tiles, rowSizes), [tiles, rowSizes])
   const mosaicTypography = useMemo(() => venueFloorMosaicTypography(layoutCount), [layoutCount])
   const cardSlotWidth = useMemo(
     () => venueFloorCardSlotWidthCss(columns, floorSize.cellGapRem),
     [columns, floorSize.cellGapRem]
   )
-  const inVenueShowdown = useMemo(() => showdownTableNums(tiles).length > 0, [tiles])
   const showdownBrief =
     floorSize.showdownBrief || rowCount >= 2 || (showHeadline && inVenueShowdown)
   const othersStillWagering = useMemo(() => venueHasOpenWagering(tiles), [tiles])

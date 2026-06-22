@@ -113,11 +113,20 @@ function ShowdownStageCrownBlock({
 }) {
   const showTitleStrip = variant !== 'winner' && variant !== 'split' && variant !== 'side'
 
+  const splitDensity =
+    variant === 'split' ? (names.length >= 4 ? 'quad' : names.length === 3 ? 'triple' : 'pair') : null
+
   return (
     <div
       className={`vfd-showdown-stage-slot vfd-showdown-stage-slot--crown${
         variant === 'split'
-          ? ' vfd-showdown-stage-slot--crown-split'
+          ? ` vfd-showdown-stage-slot--crown-split${
+              splitDensity === 'quad'
+                ? ' vfd-showdown-stage-slot--crown-split-quad'
+                : splitDensity === 'triple'
+                  ? ' vfd-showdown-stage-slot--crown-split-triple'
+                  : ''
+            }`
           : showTitleStrip
             ? ' vfd-showdown-stage-slot--crown-labelled'
             : ' vfd-showdown-stage-slot--crown-winner'
@@ -189,6 +198,53 @@ function ShowdownStageName({
   variant: 'winner' | 'split' | 'side'
 }) {
   if (names.length === 0) return null
+
+  if (variant === 'split' && names.length >= 4) {
+    const visible = names.slice(0, 4)
+    return (
+      <div
+        className="vfd-showdown-stage-split-names-quad grid w-full max-w-full grid-cols-2 gap-x-[0.35em] gap-y-[0.08em] px-[2%]"
+        aria-label={visible.join(', ')}
+      >
+        {visible.map((name) => (
+          <span
+            key={name}
+            className="vfd-showdown-stage-name vfd-showdown-stage-name--split-quad min-w-0 truncate text-center font-black leading-none text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]"
+            title={name}
+          >
+            {name}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  if (variant === 'split' && names.length === 3) {
+    const lines = chunkNamesForLines(names, 2)
+    return (
+      <div className="vfd-showdown-stage-split-names-compact vfd-showdown-stage-split-names-compact--triple flex w-full max-w-full flex-col items-center gap-[0.1em] px-[1%] text-center">
+        {lines.map((line) => (
+          <div
+            key={line.join(':')}
+            className="flex max-w-full flex-wrap items-center justify-center gap-x-[0.32em] gap-y-0 leading-none"
+          >
+            {line.map((name, index) => (
+              <Fragment key={name}>
+                {index > 0 ? (
+                  <span className="vfd-showdown-stage-split-dot-compact shrink-0 font-black text-[#e2ad1a]" aria-hidden>
+                    ·
+                  </span>
+                ) : null}
+                <span className="vfd-showdown-stage-name vfd-showdown-stage-name--split-compact font-black text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
+                  {name}
+                </span>
+              </Fragment>
+            ))}
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   if (variant === 'split' && names.length > 0) {
     const perLine = names.length <= 2 ? names.length : 2

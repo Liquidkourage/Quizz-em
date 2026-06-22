@@ -246,17 +246,43 @@
   }
 
   .vfd-showdown-stage-slot--crown-split {
-    top: 24%;
+    top: 25.4%;
     width: calc(var(--vfd-stage-safe-width, 83.333%) - 1%);
     gap: 0;
     font-size: max(0.38rem, min(4.6cqw, 0.88rem));
-    padding-top: max(0.12rem, 0.9cqh);
+    padding-top: max(0.18rem, 1.2cqh);
+  }
+
+  .vfd-showdown-stage-slot--crown-split-triple {
+    top: 25.8%;
+    padding-top: max(0.2rem, 1.3cqh);
+  }
+
+  .vfd-showdown-stage-slot--crown-split-quad {
+    top: 26.6%;
+    width: calc(var(--vfd-stage-safe-width, 83.333%) - 4%);
+    padding-top: max(0.22rem, 1.4cqh);
   }
 
   .vfd-showdown-stage-name--split-compact {
     font-size: max(0.82rem, min(6.2cqw, 1.05rem));
     line-height: 1.05;
     white-space: nowrap;
+  }
+
+  .vfd-showdown-stage-split-names-compact--triple .vfd-showdown-stage-name--split-compact {
+    font-size: max(0.76rem, min(5.6cqw, 0.96rem));
+  }
+
+  .vfd-showdown-stage-name--split-quad {
+    font-size: max(0.68rem, min(5.1cqw, 0.86rem));
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+
+  .vfd-showdown-stage-split-names-quad {
+    max-width: 92%;
+    margin-inline: auto;
   }
 
   .vfd-showdown-stage-split-dot-compact {

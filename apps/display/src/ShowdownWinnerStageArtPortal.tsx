@@ -6,6 +6,9 @@ import winnerStageCardArt from './assets/winner-stage-card.png'
 export const WINNER_STAGE_CARD_WIDTH = 2400
 export const WINNER_STAGE_CARD_HEIGHT = 1439
 
+/** Virtual art frame — 120% of tile clip, centered; outer portal crops to tile bounds. */
+export const WINNER_STAGE_ART_SCALE = 1.2
+
 export const SHOWDOWN_ART_PORTAL_ROOT_ID = 'vfd-showdown-art-portal-root'
 
 type ArtClip = {
@@ -56,18 +59,21 @@ function PortaledArt({ clip }: { clip: ArtClip }) {
         backgroundColor: '#000',
         pointerEvents: 'none',
         zIndex: 9,
+        ['--vfd-stage-art-scale' as string]: String(WINNER_STAGE_ART_SCALE),
       }}
     >
-      <img
-        src={winnerStageCardArt}
-        alt=""
-        aria-hidden
-        draggable={false}
-        className="vfd-showdown-stage-art vfd-showdown-stage-art--height-fill"
-        width={WINNER_STAGE_CARD_WIDTH}
-        height={WINNER_STAGE_CARD_HEIGHT}
-        decoding="async"
-      />
+      <div className="vfd-showdown-stage-art-zoom">
+        <img
+          src={winnerStageCardArt}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className="vfd-showdown-stage-art vfd-showdown-stage-art--height-fill"
+          width={WINNER_STAGE_CARD_WIDTH}
+          height={WINNER_STAGE_CARD_HEIGHT}
+          decoding="async"
+        />
+      </div>
     </div>,
     portalRoot,
   )

@@ -90,6 +90,17 @@
     transform: translateX(-50%);
   }
 
+  /** Centered virtual frame larger than the tile clip (see WINNER_STAGE_ART_SCALE). */
+  .vfd-showdown-stage-art-zoom {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(100% * var(--vfd-stage-art-scale, 1));
+    height: calc(100% * var(--vfd-stage-art-scale, 1));
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+  }
+
   .vfd-showdown-stage-overlay {
     position: absolute;
     inset: 0;

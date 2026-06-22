@@ -23,18 +23,7 @@ function ShowdownStageHeaderStrip({
   variant: 'winner' | 'split' | 'side'
 }) {
   if (variant === 'split') {
-    return (
-      <div className="vfd-showdown-stage-split-header flex w-full items-center gap-[0.35em]">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
-        <ShowdownGoldDiamond />
-        <span className="vfd-showdown-stage-split-title flex shrink-0 flex-col items-center leading-none">
-          <span>Split</span>
-          <span>Pot</span>
-        </span>
-        <ShowdownGoldDiamond />
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#e2ad1a]/80 to-transparent" />
-      </div>
-    )
+    return null
   }
 
   return (
@@ -50,6 +39,19 @@ function ShowdownStageHeaderStrip({
   )
 }
 
+function ShowdownStageSplitBanner() {
+  return (
+    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--split-banner">
+      <div className="vfd-showdown-stage-split-banner">
+        <span className="vfd-showdown-stage-split-banner-text">
+          <span className="vfd-showdown-stage-split-banner-split">Split</span>
+          <span className="vfd-showdown-stage-split-banner-pot">Pot</span>
+        </span>
+      </div>
+    </div>
+  )
+}
+
 function ShowdownStageCrownBlock({
   title,
   names,
@@ -59,16 +61,16 @@ function ShowdownStageCrownBlock({
   names: readonly string[]
   variant: 'winner' | 'split' | 'side'
 }) {
-  const showTitleStrip = variant !== 'winner'
+  const showTitleStrip = variant !== 'winner' && variant !== 'split'
 
   return (
     <div
       className={`vfd-showdown-stage-slot vfd-showdown-stage-slot--crown${
-        showTitleStrip
-          ? variant === 'split'
-            ? ' vfd-showdown-stage-slot--crown-split'
-            : ' vfd-showdown-stage-slot--crown-labelled'
-          : ' vfd-showdown-stage-slot--crown-winner'
+        variant === 'split'
+          ? ' vfd-showdown-stage-slot--crown-split'
+          : showTitleStrip
+            ? ' vfd-showdown-stage-slot--crown-labelled'
+            : ' vfd-showdown-stage-slot--crown-winner'
       }`}
     >
       {showTitleStrip ? <ShowdownStageHeaderStrip title={title} variant={variant} /> : null}
@@ -115,15 +117,15 @@ function ShowdownStageName({
   if (variant === 'split' && names.length > 1) {
     const visible = names.slice(0, 3)
     return (
-      <div className="vfd-showdown-stage-split-names flex max-w-full flex-nowrap items-center justify-center gap-x-[0.22em] text-center">
+      <div className="vfd-showdown-stage-split-names flex max-w-full flex-nowrap items-center justify-center gap-x-[0.35em] px-[1%] text-center">
         {visible.map((name, index) => (
           <Fragment key={name}>
             {index > 0 ? (
-              <span className="vfd-showdown-stage-split-dot shrink-0 text-[#e2ad1a]" aria-hidden>
+              <span className="vfd-showdown-stage-split-dot shrink-0 font-black text-[#e2ad1a]" aria-hidden>
                 ·
               </span>
             ) : null}
-            <span className="vfd-showdown-stage-name vfd-showdown-stage-name--split min-w-0 max-w-[min(100%,7.5rem)] truncate font-black leading-none text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
+            <span className="vfd-showdown-stage-name vfd-showdown-stage-name--split min-w-0 max-w-[46%] shrink truncate font-black leading-none text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
               {name}
             </span>
           </Fragment>
@@ -248,6 +250,7 @@ function ShowdownStageTemplate({
           <ShowdownWinnerStageArtPortal artBox={artBox} />
           <div className="vfd-showdown-stage-overlay" aria-hidden>
             <div className="vfd-showdown-stage-zoom-frame">
+              {variant === 'split' ? <ShowdownStageSplitBanner /> : null}
               <ShowdownStageCrownBlock title={headerTitle} names={names} variant={variant} />
 
               {pot > 0 ? (

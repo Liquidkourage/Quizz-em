@@ -75,13 +75,22 @@ export function venueBanquetLayout(
 }
 
 /** Multi-row floors fill equal-height row slots beneath the headline. */
-export function venueFloorRowTrackSpec(rowCount: number): {
+export function venueFloorRowTrackSpec(
+  rowCount: number,
+  opts?: { withHeadline?: boolean }
+): {
   gridTemplateRows: string
   shrinkWrapRowHeight: boolean
   fillRowHeight: boolean
 } {
   if (rowCount <= 1) {
-    return { gridTemplateRows: 'auto', shrinkWrapRowHeight: true, fillRowHeight: false }
+    /** Single-row venue walls (e.g. 3-up) must fill remaining viewport — shrink-wrap collapses showdown tiles. */
+    const fillSingleRow = opts?.withHeadline === true
+    return {
+      gridTemplateRows: fillSingleRow ? 'minmax(0, 1fr)' : 'auto',
+      shrinkWrapRowHeight: !fillSingleRow,
+      fillRowHeight: fillSingleRow,
+    }
   }
   return {
     gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,

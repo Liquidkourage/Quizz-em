@@ -17,11 +17,19 @@ import {
 } from './venueFloorGridLayout'
 
 describe('venueFloorRowTrackSpec', () => {
-  it('shrink-wraps a single row', () => {
+  it('shrink-wraps a single row without headline', () => {
     expect(venueFloorRowTrackSpec(1)).toEqual({
       gridTemplateRows: 'auto',
       shrinkWrapRowHeight: true,
       fillRowHeight: false,
+    })
+  })
+
+  it('fills a single row when headline reserves top space', () => {
+    expect(venueFloorRowTrackSpec(1, { withHeadline: true })).toEqual({
+      gridTemplateRows: 'minmax(0, 1fr)',
+      shrinkWrapRowHeight: false,
+      fillRowHeight: true,
     })
   })
 

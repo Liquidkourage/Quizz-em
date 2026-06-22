@@ -90,6 +90,12 @@
     box-shadow: none !important;
   }
 
+  /** Shrink-wrap rows (no headline) still need tile height when chrome is hidden for showdown. */
+  .vfd-mosaic-tile--showdown-aspect {
+    aspect-ratio: 17 / 12;
+    max-height: 100%;
+  }
+
   /** Winner stage — cover fill (height-first, even horizontal crop); art outside venue-wall zoom. */
   .vfd-showdown-stage {
     position: relative;

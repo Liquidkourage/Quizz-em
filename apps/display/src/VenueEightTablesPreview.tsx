@@ -58,6 +58,7 @@ import {
   venueFloorGridPaddingForLayout,
   venueFloorGridInsetClass,
   venueFloorGridPerspectiveStyle,
+  venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorSpacingSpec,
   VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
@@ -1440,7 +1441,9 @@ function VenueMosaicTableCard({
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
         className={`@container relative min-h-0 min-w-0 ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
-          floorFillHeight
+          showFloorShowdownOverlay && shrinkWrapRowHeight
+            ? 'vfd-mosaic-tile--showdown-aspect flex w-full flex-col'
+            : floorFillHeight
             ? 'flex h-full min-h-0 w-full flex-col'
             : shrinkWrapRowHeight || mosaicShrinkWrap
               ? 'flex h-auto flex-col'
@@ -1704,7 +1707,9 @@ function VenueAerialFloorGrid({
     () => venueFloorSpacingSpec(layoutCount, floorLayout, { withHeadline: showHeadline }),
     [layoutCount, floorLayout, showHeadline]
   )
-  const fillRowHeight = rowCount > 1
+  const { fillRowHeight, shrinkWrapRowHeight } = venueFloorRowTrackSpec(rowCount, {
+    withHeadline: showHeadline,
+  })
   const floorGridPadding = useMemo(
     () => venueFloorGridPaddingForLayout(rowCount, { withHeadline: showHeadline }),
     [rowCount, showHeadline]
@@ -1805,7 +1810,7 @@ function VenueAerialFloorGrid({
                     floorSize={floorSize}
                     floorHoneycomb
                     floorFillHeight={fillRowHeight}
-                    shrinkWrapRowHeight={!fillRowHeight}
+                    shrinkWrapRowHeight={shrinkWrapRowHeight}
                     prefersReducedMotion={prefersReducedMotion}
                     dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
                     sharedShowdownAnswer={sharedShowdownAnswer}

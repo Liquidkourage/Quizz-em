@@ -152,7 +152,7 @@ function ShowdownStagePotAmount({
   if (each && eachInline) {
     return (
       <span
-        className="vfd-showdown-stage-pot-inline-each vfd-mosaic-stack vfd-mosaic-dollar vfd-mosaic-dollar--live vfd-showdown-stage-pot inline-flex items-baseline justify-center leading-none"
+        className="vfd-showdown-stage-pot vfd-showdown-stage-pot-inline-each vfd-mosaic-dollar vfd-mosaic-dollar--live inline-flex items-baseline justify-center leading-none"
         aria-label={`$${digits} each`}
       >
         <span className="vfd-mosaic-dollar-sign" aria-hidden>
@@ -173,7 +173,7 @@ function ShowdownStagePotAmount({
       }`}
     >
       <span
-        className="vfd-mosaic-stack vfd-mosaic-dollar vfd-mosaic-dollar--live vfd-showdown-stage-pot inline-flex items-baseline justify-center gap-[0.3em]"
+        className="vfd-showdown-stage-pot vfd-mosaic-dollar vfd-mosaic-dollar--live inline-flex items-baseline justify-center gap-[0.3em]"
         aria-label={`$${digits}${each ? ' each' : ''}`}
       >
         <span className="vfd-mosaic-dollar-sign" aria-hidden>

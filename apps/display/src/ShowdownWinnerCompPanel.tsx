@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useState } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
-import { ShowdownWinnerStageArtPortal, WINNER_STAGE_ART_SCALE } from './ShowdownWinnerStageArtPortal'
+import { ShowdownWinnerStageArtPortal } from './ShowdownWinnerStageArtPortal'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -364,7 +364,6 @@ function ShowdownStageTemplate({
     <div
       className="vfd-showdown-stage"
       data-showdown-winner-comp
-      style={{ ['--vfd-stage-art-scale' as string]: String(WINNER_STAGE_ART_SCALE) }}
     >
       <div className="vfd-showdown-stage-frame">
         <div ref={bindArtBoxRef} className="vfd-showdown-stage-art-box">

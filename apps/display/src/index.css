@@ -112,6 +112,7 @@
     position: absolute;
     inset: 0;
     overflow: hidden;
+    background: #040308;
   }
 
   .vfd-showdown-stage-art {
@@ -120,7 +121,7 @@
     user-select: none;
   }
 
-  /** Height-first fill — landscape tiles; crop sides evenly. */
+  /** Height-first fill — scale to tile height, crop sides evenly (no object-fit resample pass). */
   .vfd-showdown-stage-art--height-fill {
     position: absolute;
     top: 0;
@@ -129,44 +130,6 @@
     width: auto;
     max-width: none;
     transform: translateX(-50%);
-  }
-
-  /**
-   * Tall/narrow mosaic cells (multi-row + headline): fit art to width so laurel
-   * wreaths stay inside the tile. Threshold matches winner-stage-card.png (~2400×1439).
-   */
-  @container (max-aspect-ratio: 2400/1439) {
-    .vfd-showdown-stage-zoom-frame {
-      --vfd-stage-art-scale: 1;
-    }
-
-    .vfd-showdown-stage-art--height-fill {
-      top: 50%;
-      left: 50%;
-      height: auto;
-      width: 100%;
-      transform: translate(-50%, -50%);
-    }
-  }
-
-  /** Portaled art clip — same aspect switch (art lives outside the stage frame). */
-  .vfd-showdown-stage-art-portal {
-    container-type: size;
-    container-name: stage-portal;
-  }
-
-  @container stage-portal (max-aspect-ratio: 2400/1439) {
-    .vfd-showdown-stage-zoom-frame {
-      --vfd-stage-art-scale: 1;
-    }
-
-    .vfd-showdown-stage-art--height-fill {
-      top: 50%;
-      left: 50%;
-      height: auto;
-      width: 100%;
-      transform: translate(-50%, -50%);
-    }
   }
 
   /** Centered virtual frame larger than the tile clip (see WINNER_STAGE_ART_SCALE). */

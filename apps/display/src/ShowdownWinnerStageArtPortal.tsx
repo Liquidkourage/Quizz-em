@@ -6,13 +6,36 @@ import winnerStageCardArt from './assets/winner-stage-card.png'
 export const WINNER_STAGE_CARD_WIDTH = 2400
 export const WINNER_STAGE_CARD_HEIGHT = 1439
 
-/** Art aspect — tiles narrower than this use width-first fit (see index.css @container). */
-export const WINNER_STAGE_CARD_ASPECT = WINNER_STAGE_CARD_WIDTH / WINNER_STAGE_CARD_HEIGHT
+const WINNER_STAGE_CARD_ASPECT = WINNER_STAGE_CARD_WIDTH / WINNER_STAGE_CARD_HEIGHT
 
-/** Virtual art frame — 120% of tile clip on landscape tiles; 100% on tall/narrow cells. */
+/** Virtual art frame — up to 120% of tile clip on landscape tiles; shrinks on tall/narrow cells. */
 export const WINNER_STAGE_ART_SCALE = 1.2
 
+/** Match stage art letterbox (see .vfd-showdown-stage-art-box). */
+export const WINNER_STAGE_LETTERBOX_BG = '#040308'
+
 export const SHOWDOWN_ART_PORTAL_ROOT_ID = 'vfd-showdown-art-portal-root'
+
+/**
+ * Height-fill scale that keeps laurel wreaths inside the tile width.
+ * Tall/narrow cells letterbox with {@link WINNER_STAGE_LETTERBOX_BG} instead of cropping sides.
+ */
+export function winnerStageArtScaleForTile(width: number, height: number): number {
+  if (width <= 0 || height <= 0) return WINNER_STAGE_ART_SCALE
+  const widthFitScale = (width / height) / WINNER_STAGE_CARD_ASPECT
+  const insetScale = widthFitScale * 0.96
+  if (insetScale >= WINNER_STAGE_ART_SCALE) return WINNER_STAGE_ART_SCALE
+  return insetScale
+}
+
+function syncStageArtScale(artBox: HTMLElement, scale: number): void {
+  const value = String(scale)
+  artBox.style.setProperty('--vfd-stage-art-scale', value)
+  const stage = artBox.closest('.vfd-showdown-stage')
+  if (stage instanceof HTMLElement) {
+    stage.style.setProperty('--vfd-stage-art-scale', value)
+  }
+}
 
 type ArtClip = {
   left: number
@@ -20,6 +43,7 @@ type ArtClip = {
   width: number
   height: number
   borderRadius: string
+  artScale: number
 }
 
 function snapViewportPx(value: number, dpr: number): number {
@@ -30,12 +54,15 @@ function measureArtClip(artBox: HTMLElement): ArtClip {
   const box = artBox.getBoundingClientRect()
   const article = artBox.closest('article')
   const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
+  const artScale = winnerStageArtScaleForTile(box.width, box.height)
+  syncStageArtScale(artBox, artScale)
   return {
     left: snapViewportPx(box.left, dpr),
     top: snapViewportPx(box.top, dpr),
     width: snapViewportPx(box.width, dpr),
     height: snapViewportPx(box.height, dpr),
     borderRadius: article ? getComputedStyle(article).borderRadius : '0px',
+    artScale,
   }
 }
 
@@ -59,10 +86,10 @@ function PortaledArt({ clip }: { clip: ArtClip }) {
         height: clip.height,
         overflow: 'hidden',
         borderRadius: clip.borderRadius,
-        backgroundColor: '#000',
+        backgroundColor: WINNER_STAGE_LETTERBOX_BG,
         pointerEvents: 'none',
         zIndex: 9,
-        ['--vfd-stage-art-scale' as string]: String(WINNER_STAGE_ART_SCALE),
+        ['--vfd-stage-art-scale' as string]: String(clip.artScale),
       }}
     >
       <div className="vfd-showdown-stage-zoom-frame">

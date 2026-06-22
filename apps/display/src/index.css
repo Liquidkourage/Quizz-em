@@ -134,7 +134,7 @@
   }
 
   .vfd-showdown-stage-slot--crown-winner {
-    top: 16.2%;
+    top: 19.8%;
     width: 68%;
     gap: 0;
   }
@@ -170,21 +170,21 @@
   /** Digit cards in the lower wreath — below pot, above podium. */
   .vfd-showdown-stage-slot--cards {
     top: 49%;
-    width: 78%;
-    height: 17%;
+    width: 84%;
+    height: 18%;
     transform: translateX(-50%);
     justify-content: center;
   }
 
   /** Difference block seated on the gold nameplate. */
   .vfd-showdown-stage-slot--difference {
-    top: 82.4%;
+    top: 80.6%;
     width: 46%;
     height: 9.5%;
     transform: translateX(-50%);
     justify-content: flex-start;
-    gap: max(0.05rem, 0.65cqh);
-    padding-top: max(0.02rem, 0.35cqh);
+    gap: max(0.04rem, 0.5cqh);
+    padding-top: 0;
   }
 
   .vfd-showdown-stage-diff-label {

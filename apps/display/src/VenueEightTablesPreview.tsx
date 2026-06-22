@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CardFaceGraphic,
@@ -64,6 +64,7 @@ import {
   VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
   venueFloorMosaicTypography,
   venueFloorPublicTypographyTier,
+  venueMosaicTileTypographyStyle,
   type VenueFloorLayoutViewport,
   type VenueFloorMosaicTypography,
   type VenueFloorSizeSpec,
@@ -1358,6 +1359,8 @@ type VenueMosaicTableCardProps = {
   sharedShowdownAnswer?: number
   /** Table-count-aware mosaic typography from {@link venueFloorMosaicTypography}. */
   mosaicTypography: VenueFloorMosaicTypography
+  /** Active table count — drives per-tile typography tier. */
+  layoutTableCount: number
 }
 
 function VenueMosaicTableCard({
@@ -1371,7 +1374,38 @@ function VenueMosaicTableCard({
   dimAnsweringEarly = false,
   sharedShowdownAnswer,
   mosaicTypography,
+  layoutTableCount,
 }: VenueMosaicTableCardProps) {
+  const tileRef = useRef<HTMLElement>(null)
+  const [tilePx, setTilePx] = useState({ w: 0, h: 0 })
+
+  useLayoutEffect(() => {
+    const el = tileRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+
+    const apply = () => {
+      const r = el.getBoundingClientRect()
+      const ww = r.width
+      const hh = r.height
+      if (ww > 0 && hh > 0)
+        setTilePx((prev) => (prev.w === ww && prev.h === hh ? prev : { w: ww, h: hh }))
+    }
+
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const tileTypographyStyle = useMemo(
+    () =>
+      venueMosaicTileTypographyStyle(
+        venueFloorPublicTypographyTier(layoutTableCount),
+        tilePx.w,
+        floorSize.size
+      ),
+    [layoutTableCount, tilePx.w, floorSize.size]
+  )
   const tn = row.tableNum
   const seats = row.seated
   const pot = Math.max(0, Math.floor(Number.isFinite(row.pot) ? row.pot : 0))
@@ -1446,10 +1480,12 @@ function VenueMosaicTableCard({
 
   return (
       <article
+        ref={tileRef}
         data-table-tile={tn}
         role="group"
         aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
-        className={`@container/size relative min-h-0 min-w-0 ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
+        style={tileTypographyStyle}
+        className={`@container/size relative min-h-0 min-w-0 ${mosaicTypography.rootClass} ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           showFloorShowdownOverlay && shrinkWrapRowHeight
             ? 'vfd-mosaic-tile--showdown-aspect flex w-full flex-col'
             : floorFillHeight
@@ -1711,7 +1747,7 @@ function VenueAerialFloorGrid({
       }),
     [layoutCount, floorViewport, showHeadline]
   )
-  const { columns, rowCount, rowSizes } = floorLayout
+  const { rowCount, rowSizes } = floorLayout
   const floorSize = useMemo(
     () => venueFloorSpacingSpec(layoutCount, floorLayout, { withHeadline: showHeadline }),
     [layoutCount, floorLayout, showHeadline]
@@ -1733,9 +1769,9 @@ function VenueAerialFloorGrid({
   )
   const floorRows = useMemo(() => chunkTilesIntoRowGroups(tiles, rowSizes), [tiles, rowSizes])
   const mosaicTypography = useMemo(() => venueFloorMosaicTypography(layoutCount), [layoutCount])
-  const cardSlotWidth = useMemo(
-    () => venueFloorCardSlotWidthCss(columns, floorSize.cellGapRem),
-    [columns, floorSize.cellGapRem]
+  const cardSlotWidthForRow = useCallback(
+    (tablesInRow: number) => venueFloorCardSlotWidthCss(tablesInRow, floorSize.cellGapRem),
+    [floorSize.cellGapRem]
   )
   const showdownBrief =
     floorSize.showdownBrief || rowCount >= 2 || (showHeadline && inVenueShowdown)
@@ -1807,11 +1843,13 @@ function VenueAerialFloorGrid({
               }`}
               style={{ gap: `${floorSize.cellGapRem}rem` }}
             >
-              {rowTiles.map((row) => (
+              {rowTiles.map((row) => {
+                const rowSlotWidth = cardSlotWidthForRow(rowTiles.length)
+                return (
                 <div
                   key={row.tableNum}
                   className={`flex min-h-0 min-w-0 flex-col ${fillRowHeight ? 'h-full' : 'h-auto'}`}
-                  style={{ flex: `0 0 ${cardSlotWidth}`, maxWidth: cardSlotWidth }}
+                  style={{ flex: `0 0 ${rowSlotWidth}`, maxWidth: rowSlotWidth }}
                 >
                   <VenueMosaicTableCard
                     row={row}
@@ -1824,9 +1862,10 @@ function VenueAerialFloorGrid({
                     dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
                     sharedShowdownAnswer={sharedShowdownAnswer}
                     mosaicTypography={mosaicTypography}
+                    layoutTableCount={layoutCount}
                   />
                 </div>
-              ))}
+              )})}
             </div>
           ))}
         </div>
@@ -1867,6 +1906,7 @@ function VenueHeroSpotlightLayout({
           dimAnsweringEarly={featured.phase === 'answering' && othersStillWagering}
           sharedShowdownAnswer={sharedShowdownAnswer}
           mosaicTypography={heroTypography}
+          layoutTableCount={layoutTableCount}
         />
       </div>
       {companions.length > 0 ? (

@@ -1,4 +1,5 @@
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import { stadiumMosaicScaleForWidth, type StadiumMosaicDensity } from '@qhe/ui'
 import type { CSSProperties } from 'react'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
@@ -211,6 +212,84 @@ export function venueFloorMosaicTypography(tableCount: number): VenueFloorMosaic
     ...MOSAIC_TYPOGRAPHY_CLASSES,
     noMoreBetsOffsetClass: NO_MORE_BETS_OFFSET_BY_TIER[tier],
   }
+}
+
+/** Reference px at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX} before per-tile scale. */
+const MOSAIC_TYPO_BASE_PX: Record<
+  VenueFloorPublicTypographyTier,
+  {
+    summary: number
+    playerName: number
+    stack: number
+    toCallLabel: number
+    toCallAmount: number
+    tableNum: number
+    watermark: number
+    titleRowMin: number
+    footerRowMin: number
+    blinds: number
+  }
+> = {
+  spacious: {
+    summary: 24,
+    playerName: 30,
+    stack: 45,
+    toCallLabel: 24,
+    toCallAmount: 30,
+    tableNum: 24,
+    watermark: 27,
+    titleRowMin: 34,
+    footerRowMin: 34,
+    blinds: 39,
+  },
+  standard: {
+    summary: 25,
+    playerName: 32,
+    stack: 41,
+    toCallLabel: 24,
+    toCallAmount: 31,
+    tableNum: 22,
+    watermark: 24,
+    titleRowMin: 36,
+    footerRowMin: 38,
+    blinds: 36,
+  },
+  compact: {
+    summary: 20,
+    playerName: 25,
+    stack: 39,
+    toCallLabel: 20,
+    toCallAmount: 25,
+    tableNum: 20,
+    watermark: 22,
+    titleRowMin: 30,
+    footerRowMin: 31,
+    blinds: 34,
+  },
+}
+
+/** Measured-tile typography — scales with felt width (reliable under venue-wall zoom). */
+export function venueMosaicTileTypographyStyle(
+  tier: VenueFloorPublicTypographyTier,
+  tileWidthPx: number,
+  density: VenueFloorTableSize
+): CSSProperties {
+  if (tileWidthPx <= 0) return {}
+  const scale = stadiumMosaicScaleForWidth(tileWidthPx, density as StadiumMosaicDensity)
+  const base = MOSAIC_TYPO_BASE_PX[tier]
+  const px = (n: number, floor = 10) => `${Math.max(floor, Math.round(n * scale))}px`
+  return {
+    '--vfd-summary-size': px(base.summary),
+    '--vfd-player-name-size': px(base.playerName),
+    '--vfd-stack-size': px(base.stack, 12),
+    '--vfd-to-call-label-size': px(base.toCallLabel),
+    '--vfd-to-call-amount-size': px(base.toCallAmount, 12),
+    '--vfd-table-number-size': px(base.tableNum),
+    '--vfd-watermark-size': px(base.watermark),
+    '--vfd-title-row-min-h': px(base.titleRowMin, 18),
+    '--vfd-footer-row-min-h': px(base.footerRowMin, 18),
+    '--vfd-blinds-amount-size': px(base.blinds, 12),
+  } as CSSProperties
 }
 
 /** Slightly taller mosaic felt — room for under-table call caption without shrinking type. */

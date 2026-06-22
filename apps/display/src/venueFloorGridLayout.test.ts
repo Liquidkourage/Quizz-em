@@ -13,6 +13,7 @@ import {
   venueFloorRowTrackSpec,
   venueFloorSizeSpec,
   venueFloorTableSize,
+  venueMosaicTileTypographyStyle,
   VENUE_FLOOR_MOSAIC_HEADER_TYPE,
 } from './venueFloorGridLayout'
 
@@ -120,6 +121,19 @@ describe('venueFloorMosaicTypography', () => {
     expect(compact.rootClass).toBe('venue-floor-typography-compact')
     expect(standard.noMoreBetsOffsetClass).not.toBe(compact.noMoreBetsOffsetClass)
     expect(standard.feltMaxHeightClass).toBe('vfd-mosaic-felt-cap')
+  })
+})
+
+describe('venueMosaicTileTypographyStyle', () => {
+  it('scales stack size with measured tile width', () => {
+    const narrow = venueMosaicTileTypographyStyle('standard', 220, 'large') as Record<string, string>
+    const wide = venueMosaicTileTypographyStyle('standard', 440, 'large') as Record<string, string>
+    expect(Number.parseFloat(narrow['--vfd-stack-size'])).toBe(41)
+    expect(Number.parseFloat(wide['--vfd-stack-size'])).toBe(82)
+  })
+
+  it('returns empty style until tile width is known', () => {
+    expect(venueMosaicTileTypographyStyle('standard', 0, 'large')).toEqual({})
   })
 })
 

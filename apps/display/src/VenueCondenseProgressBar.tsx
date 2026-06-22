@@ -1,15 +1,13 @@
 import { Fragment } from 'react'
 import type { VenueCondenseProgressModel } from './venueWallModel'
-import { DISPLAY_TEXT_HEADLINE_CAPTION, DISPLAY_TEXT_HEADLINE_META } from './displayTypography'
+import { DISPLAY_TEXT_HEADLINE_CAPTION } from './displayTypography'
 
 type VenueCondenseProgressBarProps = {
   model: VenueCondenseProgressModel
-  /** headline = full-width under venue headline; sidebar = stacks rail; bottom = fallback strip */
+  /** headline = raw stats under venue headline; sidebar = stacks rail; bottom = fallback strip */
   variant?: 'headline' | 'sidebar' | 'bottom'
   /** Override caption typography (table-count tier from parent). */
   captionClass?: string
-  /** Leaderboard-style callout above the next-combine marker. */
-  showCombineCallout?: boolean
 }
 
 function formatHeadlineCondensePart(part: string): string {
@@ -38,15 +36,57 @@ function headlineCondenseCaption(model: VenueCondenseProgressModel): string {
   return headlineCondenseCaptionParts(model).map(formatHeadlineCondensePart).join(' · ')
 }
 
-function compactCaption(model: VenueCondenseProgressModel): string {
-  return headlineCondenseCaption(model)
+/** Emphasize leading numerals in stat fragments like "91 remaining" or "Combine at 74". */
+function HeadlineStatPart({ part }: { part: string }) {
+  const formatted = formatHeadlineCondensePart(part)
+  const remainingMatch = formatted.match(/^(\d+)\s+(remaining.*)$/i)
+  if (remainingMatch) {
+    return (
+      <>
+        <span className="text-amber-100">{remainingMatch[1]}</span>
+        <span className="text-white/80"> {remainingMatch[2]}</span>
+      </>
+    )
+  }
+
+  const tablesMatch = formatted.match(/^(\d+)\s+(tables?)$/i)
+  if (tablesMatch) {
+    return (
+      <>
+        <span className="text-amber-100">{tablesMatch[1]}</span>
+        <span className="text-white/80"> {tablesMatch[2]}</span>
+      </>
+    )
+  }
+
+  const combineAtMatch = formatted.match(/^Combine at (\d+)$/i)
+  if (combineAtMatch) {
+    return (
+      <>
+        <span className="text-white/80">Combine at </span>
+        <span className="text-amber-100">{combineAtMatch[1]}</span>
+      </>
+    )
+  }
+
+  const combiningToMatch = formatted.match(/^Combining to (\d+)\s+(tables?)$/i)
+  if (combiningToMatch) {
+    return (
+      <>
+        <span className="text-white/80">Combining to </span>
+        <span className="text-amber-100">{combiningToMatch[1]}</span>
+        <span className="text-white/80"> {combiningToMatch[2]}</span>
+      </>
+    )
+  }
+
+  return formatted
 }
 
 export default function VenueCondenseProgressBar({
   model,
   variant = 'bottom',
   captionClass = DISPLAY_TEXT_HEADLINE_CAPTION,
-  showCombineCallout = false,
 }: VenueCondenseProgressBarProps) {
   const { survivors, peakSurvivors, liveTables, fillPct, marks, nextAt } = model
   if (liveTables <= 1 && marks.length === 0) return null
@@ -55,62 +95,61 @@ export default function VenueCondenseProgressBar({
   const headline = variant === 'headline'
   const sidebar = variant === 'sidebar'
 
-  const trackHeight = headline ? 'h-2.5 sm:h-3' : sidebar ? 'h-2' : 'h-2 sm:h-2.5'
-  const tickClass = headline ? 'w-0.5' : 'w-px'
+  if (headline) {
+    return (
+      <div className="w-full border-t border-white/10 pt-1 sm:pt-1.5" aria-live="polite">
+        <p
+          className={`flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-left font-bold tabular-nums tracking-tight ${captionClass}`}
+          role="status"
+          aria-label={headlineCondenseCaption(model)}
+        >
+          {headlineCondenseCaptionParts(model).map((part, index) => (
+            <Fragment key={part}>
+              {index > 0 ? (
+                <span className="shrink-0 text-white/45" aria-hidden>
+                  ·
+                </span>
+              ) : null}
+              <span className="shrink-0 whitespace-nowrap">
+                <HeadlineStatPart part={part} />
+              </span>
+            </Fragment>
+          ))}
+        </p>
+      </div>
+    )
+  }
+
+  const trackHeight = sidebar ? 'h-2' : 'h-2 sm:h-2.5'
+  const tickClass = 'w-px'
 
   return (
     <div
       className={
-        headline
-          ? 'w-full border-t border-white/10 pt-0.5'
-          : sidebar
-            ? 'w-full'
-            : 'pointer-events-none fixed bottom-0 left-0 right-0 z-30 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] pt-1.5 sm:px-4'
+        sidebar
+          ? 'w-full'
+          : 'pointer-events-none fixed bottom-0 left-0 right-0 z-30 px-3 pb-[max(0.45rem,env(safe-area-inset-bottom,0px))] pt-1.5 sm:px-4'
       }
       aria-live="polite"
     >
       <div
-        className={`w-full ${headline || sidebar ? '' : 'mx-auto max-w-3xl rounded-md border border-white/10 bg-black/55 px-2 py-1.5 backdrop-blur-sm sm:px-2.5'}`}
+        className={`w-full ${sidebar ? '' : 'mx-auto max-w-3xl rounded-md border border-white/10 bg-black/55 px-2 py-1.5 backdrop-blur-sm sm:px-2.5'}`}
         role="img"
         aria-label={`${survivors} of ${peakSurvivors} players remaining across ${liveTables} tables`}
       >
-        {headline ? (
-          <p
-            className={`mb-1 flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-left font-bold tabular-nums text-white/95 ${captionClass}`}
-          >
-            {headlineCondenseCaptionParts(model).map((part, index) => (
-              <Fragment key={part}>
-                {index > 0 ? (
-                  <span className="shrink-0 px-1 text-white/55" aria-hidden>
-                    ·
-                  </span>
-                ) : null}
-                <span className="shrink-0">{formatHeadlineCondensePart(part)}</span>
-              </Fragment>
-            ))}
-          </p>
-        ) : (
-          <p
-            className={`truncate font-semibold tabular-nums text-white/80 ${
-              sidebar
-                ? 'mb-1 text-center text-[10px] leading-tight sm:text-[11px]'
-                : 'mb-1 text-center text-[clamp(0.9rem,2.2vw,1.125rem)] leading-tight'
-            }`}
-          >
-            {compactCaption(model)}
-          </p>
-        )}
+        <p
+          className={`truncate font-semibold tabular-nums text-white/80 ${
+            sidebar
+              ? 'mb-1 text-center text-[10px] leading-tight sm:text-[11px]'
+              : 'mb-1 text-center text-[clamp(0.9rem,2.2vw,1.125rem)] leading-tight'
+          }`}
+        >
+          {headlineCondenseCaption(model)}
+        </p>
 
-        <div className={`relative ${headline ? 'pb-0 pt-6 sm:pt-7' : sidebar ? 'pt-2.5' : ''}`}>
-          {showCombineCallout && headline && showMarks ? (
-            <div className="pointer-events-none absolute inset-x-0 top-0 flex items-end justify-between px-0.5 text-[11px] font-bold tabular-nums text-white/55 sm:text-xs">
-              <span>{survivors}</span>
-              <span>0</span>
-            </div>
-          ) : null}
-
+        <div className={`relative ${sidebar ? 'pt-2.5' : ''}`}>
           {showMarks ? (
-            <div className={`absolute inset-x-0 ${headline && showCombineCallout ? 'top-4 sm:top-5' : 'top-0'} ${headline ? 'h-3' : 'h-2.5'}`} aria-hidden>
+            <div className="absolute inset-x-0 top-0 h-2.5" aria-hidden>
               {marks.map((mark) => (
                 <span
                   key={`${mark.atSurvivors}-${mark.toTables}`}
@@ -128,9 +167,7 @@ export default function VenueCondenseProgressBar({
             </div>
           ) : null}
 
-          <div
-            className={`overflow-hidden rounded-full bg-white/10 ${trackHeight}`}
-          >
+          <div className={`overflow-hidden rounded-full bg-white/10 ${trackHeight}`}>
             <div
               className="h-full rounded-full bg-gradient-to-r from-violet-500/80 to-violet-400/70 transition-[width] duration-500 ease-out"
               style={{ width: `${fillPct}%` }}
@@ -138,45 +175,15 @@ export default function VenueCondenseProgressBar({
           </div>
 
           {showMarks && nextAt != null && survivors > nextAt ? (
-            showCombineCallout && headline ? (
-              (() => {
-                const markerPct = marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0
-                return (
-                  <div
-                    className="absolute bottom-full z-10 -translate-x-1/2"
-                    style={{ left: `${markerPct}%` }}
-                  >
-                    <div className="mb-0 flex flex-col items-center">
-                      <div className="whitespace-nowrap rounded-md border border-violet-400/50 bg-violet-950/95 px-3 py-1.5 text-center shadow-[0_4px_18px_rgba(0,0,0,0.5)]">
-                        <p className="text-[11px] font-black uppercase leading-none tracking-[0.16em] text-violet-100/90 sm:text-xs">
-                          Next combine
-                        </p>
-                        <p className="mt-1 font-mono text-base font-bold tabular-nums leading-none text-amber-200 sm:text-lg">
-                          {nextAt} players
-                        </p>
-                      </div>
-                      <span className="block h-3 w-px bg-amber-300/85" aria-hidden />
-                      <span
-                        className="block h-3 w-1 rounded-full bg-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.65)]"
-                        aria-hidden
-                      />
-                    </div>
-                  </div>
-                )
-              })()
-            ) : (
-              <span
-                className={`absolute -translate-x-1/2 font-mono font-bold tabular-nums text-amber-200/95 ${
-                  headline ? `-top-0.5 ${DISPLAY_TEXT_HEADLINE_META}` : '-top-0.5 text-[8px]'
-                }`}
-                style={{
-                  left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
-                }}
-                aria-hidden
-              >
-                {nextAt}
-              </span>
-            )
+            <span
+              className="absolute -top-0.5 -translate-x-1/2 font-mono text-[8px] font-bold tabular-nums text-amber-200/95"
+              style={{
+                left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
+              }}
+              aria-hidden
+            >
+              {nextAt}
+            </span>
           ) : null}
         </div>
       </div>

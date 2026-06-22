@@ -46,7 +46,7 @@ import {
   DISPLAY_TEXT_HEADLINE_BADGE,
   DISPLAY_TEXT_HEADLINE_META,
   DISPLAY_TEXT_HEADLINE_SETLIST_BADGE,
-  displayHeadlineCaptionClass,
+  displayHeadlineStatsClass,
   displayHeadlineBlindsAmountClass,
   displayHeadlineQuestionClass,
   DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA,
@@ -2046,9 +2046,9 @@ export default function VenueEightTablesPreview({
     if (compactVenueHeadline) return DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA
     return displayHeadlineQuestionClass(publicTypographyTier)
   }, [compactVenueHeadline, publicTypographyTier])
-  const headlineCaptionClass = useMemo(
-    () => displayHeadlineCaptionClass(publicTypographyTier, compactVenueHeadline),
-    [publicTypographyTier, compactVenueHeadline],
+  const headlineStatsClass = useMemo(
+    () => displayHeadlineStatsClass(compactVenueHeadline),
+    [compactVenueHeadline],
   )
   const headlineBlindsAmountClass = useMemo(
     () => displayHeadlineBlindsAmountClass(publicTypographyTier, compactVenueHeadline),
@@ -2265,7 +2265,7 @@ export default function VenueEightTablesPreview({
                   <VenueCondenseProgressBar
                     model={condenseProgress}
                     variant="headline"
-                    captionClass={headlineCaptionClass}
+                    captionClass={headlineStatsClass}
                   />
                 ) : null}
               </motion.div>

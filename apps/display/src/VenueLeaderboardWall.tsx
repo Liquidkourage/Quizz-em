@@ -185,7 +185,6 @@ export default function VenueLeaderboardWall({
               <VenueCondenseProgressBar
                 model={condenseProgress}
                 variant="headline"
-                showCombineCallout
                 captionClass="venue-lb-condense-caption leading-tight"
               />
             </div>

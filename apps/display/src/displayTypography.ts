@@ -27,6 +27,17 @@ export const DISPLAY_TEXT_HEADLINE_BADGE = 'display-text-headline-badge leading-
 export const DISPLAY_TEXT_HEADLINE_SETLIST_BADGE =
   'display-text-headline-setlist-badge leading-none'
 
+/** Headline condense stats — raw numbers only (no progress bar). */
+export const DISPLAY_TEXT_HEADLINE_STATS = 'display-text-headline-stats leading-tight'
+
+/** Headline condense stats on dense floors (14+ tables). */
+export const DISPLAY_TEXT_HEADLINE_STATS_COMPACT =
+  'display-text-headline-stats-compact leading-tight'
+
+export function displayHeadlineStatsClass(denseHeadline = false): string {
+  return denseHeadline ? DISPLAY_TEXT_HEADLINE_STATS_COMPACT : DISPLAY_TEXT_HEADLINE_STATS
+}
+
 /** Headline strip — secondary lines (divergence, blinds meta, waiting). */
 export const DISPLAY_TEXT_HEADLINE_META = 'display-text-headline-meta leading-tight'
 

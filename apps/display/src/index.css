@@ -760,7 +760,16 @@
 
   /** Headline setlist cue pill — larger than generic badges. */
   .display-text-headline-setlist-badge {
-    font-size: clamp(17px, 2.65vmin, 28px);
+    font-size: clamp(19px, 3vmin, 32px);
+  }
+
+  /** Headline condense stats — survivors / tables / combine (no progress bar). */
+  .display-text-headline-stats {
+    font-size: clamp(22px, 3.5vmin, 38px);
+  }
+
+  .display-text-headline-stats-compact {
+    font-size: clamp(20px, 3.1vmin, 34px);
   }
 
   /** Headline blinds amount — separate from mosaic tile pot tokens. */

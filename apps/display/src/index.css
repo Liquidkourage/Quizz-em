@@ -40,14 +40,16 @@
 
   /** Winner stage overlay — fills the mosaic tile edge to edge. */
   .vfd-showdown-winner-comp {
-    background: #000;
+    --stage-ambient-bg: #0a1018;
+    --stage-ambient-mid: #121c2a;
+    background: var(--stage-ambient-bg);
     width: 100%;
     height: 100%;
   }
 
   /**
    * Winner stage template (1728×2160 art).
-   * Max-fit contain, scaled down so crown and podium nameplate stay on-card.
+   * Max-fit contain at ~110% (25% up from 0.88); ambient bg bleeds full tile width.
    */
   .vfd-showdown-stage {
     position: relative;
@@ -65,10 +67,12 @@
     justify-content: center;
     overflow: hidden;
     container-type: size;
+    background:
+      radial-gradient(ellipse 85% 95% at 50% 52%, var(--stage-ambient-mid) 0%, var(--stage-ambient-bg) 72%);
   }
 
   .vfd-showdown-stage-art-box {
-    --stage-art-scale: 0.88;
+    --stage-art-scale: 1.1;
     position: relative;
     aspect-ratio: 1728 / 2160;
     width: min(100cqw, calc(100cqh * 1728 / 2160));
@@ -77,6 +81,9 @@
     max-height: 100%;
     transform: scale(var(--stage-art-scale));
     transform-origin: center center;
+    box-shadow:
+      -100vmax 0 0 100vmax var(--stage-ambient-bg),
+      100vmax 0 0 100vmax var(--stage-ambient-bg);
   }
 
   .vfd-showdown-stage-art {

@@ -208,7 +208,10 @@ function VenueMosaicFeltCenterStack({
         }}
       >
         {communityDigits.length > 0 ? (
-          <div className="flex items-center justify-center gap-0.5 sm:gap-1">
+          <div
+            className="flex items-center justify-center"
+            style={{ gap: Math.max(2, Math.round(communityCardWidthPx * 0.07)) }}
+          >
             {communityDigits.map((digit, i) => (
               <MosaicDigitCard
                 key={`${i}-${digit}`}

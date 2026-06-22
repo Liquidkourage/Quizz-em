@@ -13,8 +13,7 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
     'h-[max(2.75rem,min(4.25rem,32cqw))] w-[max(1.85rem,min(2.85rem,21.5cqw))] shrink-0',
   'floor-compact':
     'h-[max(2.15rem,min(3.25rem,26cqw))] w-[max(1.42rem,min(2.15rem,17.5cqw))] shrink-0',
-  stage:
-    'h-[max(1.78rem,min(3rem,22.25cqw))] w-[max(1.24rem,min(2.04rem,15.5cqw))] shrink-0',
+  stage: 'vfd-showdown-stage-card-shell',
   lg: 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]',
   md: 'h-7 w-[1.35rem] shrink-0',
   sm: 'h-[max(1.65rem,7.5cqw)] w-[max(1.05rem,5cqw)] shrink-0',
@@ -24,7 +23,7 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
 const decimalShellClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'h-[max(2.75rem,min(4.25rem,32cqw))]',
   'floor-compact': 'h-[max(2.15rem,min(3.25rem,26cqw))]',
-  stage: 'h-[max(1.78rem,min(3rem,22.25cqw))]',
+  stage: 'vfd-showdown-stage-card-shell',
   lg: 'h-9 sm:h-10',
   md: 'h-7',
   sm: 'h-[max(1.65rem,7.5cqw)]',
@@ -138,7 +137,7 @@ export function ShowdownFiveCardsUsed({
       : size === 'floor-compact'
         ? 'flex w-full max-w-full flex-nowrap items-end justify-center gap-[max(0.05rem,min(0.18rem,0.85cqw))]'
         : size === 'stage'
-          ? 'flex w-full max-w-full flex-nowrap items-end justify-center gap-[max(0.05rem,min(0.18rem,0.85cqw))]'
+          ? 'flex w-full max-w-full flex-nowrap items-end justify-center'
         : size === 'lg'
           ? 'flex flex-nowrap items-end justify-center gap-1'
           : 'flex flex-wrap items-end justify-center gap-0.5'

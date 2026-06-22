@@ -82,6 +82,9 @@
     --vfd-stage-banner-text-size: min(6.8cqw, 11.4cqh);
     --vfd-stage-ledger-size: min(5.8cqw, 9.7cqh);
     --vfd-stage-ledger-pot-size: min(7.2cqw, 12cqh);
+    --vfd-stage-card-h: max(1.78rem, min(22.25cqw, 16.5cqh));
+    --vfd-stage-card-w: max(1.24rem, min(15.5cqw, 11.5cqh));
+    --vfd-stage-card-gap: min(0.85cqw, 0.5cqh);
   }
 
   /** Mosaic tile during showdown — portaled art covers the tile. */
@@ -447,6 +450,16 @@
     height: 18%;
     transform: translateX(-50%);
     justify-content: center;
+  }
+
+  [data-showdown-winner-cards='stage'] {
+    gap: var(--vfd-stage-card-gap);
+  }
+
+  .vfd-showdown-stage-card-shell {
+    flex-shrink: 0;
+    height: var(--vfd-stage-card-h);
+    width: var(--vfd-stage-card-w);
   }
 
   /** ± value centered on the gold nameplate — reversed knock-out on gold. */

@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   STADIUM_CUPHOLDER_RADIAL,
   STADIUM_HOLE_CARDS_RADIAL,
+  STADIUM_MOSAIC_REFERENCE_WIDTH_PX,
+  stadiumMosaicCommunityCardWidthPx,
+  stadiumMosaicHoleCardWidthPx,
+  stadiumMosaicScaleForWidth,
   stadiumSeatPointPx,
   stadiumSeatThetaRad,
 } from '@qhe/ui'
@@ -29,5 +33,22 @@ describe('stadiumSeatLayout', () => {
   it('uses CCW seat indexing from clock top', () => {
     expect(stadiumSeatThetaRad(0, 8)).toBeCloseTo(-Math.PI / 2, 5)
     expect(stadiumSeatThetaRad(2, 8)).toBeCloseTo(0, 5)
+  })
+})
+
+describe('stadiumMosaicScaleForWidth', () => {
+  it('scales hero felts proportionally without a ceiling', () => {
+    const wide = 660
+    expect(stadiumMosaicScaleForWidth(wide, 'hero')).toBeCloseTo(wide / STADIUM_MOSAIC_REFERENCE_WIDTH_PX, 5)
+    expect(stadiumMosaicCommunityCardWidthPx(wide, 'hero')).toBeGreaterThan(48)
+  })
+
+  it('keeps dense micro tiles capped', () => {
+    expect(stadiumMosaicScaleForWidth(400, 'micro')).toBeLessThanOrEqual(1.05)
+  })
+
+  it('preserves reference sizing at the authoring width', () => {
+    expect(stadiumMosaicHoleCardWidthPx(STADIUM_MOSAIC_REFERENCE_WIDTH_PX, 'hero')).toBe(20)
+    expect(stadiumMosaicCommunityCardWidthPx(STADIUM_MOSAIC_REFERENCE_WIDTH_PX, 'large')).toBe(24)
   })
 })

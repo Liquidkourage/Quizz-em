@@ -34,7 +34,7 @@ const decimalShellClassBySize: Record<ShowdownChipSize, string> = {
 const decimalMarkClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'text-[max(0.55rem,min(0.82rem,4.2cqw))]',
   'floor-compact': 'text-[max(0.48rem,min(0.72rem,3.6cqw))]',
-  stage: 'text-[max(1.05rem,min(1.85rem,9.5cqw))]',
+  stage: 'text-[min(9.5cqw,16cqh)]',
   lg: 'text-base sm:text-lg',
   md: 'text-sm',
   sm: 'text-[max(0.55rem,2.6cqw)]',

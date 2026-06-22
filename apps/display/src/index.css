@@ -83,8 +83,7 @@
     height: 100%;
     object-fit: cover;
     object-position: center center;
-    image-rendering: high-quality;
-    image-rendering: -webkit-optimize-contrast;
+    image-rendering: auto;
     pointer-events: none;
     user-select: none;
   }

@@ -4,8 +4,8 @@ import { DISPLAY_TEXT_HEADLINE_CAPTION } from './displayTypography'
 
 type VenueCondenseProgressBarProps = {
   model: VenueCondenseProgressModel
-  /** headline = raw stats under venue headline; sidebar = stacks rail; bottom = fallback strip */
-  variant?: 'headline' | 'sidebar' | 'bottom'
+  /** headline = full-width row; pill = chip beside setlist cue; sidebar = stacks rail; bottom = fallback strip */
+  variant?: 'headline' | 'pill' | 'sidebar' | 'bottom'
   /** Override caption typography (table-count tier from parent). */
   captionClass?: string
 }
@@ -93,7 +93,31 @@ export default function VenueCondenseProgressBar({
 
   const showMarks = marks.length > 0 && liveTables > 1
   const headline = variant === 'headline'
+  const pill = variant === 'pill'
   const sidebar = variant === 'sidebar'
+
+  if (pill) {
+    return (
+      <span
+        className={`inline-flex max-w-full shrink-0 flex-wrap items-baseline gap-x-1.5 rounded-md border border-amber-500/40 bg-amber-950/45 px-2 py-0.5 font-bold tabular-nums tracking-tight sm:px-2.5 sm:py-1 ${captionClass}`}
+        role="status"
+        aria-label={headlineCondenseCaption(model)}
+      >
+        {headlineCondenseCaptionParts(model).map((part, index) => (
+          <Fragment key={part}>
+            {index > 0 ? (
+              <span className="shrink-0 text-white/40" aria-hidden>
+                ·
+              </span>
+            ) : null}
+            <span className="shrink-0 whitespace-nowrap">
+              <HeadlineStatPart part={part} />
+            </span>
+          </Fragment>
+        ))}
+      </span>
+    )
+  }
 
   if (headline) {
     return (

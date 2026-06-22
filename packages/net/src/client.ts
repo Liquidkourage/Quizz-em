@@ -612,6 +612,12 @@ export function clearVirtualPlayers() {
   socket.emit('action', { type: 'clearVirtualPlayers' })
 }
 
+/** Host-only: fast-forward every CPU-only table to showdown (rehearsal preview). */
+export function rehearsalSkipToShowdown() {
+  if (!socket) return
+  socket.emit('action', { type: 'rehearsalSkipToShowdown' })
+}
+
 /** Host-only (lobby): seed tables 1…N with 5–8 CPUs each for full-venue rehearsal. */
 export function seedRehearsalVenue(tableCount: number = VENUE_NUMBERED_TABLE_MAX) {
   if (!socket) return

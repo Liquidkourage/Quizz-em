@@ -510,6 +510,8 @@ export function buildHostPhaseDockItems(args: {
   onEndRound: () => void
   onRandomQuestion: () => void
   onNextSetlist: () => void
+  /** Rehearsal dry-run — jump venue wall to winner overlay without waiting for timers. */
+  onRehearsalSkipToShowdown?: () => void
   /** Active rundown selected — show one-click Next from setlist in lobby. */
   hasActiveSetlist?: boolean
 }): HostDockItem[] {
@@ -529,11 +531,28 @@ export function buildHostPhaseDockItems(args: {
     onEndRound,
     onRandomQuestion,
     onNextSetlist,
+    onRehearsalSkipToShowdown,
     hasActiveSetlist = false,
   } = args
   const phase = gameState.phase
   const tableId = gameState.tableId ?? ''
   const bettingOpen = gameState.round.isBettingOpen !== false
+
+  const withRehearsalSkip = (items: HostDockItem[]): HostDockItem[] => {
+    if (!onRehearsalSkipToShowdown) return items
+    const cpuOnly =
+      gameState.players.length > 0 && gameState.players.every((p) => p.id.startsWith('vp:'))
+    if (!cpuOnly || phase === 'showdown' || phase === 'reveal') return items
+    return [
+      ...items,
+      {
+        id: 'rehearsal-skip-showdown',
+        label: 'Skip to winner screen',
+        onClick: onRehearsalSkipToShowdown,
+        variant: 'gold',
+      },
+    ]
+  }
 
   if (phase === 'lobby') {
     const items: HostDockItem[] = []
@@ -555,19 +574,19 @@ export function buildHostPhaseDockItems(args: {
       }
       items.push({ id: 'start', label: 'Start the round', onClick: onStartGame, variant: 'emerald' })
     }
-    return items
+    return withRehearsalSkip(items)
   }
 
   if (phase === 'question') {
-    return [
+    return withRehearsalSkip([
       { id: 'setlist', label: 'Next from setlist', onClick: onNextSetlist, variant: 'purple' },
       { id: 'random', label: 'Random from bank', onClick: onRandomQuestion, variant: 'purple' },
-    ]
+    ])
   }
 
   if (phase === 'betting') {
     if (bettingOpen) {
-      return [
+      return withRehearsalSkip([
         {
           id: 'close-bet',
           label: bettingRound <= 1 ? 'Finish wagering (round 1)' : 'Finish wagering (round 2)',
@@ -575,10 +594,10 @@ export function buildHostPhaseDockItems(args: {
           disabled: closeBetBlocked,
           variant: 'red',
         },
-      ]
+      ])
     }
     if (bettingRound === 1 && communityLen < 5) {
-      return [
+      return withRehearsalSkip([
         {
           id: 'deal-board',
           label: 'Deal the board',
@@ -586,10 +605,10 @@ export function buildHostPhaseDockItems(args: {
           disabled: dealCommunityBlocked,
           variant: 'blue',
         },
-      ]
+      ])
     }
     if (communityLen >= 5) {
-      return [
+      return withRehearsalSkip([
         {
           id: 'start-answer',
           label: `Open answer window (${answerWindowSeconds}s)`,
@@ -597,19 +616,21 @@ export function buildHostPhaseDockItems(args: {
           disabled: startAnswerBlocked,
           variant: 'purple',
         },
-      ]
+      ])
     }
   }
 
   if (phase === 'answering') {
-    return [{ id: 'reveal', label: 'Reveal correct answer', onClick: onRevealAnswer, variant: 'gold' }]
+    return withRehearsalSkip([
+      { id: 'reveal', label: 'Reveal correct answer', onClick: onRevealAnswer, variant: 'gold' },
+    ])
   }
 
   if (phase === 'showdown') {
     return [{ id: 'end-round', label: 'End round & pay out', onClick: onEndRound, variant: 'red' }]
   }
 
-  return []
+  return withRehearsalSkip([])
 }
 
 export function HostPhaseDock({

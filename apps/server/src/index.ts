@@ -95,6 +95,10 @@ import {
 } from './venue-wagering-orchestration'
 import { applyVenueCondenseAfterRound, venueCondenseSnapshotFromRooms } from './venue-condense'
 import {
+  fastForwardTableToShowdown,
+  rehearsalFallbackQuestion,
+} from './rehearsal-fast-forward'
+import {
   buildHostVenueFloorBrief,
   clearVenueHostLog,
   getVenueLastHandDisplay,
@@ -3331,6 +3335,55 @@ io.on('connection', (socket) => {
             `Rehearsal: ${tableCount} tables, ${totalBots} CPUs (${sizes.join(', ')} per table). Host on table 1.`,
           )
           gameState = rooms.get(t1Key)!
+          break
+        }
+
+        case 'rehearsalSkipToShowdown': {
+          if (!assertVenueHost(socket, gameState)) break
+          const vnSkip = normalizeVenueCode(gameState.code)
+          const rowsSkip = venuePlayableSnapshots(vnSkip)
+          if (rowsSkip.length === 0) {
+            socket.emit('toast', 'No tables yet — seed rehearsal or assign from lobby first.')
+            break
+          }
+          if (!rowsSkip.every((r) => tableIsCpuOnly(r.gs))) {
+            socket.emit(
+              'toast',
+              'Skip to winner screen works in CPU-only rehearsal — run Seed rehearsal first (no human seats).',
+            )
+            break
+          }
+          clearVenueWageringOrchestrationState(vnSkip)
+          const libSkip = await ensureVenueLibrary(vnSkip)
+          const fallbackQ = rehearsalFallbackQuestion(libSkip.questions)
+          let advanced = 0
+          let already = 0
+          for (const { tk } of rowsSkip) {
+            const before = rooms.get(tk)
+            if (!before || before.players.length === 0) continue
+            if (before.phase === 'showdown' || before.phase === 'reveal') {
+              already++
+              continue
+            }
+            const after = fastForwardTableToShowdown(before, fallbackQ)
+            rooms.set(tk, after)
+            emitVenueTableState(tk, after, { skipOrchestration: true })
+            advanced++
+          }
+          markVenueShowStarted(vnSkip)
+          venueAudienceWelcomeExpired.add(vnSkip)
+          emitDisplayVenueSnapshotNow(vnSkip)
+          if (advanced > 0) {
+            socket.emit(
+              'toast',
+              already > 0
+                ? `Rehearsal: winner screen on ${advanced} table(s) (${already} already in showdown).`
+                : `Rehearsal: winner screen on ${advanced} table(s).`,
+            )
+          } else {
+            socket.emit('toast', `All ${already} table(s) already in showdown.`)
+          }
+          gameState = rooms.get(sessionKey)!
           break
         }
 

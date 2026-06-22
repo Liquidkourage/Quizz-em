@@ -17,6 +17,7 @@ import {
   clearVirtualPlayers,
   clearTableBlinds,
   seedRehearsalVenue,
+  rehearsalSkipToShowdown,
   assignTablesFromLobby,
   displaySetLayout,
   pairDisplayWithHost,
@@ -376,6 +377,8 @@ function HostApp() {
   }
 
   const virtualSeatCount = gameState.players.filter(p => p.id.startsWith('vp:')).length
+  const rehearsalCpuOnly =
+    gameState.players.length > 0 && gameState.players.every((p) => p.id.startsWith('vp:'))
   const atPlayerCap = gameState.players.length >= gameState.maxPlayers
   const hasVenueFeltBeat =
     venueFeltBeat != null && venueFeltBeat.some((r) => r.active && r.seated > 0)
@@ -444,6 +447,7 @@ function HostApp() {
     onEndRound: handleEndRound,
     onRandomQuestion: handleSetRandomQuestion,
     onNextSetlist: () => nextQuestionFromSetlist(),
+    onRehearsalSkipToShowdown: rehearsalCpuOnly ? () => rehearsalSkipToShowdown() : undefined,
     hasActiveSetlist,
   })
 
@@ -1393,6 +1397,22 @@ function HostApp() {
                       Seed rehearsal
                     </NeonButton>
                   </div>
+                </div>
+              ) : null}
+              {rehearsalCpuOnly && gameState.phase !== 'showdown' && gameState.phase !== 'reveal' ? (
+                <div className="rounded-lg border border-violet-500/35 bg-violet-950/20 px-3 py-3">
+                  <p className="text-sm text-violet-100/90 leading-relaxed">
+                    Preview the venue-wall <strong className="text-violet-50">winner overlay</strong> without
+                    playing out wagering or the answer countdown.
+                  </p>
+                  <NeonButton
+                    variant="gold"
+                    size="small"
+                    className="mt-3"
+                    onClick={() => rehearsalSkipToShowdown()}
+                  >
+                    Skip to winner screen
+                  </NeonButton>
                 </div>
               ) : null}
               <div className="flex flex-wrap gap-2 items-center">

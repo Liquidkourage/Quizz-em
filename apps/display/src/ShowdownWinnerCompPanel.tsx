@@ -174,28 +174,30 @@ function ShowdownStageTemplate({
     <div className="vfd-showdown-stage" data-showdown-winner-comp>
       <div className="vfd-showdown-stage-frame">
         <div className="vfd-showdown-stage-art-box">
-          <img
-            src={winnerStageArt}
-            alt=""
-            aria-hidden
-            className="vfd-showdown-stage-art"
-            draggable={false}
-          />
+          <div className="vfd-showdown-stage-art-inner">
+            <img
+              src={winnerStageArt}
+              alt=""
+              aria-hidden
+              className="vfd-showdown-stage-art"
+              draggable={false}
+            />
 
-          <div className="vfd-showdown-stage-overlay" aria-hidden>
-            <ShowdownStageCrownBlock title={headerTitle} names={names} />
+            <div className="vfd-showdown-stage-overlay" aria-hidden>
+              <ShowdownStageCrownBlock title={headerTitle} names={names} />
 
-            <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
-              <ShowdownStageLaurelStack
-                pot={pot}
-                each={each}
-                chipRow={chipRow}
-                showSideLedger={showSideLedger}
-                sidePotLines={sidePotLines}
-              />
+              <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
+                <ShowdownStageLaurelStack
+                  pot={pot}
+                  each={each}
+                  chipRow={chipRow}
+                  showSideLedger={showSideLedger}
+                  sidePotLines={sidePotLines}
+                />
+              </div>
+
+              {difference != null ? <ShowdownStageDifference value={difference} /> : null}
             </div>
-
-            {difference != null ? <ShowdownStageDifference value={difference} /> : null}
           </div>
         </div>
       </div>

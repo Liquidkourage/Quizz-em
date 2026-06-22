@@ -6,7 +6,6 @@ export type DisplayVenueStatePopupKind =
   | 'board-dealt'
   | 'round2-complete'
   | 'answer-window-start'
-  | 'answer-window-end'
 
 export type DisplayVenueStatePopup = {
   kind: DisplayVenueStatePopupKind
@@ -108,18 +107,6 @@ export function detectDisplayVenueStatePopups(
     })
   }
 
-  if (
-    prev.answerDeadlineMs != null &&
-    next.answerDeadlineMs == null &&
-    next.showdownCount > 0
-  ) {
-    out.push({
-      kind: 'answer-window-end',
-      title: 'Time is up',
-      detail: 'Showdown — results on the felts.',
-    })
-  }
-
   return collapseRedundantVenuePopups(out)
 }
 
@@ -154,8 +141,6 @@ export function displayVenueStatePopupTone(
       return 'emerald'
     case 'answer-window-start':
       return 'purple'
-    case 'answer-window-end':
-      return 'amber'
   }
 }
 

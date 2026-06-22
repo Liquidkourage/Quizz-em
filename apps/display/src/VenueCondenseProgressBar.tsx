@@ -76,12 +76,12 @@ export default function VenueCondenseProgressBar({
       >
         {headline ? (
           <p
-            className={`mb-1 flex min-w-0 items-center truncate text-left font-semibold tabular-nums text-white/85 ${captionClass}`}
+            className={`mb-1 flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-left font-bold tabular-nums text-white/95 ${captionClass}`}
           >
             {headlineCondenseCaptionParts(model).map((part, index) => (
               <Fragment key={part}>
                 {index > 0 ? (
-                  <span className="shrink-0 px-1.5 text-white/40" aria-hidden>
+                  <span className="shrink-0 px-1 text-white/55" aria-hidden>
                     ·
                   </span>
                 ) : null}

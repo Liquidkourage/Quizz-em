@@ -741,21 +741,26 @@
     font-size: clamp(14px, 1.95vmin, 19px);
   }
 
-  /** Headline condense / progress caption — viewport-scaled (not mosaic cqw tokens). */
+  /** Headline condense / progress caption — viewport-scaled for room readability. */
   .display-text-headline-caption-spacious {
-    font-size: clamp(13px, 1.65vmin, 17px);
+    font-size: clamp(18px, 2.85vmin, 30px);
   }
 
   .display-text-headline-caption {
-    font-size: clamp(12px, 1.45vmin, 15px);
+    font-size: clamp(16px, 2.55vmin, 26px);
   }
 
   .display-text-headline-caption-compact {
-    font-size: clamp(11px, 1.3vmin, 13px);
+    font-size: clamp(14px, 2.25vmin, 22px);
   }
 
   .display-text-headline-caption-dense {
-    font-size: clamp(10px, 1.15vmin, 12px);
+    font-size: clamp(13px, 2vmin, 19px);
+  }
+
+  /** Headline setlist cue pill — larger than generic badges. */
+  .display-text-headline-setlist-badge {
+    font-size: clamp(17px, 2.65vmin, 28px);
   }
 
   /** Headline blinds amount — separate from mosaic tile pot tokens. */

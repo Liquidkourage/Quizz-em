@@ -39,12 +39,13 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
-import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, venueWallPhaseLabel, venueWallTilePhaseLabel, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import {
   DISPLAY_TEXT_HEADLINE_BADGE,
   DISPLAY_TEXT_HEADLINE_META,
+  DISPLAY_TEXT_HEADLINE_SETLIST_BADGE,
   displayHeadlineCaptionClass,
   displayHeadlineBlindsAmountClass,
   displayHeadlineQuestionClass,
@@ -2019,13 +2020,6 @@ export default function VenueEightTablesPreview({
     () => venueHeadlineDivergenceNote(tileRows, headlineSource.phase),
     [tileRows, headlineSource.phase]
   )
-  const headlinePhaseLabel = useMemo(() => {
-    if (headlineSource.tableNum != null) {
-      const row = tileRows.find((t) => t.tableNum === headlineSource.tableNum)
-      if (row != null) return venueWallTilePhaseLabel(row)
-    }
-    return headlineSource.phase != null ? venueWallPhaseLabel(headlineSource.phase) : null
-  }, [headlineSource.tableNum, headlineSource.phase, tileRows])
   const venueBlindsHeadline = useMemo(() => venueWallBlindsHeadline(wall), [wall])
   const condenseHeadline = useMemo(() => venueWallCondenseHeadline(wall), [wall])
   useEffect(() => {
@@ -2167,15 +2161,10 @@ export default function VenueEightTablesPreview({
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <div className="min-w-0 flex-1">
-                    {(headlineSource.tableNum != null && headlinePhaseLabel) || showSetlistCue ? (
+                    {showSetlistCue || headlineDivergenceNote ? (
                       <div className="mb-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
-                        {headlineSource.tableNum != null && headlinePhaseLabel ? (
-                          <span className={`inline-flex shrink-0 items-center rounded-md border border-yellow-500/45 bg-yellow-950/55 px-1.5 py-px font-black uppercase tracking-wide text-yellow-100/95 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
-                            Table {headlineSource.tableNum} · {headlinePhaseLabel}
-                          </span>
-                        ) : null}
                         {showSetlistCue ? (
-                          <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-1.5 py-px font-black uppercase tracking-wide text-violet-100/95 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+                          <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2.5 py-1 font-black uppercase tracking-wide text-violet-100/95 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}>
                             Question {setlistCueNumber} of {setlistCueTotal}
                           </span>
                         ) : null}

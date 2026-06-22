@@ -21,6 +21,8 @@ import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import { useDisplayVenueStatePopups } from './useDisplayVenueStatePopups'
 import DisplayVenueStatePopup from './DisplayVenueStatePopup.tsx'
+import { useVenueAnswerReveal } from './useVenueAnswerReveal'
+import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -262,6 +264,9 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   const statePopup = useDisplayVenueStatePopups(
     showVenueMosaicShell && !bustAnnouncement.visible ? venueWall : null,
   )
+  const answerReveal = useVenueAnswerReveal(
+    showVenueMosaicShell && !bustAnnouncement.visible ? venueWall : null,
+  )
 
   return (
     <>
@@ -329,6 +334,9 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       ) : null}
       {statePopup.visible && statePopup.popup ? (
         <DisplayVenueStatePopup key={`${statePopup.popup.kind}-${statePopup.popup.title}`} popup={statePopup.popup} />
+      ) : null}
+      {answerReveal.visible && answerReveal.payload ? (
+        <VenueAnswerRevealOverlay key={`answer-reveal-${answerReveal.payload.answer}`} payload={answerReveal.payload} />
       ) : null}
     </AnimatePresence>
     </>

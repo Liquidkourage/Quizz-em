@@ -23,6 +23,10 @@ export const DISPLAY_TEXT_HEADLINE = 'display-text-headline leading-tight'
 /** Headline strip — table/phase badges and setlist chips. */
 export const DISPLAY_TEXT_HEADLINE_BADGE = 'display-text-headline-badge leading-none'
 
+/** Headline strip — setlist question counter pill. */
+export const DISPLAY_TEXT_HEADLINE_SETLIST_BADGE =
+  'display-text-headline-setlist-badge leading-none'
+
 /** Headline strip — secondary lines (divergence, blinds meta, waiting). */
 export const DISPLAY_TEXT_HEADLINE_META = 'display-text-headline-meta leading-tight'
 

@@ -38,41 +38,26 @@
       0 1px 2px rgb(0 0 0 / 0.75);
   }
 
-  [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-point {
-    position: relative;
-    min-width: max(0.72rem, 3.6cqw);
+  [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-point--stage {
+    width: max(0.46rem, 2.2cqw);
     margin-inline: max(0.06rem, 0.45cqw);
-    align-self: center;
+    align-self: flex-end;
+    height: auto;
+    padding-bottom: max(0.14rem, 1.05cqh);
   }
 
-  [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-point::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: max(0.62rem, 3.1cqw);
-    height: max(0.62rem, 3.1cqw);
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: radial-gradient(circle at 38% 32%, #fff8dc 0%, #f5c842 42%, #c99212 100%);
-    box-shadow:
-      0 0 10px rgba(251, 191, 36, 0.75),
-      0 1px 3px rgba(0, 0, 0, 0.65),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55);
-    z-index: 0;
-  }
-
-  [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-mark {
-    position: relative;
-    z-index: 1;
-    font-size: max(1.2rem, min(2.05rem, 10.5cqw));
+  [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-mark--stage {
+    display: block;
+    font-size: max(1.05rem, min(1.85rem, 9.5cqw));
     font-weight: 900;
     line-height: 1;
-    color: #1a0a02;
+    color: #e2ad1a;
     transform: translateY(0);
-    -webkit-text-stroke: 0.45px rgba(255, 248, 220, 0.85);
-    text-shadow: none;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55));
+    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.82);
+    paint-order: stroke fill;
+    text-shadow:
+      0 0 8px rgba(251, 191, 36, 0.75),
+      0 1px 2px rgba(0, 0, 0, 0.85);
   }
 
   /** Winner stage overlay — text above portaled art. */

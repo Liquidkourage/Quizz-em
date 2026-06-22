@@ -64,16 +64,27 @@ function DigitChip({
 
 /** Baseline gold period between digit tiles — reads as decimal, not a divider. */
 function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
+  const isStage = size === 'stage'
   return (
     <span
       aria-hidden
       className={clsx(
-        'vfd-showdown-decimal-point inline-flex w-auto min-w-0 shrink-0 items-end justify-center self-end px-0 leading-none',
-        size === 'stage' ? '-mx-[0.04em]' : '-mx-[0.14em]',
-        decimalShellClassBySize[size]
+        'vfd-showdown-decimal-point inline-flex shrink-0 items-end justify-center leading-none',
+        isStage
+          ? 'vfd-showdown-decimal-point--stage self-end'
+          : clsx(
+              'w-auto min-w-0 px-0 self-end -mx-[0.14em]',
+              decimalShellClassBySize[size]
+            )
       )}
     >
-      <span className={clsx('vfd-showdown-decimal-mark translate-y-[12%]', decimalMarkClassBySize[size])}>
+      <span
+        className={clsx(
+          'vfd-showdown-decimal-mark',
+          isStage ? 'vfd-showdown-decimal-mark--stage' : 'translate-y-[12%]',
+          decimalMarkClassBySize[size]
+        )}
+      >
         .
       </span>
     </span>

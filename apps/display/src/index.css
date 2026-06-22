@@ -82,9 +82,11 @@
   }
 
   .vfd-showdown-stage-overlay {
+    --stage-text-shift-y: 10%;
     position: absolute;
     inset: 0;
     pointer-events: none;
+    transform: translateY(var(--stage-text-shift-y));
   }
 
   .vfd-showdown-stage-slot {

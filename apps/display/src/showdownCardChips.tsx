@@ -22,14 +22,13 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
 }
 
 const decimalShellClassBySize: Record<ShowdownChipSize, string> = {
-  floor: 'h-[max(2.75rem,min(4.25rem,32cqw))] w-[max(0.28rem,min(0.42rem,2.4cqw))]',
-  'floor-compact':
-    'h-[max(2.15rem,min(3.25rem,26cqw))] w-[max(0.24rem,min(0.36rem,2cqw))]',
-  stage: 'h-[max(1.05rem,min(1.75rem,13cqw))] w-[max(0.16rem,min(0.28rem,1.8cqw))]',
-  lg: 'h-9 w-[0.45rem] sm:h-10',
-  md: 'h-7 w-[0.38rem]',
-  sm: 'h-[max(1.65rem,7.5cqw)] w-[max(0.3rem,1.6cqw)]',
-  xs: 'h-5 w-[0.28rem]',
+  floor: 'h-[max(2.75rem,min(4.25rem,32cqw))]',
+  'floor-compact': 'h-[max(2.15rem,min(3.25rem,26cqw))]',
+  stage: 'h-[max(1.05rem,min(1.75rem,13cqw))]',
+  lg: 'h-9 sm:h-10',
+  md: 'h-7',
+  sm: 'h-[max(1.65rem,7.5cqw)]',
+  xs: 'h-5',
 }
 
 const decimalMarkClassBySize: Record<ShowdownChipSize, string> = {
@@ -69,11 +68,12 @@ function DecimalDot({ size = 'md' }: { size?: ShowdownChipSize }) {
     <span
       aria-hidden
       className={clsx(
-        'vfd-showdown-decimal-point inline-flex shrink-0 items-end justify-center leading-none',
+        'vfd-showdown-decimal-point inline-flex w-auto min-w-0 shrink-0 items-end justify-center self-end px-0 leading-none',
+        '-mx-[0.14em]',
         decimalShellClassBySize[size]
       )}
     >
-      <span className={clsx('vfd-showdown-decimal-mark translate-y-[8%]', decimalMarkClassBySize[size])}>
+      <span className={clsx('vfd-showdown-decimal-mark translate-y-[12%]', decimalMarkClassBySize[size])}>
         .
       </span>
     </span>

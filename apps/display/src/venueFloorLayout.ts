@@ -28,7 +28,7 @@ export const VENUE_FLOOR_STAGGER_PATTERNS: Readonly<Record<number, readonly (rea
   10: [[5, 5], [4, 3, 3]],
   11: [[5, 3, 3], [4, 4, 3]],
   12: [[5, 4, 3], [4, 4, 4]],
-  13: [[5, 4, 4], [5, 5, 3]],
+  13: [[4, 5, 4], [5, 5, 3]],
   14: [[5, 4, 5], [5, 5, 4]],
   15: [[5, 5, 5], [5, 4, 3, 3]],
   16: [[5, 4, 4, 3], [4, 4, 4, 4], [5, 5, 3, 3]],
@@ -131,7 +131,7 @@ function staggerPatternBonus(tableCount: number, rowSizes: number[]): number {
   const key = rowSizes.join('-')
   if (tableCount === 14 && key === '5-4-5') return 3_200
   if (tableCount === 7 && (key === '4-3' || key === '3-4')) return 900
-  if (tableCount === 13 && key === '5-4-4') return 1_100
+  if (tableCount === 13 && key === '4-5-4') return 3_200
   if (tableCount === 12 && key === '5-4-3') return 700
   if (rowSizes.length >= 3 && new Set(rowSizes).size > 1) {
     const max = Math.max(...rowSizes)

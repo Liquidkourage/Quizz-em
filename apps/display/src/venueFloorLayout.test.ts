@@ -37,6 +37,13 @@ describe('selectVenueFloorLayout', () => {
     expect(plan.density).toBe(venueFloorDensityForCount(tableCount))
   })
 
+  it('prefers a staggered four-five-four for thirteen tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 13 })
+    expect(plan.rowSizes).toEqual([4, 5, 4])
+    expect(plan.rowCount).toBe(3)
+    expect(plan.columns).toBe(5)
+  })
+
   it('uses a 5–4–5 stagger for fourteen tables', () => {
     const plan = selectVenueFloorLayout({ tableCount: 14 })
     expect(plan.rowSizes).toEqual([5, 4, 5])

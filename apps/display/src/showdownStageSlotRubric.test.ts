@@ -23,11 +23,11 @@ describe('showdownStageSlotRubric', () => {
     expect(portrait.cardsY).toBeGreaterThan(landscape.cardsY)
   })
 
-  it('standard tier raises the difference slot for mid-density floors', () => {
-    const compact = showdownStageSlotRubric('landscape', 14)
-    const standard = showdownStageSlotRubric('landscape', 10)
-    expect(compact.diffY).toBe(86.2)
-    expect(standard.diffY).toBe(87.6)
+  it('raises the difference slot on mid-density floors', () => {
+    expect(showdownStageSlotRubric('landscape', 10).diffY).toBe(87.6)
+    expect(showdownStageSlotRubric('landscape', 9).diffY).toBe(88.5)
+    expect(showdownStageSlotRubric('landscape', 7).diffY).toBe(88.0)
+    expect(showdownStageSlotRubric('landscape', 3).diffY).toBe(86.8)
   })
 
   it('spacious tier nudges anchors for large 4-up tiles', () => {
@@ -37,9 +37,9 @@ describe('showdownStageSlotRubric', () => {
     expect(spacious.potY).toBeLessThan(standard.potY)
   })
 
-  it('multi-line side ledgers push cards lower', () => {
+  it('three-line side ledgers push cards lower', () => {
     const single = showdownStageSlotRubric('landscape', 8, 0)
-    const multi = showdownStageSlotRubric('landscape', 8, 2)
+    const multi = showdownStageSlotRubric('landscape', 8, 3)
     expect(multi.cardsYWithSideLedger).toBeGreaterThan(single.cardsYWithSideLedger)
   })
 

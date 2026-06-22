@@ -396,7 +396,7 @@ function ShowdownStageTemplate({
       data-stage-variant={variant}
       data-stage-density={densityTier}
       data-side-ledger-rows={sideLedgerRows > 0 ? String(sideLedgerRows) : undefined}
-      data-side-ledger-compact={sideLedgerRows >= 2 ? '' : undefined}
+      data-side-ledger-compact={sideLedgerRows >= 3 ? '' : undefined}
       style={{ ['--vfd-stage-art-scale' as string]: String(artScale) }}
     >
       <div className="vfd-showdown-stage-frame">

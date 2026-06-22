@@ -400,7 +400,23 @@
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
   }
 
-  /** Multi-line side ledgers — inline rows, tighter type. */
+  /** Dense floors — legible two-line side pots without compact row squeeze. */
+  .vfd-showdown-stage[data-stage-density='compact']:not([data-side-ledger-compact])
+    .vfd-showdown-stage-side-ledger-label {
+    font-size: max(0.74em, min(3.8cqw, 6.2cqh));
+  }
+
+  .vfd-showdown-stage[data-stage-density='compact']:not([data-side-ledger-compact])
+    .vfd-showdown-stage-side-ledger-name {
+    font-size: max(0.86em, min(4.8cqw, 8cqh));
+  }
+
+  .vfd-showdown-stage[data-stage-density='compact']:not([data-side-ledger-compact])
+    .vfd-showdown-stage-side-ledger-amount {
+    font-size: min(5.8cqw, 9.6cqh);
+  }
+
+  /** Three+ payout lines — inline rows, tighter type. */
   .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger {
     gap: max(0.08rem, 0.75cqh);
     font-size: max(0.36rem, min(4.8cqw, 7.2cqh));

@@ -128,6 +128,20 @@ const MULTI_SIDE_LEDGER_PATCH: Partial<ShowdownStageSlotRubric> = {
   sideLedgerWidthInsetPct: 24,
 }
 
+/** Per-table-count QA nudges (see venue-floor showdown layout review). */
+function tableCountPatch(tableCount: number): Partial<ShowdownStageSlotRubric> | undefined {
+  switch (Math.max(1, Math.floor(tableCount))) {
+    case 3:
+      return { diffY: 86.8, cardsY: 50.2, cardsYWithSideLedger: 52.0 }
+    case 7:
+      return { diffY: 88.0 }
+    case 9:
+      return { diffY: 88.5, cardsY: 49.5, cardsYWithSideLedger: 51.6 }
+    default:
+      return undefined
+  }
+}
+
 function mergeRubric(
   base: ShowdownStageSlotRubric,
   ...patches: Array<Partial<ShowdownStageSlotRubric> | undefined>
@@ -152,9 +166,9 @@ export function showdownStageSlotRubric(
         ? STANDARD_PATCH
         : undefined
 
-  const multiSidePatch = sideLedgerRows >= 2 ? MULTI_SIDE_LEDGER_PATCH : undefined
+  const multiSidePatch = sideLedgerRows >= 3 ? MULTI_SIDE_LEDGER_PATCH : undefined
 
-  return mergeRubric(base, tierPatch, multiSidePatch)
+  return mergeRubric(base, tierPatch, multiSidePatch, tableCountPatch(tableCount))
 }
 
 /** CSS custom properties consumed by `.vfd-showdown-stage-slot--*` rules. */

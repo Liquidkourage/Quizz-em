@@ -115,8 +115,10 @@ function formatWinnerDifference(
 
 function ShowdownStageDifference({ value }: { value: string }) {
   return (
-    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--difference">
-      <p className="vfd-showdown-stage-diff-label font-bold uppercase leading-none">Difference</p>
+    <div
+      className="vfd-showdown-stage-slot vfd-showdown-stage-slot--difference"
+      aria-label={`Difference ${value}`}
+    >
       <p className="vfd-showdown-stage-diff-value vfd-showdown-difference-value font-black tabular-nums leading-none">
         {value}
       </p>

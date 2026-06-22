@@ -134,7 +134,7 @@
   }
 
   .vfd-showdown-stage-slot--crown-winner {
-    top: 21.8%;
+    top: 23.5%;
     width: 68%;
     gap: 0;
   }
@@ -157,7 +157,7 @@
 
   /** Pot centered on the 40% height line. */
   .vfd-showdown-stage-slot--pot {
-    top: 37.5%;
+    top: 39.5%;
     width: 58%;
     transform: translate(-50%, -50%);
     font-size: max(0.44rem, min(6cqw, 1.08rem));
@@ -176,36 +176,20 @@
     justify-content: center;
   }
 
-  /** Difference block seated on the gold nameplate. */
+  /** ± value centered on the gold nameplate. */
   .vfd-showdown-stage-slot--difference {
-    top: 81.8%;
+    top: 82.8%;
     width: 46%;
-    height: 9.5%;
-    transform: translateX(-50%);
-    justify-content: flex-start;
-    gap: max(0.04rem, 0.5cqh);
+    height: 8%;
+    transform: translate(-50%, -50%);
+    justify-content: center;
+    gap: 0;
     padding-top: 0;
-  }
-
-  .vfd-showdown-stage-diff-label {
-    width: 100%;
-    font-size: max(0.38rem, min(4.8cqw, 0.74rem));
-    line-height: 1.05;
-    letter-spacing: 0.1em;
-    color: #fff8e8;
-    -webkit-text-stroke: 0.55px #000;
-    paint-order: stroke fill;
-    text-shadow:
-      -1px -1px 0 #000,
-      1px -1px 0 #000,
-      -1px 1px 0 #000,
-      1px 1px 0 #000,
-      0 2px 4px rgba(0, 0, 0, 0.8);
   }
 
   .vfd-showdown-stage-diff-value {
     width: 100%;
-    font-size: max(0.58rem, min(6.8cqw, 1.08rem));
+    font-size: max(0.72rem, min(8.2cqw, 1.32rem));
     line-height: 1;
   }
 

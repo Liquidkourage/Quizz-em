@@ -32,13 +32,21 @@ function ShowdownStageHeaderStrip({ title }: { title: string }) {
 function ShowdownStageCrownBlock({
   title,
   names,
+  variant,
 }: {
   title: string
   names: readonly string[]
+  variant: 'winner' | 'split' | 'side'
 }) {
+  const showTitleStrip = variant !== 'winner'
+
   return (
-    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--crown">
-      <ShowdownStageHeaderStrip title={title} />
+    <div
+      className={`vfd-showdown-stage-slot vfd-showdown-stage-slot--crown${
+        showTitleStrip ? '' : ' vfd-showdown-stage-slot--crown-winner'
+      }`}
+    >
+      {showTitleStrip ? <ShowdownStageHeaderStrip title={title} /> : null}
       <ShowdownStageName names={names} />
     </div>
   )
@@ -149,6 +157,7 @@ function ShowdownStageTemplate({
   chipRow,
   correctAnswer,
   sidePotLines,
+  variant,
 }: {
   headerTitle: string
   names: readonly string[]
@@ -157,6 +166,7 @@ function ShowdownStageTemplate({
   chipRow: ShowdownResultRow | null
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
+  variant: 'winner' | 'split' | 'side'
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const showSideLedger = sidePotLines != null && sidePotLines.length > 0
@@ -176,7 +186,7 @@ function ShowdownStageTemplate({
           <ShowdownWinnerStageArtPortal artBox={artBox} />
           <div className="vfd-showdown-stage-overlay" aria-hidden>
             <div className="vfd-showdown-stage-zoom-frame">
-              <ShowdownStageCrownBlock title={headerTitle} names={names} />
+              <ShowdownStageCrownBlock title={headerTitle} names={names} variant={variant} />
 
               {pot > 0 ? (
                 <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--pot">
@@ -229,6 +239,7 @@ export function ShowdownWinnerCompPanel({
         chipRow={chipRow}
         correctAnswer={correctAnswer}
         sidePotLines={sidePotLines}
+        variant={variant}
       />
     </div>
   )

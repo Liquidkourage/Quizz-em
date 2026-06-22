@@ -138,10 +138,10 @@
   }
 
   .vfd-showdown-stage-slot--crown-split {
-    top: 10.5%;
-    width: 76%;
-    gap: max(0.05rem, 0.75cqh);
-    font-size: max(0.36rem, min(4.4cqw, 0.84rem));
+    top: 10%;
+    width: 88%;
+    gap: max(0.06rem, 0.85cqh);
+    font-size: max(0.42rem, min(5.2cqw, 0.98rem));
   }
 
   .vfd-showdown-stage-slot--crown-winner {
@@ -158,18 +158,24 @@
 
   .vfd-showdown-stage-split-title {
     font-family: 'Montserrat', system-ui, sans-serif;
-    font-size: max(0.46rem, min(4.8cqw, 0.82rem));
+    font-size: max(0.62rem, min(7.4cqw, 1.12rem));
     font-weight: 900;
     font-style: italic;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: #fff4dc;
-    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.92));
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.95));
   }
 
   .vfd-showdown-stage-split-title span:last-child {
-    margin-top: 0.04em;
+    margin-top: 0.02em;
     color: #e2ad1a;
+    font-size: 1.06em;
+  }
+
+  .vfd-showdown-stage-split-dot {
+    font-size: max(0.95em, min(5.8cqw, 1rem));
+    line-height: 1;
   }
 
   .vfd-showdown-stage-name {
@@ -179,12 +185,12 @@
   }
 
   .vfd-showdown-stage-name--split {
-    font-size: max(0.82em, min(5.4cqw, 0.92rem));
-    line-height: 1.02;
+    font-size: max(1.05em, min(7.2cqw, 1.22rem));
+    line-height: 1;
   }
 
   .vfd-showdown-stage-name--split-more {
-    font-size: max(0.68em, min(4.2cqw, 0.72rem));
+    font-size: max(0.72em, min(4.8cqw, 0.82rem));
   }
 
   .vfd-showdown-stage-slot--crown-winner .vfd-showdown-stage-name {
@@ -193,10 +199,13 @@
 
   .vfd-showdown-stage-pot-each {
     font-family: 'Montserrat', system-ui, sans-serif;
-    font-size: max(0.42em, min(3.6cqw, 0.62rem));
+    font-size: max(0.78em, min(6.2cqw, 1rem));
+    font-weight: 900;
     font-style: italic;
+    letter-spacing: 0.18em;
     line-height: 1;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+    color: #fff8e8;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   }
 
   /** Pot centered on the 40% height line. */
@@ -233,25 +242,26 @@
 
   .vfd-showdown-stage-diff-value {
     width: 100%;
-    font-family: 'Bungee', system-ui, sans-serif;
+    font-family: 'Montserrat', system-ui, sans-serif;
     font-size: max(0.92rem, min(11.5cqw, 1.85rem));
-    font-weight: 400;
+    font-weight: 700;
+    font-style: italic;
     font-synthesis: none;
     line-height: 0.95;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.03em;
   }
 
   .vfd-showdown-difference-value {
     color: #fff6dc;
-    -webkit-text-stroke: 1.35px #120508;
+    -webkit-text-stroke: 0.65px #120508;
     paint-order: stroke fill;
     text-shadow:
       -1px -1px 0 #000,
       1px -1px 0 #000,
       -1px 1px 0 #000,
       1px 1px 0 #000,
-      0 2px 0 #000,
-      0 0 12px rgba(255, 228, 150, 0.55);
+      0 1px 0 #000,
+      0 0 8px rgba(255, 228, 150, 0.45);
   }
 
   /* Typography */

@@ -113,20 +113,25 @@ function ShowdownStageName({
   if (names.length === 0) return null
 
   if (variant === 'split' && names.length > 1) {
+    const visible = names.slice(0, 3)
     return (
-      <div className="vfd-showdown-stage-split-names flex max-w-full flex-col items-center gap-[0.06em] text-center">
-        {names.slice(0, 3).map((name) => (
-          <p
-            key={name}
-            className="vfd-showdown-stage-name vfd-showdown-stage-name--split max-w-full truncate font-black leading-none text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]"
-          >
-            {name}
-          </p>
+      <div className="vfd-showdown-stage-split-names flex max-w-full flex-nowrap items-center justify-center gap-x-[0.22em] text-center">
+        {visible.map((name, index) => (
+          <Fragment key={name}>
+            {index > 0 ? (
+              <span className="vfd-showdown-stage-split-dot shrink-0 text-[#e2ad1a]" aria-hidden>
+                ·
+              </span>
+            ) : null}
+            <span className="vfd-showdown-stage-name vfd-showdown-stage-name--split min-w-0 max-w-[min(100%,7.5rem)] truncate font-black leading-none text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]">
+              {name}
+            </span>
+          </Fragment>
         ))}
         {names.length > 3 ? (
-          <p className="vfd-showdown-stage-name vfd-showdown-stage-name--split-more font-black leading-none text-white/75">
-            +{names.length - 3} more
-          </p>
+          <span className="vfd-showdown-stage-name vfd-showdown-stage-name--split-more shrink-0 font-black leading-none text-white/75">
+            +{names.length - 3}
+          </span>
         ) : null}
       </div>
     )
@@ -174,7 +179,7 @@ function ShowdownStageDifference({ value }: { value: string }) {
       className="vfd-showdown-stage-slot vfd-showdown-stage-slot--difference"
       aria-label={`Difference ${value}`}
     >
-      <p className="vfd-showdown-stage-diff-value vfd-showdown-difference-value font-black tabular-nums leading-none">
+      <p className="vfd-showdown-stage-diff-value vfd-showdown-difference-value tabular-nums leading-none">
         {value}
       </p>
     </div>

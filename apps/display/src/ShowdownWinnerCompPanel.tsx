@@ -1,11 +1,7 @@
-import { Fragment } from 'react'
+import { Fragment, useCallback, useState } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
-import winnerStageArt from './assets/winner-stage.png'
-
-/** Native pixels — keep in sync with `assets/winner-stage.png`. */
-const WINNER_STAGE_WIDTH = 3238
-const WINNER_STAGE_HEIGHT = 1942
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
+import { ShowdownWinnerStageArtPortal } from './ShowdownWinnerStageArtPortal'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import { ShowdownPotWinnerList, type ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -173,22 +169,17 @@ function ShowdownStageTemplate({
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const showSideLedger = sidePotLines != null && sidePotLines.length > 0
+  const [artBox, setArtBox] = useState<HTMLDivElement | null>(null)
+  const bindArtBoxRef = useCallback((node: HTMLDivElement | null) => {
+    setArtBox(node)
+  }, [])
 
   return (
     <div className="vfd-showdown-stage" data-showdown-winner-comp>
+      <ShowdownWinnerStageArtPortal artBox={artBox} />
       <div className="vfd-showdown-stage-frame">
-        <div className="vfd-showdown-stage-art-box">
+        <div ref={bindArtBoxRef} className="vfd-showdown-stage-art-box">
           <div className="vfd-showdown-stage-art-inner">
-            <img
-              src={winnerStageArt}
-              alt=""
-              aria-hidden
-              className="vfd-showdown-stage-art"
-              width={WINNER_STAGE_WIDTH}
-              height={WINNER_STAGE_HEIGHT}
-              draggable={false}
-            />
-
             <div className="vfd-showdown-stage-overlay" aria-hidden>
               <ShowdownStageCrownBlock title={headerTitle} names={names} />
 

@@ -40,9 +40,15 @@
 
   /** Winner stage overlay — fills the mosaic tile edge to edge. */
   .vfd-showdown-winner-comp {
-    background: #000;
+    background: transparent;
     width: 100%;
     height: 100%;
+  }
+
+  /** Mosaic tile during winner overlay — art is portaled outside the zoom frame. */
+  .vfd-mosaic-tile--showdown-overlay {
+    background: transparent !important;
+    box-shadow: none !important;
   }
 
   /**
@@ -86,6 +92,11 @@
     image-rendering: auto;
     pointer-events: none;
     user-select: none;
+  }
+
+  /** Portaled art — rasterized once at viewport px, not under venue-wall zoom. */
+  .vfd-showdown-stage-art--portaled {
+    image-rendering: auto;
   }
 
   .vfd-showdown-stage-overlay {

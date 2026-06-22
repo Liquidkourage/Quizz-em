@@ -27,5 +27,6 @@ export function venueWallUiScaleFrameStyle(): CSSProperties {
     width: '100%',
     height: '100%',
     WebkitFontSmoothing: 'antialiased',
+    ['--venue-wall-ui-scale' as string]: String(VENUE_WALL_UI_SCALE),
   }
 }

@@ -62,7 +62,7 @@ function PortaledArt({ clip }: { clip: ArtClip }) {
         ['--vfd-stage-art-scale' as string]: String(WINNER_STAGE_ART_SCALE),
       }}
     >
-      <div className="vfd-showdown-stage-art-zoom">
+      <div className="vfd-showdown-stage-zoom-frame">
         <img
           src={winnerStageCardArt}
           alt=""

@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useState } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
-import { ShowdownWinnerStageArtPortal } from './ShowdownWinnerStageArtPortal'
+import { ShowdownWinnerStageArtPortal, WINNER_STAGE_ART_SCALE } from './ShowdownWinnerStageArtPortal'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import { ShowdownPotWinnerList, type ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -32,13 +32,21 @@ function ShowdownStageHeaderStrip({ title }: { title: string }) {
 function ShowdownStageCrownBlock({
   title,
   names,
+  variant,
 }: {
   title: string
   names: readonly string[]
+  variant: 'winner' | 'split' | 'side'
 }) {
+  const showHeader = variant !== 'winner'
+
   return (
-    <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--crown">
-      <ShowdownStageHeaderStrip title={title} />
+    <div
+      className={`vfd-showdown-stage-slot vfd-showdown-stage-slot--crown${
+        showHeader ? ' vfd-showdown-stage-slot--crown-labelled' : ''
+      }`}
+    >
+      {showHeader ? <ShowdownStageHeaderStrip title={title} /> : null}
       <ShowdownStageName names={names} />
     </div>
   )
@@ -158,6 +166,7 @@ function ShowdownStageTemplate({
   chipRow,
   correctAnswer,
   sidePotLines,
+  variant,
 }: {
   headerTitle: string
   names: readonly string[]
@@ -166,6 +175,7 @@ function ShowdownStageTemplate({
   chipRow: ShowdownResultRow | null
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
+  variant: 'winner' | 'split' | 'side'
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const showSideLedger = sidePotLines != null && sidePotLines.length > 0
@@ -175,24 +185,30 @@ function ShowdownStageTemplate({
   }, [])
 
   return (
-    <div className="vfd-showdown-stage" data-showdown-winner-comp>
+    <div
+      className="vfd-showdown-stage"
+      data-showdown-winner-comp
+      style={{ ['--vfd-stage-art-scale' as string]: String(WINNER_STAGE_ART_SCALE) }}
+    >
       <div className="vfd-showdown-stage-frame">
         <div ref={bindArtBoxRef} className="vfd-showdown-stage-art-box">
           <ShowdownWinnerStageArtPortal artBox={artBox} />
           <div className="vfd-showdown-stage-overlay" aria-hidden>
-            <ShowdownStageCrownBlock title={headerTitle} names={names} />
+            <div className="vfd-showdown-stage-zoom-frame">
+              <ShowdownStageCrownBlock title={headerTitle} names={names} variant={variant} />
 
-            <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
-              <ShowdownStageLaurelStack
-                pot={pot}
-                each={each}
-                chipRow={chipRow}
-                showSideLedger={showSideLedger}
-                sidePotLines={sidePotLines}
-              />
+              <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--laurel">
+                <ShowdownStageLaurelStack
+                  pot={pot}
+                  each={each}
+                  chipRow={chipRow}
+                  showSideLedger={showSideLedger}
+                  sidePotLines={sidePotLines}
+                />
+              </div>
+
+              {difference != null ? <ShowdownStageDifference value={difference} /> : null}
             </div>
-
-            {difference != null ? <ShowdownStageDifference value={difference} /> : null}
           </div>
         </div>
       </div>
@@ -230,6 +246,7 @@ export function ShowdownWinnerCompPanel({
         chipRow={chipRow}
         correctAnswer={correctAnswer}
         sidePotLines={sidePotLines}
+        variant={variant}
       />
     </div>
   )

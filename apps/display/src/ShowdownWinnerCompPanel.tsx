@@ -4,11 +4,10 @@ import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { ShowdownWinnerStageArtPortal } from './ShowdownWinnerStageArtPortal'
 import {
   showdownStageArtLayoutForBox,
-  WINNER_STAGE_ART_SCALE_LANDSCAPE,
-  WINNER_STAGE_ART_SCALE_PORTRAIT,
+  winnerStageArtScale,
   type ShowdownStageArtLayout,
 } from './showdownStageArtLayout'
-import { showdownStageRubricStyle } from './showdownStageSlotRubric'
+import { showdownStageDensityTier, showdownStageRubricStyle } from './showdownStageSlotRubric'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -351,6 +350,7 @@ function ShowdownStageTemplate({
   correctAnswer,
   sidePotLines,
   variant,
+  layoutTableCount,
 }: {
   headerTitle: string
   names: readonly string[]
@@ -360,8 +360,11 @@ function ShowdownStageTemplate({
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
   variant: 'winner' | 'split' | 'side'
+  layoutTableCount: number
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
+  const sideLedgerRows = sidePotLines?.length ?? 0
+  const densityTier = showdownStageDensityTier(layoutTableCount)
   const [artBox, setArtBox] = useState<HTMLDivElement | null>(null)
   const [artLayout, setArtLayout] = useState<ShowdownStageArtLayout>('landscape')
   const bindArtBoxRef = useCallback((node: HTMLDivElement | null) => {
@@ -383,8 +386,7 @@ function ShowdownStageTemplate({
     return () => ro.disconnect()
   }, [artBox])
 
-  const artScale =
-    artLayout === 'portrait' ? WINNER_STAGE_ART_SCALE_PORTRAIT : WINNER_STAGE_ART_SCALE_LANDSCAPE
+  const artScale = winnerStageArtScale(artLayout, layoutTableCount)
 
   return (
     <div
@@ -392,15 +394,24 @@ function ShowdownStageTemplate({
       data-showdown-winner-comp
       data-stage-art-layout={artLayout}
       data-stage-variant={variant}
+      data-stage-density={densityTier}
+      data-side-ledger-rows={sideLedgerRows > 0 ? String(sideLedgerRows) : undefined}
+      data-side-ledger-compact={sideLedgerRows >= 2 ? '' : undefined}
       style={{ ['--vfd-stage-art-scale' as string]: String(artScale) }}
     >
       <div className="vfd-showdown-stage-frame">
         <div ref={bindArtBoxRef} className="vfd-showdown-stage-art-box">
-          <ShowdownWinnerStageArtPortal artBox={artBox} layout={artLayout} />
+          <ShowdownWinnerStageArtPortal
+            artBox={artBox}
+            layout={artLayout}
+            layoutTableCount={layoutTableCount}
+          />
           <div className="vfd-showdown-stage-overlay" aria-hidden>
             <div
               className="vfd-showdown-stage-zoom-frame"
-              style={showdownStageRubricStyle(artLayout)}
+              style={showdownStageRubricStyle(artLayout, layoutTableCount, {
+                sideLedgerRows,
+              })}
             >
               {variant === 'split' || variant === 'side' ? (
                 <ShowdownStageVariantBanner variant={variant} />
@@ -438,6 +449,7 @@ export function ShowdownWinnerCompPanel({
   pot,
   correctAnswer,
   sidePotLines,
+  layoutTableCount,
 }: {
   variant: 'winner' | 'split' | 'side'
   winners: readonly ShowdownResultRow[]
@@ -445,6 +457,7 @@ export function ShowdownWinnerCompPanel({
   pot: number
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
+  layoutTableCount: number
 }) {
   const headerTitle =
     variant === 'split' ? 'Split pot' : variant === 'side' ? 'Side pot' : 'Winner'
@@ -462,6 +475,7 @@ export function ShowdownWinnerCompPanel({
         correctAnswer={correctAnswer}
         sidePotLines={sidePotLines}
         variant={variant}
+        layoutTableCount={layoutTableCount}
       />
     </div>
   )

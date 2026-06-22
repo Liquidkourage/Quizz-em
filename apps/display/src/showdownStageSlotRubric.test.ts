@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { winnerStageArtScale } from './showdownStageArtLayout'
 import {
   SHOWDOWN_STAGE_RUBRIC_LANDSCAPE,
   showdownStageRubricStyle,
@@ -16,16 +17,43 @@ describe('showdownStageSlotRubric', () => {
   })
 
   it('portrait rubric shifts Y anchors for taller crop', () => {
-    const landscape = showdownStageSlotRubric('landscape')
-    const portrait = showdownStageSlotRubric('portrait')
+    const landscape = showdownStageSlotRubric('landscape', 14)
+    const portrait = showdownStageSlotRubric('portrait', 14)
     expect(portrait.winnerNameY).toBeGreaterThan(landscape.winnerNameY)
     expect(portrait.cardsY).toBeGreaterThan(landscape.cardsY)
   })
 
+  it('standard tier raises the difference slot for mid-density floors', () => {
+    const compact = showdownStageSlotRubric('landscape', 14)
+    const standard = showdownStageSlotRubric('landscape', 10)
+    expect(compact.diffY).toBe(86.2)
+    expect(standard.diffY).toBe(87.6)
+  })
+
+  it('spacious tier nudges anchors for large 4-up tiles', () => {
+    const standard = showdownStageSlotRubric('landscape', 6)
+    const spacious = showdownStageSlotRubric('landscape', 4)
+    expect(spacious.winnerNameY).toBeLessThan(standard.winnerNameY)
+    expect(spacious.potY).toBeLessThan(standard.potY)
+  })
+
+  it('multi-line side ledgers push cards lower', () => {
+    const single = showdownStageSlotRubric('landscape', 8, 0)
+    const multi = showdownStageSlotRubric('landscape', 8, 2)
+    expect(multi.cardsYWithSideLedger).toBeGreaterThan(single.cardsYWithSideLedger)
+  })
+
   it('exports CSS vars for the zoom frame', () => {
-    const style = showdownStageRubricStyle('landscape') as Record<string, string>
+    const style = showdownStageRubricStyle('landscape', 14) as Record<string, string>
     expect(style['--vfd-stage-y-winner-name']).toBe('25%')
     expect(style['--vfd-stage-y-pot']).toBe('40%')
     expect(style['--vfd-stage-y-cards']).toBe('50.5%')
+  })
+})
+
+describe('winnerStageArtScale', () => {
+  it('tightens landscape zoom on spacious floors', () => {
+    expect(winnerStageArtScale('landscape', 2)).toBe(1.08)
+    expect(winnerStageArtScale('landscape', 14)).toBe(1.2)
   })
 })

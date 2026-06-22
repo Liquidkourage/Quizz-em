@@ -400,8 +400,45 @@
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
   }
 
+  /** Multi-line side ledgers — inline rows, tighter type. */
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger {
+    gap: max(0.08rem, 0.75cqh);
+    font-size: max(0.36rem, min(4.8cqw, 7.2cqh));
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: max(0.18rem, 0.9cqw);
+    row-gap: max(0.04rem, 0.25cqh);
+    padding: max(0.01rem, 0.12cqh) max(0.04rem, 0.25cqw);
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-label {
+    font-size: max(0.62em, min(3cqw, 5cqh));
+    letter-spacing: 0.1em;
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-detail {
+    width: auto;
+    max-width: 100%;
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: max(0.16rem, 0.85cqw);
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-name {
+    max-width: 46%;
+    font-size: max(0.72em, min(3.6cqw, 6cqh));
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-amount {
+    font-size: min(4.4cqw, 7.2cqh);
+  }
+
   .vfd-showdown-stage-pot-inline-each {
-    gap: max(0.08em, 0.5cqw);
+    gap: max(0.24em, 1.15cqw);
   }
 
   /** Pot centered on the trophy rubric pot line (see showdownStageSlotRubric). */
@@ -440,6 +477,7 @@
     line-height: 1;
     align-self: baseline;
     transform: translateY(0.06em);
+    margin-inline-start: max(0.14em, 0.65cqw);
     color: #fff8e8;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   }

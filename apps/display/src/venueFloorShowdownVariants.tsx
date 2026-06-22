@@ -90,11 +90,13 @@ export function VenueFloorShowdownByVariant({
   pot,
   rows,
   correctAnswer,
+  layoutTableCount,
 }: {
   tableNum?: number
   pot: number
   rows: ShowdownResultRow[]
   correctAnswer: number | undefined
+  layoutTableCount: number
   labMode?: boolean
 }) {
   const ctx = buildCtx(pot, rows, correctAnswer)
@@ -131,6 +133,7 @@ export function VenueFloorShowdownByVariant({
         pot={ctx.pot}
         correctAnswer={correctAnswer}
         sidePotLines={ctx.sidePotLines}
+        layoutTableCount={layoutTableCount}
       />
     </div>
   )

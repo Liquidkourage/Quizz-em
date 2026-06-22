@@ -1,5 +1,9 @@
 import type { CSSProperties } from 'react'
 import type { ShowdownStageArtLayout } from './showdownStageArtLayout'
+import { showdownStageDensityTier } from './showdownStageArtLayout'
+
+export type { ShowdownStageDensityTier } from './showdownStageArtLayout'
+export { showdownStageDensityTier } from './showdownStageArtLayout'
 
 /**
  * Trophy-relative slot anchors for the winner-stage overlay.
@@ -7,12 +11,8 @@ import type { ShowdownStageArtLayout } from './showdownStageArtLayout'
  * All Y positions are % from the top of `.vfd-showdown-stage-zoom-frame` (same
  * coordinate space as `apps/display/public/winner-stage-preview.html`).
  *
- * Art landmarks (landscape master, 120% zoom frame):
- * - Crown base ~12%
- * - Name band 23–28%
- * - Pot center 40%
- * - Card row 50.5%
- * - Pedestal nameplate 86.2%
+ * Base landscape values match the preview; {@link showdownStageDensityTier} patches
+ * adjust for large 2–4-up tiles and mid-density 5–11-up floors.
  */
 export type ShowdownStageSlotRubric = {
   safeTop: number
@@ -85,19 +85,86 @@ export const SHOWDOWN_STAGE_RUBRIC_PORTRAIT: ShowdownStageSlotRubric = {
   diffHeightPct: 7.5,
 }
 
-export function showdownStageSlotRubric(
-  layout: ShowdownStageArtLayout
+/** Large 2–4-up tiles — slightly tighter art zoom + nudged anchors. */
+const SPACIOUS_PATCH_LANDSCAPE: Partial<ShowdownStageSlotRubric> = {
+  winnerNameY: 23.8,
+  splitNameY: 24.2,
+  splitNameBelowBannerY: 25.6,
+  sideLedgerY: 26.6,
+  sideLedgerBelowBannerY: 27.8,
+  potY: 39.2,
+  cardsY: 49.8,
+  cardsYWithSideLedger: 51.2,
+  diffY: 85.9,
+  winnerNameWidthPct: 64,
+  sideLedgerWidthInsetPct: 22,
+}
+
+const SPACIOUS_PATCH_PORTRAIT: Partial<ShowdownStageSlotRubric> = {
+  winnerNameY: 25.8,
+  splitNameY: 26,
+  splitNameBelowBannerY: 27.2,
+  sideLedgerY: 28.2,
+  sideLedgerBelowBannerY: 29.4,
+  potY: 39.8,
+  cardsY: 50.5,
+  cardsYWithSideLedger: 52.8,
+  diffY: 85.8,
+  winnerNameWidthPct: 62,
+  sideLedgerWidthInsetPct: 20,
+}
+
+/** 5–11-up floors — ± sits a touch high on mid-size tiles. */
+const STANDARD_PATCH: Partial<ShowdownStageSlotRubric> = {
+  diffY: 87.6,
+}
+
+/** Main + side + return rows — compress ledger and push cards down. */
+const MULTI_SIDE_LEDGER_PATCH: Partial<ShowdownStageSlotRubric> = {
+  sideLedgerBelowBannerY: 27.4,
+  sideLedgerY: 26.4,
+  cardsYWithSideLedger: 54.8,
+  cardsHeightSidePct: 14,
+  sideLedgerWidthInsetPct: 24,
+}
+
+function mergeRubric(
+  base: ShowdownStageSlotRubric,
+  ...patches: Array<Partial<ShowdownStageSlotRubric> | undefined>
 ): ShowdownStageSlotRubric {
-  return layout === 'portrait'
-    ? SHOWDOWN_STAGE_RUBRIC_PORTRAIT
-    : SHOWDOWN_STAGE_RUBRIC_LANDSCAPE
+  return Object.assign({}, base, ...patches.filter(Boolean))
+}
+
+export function showdownStageSlotRubric(
+  layout: ShowdownStageArtLayout,
+  tableCount = 14,
+  sideLedgerRows = 0
+): ShowdownStageSlotRubric {
+  const tier = showdownStageDensityTier(tableCount)
+  const base = layout === 'portrait' ? SHOWDOWN_STAGE_RUBRIC_PORTRAIT : SHOWDOWN_STAGE_RUBRIC_LANDSCAPE
+
+  const tierPatch =
+    tier === 'spacious'
+      ? layout === 'portrait'
+        ? SPACIOUS_PATCH_PORTRAIT
+        : SPACIOUS_PATCH_LANDSCAPE
+      : tier === 'standard'
+        ? STANDARD_PATCH
+        : undefined
+
+  const multiSidePatch = sideLedgerRows >= 2 ? MULTI_SIDE_LEDGER_PATCH : undefined
+
+  return mergeRubric(base, tierPatch, multiSidePatch)
 }
 
 /** CSS custom properties consumed by `.vfd-showdown-stage-slot--*` rules. */
 export function showdownStageRubricStyle(
-  layout: ShowdownStageArtLayout
+  layout: ShowdownStageArtLayout,
+  tableCount = 14,
+  options?: { sideLedgerRows?: number }
 ): CSSProperties {
-  const r = showdownStageSlotRubric(layout)
+  const sideLedgerRows = options?.sideLedgerRows ?? 0
+  const r = showdownStageSlotRubric(layout, tableCount, sideLedgerRows)
   const safeWidth = `calc(var(--vfd-stage-safe-width, 83.333%) - ${r.bannerWidthInsetPct}%)`
   const ledgerWidth = `calc(var(--vfd-stage-safe-width, 83.333%) - ${r.sideLedgerWidthInsetPct}%)`
   const potWidth = `calc(var(--vfd-stage-safe-width, 83.333%) - ${r.potWidthInsetPct}%)`

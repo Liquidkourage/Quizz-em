@@ -4,8 +4,8 @@ import winnerStageCardArt from './assets/winner-stage-card.png'
 import winnerStageCardPortraitArt from './assets/winner-stage-card-portrait.png'
 import {
   showdownStageArtLayoutForBox,
+  winnerStageArtScale,
   WINNER_STAGE_ART_SCALE_LANDSCAPE,
-  WINNER_STAGE_ART_SCALE_PORTRAIT,
   type ShowdownStageArtLayout,
 } from './showdownStageArtLayout'
 
@@ -52,22 +52,24 @@ function resolvePortalRoot(): HTMLElement | null {
   return document.getElementById(SHOWDOWN_ART_PORTAL_ROOT_ID) ?? document.body
 }
 
-function artScaleForLayout(layout: ShowdownStageArtLayout): number {
-  return layout === 'portrait' ? WINNER_STAGE_ART_SCALE_PORTRAIT : WINNER_STAGE_ART_SCALE_LANDSCAPE
+function artScaleForLayout(layout: ShowdownStageArtLayout, tableCount: number): number {
+  return winnerStageArtScale(layout, tableCount)
 }
 
 function PortaledArt({
   clip,
   layout,
+  layoutTableCount,
 }: {
   clip: ArtClip
   layout: ShowdownStageArtLayout
+  layoutTableCount: number
 }) {
   const [portalRoot] = useState(resolvePortalRoot)
   if (portalRoot == null) return null
 
   const portrait = layout === 'portrait'
-  const artScale = artScaleForLayout(layout)
+  const artScale = artScaleForLayout(layout, layoutTableCount)
 
   return createPortal(
     <div
@@ -115,9 +117,11 @@ function PortaledArt({
 export function ShowdownWinnerStageArtPortal({
   artBox,
   layout: layoutProp,
+  layoutTableCount = 14,
 }: {
   artBox: HTMLDivElement | null
   layout?: ShowdownStageArtLayout
+  layoutTableCount?: number
 }) {
   const [clip, setClip] = useState<ArtClip | null>(null)
   const [measuredLayout, setMeasuredLayout] = useState<ShowdownStageArtLayout>('landscape')
@@ -156,5 +160,5 @@ export function ShowdownWinnerStageArtPortal({
 
   const layout = layoutProp ?? measuredLayout
 
-  return <PortaledArt clip={clip} layout={layout} />
+  return <PortaledArt clip={clip} layout={layout} layoutTableCount={layoutTableCount} />
 }

@@ -1683,6 +1683,7 @@ function VenueMosaicTableCard({
             pot={floorShowdownPot}
             rows={floorShowdownRows}
             correctAnswer={floorShowdownAnswer}
+            layoutTableCount={layoutTableCount}
           />
         ) : null}
 

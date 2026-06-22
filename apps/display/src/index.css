@@ -42,8 +42,8 @@
 
   /**
    * Winner stage template (1728×2160 art).
-   * Art box uses cover sizing so the trophy fills the mosaic tile; text overlays
-   * live inside the art box so % slots stay aligned with the PNG.
+   * Art box uses max-fit contain (no crop) while filling as much of the tile as possible.
+   * Text overlays live inside the art box so % slots stay aligned with the PNG.
    */
   .vfd-showdown-stage {
     position: relative;
@@ -61,15 +61,13 @@
   }
 
   .vfd-showdown-stage-art-box {
-    --stage-fill-scale: 1.14;
     position: absolute;
     top: 50%;
     left: 50%;
     aspect-ratio: 1728 / 2160;
-    min-width: 100%;
-    min-height: 100%;
-    transform: translate(-50%, -50%) scale(var(--stage-fill-scale));
-    transform-origin: center center;
+    width: min(100cqw, calc(100cqh * 1728 / 2160));
+    height: min(100cqh, calc(100cqw * 2160 / 1728));
+    transform: translate(-50%, -50%);
   }
 
   .vfd-showdown-stage-art {

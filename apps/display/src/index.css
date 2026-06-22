@@ -112,8 +112,6 @@
     position: absolute;
     inset: 0;
     overflow: hidden;
-    /** Must stay transparent — winner art is portaled behind this box (see ShowdownWinnerStageArtPortal). */
-    background: transparent;
   }
 
   .vfd-showdown-stage-art {
@@ -131,6 +129,21 @@
     width: auto;
     max-width: none;
     transform: translateX(-50%);
+  }
+
+  /** Width-first fill — portrait tiles keep the full wreath span; crop top/bottom. */
+  .vfd-showdown-stage-art--width-fill {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    transform: translateY(-50%);
+  }
+
+  .vfd-showdown-stage-art-portrait .vfd-showdown-stage-zoom-frame {
+    --vfd-stage-safe-top: 8%;
   }
 
   /** Centered virtual frame larger than the tile clip (see WINNER_STAGE_ART_SCALE). */
@@ -763,10 +776,6 @@
   /** Headline setlist cue pill — larger than generic badges. */
   .display-text-headline-setlist-badge {
     font-size: clamp(19px, 3vmin, 32px);
-  }
-
-  .display-text-headline-stats-pill {
-    font-size: clamp(16px, 2.45vmin, 26px);
   }
 
   /** Headline condense stats — survivors / tables / combine (no progress bar). */

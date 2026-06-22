@@ -1,7 +1,13 @@
-import { Fragment, useCallback, useState } from 'react'
+import { Fragment, useCallback, useLayoutEffect, useState } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { ShowdownWinnerStageArtPortal } from './ShowdownWinnerStageArtPortal'
+import {
+  showdownStageArtLayoutForBox,
+  WINNER_STAGE_ART_SCALE_LANDSCAPE,
+  WINNER_STAGE_ART_SCALE_PORTRAIT,
+  type ShowdownStageArtLayout,
+} from './showdownStageArtLayout'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -356,18 +362,39 @@ function ShowdownStageTemplate({
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const [artBox, setArtBox] = useState<HTMLDivElement | null>(null)
+  const [artLayout, setArtLayout] = useState<ShowdownStageArtLayout>('landscape')
   const bindArtBoxRef = useCallback((node: HTMLDivElement | null) => {
     setArtBox(node)
+    if (node == null) return
+    const { width, height } = node.getBoundingClientRect()
+    setArtLayout(showdownStageArtLayoutForBox(width, height))
   }, [])
+
+  useLayoutEffect(() => {
+    if (artBox == null) return
+    const update = () => {
+      const { width, height } = artBox.getBoundingClientRect()
+      setArtLayout(showdownStageArtLayoutForBox(width, height))
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(artBox)
+    return () => ro.disconnect()
+  }, [artBox])
+
+  const artScale =
+    artLayout === 'portrait' ? WINNER_STAGE_ART_SCALE_PORTRAIT : WINNER_STAGE_ART_SCALE_LANDSCAPE
 
   return (
     <div
       className="vfd-showdown-stage"
       data-showdown-winner-comp
+      data-stage-art-layout={artLayout}
+      style={{ ['--vfd-stage-art-scale' as string]: String(artScale) }}
     >
       <div className="vfd-showdown-stage-frame">
         <div ref={bindArtBoxRef} className="vfd-showdown-stage-art-box">
-          <ShowdownWinnerStageArtPortal artBox={artBox} />
+          <ShowdownWinnerStageArtPortal artBox={artBox} layout={artLayout} />
           <div className="vfd-showdown-stage-overlay" aria-hidden>
             <div className="vfd-showdown-stage-zoom-frame">
               {variant === 'split' || variant === 'side' ? (

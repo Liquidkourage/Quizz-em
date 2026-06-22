@@ -313,6 +313,32 @@ function survivorTrackPct(survivors: number, peakSurvivors: number): number {
   return (clamped / peakSurvivors) * 100
 }
 
+export function formatVenueHeadlineCondensePart(part: string): string {
+  if (part.startsWith('combine at ')) {
+    return `Combine at ${part.slice('combine at '.length)}`
+  }
+  if (part.startsWith('combining to ')) {
+    return `Combining to ${part.slice('combining to '.length)}`
+  }
+  return part
+}
+
+export function venueHeadlineCondenseCaptionParts(model: VenueCondenseProgressModel): string[] {
+  const { survivors, liveTables, nextAt, nextToTables } = model
+  const parts = [`${survivors} remaining`, `${liveTables} ${liveTables === 1 ? 'table' : 'tables'}`]
+  if (liveTables <= 1) return parts
+  if (nextAt != null && survivors > nextAt) {
+    parts.push(`combine at ${nextAt}`)
+  } else if (nextAt != null && nextToTables != null) {
+    parts.push(`combining to ${nextToTables} tables`)
+  }
+  return parts
+}
+
+export function venueHeadlineCondenseCaption(model: VenueCondenseProgressModel): string {
+  return venueHeadlineCondenseCaptionParts(model).map(formatVenueHeadlineCondensePart).join(' · ')
+}
+
 /** Thermometer progress model for the venue condense strip. */
 export function buildVenueCondenseProgress(args: {
   wall: DisplayVenueWallSnapshot | null

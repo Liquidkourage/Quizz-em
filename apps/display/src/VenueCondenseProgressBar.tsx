@@ -1,44 +1,23 @@
 import { Fragment } from 'react'
 import type { VenueCondenseProgressModel } from './venueWallModel'
+import {
+  formatVenueHeadlineCondensePart,
+  venueHeadlineCondenseCaption,
+  venueHeadlineCondenseCaptionParts,
+} from './venueWallModel'
 import { DISPLAY_TEXT_HEADLINE_CAPTION } from './displayTypography'
 
 type VenueCondenseProgressBarProps = {
   model: VenueCondenseProgressModel
-  /** headline = full-width row; pill = chip beside setlist cue; sidebar = stacks rail; bottom = fallback strip */
-  variant?: 'headline' | 'pill' | 'sidebar' | 'bottom'
+  /** headline = raw stats line; sidebar = stacks rail; bottom = fallback strip */
+  variant?: 'headline' | 'sidebar' | 'bottom'
   /** Override caption typography (table-count tier from parent). */
   captionClass?: string
 }
 
-function formatHeadlineCondensePart(part: string): string {
-  if (part.startsWith('combine at ')) {
-    return `Combine at ${part.slice('combine at '.length)}`
-  }
-  if (part.startsWith('combining to ')) {
-    return `Combining to ${part.slice('combining to '.length)}`
-  }
-  return part
-}
-
-function headlineCondenseCaptionParts(model: VenueCondenseProgressModel): string[] {
-  const { survivors, liveTables, nextAt, nextToTables } = model
-  const parts = [`${survivors} remaining`, `${liveTables} ${liveTables === 1 ? 'table' : 'tables'}`]
-  if (liveTables <= 1) return parts
-  if (nextAt != null && survivors > nextAt) {
-    parts.push(`combine at ${nextAt}`)
-  } else if (nextAt != null && nextToTables != null) {
-    parts.push(`combining to ${nextToTables} tables`)
-  }
-  return parts
-}
-
-function headlineCondenseCaption(model: VenueCondenseProgressModel): string {
-  return headlineCondenseCaptionParts(model).map(formatHeadlineCondensePart).join(' · ')
-}
-
 /** Emphasize leading numerals in stat fragments like "91 remaining" or "Combine at 74". */
 function HeadlineStatPart({ part }: { part: string }) {
-  const formatted = formatHeadlineCondensePart(part)
+  const formatted = formatVenueHeadlineCondensePart(part)
   const remainingMatch = formatted.match(/^(\d+)\s+(remaining.*)$/i)
   if (remainingMatch) {
     return (
@@ -93,31 +72,7 @@ export default function VenueCondenseProgressBar({
 
   const showMarks = marks.length > 0 && liveTables > 1
   const headline = variant === 'headline'
-  const pill = variant === 'pill'
   const sidebar = variant === 'sidebar'
-
-  if (pill) {
-    return (
-      <span
-        className={`inline-flex max-w-full shrink-0 flex-wrap items-baseline gap-x-1.5 rounded-md border border-amber-500/40 bg-amber-950/45 px-2 py-0.5 font-bold tabular-nums tracking-tight sm:px-2.5 sm:py-1 ${captionClass}`}
-        role="status"
-        aria-label={headlineCondenseCaption(model)}
-      >
-        {headlineCondenseCaptionParts(model).map((part, index) => (
-          <Fragment key={part}>
-            {index > 0 ? (
-              <span className="shrink-0 text-white/40" aria-hidden>
-                ·
-              </span>
-            ) : null}
-            <span className="shrink-0 whitespace-nowrap">
-              <HeadlineStatPart part={part} />
-            </span>
-          </Fragment>
-        ))}
-      </span>
-    )
-  }
 
   if (headline) {
     return (
@@ -125,9 +80,9 @@ export default function VenueCondenseProgressBar({
         <p
           className={`flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-left font-bold tabular-nums tracking-tight ${captionClass}`}
           role="status"
-          aria-label={headlineCondenseCaption(model)}
+          aria-label={venueHeadlineCondenseCaption(model)}
         >
-          {headlineCondenseCaptionParts(model).map((part, index) => (
+          {venueHeadlineCondenseCaptionParts(model).map((part, index) => (
             <Fragment key={part}>
               {index > 0 ? (
                 <span className="shrink-0 text-white/45" aria-hidden>
@@ -168,7 +123,7 @@ export default function VenueCondenseProgressBar({
               : 'mb-1 text-center text-[clamp(0.9rem,2.2vw,1.125rem)] leading-tight'
           }`}
         >
-          {headlineCondenseCaption(model)}
+          {venueHeadlineCondenseCaption(model)}
         </p>
 
         <div className={`relative ${sidebar ? 'pt-2.5' : ''}`}>

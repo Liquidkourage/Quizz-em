@@ -42,16 +42,17 @@ import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
+import VenueHeadlineCondenseStatsPill from './VenueHeadlineCondenseStatsPill'
 import {
   DISPLAY_TEXT_HEADLINE_BADGE,
   DISPLAY_TEXT_HEADLINE_META,
   DISPLAY_TEXT_HEADLINE_SETLIST_BADGE,
-  DISPLAY_TEXT_HEADLINE_STATS_PILL,
   DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_LABEL,
   DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_AMOUNT,
   DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_META,
   DISPLAY_TEXT_HEADLINE_PHASE_BADGE,
   DISPLAY_TEXT_HEADLINE_QUESTION_DENSE,
+  displayHeadlineStatsClass,
   displayHeadlineQuestionClass,
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
@@ -2056,6 +2057,10 @@ export default function VenueEightTablesPreview({
     if (compactVenueHeadline) return DISPLAY_TEXT_HEADLINE_QUESTION_DENSE
     return displayHeadlineQuestionClass(publicTypographyTier)
   }, [compactVenueHeadline, publicTypographyTier])
+  const headlineStatsClass = useMemo(
+    () => displayHeadlineStatsClass(compactVenueHeadline),
+    [compactVenueHeadline],
+  )
   const headlineLogoWidthClass = ultraCompactVenueHeadline
     ? 'w-[clamp(6.5rem,min(18vw,9rem),11rem)]'
     : compactVenueHeadline
@@ -2164,18 +2169,17 @@ export default function VenueEightTablesPreview({
                   initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  {showSetlistCue || (condenseProgress != null && tileRows.length > 0) || headlineDivergenceNote ? (
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  {showSetlistCue || condenseProgress != null || headlineDivergenceNote ? (
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       {showSetlistCue ? (
                         <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 sm:px-2.5 sm:py-1 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}>
                           Question {setlistCueNumber} of {setlistCueTotal}
                         </span>
                       ) : null}
-                      {condenseProgress != null && tileRows.length > 0 ? (
-                        <VenueCondenseProgressBar
+                      {condenseProgress != null ? (
+                        <VenueHeadlineCondenseStatsPill
                           model={condenseProgress}
-                          variant="pill"
-                          captionClass={DISPLAY_TEXT_HEADLINE_STATS_PILL}
+                          className={headlineStatsClass}
                         />
                       ) : null}
                       {headlineDivergenceNote ? (

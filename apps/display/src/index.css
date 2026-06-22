@@ -246,10 +246,11 @@
   }
 
   .vfd-showdown-stage-slot--crown-split {
-    top: 21.5%;
+    top: 24%;
     width: calc(var(--vfd-stage-safe-width, 83.333%) - 1%);
     gap: 0;
     font-size: max(0.38rem, min(4.6cqw, 0.88rem));
+    padding-top: max(0.12rem, 0.9cqh);
   }
 
   .vfd-showdown-stage-name--split-compact {

@@ -1,10 +1,10 @@
 import { useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import winnerStageArt from './assets/winner-stage.png'
+import winnerStageCardArt from './assets/winner-stage-card.png'
 
-/** Native pixels — keep in sync with `assets/winner-stage.png`. */
-export const WINNER_STAGE_WIDTH = 3238
-export const WINNER_STAGE_HEIGHT = 1942
+/** Display bitmap — Lanczos downscale from master; ~3× mosaic tile at 2× DPR. */
+export const WINNER_STAGE_CARD_WIDTH = 1280
+export const WINNER_STAGE_CARD_HEIGHT = 768
 
 export const SHOWDOWN_ART_PORTAL_ROOT_ID = 'vfd-showdown-art-portal-root'
 
@@ -16,14 +16,19 @@ type ArtClip = {
   borderRadius: string
 }
 
+function snapViewportPx(value: number, dpr: number): number {
+  return Math.round(value * dpr) / dpr
+}
+
 function measureArtClip(artBox: HTMLElement): ArtClip {
   const box = artBox.getBoundingClientRect()
   const article = artBox.closest('article')
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1
   return {
-    left: box.left,
-    top: box.top,
-    width: box.width,
-    height: box.height,
+    left: snapViewportPx(box.left, dpr),
+    top: snapViewportPx(box.top, dpr),
+    width: snapViewportPx(box.width, dpr),
+    height: snapViewportPx(box.height, dpr),
     borderRadius: article ? getComputedStyle(article).borderRadius : '0px',
   }
 }
@@ -48,23 +53,24 @@ function PortaledArt({ clip }: { clip: ArtClip }) {
         height: clip.height,
         overflow: 'hidden',
         borderRadius: clip.borderRadius,
+        backgroundColor: '#000',
         pointerEvents: 'none',
         zIndex: 9,
       }}
     >
       <img
-        src={winnerStageArt}
+        src={winnerStageCardArt}
         alt=""
         aria-hidden
         draggable={false}
         className="vfd-showdown-stage-art"
-        width={WINNER_STAGE_WIDTH}
-        height={WINNER_STAGE_HEIGHT}
+        width={WINNER_STAGE_CARD_WIDTH}
+        height={WINNER_STAGE_CARD_HEIGHT}
         style={{
           display: 'block',
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
+          objectFit: 'contain',
           objectPosition: 'center center',
         }}
       />
@@ -74,8 +80,8 @@ function PortaledArt({ clip }: { clip: ArtClip }) {
 }
 
 /**
- * One viewport-pixel downscale of winner-stage — rendered outside the venue wall
- * zoom frame so the bitmap is not resampled again at composite.
+ * Card-sized winner-stage bitmap, portaled outside the venue-wall zoom frame so the
+ * browser performs one clean downscale instead of resampling 3K art at composite.
  */
 export function ShowdownWinnerStageArtPortal({ artBox }: { artBox: HTMLDivElement | null }) {
   const [clip, setClip] = useState<ArtClip | null>(null)

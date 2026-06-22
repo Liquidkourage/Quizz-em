@@ -142,10 +142,6 @@
     transform: translateY(-50%);
   }
 
-  .vfd-showdown-stage-art-portrait .vfd-showdown-stage-zoom-frame {
-    --vfd-stage-safe-top: 8%;
-  }
-
   /** Centered virtual frame larger than the tile clip (see WINNER_STAGE_ART_SCALE). */
   .vfd-showdown-stage-zoom-frame {
     position: absolute;
@@ -154,9 +150,28 @@
     width: calc(100% * var(--vfd-stage-art-scale, 1));
     height: calc(100% * var(--vfd-stage-art-scale, 1));
     transform: translate(-50%, -50%);
-    /** Visible tile inset within this frame — keeps banners inside the clip at 120% zoom. */
+    /** Slot Y/W/H defaults — overridden per layout by {@link showdownStageRubricStyle}. */
     --vfd-stage-safe-top: 9.25%;
     --vfd-stage-safe-width: calc(100% / var(--vfd-stage-art-scale, 1.2));
+    --vfd-stage-y-winner-name: 25%;
+    --vfd-stage-y-split-name: 25.4%;
+    --vfd-stage-y-split-name-banner: 26.8%;
+    --vfd-stage-y-ledger: 27.5%;
+    --vfd-stage-y-ledger-banner: 28.8%;
+    --vfd-stage-y-pot: 40%;
+    --vfd-stage-y-cards: 50.5%;
+    --vfd-stage-y-cards-side: 52.5%;
+    --vfd-stage-y-diff: 86.2%;
+    --vfd-stage-w-banner: calc(var(--vfd-stage-safe-width, 83.333%) - 24%);
+    --vfd-stage-w-name: calc(var(--vfd-stage-safe-width, 83.333%) * 0.68);
+    --vfd-stage-w-ledger: calc(var(--vfd-stage-safe-width, 83.333%) - 18%);
+    --vfd-stage-w-pot: calc(var(--vfd-stage-safe-width, 83.333%) - 10%);
+    --vfd-stage-w-cards: 84%;
+    --vfd-stage-h-cards: 18%;
+    --vfd-stage-w-cards-side: 78%;
+    --vfd-stage-h-cards-side: 16%;
+    --vfd-stage-w-diff: 44%;
+    --vfd-stage-h-diff: 7.5%;
   }
 
   .vfd-showdown-stage-art-portal .vfd-showdown-stage-zoom-frame {
@@ -200,7 +215,7 @@
   .vfd-showdown-stage-slot--side-banner,
   .vfd-showdown-stage-slot--variant-banner {
     top: var(--vfd-stage-safe-top, 9.25%);
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 24%);
+    width: var(--vfd-stage-w-banner);
     transform: translateX(-50%);
     justify-content: flex-start;
   }
@@ -261,22 +276,24 @@
   }
 
   .vfd-showdown-stage-slot--crown-split {
-    top: 32%;
+    top: var(--vfd-stage-y-split-name);
     width: calc(var(--vfd-stage-safe-width, 83.333%) - 4%);
     gap: 0;
     font-size: max(0.38rem, min(4.6cqw, 7.7cqh));
-    padding-top: max(0.12rem, 0.85cqh);
+    padding-top: max(0.1rem, 0.65cqh);
   }
 
   .vfd-showdown-stage-slot--crown-split-triple {
-    top: 32.4%;
-    padding-top: max(0.14rem, 0.95cqh);
+    padding-top: max(0.12rem, 0.75cqh);
   }
 
   .vfd-showdown-stage-slot--crown-split-quad {
-    top: 33%;
     width: calc(var(--vfd-stage-safe-width, 83.333%) - 6%);
-    padding-top: max(0.16rem, 1cqh);
+    padding-top: max(0.14rem, 0.85cqh);
+  }
+
+  .vfd-showdown-stage-slot--split-banner ~ .vfd-showdown-stage-slot--crown-split {
+    top: var(--vfd-stage-y-split-name-banner);
   }
 
   .vfd-showdown-stage-name--split-compact {
@@ -306,14 +323,14 @@
   }
 
   .vfd-showdown-stage-slot--side-ledger {
-    top: 36%;
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 14%);
+    top: var(--vfd-stage-y-ledger);
+    width: var(--vfd-stage-w-ledger);
     transform: translateX(-50%);
     font-size: var(--vfd-stage-ledger-size);
   }
 
   .vfd-showdown-stage-slot--side-banner ~ .vfd-showdown-stage-slot--side-ledger {
-    top: 41%;
+    top: var(--vfd-stage-y-ledger-banner);
   }
 
   .vfd-showdown-stage-side-ledger {
@@ -387,10 +404,10 @@
     gap: max(0.08em, 0.5cqw);
   }
 
-  /** Pot centered on the 46% height line — below winner name. */
+  /** Pot centered on the trophy rubric pot line (see showdownStageSlotRubric). */
   .vfd-showdown-stage-slot--pot {
-    top: 46%;
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 12%);
+    top: var(--vfd-stage-y-pot);
+    width: var(--vfd-stage-w-pot);
     transform: translate(-50%, -50%);
   }
 
@@ -403,7 +420,7 @@
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
     line-height: 1;
-    font-size: min(9cqw, 15cqh);
+    font-size: var(--vfd-stage-pot-size);
   }
 
   .vfd-showdown-stage-frame .vfd-showdown-stage-pot .vfd-mosaic-dollar-sign {
@@ -439,13 +456,9 @@
   }
 
   .vfd-showdown-stage-slot--crown-winner {
-    top: 36%;
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 4%);
+    top: var(--vfd-stage-y-winner-name);
+    width: var(--vfd-stage-w-name);
     gap: 0;
-  }
-
-  .vfd-showdown-stage-slot--split-banner ~ .vfd-showdown-stage-slot--crown-split {
-    top: 33%;
   }
 
   [data-stage-variant='side'] .vfd-showdown-stage-frame {
@@ -454,61 +467,10 @@
     --vfd-stage-card-gap: min(0.5cqw, 0.34cqh);
   }
 
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--side-banner {
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 20%);
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-variant-banner-text {
-    font-size: max(0.34rem, min(3cqw, 5.2cqh));
-    letter-spacing: 0.06em;
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--side-banner ~ .vfd-showdown-stage-slot--side-ledger {
-    top: 43%;
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--side-ledger {
-    top: 38%;
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 16%);
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-side-ledger-detail {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: center;
-    gap: max(0.18rem, 1cqw);
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-side-ledger-name {
-    max-width: 58%;
-    text-align: right;
-    font-size: max(0.74em, min(3.8cqw, 6.4cqh));
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-side-ledger-amount {
-    font-size: min(4.6cqw, 7.8cqh);
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--crown-winner {
-    top: 37%;
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--crown-split {
-    top: 34%;
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--pot {
-    top: 47%;
-  }
-
-  [data-stage-art-layout='portrait'] .vfd-showdown-stage-slot--cards {
-    top: 55%;
-  }
-
   .vfd-showdown-stage-slot--side-ledger ~ .vfd-showdown-stage-slot--cards {
-    top: 62%;
-    width: 70%;
-    height: 13%;
+    top: var(--vfd-stage-y-cards-side);
+    width: var(--vfd-stage-w-cards-side);
+    height: var(--vfd-stage-h-cards-side);
   }
 
   .vfd-showdown-stage-title {
@@ -541,11 +503,11 @@
     font-size: var(--vfd-stage-name-size);
   }
 
-  /** Digit cards in the lower wreath — below pot, above podium. */
+  /** Digit cards in the lower wreath — rubric Y from showdownStageSlotRubric. */
   .vfd-showdown-stage-slot--cards {
-    top: 54%;
-    width: 78%;
-    height: 16%;
+    top: var(--vfd-stage-y-cards);
+    width: var(--vfd-stage-w-cards);
+    height: var(--vfd-stage-h-cards);
     transform: translateX(-50%);
     justify-content: center;
   }
@@ -562,9 +524,9 @@
 
   /** ± value centered on the gold nameplate — dark ink on gold (see winner-stage-preview.html). */
   .vfd-showdown-stage-slot--difference {
-    top: 86.2%;
-    width: 44%;
-    height: 7.5%;
+    top: var(--vfd-stage-y-diff);
+    width: var(--vfd-stage-w-diff);
+    height: var(--vfd-stage-h-diff);
     transform: translate(-50%, -50%);
     justify-content: center;
     gap: 0;

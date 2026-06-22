@@ -2173,22 +2173,24 @@ export default function VenueEightTablesPreview({
                   animate={{ opacity: 1, y: 0 }}
                 >
                   {showSetlistCue || condenseProgress != null || headlineDivergenceNote ? (
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      {showSetlistCue ? (
-                        <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 sm:px-2.5 sm:py-1 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}>
-                          Question {setlistCueNumber} of {setlistCueTotal}
-                        </span>
-                      ) : null}
+                    <div className="flex min-w-0 items-start justify-between gap-x-2 gap-y-1">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                        {showSetlistCue ? (
+                          <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 sm:px-2.5 sm:py-1 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}>
+                            Question {setlistCueNumber} of {setlistCueTotal}
+                          </span>
+                        ) : null}
+                        {headlineDivergenceNote ? (
+                          <span className={`font-semibold text-white/65 ${DISPLAY_TEXT_HEADLINE_META}`}>
+                            {headlineDivergenceNote}
+                          </span>
+                        ) : null}
+                      </div>
                       {condenseProgress != null ? (
                         <VenueHeadlineCondenseStatsPill
                           model={condenseProgress}
-                          className={headlineStatsClass}
+                          className={`ml-auto shrink-0 ${headlineStatsClass}`}
                         />
-                      ) : null}
-                      {headlineDivergenceNote ? (
-                        <span className={`font-semibold text-white/65 ${DISPLAY_TEXT_HEADLINE_META}`}>
-                          {headlineDivergenceNote}
-                        </span>
                       ) : null}
                     </div>
                   ) : null}

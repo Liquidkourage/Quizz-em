@@ -8,6 +8,7 @@ import {
   WINNER_STAGE_ART_SCALE_PORTRAIT,
   type ShowdownStageArtLayout,
 } from './showdownStageArtLayout'
+import { showdownStageRubricStyle } from './showdownStageSlotRubric'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -397,7 +398,10 @@ function ShowdownStageTemplate({
         <div ref={bindArtBoxRef} className="vfd-showdown-stage-art-box">
           <ShowdownWinnerStageArtPortal artBox={artBox} layout={artLayout} />
           <div className="vfd-showdown-stage-overlay" aria-hidden>
-            <div className="vfd-showdown-stage-zoom-frame">
+            <div
+              className="vfd-showdown-stage-zoom-frame"
+              style={showdownStageRubricStyle(artLayout)}
+            >
               {variant === 'split' || variant === 'side' ? (
                 <ShowdownStageVariantBanner variant={variant} />
               ) : null}

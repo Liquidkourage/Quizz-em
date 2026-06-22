@@ -47,8 +47,7 @@
 
   /**
    * Winner stage template (1728×2160 art).
-   * Full-card footprint: stretch to tile aspect (object-fit: fill) and zoom in so
-   * the trophy art fills the card, not the PNG’s outer black margins.
+   * Full card height; widen horizontally so crown/laurels spread and text fits the void.
    */
   .vfd-showdown-stage {
     position: relative;
@@ -66,13 +65,13 @@
   }
 
   .vfd-showdown-stage-art-box {
-    --stage-full-card-zoom: 1.32;
+    --stage-width-stretch: 1.3;
     position: absolute;
-    top: 50%;
+    top: 0;
     left: 50%;
-    width: 100%;
     height: 100%;
-    transform: translate(-50%, -50%) scale(var(--stage-full-card-zoom));
+    width: 100%;
+    transform: translateX(-50%) scaleX(var(--stage-width-stretch));
     transform-origin: center center;
   }
 
@@ -86,7 +85,7 @@
   }
 
   .vfd-showdown-stage-overlay {
-    --stage-text-shift-y: 11%;
+    --stage-text-shift-y: 7%;
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -107,18 +106,17 @@
   /** Just below baked-in crown — WINNER strip only (crown is in the PNG). */
   .vfd-showdown-stage-slot--header {
     top: 12.8%;
-    width: 72%;
+    width: 64%;
     transform: translate(-50%, -50%);
   }
 
   /**
-   * Laurel void — name, pot, and cards stay grouped so they scale together
-   * instead of drifting on small mosaic tiles.
+   * Laurel void — name, pot, and cards stay grouped; keep inside wreath arms.
    */
   .vfd-showdown-stage-slot--laurel {
     top: 16%;
-    width: 84%;
-    height: 36%;
+    width: 72%;
+    height: 34%;
     transform: translateX(-50%);
     justify-content: center;
   }
@@ -149,7 +147,7 @@
   /** Centered on the mahogany podium plaque (not the top disc or bottom frame). */
   .vfd-showdown-stage-slot--difference {
     top: 71.5%;
-    width: 38%;
+    width: 34%;
     gap: max(0.02rem, 0.8cqh);
     transform: translate(-50%, -50%);
   }

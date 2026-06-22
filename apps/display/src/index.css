@@ -197,33 +197,15 @@
   }
 
   .vfd-showdown-stage-variant-banner--split {
-    border: 1px solid rgba(255, 248, 225, 0.95);
-    background: linear-gradient(
-      180deg,
-      rgba(255, 253, 245, 0.99) 0%,
-      rgba(255, 241, 190, 0.98) 38%,
-      rgba(245, 198, 60, 0.96) 100%
-    );
-    box-shadow:
-      0 0 18px rgba(255, 215, 90, 0.65),
-      inset 0 1px 0 rgba(255, 255, 255, 0.95),
-      inset 0 -1px 0 rgba(180, 130, 20, 0.35),
-      0 2px 10px rgba(0, 0, 0, 0.45);
+    border: none;
+    background: transparent;
+    box-shadow: none;
   }
 
   .vfd-showdown-stage-variant-banner--side {
-    border: 1px solid rgba(186, 245, 255, 0.95);
-    background: linear-gradient(
-      180deg,
-      rgba(240, 253, 255, 0.99) 0%,
-      rgba(165, 230, 255, 0.98) 38%,
-      rgba(34, 168, 180, 0.96) 100%
-    );
-    box-shadow:
-      0 0 18px rgba(45, 212, 191, 0.55),
-      inset 0 1px 0 rgba(255, 255, 255, 0.95),
-      inset 0 -1px 0 rgba(15, 100, 110, 0.35),
-      0 2px 10px rgba(0, 0, 0, 0.45);
+    border: none;
+    background: transparent;
+    box-shadow: none;
   }
 
   .vfd-showdown-stage-variant-banner-text {
@@ -241,23 +223,23 @@
   }
 
   .vfd-showdown-stage-variant-banner--split .vfd-showdown-stage-variant-banner-a {
-    color: #1a1008;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    color: #fff4dc;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
   .vfd-showdown-stage-variant-banner--split .vfd-showdown-stage-variant-banner-b {
-    color: #6b3f00;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+    color: #e2ad1a;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
   .vfd-showdown-stage-variant-banner--side .vfd-showdown-stage-variant-banner-a {
-    color: #082f49;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    color: #e0f2fe;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
   .vfd-showdown-stage-variant-banner--side .vfd-showdown-stage-variant-banner-b {
-    color: #155e75;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+    color: #67e8f9;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
   .vfd-showdown-stage-slot--crown-split {

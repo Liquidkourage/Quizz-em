@@ -79,6 +79,17 @@
     user-select: none;
   }
 
+  /** Height-first fill — scale to tile height, crop sides evenly (no object-fit resample pass). */
+  .vfd-showdown-stage-art--height-fill {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    transform: translateX(-50%);
+  }
+
   .vfd-showdown-stage-overlay {
     position: absolute;
     inset: 0;

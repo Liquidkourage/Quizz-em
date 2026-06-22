@@ -2,9 +2,9 @@ import { useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import winnerStageCardArt from './assets/winner-stage-card.png'
 
-/** Display bitmap — Lanczos downscale from master; ~3× mosaic tile at 2× DPR. */
-export const WINNER_STAGE_CARD_WIDTH = 1280
-export const WINNER_STAGE_CARD_HEIGHT = 768
+/** Display bitmap — Lanczos downscale from master; ~5× mosaic tile at 2× DPR. */
+export const WINNER_STAGE_CARD_WIDTH = 2400
+export const WINNER_STAGE_CARD_HEIGHT = 1439
 
 export const SHOWDOWN_ART_PORTAL_ROOT_ID = 'vfd-showdown-art-portal-root'
 
@@ -63,16 +63,10 @@ function PortaledArt({ clip }: { clip: ArtClip }) {
         alt=""
         aria-hidden
         draggable={false}
-        className="vfd-showdown-stage-art"
+        className="vfd-showdown-stage-art vfd-showdown-stage-art--height-fill"
         width={WINNER_STAGE_CARD_WIDTH}
         height={WINNER_STAGE_CARD_HEIGHT}
-        style={{
-          display: 'block',
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          objectPosition: 'center center',
-        }}
+        decoding="async"
       />
     </div>,
     portalRoot,

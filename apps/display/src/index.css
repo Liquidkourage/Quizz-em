@@ -28,11 +28,14 @@
     @apply w-14 h-14 rounded-full bg-gradient-to-br from-casino-emerald to-casino-emeraldHover text-black font-black grid place-items-center shadow-neon-emerald;
   }
 
-  /** Gold decimal dot between winner answer card faces. */
-  .vfd-showdown-winner-decimal {
-    border-radius: 9999px;
-    background: linear-gradient(180deg, #f0d98a 0%, #c9a030 100%);
-    box-shadow: 0 0 4px rgba(212, 175, 55, 0.55);
+  /** Gold decimal period between winner answer card faces. */
+  .vfd-showdown-decimal-mark {
+    font-family: 'Bungee', system-ui, sans-serif;
+    font-weight: 400;
+    color: #e2ad1a;
+    text-shadow:
+      0 0 6px rgb(251 191 36 / 0.45),
+      0 1px 2px rgb(0 0 0 / 0.75);
   }
 
   /** Winner stage overlay — black matches template art letterboxing. */

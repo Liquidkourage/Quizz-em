@@ -744,11 +744,38 @@
     font-size: clamp(14px, 1.95vmin, 19px);
   }
 
-  /** Headline condense / progress caption — size from venue-floor typography tier. */
-  .display-text-headline-caption-spacious,
-  .display-text-headline-caption,
+  /** Headline condense / progress caption — viewport-scaled (not mosaic cqw tokens). */
+  .display-text-headline-caption-spacious {
+    font-size: clamp(13px, 1.65vmin, 17px);
+  }
+
+  .display-text-headline-caption {
+    font-size: clamp(12px, 1.45vmin, 15px);
+  }
+
   .display-text-headline-caption-compact {
-    font-size: var(--vfd-summary-size);
+    font-size: clamp(11px, 1.3vmin, 13px);
+  }
+
+  .display-text-headline-caption-dense {
+    font-size: clamp(10px, 1.15vmin, 12px);
+  }
+
+  /** Headline blinds amount — separate from mosaic tile pot tokens. */
+  .vfd-headline-blinds-amount-spacious {
+    font-size: clamp(17px, 2.05vmin, 22px);
+  }
+
+  .vfd-headline-blinds-amount {
+    font-size: clamp(15px, 1.8vmin, 19px);
+  }
+
+  .vfd-headline-blinds-amount-compact {
+    font-size: clamp(13px, 1.55vmin, 16px);
+  }
+
+  .vfd-headline-blinds-amount-dense {
+    font-size: clamp(12px, 1.35vmin, 14px);
   }
 
   /** Venue headline question — viewport-scaled for room readability (not fixed px tokens). */
@@ -771,49 +798,19 @@
   }
 
   /**
-   * Venue-floor mosaic typography tiers — container-query tokens (tile is @container/size).
-   * Calibrated from ~220×129px reference cells; scales with each mosaic tile.
+   * Venue-floor mosaic density — felt cap only on wall root.
+   * Tile typography is set per-card via {@link venueMosaicTileTypographyStyle}.
    */
   .venue-floor-typography-spacious {
-    --vfd-summary-size: max(0.68rem, min(5.5cqw, 9.2cqh));
-    --vfd-player-name-size: max(0.72rem, min(7.5cqw, 12.5cqh));
-    --vfd-stack-size: max(0.72rem, min(9cqw, 15cqh));
-    --vfd-to-call-label-size: max(0.68rem, min(5.5cqw, 9.2cqh));
-    --vfd-to-call-amount-size: max(0.72rem, min(7.5cqw, 12.5cqh));
-    --vfd-table-number-size: max(0.68rem, min(5.5cqw, 9.2cqh));
-    --vfd-watermark-size: max(0.72rem, min(6.2cqw, 10.4cqh));
-    --vfd-title-row-min-h: max(1.25rem, 4.5cqh);
-    --vfd-footer-row-min-h: max(1.25rem, 4.5cqh);
     --vfd-felt-max-height: 94%;
-    --vfd-blinds-amount-size: max(0.85rem, min(7.8cqw, 13cqh));
   }
 
   .venue-floor-typography-standard {
-    --vfd-summary-size: max(0.68rem, min(5.7cqw, 9.5cqh));
-    --vfd-player-name-size: max(0.72rem, min(8.2cqw, 13.6cqh));
-    --vfd-stack-size: max(0.72rem, min(9cqw, 15cqh));
-    --vfd-to-call-label-size: max(0.65rem, min(5.5cqw, 9.2cqh));
-    --vfd-to-call-amount-size: max(0.72rem, min(7.9cqw, 13.2cqh));
-    --vfd-table-number-size: max(0.62rem, min(5cqw, 8.4cqh));
-    --vfd-watermark-size: max(0.68rem, min(5.5cqw, 9.2cqh));
-    --vfd-title-row-min-h: max(1.2rem, 4.8cqh);
-    --vfd-footer-row-min-h: max(1.25rem, 5cqh);
     --vfd-felt-max-height: 89%;
-    --vfd-blinds-amount-size: max(0.8rem, min(7.2cqw, 12cqh));
   }
 
   .venue-floor-typography-compact {
-    --vfd-summary-size: max(0.62rem, min(4.8cqw, 8cqh));
-    --vfd-player-name-size: max(0.65rem, min(6.2cqw, 10.4cqh));
-    --vfd-stack-size: max(0.68rem, min(8.2cqw, 13.6cqh));
-    --vfd-to-call-label-size: max(0.62rem, min(4.8cqw, 8cqh));
-    --vfd-to-call-amount-size: max(0.65rem, min(6.2cqw, 10.4cqh));
-    --vfd-table-number-size: max(0.62rem, min(4.8cqw, 8cqh));
-    --vfd-watermark-size: max(0.62rem, min(5.1cqw, 8.6cqh));
-    --vfd-title-row-min-h: max(1.1rem, 4.2cqh);
-    --vfd-footer-row-min-h: max(1.15rem, 4.4cqh);
     --vfd-felt-max-height: 92%;
-    --vfd-blinds-amount-size: max(0.75rem, min(6.8cqw, 11.4cqh));
   }
 
   /** Mosaic card typography — sizes via CSS vars; Bungee dollars, Montserrat Italic labels. */
@@ -922,10 +919,6 @@
     line-height: 1;
     letter-spacing: 0.12em;
     color: rgb(110 231 183 / 0.35);
-  }
-
-  .vfd-blinds-amount {
-    font-size: var(--vfd-blinds-amount-size);
   }
 
   /** Venue eagle-eye leaderboard wall — typography and panel chrome. */

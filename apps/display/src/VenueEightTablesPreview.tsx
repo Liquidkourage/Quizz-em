@@ -46,7 +46,9 @@ import {
   DISPLAY_TEXT_HEADLINE_BADGE,
   DISPLAY_TEXT_HEADLINE_META,
   displayHeadlineCaptionClass,
+  displayHeadlineBlindsAmountClass,
   displayHeadlineQuestionClass,
+  DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA,
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import { SHOWDOWN_ART_PORTAL_ROOT_ID } from './ShowdownWinnerStageArtPortal'
@@ -2046,13 +2048,17 @@ export default function VenueEightTablesPreview({
     () => venueFloorPublicTypographyTier(floorLayoutTableCount),
     [floorLayoutTableCount],
   )
-  const headlineQuestionClass = useMemo(
-    () => displayHeadlineQuestionClass(publicTypographyTier),
-    [publicTypographyTier],
-  )
+  const headlineQuestionClass = useMemo(() => {
+    if (compactVenueHeadline) return DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA
+    return displayHeadlineQuestionClass(publicTypographyTier)
+  }, [compactVenueHeadline, publicTypographyTier])
   const headlineCaptionClass = useMemo(
-    () => displayHeadlineCaptionClass(publicTypographyTier),
-    [publicTypographyTier],
+    () => displayHeadlineCaptionClass(publicTypographyTier, compactVenueHeadline),
+    [publicTypographyTier, compactVenueHeadline],
+  )
+  const headlineBlindsAmountClass = useMemo(
+    () => displayHeadlineBlindsAmountClass(publicTypographyTier, compactVenueHeadline),
+    [publicTypographyTier, compactVenueHeadline],
   )
   const venueTypographyRootClass = useMemo(
     () => venueFloorMosaicTypography(floorLayoutTableCount).rootClass,
@@ -2209,7 +2215,7 @@ export default function VenueEightTablesPreview({
                         <span className={`text-center font-black uppercase tracking-wide text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                           Blinds
                         </span>
-                        <div className="vfd-blinds-amount text-center font-mono font-black tabular-nums tracking-tight text-amber-100">
+                        <div className={`text-center font-mono font-black tabular-nums tracking-tight text-amber-100 ${headlineBlindsAmountClass}`}>
                           {venueBlindsHeadline.amount}
                         </div>
                         {venueBlindsHeadline.meta ? (

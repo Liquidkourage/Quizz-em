@@ -2,10 +2,8 @@
  * Public display typography.
  * @see .cursor/rules/display-typography.mdc
  *
- * **Venue eagle-eye wall (mosaic + headline):** font sizes come from `--vfd-*` CSS variables
- * set by `.venue-floor-typography-{spacious|standard|compact}` in `index.css`.
- * Use {@link venueFloorMosaicTypography} / {@link displayHeadlineQuestionClass} — not raw
- * Tailwind `text-[clamp(...)]` on mosaic card elements (Tailwind maps arbitrary props to color).
+ * **Venue eagle-eye wall (mosaic + headline):** mosaic tiles use `--vfd-*` from
+ * {@link venueMosaicTileTypographyStyle}; headline strip uses `display-text-headline-*` vmin clamps.
  *
  * PRIMARY / SECONDARY → full-viewport bands only (headline, question strip).
  * *_CQ / *_CQW / BADGE_CQ / DENSE_CQ → inside @container cells (tiles, panels, rosters).
@@ -37,6 +35,21 @@ export const DISPLAY_TEXT_HEADLINE_CAPTION_SPACIOUS =
 export const DISPLAY_TEXT_HEADLINE_CAPTION_COMPACT =
   'display-text-headline-caption-compact leading-tight'
 
+/** Dense venue headline (14+ tables) — tighter condense caption. */
+export const DISPLAY_TEXT_HEADLINE_CAPTION_DENSE =
+  'display-text-headline-caption-dense leading-tight'
+
+export const DISPLAY_TEXT_HEADLINE_BLINDS_SPACIOUS =
+  'vfd-headline-blinds-amount-spacious leading-none'
+
+export const DISPLAY_TEXT_HEADLINE_BLINDS = 'vfd-headline-blinds-amount leading-none'
+
+export const DISPLAY_TEXT_HEADLINE_BLINDS_COMPACT =
+  'vfd-headline-blinds-amount-compact leading-none'
+
+export const DISPLAY_TEXT_HEADLINE_BLINDS_DENSE =
+  'vfd-headline-blinds-amount-dense leading-none'
+
 /** Venue headline question — spacious floor (1–8 tables). */
 export const DISPLAY_TEXT_HEADLINE_QUESTION_SPACIOUS =
   'display-text-headline-question-spacious leading-snug'
@@ -55,10 +68,24 @@ export function displayHeadlineQuestionClass(tier: VenueFloorPublicTypographyTie
   return DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA
 }
 
-export function displayHeadlineCaptionClass(tier: VenueFloorPublicTypographyTier): string {
+export function displayHeadlineCaptionClass(
+  tier: VenueFloorPublicTypographyTier,
+  denseHeadline = false
+): string {
+  if (denseHeadline) return DISPLAY_TEXT_HEADLINE_CAPTION_DENSE
   if (tier === 'spacious') return DISPLAY_TEXT_HEADLINE_CAPTION_SPACIOUS
   if (tier === 'standard') return DISPLAY_TEXT_HEADLINE_CAPTION
   return DISPLAY_TEXT_HEADLINE_CAPTION_COMPACT
+}
+
+export function displayHeadlineBlindsAmountClass(
+  tier: VenueFloorPublicTypographyTier,
+  denseHeadline = false
+): string {
+  if (denseHeadline) return DISPLAY_TEXT_HEADLINE_BLINDS_DENSE
+  if (tier === 'spacious') return DISPLAY_TEXT_HEADLINE_BLINDS_SPACIOUS
+  if (tier === 'standard') return DISPLAY_TEXT_HEADLINE_BLINDS
+  return DISPLAY_TEXT_HEADLINE_BLINDS_COMPACT
 }
 
 /** @container — primary (~10cqh of the cell). */

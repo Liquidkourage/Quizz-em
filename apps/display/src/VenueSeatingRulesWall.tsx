@@ -2,8 +2,7 @@ import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
   VENUE_SEATING_RULES_HEADLINE,
-  VENUE_SEATING_RULES_LEAD,
-  VENUE_SEATING_RULES_SECTIONS,
+  VENUE_SEATING_RULES_LINES,
 } from './venueSeatingRulesContent'
 
 export type VenueSeatingRulesWallProps = {
@@ -30,48 +29,30 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
       />
 
       <motion.div
-        className="relative z-10 mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col justify-center px-[clamp(1.25rem,3vw,3rem)] py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
+        className="relative z-10 mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col items-center justify-center gap-[clamp(1.25rem,2.8vmin,2.25rem)] px-[clamp(1.25rem,3vw,3rem)] py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] text-center"
         initial={skipMountIntro ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        <header className="mb-[clamp(1rem,2.2vmin,1.75rem)] flex shrink-0 flex-col items-center gap-[clamp(0.75rem,1.6vmin,1.25rem)] text-center">
-          <div className="w-[clamp(6rem,12vw,10rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
-            <QuizzEmWordmark layout="fill" />
-          </div>
-          <div className="min-w-0 max-w-3xl">
-            <h1 className="venue-rules-headline font-black leading-tight tracking-tight text-amber-300">
-              {VENUE_SEATING_RULES_HEADLINE}
-            </h1>
-            <p className="venue-rules-lead mt-[clamp(0.65rem,1.4vmin,1rem)] text-pretty font-semibold leading-snug text-white/88">
-              {VENUE_SEATING_RULES_LEAD}
-            </p>
-          </div>
-        </header>
-
-        <div className="flex min-h-0 flex-col gap-[clamp(0.75rem,1.5vmin,1.15rem)]">
-          {VENUE_SEATING_RULES_SECTIONS.map((section, index) => (
-            <motion.section
-              key={section.title}
-              className="venue-rules-panel rounded-2xl border border-amber-500/30 bg-black/45 px-[clamp(1.1rem,2.2vw,1.75rem)] py-[clamp(1rem,2vw,1.5rem)] shadow-[inset_0_1px_0_rgba(251,191,36,0.08)] backdrop-blur-sm"
-              initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.38, delay: skipMountIntro ? 0 : 0.08 * index }}
-            >
-              <h2 className="venue-rules-section-title text-center font-black uppercase tracking-wide text-emerald-200/95">
-                {section.title}
-              </h2>
-              <ul className="venue-rules-list mx-auto mt-[clamp(0.65rem,1.2vmin,0.95rem)] max-w-2xl list-none space-y-[clamp(0.5rem,1vmin,0.85rem)] p-0">
-                {section.bullets.map((bullet) => (
-                  <li key={bullet} className="flex gap-[0.55em] leading-snug text-white/88">
-                    <span className="mt-[0.45em] size-[0.42em] shrink-0 rounded-full bg-amber-400/90" aria-hidden />
-                    <span>{bullet}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.section>
-          ))}
+        <div className="w-[clamp(6rem,12vw,10rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
+          <QuizzEmWordmark layout="fill" />
         </div>
+        <h1 className="venue-rules-headline font-black leading-tight tracking-tight text-amber-300">
+          {VENUE_SEATING_RULES_HEADLINE}
+        </h1>
+        <ul className="venue-rules-list m-0 max-w-3xl list-none space-y-[clamp(0.85rem,1.8vmin,1.35rem)] p-0">
+          {VENUE_SEATING_RULES_LINES.map((line, index) => (
+            <motion.li
+              key={line}
+              className="text-pretty font-semibold leading-snug text-white/88"
+              initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.38, delay: skipMountIntro ? 0 : 0.1 * index }}
+            >
+              {line}
+            </motion.li>
+          ))}
+        </ul>
       </motion.div>
     </div>
   )

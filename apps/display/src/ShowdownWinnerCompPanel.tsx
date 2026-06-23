@@ -233,6 +233,17 @@ function ShowdownStageTemplate({
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const sideLedgerRows = sidePotLines?.length ?? 0
   const densityTier = showdownStageDensityTier(layoutTableCount)
+  const cardsInFooter = densityTier === 'dense' && variant !== 'winner'
+
+  const cardsBlock = (
+    <div className="vfd-showdown-stage-block vfd-showdown-stage-block--cards">
+      {chipRow != null ? (
+        <ShowdownFiveCardsUsed row={chipRow} size="stage" />
+      ) : (
+        <span className="text-[0.5rem] text-white/30">—</span>
+      )}
+    </div>
+  )
 
   return (
     <ShowdownStageChrome
@@ -241,6 +252,7 @@ function ShowdownStageTemplate({
       sideLedgerRows={sideLedgerRows}
       sideLedgerCompact={sideLedgerRows >= 3}
       difference={difference}
+      footer={cardsInFooter ? cardsBlock : null}
     >
       {variant !== 'side' ? (
         <div
@@ -268,13 +280,7 @@ function ShowdownStageTemplate({
         </div>
       ) : null}
 
-      <div className="vfd-showdown-stage-block vfd-showdown-stage-block--cards">
-        {chipRow != null ? (
-          <ShowdownFiveCardsUsed row={chipRow} size="stage" />
-        ) : (
-          <span className="text-[0.5rem] text-white/30">—</span>
-        )}
-      </div>
+      {!cardsInFooter ? cardsBlock : null}
     </ShowdownStageChrome>
   )
 }

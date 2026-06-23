@@ -272,6 +272,15 @@
     justify-content: center;
   }
 
+  .vfd-showdown-stage-footer {
+    flex-shrink: 0;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+
   .vfd-showdown-stage-nameplate-wrap {
     position: relative;
     flex-shrink: 0;
@@ -314,6 +323,43 @@
 
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-column {
     padding-bottom: max(0.06rem, 0.45cqh);
+  }
+
+  /**
+   * 20-up split/side — names + pot in the laurel band; cards in footer above nameplate.
+   * Winner dense keeps the locked space-evenly three-block stack in content.
+   */
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-flourish-art,
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='side'] .vfd-showdown-stage-flourish-art {
+    max-height: min(6.2cqh, 7.8cqw);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-content,
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='side'] .vfd-showdown-stage-content {
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: max(0.1rem, 1.35cqh);
+    padding-block: max(0.04rem, 0.35cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.28rem, min(16.5cqw, 12cqh));
+    --vfd-stage-card-w: max(0.9rem, min(11.5cqw, 8.4cqh));
+    --vfd-stage-card-gap: min(0.55cqw, 0.38cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-footer {
+    padding-block: max(0.02rem, 0.28cqh) max(0.04rem, 0.32cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split']
+    .vfd-showdown-stage-pot-each-inline {
+    font-size: min(4.8cqw, 8.2cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split']
+    .vfd-showdown-stage-split-names-compact {
+    gap: max(0.06rem, 0.55cqh);
   }
 
   .vfd-showdown-stage-name--split-compact {

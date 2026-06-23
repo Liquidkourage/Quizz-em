@@ -41,6 +41,7 @@ export function ShowdownStageChrome({
   sideLedgerCompact = false,
   difference = null,
   children,
+  footer = null,
 }: {
   variant: 'winner' | 'split' | 'side'
   densityTier: ShowdownStageDensityTier
@@ -48,6 +49,8 @@ export function ShowdownStageChrome({
   sideLedgerCompact?: boolean
   difference?: string | null
   children: ReactNode
+  /** Cards row — rendered above the nameplate when split/side need a dedicated band at 20-up. */
+  footer?: ReactNode
 }) {
   return (
     <div
@@ -89,6 +92,9 @@ export function ShowdownStageChrome({
             className="vfd-showdown-stage-crown"
           />
           <div className="vfd-showdown-stage-content">{children}</div>
+          {footer != null ? (
+            <div className="vfd-showdown-stage-footer">{footer}</div>
+          ) : null}
           {difference != null ? (
             <div className="vfd-showdown-stage-nameplate-wrap" aria-label={`Difference ${difference}`}>
               <img

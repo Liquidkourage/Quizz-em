@@ -5,7 +5,6 @@ import laurelLeftArt from './assets/showdown/laurel-left.png'
 import laurelRightArt from './assets/showdown/laurel-right.png'
 import nameplateArt from './assets/showdown/nameplate.png'
 import {
-  showdownStageCardFrameVars,
   showdownStageCardScaleBand,
   type ShowdownStageDensityTier,
 } from './showdownStageArtLayout'
@@ -57,7 +56,6 @@ export function ShowdownStageChrome({
 }) {
   const ledgerRows = variant === 'side' ? sideLedgerRows : variant === 'split' ? splitRows : 0
   const cardScale = showdownStageCardScaleBand(tableCount)
-  const cardFrameVars = showdownStageCardFrameVars(tableCount)
 
   return (
     <div
@@ -72,10 +70,7 @@ export function ShowdownStageChrome({
     >
       <div
         className="vfd-showdown-stage-frame vfd-showdown-stage-frame--composed"
-        style={{
-          ...(densityTier === 'dense' ? showdownStageDenseFrameStyle() : undefined),
-          ...cardFrameVars,
-        }}
+        style={densityTier === 'dense' ? showdownStageDenseFrameStyle() : undefined}
       >
         <img
           src={laurelLeftArt}

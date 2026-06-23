@@ -292,18 +292,15 @@
     padding-bottom: max(0.02rem, 0.22cqh);
   }
 
+  /** Rise card band — per-count rules live in [data-stage-table-count] selectors below. */
+  .vfd-showdown-stage[data-stage-card-scale='rise'] .vfd-showdown-stage-cards-row {
+    padding-bottom: 0;
+  }
+
   /** Wide card band — row width tracks the nameplate ribbon (3 / 4 / 9 tables). */
   .vfd-showdown-stage[data-stage-card-scale='wide'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
     margin-inline: auto;
-  }
-
-  /** Rise card band — per-count rise + optional nameplate-width row (2 / 7 / 8 / 13–15). */
-  .vfd-showdown-stage[data-stage-card-scale='rise'] .vfd-showdown-stage-cards-row {
-    width: var(--vfd-stage-cards-row-width, 100%);
-    margin-inline: auto;
-    margin-bottom: var(--vfd-stage-cards-rise, max(0.38rem, 1.75cqh));
-    padding-bottom: 0;
   }
 
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-cards-row {
@@ -347,6 +344,84 @@
     --vfd-stage-card-h: max(1.72rem, min(20.5cqw, 15.5cqh));
     --vfd-stage-card-w: max(1.2rem, min(14.5cqw, 10.8cqh));
     --vfd-stage-card-gap: min(0.95cqw, 0.6cqh);
+  }
+
+  /*
+   * QA per-count showdown card tuning (mosaic table count, not tile index).
+   * Must follow density-tier defaults so 13–15 overrides compact card tokens.
+   */
+  .vfd-showdown-stage[data-stage-table-count='2'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.5rem, min(19.2cqw, 14.2cqh));
+    --vfd-stage-card-w: max(1.06rem, min(14cqw, 10.35cqh));
+    --vfd-stage-card-gap: min(0.82cqw, 0.52cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='2'] .vfd-showdown-stage-cards-row {
+    width: min(46%, 92%);
+    transform: translateY(-0.62rem);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='7'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.46rem, min(18.6cqw, 13.75cqh));
+    --vfd-stage-card-w: max(1.04rem, min(13.6cqw, 10.1cqh));
+    --vfd-stage-card-gap: min(0.8cqw, 0.5cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='7'] .vfd-showdown-stage-cards-row {
+    width: min(46%, 92%);
+    transform: translateY(-0.68rem);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.44rem, min(18.2cqw, 13.5cqh));
+    --vfd-stage-card-w: max(1.02rem, min(13.25cqw, 9.85cqh));
+    --vfd-stage-card-gap: min(0.78cqw, 0.49cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-cards-row {
+    width: min(46%, 92%);
+    transform: translateY(-0.66rem);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='13'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.6rem, min(19cqw, 14.4cqh));
+    --vfd-stage-card-w: max(1.1rem, min(13.4cqw, 10cqh));
+    --vfd-stage-card-gap: min(0.88cqw, 0.56cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='13'] .vfd-showdown-stage-cards-row {
+    transform: translateY(-0.34rem);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='14'] .vfd-showdown-stage-frame,
+  .vfd-showdown-stage[data-stage-table-count='15'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.52rem, min(17.8cqw, 13.4cqh));
+    --vfd-stage-card-w: max(1.04rem, min(12.75cqw, 9.5cqh));
+    --vfd-stage-card-gap: min(0.82cqw, 0.52cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='14'] .vfd-showdown-stage-cards-row,
+  .vfd-showdown-stage[data-stage-table-count='15'] .vfd-showdown-stage-cards-row {
+    width: min(46%, 92%);
+    transform: translateY(-0.74rem);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='3'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.65rem, min(21.5cqw, 16cqh));
+    --vfd-stage-card-w: max(1.2rem, min(15.5cqw, 11.5cqh));
+    --vfd-stage-card-gap: min(1cqw, 0.65cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='4'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.8rem, min(23.5cqw, 17.5cqh));
+    --vfd-stage-card-w: max(1.32rem, min(17cqw, 12.75cqh));
+    --vfd-stage-card-gap: min(1.05cqw, 0.7cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-table-count='9'] .vfd-showdown-stage-frame {
+    --vfd-stage-card-h: max(1.75rem, min(22.5cqw, 17cqh));
+    --vfd-stage-card-w: max(1.28rem, min(16.5cqw, 12.25cqh));
+    --vfd-stage-card-gap: min(1.05cqw, 0.68cqh);
   }
 
   .vfd-showdown-stage-block {

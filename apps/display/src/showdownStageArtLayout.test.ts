@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { SHOWDOWN_DENSE_MIN_TABLE_COUNT } from './showdownStageDenseRubric'
 import {
+  SHOWDOWN_STAGE_RISE_TABLE_COUNTS,
+  SHOWDOWN_STAGE_WIDE_TABLE_COUNTS,
   showdownStageCardScaleBand,
-  showdownStageCardFrameVars,
   showdownStageDensityTier,
 } from './showdownStageArtLayout'
 
@@ -18,17 +19,14 @@ describe('showdownStageDensityTier', () => {
 })
 
 describe('showdownStageCardScaleBand', () => {
-  it('uses per-count rise presets for laurel-clearance counts', () => {
-    for (const n of [2, 7, 8, 13, 14, 15]) {
+  it('tags rise counts tuned in CSS', () => {
+    for (const n of SHOWDOWN_STAGE_RISE_TABLE_COUNTS) {
       expect(showdownStageCardScaleBand(n)).toBe('rise')
-      expect(showdownStageCardFrameVars(n)).toHaveProperty('--vfd-stage-cards-rise')
     }
-    expect(showdownStageCardFrameVars(13)).not.toHaveProperty('--vfd-stage-cards-row-width')
-    expect(showdownStageCardFrameVars(7)).toHaveProperty('--vfd-stage-cards-row-width')
   })
 
-  it('uses the wide nameplate band for 3, 4, and 9 tables', () => {
-    for (const n of [3, 4, 9]) {
+  it('tags wide counts tuned in CSS', () => {
+    for (const n of SHOWDOWN_STAGE_WIDE_TABLE_COUNTS) {
       expect(showdownStageCardScaleBand(n)).toBe('wide')
     }
   })
@@ -36,6 +34,5 @@ describe('showdownStageCardScaleBand', () => {
   it('leaves other counts on the default card tokens', () => {
     expect(showdownStageCardScaleBand(6)).toBeNull()
     expect(showdownStageCardScaleBand(12)).toBeNull()
-    expect(showdownStageCardFrameVars(6)).toBeUndefined()
   })
 })

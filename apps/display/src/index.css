@@ -42,8 +42,8 @@
     width: min(2.2cqw, 3.7cqh);
     margin-inline: min(0.45cqw, 0.75cqh);
     align-self: flex-end;
-    height: auto;
-    padding-bottom: 1.05cqh;
+    height: var(--vfd-stage-card-h);
+    padding-bottom: 0;
   }
 
   [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-mark--stage {

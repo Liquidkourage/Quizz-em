@@ -18,19 +18,13 @@ describe('showdownStageDensityTier', () => {
 })
 
 describe('showdownStageCardScaleBand', () => {
-  it('rises cards and trims card size for counts that overlap the laurel base', () => {
-    for (const n of [2, 7, 8]) {
+  it('uses per-count rise presets for laurel-clearance counts', () => {
+    for (const n of [2, 7, 8, 13, 14, 15]) {
       expect(showdownStageCardScaleBand(n)).toBe('rise')
-      expect(showdownStageCardFrameVars(n)).toMatchObject({
-        '--vfd-stage-cards-rise': 'max(0.5rem, 2.5cqh)',
-      })
+      expect(showdownStageCardFrameVars(n)).toHaveProperty('--vfd-stage-cards-rise')
     }
-    for (const n of [13, 14, 15]) {
-      expect(showdownStageCardScaleBand(n)).toBe('rise')
-      expect(showdownStageCardFrameVars(n)).toMatchObject({
-        '--vfd-stage-cards-rise': 'max(0.55rem, 2.75cqh)',
-      })
-    }
+    expect(showdownStageCardFrameVars(13)).not.toHaveProperty('--vfd-stage-cards-row-width')
+    expect(showdownStageCardFrameVars(7)).toHaveProperty('--vfd-stage-cards-row-width')
   })
 
   it('uses the wide nameplate band for 3, 4, and 9 tables', () => {

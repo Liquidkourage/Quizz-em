@@ -298,8 +298,10 @@
     margin-inline: auto;
   }
 
-  /** Rise card band — nudge the card row up so it clears the laurel base (2 / 7 / 8 / 13–15). */
+  /** Rise card band — per-count rise + optional nameplate-width row (2 / 7 / 8 / 13–15). */
   .vfd-showdown-stage[data-stage-card-scale='rise'] .vfd-showdown-stage-cards-row {
+    width: var(--vfd-stage-cards-row-width, 100%);
+    margin-inline: auto;
     margin-bottom: var(--vfd-stage-cards-rise, max(0.38rem, 1.75cqh));
     padding-bottom: 0;
   }

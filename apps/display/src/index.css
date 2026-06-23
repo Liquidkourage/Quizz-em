@@ -1424,18 +1424,18 @@
 
   /** Public seating-rules wall — readable from the back of the room. */
   .venue-rules-headline {
-    font-size: clamp(1.85rem, 3.6vmin, 2.75rem);
+    font-size: clamp(2.1rem, 4.2vmin, 3.25rem);
   }
 
-  .venue-rules-tagline {
-    font-size: clamp(1.05rem, 1.85vmin, 1.35rem);
+  .venue-rules-lead {
+    font-size: clamp(1.2rem, 2.2vmin, 1.65rem);
   }
 
   .venue-rules-section-title {
-    font-size: clamp(1.05rem, 1.9vmin, 1.35rem);
+    font-size: clamp(1.15rem, 2vmin, 1.45rem);
   }
 
   .venue-rules-list {
-    font-size: clamp(1rem, 1.75vmin, 1.25rem);
+    font-size: clamp(1.15rem, 2.05vmin, 1.45rem);
   }
 }

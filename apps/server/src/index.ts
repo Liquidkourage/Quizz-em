@@ -3386,13 +3386,6 @@ io.on('connection', (socket) => {
         }
 
         case 'rehearsalPreviewWinnerScreen': {
-          if (!isLobbySessionKey(sessionKey)) {
-            socket.emit(
-              'toast',
-              'Run “Preview winner screen” from the lobby session (join host as table LOBBY).',
-            )
-            break
-          }
           if (!assertVenueHost(socket, gameState)) break
           const tableCount = normalizeRehearsalTableCount(
             (payload as { tableCount?: number })?.tableCount,

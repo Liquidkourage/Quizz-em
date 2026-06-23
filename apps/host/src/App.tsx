@@ -380,6 +380,9 @@ function HostApp() {
   const virtualSeatCount = gameState.players.filter(p => p.id.startsWith('vp:')).length
   const rehearsalCpuOnly =
     gameState.players.length > 0 && gameState.players.every((p) => p.id.startsWith('vp:'))
+  const inVenueRehearsalLobby =
+    (gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby'
+  const showVenueRehearsalPreview = inVenueRehearsalLobby || rehearsalCpuOnly
   const atPlayerCap = gameState.players.length >= gameState.maxPlayers
   const hasVenueFeltBeat =
     venueFeltBeat != null && venueFeltBeat.some((r) => r.active && r.seated > 0)
@@ -1365,39 +1368,75 @@ function HostApp() {
                 Bot players for dry runs. Cap {gameState.maxPlayers} · roster {gameState.players.length} (
                 {virtualSeatCount} CPU).
               </p>
-              {(gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby' ? (
+              {showVenueRehearsalPreview ? (
                 <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
-                  <p className="text-sm text-amber-100/90 leading-relaxed">
-                    <strong className="text-amber-50">Venue rehearsal</strong> seeds each felt with{' '}
-                    <span className="font-semibold text-casino-gold">5–8 CPUs</span> (deterministic per table).
-                    Skips the lobby pool. Use <strong className="text-amber-50">Preview winner screen</strong>{' '}
-                    to jump straight to the mosaic showdown overlay for the table count above.
-                  </p>
+                  {inVenueRehearsalLobby ? (
+                    <p className="text-sm text-amber-100/90 leading-relaxed">
+                      <strong className="text-amber-50">Venue rehearsal</strong> seeds each felt with{' '}
+                      <span className="font-semibold text-casino-gold">5–8 CPUs</span> (deterministic per table).
+                      Skips the lobby pool. Use <strong className="text-amber-50">Preview winner screen</strong>{' '}
+                      to jump straight to the mosaic showdown overlay for the table count above.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-amber-100/90 leading-relaxed">
+                      Change the table count and hit{' '}
+                      <strong className="text-amber-50">Preview winner screen</strong> again to cycle mosaic
+                      layouts on the venue wall.
+                    </p>
+                  )}
                   <div className="mt-3 flex flex-wrap items-end gap-3">
                     <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-amber-200/80">
                       Table count
-                      <input
-                        type="number"
-                        min={1}
-                        max={VENUE_NUMBERED_TABLE_MAX}
-                        value={rehearsalTableCount}
-                        onChange={(e) => {
-                          const parsed = Number.parseInt(e.target.value, 10)
-                          if (!Number.isFinite(parsed)) return
-                          setRehearsalTableCount(
-                            Math.max(1, Math.min(VENUE_NUMBERED_TABLE_MAX, parsed))
-                          )
-                        }}
-                        className="w-[4.5rem] rounded-md border border-amber-500/40 bg-black/50 px-2 py-2 text-center text-base font-bold tabular-nums text-amber-50 shadow-inner focus:border-amber-400/70 focus:outline-none focus:ring-1 focus:ring-amber-400/40"
-                      />
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          aria-label="Decrease table count"
+                          disabled={rehearsalTableCount <= 1}
+                          onClick={() =>
+                            setRehearsalTableCount((n) => Math.max(1, n - 1))
+                          }
+                          className="rounded-md border border-amber-500/40 bg-black/50 px-2 py-2 text-base font-bold text-amber-50 transition-colors hover:bg-amber-500/15 disabled:opacity-40"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={VENUE_NUMBERED_TABLE_MAX}
+                          value={rehearsalTableCount}
+                          onChange={(e) => {
+                            const parsed = Number.parseInt(e.target.value, 10)
+                            if (!Number.isFinite(parsed)) return
+                            setRehearsalTableCount(
+                              Math.max(1, Math.min(VENUE_NUMBERED_TABLE_MAX, parsed))
+                            )
+                          }}
+                          className="w-[4.5rem] rounded-md border border-amber-500/40 bg-black/50 px-2 py-2 text-center text-base font-bold tabular-nums text-amber-50 shadow-inner focus:border-amber-400/70 focus:outline-none focus:ring-1 focus:ring-amber-400/40"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Increase table count"
+                          disabled={rehearsalTableCount >= VENUE_NUMBERED_TABLE_MAX}
+                          onClick={() =>
+                            setRehearsalTableCount((n) =>
+                              Math.min(VENUE_NUMBERED_TABLE_MAX, n + 1)
+                            )
+                          }
+                          className="rounded-md border border-amber-500/40 bg-black/50 px-2 py-2 text-base font-bold text-amber-50 transition-colors hover:bg-amber-500/15 disabled:opacity-40"
+                        >
+                          +
+                        </button>
+                      </div>
                     </label>
-                    <NeonButton
-                      variant="gold"
-                      size="small"
-                      onClick={() => seedRehearsalVenue(rehearsalTableCount)}
-                    >
-                      Seed rehearsal
-                    </NeonButton>
+                    {inVenueRehearsalLobby ? (
+                      <NeonButton
+                        variant="gold"
+                        size="small"
+                        onClick={() => seedRehearsalVenue(rehearsalTableCount)}
+                      >
+                        Seed rehearsal
+                      </NeonButton>
+                    ) : null}
                     <NeonButton
                       variant="purple"
                       size="small"

@@ -631,6 +631,19 @@ export function seedRehearsalVenue(tableCount: number = VENUE_NUMBERED_TABLE_MAX
   socket.emit('action', { type: 'seedRehearsalVenue', payload: { tableCount: n } })
 }
 
+/** Host-only (lobby): seed N CPU tables and jump straight to the venue-wall winner overlay. */
+export function rehearsalPreviewWinnerScreen(tableCount: number = VENUE_NUMBERED_TABLE_MAX) {
+  if (!socket) return
+  const n = Math.max(
+    1,
+    Math.min(
+      VENUE_NUMBERED_TABLE_MAX,
+      Math.floor(Number.isFinite(tableCount) ? tableCount : VENUE_NUMBERED_TABLE_MAX)
+    )
+  )
+  socket.emit('action', { type: 'rehearsalPreviewWinnerScreen', payload: { tableCount: n } })
+}
+
 /** Host-only: where TVs should point (venue wall vs single felt). */
 export function displaySetLayout(layout: DisplayLayoutPayload) {
   const next = normalizeDisplayLayoutPayload(layout)

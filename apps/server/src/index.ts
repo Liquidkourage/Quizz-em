@@ -1552,6 +1552,93 @@ function venuePlayableSnapshots(venueCode: string): { tk: string; n: number; gs:
   return out
 }
 
+function normalizeRehearsalTableCount(raw: unknown): number {
+  const n = Number(raw ?? VENUE_NUMBERED_TABLE_MAX)
+  return Number.isFinite(n)
+    ? Math.max(1, Math.min(VENUE_NUMBERED_TABLE_MAX, Math.floor(n)))
+    : VENUE_NUMBERED_TABLE_MAX
+}
+
+function seedRehearsalVenueRooms(
+  lobbyGs: GameState,
+  tableCount: number,
+): { vn: string; t1Key: string; tableCount: number; totalBots: number; sizes: number[] } {
+  const vn = normalizeVenueCode(lobbyGs.code)
+  const hostIdSnap = lobbyGs.hostId
+  const sizes = rehearsalVenueTableRosterSizes(tableCount)
+  for (const tk of allTableSessionsInVenue(vn)) {
+    rooms.delete(tk)
+  }
+  let globalSeat = 0
+  let totalBots = 0
+  for (let ti = 0; ti < sizes.length; ti++) {
+    const tid = String(ti + 1)
+    const tk = tableSessionKey(vn, tid)
+    let gsNew = applyEffectiveBlindsToGameState(
+      {
+        ...createEmptyGame(vn, hostIdSnap, tid),
+        smallBlind: lobbyGs.smallBlind,
+        bigBlind: lobbyGs.bigBlind,
+        maxPlayers: VENUE_WALL_SEAT_SLOTS,
+      },
+      vn,
+      tk,
+    )
+    const seatN = sizes[ti]!
+    for (let si = 0; si < seatN; si++) {
+      gsNew = addPlayer(
+        gsNew,
+        `vp:rehearsal:${tid}:${si}`,
+        rehearsalSeatDisplayName(globalSeat),
+      )
+      globalSeat++
+    }
+    totalBots += seatN
+    rooms.set(tk, gsNew)
+    emitVenueTableState(tk, gsNew)
+  }
+  return { vn, t1Key: tableSessionKey(vn, '1'), tableCount, totalBots, sizes }
+}
+
+function moveVenueHostToTableOne(vn: string, hostId: string, fromSessionKey: string): string {
+  const t1Key = tableSessionKey(vn, '1')
+  const hostSock = io.sockets.sockets.get(hostId)
+  if (hostSock) {
+    hostSock.leave(fromSessionKey)
+    hostSock.join(t1Key)
+    ;(hostSock.data as { sessionKey?: string }).sessionKey = t1Key
+  }
+  return t1Key
+}
+
+async function fastForwardVenueRehearsalToShowdown(
+  venueCode: string,
+): Promise<{ advanced: number; already: number }> {
+  const vn = normalizeVenueCode(venueCode)
+  clearVenueWageringOrchestrationState(vn)
+  const lib = await ensureVenueLibrary(vn)
+  const fallbackQ = rehearsalFallbackQuestion(lib.questions)
+  const rows = venuePlayableSnapshots(vn)
+  let advanced = 0
+  let already = 0
+  for (const { tk } of rows) {
+    const before = rooms.get(tk)
+    if (!before || before.players.length === 0) continue
+    if (before.phase === 'showdown' || before.phase === 'reveal') {
+      already++
+      continue
+    }
+    const after = fastForwardTableToShowdown(before, fallbackQ)
+    rooms.set(tk, after)
+    emitVenueTableState(tk, after, { skipOrchestration: true })
+    advanced++
+  }
+  markVenueShowStarted(vn)
+  venueAudienceWelcomeExpired.add(vn)
+  emitDisplayVenueSnapshotNow(vn)
+  return { advanced, already }
+}
+
 function toastVenueMisaligned(socket: Socket, rows: { n: number; gs: GameState }[]): void {
   const seenSig = new Set<string>()
   const parts: string[] = []
@@ -3282,57 +3369,42 @@ io.on('connection', (socket) => {
             break
           }
           if (!assertVenueHost(socket, gameState)) break
-          const vn = normalizeVenueCode(gameState.code)
-          const hostIdSnap = gameState.hostId
-          const rawTableCount = Number((payload as { tableCount?: number })?.tableCount ?? VENUE_NUMBERED_TABLE_MAX)
-          const tableCount = Number.isFinite(rawTableCount)
-            ? Math.max(1, Math.min(VENUE_NUMBERED_TABLE_MAX, Math.floor(rawTableCount)))
-            : VENUE_NUMBERED_TABLE_MAX
-          const sizes = rehearsalVenueTableRosterSizes(tableCount)
-          for (const tk of allTableSessionsInVenue(vn)) {
-            rooms.delete(tk)
-          }
-          let globalSeat = 0
-          let totalBots = 0
-          for (let ti = 0; ti < sizes.length; ti++) {
-            const tid = String(ti + 1)
-            const tk = tableSessionKey(vn, tid)
-            let gsNew = applyEffectiveBlindsToGameState(
-              {
-                ...createEmptyGame(vn, hostIdSnap, tid),
-                smallBlind: gameState.smallBlind,
-                bigBlind: gameState.bigBlind,
-                maxPlayers: VENUE_WALL_SEAT_SLOTS,
-              },
-              vn,
-              tk,
-            )
-            const seatN = sizes[ti]!
-            for (let si = 0; si < seatN; si++) {
-              gsNew = addPlayer(
-                gsNew,
-                `vp:rehearsal:${tid}:${si}`,
-                rehearsalSeatDisplayName(globalSeat),
-              )
-              globalSeat++
-            }
-            totalBots += seatN
-            rooms.set(tk, gsNew)
-            emitVenueTableState(tk, gsNew)
-          }
-          const t1Key = tableSessionKey(vn, '1')
-          const hostSock = io.sockets.sockets.get(hostIdSnap)
-          if (hostSock) {
-            hostSock.leave(sessionKey)
-            hostSock.join(t1Key)
-            ;(hostSock.data as { sessionKey?: string }).sessionKey = t1Key
-          }
-          markVenueShowStarted(vn)
-          venueAudienceWelcomeExpired.add(vn)
-          emitDisplayVenueSnapshotNow(vn)
+          const tableCount = normalizeRehearsalTableCount(
+            (payload as { tableCount?: number })?.tableCount,
+          )
+          const seeded = seedRehearsalVenueRooms(gameState, tableCount)
+          moveVenueHostToTableOne(seeded.vn, gameState.hostId, sessionKey)
+          markVenueShowStarted(seeded.vn)
+          venueAudienceWelcomeExpired.add(seeded.vn)
+          emitDisplayVenueSnapshotNow(seeded.vn)
           socket.emit(
             'toast',
-            `Rehearsal: ${tableCount} tables, ${totalBots} CPUs (${sizes.join(', ')} per table). Host on table 1.`,
+            `Rehearsal: ${seeded.tableCount} tables, ${seeded.totalBots} CPUs (${seeded.sizes.join(', ')} per table). Host on table 1.`,
+          )
+          gameState = rooms.get(seeded.t1Key)!
+          break
+        }
+
+        case 'rehearsalPreviewWinnerScreen': {
+          if (!isLobbySessionKey(sessionKey)) {
+            socket.emit(
+              'toast',
+              'Run “Preview winner screen” from the lobby session (join host as table LOBBY).',
+            )
+            break
+          }
+          if (!assertVenueHost(socket, gameState)) break
+          const tableCount = normalizeRehearsalTableCount(
+            (payload as { tableCount?: number })?.tableCount,
+          )
+          const seeded = seedRehearsalVenueRooms(gameState, tableCount)
+          const t1Key = moveVenueHostToTableOne(seeded.vn, gameState.hostId, sessionKey)
+          const { advanced } = await fastForwardVenueRehearsalToShowdown(seeded.vn)
+          socket.emit(
+            'toast',
+            advanced > 0
+              ? `Rehearsal: winner screen on ${seeded.tableCount} table(s) (${seeded.totalBots} CPUs).`
+              : `Rehearsal: ${seeded.tableCount} table(s) already in showdown.`,
           )
           gameState = rooms.get(t1Key)!
           break
@@ -3353,26 +3425,7 @@ io.on('connection', (socket) => {
             )
             break
           }
-          clearVenueWageringOrchestrationState(vnSkip)
-          const libSkip = await ensureVenueLibrary(vnSkip)
-          const fallbackQ = rehearsalFallbackQuestion(libSkip.questions)
-          let advanced = 0
-          let already = 0
-          for (const { tk } of rowsSkip) {
-            const before = rooms.get(tk)
-            if (!before || before.players.length === 0) continue
-            if (before.phase === 'showdown' || before.phase === 'reveal') {
-              already++
-              continue
-            }
-            const after = fastForwardTableToShowdown(before, fallbackQ)
-            rooms.set(tk, after)
-            emitVenueTableState(tk, after, { skipOrchestration: true })
-            advanced++
-          }
-          markVenueShowStarted(vnSkip)
-          venueAudienceWelcomeExpired.add(vnSkip)
-          emitDisplayVenueSnapshotNow(vnSkip)
+          const { advanced, already } = await fastForwardVenueRehearsalToShowdown(vnSkip)
           if (advanced > 0) {
             socket.emit(
               'toast',

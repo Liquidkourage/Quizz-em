@@ -17,6 +17,7 @@ import {
   clearVirtualPlayers,
   clearTableBlinds,
   seedRehearsalVenue,
+  rehearsalPreviewWinnerScreen,
   rehearsalSkipToShowdown,
   assignTablesFromLobby,
   displaySetLayout,
@@ -1369,7 +1370,8 @@ function HostApp() {
                   <p className="text-sm text-amber-100/90 leading-relaxed">
                     <strong className="text-amber-50">Venue rehearsal</strong> seeds each felt with{' '}
                     <span className="font-semibold text-casino-gold">5–8 CPUs</span> (deterministic per table).
-                    Skips the lobby pool.
+                    Skips the lobby pool. Use <strong className="text-amber-50">Preview winner screen</strong>{' '}
+                    to jump straight to the mosaic showdown overlay for the table count above.
                   </p>
                   <div className="mt-3 flex flex-wrap items-end gap-3">
                     <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-amber-200/80">
@@ -1395,6 +1397,13 @@ function HostApp() {
                       onClick={() => seedRehearsalVenue(rehearsalTableCount)}
                     >
                       Seed rehearsal
+                    </NeonButton>
+                    <NeonButton
+                      variant="purple"
+                      size="small"
+                      onClick={() => rehearsalPreviewWinnerScreen(rehearsalTableCount)}
+                    >
+                      Preview winner screen
                     </NeonButton>
                   </div>
                 </div>

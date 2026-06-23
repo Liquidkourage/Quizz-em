@@ -351,42 +351,42 @@
    * Must follow density-tier defaults so 13–15 overrides compact card tokens.
    */
   .vfd-showdown-stage[data-stage-table-count='2'] .vfd-showdown-stage-frame {
-    --vfd-stage-card-h: max(1.5rem, min(19.2cqw, 14.2cqh));
-    --vfd-stage-card-w: max(1.06rem, min(14cqw, 10.35cqh));
-    --vfd-stage-card-gap: min(0.82cqw, 0.52cqh);
+    --vfd-stage-card-h: max(1.44rem, min(18cqw, 13.3cqh));
+    --vfd-stage-card-w: max(1.02rem, min(13.1cqw, 9.7cqh));
+    --vfd-stage-card-gap: min(0.76cqw, 0.48cqh);
   }
 
   .vfd-showdown-stage[data-stage-table-count='2'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
     margin-inline: auto;
     align-self: center;
-    transform: translateY(-0.62rem);
+    transform: translateY(calc(-0.88rem - 1.5cqh));
   }
 
   .vfd-showdown-stage[data-stage-table-count='7'] .vfd-showdown-stage-frame {
-    --vfd-stage-card-h: max(1.46rem, min(18.6cqw, 13.75cqh));
-    --vfd-stage-card-w: max(1.04rem, min(13.6cqw, 10.1cqh));
-    --vfd-stage-card-gap: min(0.8cqw, 0.5cqh);
+    --vfd-stage-card-h: max(1.4rem, min(17.5cqw, 12.9cqh));
+    --vfd-stage-card-w: max(0.98rem, min(12.75cqw, 9.45cqh));
+    --vfd-stage-card-gap: min(0.74cqw, 0.46cqh);
   }
 
   .vfd-showdown-stage[data-stage-table-count='7'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
     margin-inline: auto;
     align-self: center;
-    transform: translateY(-0.68rem);
+    transform: translateY(calc(-0.94rem - 1.75cqh));
   }
 
   .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-frame {
-    --vfd-stage-card-h: max(1.44rem, min(18.2cqw, 13.5cqh));
-    --vfd-stage-card-w: max(1.02rem, min(13.25cqw, 9.85cqh));
-    --vfd-stage-card-gap: min(0.78cqw, 0.49cqh);
+    --vfd-stage-card-h: max(1.38rem, min(17.1cqw, 12.65cqh));
+    --vfd-stage-card-w: max(0.96rem, min(12.45cqw, 9.2cqh));
+    --vfd-stage-card-gap: min(0.72cqw, 0.45cqh);
   }
 
   .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
     margin-inline: auto;
     align-self: center;
-    transform: translateY(-0.66rem);
+    transform: translateY(calc(-0.92rem - 1.75cqh));
   }
 
   .vfd-showdown-stage[data-stage-table-count='13'] .vfd-showdown-stage-frame {
@@ -401,9 +401,9 @@
 
   .vfd-showdown-stage[data-stage-table-count='14'] .vfd-showdown-stage-frame,
   .vfd-showdown-stage[data-stage-table-count='15'] .vfd-showdown-stage-frame {
-    --vfd-stage-card-h: max(1.52rem, min(17.8cqw, 13.4cqh));
-    --vfd-stage-card-w: max(1.04rem, min(12.75cqw, 9.5cqh));
-    --vfd-stage-card-gap: min(0.82cqw, 0.52cqh);
+    --vfd-stage-card-h: max(1.46rem, min(16.7cqw, 12.5cqh));
+    --vfd-stage-card-w: max(0.98rem, min(12cqw, 8.85cqh));
+    --vfd-stage-card-gap: min(0.76cqw, 0.48cqh);
   }
 
   .vfd-showdown-stage[data-stage-table-count='14'] .vfd-showdown-stage-cards-row,
@@ -411,7 +411,7 @@
     width: min(46%, 92%);
     margin-inline: auto;
     align-self: center;
-    transform: translateY(-0.74rem);
+    transform: translateY(calc(-1rem - 2cqh));
   }
 
   .vfd-showdown-stage[data-stage-table-count='3'] .vfd-showdown-stage-frame {

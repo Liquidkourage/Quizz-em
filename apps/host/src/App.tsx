@@ -515,6 +515,8 @@ function HostApp() {
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'floor' })
   const showLeaderboardOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
+  const showSeatingRulesOnTvs = () =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'rules' })
   const spotlightTableOnTvs = (n: number) =>
     displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
 
@@ -1163,6 +1165,7 @@ function HostApp() {
               tableMax={VENUE_NUMBERED_TABLE_MAX}
               onVenueFloor={showVenueFloorOnTvs}
               onLeaderboard={showLeaderboardOnTvs}
+              onSeatingRules={showSeatingRulesOnTvs}
               onSpotlight={spotlightTableOnTvs}
             />
           }

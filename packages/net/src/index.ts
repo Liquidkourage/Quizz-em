@@ -33,7 +33,7 @@ export const ClientRole = z.enum(['host', 'player', 'display'])
 export type ClientRole = z.infer<typeof ClientRole>
 
 /** Host-driven `/display` mode: mosaic shell always; `focusTable` spotlights one felt or null for overview. */
-export type VenueWallViewMode = 'floor' | 'leaderboard'
+export type VenueWallViewMode = 'floor' | 'leaderboard' | 'rules'
 
 export type DisplayLayoutPayload = {
   layout: 'venueWall'
@@ -52,7 +52,8 @@ export function normalizeDisplayLayoutPayload(
     focusTable = focusRaw
   }
   const wallViewRaw = raw && typeof raw === 'object' ? (raw as Record<string, unknown>).wallView : undefined
-  const wallView: VenueWallViewMode = wallViewRaw === 'leaderboard' ? 'leaderboard' : 'floor'
+  const wallView: VenueWallViewMode =
+    wallViewRaw === 'leaderboard' ? 'leaderboard' : wallViewRaw === 'rules' ? 'rules' : 'floor'
   return { layout: 'venueWall', focusTable, wallView }
 }
 

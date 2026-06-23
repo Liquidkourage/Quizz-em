@@ -13,6 +13,7 @@ import AudienceWelcomeWall from './AudienceWelcomeWall.tsx'
 import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
 import VenueSeatingChart from './VenueSeatingChart.tsx'
 import VenueLeaderboardWall from './VenueLeaderboardWall.tsx'
+import VenueSeatingRulesWall from './VenueSeatingRulesWall.tsx'
 import { buildVenueWallTileRows, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
@@ -85,22 +86,27 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     () => venueWallFloorIsLive(tileRows, venueWall?.headlinePhase ?? null),
     [tileRows, venueWall?.headlinePhase],
   )
+  const hostWallView = layout.wallView ?? 'floor'
+  const hostPinnedRules = onVenueWallLayout && hostWallView === 'rules'
   /**
    * Until the first venue snapshot arrives, `venueWall` is null — treat that as briefing so we never
    * flash `VenueEightTablesPreview` rehearsal tiles before `AudienceWelcomeWall` (TV pair / cold load).
    */
   const audienceBriefing =
     onVenueWallLayout &&
+    !hostPinnedRules &&
     (venueWall === null ||
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !venueFloorIsLive))
 
-  const autoWallView = useVenueWallAutoView(venueWall)
-  const wallViewBeforeBust = autoWallView ?? layout.wallView ?? 'floor'
+  const autoWallView = useVenueWallAutoView(hostPinnedRules ? null : venueWall)
+  const wallViewBeforeBust =
+    hostWallView === 'rules' ? 'rules' : autoWallView ?? hostWallView
   const wouldShowSeatingChart =
     onVenueWallLayout &&
     !audienceBriefing &&
     !mosaicForcedByHost &&
     wallViewBeforeBust !== 'leaderboard' &&
+    wallViewBeforeBust !== 'rules' &&
     venueWallShowSeatingChart(venueWall, tileRows)
   const leaderboardRequested =
     onVenueWallLayout &&
@@ -109,13 +115,17 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     venueWall != null &&
     wallViewBeforeBust === 'leaderboard'
   const bustAnnouncement = useVenueBustAnnouncement(venueWall, leaderboardRequested)
-  const wallView = bustAnnouncement.visible ? 'floor' : wallViewBeforeBust
+  const wallView =
+    bustAnnouncement.visible && hostWallView !== 'rules' ? 'floor' : wallViewBeforeBust
   const showSeatingChart = wouldShowSeatingChart && !bustAnnouncement.visible
+  const showRules =
+    onVenueWallLayout && !bustAnnouncement.visible && wallView === 'rules'
   const showLeaderboard =
     onVenueWallLayout &&
     !audienceBriefing &&
     !showSeatingChart &&
     !bustAnnouncement.visible &&
+    !showRules &&
     wallView === 'leaderboard' &&
     venueWall != null
 
@@ -259,7 +269,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
 
   const showBriefingHero = audienceBriefing
   const showVenueMosaicShell =
-    onVenueWallLayout && !audienceBriefing && !showSeatingChart && !showLeaderboard
+    onVenueWallLayout && !audienceBriefing && !showSeatingChart && !showLeaderboard && !showRules
 
   const statePopup = useDisplayVenueStatePopups(
     showVenueMosaicShell && !bustAnnouncement.visible ? venueWall : null,
@@ -308,6 +318,19 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
           <VenueLeaderboardWall wall={venueWall} skipMountIntro={venueMosaicWasShownRef.current} />
+        </motion.div>
+      )}
+      {showRules && (
+        <motion.div
+          key="venue-seating-rules"
+          className="relative z-10 min-h-screen w-full"
+          role="presentation"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <VenueSeatingRulesWall skipMountIntro={venueMosaicWasShownRef.current} />
         </motion.div>
       )}
       {showVenueMosaicShell && (

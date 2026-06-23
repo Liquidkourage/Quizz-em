@@ -1195,6 +1195,7 @@ export function HostPublicTvsPanel({
   livelyTableNums,
   onVenueFloor,
   onLeaderboard,
+  onSeatingRules,
   onSpotlight,
 }: {
   venueCode: string
@@ -1202,6 +1203,7 @@ export function HostPublicTvsPanel({
   livelyTableNums: number[]
   onVenueFloor: () => void
   onLeaderboard: () => void
+  onSeatingRules: () => void
   onSpotlight: (n: number) => void
 }) {
   return (
@@ -1209,8 +1211,9 @@ export function HostPublicTvsPanel({
       <p className="mb-3 text-xs leading-snug text-white/50">
         Pair displays in Setup below (venue{' '}
         <span className="font-mono text-white/65">{venueCode}</span>). Switch TVs between the{' '}
-        <strong className="text-white/70">venue floor</strong> and a full-screen{' '}
-        <strong className="text-white/70">leaderboard</strong>, or highlight one table.
+        <strong className="text-white/70">venue floor</strong>, a full-screen{' '}
+        <strong className="text-white/70">leaderboard</strong>,{' '}
+        <strong className="text-white/70">seating rules</strong>, or highlight one table.
       </p>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <NeonButton variant="emerald" size="small" onClick={onVenueFloor}>
@@ -1218,6 +1221,9 @@ export function HostPublicTvsPanel({
         </NeonButton>
         <NeonButton variant="purple" size="small" onClick={onLeaderboard}>
           Leaderboard
+        </NeonButton>
+        <NeonButton variant="gold" size="small" onClick={onSeatingRules}>
+          Seating rules
         </NeonButton>
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -1379,12 +1385,14 @@ export function HostTvBar({
   tableMax,
   onVenueFloor,
   onLeaderboard,
+  onSeatingRules,
   onSpotlight,
 }: {
   livelyTableNums: number[]
   tableMax: number
   onVenueFloor: () => void
   onLeaderboard: () => void
+  onSeatingRules: () => void
   onSpotlight: (n: number) => void
 }) {
   const livelySet = new Set(livelyTableNums)
@@ -1404,6 +1412,9 @@ export function HostTvBar({
       </NeonButton>
       <NeonButton variant="purple" size="normal" type="button" onClick={onLeaderboard}>
         Leaderboard
+      </NeonButton>
+      <NeonButton variant="gold" size="normal" type="button" onClick={onSeatingRules}>
+        Rules
       </NeonButton>
       {livelyTableNums.length > 0 ? (
         <>

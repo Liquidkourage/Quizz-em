@@ -1421,4 +1421,21 @@
   .display-text-pairing-code {
     font-size: clamp(4rem, 10vmin, 6.5rem);
   }
+
+  /** Public seating-rules wall — readable from the back of the room. */
+  .venue-rules-headline {
+    font-size: clamp(1.85rem, 3.6vmin, 2.75rem);
+  }
+
+  .venue-rules-tagline {
+    font-size: clamp(1.05rem, 1.85vmin, 1.35rem);
+  }
+
+  .venue-rules-section-title {
+    font-size: clamp(1.05rem, 1.9vmin, 1.35rem);
+  }
+
+  .venue-rules-list {
+    font-size: clamp(1rem, 1.75vmin, 1.25rem);
+  }
 }

@@ -83,7 +83,7 @@
     --vfd-stage-card-h: max(1.78rem, min(20cqw, 14.5cqh));
     --vfd-stage-card-w: max(1.24rem, min(14cqw, 10.2cqh));
     --vfd-stage-card-gap: min(0.85cqw, 0.5cqh);
-    --vfd-stage-crown-h: min(13cqh, 14.5cqw);
+    --vfd-stage-crown-h: max(1.625rem, min(14cqh, 16cqw));
   }
 
   /** Mosaic tile during showdown — composed stage fills the tile. */
@@ -223,19 +223,19 @@
   }
 
   .vfd-showdown-stage[data-stage-density='hero'] .vfd-showdown-stage-frame {
-    --vfd-stage-crown-h: min(15.5cqh, 17cqw);
+    --vfd-stage-crown-h: max(2.35rem, min(16cqh, 18cqw));
   }
 
   .vfd-showdown-stage[data-stage-density='spacious'] .vfd-showdown-stage-frame {
-    --vfd-stage-crown-h: min(14.5cqh, 16cqw);
+    --vfd-stage-crown-h: max(2.1rem, min(15cqh, 17cqw));
   }
 
   .vfd-showdown-stage[data-stage-density='standard'] .vfd-showdown-stage-frame {
-    --vfd-stage-crown-h: min(13.5cqh, 15cqw);
+    --vfd-stage-crown-h: max(1.95rem, min(14.5cqh, 16cqw));
   }
 
   .vfd-showdown-stage[data-stage-density='compact'] .vfd-showdown-stage-frame {
-    --vfd-stage-crown-h: min(12.5cqh, 14cqw);
+    --vfd-stage-crown-h: max(1.85rem, min(14cqh, 16cqw));
   }
 
   .vfd-showdown-stage-block {
@@ -306,7 +306,12 @@
     --vfd-stage-card-h: max(1.92rem, min(22.5cqw, 17cqh));
     --vfd-stage-card-w: max(1.34rem, min(15.8cqw, 11.8cqh));
     --vfd-stage-card-gap: min(1.05cqw, 0.72cqh);
-    --vfd-stage-crown-h: min(12.5cqh, 14cqw);
+    --vfd-stage-crown-h: max(1.875rem, min(22cqh, 26cqw));
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-crown {
+    max-width: 48%;
+    margin-bottom: max(0.02rem, 0.2cqh);
   }
 
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-content {
@@ -928,7 +933,12 @@
   }
 
   .vfd-mosaic-table-num {
-    font-size: var(--vfd-table-number-size);
+    font-size: var(--vfd-table-number-size, 1rem);
+  }
+
+  /** Showdown overlay badge — px floor on micro tiles where cqw scaling vanishes. */
+  .vfd-showdown-winner-comp .vfd-mosaic-table-num {
+    font-size: max(1.25rem, calc(var(--vfd-table-number-size, 1rem) * 1.5));
   }
 
   .vfd-mosaic-to-call-label {

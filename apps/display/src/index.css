@@ -358,6 +358,8 @@
 
   .vfd-showdown-stage[data-stage-table-count='2'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
+    margin-inline: auto;
+    align-self: center;
     transform: translateY(-0.62rem);
   }
 
@@ -369,6 +371,8 @@
 
   .vfd-showdown-stage[data-stage-table-count='7'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
+    margin-inline: auto;
+    align-self: center;
     transform: translateY(-0.68rem);
   }
 
@@ -380,6 +384,8 @@
 
   .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
+    margin-inline: auto;
+    align-self: center;
     transform: translateY(-0.66rem);
   }
 
@@ -390,7 +396,7 @@
   }
 
   .vfd-showdown-stage[data-stage-table-count='13'] .vfd-showdown-stage-cards-row {
-    transform: translateY(-0.34rem);
+    transform: translateY(calc(-0.34rem - 2cqh));
   }
 
   .vfd-showdown-stage[data-stage-table-count='14'] .vfd-showdown-stage-frame,
@@ -403,6 +409,8 @@
   .vfd-showdown-stage[data-stage-table-count='14'] .vfd-showdown-stage-cards-row,
   .vfd-showdown-stage[data-stage-table-count='15'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
+    margin-inline: auto;
+    align-self: center;
     transform: translateY(-0.74rem);
   }
 

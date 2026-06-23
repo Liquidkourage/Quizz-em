@@ -295,20 +295,10 @@
     justify-content: center;
   }
 
-  /** 20-up floors — larger type and looser vertical stack. */
-  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-frame {
-    --vfd-stage-name-size: min(8.6cqw, 13.2cqh);
-    --vfd-stage-name-split-size: min(7.4cqw, 11.4cqh);
-    --vfd-stage-name-split-triple-size: min(6.8cqw, 10.6cqh);
-    --vfd-stage-name-split-quad-size: min(6.2cqw, 9.8cqh);
-    --vfd-stage-pot-size: min(10.8cqw, 15.8cqh);
-    --vfd-stage-diff-size: min(7.6cqw, 10.8cqh);
-    --vfd-stage-card-h: max(1.92rem, min(22.5cqw, 17cqh));
-    --vfd-stage-card-w: max(1.34rem, min(15.8cqw, 11.8cqh));
-    --vfd-stage-card-gap: min(1.05cqw, 0.72cqh);
-    --vfd-stage-crown-h: max(1.875rem, min(22cqh, 26cqw));
-  }
-
+  /**
+   * LOCKED — 20-up composed stage layout (QA May 2026).
+   * Frame tokens: showdownStageDenseRubric.ts (injected inline at runtime).
+   */
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-crown {
     max-width: 48%;
     margin-bottom: max(0.02rem, 0.2cqh);
@@ -936,9 +926,12 @@
     font-size: var(--vfd-table-number-size, 1rem);
   }
 
-  /** Showdown overlay badge — px floor on micro tiles where cqw scaling vanishes. */
-  .vfd-showdown-winner-comp .vfd-mosaic-table-num {
-    font-size: max(1.25rem, calc(var(--vfd-table-number-size, 1rem) * 1.5));
+  /** LOCKED 20-up — tokens from showdownStageDenseRubric.ts via data-showdown-dense. */
+  .vfd-showdown-winner-comp[data-showdown-dense] .vfd-mosaic-table-num {
+    font-size: max(
+      var(--vfd-showdown-dense-table-num-min, 1.25rem),
+      calc(var(--vfd-table-number-size, 1rem) * var(--vfd-showdown-dense-table-num-scale, 1.5))
+    );
   }
 
   .vfd-mosaic-to-call-label {

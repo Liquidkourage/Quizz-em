@@ -5,6 +5,10 @@ import {
 } from './showdownDisplay'
 import { resolveShowdownSidePotLines, ShowdownTableBadge, type ShowdownSidePotLine } from './venueFloorSidePotDisplay'
 import { ShowdownWinnerCompPanel } from './ShowdownWinnerCompPanel'
+import {
+  isShowdownDenseLayout,
+  showdownDenseOverlayStyle,
+} from './showdownStageDenseRubric'
 
 /** Locked layout id (only floor stack ships). */
 export type VenueFloorShowdownVariantId = 8
@@ -111,6 +115,7 @@ export function VenueFloorShowdownByVariant({
   )
 
   const compWinners = ctx.variant === 'split' ? allWinners : ctx.winners
+  const denseLayout = isShowdownDenseLayout(layoutTableCount)
 
   const ariaLabel =
     tableNum != null ? `Table ${tableNum}. ${ctx.ariaLabel}` : ctx.ariaLabel
@@ -120,6 +125,8 @@ export function VenueFloorShowdownByVariant({
       className="@container vfd-showdown-winner-comp pointer-events-none absolute inset-0 z-[125] overflow-hidden rounded-[inherit]"
       role="group"
       aria-label={ariaLabel}
+      data-showdown-dense={denseLayout ? '' : undefined}
+      style={denseLayout ? showdownDenseOverlayStyle() : undefined}
     >
       {tableNum != null ? (
         <span className="absolute left-1 top-1 z-20">

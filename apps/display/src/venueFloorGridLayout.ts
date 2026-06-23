@@ -1,6 +1,7 @@
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { stadiumMosaicScaleForWidth, type StadiumMosaicDensity } from '@qhe/ui'
 import type { CSSProperties } from 'react'
+import { MOSAIC_20UP_TABLE_NUM_PX } from './showdownStageDenseRubric'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   selectVenueFloorLayout,
@@ -253,7 +254,7 @@ const MOSAIC_TYPO_BASE_PX: Record<
     stack: 39,
     toCallLabel: 20,
     toCallAmount: 25,
-    tableNum: 26,
+    tableNum: MOSAIC_20UP_TABLE_NUM_PX,
     watermark: 22,
     titleRowMin: 30,
     footerRowMin: 31,

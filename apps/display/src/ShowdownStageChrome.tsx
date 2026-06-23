@@ -5,6 +5,7 @@ import laurelLeftArt from './assets/showdown/laurel-left.png'
 import laurelRightArt from './assets/showdown/laurel-right.png'
 import nameplateArt from './assets/showdown/nameplate.png'
 import type { ShowdownStageDensityTier } from './showdownStageArtLayout'
+import { showdownStageDenseFrameStyle } from './showdownStageDenseRubric'
 
 function ShowdownFlourishBanner({ variant }: { variant: 'split' | 'side' }) {
   const isSplit = variant === 'split'
@@ -58,7 +59,10 @@ export function ShowdownStageChrome({
       data-side-ledger-rows={sideLedgerRows > 0 ? String(sideLedgerRows) : undefined}
       data-side-ledger-compact={sideLedgerCompact ? '' : undefined}
     >
-      <div className="vfd-showdown-stage-frame vfd-showdown-stage-frame--composed">
+      <div
+        className="vfd-showdown-stage-frame vfd-showdown-stage-frame--composed"
+        style={densityTier === 'dense' ? showdownStageDenseFrameStyle() : undefined}
+      >
         <img
           src={laurelLeftArt}
           alt=""

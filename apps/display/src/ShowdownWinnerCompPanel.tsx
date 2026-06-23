@@ -15,7 +15,61 @@ function chunkNamesForLines(names: readonly string[], perLine: number): string[]
   return chunks
 }
 
-function ShowdownStageSidePotSummary({ lines }: { lines: readonly ShowdownSidePotLine[] }) {
+function ShowdownStageSidePotSummary({
+  lines,
+  mainHeroBand = false,
+}: {
+  lines: readonly ShowdownSidePotLine[]
+  /** Roomy tiles — MAIN in a gold band; SIDE rows stay plain ledger size. */
+  mainHeroBand?: boolean
+}) {
+  const mainLine = lines.find((line) => line.label === 'Main')
+  const sideLines = lines.filter((line) => line.label === 'Side')
+  const useHeroBand = mainHeroBand && mainLine != null && sideLines.length > 0
+
+  if (useHeroBand && mainLine) {
+    return (
+      <div className="vfd-showdown-stage-side-ledger vfd-showdown-stage-side-ledger--roomy">
+        <div
+          className="vfd-showdown-stage-side-ledger-main-hero"
+          aria-label={`Main pot ${mainLine.name} $${mainLine.amount.toLocaleString()}`}
+        >
+          <span className="vfd-showdown-stage-side-ledger-main-badge">Main</span>
+          <span
+            className="vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--main"
+            title={mainLine.name}
+          >
+            {mainLine.name}
+          </span>
+          <span className="vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--main">
+            ${mainLine.amount.toLocaleString()}
+          </span>
+        </div>
+        <div className="vfd-showdown-stage-side-ledger-side-stack">
+          {sideLines.map((line) => (
+            <div
+              key={`${line.label}:${line.name}`}
+              className="vfd-showdown-stage-side-ledger-side-row"
+            >
+              <span className="vfd-showdown-stage-side-ledger-label vfd-showdown-stage-side-ledger-label--side">
+                {line.label}
+              </span>
+              <span
+                className="vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--side"
+                title={line.name}
+              >
+                {line.name}
+              </span>
+              <span className="vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--side">
+                ${line.amount.toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="vfd-showdown-stage-side-ledger">
       {lines.map((line) => (
@@ -277,7 +331,10 @@ function ShowdownStageTemplate({
 
       {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
         <div className="vfd-showdown-stage-block vfd-showdown-stage-block--side-ledger">
-          <ShowdownStageSidePotSummary lines={sidePotLines} />
+          <ShowdownStageSidePotSummary
+            lines={sidePotLines}
+            mainHeroBand={densityTier !== 'dense' && sideLedgerRows <= 2}
+          />
         </div>
       ) : pot > 0 ? (
         <div className="vfd-showdown-stage-block vfd-showdown-stage-block--pot">

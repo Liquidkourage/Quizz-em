@@ -467,63 +467,109 @@
   }
 
   /**
-   * Two-line side pots on roomy tiles (≤19 tables) — MAIN at winner scale, SIDE stays ledger-sized.
+   * Roomy two-line side pots — MAIN in a gold band; same type size as SIDE rows.
    */
-  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
-      [data-stage-density='dense']
-    )
-    .vfd-showdown-stage-side-ledger {
-    row-gap: max(0.24rem, 2.2cqh);
+  .vfd-showdown-stage-side-ledger--roomy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: max(0.14rem, 1.25cqh);
+    width: fit-content;
+    max-width: 100%;
+    margin-inline: auto;
   }
 
-  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
-      [data-stage-density='dense']
-    )
-    .vfd-showdown-stage-side-ledger-label--main {
-    font-size: max(0.7em, min(3.4cqw, 5.2cqh));
-    letter-spacing: 0.12em;
+  .vfd-showdown-stage-side-ledger-main-hero {
+    display: grid;
+    grid-template-columns: auto minmax(0, max-content) auto;
+    align-items: baseline;
+    justify-content: center;
+    column-gap: max(0.22rem, 1.1cqw);
+    width: fit-content;
+    max-width: 100%;
+    padding: max(0.1rem, 0.75cqh) max(0.26rem, 1.25cqw);
+    border-radius: max(0.1rem, 0.5cqh);
+    background: linear-gradient(
+      180deg,
+      rgba(251, 191, 36, 0.24) 0%,
+      rgba(146, 64, 14, 0.2) 100%
+    );
+    box-shadow:
+      inset 0 0 0 1px rgba(251, 191, 36, 0.48),
+      0 1px 5px rgba(0, 0, 0, 0.38);
   }
 
-  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
-      [data-stage-density='dense']
-    )
-    .vfd-showdown-stage-side-ledger-name--main {
-    max-width: min(10rem, 48cqw);
-    font-size: var(--vfd-stage-name-size);
-    font-weight: 900;
-    line-height: 1.05;
-    letter-spacing: 0.015em;
-  }
-
-  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
-      [data-stage-density='dense']
-    )
-    .vfd-showdown-stage-side-ledger-amount--main {
-    font-size: var(--vfd-stage-pot-size);
-  }
-
-  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
-      [data-stage-density='dense']
-    )
-    .vfd-showdown-stage-side-ledger-label--side {
-    font-size: max(0.58em, min(2.8cqw, 4.6cqh));
-    letter-spacing: 0.1em;
-  }
-
-  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
-      [data-stage-density='dense']
-    )
-    .vfd-showdown-stage-side-ledger-name--side {
-    max-width: min(8rem, 36cqw);
+  .vfd-showdown-stage-side-ledger-main-badge {
+    grid-column: 1;
+    justify-self: end;
+    font-family: 'Montserrat', system-ui, sans-serif;
     font-size: max(0.68em, min(3.4cqw, 5.8cqh));
-    font-weight: 800;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: #fde68a;
+    text-shadow: 0 0 7px rgba(251, 191, 36, 0.55);
   }
 
-  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
-      [data-stage-density='dense']
-    )
-    .vfd-showdown-stage-side-ledger-amount--side {
-    font-size: min(4.2cqw, 7cqh);
+  .vfd-showdown-stage-side-ledger-main-hero .vfd-showdown-stage-side-ledger-name--main {
+    grid-column: 2;
+    min-width: 0;
+    max-width: min(9rem, 42cqw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    color: #fff8e8;
+    text-shadow:
+      0 0 6px rgba(251, 191, 36, 0.35),
+      0 1px 2px rgba(0, 0, 0, 0.85);
+  }
+
+  .vfd-showdown-stage-side-ledger-main-hero .vfd-showdown-stage-side-ledger-amount--main {
+    grid-column: 3;
+    justify-self: start;
+    color: #fde047;
+    filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8));
+  }
+
+  .vfd-showdown-stage-side-ledger-side-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: max(0.06rem, 0.55cqh);
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .vfd-showdown-stage-side-ledger-side-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, max-content) auto;
+    align-items: baseline;
+    justify-content: center;
+    column-gap: max(0.22rem, 1.1cqw);
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .vfd-showdown-stage-side-ledger-side-row .vfd-showdown-stage-side-ledger-label {
+    grid-column: 1;
+    justify-self: end;
+  }
+
+  .vfd-showdown-stage-side-ledger-side-row .vfd-showdown-stage-side-ledger-name {
+    grid-column: 2;
+    min-width: 0;
+    max-width: min(9rem, 42cqw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .vfd-showdown-stage-side-ledger-side-row .vfd-showdown-stage-side-ledger-amount {
+    grid-column: 3;
+    justify-self: start;
   }
 
   /** Three+ payout lines — tighter type, same centered column grid. */

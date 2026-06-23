@@ -60,7 +60,7 @@
       0 1px 2px rgba(0, 0, 0, 0.85);
   }
 
-  /** Winner stage overlay — text above portaled art. */
+  /** Winner stage overlay — composed laurel/crown/nameplate chrome. */
   .vfd-showdown-winner-comp {
     width: 100%;
     height: 100%;
@@ -79,15 +79,13 @@
     --vfd-stage-pot-size: min(9cqw, 13cqh);
     --vfd-stage-pot-each-size: min(5.6cqw, 9cqh);
     --vfd-stage-diff-size: min(6.8cqw, 9.5cqh);
-    --vfd-stage-banner-text-size: min(5.6cqw, 8.5cqh);
     --vfd-stage-ledger-size: min(5.8cqw, 8.5cqh);
-    --vfd-stage-ledger-pot-size: min(7.2cqw, 10.5cqh);
     --vfd-stage-card-h: max(1.78rem, min(20cqw, 14.5cqh));
     --vfd-stage-card-w: max(1.24rem, min(14cqw, 10.2cqh));
     --vfd-stage-card-gap: min(0.85cqw, 0.5cqh);
   }
 
-  /** Mosaic tile during showdown — portaled art covers the tile. */
+  /** Mosaic tile during showdown — composed stage fills the tile. */
   .vfd-mosaic-tile--showdown-overlay {
     background: transparent !important;
     box-shadow: none !important;
@@ -99,7 +97,7 @@
     max-height: 100%;
   }
 
-  /** Winner stage — cover fill (height-first, even horizontal crop); art outside venue-wall zoom. */
+  /** Composed winner stage — layered PNG chrome + flex content column. */
   .vfd-showdown-stage {
     position: relative;
     width: 100%;
@@ -108,145 +106,69 @@
     overflow: hidden;
   }
 
-  .vfd-showdown-stage-art-box {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
+  .vfd-showdown-stage-frame--composed {
+    background: #000;
   }
 
-  .vfd-showdown-stage-art {
-    image-rendering: auto;
+  .vfd-showdown-stage-laurel {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+    object-fit: contain;
+    width: 38%;
+    max-height: 84%;
+    top: 5%;
+  }
+
+  .vfd-showdown-stage-laurel--left {
+    left: 0;
+  }
+
+  .vfd-showdown-stage-laurel--right {
+    right: 0;
+  }
+
+  .vfd-showdown-stage-column {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 86%;
+    height: 100%;
+    min-height: 0;
+    margin-inline: auto;
+    padding: max(0.12rem, 1.2cqh) 2% max(0.1rem, 0.8cqh);
+    gap: max(0.06rem, 0.65cqh);
+  }
+
+  .vfd-showdown-stage-flourish {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    width: min(96%, 100%);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .vfd-showdown-stage-flourish-art {
+    width: 100%;
+    height: auto;
+    max-height: min(7.5cqh, 9cqw);
+    object-fit: contain;
     pointer-events: none;
     user-select: none;
   }
 
-  /** Height-first fill — scale to tile height, crop sides evenly (no object-fit resample pass). */
-  .vfd-showdown-stage-art--height-fill {
+  .vfd-showdown-stage-flourish-label {
     position: absolute;
-    top: 0;
-    left: 50%;
-    height: 100%;
-    width: auto;
-    max-width: none;
-    transform: translateX(-50%);
-  }
-
-  /** Width-first fill — portrait tiles keep the full wreath span; crop top/bottom. */
-  .vfd-showdown-stage-art--width-fill {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 100%;
-    height: auto;
-    max-height: none;
-    transform: translateY(-50%);
-  }
-
-  /** Centered virtual frame larger than the tile clip (see WINNER_STAGE_ART_SCALE). */
-  .vfd-showdown-stage-zoom-frame {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: calc(100% * var(--vfd-stage-art-scale, 1));
-    height: calc(100% * var(--vfd-stage-art-scale, 1));
-    transform: translate(-50%, -50%);
-    /** Slot Y/W/H defaults — overridden per layout by {@link showdownStageRubricStyle}. */
-    --vfd-stage-safe-top: 9.25%;
-    --vfd-stage-safe-width: calc(100% / var(--vfd-stage-art-scale, 1.2));
-    --vfd-stage-y-winner-name: 25%;
-    --vfd-stage-y-split-name: 25.4%;
-    --vfd-stage-y-split-name-banner: 26.8%;
-    --vfd-stage-y-ledger: 27.5%;
-    --vfd-stage-y-ledger-banner: 28.8%;
-    --vfd-stage-y-pot: 40%;
-    --vfd-stage-y-cards: 50.5%;
-    --vfd-stage-y-cards-side: 52.5%;
-    --vfd-stage-y-diff: 86.2%;
-    --vfd-stage-w-banner: calc(var(--vfd-stage-safe-width, 83.333%) - 24%);
-    --vfd-stage-w-name: calc(var(--vfd-stage-safe-width, 83.333%) * 0.68);
-    --vfd-stage-w-ledger: calc(var(--vfd-stage-safe-width, 83.333%) - 18%);
-    --vfd-stage-w-pot: calc(var(--vfd-stage-safe-width, 83.333%) - 10%);
-    --vfd-stage-w-cards: 84%;
-    --vfd-stage-h-cards: 18%;
-    --vfd-stage-w-cards-side: 78%;
-    --vfd-stage-h-cards-side: 16%;
-    --vfd-stage-w-diff: 44%;
-    --vfd-stage-h-diff: 7.5%;
-  }
-
-  .vfd-showdown-stage-art-portal .vfd-showdown-stage-zoom-frame {
-    overflow: hidden;
-  }
-
-  .vfd-showdown-stage-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .vfd-showdown-stage-slot {
-    position: absolute;
-    left: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    transform: translateX(-50%);
-  }
-
-  /** Split / side label strip + name, or winner name under baked crown. */
-  .vfd-showdown-stage-slot--crown {
-    top: 11%;
-    width: 74%;
-    transform: translateX(-50%);
-    justify-content: flex-start;
-    gap: max(0.08rem, 1.1cqh);
-    font-size: max(0.38rem, min(4.8cqw, 8cqh));
-  }
-
-  .vfd-showdown-stage-slot--crown-labelled {
-    top: 11%;
-  }
-
-  .vfd-showdown-stage-slot--split-banner,
-  .vfd-showdown-stage-slot--side-banner,
-  .vfd-showdown-stage-slot--variant-banner {
-    top: var(--vfd-stage-safe-top, 9.25%);
-    width: var(--vfd-stage-w-banner);
-    transform: translateX(-50%);
-    justify-content: flex-start;
-  }
-
-  .vfd-showdown-stage-variant-banner {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    border-radius: max(4px, 0.65cqw);
-    padding: max(0.14rem, 0.55cqh) max(0.35rem, 1.2cqw);
-  }
-
-  .vfd-showdown-stage-variant-banner--split {
-    border: none;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .vfd-showdown-stage-variant-banner--side {
-    border: none;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  .vfd-showdown-stage-variant-banner-text {
     display: inline-flex;
     align-items: baseline;
     gap: 0.26em;
     font-family: 'Montserrat', system-ui, sans-serif;
-    font-size: var(--vfd-stage-banner-text-size);
+    font-size: min(5.6cqw, 8.5cqh);
     font-weight: 900;
     font-style: italic;
     letter-spacing: 0.08em;
@@ -255,45 +177,104 @@
     white-space: nowrap;
   }
 
-  .vfd-showdown-stage-variant-banner--split .vfd-showdown-stage-variant-banner-a {
+  .vfd-showdown-stage-flourish-label--split .vfd-showdown-stage-flourish-a {
     color: #fff4dc;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
-  .vfd-showdown-stage-variant-banner--split .vfd-showdown-stage-variant-banner-b {
+  .vfd-showdown-stage-flourish-label--split .vfd-showdown-stage-flourish-b {
     color: #e2ad1a;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
-  .vfd-showdown-stage-variant-banner--side .vfd-showdown-stage-variant-banner-a {
+  .vfd-showdown-stage-flourish-label--side .vfd-showdown-stage-flourish-a {
     color: #e0f2fe;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
-  .vfd-showdown-stage-variant-banner--side .vfd-showdown-stage-variant-banner-b {
+  .vfd-showdown-stage-flourish-label--side .vfd-showdown-stage-flourish-b {
     color: #67e8f9;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
-  .vfd-showdown-stage-slot--crown-split {
-    top: var(--vfd-stage-y-split-name);
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 4%);
-    gap: 0;
-    font-size: max(0.38rem, min(4.6cqw, 7.7cqh));
-    padding-top: max(0.1rem, 0.65cqh);
+  .vfd-showdown-stage-crown {
+    flex-shrink: 0;
+    height: min(11cqh, 12.5cqw);
+    width: auto;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
   }
 
-  .vfd-showdown-stage-slot--crown-split-triple {
-    padding-top: max(0.12rem, 0.75cqh);
+  .vfd-showdown-stage-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: max(0.08rem, 1cqh);
+    width: 100%;
+    min-height: 0;
+    padding-inline: 1%;
+    text-align: center;
   }
 
-  .vfd-showdown-stage-slot--crown-split-quad {
-    width: calc(var(--vfd-stage-safe-width, 83.333%) - 6%);
-    padding-top: max(0.14rem, 0.85cqh);
+  .vfd-showdown-stage-block {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .vfd-showdown-stage-slot--split-banner ~ .vfd-showdown-stage-slot--crown-split {
-    top: var(--vfd-stage-y-split-name-banner);
+  .vfd-showdown-stage-block--names {
+    max-width: 72%;
+  }
+
+  .vfd-showdown-stage-block--names-split,
+  .vfd-showdown-stage-block--names-split-triple,
+  .vfd-showdown-stage-block--names-split-quad {
+    max-width: 78%;
+  }
+
+  .vfd-showdown-stage-block--side-ledger {
+    width: min(88%, 100%);
+    font-size: var(--vfd-stage-ledger-size);
+  }
+
+  .vfd-showdown-stage-block--pot {
+    width: 100%;
+  }
+
+  .vfd-showdown-stage-block--cards {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vfd-showdown-stage-nameplate-wrap {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    width: min(46%, 92%);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .vfd-showdown-stage-nameplate {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .vfd-showdown-stage-nameplate-wrap .vfd-showdown-stage-diff-value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 10%;
   }
 
   .vfd-showdown-stage-name--split-compact {
@@ -320,17 +301,6 @@
   .vfd-showdown-stage-split-dot-compact {
     font-size: min(5.6cqw, 9.4cqh);
     line-height: 1;
-  }
-
-  .vfd-showdown-stage-slot--side-ledger {
-    top: var(--vfd-stage-y-ledger);
-    width: var(--vfd-stage-w-ledger);
-    transform: translateX(-50%);
-    font-size: var(--vfd-stage-ledger-size);
-  }
-
-  .vfd-showdown-stage-slot--side-banner ~ .vfd-showdown-stage-slot--side-ledger {
-    top: var(--vfd-stage-y-ledger-banner);
   }
 
   .vfd-showdown-stage-side-ledger {
@@ -457,13 +427,6 @@
     gap: max(0.24em, 1.15cqw);
   }
 
-  /** Pot centered on the trophy rubric pot line (see showdownStageSlotRubric). */
-  .vfd-showdown-stage-slot--pot {
-    top: var(--vfd-stage-y-pot);
-    width: var(--vfd-stage-w-pot);
-    transform: translate(-50%, -50%);
-  }
-
   .vfd-showdown-stage-frame .vfd-showdown-stage-pot,
   .vfd-showdown-stage-frame .vfd-showdown-stage-pot-inline-each {
     font-family: 'Bungee', system-ui, sans-serif;
@@ -509,33 +472,10 @@
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   }
 
-  .vfd-showdown-stage-slot--crown-winner {
-    top: var(--vfd-stage-y-winner-name);
-    width: var(--vfd-stage-w-name);
-    gap: 0;
-  }
-
   [data-stage-variant='side'] .vfd-showdown-stage-frame {
     --vfd-stage-card-h: max(1.32rem, min(16.5cqw, 12cqh));
     --vfd-stage-card-w: max(0.92rem, min(11.5cqw, 8.4cqh));
     --vfd-stage-card-gap: min(0.5cqw, 0.34cqh);
-  }
-
-  .vfd-showdown-stage-slot--side-ledger ~ .vfd-showdown-stage-slot--cards {
-    top: var(--vfd-stage-y-cards-side);
-    width: var(--vfd-stage-w-cards-side);
-    height: var(--vfd-stage-h-cards-side);
-  }
-
-  .vfd-showdown-stage-title {
-    font-size: max(0.42rem, min(4.6cqw, 7.7cqh));
-    line-height: 1;
-    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.92));
-  }
-
-  .vfd-showdown-stage-split-dot {
-    font-size: max(1em, min(7.8cqw, 13cqh));
-    line-height: 1;
   }
 
   .vfd-showdown-stage-name {
@@ -553,19 +493,6 @@
     font-size: min(4.8cqw, 8cqh);
   }
 
-  .vfd-showdown-stage-slot--crown-winner .vfd-showdown-stage-name {
-    font-size: var(--vfd-stage-name-size);
-  }
-
-  /** Digit cards in the lower wreath — rubric Y from showdownStageSlotRubric. */
-  .vfd-showdown-stage-slot--cards {
-    top: var(--vfd-stage-y-cards);
-    width: var(--vfd-stage-w-cards);
-    height: var(--vfd-stage-h-cards);
-    transform: translateX(-50%);
-    justify-content: center;
-  }
-
   [data-showdown-winner-cards='stage'] {
     gap: var(--vfd-stage-card-gap);
   }
@@ -574,17 +501,6 @@
     flex-shrink: 0;
     height: var(--vfd-stage-card-h);
     width: var(--vfd-stage-card-w);
-  }
-
-  /** ± value centered on the gold nameplate — dark ink on gold (see winner-stage-preview.html). */
-  .vfd-showdown-stage-slot--difference {
-    top: var(--vfd-stage-y-diff);
-    width: var(--vfd-stage-w-diff);
-    height: var(--vfd-stage-h-diff);
-    transform: translate(-50%, -50%);
-    justify-content: center;
-    gap: 0;
-    padding-top: 0;
   }
 
   .vfd-showdown-stage-diff-value {

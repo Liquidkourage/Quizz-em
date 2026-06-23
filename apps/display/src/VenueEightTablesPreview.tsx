@@ -56,7 +56,6 @@ import {
   displayHeadlineQuestionClass,
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
-import { SHOWDOWN_ART_PORTAL_ROOT_ID } from './ShowdownWinnerStageArtPortal'
 import {
   chunkTilesIntoRowGroups,
   populatedVenueTiles,
@@ -2093,11 +2092,6 @@ export default function VenueEightTablesPreview({
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div
-        id={SHOWDOWN_ART_PORTAL_ROOT_ID}
-        className="pointer-events-none fixed inset-0 z-[9]"
-        aria-hidden
-      />
       <div
         className={`relative flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
         style={venueWallUiScaleFrameStyle()}

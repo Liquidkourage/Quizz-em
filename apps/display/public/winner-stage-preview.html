@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Winner stage preview — Alice C.</title>
+    <title>Winner stage preview — composed chrome</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -11,7 +11,7 @@
       rel="stylesheet"
     />
     <style>
-      /* Slot Y positions — keep in sync with apps/display/src/showdownStageSlotRubric.ts */
+      /* Mirror apps/display/src/index.css composed-stage rules for offline tuning. */
       * {
         box-sizing: border-box;
       }
@@ -25,7 +25,6 @@
       }
 
       .tile {
-        --vfd-stage-art-scale: 1.2;
         position: relative;
         width: 403px;
         height: 241px;
@@ -33,55 +32,61 @@
         border-radius: 12px;
         border: 2px solid rgba(226, 173, 26, 0.55);
         background: #000;
+        container-type: size;
       }
 
-      .tile__art-portal,
-      .tile__overlay {
+      .laurel {
         position: absolute;
-        inset: 0;
+        z-index: 0;
+        width: 38%;
+        max-height: 84%;
+        top: 5%;
+        object-fit: contain;
         pointer-events: none;
       }
 
-      .zoom-frame {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        width: calc(100% * var(--vfd-stage-art-scale));
-        height: calc(100% * var(--vfd-stage-art-scale));
-        transform: translate(-50%, -50%);
-        overflow: hidden;
+      .laurel--left {
+        left: 0;
       }
 
-      .zoom-frame img {
-        position: absolute;
-        top: 0;
-        left: 50%;
-        height: 100%;
-        width: auto;
-        max-width: none;
-        transform: translateX(-50%);
+      .laurel--right {
+        right: 0;
       }
 
-      .slot {
-        position: absolute;
-        left: 50%;
+      .column {
+        position: relative;
+        z-index: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
-        text-align: center;
-        transform: translateX(-50%);
+        width: 86%;
+        height: 100%;
+        margin-inline: auto;
+        padding: 1.2cqh 2% 0.8cqh;
+        gap: 0.65cqh;
       }
 
-      .slot--name {
-        top: 25%;
-        width: 68%;
+      .crown {
+        height: min(11cqh, 12.5cqw);
+        width: auto;
+        object-fit: contain;
+      }
+
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1cqh;
+        width: 100%;
       }
 
       .name {
         margin: 0;
-        max-width: 100%;
+        max-width: 72%;
         font-family: Montserrat, system-ui, sans-serif;
-        font-size: 1.48rem;
+        font-size: min(7.4cqw, 11cqh);
         font-weight: 900;
         line-height: 1.05;
         color: #fff;
@@ -91,33 +96,16 @@
         text-overflow: ellipsis;
       }
 
-      .slot--pot {
-        top: 40%;
-        width: 58%;
-        transform: translate(-50%, -50%);
-      }
-
       .pot {
-        display: inline-block;
-        transform: skewX(-9deg);
         font-family: Bungee, system-ui, sans-serif;
-        font-size: 1.65rem;
+        font-size: min(9cqw, 13cqh);
         line-height: 1;
         color: #e2ad1a;
-        text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.58), 2px 3px 0 rgba(0, 0, 0, 0.28);
+        text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.58);
       }
 
       .pot-sign {
         font-size: 0.68em;
-        vertical-align: 0.2em;
-        margin-right: 0.05em;
-      }
-
-      .slot--cards {
-        top: 50.5%;
-        width: 84%;
-        height: 18%;
-        justify-content: center;
       }
 
       .cards {
@@ -128,8 +116,8 @@
       }
 
       .card {
-        height: 72px;
-        width: 47px;
+        height: max(1.78rem, min(20cqw, 14.5cqh));
+        width: max(1.24rem, min(14cqw, 10.2cqh));
         border-radius: 4px;
         border: 1px solid rgba(226, 173, 26, 0.65);
         background: linear-gradient(180deg, #10182a 0%, #060a12 100%);
@@ -138,7 +126,6 @@
         font-size: 1.05rem;
         display: grid;
         place-items: center;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
       }
 
       .dot {
@@ -146,29 +133,33 @@
         margin: 0 1px 8px;
         color: #e2ad1a;
         font-family: Bungee, system-ui, sans-serif;
-        font-size: 1rem;
-        line-height: 1;
       }
 
-      .slot--diff {
-        top: 86.2%;
-        width: 44%;
-        height: 7.5%;
-        transform: translate(-50%, -50%);
-        justify-content: center;
+      .nameplate-wrap {
+        position: relative;
+        width: min(46%, 92%);
+      }
+
+      .nameplate {
+        width: 100%;
+        height: auto;
+        display: block;
       }
 
       .diff {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-top: 10%;
         margin: 0;
-        width: 100%;
         font-family: Bungee, system-ui, sans-serif;
-        font-size: 1.22rem;
-        font-weight: 900;
+        font-size: min(6.8cqw, 9.5cqh);
         line-height: 1;
-        letter-spacing: -0.02em;
         color: #220610;
         -webkit-text-stroke: 0.45px rgba(255, 248, 230, 0.7);
-        text-shadow: 0 0 2px rgba(255, 250, 235, 0.75), 0 1px 3px rgba(0, 0, 0, 0.55);
+        text-shadow: 0 0 2px rgba(255, 250, 235, 0.75);
       }
 
       .badge {
@@ -190,35 +181,28 @@
   </head>
   <body>
     <article class="tile" aria-label="Winner stage preview — Alice C.">
-      <div class="tile__art-portal">
-        <div class="zoom-frame">
-          <img src="./assets/winner-stage-card-C3Sa-RFa.png" alt="" />
-        </div>
-      </div>
-      <div class="tile__overlay">
-        <div class="zoom-frame">
-          <div class="slot slot--name">
-            <p class="name">Alice C.</p>
-          </div>
-          <div class="slot slot--pot">
-            <span class="pot"><span class="pot-sign">$</span>6,000</span>
-          </div>
-          <div class="slot slot--cards">
-            <div class="cards" aria-label="Cards used: 3, 2, . 0, 3, 4">
-              <div class="card">3</div>
-              <div class="card">2</div>
-              <span class="dot">.</span>
-              <div class="card">0</div>
-              <div class="card">3</div>
-              <div class="card">4</div>
-            </div>
-          </div>
-          <div class="slot slot--diff">
-            <p class="diff">+0.034</p>
+      <img class="laurel laurel--left" src="./showdown/laurel-left.png" alt="" />
+      <img class="laurel laurel--right" src="./showdown/laurel-right.png" alt="" />
+      <div class="column">
+        <img class="crown" src="./showdown/crown.png" alt="" />
+        <div class="content">
+          <p class="name">Alice C.</p>
+          <span class="pot"><span class="pot-sign">$</span>6,000</span>
+          <div class="cards" aria-label="Cards used: 3, 2, . 0, 3, 4">
+            <div class="card">3</div>
+            <div class="card">2</div>
+            <span class="dot">.</span>
+            <div class="card">0</div>
+            <div class="card">3</div>
+            <div class="card">4</div>
           </div>
         </div>
+        <div class="nameplate-wrap">
+          <img class="nameplate" src="./showdown/nameplate.png" alt="" />
+          <p class="diff">+0.034</p>
+        </div>
       </div>
-      <span class="badge">13</span>
+      <span class="badge">composed</span>
     </article>
   </body>
 </html>

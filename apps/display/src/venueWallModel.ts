@@ -314,23 +314,23 @@ function survivorTrackPct(survivors: number, peakSurvivors: number): number {
 }
 
 export function formatVenueHeadlineCondensePart(part: string): string {
-  if (part.startsWith('combine at ')) {
-    return `Combine at ${part.slice('combine at '.length)}`
+  if (part.startsWith('re-seating at ')) {
+    return `Re-seating at ${part.slice('re-seating at '.length)}`
   }
-  if (part.startsWith('combining to ')) {
-    return `Combining to ${part.slice('combining to '.length)}`
+  if (part === 're-seating now') {
+    return 'Re-seating now'
   }
   return part
 }
 
 export function venueHeadlineCondenseCaptionParts(model: VenueCondenseProgressModel): string[] {
-  const { survivors, liveTables, nextAt, nextToTables } = model
-  const parts = [`${survivors} remaining`, `${liveTables} ${liveTables === 1 ? 'table' : 'tables'}`]
+  const { survivors, liveTables, nextAt } = model
+  const parts = [`${survivors} remaining`]
   if (liveTables <= 1) return parts
   if (nextAt != null && survivors > nextAt) {
-    parts.push(`combine at ${nextAt}`)
-  } else if (nextAt != null && nextToTables != null) {
-    parts.push(`combining to ${nextToTables} tables`)
+    parts.push(`re-seating at ${nextAt}`)
+  } else if (nextAt != null) {
+    parts.push('re-seating now')
   }
   return parts
 }

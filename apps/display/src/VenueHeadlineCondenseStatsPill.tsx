@@ -28,6 +28,20 @@ function HeadlineStatPart({ part }: { part: string }) {
     )
   }
 
+  const reseatingAtMatch = formatted.match(/^Re-seating at (\d+)$/i)
+  if (reseatingAtMatch) {
+    return (
+      <>
+        <span className="text-white/80">Re-seating at </span>
+        <span className="text-amber-100">{reseatingAtMatch[1]}</span>
+      </>
+    )
+  }
+
+  if (/^Re-seating now$/i.test(formatted)) {
+    return <span className="text-white/80">Re-seating now</span>
+  }
+
   const combineAtMatch = formatted.match(/^Combine at (\d+)$/i)
   if (combineAtMatch) {
     return (
@@ -59,8 +73,8 @@ export default function VenueHeadlineCondenseStatsPill({
   model: VenueCondenseProgressModel
   className?: string
 }) {
-  const { liveTables, marks } = model
-  if (liveTables <= 1 && marks.length === 0) return null
+  const parts = venueHeadlineCondenseCaptionParts(model)
+  if (parts.length === 0) return null
 
   return (
     <span
@@ -68,7 +82,7 @@ export default function VenueHeadlineCondenseStatsPill({
       role="status"
       aria-label={venueHeadlineCondenseCaption(model)}
     >
-      {venueHeadlineCondenseCaptionParts(model).map((part, index) => (
+      {parts.map((part, index) => (
         <Fragment key={part}>
           {index > 0 ? (
             <span className="shrink-0 px-1 text-white/45" aria-hidden>

@@ -7,21 +7,29 @@ import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
 
-function ShowdownStageSidePotSummary({
-  lines,
-  mainHeroBand = false,
-}: {
-  lines: readonly ShowdownSidePotLine[]
-  /** Roomy tiles — MAIN in a gold band; SIDE rows stay plain ledger size. */
-  mainHeroBand?: boolean
-}) {
-  const mainLine = lines.find((line) => line.label === 'Main')
-  const sideLines = lines.filter((line) => line.label === 'Side')
-  const useHeroBand = mainHeroBand && mainLine != null && sideLines.length > 0
+function splitInlineNameScale(names: readonly string[]): 'default' | 'snug' | 'tight' {
+  const visible = names.length > 4 ? names.slice(0, 4) : names
+  if (visible.length === 0) return 'default'
 
-  if (useHeroBand && mainLine) {
+  const totalChars = visible.reduce((sum, name) => sum + name.length, 0)
+  const maxLen = Math.max(...visible.map((name) => name.length))
+  const count = visible.length
+
+  if (count >= 4) return 'tight'
+  if (count >= 3) return 'snug'
+  if (totalChars > 24 || maxLen > 11) return 'tight'
+  if (totalChars > 18 || maxLen > 9) return 'snug'
+  return 'default'
+}
+
+function ShowdownStageSidePotSummary({ lines }: { lines: readonly ShowdownSidePotLine[] }) {
+  const mainLine = lines.find((line) => line.label === 'Main')
+  const secondaryLines = lines.filter((line) => line.label !== 'Main')
+  const useMainBand = mainLine != null && secondaryLines.length > 0
+
+  if (useMainBand && mainLine) {
     return (
-      <div className="vfd-showdown-stage-side-ledger vfd-showdown-stage-side-ledger--roomy">
+      <div className="vfd-showdown-stage-side-ledger vfd-showdown-stage-side-ledger--main-band">
         <div
           className="vfd-showdown-stage-side-ledger-main-hero"
           aria-label={`Main pot ${mainLine.name} $${mainLine.amount.toLocaleString()}`}
@@ -38,21 +46,25 @@ function ShowdownStageSidePotSummary({
           </span>
         </div>
         <div className="vfd-showdown-stage-side-ledger-side-stack">
-          {sideLines.map((line) => (
+          {secondaryLines.map((line) => (
             <div
               key={`${line.label}:${line.name}`}
               className="vfd-showdown-stage-side-ledger-side-row"
             >
-              <span className="vfd-showdown-stage-side-ledger-label vfd-showdown-stage-side-ledger-label--side">
+              <span
+                className={`vfd-showdown-stage-side-ledger-label vfd-showdown-stage-side-ledger-label--${line.label.toLowerCase()}`}
+              >
                 {line.label}
               </span>
               <span
-                className="vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--side"
+                className={`vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--${line.label.toLowerCase()}`}
                 title={line.name}
               >
                 {line.name}
               </span>
-              <span className="vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--side">
+              <span
+                className={`vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--${line.label.toLowerCase()}`}
+              >
                 ${line.amount.toLocaleString()}
               </span>
             </div>
@@ -153,10 +165,12 @@ function ShowdownStageName({
 
   if (variant === 'split' && names.length > 0) {
     const visible = names.length > 4 ? names.slice(0, 4) : names
+    const nameScale = splitInlineNameScale(visible)
     return (
       <div
         className="vfd-showdown-stage-split-names-inline flex w-full max-w-full flex-nowrap items-center justify-center gap-x-[0.32em] px-[1%] text-center leading-none"
         data-split-count={String(Math.min(visible.length, 4))}
+        data-split-scale={nameScale}
         aria-label={visible.join(', ')}
       >
         {visible.map((name, index) => (
@@ -167,7 +181,7 @@ function ShowdownStageName({
               </span>
             ) : null}
             <span
-              className="vfd-showdown-stage-name vfd-showdown-stage-name--split-inline min-w-0 truncate font-black text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]"
+              className="vfd-showdown-stage-name vfd-showdown-stage-name--split-inline shrink-0 font-black text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]"
               title={name}
             >
               {name}
@@ -271,10 +285,7 @@ function ShowdownStageTemplate({
 
       {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
         <div className="vfd-showdown-stage-block vfd-showdown-stage-block--side-ledger">
-          <ShowdownStageSidePotSummary
-            lines={sidePotLines}
-            mainHeroBand={densityTier !== 'dense' && sideLedgerRows <= 2}
-          />
+          <ShowdownStageSidePotSummary lines={sidePotLines} />
         </div>
       ) : pot > 0 ? (
         <div className="vfd-showdown-stage-block vfd-showdown-stage-block--pot">

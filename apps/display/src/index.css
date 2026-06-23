@@ -422,18 +422,20 @@
     white-space: nowrap;
   }
 
-  .vfd-showdown-stage-split-names-inline[data-split-count='3'] .vfd-showdown-stage-name--split-inline {
-    max-width: 32%;
+  .vfd-showdown-stage-split-names-inline[data-split-scale='snug'] .vfd-showdown-stage-name--split-inline {
     font-size: var(--vfd-stage-name-split-triple-size);
   }
 
-  .vfd-showdown-stage-split-names-inline[data-split-count='4'] .vfd-showdown-stage-name--split-inline {
-    max-width: 24%;
+  .vfd-showdown-stage-split-names-inline[data-split-scale='tight'] .vfd-showdown-stage-name--split-inline {
     font-size: var(--vfd-stage-name-split-quad-size);
   }
 
-  .vfd-showdown-stage-split-names-inline[data-split-count='2'] .vfd-showdown-stage-name--split-inline {
-    max-width: 46%;
+  .vfd-showdown-stage-split-names-inline[data-split-scale='snug'] .vfd-showdown-stage-split-dot-compact {
+    font-size: min(5cqw, 8.6cqh);
+  }
+
+  .vfd-showdown-stage-split-names-inline[data-split-scale='tight'] .vfd-showdown-stage-split-dot-compact {
+    font-size: min(4.4cqw, 7.4cqh);
   }
 
   .vfd-showdown-stage-split-names-compact--triple .vfd-showdown-stage-name--split-compact {
@@ -491,6 +493,10 @@
     color: #67e8f9;
   }
 
+  .vfd-showdown-stage-side-ledger-label--return {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
   .vfd-showdown-stage-side-ledger-name {
     grid-column: 2;
     min-width: 0;
@@ -535,9 +541,9 @@
   }
 
   /**
-   * Roomy two-line side pots — MAIN in a gold band; same type size as SIDE rows.
+   * Side pots — MAIN in a gold band on every render; secondary rows below.
    */
-  .vfd-showdown-stage-side-ledger--roomy {
+  .vfd-showdown-stage-side-ledger--main-band {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -640,23 +646,85 @@
     justify-self: start;
   }
 
-  /** Three+ payout lines — tighter type, same centered column grid. */
-  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger {
-    row-gap: max(0.08rem, 0.75cqh);
+  .vfd-showdown-stage-side-ledger-side-row .vfd-showdown-stage-side-ledger-name--return {
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 700;
+  }
+
+  .vfd-showdown-stage-side-ledger-side-row .vfd-showdown-stage-side-ledger-amount--return {
+    color: rgba(255, 255, 255, 0.62);
+    filter: none;
+  }
+
+  /** Three+ payout lines — tighter type on secondary stack rows. */
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger--main-band {
+    gap: max(0.06rem, 0.55cqh);
     font-size: max(0.36rem, min(4.8cqw, 7.2cqh));
   }
 
-  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-label {
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-main-hero {
+    padding: max(0.06rem, 0.45cqh) max(0.18rem, 0.9cqw);
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-main-badge {
     font-size: max(0.62em, min(3cqw, 5cqh));
     letter-spacing: 0.1em;
   }
 
-  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-name {
+  .vfd-showdown-stage[data-side-ledger-compact]
+    .vfd-showdown-stage-side-ledger-main-hero
+    .vfd-showdown-stage-side-ledger-name--main {
     max-width: min(8rem, 38cqw);
     font-size: max(0.72em, min(3.6cqw, 6cqh));
   }
 
-  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-amount {
+  .vfd-showdown-stage[data-side-ledger-compact]
+    .vfd-showdown-stage-side-ledger-main-hero
+    .vfd-showdown-stage-side-ledger-amount--main {
+    font-size: min(4.4cqw, 7.2cqh);
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-side-stack {
+    gap: max(0.04rem, 0.35cqh);
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-side-row .vfd-showdown-stage-side-ledger-label {
+    font-size: max(0.62em, min(3cqw, 5cqh));
+    letter-spacing: 0.1em;
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-side-row .vfd-showdown-stage-side-ledger-name {
+    max-width: min(8rem, 38cqw);
+    font-size: max(0.72em, min(3.6cqw, 6cqh));
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-side-row .vfd-showdown-stage-side-ledger-amount {
+    font-size: min(4.4cqw, 7.2cqh);
+  }
+
+  /** Legacy flat grid fallback (no Main row). */
+  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger:not(.vfd-showdown-stage-side-ledger--main-band) {
+    row-gap: max(0.08rem, 0.75cqh);
+    font-size: max(0.36rem, min(4.8cqw, 7.2cqh));
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact]
+    .vfd-showdown-stage-side-ledger:not(.vfd-showdown-stage-side-ledger--main-band)
+    .vfd-showdown-stage-side-ledger-label {
+    font-size: max(0.62em, min(3cqw, 5cqh));
+    letter-spacing: 0.1em;
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact]
+    .vfd-showdown-stage-side-ledger:not(.vfd-showdown-stage-side-ledger--main-band)
+    .vfd-showdown-stage-side-ledger-name {
+    max-width: min(8rem, 38cqw);
+    font-size: max(0.72em, min(3.6cqw, 6cqh));
+  }
+
+  .vfd-showdown-stage[data-side-ledger-compact]
+    .vfd-showdown-stage-side-ledger:not(.vfd-showdown-stage-side-ledger--main-band)
+    .vfd-showdown-stage-side-ledger-amount {
     font-size: min(4.4cqw, 7.2cqh);
   }
 

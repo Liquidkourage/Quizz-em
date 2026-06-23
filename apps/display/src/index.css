@@ -107,7 +107,7 @@
   }
 
   .vfd-showdown-stage-frame--composed {
-    background: #000;
+    background: transparent;
   }
 
   .vfd-showdown-stage-laurel {

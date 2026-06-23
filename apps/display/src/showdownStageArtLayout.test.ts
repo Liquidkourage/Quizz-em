@@ -18,9 +18,10 @@ describe('showdownStageDensityTier', () => {
 })
 
 describe('showdownStageCardScaleBand', () => {
-  it('lifts cards slightly for selected mid-density counts', () => {
+  it('rises cards for counts that overlap the laurel base', () => {
     for (const n of [2, 7, 8, 13, 14, 15]) {
-      expect(showdownStageCardScaleBand(n)).toBe('lift')
+      expect(showdownStageCardScaleBand(n)).toBe('rise')
+      expect(showdownStageCardFrameVars(n)).toHaveProperty('--vfd-stage-cards-rise')
     }
   })
 

@@ -351,42 +351,42 @@
    * Must follow density-tier defaults so 13–15 overrides compact card tokens.
    */
   .vfd-showdown-stage[data-stage-table-count='2'] .vfd-showdown-stage-frame {
-    --vfd-stage-card-h: max(1.44rem, min(18cqw, 13.3cqh));
-    --vfd-stage-card-w: max(1.02rem, min(13.1cqw, 9.7cqh));
-    --vfd-stage-card-gap: min(0.76cqw, 0.48cqh);
+    --vfd-stage-card-h: max(1.36rem, min(16.2cqw, 12.1cqh));
+    --vfd-stage-card-w: max(0.94rem, min(11.8cqw, 8.75cqh));
+    --vfd-stage-card-gap: min(0.7cqw, 0.44cqh);
   }
 
   .vfd-showdown-stage[data-stage-table-count='2'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
     margin-inline: auto;
     align-self: center;
-    transform: translateY(calc(-0.88rem - 1.5cqh));
+    transform: translateY(calc(-1.1rem - 2.5cqh));
   }
 
   .vfd-showdown-stage[data-stage-table-count='7'] .vfd-showdown-stage-frame {
-    --vfd-stage-card-h: max(1.4rem, min(17.5cqw, 12.9cqh));
-    --vfd-stage-card-w: max(0.98rem, min(12.75cqw, 9.45cqh));
-    --vfd-stage-card-gap: min(0.74cqw, 0.46cqh);
+    --vfd-stage-card-h: max(1.34rem, min(15.9cqw, 11.85cqh));
+    --vfd-stage-card-w: max(0.92rem, min(11.55cqw, 8.55cqh));
+    --vfd-stage-card-gap: min(0.68cqw, 0.42cqh);
   }
 
   .vfd-showdown-stage[data-stage-table-count='7'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
     margin-inline: auto;
     align-self: center;
-    transform: translateY(calc(-0.94rem - 1.75cqh));
+    transform: translateY(calc(-1.06rem - 2.35cqh));
   }
 
   .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-frame {
-    --vfd-stage-card-h: max(1.38rem, min(17.1cqw, 12.65cqh));
-    --vfd-stage-card-w: max(0.96rem, min(12.45cqw, 9.2cqh));
-    --vfd-stage-card-gap: min(0.72cqw, 0.45cqh);
+    --vfd-stage-card-h: max(1.32rem, min(15.6cqw, 11.6cqh));
+    --vfd-stage-card-w: max(0.9rem, min(11.35cqw, 8.4cqh));
+    --vfd-stage-card-gap: min(0.66cqw, 0.41cqh);
   }
 
   .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-cards-row {
     width: min(46%, 92%);
     margin-inline: auto;
     align-self: center;
-    transform: translateY(calc(-0.92rem - 1.75cqh));
+    transform: translateY(calc(-1.04rem - 2.35cqh));
   }
 
   .vfd-showdown-stage[data-stage-table-count='13'] .vfd-showdown-stage-frame {

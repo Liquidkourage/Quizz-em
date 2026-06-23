@@ -8,10 +8,16 @@ export type ShowdownStageCardScale = 'wide' | 'rise'
 
 const NAMEPLATE_ROW_WIDTH = 'min(46%, 92%)'
 
+type RiseCardPreset = Readonly<{
+  '--vfd-stage-card-h': string
+  '--vfd-stage-card-w': string
+  '--vfd-stage-card-gap': string
+  '--vfd-stage-cards-rise': string
+  '--vfd-stage-cards-row-width'?: string
+}>
+
 /** QA-tuned rise presets — one entry per mosaic table count. */
-const RISE_CARD_PRESETS: Readonly<
-  Record<number, Readonly<Record<'--vfd-stage-card-h' | '--vfd-stage-card-w' | '--vfd-stage-card-gap' | '--vfd-stage-cards-rise' | '--vfd-stage-cards-row-width', string>>>
-> = {
+const RISE_CARD_PRESETS: Readonly<Record<number, RiseCardPreset>> = {
   2: {
     '--vfd-stage-card-h': 'max(1.52rem, min(19.8cqw, 14.5cqh)',
     '--vfd-stage-card-w': 'max(1.08rem, min(14.25cqw, 10.5cqh)',

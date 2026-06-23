@@ -90,7 +90,8 @@ function candidateColumnCounts(tableCount: number): number[] {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 0) return [1]
   if (n === 1) return [1]
-  if (n <= 4) return [...new Set([n, 2])].sort((a, b) => a - b)
+  /** Up to four tables — never a single full-width row (portrait tiles, bad showdown stage). */
+  if (n <= 4) return [2]
   const max = Math.min(MAX_COLUMNS, n)
   return Array.from({ length: max - 1 }, (_, i) => i + 2)
 }
@@ -149,6 +150,8 @@ function countOnlyLayoutScore(tableCount: number, candidate: LayoutCandidate): n
   score -= Math.abs(columns - preferred) * 240
   if (tableCount > 8 && columns >= 5) score += 180
   if (tableCount <= 6 && columns === 3 && rowCount === 2) score += 220
+  if (tableCount === 4 && rowCount === 2 && columns === 2) score += 1_200
+  if (tableCount === 3 && rowCount === 2 && columns === 2) score += 600
   score += staggerPatternBonus(tableCount, rowSizes)
   return score
 }
@@ -180,6 +183,8 @@ function viewportLayoutScore(
   let score = feltW * feltH
   score -= rowCount * 420
   score -= Math.abs(columns - venueFloorPreferredColumns(tableCount)) * 120
+  if (tableCount === 4 && rowCount === 2 && columns === 2) score += 8_000
+  if (tableCount === 3 && rowCount === 2 && columns === 2) score += 4_000
   score += staggerPatternBonus(tableCount, rowSizes)
   return score
 }

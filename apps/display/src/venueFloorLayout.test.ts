@@ -70,6 +70,28 @@ describe('selectVenueFloorLayout', () => {
     expect(plan.rowCount).toBe(2)
   })
 
+  it('prefers two by two for four tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 4 })
+    expect(plan.rowSizes).toEqual([2, 2])
+    expect(plan.columns).toBe(2)
+    expect(plan.rowCount).toBe(2)
+  })
+
+  it('keeps four tables on two rows at 16:9 with headline', () => {
+    const plan = selectVenueFloorLayout({
+      tableCount: 4,
+      withHeadline: true,
+      viewport: { widthPx: 1920, heightPx: 1080 },
+    })
+    expect(plan.rowSizes).toEqual([2, 2])
+  })
+
+  it('prefers two-one for three tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 3 })
+    expect(plan.rowSizes).toEqual([2, 1])
+    expect(plan.columns).toBe(2)
+  })
+
   it('keeps fourteen tables on three rows at 16:9 with headline', () => {
     const plan = selectVenueFloorLayout({
       tableCount: 14,

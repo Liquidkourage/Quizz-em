@@ -343,65 +343,24 @@
   }
 
   .vfd-showdown-stage-side-ledger {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    gap: max(0.18rem, 1.6cqh);
-  }
-
-  /** Two-line MAIN/SIDE — inline label · name · amount, centered as a row. */
-  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-row {
     display: grid;
     width: fit-content;
     max-width: 100%;
+    margin-inline: auto;
     grid-template-columns: auto minmax(0, max-content) auto;
-    align-items: baseline;
     justify-content: center;
     column-gap: max(0.22rem, 1.1cqw);
-    padding: max(0.02rem, 0.2cqh) max(0.06rem, 0.35cqw);
+    row-gap: max(0.18rem, 1.6cqh);
   }
 
-  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-detail {
+  .vfd-showdown-stage-side-ledger-row,
+  .vfd-showdown-stage-side-ledger-detail {
     display: contents;
   }
 
-  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-label {
+  .vfd-showdown-stage-side-ledger-label {
     grid-column: 1;
     justify-self: end;
-  }
-
-  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-name {
-    grid-column: 2;
-    max-width: min(9rem, 42cqw);
-    text-align: center;
-  }
-
-  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-amount {
-    grid-column: 3;
-    justify-self: start;
-  }
-
-  .vfd-showdown-stage-side-ledger-row {
-    display: flex;
-    width: 100%;
-    max-width: 100%;
-    flex-direction: column;
-    align-items: center;
-    gap: max(0.06rem, 0.45cqh);
-    padding: max(0.02rem, 0.2cqh) max(0.06rem, 0.35cqw);
-  }
-
-  .vfd-showdown-stage-side-ledger-detail {
-    display: flex;
-    width: 100%;
-    max-width: 100%;
-    align-items: baseline;
-    justify-content: center;
-    gap: max(0.22rem, 1.1cqw);
-  }
-
-  .vfd-showdown-stage-side-ledger-label {
     font-family: 'Montserrat', system-ui, sans-serif;
     font-size: max(0.68em, min(3.4cqw, 5.8cqh));
     font-weight: 900;
@@ -419,12 +378,13 @@
   }
 
   .vfd-showdown-stage-side-ledger-name {
+    grid-column: 2;
     min-width: 0;
-    max-width: 58%;
+    max-width: min(9rem, 42cqw);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    text-align: right;
+    text-align: center;
     font-size: max(0.78em, min(4.2cqw, 7cqh));
     font-weight: 800;
     line-height: 1.05;
@@ -433,6 +393,8 @@
   }
 
   .vfd-showdown-stage-side-ledger-amount {
+    grid-column: 3;
+    justify-self: start;
     flex: 0 0 auto;
     font-family: 'Bungee', system-ui, sans-serif;
     font-size: min(5cqw, 8.4cqh);
@@ -458,19 +420,10 @@
     font-size: min(5.8cqw, 9.6cqh);
   }
 
-  /** Three+ payout lines — inline rows, tighter type. */
+  /** Three+ payout lines — tighter type, same centered column grid. */
   .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger {
-    gap: max(0.08rem, 0.75cqh);
+    row-gap: max(0.08rem, 0.75cqh);
     font-size: max(0.36rem, min(4.8cqw, 7.2cqh));
-  }
-
-  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-row {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    column-gap: max(0.18rem, 0.9cqw);
-    row-gap: max(0.04rem, 0.25cqh);
-    padding: max(0.01rem, 0.12cqh) max(0.04rem, 0.25cqw);
   }
 
   .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-label {
@@ -478,16 +431,8 @@
     letter-spacing: 0.1em;
   }
 
-  .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-detail {
-    width: auto;
-    max-width: 100%;
-    flex: 1 1 auto;
-    justify-content: center;
-    gap: max(0.16rem, 0.85cqw);
-  }
-
   .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger-name {
-    max-width: 46%;
+    max-width: min(8rem, 38cqw);
     font-size: max(0.72em, min(3.6cqw, 6cqh));
   }
 

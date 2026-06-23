@@ -82,15 +82,25 @@ export function ShowdownStageChrome({
         />
         <div className="vfd-showdown-stage-column">
           {variant === 'split' || variant === 'side' ? (
-            <ShowdownFlourishBanner variant={variant} />
-          ) : null}
-          <img
-            src={crownArt}
-            alt=""
-            aria-hidden
-            draggable={false}
-            className="vfd-showdown-stage-crown"
-          />
+            <div className="vfd-showdown-stage-crown-stack">
+              <img
+                src={crownArt}
+                alt=""
+                aria-hidden
+                draggable={false}
+                className="vfd-showdown-stage-crown"
+              />
+              <ShowdownFlourishBanner variant={variant} />
+            </div>
+          ) : (
+            <img
+              src={crownArt}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="vfd-showdown-stage-crown"
+            />
+          )}
           <div className="vfd-showdown-stage-content">{children}</div>
           {footer != null ? (
             <div className="vfd-showdown-stage-footer">{footer}</div>

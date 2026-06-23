@@ -198,6 +198,35 @@
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
+  /** Split/side — crown anchors the top; flourish label overlays the crown. */
+  .vfd-showdown-stage-crown-stack {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    width: min(100%, 100%);
+    justify-content: center;
+    align-items: flex-start;
+    margin-bottom: max(0.04rem, 0.35cqh);
+  }
+
+  .vfd-showdown-stage-crown-stack .vfd-showdown-stage-crown {
+    margin-bottom: 0;
+  }
+
+  .vfd-showdown-stage-crown-stack .vfd-showdown-stage-flourish {
+    position: absolute;
+    left: 50%;
+    top: 54%;
+    z-index: 1;
+    width: min(108%, 100%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .vfd-showdown-stage-crown-stack .vfd-showdown-stage-flourish-art {
+    max-height: min(8.8cqh, 10.5cqw);
+  }
+
   .vfd-showdown-stage-crown {
     flex-shrink: 0;
     height: var(--vfd-stage-crown-h);
@@ -329,9 +358,15 @@
    * 20-up split/side — names + pot in the laurel band; cards in footer above nameplate.
    * Winner dense keeps the locked space-evenly three-block stack in content.
    */
-  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-flourish-art,
-  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='side'] .vfd-showdown-stage-flourish-art {
-    max-height: min(6.2cqh, 7.8cqw);
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-crown-stack
+    .vfd-showdown-stage-flourish-art,
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='side'] .vfd-showdown-stage-crown-stack
+    .vfd-showdown-stage-flourish-art {
+    max-height: min(7.4cqh, 9.2cqw);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-crown-stack .vfd-showdown-stage-crown {
+    max-width: 48%;
   }
 
   .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-content,
@@ -366,6 +401,26 @@
     font-size: var(--vfd-stage-name-split-size);
     line-height: 1.05;
     white-space: nowrap;
+  }
+
+  .vfd-showdown-stage-name--split-inline {
+    font-size: var(--vfd-stage-name-split-size);
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  .vfd-showdown-stage-split-names-inline[data-split-count='3'] .vfd-showdown-stage-name--split-inline {
+    max-width: 32%;
+    font-size: var(--vfd-stage-name-split-triple-size);
+  }
+
+  .vfd-showdown-stage-split-names-inline[data-split-count='4'] .vfd-showdown-stage-name--split-inline {
+    max-width: 24%;
+    font-size: var(--vfd-stage-name-split-quad-size);
+  }
+
+  .vfd-showdown-stage-split-names-inline[data-split-count='2'] .vfd-showdown-stage-name--split-inline {
+    max-width: 46%;
   }
 
   .vfd-showdown-stage-split-names-compact--triple .vfd-showdown-stage-name--split-compact {

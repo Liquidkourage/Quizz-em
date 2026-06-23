@@ -9,6 +9,7 @@ import {
   DISPLAY_TEXT_WELCOME_TIPS_CQ,
   DISPLAY_TEXT_WELCOME_URL_CQW,
 } from './displayTypography'
+import { QUIZZ_EM_HOW_TO_PLAY_LINES } from './venueRulesWallContent'
 
 export type AudienceWelcomeWallProps = {
   venueCode: string
@@ -385,12 +386,7 @@ function WelcomeNewPlayerTipsPanel({
   const bulletClass =
     `text-balance font-semibold text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
 
-  const tips = [
-    "Quizz'em is a trivia game played exactly like Texas Hold'em—answers are numeric, cards are single digits (e.g. 99, 1492, 90210).",
-    'You get two private digit cards—a.k.a. hole cards—and everyone bets once on their phones (call, raise, fold). Then five digit community cards land; everyone bets again.',
-    'When betting closes you have 45 seconds to: pick five digit cards to form your hand, arrange them into your answer (adding a decimal if you want), and submit your response.',
-    'Whoever is closest to the correct number wins this round’s pot.',
-  ] as const
+  const tips = QUIZZ_EM_HOW_TO_PLAY_LINES
 
   return (
     <section aria-label="How Quizz'em Hold'em is played" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col lg:min-h-0 lg:h-full">

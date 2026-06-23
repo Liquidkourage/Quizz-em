@@ -86,11 +86,12 @@ describe('selectVenueFloorLayout', () => {
     expect(plan.rowSizes).toEqual([2, 2])
   })
 
-  it('uses a single row of three for three tables', () => {
+  it('uses a two-one stagger for three tables', () => {
     const plan = selectVenueFloorLayout({ tableCount: 3 })
-    expect(plan.rowSizes).toEqual([3])
-    expect(plan.columns).toBe(3)
-    expect(plan.rowCount).toBe(1)
+    expect(plan.rowSizes).toEqual([2, 1])
+    expect(plan.columns).toBe(2)
+    expect(plan.rowCount).toBe(2)
+    expect(plan.staggered).toBe(true)
   })
 
   it('uses a three-by-three grid for nine tables', () => {
@@ -135,13 +136,13 @@ describe('selectVenueFloorLayout', () => {
     expect(plan.staggered).toBe(true)
   })
 
-  it('keeps three tables on one row at 16:9 with headline', () => {
+  it('keeps three tables on two-one at 16:9 with headline', () => {
     const plan = selectVenueFloorLayout({
       tableCount: 3,
       withHeadline: true,
       viewport: { widthPx: 1920, heightPx: 1080 },
     })
-    expect(plan.rowSizes).toEqual([3])
+    expect(plan.rowSizes).toEqual([2, 1])
   })
 
   it('keeps fourteen tables on three rows at 16:9 with headline', () => {

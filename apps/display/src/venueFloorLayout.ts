@@ -24,7 +24,7 @@ const HEADLINE_RESERVE_PX = 168
 
 /** Count-aware stagger row groupings — each pattern must sum to the table count. */
 export const VENUE_FLOOR_STAGGER_PATTERNS: Readonly<Record<number, readonly (readonly number[])[]>> = {
-  3: [[3], [2, 1]],
+  3: [[2, 1], [3]],
   7: [[4, 3], [3, 4]],
   9: [[3, 3, 3], [5, 4]],
   10: [[3, 4, 3], [5, 5], [4, 3, 3]],
@@ -42,7 +42,7 @@ export const VENUE_FLOOR_STAGGER_PATTERNS: Readonly<Record<number, readonly (rea
 
 /** QA-locked honeycomb / stagger row patterns — must win over felt-area scoring. */
 const LOCKED_FLOOR_ROW_PATTERN: Readonly<Partial<Record<number, string>>> = {
-  3: '3',
+  3: '2-1',
   9: '3-3-3',
   10: '3-4-3',
   11: '4-3-4',
@@ -107,7 +107,7 @@ function candidateColumnCounts(tableCount: number): number[] {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 0) return [1]
   if (n === 1) return [1]
-  if (n === 3) return [3, 2]
+  if (n === 3) return [2]
   /** Four tables — never a single full-width row (portrait tiles, bad showdown stage). */
   if (n === 4) return [2]
   const max = Math.min(MAX_COLUMNS, n)
@@ -167,6 +167,7 @@ function countOnlyLayoutScore(tableCount: number, candidate: LayoutCandidate): n
   if (tableCount > 8 && columns >= 5) score += 180
   if (tableCount <= 6 && columns === 3 && rowCount === 2) score += 220
   if (tableCount === 4 && rowCount === 2 && columns === 2) score += 1_200
+  if (tableCount === 3 && rowCount === 2 && columns === 2) score += 600
   score += staggerPatternBonus(tableCount, rowSizes)
   return score
 }

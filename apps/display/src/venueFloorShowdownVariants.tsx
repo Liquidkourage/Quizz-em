@@ -26,6 +26,8 @@ export type FloorShowdownCtx = {
   ariaLabel: string
   sidePotLines: ShowdownSidePotLine[] | null
   variant: FloorShowdownCardVariant
+  /** Rows in the payout band (names / ledger lines) — for slot height alignment. */
+  payoutLineCount: number
 }
 
 function formatPot(amount: number): string {
@@ -70,6 +72,13 @@ function buildCtx(
   const variant: FloorShowdownCardVariant =
     sidePotLines != null ? 'side' : displaySplit ? 'split' : 'winner'
 
+  const payoutLineCount =
+    variant === 'side'
+      ? sidePotLines?.length ?? 1
+      : variant === 'split'
+        ? Math.min(winners.length, 4)
+        : 1
+
   return {
     pot: displayPot,
     label,
@@ -80,6 +89,7 @@ function buildCtx(
     splitWin: displaySplit,
     sidePotLines,
     variant,
+    payoutLineCount,
     ariaLabel:
       layerSummary != null
         ? `Side pots: ${layerSummary}`
@@ -89,18 +99,31 @@ function buildCtx(
   }
 }
 
+/** Payout-band row count for one table's showdown overlay. */
+export function floorShowdownPayoutLineCount(
+  rows: ShowdownResultRow[],
+  correctAnswer: number | undefined,
+  pot = 0
+): number {
+  const ctx = buildCtx(pot, rows, correctAnswer)
+  return ctx?.payoutLineCount ?? 1
+}
+
 export function VenueFloorShowdownByVariant({
   tableNum,
   pot,
   rows,
   correctAnswer,
   layoutTableCount,
+  layoutPayoutLineCount,
 }: {
   tableNum?: number
   pot: number
   rows: ShowdownResultRow[]
   correctAnswer: number | undefined
   layoutTableCount: number
+  /** Max payout rows across the mosaic — keeps pot/cards aligned between tiles. */
+  layoutPayoutLineCount?: number
   labMode?: boolean
 }) {
   const ctx = buildCtx(pot, rows, correctAnswer)
@@ -141,6 +164,7 @@ export function VenueFloorShowdownByVariant({
         correctAnswer={correctAnswer}
         sidePotLines={ctx.sidePotLines}
         layoutTableCount={layoutTableCount}
+        layoutPayoutLineCount={layoutPayoutLineCount}
       />
     </div>
   )

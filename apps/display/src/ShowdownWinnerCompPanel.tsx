@@ -7,21 +7,31 @@ import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
 
-function splitInlineNameScale(names: readonly string[]): 'default' | 'snug' | 'tight' {
+function ShowdownStageSplitLedger({ names }: { names: readonly string[] }) {
   const visible = names.length > 4 ? names.slice(0, 4) : names
-  if (visible.length === 0) return 'default'
+  if (visible.length === 0) return null
 
-  const totalChars = visible.reduce((sum, name) => sum + name.length, 0)
-  const maxLen = Math.max(...visible.map((name) => name.length))
-  const count = visible.length
-
-  if (count >= 4) return 'tight'
-  if (count >= 3) return 'snug'
-  if (totalChars > 24 || maxLen > 11) return 'tight'
-  if (totalChars > 18 || maxLen > 9) return 'snug'
-  return 'default'
+  return (
+    <div
+      className="vfd-showdown-stage-side-ledger vfd-showdown-stage-side-ledger--split-rows"
+      data-split-rows={String(visible.length)}
+      aria-label={visible.join(', ')}
+    >
+      <div className="vfd-showdown-stage-side-ledger-side-stack">
+        {visible.map((name) => (
+          <div key={name} className="vfd-showdown-stage-side-ledger-split-row">
+            <span
+              className="vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--split"
+              title={name}
+            >
+              {name}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
-
 function ShowdownStageSidePotSummary({ lines }: { lines: readonly ShowdownSidePotLine[] }) {
   const mainLine = lines.find((line) => line.label === 'Main')
   const secondaryLines = lines.filter((line) => line.label !== 'Main')
@@ -154,43 +164,8 @@ function ShowdownStagePotAmount({
   )
 }
 
-function ShowdownStageName({
-  names,
-  variant,
-}: {
-  names: readonly string[]
-  variant: 'winner' | 'split' | 'side'
-}) {
+function ShowdownStageName({ names }: { names: readonly string[] }) {
   if (names.length === 0) return null
-
-  if (variant === 'split' && names.length > 0) {
-    const visible = names.length > 4 ? names.slice(0, 4) : names
-    const nameScale = splitInlineNameScale(visible)
-    return (
-      <div
-        className="vfd-showdown-stage-split-names-inline flex w-full max-w-full flex-nowrap items-center justify-center gap-x-[0.32em] px-[1%] text-center leading-none"
-        data-split-count={String(Math.min(visible.length, 4))}
-        data-split-scale={nameScale}
-        aria-label={visible.join(', ')}
-      >
-        {visible.map((name, index) => (
-          <Fragment key={name}>
-            {index > 0 ? (
-              <span className="vfd-showdown-stage-split-dot-compact shrink-0 font-black text-[#e2ad1a]" aria-hidden>
-                ·
-              </span>
-            ) : null}
-            <span
-              className="vfd-showdown-stage-name vfd-showdown-stage-name--split-inline shrink-0 font-black text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]"
-              title={name}
-            >
-              {name}
-            </span>
-          </Fragment>
-        ))}
-      </div>
-    )
-  }
 
   if (names.length === 1) {
     return (
@@ -237,6 +212,7 @@ function ShowdownStageTemplate({
   sidePotLines,
   variant,
   layoutTableCount,
+  layoutPayoutLineCount,
 }: {
   names: readonly string[]
   pot: number
@@ -246,11 +222,18 @@ function ShowdownStageTemplate({
   sidePotLines?: readonly ShowdownSidePotLine[] | null
   variant: 'winner' | 'split' | 'side'
   layoutTableCount: number
+  layoutPayoutLineCount?: number
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const sideLedgerRows = sidePotLines?.length ?? 0
   const densityTier = showdownStageDensityTier(layoutTableCount)
-  const cardsInFooter = densityTier === 'dense' && variant !== 'winner'
+  const payoutLineCount =
+    variant === 'side'
+      ? sideLedgerRows
+      : variant === 'split'
+        ? Math.min(names.length, 4)
+        : 1
+  const slotPayoutLineCount = layoutPayoutLineCount ?? payoutLineCount
 
   const cardsBlock = (
     <div className="vfd-showdown-stage-block vfd-showdown-stage-block--cards">
@@ -262,38 +245,42 @@ function ShowdownStageTemplate({
     </div>
   )
 
+  const payoutBlock =
+    variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
+      <div className="vfd-showdown-stage-block vfd-showdown-stage-block--side-ledger">
+        <ShowdownStageSidePotSummary lines={sidePotLines} />
+      </div>
+    ) : variant === 'split' ? (
+      <div className="vfd-showdown-stage-block vfd-showdown-stage-block--side-ledger">
+        <ShowdownStageSplitLedger names={names} />
+      </div>
+    ) : (
+      <div className="vfd-showdown-stage-block vfd-showdown-stage-block--names vfd-showdown-stage-block--names-winner">
+        <ShowdownStageName names={names} />
+      </div>
+    )
+
+  const potBlock =
+    variant !== 'side' && pot > 0 ? (
+      <div className="vfd-showdown-stage-block vfd-showdown-stage-block--pot">
+        <ShowdownStagePotAmount amount={pot} each={each} eachInline={variant === 'split'} />
+      </div>
+    ) : null
+
   return (
     <ShowdownStageChrome
       variant={variant}
       densityTier={densityTier}
       sideLedgerRows={sideLedgerRows}
       sideLedgerCompact={sideLedgerRows >= 3}
+      layoutPayoutLineCount={slotPayoutLineCount}
       difference={difference}
-      footer={cardsInFooter ? cardsBlock : null}
     >
-      {variant !== 'side' ? (
-        <div
-          className={`vfd-showdown-stage-block vfd-showdown-stage-block--names${
-            variant === 'split'
-              ? ' vfd-showdown-stage-block--names-split'
-              : ' vfd-showdown-stage-block--names-winner'
-          }`}
-        >
-          <ShowdownStageName names={names} variant={variant} />
-        </div>
-      ) : null}
-
-      {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
-        <div className="vfd-showdown-stage-block vfd-showdown-stage-block--side-ledger">
-          <ShowdownStageSidePotSummary lines={sidePotLines} />
-        </div>
-      ) : pot > 0 ? (
-        <div className="vfd-showdown-stage-block vfd-showdown-stage-block--pot">
-          <ShowdownStagePotAmount amount={pot} each={each} eachInline={variant === 'split'} />
-        </div>
-      ) : null}
-
-      {!cardsInFooter ? cardsBlock : null}
+      <div className="vfd-showdown-stage-slots">
+        <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--payout">{payoutBlock}</div>
+        <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--pot">{potBlock}</div>
+        <div className="vfd-showdown-stage-slot vfd-showdown-stage-slot--cards">{cardsBlock}</div>
+      </div>
     </ShowdownStageChrome>
   )
 }
@@ -306,6 +293,7 @@ export function ShowdownWinnerCompPanel({
   correctAnswer,
   sidePotLines,
   layoutTableCount,
+  layoutPayoutLineCount,
 }: {
   variant: 'winner' | 'split' | 'side'
   winners: readonly ShowdownResultRow[]
@@ -314,6 +302,7 @@ export function ShowdownWinnerCompPanel({
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
   layoutTableCount: number
+  layoutPayoutLineCount?: number
 }) {
   const names = winners.map((w) => w.name).filter(Boolean)
   const each = variant === 'split'
@@ -329,6 +318,7 @@ export function ShowdownWinnerCompPanel({
         sidePotLines={sidePotLines}
         variant={variant}
         layoutTableCount={layoutTableCount}
+        layoutPayoutLineCount={layoutPayoutLineCount}
       />
     </div>
   )

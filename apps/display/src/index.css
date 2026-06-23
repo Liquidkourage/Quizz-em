@@ -80,6 +80,8 @@
     --vfd-stage-pot-each-size: min(5.6cqw, 9cqh);
     --vfd-stage-diff-size: min(6.8cqw, 9.5cqh);
     --vfd-stage-ledger-size: min(6.6cqw, 9.6cqh);
+    --vfd-stage-slot-payout: max(2.35rem, 21cqh);
+    --vfd-stage-slot-pot: max(1.25rem, 10cqh);
     --vfd-stage-card-h: max(1.78rem, min(20cqw, 14.5cqh));
     --vfd-stage-card-w: max(1.24rem, min(14cqw, 10.2cqh));
     --vfd-stage-card-gap: min(0.85cqw, 0.5cqh);
@@ -255,9 +257,8 @@
     display: flex;
     flex: 1 1 0;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: max(0.08rem, 1cqh);
+    align-items: stretch;
+    justify-content: flex-start;
     width: 100%;
     min-height: 0;
     padding-inline: 1%;
@@ -265,37 +266,108 @@
   }
 
   /**
-   * Side/split — hug content under the crown; cards/footer sink to the tile bottom.
+   * Fixed vertical slots — payout, pot, and cards align across winner / split / side tiles.
    */
-  .vfd-showdown-stage[data-stage-variant='side'] .vfd-showdown-stage-content,
-  .vfd-showdown-stage[data-stage-variant='split'] .vfd-showdown-stage-content {
+  .vfd-showdown-stage-slots {
+    display: grid;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    grid-template-rows: var(--vfd-stage-slot-payout) var(--vfd-stage-slot-pot) minmax(0, 1fr);
+    align-items: start;
+    justify-items: center;
+    row-gap: max(0.03rem, 0.28cqh);
+  }
+
+  .vfd-showdown-stage-slot {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .vfd-showdown-stage-slot--payout {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .vfd-showdown-stage-slot--pot {
+    height: 100%;
+  }
+
+  .vfd-showdown-stage-slot--cards {
+    align-self: stretch;
+    align-items: flex-end;
+  }
+
+  .vfd-showdown-stage-slot--payout .vfd-showdown-stage-block,
+  .vfd-showdown-stage-slot--pot .vfd-showdown-stage-block,
+  .vfd-showdown-stage-slot--cards .vfd-showdown-stage-block {
     justify-content: flex-start;
-    gap: max(0.1rem, 1.15cqh);
-    padding-top: max(0.02rem, 0.25cqh);
   }
 
-  .vfd-showdown-stage[data-stage-variant='side'] .vfd-showdown-stage-block--cards,
-  .vfd-showdown-stage[data-stage-variant='split'] .vfd-showdown-stage-block--cards {
-    margin-top: auto;
-    padding-top: max(0.04rem, 0.35cqh);
+  .vfd-showdown-stage-slot--cards .vfd-showdown-stage-block--cards {
+    justify-content: flex-end;
+    padding-bottom: max(0.02rem, 0.2cqh);
   }
 
-  .vfd-showdown-stage[data-stage-variant='side'] .vfd-showdown-stage-block--pot,
-  .vfd-showdown-stage[data-stage-variant='split'] .vfd-showdown-stage-block--pot {
-    margin-top: max(0.02rem, 0.15cqh);
+  .vfd-showdown-stage[data-layout-payout-lines='2'] {
+    --vfd-stage-slot-payout: max(2.65rem, 24cqh);
   }
 
-  /** Side-pot ledger scale by tile density. */
+  .vfd-showdown-stage[data-layout-payout-lines='3'],
+  .vfd-showdown-stage[data-layout-payout-lines='4'],
+  .vfd-showdown-stage[data-layout-payout-lines-many] {
+    --vfd-stage-slot-payout: max(3.15rem, 30cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='hero'] .vfd-showdown-stage-frame,
+  .vfd-showdown-stage[data-stage-density='spacious'] .vfd-showdown-stage-frame {
+    --vfd-stage-slot-payout: max(2.85rem, 26cqh);
+    --vfd-stage-slot-pot: max(1.45rem, 12cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='hero'][data-layout-payout-lines-many] .vfd-showdown-stage-frame,
+  .vfd-showdown-stage[data-stage-density='spacious'][data-layout-payout-lines-many] .vfd-showdown-stage-frame {
+    --vfd-stage-slot-payout: max(3.45rem, 34cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='standard'] .vfd-showdown-stage-frame {
+    --vfd-stage-slot-payout: max(2.55rem, 23cqh);
+    --vfd-stage-slot-pot: max(1.35rem, 11cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='compact'] .vfd-showdown-stage-frame {
+    --vfd-stage-slot-payout: max(2.45rem, 22cqh);
+    --vfd-stage-slot-pot: max(1.28rem, 10.5cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-frame {
+    --vfd-stage-slot-payout: max(2.2rem, 20cqh);
+    --vfd-stage-slot-pot: max(1.15rem, 9.5cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-layout-payout-lines-many] .vfd-showdown-stage-frame {
+    --vfd-stage-slot-payout: max(2.75rem, 26cqh);
+  }
+
+  /** Side/split ledger type — scales with tile density. */
   .vfd-showdown-stage[data-stage-variant='side'][data-stage-density='hero'] .vfd-showdown-stage-frame,
-  .vfd-showdown-stage[data-stage-variant='side'][data-stage-density='spacious'] .vfd-showdown-stage-frame {
+  .vfd-showdown-stage[data-stage-variant='side'][data-stage-density='spacious'] .vfd-showdown-stage-frame,
+  .vfd-showdown-stage[data-stage-variant='split'][data-stage-density='hero'] .vfd-showdown-stage-frame,
+  .vfd-showdown-stage[data-stage-variant='split'][data-stage-density='spacious'] .vfd-showdown-stage-frame {
     --vfd-stage-ledger-size: min(8.4cqw, 12.5cqh);
   }
 
-  .vfd-showdown-stage[data-stage-variant='side'][data-stage-density='standard'] .vfd-showdown-stage-frame {
+  .vfd-showdown-stage[data-stage-variant='side'][data-stage-density='standard'] .vfd-showdown-stage-frame,
+  .vfd-showdown-stage[data-stage-variant='split'][data-stage-density='standard'] .vfd-showdown-stage-frame {
     --vfd-stage-ledger-size: min(7.4cqw, 10.8cqh);
   }
 
-  .vfd-showdown-stage[data-stage-variant='side'][data-stage-density='compact'] .vfd-showdown-stage-frame {
+  .vfd-showdown-stage[data-stage-variant='side'][data-stage-density='compact'] .vfd-showdown-stage-frame,
+  .vfd-showdown-stage[data-stage-variant='split'][data-stage-density='compact'] .vfd-showdown-stage-frame {
     --vfd-stage-ledger-size: min(6.8cqw, 10cqh);
   }
 
@@ -393,9 +465,8 @@
   }
 
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-content {
-    justify-content: space-evenly;
-    gap: max(0.16rem, 2.6cqh);
-    padding-block: max(0.08rem, 0.6cqh);
+    justify-content: flex-start;
+    padding-block: max(0.04rem, 0.35cqh);
   }
 
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-column {
@@ -417,15 +488,8 @@
     max-width: 48%;
   }
 
-  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-content,
-  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='side'] .vfd-showdown-stage-content {
-    flex: 1 1 auto;
-    justify-content: flex-start;
-    gap: max(0.08rem, 1.1cqh);
-    padding-block: max(0.02rem, 0.2cqh) max(0.04rem, 0.35cqh);
-  }
-
-  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='side'] .vfd-showdown-stage-frame {
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='side'] .vfd-showdown-stage-frame,
+  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-frame {
     --vfd-stage-ledger-size: min(6.2cqw, 9.2cqh);
   }
 
@@ -435,18 +499,9 @@
     --vfd-stage-card-gap: min(0.55cqw, 0.38cqh);
   }
 
-  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split'] .vfd-showdown-stage-footer {
-    padding-block: max(0.02rem, 0.28cqh) max(0.04rem, 0.32cqh);
-  }
-
   .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split']
     .vfd-showdown-stage-pot-each-inline {
     font-size: min(4.8cqw, 8.2cqh);
-  }
-
-  .vfd-showdown-stage[data-stage-density='dense'][data-stage-variant='split']
-    .vfd-showdown-stage-split-names-compact {
-    gap: max(0.06rem, 0.55cqh);
   }
 
   .vfd-showdown-stage-name--split-compact {
@@ -455,26 +510,36 @@
     white-space: nowrap;
   }
 
-  .vfd-showdown-stage-name--split-inline {
-    font-size: var(--vfd-stage-name-split-size);
+  .vfd-showdown-stage-side-ledger--split-rows .vfd-showdown-stage-side-ledger-side-stack {
+    gap: max(0.05rem, 0.48cqh);
+  }
+
+  .vfd-showdown-stage-side-ledger-split-row {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vfd-showdown-stage-side-ledger-split-row .vfd-showdown-stage-side-ledger-name--split {
+    color: #fff;
+    font-size: var(--vfd-stage-name-size);
+    font-weight: 800;
     line-height: 1.05;
-    white-space: nowrap;
+    text-align: center;
   }
 
-  .vfd-showdown-stage-split-names-inline[data-split-scale='snug'] .vfd-showdown-stage-name--split-inline {
-    font-size: var(--vfd-stage-name-split-triple-size);
+  .vfd-showdown-stage-slot--payout .vfd-showdown-stage-block--names-winner {
+    padding-top: max(0.02rem, 0.15cqh);
   }
 
-  .vfd-showdown-stage-split-names-inline[data-split-scale='tight'] .vfd-showdown-stage-name--split-inline {
-    font-size: var(--vfd-stage-name-split-quad-size);
+  .vfd-showdown-stage-slot--payout .vfd-showdown-stage-side-ledger-main-hero {
+    padding-top: max(0.04rem, 0.35cqh);
   }
 
-  .vfd-showdown-stage-split-names-inline[data-split-scale='snug'] .vfd-showdown-stage-split-dot-compact {
-    font-size: min(5cqw, 8.6cqh);
-  }
-
-  .vfd-showdown-stage-split-names-inline[data-split-scale='tight'] .vfd-showdown-stage-split-dot-compact {
-    font-size: min(4.4cqw, 7.4cqh);
+  .vfd-showdown-stage-slot--payout
+    .vfd-showdown-stage-side-ledger-main-hero
+    .vfd-showdown-stage-side-ledger-name--main {
+    font-size: var(--vfd-stage-name-size);
   }
 
   .vfd-showdown-stage-split-names-compact--triple .vfd-showdown-stage-name--split-compact {
@@ -1191,6 +1256,29 @@
     font-size: clamp(2.65vh, 4vh, 5.5vh);
     font-weight: 700;
     line-height: 1.18;
+  }
+
+  /** Reserve ~2 lines so the table grid does not jump with short vs long questions. */
+  .venue-headline-question-slot {
+    display: flex;
+    min-height: 2.44em;
+    align-items: flex-start;
+  }
+
+  .venue-headline-question-slot.display-text-headline-question-spacious {
+    min-height: 2.44em;
+  }
+
+  .venue-headline-question-slot.display-text-headline-question-compact {
+    min-height: 2.44em;
+  }
+
+  .venue-headline-question-slot.display-text-headline-question-dense {
+    min-height: 2.36em;
+  }
+
+  .venue-headline-question-slot.display-text-headline-question-ultra {
+    min-height: 2.4em;
   }
 
   .display-text-headline-blinds-label {

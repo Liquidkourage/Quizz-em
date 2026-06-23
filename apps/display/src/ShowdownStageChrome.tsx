@@ -39,19 +39,19 @@ export function ShowdownStageChrome({
   densityTier,
   sideLedgerRows = 0,
   sideLedgerCompact = false,
+  layoutPayoutLineCount = 1,
   difference = null,
   children,
-  footer = null,
 }: {
   variant: 'winner' | 'split' | 'side'
   densityTier: ShowdownStageDensityTier
   sideLedgerRows?: number
   sideLedgerCompact?: boolean
+  layoutPayoutLineCount?: number
   difference?: string | null
   children: ReactNode
-  /** Cards row — rendered above the nameplate when split/side need a dedicated band at 20-up. */
-  footer?: ReactNode
 }) {
+  const payoutLines = Math.max(1, Math.min(layoutPayoutLineCount, 4))
   return (
     <div
       className="vfd-showdown-stage"
@@ -61,6 +61,8 @@ export function ShowdownStageChrome({
       data-stage-layout="composed"
       data-side-ledger-rows={sideLedgerRows > 0 ? String(sideLedgerRows) : undefined}
       data-side-ledger-compact={sideLedgerCompact ? '' : undefined}
+      data-layout-payout-lines={payoutLines > 1 ? String(payoutLines) : undefined}
+      data-layout-payout-lines-many={payoutLines >= 3 ? '' : undefined}
     >
       <div
         className="vfd-showdown-stage-frame vfd-showdown-stage-frame--composed"
@@ -102,9 +104,6 @@ export function ShowdownStageChrome({
             />
           )}
           <div className="vfd-showdown-stage-content">{children}</div>
-          {footer != null ? (
-            <div className="vfd-showdown-stage-footer">{footer}</div>
-          ) : null}
           {difference != null ? (
             <div className="vfd-showdown-stage-nameplate-wrap" aria-label={`Difference ${difference}`}>
               <img

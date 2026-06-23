@@ -274,10 +274,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: 10%;
   }
 
-  /** 20-up floors — larger type, looser vertical stack, nameplate lifted one step. */
+  /** 20-up floors — larger type and looser vertical stack. */
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-frame {
     --vfd-stage-name-size: min(8.6cqw, 13.2cqh);
     --vfd-stage-name-split-size: min(7.4cqw, 11.4cqh);
@@ -302,10 +301,6 @@
 
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-column {
     padding-bottom: max(0.06rem, 0.45cqh);
-  }
-
-  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-nameplate-wrap {
-    transform: translateY(-100%);
   }
 
   .vfd-showdown-stage-name--split-compact {

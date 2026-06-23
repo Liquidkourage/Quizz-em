@@ -42,8 +42,19 @@ export function showdownStageCardFrameVars(tableCount: number): CSSProperties | 
   }
 
   if (band === 'rise') {
+    if (n >= 13) {
+      return {
+        '--vfd-stage-card-h': 'max(1.64rem, min(19.5cqw, 14.75cqh)',
+        '--vfd-stage-card-w': 'max(1.14rem, min(13.8cqw, 10.25cqh)',
+        '--vfd-stage-card-gap': 'min(0.9cqw, 0.57cqh)',
+        '--vfd-stage-cards-rise': 'max(0.55rem, 2.75cqh)',
+      } as CSSProperties
+    }
     return {
-      '--vfd-stage-cards-rise': n >= 13 ? 'max(0.5rem, 2.35cqh)' : 'max(0.45rem, 2.1cqh)',
+      '--vfd-stage-card-h': 'max(1.48rem, min(17.6cqw, 12.85cqh)',
+      '--vfd-stage-card-w': 'max(1.05rem, min(12.35cqw, 9.05cqh)',
+      '--vfd-stage-card-gap': 'min(0.8cqw, 0.5cqh)',
+      '--vfd-stage-cards-rise': 'max(0.5rem, 2.5cqh)',
     } as CSSProperties
   }
 

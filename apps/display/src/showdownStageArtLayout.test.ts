@@ -18,10 +18,18 @@ describe('showdownStageDensityTier', () => {
 })
 
 describe('showdownStageCardScaleBand', () => {
-  it('rises cards for counts that overlap the laurel base', () => {
-    for (const n of [2, 7, 8, 13, 14, 15]) {
+  it('rises cards and trims card size for counts that overlap the laurel base', () => {
+    for (const n of [2, 7, 8]) {
       expect(showdownStageCardScaleBand(n)).toBe('rise')
-      expect(showdownStageCardFrameVars(n)).toHaveProperty('--vfd-stage-cards-rise')
+      expect(showdownStageCardFrameVars(n)).toMatchObject({
+        '--vfd-stage-cards-rise': 'max(0.5rem, 2.5cqh)',
+      })
+    }
+    for (const n of [13, 14, 15]) {
+      expect(showdownStageCardScaleBand(n)).toBe('rise')
+      expect(showdownStageCardFrameVars(n)).toMatchObject({
+        '--vfd-stage-cards-rise': 'max(0.55rem, 2.75cqh)',
+      })
     }
   })
 

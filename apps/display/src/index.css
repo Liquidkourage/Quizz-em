@@ -290,16 +290,17 @@
 
   .vfd-showdown-stage-slot--payout {
     height: 100%;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .vfd-showdown-stage-slot--pot {
     height: 100%;
+    min-height: var(--vfd-stage-slot-pot);
   }
 
   .vfd-showdown-stage-slot--cards {
     align-self: stretch;
-    align-items: flex-end;
+    align-items: flex-start;
   }
 
   .vfd-showdown-stage-slot--payout .vfd-showdown-stage-block,
@@ -309,18 +310,19 @@
   }
 
   .vfd-showdown-stage-slot--cards .vfd-showdown-stage-block--cards {
-    justify-content: flex-end;
-    padding-bottom: max(0.02rem, 0.2cqh);
+    justify-content: flex-start;
+    padding-top: max(0.02rem, 0.12cqh);
+    padding-bottom: max(0.12rem, 1.1cqh);
   }
 
   .vfd-showdown-stage[data-layout-payout-lines='2'] {
-    --vfd-stage-slot-payout: max(2.65rem, 24cqh);
+    --vfd-stage-slot-payout: max(3rem, 26cqh);
   }
 
   .vfd-showdown-stage[data-layout-payout-lines='3'],
   .vfd-showdown-stage[data-layout-payout-lines='4'],
   .vfd-showdown-stage[data-layout-payout-lines-many] {
-    --vfd-stage-slot-payout: max(3.15rem, 30cqh);
+    --vfd-stage-slot-payout: max(3.35rem, 32cqh);
   }
 
   .vfd-showdown-stage[data-stage-density='hero'] .vfd-showdown-stage-frame,
@@ -349,8 +351,16 @@
     --vfd-stage-slot-pot: max(1.15rem, 9.5cqh);
   }
 
+  .vfd-showdown-stage[data-stage-density='dense'][data-layout-payout-lines='2'] .vfd-showdown-stage-frame {
+    --vfd-stage-slot-payout: max(2.9rem, 30cqh);
+  }
+
   .vfd-showdown-stage[data-stage-density='dense'][data-layout-payout-lines-many] .vfd-showdown-stage-frame {
-    --vfd-stage-slot-payout: max(2.75rem, 26cqh);
+    --vfd-stage-slot-payout: max(2.85rem, 28cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='compact'][data-layout-payout-lines='2'] .vfd-showdown-stage-frame {
+    --vfd-stage-slot-payout: max(2.95rem, 28cqh);
   }
 
   /** Side/split ledger type — scales with tile density. */
@@ -510,22 +520,8 @@
     white-space: nowrap;
   }
 
-  .vfd-showdown-stage-side-ledger--split-rows .vfd-showdown-stage-side-ledger-side-stack {
-    gap: max(0.05rem, 0.48cqh);
-  }
-
-  .vfd-showdown-stage-side-ledger-split-row {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .vfd-showdown-stage-side-ledger-split-row .vfd-showdown-stage-side-ledger-name--split {
-    color: #fff;
-    font-size: var(--vfd-stage-name-size);
-    font-weight: 800;
-    line-height: 1.05;
-    text-align: center;
+  .vfd-showdown-stage-side-ledger--split-share .vfd-showdown-stage-side-ledger-side-stack {
+    gap: max(0.06rem, 0.55cqh);
   }
 
   .vfd-showdown-stage-slot--payout .vfd-showdown-stage-block--names-winner {
@@ -533,13 +529,29 @@
   }
 
   .vfd-showdown-stage-slot--payout .vfd-showdown-stage-side-ledger-main-hero {
-    padding-top: max(0.04rem, 0.35cqh);
+    padding-block: max(0.06rem, 0.45cqh);
   }
 
-  .vfd-showdown-stage-slot--payout
-    .vfd-showdown-stage-side-ledger-main-hero
-    .vfd-showdown-stage-side-ledger-name--main {
-    font-size: var(--vfd-stage-name-size);
+  /** Two-line side pots — tighter band so MAIN + SIDE fit without clipping. */
+  .vfd-showdown-stage[data-layout-payout-lines='2'][data-stage-variant='side']
+    .vfd-showdown-stage-side-ledger--main-band {
+    gap: max(0.04rem, 0.38cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-layout-payout-lines='2'][data-stage-variant='side']
+    .vfd-showdown-stage-side-ledger--main-band {
+    gap: max(0.03rem, 0.28cqh);
+    font-size: max(0.38rem, min(5.2cqw, 7.8cqh));
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-layout-payout-lines='2'][data-stage-variant='side']
+    .vfd-showdown-stage-side-ledger-main-hero {
+    padding: max(0.04rem, 0.32cqh) max(0.18rem, 0.9cqw);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'][data-layout-payout-lines='2'][data-stage-variant='side']
+    .vfd-showdown-stage-side-ledger-side-stack {
+    gap: max(0.03rem, 0.28cqh);
   }
 
   .vfd-showdown-stage-split-names-compact--triple .vfd-showdown-stage-name--split-compact {
@@ -599,6 +611,10 @@
 
   .vfd-showdown-stage-side-ledger-label--return {
     color: rgba(255, 255, 255, 0.55);
+  }
+
+  .vfd-showdown-stage-side-ledger-label--share {
+    color: #fff4dc;
   }
 
   .vfd-showdown-stage-side-ledger-name {

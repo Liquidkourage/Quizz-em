@@ -7,24 +7,38 @@ import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
 
-function ShowdownStageSplitLedger({ names }: { names: readonly string[] }) {
+function ShowdownStageSplitLedger({
+  names,
+  amountPerWinner,
+}: {
+  names: readonly string[]
+  amountPerWinner: number
+}) {
   const visible = names.length > 4 ? names.slice(0, 4) : names
   if (visible.length === 0) return null
 
+  const amountLabel = `$${Math.max(0, Math.round(amountPerWinner)).toLocaleString()}`
+
   return (
     <div
-      className="vfd-showdown-stage-side-ledger vfd-showdown-stage-side-ledger--split-rows"
+      className="vfd-showdown-stage-side-ledger vfd-showdown-stage-side-ledger--split-share"
       data-split-rows={String(visible.length)}
-      aria-label={visible.join(', ')}
+      aria-label={visible.map((name) => `${name} ${amountLabel}`).join(', ')}
     >
       <div className="vfd-showdown-stage-side-ledger-side-stack">
         {visible.map((name) => (
-          <div key={name} className="vfd-showdown-stage-side-ledger-split-row">
+          <div key={name} className="vfd-showdown-stage-side-ledger-side-row">
+            <span className="vfd-showdown-stage-side-ledger-label vfd-showdown-stage-side-ledger-label--share">
+              Share
+            </span>
             <span
-              className="vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--split"
+              className="vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--share"
               title={name}
             >
               {name}
+            </span>
+            <span className="vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--share">
+              {amountLabel}
             </span>
           </div>
         ))}
@@ -206,7 +220,6 @@ function formatWinnerDifference(
 function ShowdownStageTemplate({
   names,
   pot,
-  each,
   chipRow,
   correctAnswer,
   sidePotLines,
@@ -216,7 +229,6 @@ function ShowdownStageTemplate({
 }: {
   names: readonly string[]
   pot: number
-  each: boolean
   chipRow: ShowdownResultRow | null
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
@@ -252,7 +264,7 @@ function ShowdownStageTemplate({
       </div>
     ) : variant === 'split' ? (
       <div className="vfd-showdown-stage-block vfd-showdown-stage-block--side-ledger">
-        <ShowdownStageSplitLedger names={names} />
+        <ShowdownStageSplitLedger names={names} amountPerWinner={pot} />
       </div>
     ) : (
       <div className="vfd-showdown-stage-block vfd-showdown-stage-block--names vfd-showdown-stage-block--names-winner">
@@ -261,9 +273,9 @@ function ShowdownStageTemplate({
     )
 
   const potBlock =
-    variant !== 'side' && pot > 0 ? (
+    variant === 'winner' && pot > 0 ? (
       <div className="vfd-showdown-stage-block vfd-showdown-stage-block--pot">
-        <ShowdownStagePotAmount amount={pot} each={each} eachInline={variant === 'split'} />
+        <ShowdownStagePotAmount amount={pot} each={false} />
       </div>
     ) : null
 
@@ -305,14 +317,12 @@ export function ShowdownWinnerCompPanel({
   layoutPayoutLineCount?: number
 }) {
   const names = winners.map((w) => w.name).filter(Boolean)
-  const each = variant === 'split'
 
   return (
     <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden">
       <ShowdownStageTemplate
         names={names}
         pot={pot}
-        each={each}
         chipRow={chipRow}
         correctAnswer={correctAnswer}
         sidePotLines={sidePotLines}

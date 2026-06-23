@@ -7,5 +7,6 @@ describe('showdownStageDensityTier', () => {
     expect(showdownStageDensityTier(4)).toBe('spacious')
     expect(showdownStageDensityTier(6)).toBe('standard')
     expect(showdownStageDensityTier(14)).toBe('compact')
+    expect(showdownStageDensityTier(20)).toBe('dense')
   })
 })

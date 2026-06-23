@@ -277,6 +277,37 @@
     padding-top: 10%;
   }
 
+  /** 20-up floors — larger type, looser vertical stack, nameplate lifted one step. */
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-frame {
+    --vfd-stage-name-size: min(8.6cqw, 13.2cqh);
+    --vfd-stage-name-split-size: min(7.4cqw, 11.4cqh);
+    --vfd-stage-name-split-triple-size: min(6.8cqw, 10.6cqh);
+    --vfd-stage-name-split-quad-size: min(6.2cqw, 9.8cqh);
+    --vfd-stage-pot-size: min(10.8cqw, 15.8cqh);
+    --vfd-stage-diff-size: min(7.6cqw, 10.8cqh);
+    --vfd-stage-card-h: max(1.92rem, min(22.5cqw, 17cqh));
+    --vfd-stage-card-w: max(1.34rem, min(15.8cqw, 11.8cqh));
+    --vfd-stage-card-gap: min(1.05cqw, 0.72cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-crown {
+    height: min(9.5cqh, 11cqw);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-content {
+    justify-content: space-evenly;
+    gap: max(0.16rem, 2.6cqh);
+    padding-block: max(0.08rem, 0.6cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-column {
+    padding-bottom: max(0.06rem, 0.45cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-nameplate-wrap {
+    transform: translateY(-100%);
+  }
+
   .vfd-showdown-stage-name--split-compact {
     font-size: var(--vfd-stage-name-split-size);
     line-height: 1.05;

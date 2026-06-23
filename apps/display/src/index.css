@@ -83,6 +83,7 @@
     --vfd-stage-card-h: max(1.78rem, min(20cqw, 14.5cqh));
     --vfd-stage-card-w: max(1.24rem, min(14cqw, 10.2cqh));
     --vfd-stage-card-gap: min(0.85cqw, 0.5cqh);
+    --vfd-stage-crown-h: min(13cqh, 14.5cqw);
   }
 
   /** Mosaic tile during showdown — composed stage fills the tile. */
@@ -117,8 +118,8 @@
     user-select: none;
     object-fit: contain;
     width: 38%;
-    max-height: 84%;
-    top: 5%;
+    max-height: 82%;
+    top: 6%;
   }
 
   .vfd-showdown-stage-laurel--left {
@@ -199,16 +200,18 @@
 
   .vfd-showdown-stage-crown {
     flex-shrink: 0;
-    height: min(11cqh, 12.5cqw);
+    height: var(--vfd-stage-crown-h);
     width: auto;
+    max-width: 52%;
     object-fit: contain;
     pointer-events: none;
     user-select: none;
+    margin-bottom: max(0.04rem, 0.35cqh);
   }
 
   .vfd-showdown-stage-content {
     display: flex;
-    flex: 1 1 auto;
+    flex: 1 1 0;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -217,6 +220,22 @@
     min-height: 0;
     padding-inline: 1%;
     text-align: center;
+  }
+
+  .vfd-showdown-stage[data-stage-density='hero'] .vfd-showdown-stage-frame {
+    --vfd-stage-crown-h: min(15.5cqh, 17cqw);
+  }
+
+  .vfd-showdown-stage[data-stage-density='spacious'] .vfd-showdown-stage-frame {
+    --vfd-stage-crown-h: min(14.5cqh, 16cqw);
+  }
+
+  .vfd-showdown-stage[data-stage-density='standard'] .vfd-showdown-stage-frame {
+    --vfd-stage-crown-h: min(13.5cqh, 15cqw);
+  }
+
+  .vfd-showdown-stage[data-stage-density='compact'] .vfd-showdown-stage-frame {
+    --vfd-stage-crown-h: min(12.5cqh, 14cqw);
   }
 
   .vfd-showdown-stage-block {
@@ -287,10 +306,7 @@
     --vfd-stage-card-h: max(1.92rem, min(22.5cqw, 17cqh));
     --vfd-stage-card-w: max(1.34rem, min(15.8cqw, 11.8cqh));
     --vfd-stage-card-gap: min(1.05cqw, 0.72cqh);
-  }
-
-  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-crown {
-    height: min(9.5cqh, 11cqw);
+    --vfd-stage-crown-h: min(12.5cqh, 14cqw);
   }
 
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-content {

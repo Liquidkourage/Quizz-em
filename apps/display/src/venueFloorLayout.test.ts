@@ -86,10 +86,55 @@ describe('selectVenueFloorLayout', () => {
     expect(plan.rowSizes).toEqual([2, 2])
   })
 
-  it('prefers two-one for three tables', () => {
+  it('uses a single row of three for three tables', () => {
     const plan = selectVenueFloorLayout({ tableCount: 3 })
-    expect(plan.rowSizes).toEqual([2, 1])
-    expect(plan.columns).toBe(2)
+    expect(plan.rowSizes).toEqual([3])
+    expect(plan.columns).toBe(3)
+    expect(plan.rowCount).toBe(1)
+  })
+
+  it('uses a three-by-three grid for nine tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 9 })
+    expect(plan.rowSizes).toEqual([3, 3, 3])
+    expect(plan.columns).toBe(3)
+    expect(plan.rowCount).toBe(3)
+  })
+
+  it('uses a three-four-three stagger for ten tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 10 })
+    expect(plan.rowSizes).toEqual([3, 4, 3])
+    expect(plan.columns).toBe(4)
+    expect(plan.staggered).toBe(true)
+  })
+
+  it('uses a four-three-four stagger for eleven tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 11 })
+    expect(plan.rowSizes).toEqual([4, 3, 4])
+    expect(plan.columns).toBe(4)
+    expect(plan.staggered).toBe(true)
+  })
+
+  it('uses a four-by-four grid for sixteen tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 16 })
+    expect(plan.rowSizes).toEqual([4, 4, 4, 4])
+    expect(plan.columns).toBe(4)
+    expect(plan.rowCount).toBe(4)
+  })
+
+  it('uses a five-four-five-four stagger for eighteen tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 18 })
+    expect(plan.rowSizes).toEqual([5, 4, 5, 4])
+    expect(plan.columns).toBe(5)
+    expect(plan.staggered).toBe(true)
+  })
+
+  it('keeps three tables on one row at 16:9 with headline', () => {
+    const plan = selectVenueFloorLayout({
+      tableCount: 3,
+      withHeadline: true,
+      viewport: { widthPx: 1920, heightPx: 1080 },
+    })
+    expect(plan.rowSizes).toEqual([3])
   })
 
   it('keeps fourteen tables on three rows at 16:9 with headline', () => {

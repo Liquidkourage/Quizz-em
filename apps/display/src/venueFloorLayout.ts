@@ -24,19 +24,36 @@ const HEADLINE_RESERVE_PX = 168
 
 /** Count-aware stagger row groupings — each pattern must sum to the table count. */
 export const VENUE_FLOOR_STAGGER_PATTERNS: Readonly<Record<number, readonly (readonly number[])[]>> = {
+  3: [[3], [2, 1]],
   7: [[4, 3], [3, 4]],
-  10: [[5, 5], [4, 3, 3]],
-  11: [[5, 3, 3], [4, 4, 3]],
+  9: [[3, 3, 3], [5, 4]],
+  10: [[3, 4, 3], [5, 5], [4, 3, 3]],
+  11: [[4, 3, 4], [5, 3, 3], [4, 4, 3]],
   12: [[5, 4, 3], [4, 4, 4]],
   13: [[4, 5, 4], [5, 5, 3]],
   14: [[5, 4, 5], [5, 5, 4]],
   15: [[5, 5, 5], [5, 4, 3, 3]],
-  16: [[5, 4, 4, 3], [4, 4, 4, 4], [5, 5, 3, 3]],
+  16: [[4, 4, 4, 4], [5, 4, 4, 3], [5, 5, 3, 3]],
   17: [[5, 5, 4, 3], [5, 4, 4, 4]],
-  18: [[5, 5, 4, 4], [5, 5, 5, 3]],
+  18: [[5, 4, 5, 4], [5, 5, 4, 4], [5, 5, 5, 3]],
   19: [[5, 5, 5, 4], [5, 5, 4, 5]],
   20: [[5, 5, 5, 5], [5, 5, 4, 3, 3]],
 }
+
+/** QA-locked honeycomb / stagger row patterns — must win over felt-area scoring. */
+const LOCKED_FLOOR_ROW_PATTERN: Readonly<Partial<Record<number, string>>> = {
+  3: '3',
+  9: '3-3-3',
+  10: '3-4-3',
+  11: '4-3-4',
+  12: '5-4-3',
+  13: '4-5-4',
+  14: '5-4-5',
+  16: '4-4-4-4',
+  18: '5-4-5-4',
+}
+
+const LOCKED_FLOOR_ROW_PATTERN_BONUS = 3_200
 
 export type VenueFloorLayoutViewport = {
   widthPx: number
@@ -90,8 +107,9 @@ function candidateColumnCounts(tableCount: number): number[] {
   const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
   if (n <= 0) return [1]
   if (n === 1) return [1]
-  /** Up to four tables — never a single full-width row (portrait tiles, bad showdown stage). */
-  if (n <= 4) return [2]
+  if (n === 3) return [3, 2]
+  /** Four tables — never a single full-width row (portrait tiles, bad showdown stage). */
+  if (n === 4) return [2]
   const max = Math.min(MAX_COLUMNS, n)
   return Array.from({ length: max - 1 }, (_, i) => i + 2)
 }
@@ -130,10 +148,8 @@ function layoutCandidates(tableCount: number): LayoutCandidate[] {
 
 function staggerPatternBonus(tableCount: number, rowSizes: number[]): number {
   const key = rowSizes.join('-')
-  if (tableCount === 14 && key === '5-4-5') return 3_200
-  if (tableCount === 7 && (key === '4-3' || key === '3-4')) return 900
-  if (tableCount === 13 && key === '4-5-4') return 3_200
-  if (tableCount === 12 && key === '5-4-3') return 700
+  if (LOCKED_FLOOR_ROW_PATTERN[tableCount] === key) return LOCKED_FLOOR_ROW_PATTERN_BONUS
+  if (tableCount === 7 && key === '4-3') return 900
   if (rowSizes.length >= 3 && new Set(rowSizes).size > 1) {
     const max = Math.max(...rowSizes)
     const min = Math.min(...rowSizes)
@@ -151,7 +167,6 @@ function countOnlyLayoutScore(tableCount: number, candidate: LayoutCandidate): n
   if (tableCount > 8 && columns >= 5) score += 180
   if (tableCount <= 6 && columns === 3 && rowCount === 2) score += 220
   if (tableCount === 4 && rowCount === 2 && columns === 2) score += 1_200
-  if (tableCount === 3 && rowCount === 2 && columns === 2) score += 600
   score += staggerPatternBonus(tableCount, rowSizes)
   return score
 }
@@ -184,7 +199,7 @@ function viewportLayoutScore(
   score -= rowCount * 420
   score -= Math.abs(columns - venueFloorPreferredColumns(tableCount)) * 120
   if (tableCount === 4 && rowCount === 2 && columns === 2) score += 8_000
-  if (tableCount === 3 && rowCount === 2 && columns === 2) score += 4_000
+  if (LOCKED_FLOOR_ROW_PATTERN[tableCount] === rowSizes.join('-')) score += 100_000
   score += staggerPatternBonus(tableCount, rowSizes)
   return score
 }

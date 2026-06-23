@@ -114,6 +114,13 @@ describe('selectVenueFloorLayout', () => {
     expect(plan.staggered).toBe(true)
   })
 
+  it('uses a four-by-three grid for twelve tables', () => {
+    const plan = selectVenueFloorLayout({ tableCount: 12 })
+    expect(plan.rowSizes).toEqual([4, 4, 4])
+    expect(plan.columns).toBe(4)
+    expect(plan.rowCount).toBe(3)
+  })
+
   it('uses a four-by-four grid for sixteen tables', () => {
     const plan = selectVenueFloorLayout({ tableCount: 16 })
     expect(plan.rowSizes).toEqual([4, 4, 4, 4])

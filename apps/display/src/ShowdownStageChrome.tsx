@@ -83,6 +83,7 @@ export function ShowdownStageChrome({
         <div className="vfd-showdown-stage-column">
           {variant === 'split' || variant === 'side' ? (
             <div className="vfd-showdown-stage-crown-stack">
+              <ShowdownFlourishBanner variant={variant} />
               <img
                 src={crownArt}
                 alt=""
@@ -90,7 +91,6 @@ export function ShowdownStageChrome({
                 draggable={false}
                 className="vfd-showdown-stage-crown"
               />
-              <ShowdownFlourishBanner variant={variant} />
             </div>
           ) : (
             <img

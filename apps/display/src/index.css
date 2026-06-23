@@ -198,33 +198,46 @@
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.92);
   }
 
-  /** Split/side — crown anchors the top; flourish label overlays the crown. */
-  .vfd-showdown-stage-crown-stack {
-    position: relative;
-    flex-shrink: 0;
-    display: flex;
-    width: min(100%, 100%);
-    justify-content: center;
-    align-items: flex-start;
-    margin-bottom: max(0.04rem, 0.35cqh);
+  /** Split/side — flourish pinned to tile top; crown tucked just beneath. */
+  .vfd-showdown-stage[data-stage-variant='split'] .vfd-showdown-stage-column,
+  .vfd-showdown-stage[data-stage-variant='side'] .vfd-showdown-stage-column {
+    padding-top: max(0.02rem, 0.25cqh);
+    gap: max(0.04rem, 0.45cqh);
   }
 
-  .vfd-showdown-stage-crown-stack .vfd-showdown-stage-crown {
-    margin-bottom: 0;
+  .vfd-showdown-stage-crown-stack {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(100%, 100%);
+    margin-bottom: max(0.02rem, 0.15cqh);
   }
 
   .vfd-showdown-stage-crown-stack .vfd-showdown-stage-flourish {
-    position: absolute;
-    left: 50%;
-    top: 54%;
-    z-index: 1;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
     width: min(108%, 100%);
-    transform: translate(-50%, -50%);
+    margin-bottom: max(-0.2rem, -1.5cqh);
     pointer-events: none;
+  }
+
+  .vfd-showdown-stage-crown-stack .vfd-showdown-stage-flourish-label {
+    z-index: 1;
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.95));
   }
 
   .vfd-showdown-stage-crown-stack .vfd-showdown-stage-flourish-art {
     max-height: min(8.8cqh, 10.5cqw);
+  }
+
+  .vfd-showdown-stage-crown-stack .vfd-showdown-stage-crown {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 0;
   }
 
   .vfd-showdown-stage-crown {

@@ -466,6 +466,66 @@
     font-size: min(5.8cqw, 9.6cqh);
   }
 
+  /**
+   * Two-line side pots on roomy tiles (≤19 tables) — MAIN at winner scale, SIDE stays ledger-sized.
+   */
+  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
+      [data-stage-density='dense']
+    )
+    .vfd-showdown-stage-side-ledger {
+    row-gap: max(0.24rem, 2.2cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
+      [data-stage-density='dense']
+    )
+    .vfd-showdown-stage-side-ledger-label--main {
+    font-size: max(0.7em, min(3.4cqw, 5.2cqh));
+    letter-spacing: 0.12em;
+  }
+
+  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
+      [data-stage-density='dense']
+    )
+    .vfd-showdown-stage-side-ledger-name--main {
+    max-width: min(10rem, 48cqw);
+    font-size: var(--vfd-stage-name-size);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: 0.015em;
+  }
+
+  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
+      [data-stage-density='dense']
+    )
+    .vfd-showdown-stage-side-ledger-amount--main {
+    font-size: var(--vfd-stage-pot-size);
+  }
+
+  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
+      [data-stage-density='dense']
+    )
+    .vfd-showdown-stage-side-ledger-label--side {
+    font-size: max(0.58em, min(2.8cqw, 4.6cqh));
+    letter-spacing: 0.1em;
+  }
+
+  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
+      [data-stage-density='dense']
+    )
+    .vfd-showdown-stage-side-ledger-name--side {
+    max-width: min(8rem, 36cqw);
+    font-size: max(0.68em, min(3.4cqw, 5.8cqh));
+    font-weight: 800;
+  }
+
+  .vfd-showdown-stage[data-stage-variant='side']:not([data-side-ledger-compact]):not(
+      [data-stage-density='dense']
+    )
+    .vfd-showdown-stage-side-ledger-amount--side {
+    font-size: min(4.2cqw, 7cqh);
+  }
+
   /** Three+ payout lines — tighter type, same centered column grid. */
   .vfd-showdown-stage[data-side-ledger-compact] .vfd-showdown-stage-side-ledger {
     row-gap: max(0.08rem, 0.75cqh);

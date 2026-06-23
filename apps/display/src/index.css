@@ -292,6 +292,12 @@
     padding-bottom: max(0.02rem, 0.22cqh);
   }
 
+  /** Wide card band — row width tracks the nameplate ribbon (3 / 4 / 9 tables). */
+  .vfd-showdown-stage[data-stage-card-scale='wide'] .vfd-showdown-stage-cards-row {
+    width: min(46%, 92%);
+    margin-inline: auto;
+  }
+
   .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-cards-row {
     min-height: max(1.95rem, 18.5cqh);
     align-items: flex-end;

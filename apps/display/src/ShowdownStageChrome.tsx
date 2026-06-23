@@ -4,7 +4,11 @@ import flourishLineArt from './assets/showdown/flourish-line.png'
 import laurelLeftArt from './assets/showdown/laurel-left.png'
 import laurelRightArt from './assets/showdown/laurel-right.png'
 import nameplateArt from './assets/showdown/nameplate.png'
-import type { ShowdownStageDensityTier } from './showdownStageArtLayout'
+import {
+  showdownStageCardFrameVars,
+  showdownStageCardScaleBand,
+  type ShowdownStageDensityTier,
+} from './showdownStageArtLayout'
 import { showdownStageDenseFrameStyle } from './showdownStageDenseRubric'
 
 function ShowdownFlourishBanner({ variant }: { variant: 'split' | 'side' }) {
@@ -37,6 +41,7 @@ function ShowdownFlourishBanner({ variant }: { variant: 'split' | 'side' }) {
 export function ShowdownStageChrome({
   variant,
   densityTier,
+  tableCount,
   sideLedgerRows = 0,
   splitRows = 0,
   difference = null,
@@ -44,12 +49,15 @@ export function ShowdownStageChrome({
 }: {
   variant: 'winner' | 'split' | 'side'
   densityTier: ShowdownStageDensityTier
+  tableCount: number
   sideLedgerRows?: number
   splitRows?: number
   difference?: string | null
   children: ReactNode
 }) {
   const ledgerRows = variant === 'side' ? sideLedgerRows : variant === 'split' ? splitRows : 0
+  const cardScale = showdownStageCardScaleBand(tableCount)
+  const cardFrameVars = showdownStageCardFrameVars(tableCount)
 
   return (
     <div
@@ -57,12 +65,17 @@ export function ShowdownStageChrome({
       data-showdown-winner-comp
       data-stage-variant={variant}
       data-stage-density={densityTier}
+      data-stage-table-count={tableCount}
+      data-stage-card-scale={cardScale ?? undefined}
       data-stage-layout="composed"
       data-ledger-rows={ledgerRows > 1 ? String(Math.min(ledgerRows, 4)) : undefined}
     >
       <div
         className="vfd-showdown-stage-frame vfd-showdown-stage-frame--composed"
-        style={densityTier === 'dense' ? showdownStageDenseFrameStyle() : undefined}
+        style={{
+          ...(densityTier === 'dense' ? showdownStageDenseFrameStyle() : undefined),
+          ...cardFrameVars,
+        }}
       >
         <img
           src={laurelLeftArt}

@@ -230,6 +230,7 @@ function ShowdownStageTemplate({
     <ShowdownStageChrome
       variant={variant}
       densityTier={densityTier}
+      tableCount={layoutTableCount}
       sideLedgerRows={sideLedgerRows}
       splitRows={splitRows}
       difference={difference}

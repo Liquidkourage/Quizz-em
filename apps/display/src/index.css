@@ -39,6 +39,7 @@
   }
 
   [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-point--stage {
+    position: relative;
     width: min(2.2cqw, 3.7cqh);
     margin-inline: min(0.45cqw, 0.75cqh);
     align-self: flex-end;
@@ -47,15 +48,21 @@
   }
 
   [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-mark--stage {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
     display: block;
-    font-size: min(10.5cqw, 18cqh);
-    font-weight: 900;
-    line-height: 1;
-    color: #e2ad1a;
-    transform: translateY(0);
-    -webkit-text-stroke: 1px rgba(0, 0, 0, 0.82);
-    paint-order: stroke fill;
-    text-shadow:
+    width: min(1.45cqw, 2.45cqh);
+    height: min(1.45cqw, 2.45cqh);
+    transform: translateX(-50%);
+    border-radius: min(0.18cqw, 0.3cqh);
+    background: #e2ad1a;
+    font-size: 0;
+    line-height: 0;
+    color: transparent;
+    -webkit-text-stroke: 0;
+    paint-order: normal;
+    box-shadow:
       0 0 8px rgba(251, 191, 36, 0.75),
       0 1px 2px rgba(0, 0, 0, 0.85);
   }
@@ -287,7 +294,7 @@
     flex-shrink: 0;
     display: flex;
     width: 100%;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     padding-bottom: max(0.02rem, 0.22cqh);
   }

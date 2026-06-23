@@ -14,9 +14,9 @@ export const SHOWDOWN_STAGE_DENSE_FRAME_VARS = {
   '--vfd-stage-name-split-quad-size': 'min(6.2cqw, 9.8cqh)',
   '--vfd-stage-pot-size': 'min(10.8cqw, 15.8cqh)',
   '--vfd-stage-diff-size': 'min(7.6cqw, 10.8cqh)',
-  '--vfd-stage-card-h': 'max(1.92rem, min(22.5cqw, 17cqh)',
-  '--vfd-stage-card-w': 'max(1.34rem, min(15.8cqw, 11.8cqh)',
-  '--vfd-stage-card-gap': 'min(1.05cqw, 0.72cqh)',
+  '--vfd-stage-card-h': 'max(1.45rem, min(17cqw, 12cqh)',
+  '--vfd-stage-card-w': 'max(1rem, min(12cqw, 8.5cqh)',
+  '--vfd-stage-card-gap': 'min(0.85cqw, 0.55cqh)',
   '--vfd-stage-crown-h': 'max(1.875rem, min(22cqh, 26cqw)',
 } as const
 

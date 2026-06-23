@@ -32,26 +32,25 @@ function ShowdownFlourishBanner({ variant }: { variant: 'split' | 'side' }) {
 
 /**
  * Layered winner-stage chrome — crown, laurels, flourish, and nameplate as separate assets.
- * Live text (names, pot, cards, diff) renders in the center column.
+ * Live text (names, pot, cards, diff) renders in the laurel well between crown and nameplate.
  */
 export function ShowdownStageChrome({
   variant,
   densityTier,
   sideLedgerRows = 0,
-  sideLedgerCompact = false,
-  layoutPayoutLineCount = 1,
+  splitRows = 0,
   difference = null,
   children,
 }: {
   variant: 'winner' | 'split' | 'side'
   densityTier: ShowdownStageDensityTier
   sideLedgerRows?: number
-  sideLedgerCompact?: boolean
-  layoutPayoutLineCount?: number
+  splitRows?: number
   difference?: string | null
   children: ReactNode
 }) {
-  const payoutLines = Math.max(1, Math.min(layoutPayoutLineCount, 4))
+  const ledgerRows = variant === 'side' ? sideLedgerRows : variant === 'split' ? splitRows : 0
+
   return (
     <div
       className="vfd-showdown-stage"
@@ -59,10 +58,7 @@ export function ShowdownStageChrome({
       data-stage-variant={variant}
       data-stage-density={densityTier}
       data-stage-layout="composed"
-      data-side-ledger-rows={sideLedgerRows > 0 ? String(sideLedgerRows) : undefined}
-      data-side-ledger-compact={sideLedgerCompact ? '' : undefined}
-      data-layout-payout-lines={payoutLines > 1 ? String(payoutLines) : undefined}
-      data-layout-payout-lines-many={payoutLines >= 3 ? '' : undefined}
+      data-ledger-rows={ledgerRows > 1 ? String(Math.min(ledgerRows, 4)) : undefined}
     >
       <div
         className="vfd-showdown-stage-frame vfd-showdown-stage-frame--composed"

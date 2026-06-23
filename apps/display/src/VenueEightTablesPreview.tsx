@@ -36,7 +36,7 @@ import {
   buildFloorShowdownPresentation,
   resolveShowdownDisplayPot,
 } from './VenueFloorShowdownOverlay'
-import { VenueFloorShowdownByVariant, floorShowdownPayoutLineCount } from './venueFloorShowdownVariants'
+import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
@@ -1367,8 +1367,6 @@ type VenueMosaicTableCardProps = {
   mosaicTypography: VenueFloorMosaicTypography
   /** Active table count — drives per-tile typography tier. */
   layoutTableCount: number
-  /** Shared payout-band height across mosaic tiles (side/split/winner alignment). */
-  layoutPayoutLineCount?: number
 }
 
 function VenueMosaicTableCard({
@@ -1383,7 +1381,6 @@ function VenueMosaicTableCard({
   sharedShowdownAnswer,
   mosaicTypography,
   layoutTableCount,
-  layoutPayoutLineCount,
 }: VenueMosaicTableCardProps) {
   const tileRef = useRef<HTMLElement>(null)
   const [tilePx, setTilePx] = useState({ w: 0, h: 0 })
@@ -1686,7 +1683,6 @@ function VenueMosaicTableCard({
             rows={floorShowdownRows}
             correctAnswer={floorShowdownAnswer}
             layoutTableCount={layoutTableCount}
-            layoutPayoutLineCount={layoutPayoutLineCount}
           />
         ) : null}
 
@@ -1709,21 +1705,6 @@ function venueShowdownQuestionFromTiles(
     }
   }
   return null
-}
-
-function maxShowdownPayoutLineCountForTiles(
-  tiles: DisplayVenueTileSnapshot[],
-  sharedShowdownAnswer?: number
-): number {
-  let max = 1
-  for (const t of tiles) {
-    if (t.phase !== 'showdown') continue
-    const rows = showdownRowsFromTile(t)
-    if (rows.length === 0) continue
-    const answer = sharedShowdownAnswer ?? showdownCorrectAnswerFromTile(t)
-    max = Math.max(max, floorShowdownPayoutLineCount(rows, answer))
-  }
-  return max
 }
 
 function VenueAerialFloorGrid({
@@ -1787,10 +1768,6 @@ function VenueAerialFloorGrid({
   const floorGridPadding = useMemo(
     () => venueFloorGridPaddingForLayout(rowCount, { withHeadline: showHeadline }),
     [rowCount, showHeadline]
-  )
-  const layoutPayoutLineCount = useMemo(
-    () => maxShowdownPayoutLineCountForTiles(tiles, sharedShowdownAnswer),
-    [tiles, sharedShowdownAnswer]
   )
   const gridInsetClass =
     venueFloorGridInsetClass(rowCount, { withHeadline: showHeadline }) ?? 'px-4 sm:px-6'
@@ -1896,7 +1873,6 @@ function VenueAerialFloorGrid({
                     sharedShowdownAnswer={sharedShowdownAnswer}
                     mosaicTypography={mosaicTypography}
                     layoutTableCount={layoutCount}
-                    layoutPayoutLineCount={layoutPayoutLineCount}
                   />
                 </div>
               )})}
@@ -1926,14 +1902,6 @@ function VenueHeroSpotlightLayout({
   const heroSize = useMemo(() => venueFloorSizeSpec(1), [])
   const heroTypography = useMemo(() => venueFloorMosaicTypography(1), [])
   const othersStillWagering = useMemo(() => venueHasOpenWagering(companions), [companions])
-  const layoutPayoutLineCount = useMemo(
-    () =>
-      maxShowdownPayoutLineCountForTiles(
-        [featured, ...companions],
-        sharedShowdownAnswer
-      ),
-    [featured, companions, sharedShowdownAnswer]
-  )
 
   return (
     <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-3">
@@ -1949,7 +1917,6 @@ function VenueHeroSpotlightLayout({
           sharedShowdownAnswer={sharedShowdownAnswer}
           mosaicTypography={heroTypography}
           layoutTableCount={layoutTableCount}
-          layoutPayoutLineCount={layoutPayoutLineCount}
         />
       </div>
       {companions.length > 0 ? (

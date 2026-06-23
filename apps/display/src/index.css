@@ -257,7 +257,9 @@
   }
 
   .vfd-showdown-stage-block--side-ledger {
-    width: min(88%, 100%);
+    width: min(92%, 100%);
+    margin-inline: auto;
+    align-self: center;
     font-size: var(--vfd-stage-ledger-size);
   }
 
@@ -344,7 +346,40 @@
     display: flex;
     width: 100%;
     flex-direction: column;
+    align-items: center;
     gap: max(0.18rem, 1.6cqh);
+  }
+
+  /** Two-line MAIN/SIDE — inline label · name · amount, centered as a row. */
+  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-row {
+    display: grid;
+    width: fit-content;
+    max-width: 100%;
+    grid-template-columns: auto minmax(0, max-content) auto;
+    align-items: baseline;
+    justify-content: center;
+    column-gap: max(0.22rem, 1.1cqw);
+    padding: max(0.02rem, 0.2cqh) max(0.06rem, 0.35cqw);
+  }
+
+  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-detail {
+    display: contents;
+  }
+
+  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-label {
+    grid-column: 1;
+    justify-self: end;
+  }
+
+  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-name {
+    grid-column: 2;
+    max-width: min(9rem, 42cqw);
+    text-align: center;
+  }
+
+  .vfd-showdown-stage:not([data-side-ledger-compact]) .vfd-showdown-stage-side-ledger-amount {
+    grid-column: 3;
+    justify-self: start;
   }
 
   .vfd-showdown-stage-side-ledger-row {

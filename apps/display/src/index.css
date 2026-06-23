@@ -377,9 +377,9 @@
   }
 
   .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-frame {
-    --vfd-stage-card-h: max(1.32rem, min(15.6cqw, 11.6cqh));
-    --vfd-stage-card-w: max(0.9rem, min(11.35cqw, 8.4cqh));
-    --vfd-stage-card-gap: min(0.66cqw, 0.41cqh);
+    --vfd-stage-card-h: max(1.19rem, min(14.04cqw, 10.44cqh));
+    --vfd-stage-card-w: max(0.81rem, min(10.2cqw, 7.56cqh));
+    --vfd-stage-card-gap: min(0.6cqw, 0.37cqh);
   }
 
   .vfd-showdown-stage[data-stage-table-count='8'] .vfd-showdown-stage-cards-row {

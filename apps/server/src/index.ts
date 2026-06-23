@@ -53,6 +53,8 @@ import {
   previewChipPayoutByPlayerId,
   venueWallDisplayPot,
   venueCondenseDisplayFields,
+  VENUE_CONDENSE_MAX_SEATS,
+  VENUE_CONDENSE_MIN_SEATS,
 } from '@qhe/core'
 import type { Question, GameState } from '@qhe/core'
 import type { 
@@ -3293,7 +3295,11 @@ io.on('connection', (socket) => {
           }
           const hostIdSnap = lobbyGs.hostId
           const N = roster.length
-          let tableCount = computeOptimalTableCount(N, lobbyGs.maxPlayers, lobbyGs.minPlayers)
+          let tableCount = computeOptimalTableCount(
+            N,
+            VENUE_CONDENSE_MAX_SEATS,
+            VENUE_CONDENSE_MIN_SEATS,
+          )
           tableCount = Math.min(tableCount, VENUE_NUMBERED_TABLE_MAX)
           const sizes = splitIntoTableSizes(N, tableCount)
           const shuffled = shuffle(roster)

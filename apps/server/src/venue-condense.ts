@@ -4,6 +4,8 @@ import {
   VENUE_NUMBERED_TABLE_MAX,
   createEmptyGame,
   planVenueCondense,
+  type VenueCondensePlayerMove,
+  type VenueCondenseScheduledMerge,
   type VenueTableRoster,
 } from '@qhe/core'
 
@@ -23,6 +25,8 @@ export type VenueCondenseApplyDeps = {
 
 export type VenueCondenseApplyResult = {
   soloRescues: number
+  rebalanceMoves: number
+  closureMoves: number
   merged: boolean
   tablesBefore: number
   tablesAfter: number
@@ -72,24 +76,9 @@ export function venueCondenseSnapshotFromRooms(deps: {
   return { chipSurvivorCount, liveTableCount }
 }
 
-function playerSessionKey(
+function applyPlayerMoveToRooms(
   deps: VenueCondenseApplyDeps,
-  rosters: VenueTableRoster[],
-  playerId: string,
-): string | null {
-  const vn = deps.venueCode
-  for (const t of rosters) {
-    if (t.players.some((p) => p.id === playerId)) {
-      return deps.tableSessionKey(vn, String(t.tableNum))
-    }
-  }
-  return null
-}
-
-function applySoloMoveToRooms(
-  deps: VenueCondenseApplyDeps,
-  rosters: VenueTableRoster[],
-  move: { playerId: string; fromTableNum: number; toTableNum: number },
+  move: VenueCondensePlayerMove,
 ): void {
   const vn = deps.venueCode
   const fromKey = deps.tableSessionKey(vn, String(move.fromTableNum))
@@ -112,29 +101,30 @@ function applySoloMoveToRooms(
   if (!player.id.startsWith('vp:')) {
     deps.moveHumanSocket(player.id, toKey, String(move.toTableNum))
   }
-  deps.io.to(toKey).emit(
-    'toast',
-    `Table ${move.fromTableNum} closed — ${player.name} moved to Table ${move.toTableNum}.`,
-  )
+
+  if (move.reason === 'solo' || move.reason === 'closure') {
+    deps.io.to(toKey).emit(
+      'toast',
+      `Table ${move.fromTableNum} closed — ${player.name} moved to Table ${move.toTableNum}.`,
+    )
+  } else {
+    deps.io.to(toKey).emit(
+      'toast',
+      `${player.name} moved from Table ${move.fromTableNum} to Table ${move.toTableNum} (rebalance).`,
+    )
+  }
 }
 
-function applyScheduledMerge(deps: VenueCondenseApplyDeps, rosters: VenueTableRoster[]): void {
+function applyScheduledMerge(
+  deps: VenueCondenseApplyDeps,
+  merge: VenueCondenseScheduledMerge,
+): void {
   const vn = deps.venueCode
-  const merge = planVenueCondense(rosters).scheduledMerge
-  if (!merge) return
-
-  const sampleGs = deps.getState(deps.tableSessionKey(vn, String(rosters[0]!.tableNum)))
+  const sampleKey = deps.tableSessionKey(vn, '1')
+  const sampleGs = deps.getState(sampleKey)
   const hostId = sampleGs?.hostId ?? deps.hostId
   const smallBlind = sampleGs?.smallBlind ?? 10
   const bigBlind = sampleGs?.bigBlind ?? 20
-
-  const playerOldKey = new Map<string, string>()
-  for (const t of rosters) {
-    const tk = deps.tableSessionKey(vn, String(t.tableNum))
-    for (const p of t.players) {
-      playerOldKey.set(p.id, tk)
-    }
-  }
 
   for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
     const tk = deps.tableSessionKey(vn, String(n))
@@ -177,29 +167,40 @@ export function applyVenueCondenseAfterRound(deps: VenueCondenseApplyDeps): Venu
   const tablesBefore = rosters.length
   const survivorsBefore = rosters.reduce((n, t) => n + t.players.length, 0)
 
-  const plan0 = planVenueCondense(rosters)
-  for (const move of plan0.soloMoves) {
-    applySoloMoveToRooms(deps, rosters, move)
-    hostToasts.push(
-      `Table ${move.fromTableNum} closed — player rescued to Table ${move.toTableNum}.`,
-    )
+  const plan = planVenueCondense(rosters)
+  let soloRescues = 0
+  let rebalanceMoves = 0
+  let closureMoves = 0
+
+  for (const move of plan.playerMoves) {
+    applyPlayerMoveToRooms(deps, move)
+    if (move.reason === 'solo') {
+      soloRescues++
+      hostToasts.push(
+        `Table ${move.fromTableNum} closed — player rescued to Table ${move.toTableNum}.`,
+      )
+    } else if (move.reason === 'closure') {
+      closureMoves++
+    } else {
+      rebalanceMoves++
+    }
     rosters = collectRosters(deps)
   }
 
-  rosters = collectRosters(deps)
-  const plan1 = planVenueCondense(rosters)
   let merged = false
-  if (plan1.scheduledMerge) {
+  if (plan.scheduledMerge) {
     const from = rosters.length
-    const to = plan1.scheduledMerge.targetTableCount
-    applyScheduledMerge(deps, rosters)
+    const to = plan.scheduledMerge.targetTableCount
+    applyScheduledMerge(deps, plan.scheduledMerge)
     merged = true
     hostToasts.push(`Tables combined — ${from} → ${to} (${survivorsBefore} players remaining).`)
   }
 
   rosters = collectRosters(deps)
   return {
-    soloRescues: plan0.soloMoves.length,
+    soloRescues,
+    rebalanceMoves,
+    closureMoves,
     merged,
     tablesBefore,
     tablesAfter: rosters.length,

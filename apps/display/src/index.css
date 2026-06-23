@@ -48,7 +48,7 @@
 
   [data-showdown-winner-cards='stage'] .vfd-showdown-decimal-mark--stage {
     display: block;
-    font-size: min(9.5cqw, 16cqh);
+    font-size: min(10.5cqw, 18cqh);
     font-weight: 900;
     line-height: 1;
     color: #e2ad1a;
@@ -76,9 +76,9 @@
     --vfd-stage-pot-size: min(9cqw, 13cqh);
     --vfd-stage-diff-size: min(6.8cqw, 9.5cqh);
     --vfd-stage-ledger-size: min(6.6cqw, 9.6cqh);
-    --vfd-stage-card-h: max(1.5rem, min(17cqw, 12.5cqh));
-    --vfd-stage-card-w: max(1.05rem, min(12cqw, 8.8cqh));
-    --vfd-stage-card-gap: min(0.75cqw, 0.45cqh);
+    --vfd-stage-card-h: max(1.55rem, min(18.5cqw, 13.5cqh));
+    --vfd-stage-card-w: max(1.1rem, min(13cqw, 9.5cqh));
+    --vfd-stage-card-gap: min(0.85cqw, 0.52cqh);
     --vfd-stage-crown-h: max(1.625rem, min(14cqh, 16cqw));
   }
 
@@ -289,7 +289,13 @@
     width: 100%;
     align-items: center;
     justify-content: center;
-    padding-bottom: max(0.04rem, 0.35cqh);
+    padding-bottom: max(0.02rem, 0.22cqh);
+  }
+
+  .vfd-showdown-stage[data-stage-density='dense'] .vfd-showdown-stage-cards-row {
+    min-height: max(1.95rem, 18.5cqh);
+    align-items: flex-end;
+    padding-bottom: max(0.02rem, 0.18cqh);
   }
 
   /** Side/split ledger type — scales with tile density. */
@@ -324,6 +330,9 @@
 
   .vfd-showdown-stage[data-stage-density='compact'] .vfd-showdown-stage-frame {
     --vfd-stage-crown-h: max(1.85rem, min(14cqh, 16cqw));
+    --vfd-stage-card-h: max(1.72rem, min(20.5cqw, 15.5cqh));
+    --vfd-stage-card-w: max(1.2rem, min(14.5cqw, 10.8cqh));
+    --vfd-stage-card-gap: min(0.95cqw, 0.6cqh);
   }
 
   .vfd-showdown-stage-block {

@@ -27,24 +27,16 @@ export const QUIZZ_EM_HOW_TO_PLAY_GROUPS: readonly VenueRulesWallBulletGroup[] =
   },
 ] as const
 
-/** Welcome / intro screen — “How it works” panel only. */
-export const QUIZZ_EM_WELCOME_HOW_IT_WORKS_GROUPS: readonly VenueRulesWallBulletGroup[] = [
-  {
-    title: 'The round',
-    bullets: [
-      "Hold'em-style trivia with digit cards",
-      'Hole cards, then a betting round',
-      'Five community cards, then another betting round',
-    ],
-  },
-  {
-    title: 'Your answer',
-    bullets: [
-      'Pick five cards when betting closes',
-      '45 seconds to submit',
-      'Closest to the correct answer wins',
-    ],
-  },
+/** Welcome / intro screen — “How it works” panel only (one hand, in order). */
+export const QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS = [
+  'Receive two hole cards',
+  'Read the trivia question',
+  'Bet before the board',
+  'See five community cards dealt',
+  'Bet again after the board',
+  'Pick five cards to build your number',
+  'Submit within 45 seconds',
+  'Closest answer wins the pot',
 ] as const
 
 /** Public-display rules wall — one card, two columns. */

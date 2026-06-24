@@ -7,10 +7,9 @@ import {
   DISPLAY_TEXT_WELCOME_PRIMARY_CQ,
   DISPLAY_TEXT_WELCOME_SECONDARY_CQ,
   DISPLAY_TEXT_WELCOME_TIPS_CQ,
-  DISPLAY_TEXT_WELCOME_TIPS_GROUP_CQ,
   DISPLAY_TEXT_WELCOME_URL_CQW,
 } from './displayTypography'
-import { QUIZZ_EM_WELCOME_HOW_IT_WORKS_GROUPS } from './venueRulesWallContent'
+import { QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS } from './venueRulesWallContent'
 
 export type AudienceWelcomeWallProps = {
   venueCode: string
@@ -413,9 +412,6 @@ function WelcomeHowItWorksPanel({
   const bulletClass =
     `text-pretty font-semibold text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
 
-  const groupTitleClass =
-    `font-black uppercase tracking-[0.12em] text-amber-100/88 ${DISPLAY_TEXT_WELCOME_TIPS_GROUP_CQ} [text-shadow:0_0_16px_rgba(251,191,36,0.28),0_2px_6px_rgba(0,0,0,_0.88)]`
-
   const panelInnerFlex =
     'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col justify-between gap-y-[clamp(6px,min(1.1vmin,_12px),_14px)] items-stretch overflow-hidden'
 
@@ -431,27 +427,20 @@ function WelcomeHowItWorksPanel({
       >
         <span className={ribbonClass}>How it works</span>
 
-        <div className="flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(0.55rem,1.15vmin,0.95rem)] px-[clamp(4px,min(0.85vmin,_10px),_12px)]">
-          {QUIZZ_EM_WELCOME_HOW_IT_WORKS_GROUPS.map((group) => (
-            <div key={group.title}>
-              <h3 className={`${groupTitleClass} mb-[clamp(0.35rem,0.65vmin,0.55rem)] text-center`}>
-                {group.title}
-              </h3>
-              <ul className="m-0 list-none space-y-[clamp(0.35rem,0.75vmin,0.65rem)] p-0">
-                {group.bullets.map((bullet) => (
-                  <li key={bullet} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
-                    <span
-                      className="display-text-welcome-tips-group-cq mt-[0.1em] shrink-0 font-black leading-none text-amber-400/95"
-                      aria-hidden
-                    >
-                      •
-                    </span>
-                    <span className={`${bulletClass} block`}>{bullet}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] px-[clamp(4px,min(0.85vmin,_10px),_12px)]">
+          <ol className="m-0 flex min-h-0 flex-1 list-none flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] p-0">
+            {QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS.map((step, index) => (
+              <li key={step} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
+                <span
+                  className="display-text-welcome-tips-group-cq mt-[0.1em] shrink-0 font-black tabular-nums leading-none text-amber-400/95"
+                  aria-hidden
+                >
+                  {index + 1}.
+                </span>
+                <span className={`${bulletClass} block`}>{step}</span>
+              </li>
+            ))}
+          </ol>
         </div>
       </VegasAttentionPanel>
     </section>

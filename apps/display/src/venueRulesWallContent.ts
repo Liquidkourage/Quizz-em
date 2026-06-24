@@ -29,8 +29,8 @@ export const QUIZZ_EM_HOW_TO_PLAY_GROUPS: readonly VenueRulesWallBulletGroup[] =
 
 /** Welcome / intro screen — “How it works” panel only (one hand, in order). */
 export const QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS = [
-  'Receive two hole cards',
-  'Read the trivia question',
+  'Read the question',
+  'Get your 2 hole card digits',
   'Bet before the board',
   'See five community cards dealt',
   'Bet again after the board',

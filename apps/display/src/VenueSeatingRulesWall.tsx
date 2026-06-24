@@ -1,14 +1,18 @@
 import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import {
+  VENUE_RULES_WALL_COLUMNS,
   VENUE_RULES_WALL_HEADLINE,
-  VENUE_RULES_WALL_SECTIONS,
   type VenueRulesWallBulletGroup,
-  type VenueRulesWallSection,
+  type VenueRulesWallColumn,
 } from './venueRulesWallContent'
 
 export type VenueSeatingRulesWallProps = {
   skipMountIntro?: boolean
+}
+
+function countBullets(groups: readonly VenueRulesWallBulletGroup[]): number {
+  return groups.reduce((sum, group) => sum + group.bullets.length, 0)
 }
 
 function RulesBulletList({
@@ -21,19 +25,19 @@ function RulesBulletList({
   startIndex: number
 }) {
   return (
-    <ul className="venue-rules-list m-0 list-none space-y-[clamp(0.3rem,0.65vmin,0.55rem)] p-0">
+    <ul className="venue-rules-list m-0 list-none space-y-[clamp(0.45rem,0.9vmin,0.7rem)] p-0">
       {bullets.map((bullet, index) => {
         const delayIndex = startIndex + index
         return (
           <motion.li
             key={bullet}
-            className="flex gap-[clamp(0.5rem,1vmin,0.85rem)] text-pretty text-left font-bold leading-[1.22] text-white/92"
+            className="flex gap-[clamp(0.45rem,0.85vmin,0.75rem)] text-pretty text-left font-semibold leading-[1.28] text-white/90"
             initial={skipMountIntro ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.32, delay: skipMountIntro ? 0 : 0.05 * delayIndex }}
+            transition={{ duration: 0.32, delay: skipMountIntro ? 0 : 0.04 * delayIndex }}
           >
             <span
-              className="venue-rules-bullet mt-[0.18em] shrink-0 font-black leading-none text-amber-400/95"
+              className="venue-rules-bullet mt-[0.12em] shrink-0 font-black leading-none text-amber-400/95"
               aria-hidden
             >
               •
@@ -46,27 +50,37 @@ function RulesBulletList({
   )
 }
 
-function RulesSectionBody({
-  section,
+function RulesColumn({
+  column,
   skipMountIntro,
   startIndex,
+  showDivider,
 }: {
-  section: VenueRulesWallSection
+  column: VenueRulesWallColumn
   skipMountIntro: boolean
   startIndex: number
+  showDivider?: boolean
 }) {
-  const topSpacing = 'mt-[clamp(0.4rem,0.85vmin,0.65rem)]'
+  let offset = startIndex
 
-  if (section.groups?.length) {
-    let offset = startIndex
-    return (
-      <div className={`${topSpacing} space-y-[clamp(0.45rem,0.95vmin,0.75rem)]`}>
-        {section.groups.map((group: VenueRulesWallBulletGroup) => {
+  return (
+    <div
+      className={
+        showDivider
+          ? 'min-w-0 lg:border-l lg:border-amber-500/20 lg:pl-[clamp(1rem,2vw,1.75rem)]'
+          : 'min-w-0'
+      }
+    >
+      <h2 className="venue-rules-section-title text-center font-black uppercase tracking-wide text-emerald-200/95 lg:text-left">
+        {column.title}
+      </h2>
+      <div className="mt-[clamp(0.65rem,1.2vmin,0.95rem)] space-y-[clamp(0.85rem,1.5vmin,1.15rem)]">
+        {column.groups.map((group) => {
           const groupStart = offset
           offset += group.bullets.length
           return (
             <div key={group.title}>
-              <h3 className="venue-rules-group-title mb-[clamp(0.25rem,0.5vmin,0.4rem)] font-black uppercase tracking-wide text-amber-100/75">
+              <h3 className="venue-rules-group-title mb-[clamp(0.35rem,0.65vmin,0.5rem)] font-black uppercase tracking-wide text-amber-100/80">
                 {group.title}
               </h3>
               <RulesBulletList
@@ -78,23 +92,11 @@ function RulesSectionBody({
           )
         })}
       </div>
-    )
-  }
-
-  return (
-    <div className={topSpacing}>
-      <RulesBulletList
-        bullets={section.bullets ?? []}
-        skipMountIntro={skipMountIntro}
-        startIndex={startIndex}
-      />
     </div>
   )
 }
 
 export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueSeatingRulesWallProps) {
-  let bulletIndex = 0
-
   return (
     <div
       className="venue-rules-wall flex min-h-[100dvh] w-full flex-col overflow-hidden bg-slate-950 text-white"
@@ -114,13 +116,13 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
       />
 
       <motion.div
-        className="relative z-10 mx-auto flex min-h-0 w-full max-w-[96rem] flex-1 flex-col justify-center gap-[clamp(0.75rem,1.6vmin,1.35rem)] px-[clamp(0.85rem,2vw,2rem)] py-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+        className="relative z-10 mx-auto flex w-full max-w-[72rem] flex-1 flex-col justify-center gap-[clamp(1rem,2vmin,1.5rem)] px-[clamp(1rem,2.5vw,2.5rem)] py-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
         initial={skipMountIntro ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        <header className="flex shrink-0 flex-col items-center gap-[clamp(0.45rem,1vmin,0.75rem)] text-center">
-          <div className="w-[clamp(4rem,8vw,6.5rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
+        <header className="flex shrink-0 flex-col items-center gap-[clamp(0.5rem,1.1vmin,0.85rem)] text-center">
+          <div className="w-[clamp(4.5rem,9vw,7rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
             <QuizzEmWordmark layout="fill" />
           </div>
           <h1 className="venue-rules-headline font-black leading-tight tracking-tight text-amber-300">
@@ -128,37 +130,26 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
           </h1>
         </header>
 
-        <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-[clamp(0.75rem,1.6vmin,1.15rem)] lg:grid-cols-3 lg:items-stretch">
-          {VENUE_RULES_WALL_SECTIONS.map((section, sectionIndex) => {
-            const sectionStart = bulletIndex
-            const sectionBulletCount =
-              section.bullets?.length ??
-              section.groups?.reduce((sum, group) => sum + group.bullets.length, 0) ??
-              0
-            bulletIndex += sectionBulletCount
-
-            return (
-              <motion.section
-                key={section.title}
-                className="venue-rules-panel flex h-full min-h-0 flex-col rounded-2xl border border-amber-500/30 bg-black/45 px-[clamp(0.95rem,1.9vw,1.45rem)] py-[clamp(0.85rem,1.7vw,1.25rem)] shadow-[inset_0_1px_0_rgba(251,191,36,0.08)] backdrop-blur-sm"
-                initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.38, delay: skipMountIntro ? 0 : 0.08 * sectionIndex }}
-              >
-                <h2 className="venue-rules-section-title shrink-0 text-center font-black uppercase tracking-wide text-emerald-200/95">
-                  {section.title}
-                </h2>
-                <div className="min-h-0 flex-1">
-                  <RulesSectionBody
-                    section={section}
-                    skipMountIntro={skipMountIntro}
-                    startIndex={sectionStart}
-                  />
-                </div>
-              </motion.section>
-            )
-          })}
-        </div>
+        <motion.section
+          className="venue-rules-panel w-full rounded-2xl border border-amber-500/35 bg-black/50 px-[clamp(1.1rem,2.2vw,2rem)] py-[clamp(1rem,2vw,1.65rem)] shadow-[inset_0_1px_0_rgba(251,191,36,0.1),0_18px_48px_rgba(0,0,0,0.35)] backdrop-blur-sm"
+          initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.38, delay: skipMountIntro ? 0 : 0.08 }}
+        >
+          <div className="grid grid-cols-1 gap-[clamp(1.15rem,2vmin,1.75rem)] lg:grid-cols-2 lg:items-start">
+            <RulesColumn
+              column={VENUE_RULES_WALL_COLUMNS[0]!}
+              skipMountIntro={skipMountIntro}
+              startIndex={0}
+            />
+            <RulesColumn
+              column={VENUE_RULES_WALL_COLUMNS[1]!}
+              skipMountIntro={skipMountIntro}
+              startIndex={countBullets(VENUE_RULES_WALL_COLUMNS[0]!.groups)}
+              showDivider
+            />
+          </div>
+        </motion.section>
       </motion.div>
     </div>
   )

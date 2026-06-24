@@ -3,10 +3,9 @@ export type VenueRulesWallBulletGroup = {
   bullets: readonly string[]
 }
 
-export type VenueRulesWallSection = {
+export type VenueRulesWallColumn = {
   title: string
-  bullets?: readonly string[]
-  groups?: readonly VenueRulesWallBulletGroup[]
+  groups: readonly VenueRulesWallBulletGroup[]
 }
 
 /** Shared how-to-play bullets — welcome wall + host Rules TV screen. */
@@ -36,26 +35,32 @@ export const QUIZZ_EM_HOW_TO_PLAY_BULLETS = QUIZZ_EM_HOW_TO_PLAY_GROUPS.flatMap(
 /** Flat list for welcome wall and other consumers. */
 export const QUIZZ_EM_HOW_TO_PLAY_LINES = QUIZZ_EM_HOW_TO_PLAY_BULLETS
 
-export const VENUE_RULES_JOIN_SEATING_BULLETS = [
-  'Join on your phone — scan the QR on the welcome screen',
-  'When the host assigns seating, everyone shuffles into tables',
-  'As the field shrinks, the room may shuffle or combine tables',
-] as const
-
-/** Public-display rules wall — three balanced panels. */
+/** Public-display rules wall — one card, two columns. */
 export const VENUE_RULES_WALL_HEADLINE = 'Rules'
 
-export const VENUE_RULES_WALL_SECTIONS: VenueRulesWallSection[] = [
-  {
-    title: 'The round',
-    bullets: QUIZZ_EM_HOW_TO_PLAY_GROUPS[0]!.bullets,
-  },
-  {
-    title: 'Your answer',
-    bullets: QUIZZ_EM_HOW_TO_PLAY_GROUPS[1]!.bullets,
-  },
-  {
-    title: 'Join & seating',
-    bullets: VENUE_RULES_JOIN_SEATING_BULLETS,
-  },
-]
+export const VENUE_RULES_WALL_LEFT: VenueRulesWallColumn = {
+  title: 'How to play',
+  groups: QUIZZ_EM_HOW_TO_PLAY_GROUPS,
+}
+
+export const VENUE_RULES_WALL_RIGHT: VenueRulesWallColumn = {
+  title: 'Before the first hand',
+  groups: [
+    {
+      title: 'Join the game',
+      bullets: [
+        'Scan the QR on the welcome screen to join on your phone',
+        'Bet and submit answers on your phone — TVs show the room',
+      ],
+    },
+    {
+      title: 'Tables & seating',
+      bullets: [
+        'When the host assigns seating, everyone is shuffled randomly into tables',
+        'As the field shrinks, the room may shuffle a few people or combine tables',
+      ],
+    },
+  ],
+}
+
+export const VENUE_RULES_WALL_COLUMNS = [VENUE_RULES_WALL_LEFT, VENUE_RULES_WALL_RIGHT] as const

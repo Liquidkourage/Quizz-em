@@ -427,8 +427,8 @@ function WelcomeHowItWorksPanel({
       >
         <span className={ribbonClass}>How it works</span>
 
-        <div className="flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] px-[clamp(4px,min(0.85vmin,_10px),_12px)]">
-          <ul className="m-0 flex min-h-0 flex-1 list-none flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] p-0">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-evenly px-[clamp(4px,min(0.85vmin,_10px),_12px)]">
+          <ul className="m-0 flex min-h-0 w-fit max-w-[min(100%,24rem)] list-none flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] p-0 pl-[clamp(0.45rem,1vmin,0.8rem)]">
             {QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS.map((step) => (
               <li key={step} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
                 <span

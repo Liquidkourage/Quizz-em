@@ -41,14 +41,14 @@ export const VENUE_RULES_WALL_HEADLINE = 'Rules'
 
 export const VENUE_RULES_WALL_SECTIONS: VenueRulesWallSection[] = [
   {
+    title: 'How to play',
+    groups: QUIZZ_EM_HOW_TO_PLAY_GROUPS,
+  },
+  {
     title: 'Tables & seating',
     bullets: [
       'When the host assigns seating, everyone is shuffled randomly into tables.',
       'As the field shrinks, the room may shuffle a few people or combine tables.',
     ],
-  },
-  {
-    title: 'How to play',
-    groups: QUIZZ_EM_HOW_TO_PLAY_GROUPS,
   },
 ]

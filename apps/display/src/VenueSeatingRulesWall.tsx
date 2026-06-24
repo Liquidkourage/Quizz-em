@@ -50,15 +50,21 @@ function RulesSectionBody({
   section,
   skipMountIntro,
   startIndex,
+  compactTop,
 }: {
   section: VenueRulesWallSection
   skipMountIntro: boolean
   startIndex: number
+  compactTop?: boolean
 }) {
+  const topSpacing = compactTop
+    ? 'mt-[clamp(0.25rem,0.5vmin,0.4rem)]'
+    : 'mt-[clamp(0.4rem,0.85vmin,0.65rem)]'
+
   if (section.groups?.length) {
     let offset = startIndex
     return (
-      <div className="mt-[clamp(0.4rem,0.85vmin,0.65rem)] space-y-[clamp(0.45rem,0.95vmin,0.75rem)]">
+      <div className={`${topSpacing} space-y-[clamp(0.45rem,0.95vmin,0.75rem)]`}>
         {section.groups.map((group: VenueRulesWallBulletGroup) => {
           const groupStart = offset
           offset += group.bullets.length
@@ -80,7 +86,7 @@ function RulesSectionBody({
   }
 
   return (
-    <div className="mt-[clamp(0.4rem,0.85vmin,0.65rem)]">
+    <div className={topSpacing}>
       <RulesBulletList
         bullets={section.bullets ?? []}
         skipMountIntro={skipMountIntro}
@@ -126,7 +132,7 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
           </h1>
         </header>
 
-        <div className="grid min-h-0 grid-cols-1 gap-[clamp(0.75rem,1.6vmin,1.15rem)] lg:grid-cols-2 lg:items-start">
+        <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-[clamp(0.75rem,1.6vmin,1.15rem)] lg:grid-cols-2 lg:items-stretch">
           {VENUE_RULES_WALL_SECTIONS.map((section, sectionIndex) => {
             const sectionStart = bulletIndex
             const sectionBulletCount =
@@ -134,23 +140,33 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
               section.groups?.reduce((sum, group) => sum + group.bullets.length, 0) ??
               0
             bulletIndex += sectionBulletCount
+            const centerInPanel = Boolean(section.bullets?.length)
 
             return (
               <motion.section
                 key={section.title}
-                className="venue-rules-panel rounded-2xl border border-amber-500/30 bg-black/45 px-[clamp(0.95rem,1.9vw,1.45rem)] py-[clamp(0.85rem,1.7vw,1.25rem)] shadow-[inset_0_1px_0_rgba(251,191,36,0.08)] backdrop-blur-sm"
+                className="venue-rules-panel flex h-full min-h-0 flex-col rounded-2xl border border-amber-500/30 bg-black/45 px-[clamp(0.95rem,1.9vw,1.45rem)] py-[clamp(0.85rem,1.7vw,1.25rem)] shadow-[inset_0_1px_0_rgba(251,191,36,0.08)] backdrop-blur-sm"
                 initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.38, delay: skipMountIntro ? 0 : 0.08 * sectionIndex }}
               >
-                <h2 className="venue-rules-section-title text-center font-black uppercase tracking-wide text-emerald-200/95">
+                <h2 className="venue-rules-section-title shrink-0 text-center font-black uppercase tracking-wide text-emerald-200/95">
                   {section.title}
                 </h2>
-                <RulesSectionBody
-                  section={section}
-                  skipMountIntro={skipMountIntro}
-                  startIndex={sectionStart}
-                />
+                <div
+                  className={
+                    centerInPanel
+                      ? 'flex min-h-0 flex-1 flex-col justify-center'
+                      : 'min-h-0 flex-1'
+                  }
+                >
+                  <RulesSectionBody
+                    section={section}
+                    skipMountIntro={skipMountIntro}
+                    startIndex={sectionStart}
+                    compactTop={centerInPanel}
+                  />
+                </div>
               </motion.section>
             )
           })}

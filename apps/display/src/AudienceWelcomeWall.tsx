@@ -398,9 +398,9 @@ function WelcomeNewPlayerTipsPanel({
       >
         <div className="relative z-[1] flex h-full min-h-0 flex-1 flex-col gap-[clamp(4px,min(0.85vmin,_10px),_12px)] overflow-hidden px-[clamp(8px,min(1.6vmin,_18px),_22px)] py-[clamp(4px,min(1.2vmin,_12px),_14px)]">
           <p className={`${hintsTitleClass} shrink-0 text-center leading-tight`}>How to play</p>
-          <ul className="m-0 flex min-h-0 flex-1 list-none flex-col justify-between gap-[clamp(3px,min(0.65vmin,_8px),_10px)] overflow-hidden p-0">
+          <ul className="m-0 flex min-h-0 flex-1 list-none flex-col justify-start gap-[clamp(3px,min(0.65vmin,_8px),_10px)] overflow-hidden p-0">
             {tips.map((t) => (
-              <li key={t} className="flex min-h-0 flex-1 items-center justify-center text-center">
+              <li key={t} className="flex min-h-0 items-center justify-center text-center">
                 <span className={`${bulletClass} block`}>{t}</span>
               </li>
             ))}

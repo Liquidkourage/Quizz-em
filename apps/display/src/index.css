@@ -1431,7 +1431,15 @@
     font-size: clamp(1.15rem, 2.15vmin, 1.65rem);
   }
 
+  .venue-rules-group-title {
+    font-size: clamp(0.95rem, 1.75vmin, 1.25rem);
+  }
+
   .venue-rules-list {
-    font-size: clamp(1.15rem, 2.15vmin, 1.65rem);
+    font-size: clamp(1.05rem, 1.95vmin, 1.5rem);
+  }
+
+  .venue-rules-bullet {
+    font-size: clamp(1.15rem, 2.1vmin, 1.6rem);
   }
 }

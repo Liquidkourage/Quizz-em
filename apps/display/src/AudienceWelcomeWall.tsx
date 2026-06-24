@@ -351,12 +351,15 @@ function WelcomeJoinCard({
   reducedMotion: boolean
 }) {
   const panelInnerFlex =
-    'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col justify-between gap-y-[clamp(6px,min(1.1vmin,_12px),_14px)] items-stretch overflow-hidden'
+    'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col items-stretch overflow-hidden'
 
-  const ribbonClass = `${joinRibbonClass} shrink-0 w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
+  const ribbonClass = `${joinRibbonClass} shrink-0 w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] pb-[clamp(6px,min(1vmin,_12px),_14px)] pt-[clamp(2px,min(0.35vmin,_4px),_6px)] [text-wrap:balance]`
 
   const roomCodeLabelClass =
     `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/88 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
+
+  const insetPanelClass =
+    'flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-[clamp(8px,min(1.35vmin,_16px),_18px)] border-2 border-amber-500/45 bg-black/70 shadow-[inset_0_1px_0_rgba(251,211,141,0.12)]'
 
   return (
     <section aria-label="Join manually" className={className}>
@@ -364,37 +367,39 @@ function WelcomeJoinCard({
         showCorners
         animateShimmer={false}
         innerFlexClassName={panelInnerFlex}
-        className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(8px,min(1.45vmin,_15px),_16px)] shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden"
+        className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.05vmin,_11px),_12px)] shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden"
       >
-        <span className={ribbonClass}>Join manually</span>
+        <div className={insetPanelClass}>
+          <span className={ribbonClass}>Join manually</span>
 
-        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-y-[clamp(10px,min(1.35vmin,_16px),_20px)] rounded-2xl border-2 border-amber-500/45 bg-black/70 px-[clamp(10px,min(1.5vmin,_18px),_22px)] py-[clamp(12px,min(1.65vmin,_20px),_24px)] shadow-[inset_0_1px_0_rgba(251,211,141,0.12)]">
-          <p
-            className={`${joinUrlText} mx-auto w-full max-w-full min-w-0`}
-            aria-label={joinUrl}
-          >
-            {joinUrlForDisplay(joinUrl)}
-          </p>
-
-          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/30 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
-            <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
-            <motion.div
-              className="isolate inline-block w-max max-w-full rounded-[clamp(8px,_1.25vmin,_12px)] border-[2px] border-amber-300/98 bg-black/82 px-[clamp(10px,_1.5vmin,_18px)] py-[clamp(6px,_1.1vmin,_12px)]"
-              animate={
-                reducedMotion
-                  ? undefined
-                  : {
-                      boxShadow: [
-                        '0 0 8px rgba(234,179,8,0.2), inset 0 0 0 1px rgba(251,211,141,0.16)',
-                        '0 0 18px rgba(234,179,8,0.38), inset 0 0 0 1px rgba(253,246,178,0.22)',
-                        '0 0 8px rgba(234,179,8,0.2), inset 0 0 0 1px rgba(251,211,141,0.16)',
-                      ],
-                    }
-              }
-              transition={{ duration: 2.85, repeat: Infinity, ease: 'easeInOut' }}
+          <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-y-[clamp(10px,min(1.35vmin,_16px),_20px)] px-[clamp(10px,min(1.5vmin,_18px),_22px)] py-[clamp(10px,min(1.35vmin,_16px),_20px)]">
+            <p
+              className={`${joinUrlText} mx-auto w-full max-w-full min-w-0`}
+              aria-label={joinUrl}
             >
-              <div className={venueMono}>{venueCode}</div>
-            </motion.div>
+              {joinUrlForDisplay(joinUrl)}
+            </p>
+
+            <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/30 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
+              <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
+              <motion.div
+                className="isolate inline-block w-max max-w-full rounded-[clamp(8px,_1.25vmin,_12px)] border-[2px] border-amber-300/98 bg-black/82 px-[clamp(10px,_1.5vmin,_18px)] py-[clamp(6px,_1.1vmin,_12px)]"
+                animate={
+                  reducedMotion
+                    ? undefined
+                    : {
+                        boxShadow: [
+                          '0 0 8px rgba(234,179,8,0.2), inset 0 0 0 1px rgba(251,211,141,0.16)',
+                          '0 0 18px rgba(234,179,8,0.38), inset 0 0 0 1px rgba(253,246,178,0.22)',
+                          '0 0 8px rgba(234,179,8,0.2), inset 0 0 0 1px rgba(251,211,141,0.16)',
+                        ],
+                      }
+                }
+                transition={{ duration: 2.85, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <div className={venueMono}>{venueCode}</div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </VegasAttentionPanel>

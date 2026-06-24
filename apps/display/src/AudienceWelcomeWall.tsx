@@ -212,7 +212,7 @@ function WelcomeQrColumn({
     `${whiteTileBase} aspect-square max-h-full w-auto max-w-[min(100%,min(76vw,min(48dvh,480px)))] shrink-0 max-[height:880px]:max-w-[min(100%,min(74vw,min(44dvh,420px)))] lg:mx-auto lg:aspect-square lg:h-auto lg:max-h-[min(100%,38dvh)] lg:w-full lg:max-w-[94%] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:max-h-[min(29vmin,29dvh,290px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:max-w-[min(29vmin,29dvh,290px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:!py-[2px] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:!px-[2px] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:shadow-[0_8px_48px_-6px_rgba(0,0,0,0.55),inset_0_0_0_2px_rgba(254,249,231,1),0_0_40px_rgba(234,179,8,0.35)]`
 
   return (
-    <section aria-label="Scan QR code to join on your phone" className={sectionClass}>
+    <section aria-label="Scan to join" className={sectionClass}>
       <VegasAttentionPanel
         showCorners
         animateShimmer={!reducedMotion}
@@ -236,7 +236,7 @@ function WelcomeQrColumn({
           </div>
         ) : (
           <div className={`flex min-h-0 flex-1 items-center rounded-xl border-2 border-dashed border-white/35 bg-white/[0.04] px-4 py-6 text-center font-semibold leading-snug text-amber-200 ${DISPLAY_TEXT_WELCOME_SECONDARY_CQ}`}>
-            QR unavailable — use the join link and room code beside this panel.
+            QR unavailable
           </div>
         )}
       </VegasAttentionPanel>
@@ -315,11 +315,11 @@ function AttendanceSection({
 
   return (
     <section
-      aria-label="Players in this venue"
+      aria-label="Players"
       className={`${wrapClass}${className ? ` ${className}` : ''}`}
     >
       <div className={tileClass}>
-        <div className={playerCountLabelClass}>Players joined</div>
+        <div className={playerCountLabelClass}>Players</div>
         <motion.div
           className={`${statDigitBase} text-yellow-200 ${statDigitAccentShadow}`}
           animate={
@@ -358,11 +358,8 @@ function WelcomeJoinCard({
 
   const ribbonClass = `${joinRibbonClass} shrink-0 w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
 
-  const roomCodeLabelClass =
-    `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/88 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
-
   return (
-    <section aria-label="Join manually with link and room code" className={className}>
+    <section aria-label="Join manually" className={className}>
       <VegasAttentionPanel
         showCorners
         animateShimmer={false}
@@ -379,8 +376,7 @@ function WelcomeJoinCard({
             {joinUrlForDisplay(joinUrl)}
           </p>
 
-          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/30 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
-            <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
+          <div className="flex w-full min-w-0 flex-col items-center border-t border-amber-500/30 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
             <motion.div
               className="isolate inline-block w-max max-w-full rounded-[clamp(8px,_1.25vmin,_12px)] border-[2px] border-amber-300/98 bg-black/82 px-[clamp(10px,_1.5vmin,_18px)] py-[clamp(6px,_1.1vmin,_12px)]"
               animate={
@@ -424,7 +420,7 @@ function WelcomePlayingToWinPanel({
   const ribbonClass = `${sectionRibbon} shrink-0 w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
 
   return (
-    <section aria-label="Playing to win — how Quizz'em Hold'em works" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col">
+    <section aria-label="Playing to win" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col">
       <VegasAttentionPanel
         showCorners
         animateShimmer={!reducedMotion}
@@ -520,7 +516,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
   return (
     <div
       role="main"
-      aria-label="Join this Quizz'em game"
+      aria-label="Join"
       className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#05030c] antialiased text-white selection:bg-yellow-400/35"
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -654,7 +650,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
 
           <div className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden pb-[clamp(2px,min(0.5vmin,_8px),_8px)] max-[height:920px]:pb-[clamp(4px,min(0.85vmin,_10px),_11px)] lg:pb-0">
             <div
-              aria-label="Join the game: scan, URL and room code, attendance"
+              aria-label="Join"
               className="flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:grid-cols-[minmax(0,34fr)_minmax(0,40fr)_minmax(0,26fr)] lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
             >
               <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:max-h-full">

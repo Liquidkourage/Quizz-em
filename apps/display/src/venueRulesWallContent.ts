@@ -13,7 +13,7 @@ export const QUIZZ_EM_HOW_TO_PLAY_GROUPS: readonly VenueRulesWallBulletGroup[] =
   {
     title: 'The round',
     bullets: [
-      "Hold'em-style trivia — build a number from digit cards",
+      "Hold'em-style trivia — build a number from cards",
       'Two hole cards, then everyone bets',
       'Five community cards, then everyone bets again',
     ],
@@ -21,23 +21,11 @@ export const QUIZZ_EM_HOW_TO_PLAY_GROUPS: readonly VenueRulesWallBulletGroup[] =
   {
     title: 'Your answer',
     bullets: [
-      '45 seconds when betting closes — pick five cards and submit',
-      'Arrange your number; decimal optional',
-      'Closest to the correct answer wins the pot',
+      '45 seconds — pick five cards and submit',
+      'Closest wins the pot',
     ],
   },
 ] as const
-
-export const QUIZZ_EM_HOW_TO_PLAY_BULLETS = QUIZZ_EM_HOW_TO_PLAY_GROUPS.flatMap(
-  (group) => group.bullets,
-) as readonly string[]
-
-/** Flat list for welcome wall and other consumers. */
-export const QUIZZ_EM_HOW_TO_PLAY_LINES = QUIZZ_EM_HOW_TO_PLAY_BULLETS
-
-/** Hint shown on the welcome wall while waiting for host seating assign. */
-export const VENUE_WELCOME_SEATING_HINT =
-  'Table felts appear after the host assigns seating.'
 
 /** Public-display rules wall — one card, two columns. */
 export const VENUE_RULES_WALL_HEADLINE = 'Rules'
@@ -51,17 +39,17 @@ export const VENUE_RULES_WALL_RIGHT: VenueRulesWallColumn = {
   title: 'Joining the game',
   groups: [
     {
-      title: 'Join the game',
+      title: 'On your phone',
       bullets: [
-        'Scan the QR on the welcome screen to join on your phone',
-        'Bet and submit answers on your phone — TVs show the room',
+        'Scan the QR to join',
+        'Bet and submit on your phone',
       ],
     },
     {
-      title: 'Tables & seating',
+      title: 'Tables',
       bullets: [
-        'When the host assigns seating, everyone is shuffled randomly into tables',
-        'As the field shrinks, the room may shuffle a few people or combine tables',
+        'Random seats when the host assigns tables',
+        'Tables may combine as players bust out',
       ],
     },
   ],

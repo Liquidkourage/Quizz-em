@@ -21,13 +21,13 @@ function RulesBulletList({
   startIndex: number
 }) {
   return (
-    <ul className="venue-rules-list m-0 list-none space-y-[clamp(0.45rem,0.95vmin,0.75rem)] p-0">
+    <ul className="venue-rules-list m-0 list-none space-y-[clamp(0.3rem,0.65vmin,0.55rem)] p-0">
       {bullets.map((bullet, index) => {
         const delayIndex = startIndex + index
         return (
           <motion.li
             key={bullet}
-            className="flex gap-[clamp(0.45rem,0.9vmin,0.7rem)] text-pretty text-left font-semibold leading-snug text-white/88"
+            className="flex gap-[clamp(0.5rem,1vmin,0.85rem)] text-pretty text-left font-bold leading-[1.22] text-white/92"
             initial={skipMountIntro ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.32, delay: skipMountIntro ? 0 : 0.05 * delayIndex }}
@@ -58,7 +58,7 @@ function RulesSectionBody({
   if (section.groups?.length) {
     let offset = startIndex
     return (
-      <div className="mt-[clamp(0.55rem,1.1vmin,0.85rem)] space-y-[clamp(0.65rem,1.25vmin,0.95rem)]">
+      <div className="mt-[clamp(0.4rem,0.85vmin,0.65rem)] space-y-[clamp(0.45rem,0.95vmin,0.75rem)]">
         {section.groups.map((group: VenueRulesWallBulletGroup) => {
           const groupStart = offset
           offset += group.bullets.length
@@ -80,7 +80,7 @@ function RulesSectionBody({
   }
 
   return (
-    <div className="mt-[clamp(0.55rem,1.1vmin,0.85rem)]">
+    <div className="mt-[clamp(0.4rem,0.85vmin,0.65rem)]">
       <RulesBulletList
         bullets={section.bullets ?? []}
         skipMountIntro={skipMountIntro}
@@ -112,13 +112,13 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
       />
 
       <motion.div
-        className="relative z-10 mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col justify-center gap-[clamp(1rem,2.2vmin,1.75rem)] px-[clamp(1rem,2.5vw,2.5rem)] py-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+        className="relative z-10 mx-auto flex min-h-0 w-full max-w-[96rem] flex-1 flex-col justify-center gap-[clamp(0.75rem,1.6vmin,1.35rem)] px-[clamp(0.85rem,2vw,2rem)] py-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))]"
         initial={skipMountIntro ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        <header className="flex shrink-0 flex-col items-center gap-[clamp(0.65rem,1.4vmin,1rem)] text-center">
-          <div className="w-[clamp(5rem,10vw,8rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
+        <header className="flex shrink-0 flex-col items-center gap-[clamp(0.45rem,1vmin,0.75rem)] text-center">
+          <div className="w-[clamp(4rem,8vw,6.5rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
             <QuizzEmWordmark layout="fill" />
           </div>
           <h1 className="venue-rules-headline font-black leading-tight tracking-tight text-amber-300">

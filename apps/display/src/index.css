@@ -1424,22 +1424,23 @@
 
   /** Public rules wall — readable from the back of the room. */
   .venue-rules-headline {
-    font-size: clamp(2.1rem, 4.2vmin, 3.25rem);
+    font-size: clamp(3.25rem, 6.5vmin, 5rem);
   }
 
   .venue-rules-section-title {
-    font-size: clamp(1.15rem, 2.15vmin, 1.65rem);
+    font-size: clamp(2.25rem, 4.25vmin, 3.35rem);
   }
 
   .venue-rules-group-title {
-    font-size: clamp(0.95rem, 1.75vmin, 1.25rem);
+    font-size: clamp(1.9rem, 3.5vmin, 2.75rem);
   }
 
   .venue-rules-list {
-    font-size: clamp(1.05rem, 1.95vmin, 1.5rem);
+    font-size: clamp(2rem, 4vmin, 3.25rem);
+    line-height: 1.22;
   }
 
   .venue-rules-bullet {
-    font-size: clamp(1.15rem, 2.1vmin, 1.6rem);
+    font-size: clamp(2.15rem, 4.2vmin, 3.45rem);
   }
 }

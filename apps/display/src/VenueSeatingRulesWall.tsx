@@ -25,13 +25,13 @@ function RulesBulletList({
   startIndex: number
 }) {
   return (
-    <ul className="venue-rules-list m-0 list-none space-y-[clamp(0.45rem,0.9vmin,0.7rem)] p-0">
+    <ul className="venue-rules-list m-0 list-none space-y-[clamp(0.55rem,1.15vmin,0.95rem)] p-0">
       {bullets.map((bullet, index) => {
         const delayIndex = startIndex + index
         return (
           <motion.li
             key={bullet}
-            className="flex gap-[clamp(0.45rem,0.85vmin,0.75rem)] text-pretty text-left font-semibold leading-[1.28] text-white/90"
+            className="flex gap-[clamp(0.55rem,1.05vmin,0.95rem)] text-pretty text-left font-semibold leading-[1.26] text-white/92"
             initial={skipMountIntro ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.32, delay: skipMountIntro ? 0 : 0.04 * delayIndex }}
@@ -67,20 +67,20 @@ function RulesColumn({
     <div
       className={
         showDivider
-          ? 'min-w-0 lg:border-l lg:border-amber-500/20 lg:pl-[clamp(1rem,2vw,1.75rem)]'
-          : 'min-w-0'
+          ? 'flex min-h-0 min-w-0 flex-1 flex-col lg:border-l lg:border-amber-500/25 lg:pl-[clamp(1.5rem,3vw,3rem)]'
+          : 'flex min-h-0 min-w-0 flex-1 flex-col'
       }
     >
-      <h2 className="venue-rules-section-title text-center font-black uppercase tracking-wide text-emerald-200/95 lg:text-left">
+      <h2 className="venue-rules-section-title shrink-0 text-center font-black uppercase tracking-wide text-emerald-200/95 lg:text-left">
         {column.title}
       </h2>
-      <div className="mt-[clamp(0.65rem,1.2vmin,0.95rem)] space-y-[clamp(0.85rem,1.5vmin,1.15rem)]">
+      <div className="mt-[clamp(0.85rem,1.6vmin,1.25rem)] flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(1rem,2.2vmin,2rem)]">
         {column.groups.map((group) => {
           const groupStart = offset
           offset += group.bullets.length
           return (
             <div key={group.title}>
-              <h3 className="venue-rules-group-title mb-[clamp(0.35rem,0.65vmin,0.5rem)] font-black uppercase tracking-wide text-amber-100/80">
+              <h3 className="venue-rules-group-title mb-[clamp(0.45rem,0.85vmin,0.7rem)] font-black uppercase tracking-wide text-amber-100/85">
                 {group.title}
               </h3>
               <RulesBulletList
@@ -116,13 +116,13 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
       />
 
       <motion.div
-        className="relative z-10 mx-auto flex w-full max-w-[72rem] flex-1 flex-col justify-center gap-[clamp(1rem,2vmin,1.5rem)] px-[clamp(1rem,2.5vw,2.5rem)] py-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+        className="relative z-10 mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-[clamp(0.65rem,1.35vmin,1rem)] px-[clamp(1.25rem,3.5vw,4rem)] py-[max(0.65rem,env(safe-area-inset-top))] pb-[max(0.65rem,env(safe-area-inset-bottom))]"
         initial={skipMountIntro ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
-        <header className="flex shrink-0 flex-col items-center gap-[clamp(0.5rem,1.1vmin,0.85rem)] text-center">
-          <div className="w-[clamp(4.5rem,9vw,7rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
+        <header className="flex shrink-0 flex-col items-center gap-[clamp(0.35rem,0.75vmin,0.55rem)] text-center">
+          <div className="w-[clamp(5rem,10vw,8.5rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
             <QuizzEmWordmark layout="fill" />
           </div>
           <h1 className="venue-rules-headline font-black leading-tight tracking-tight text-amber-300">
@@ -131,12 +131,12 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
         </header>
 
         <motion.section
-          className="venue-rules-panel w-full rounded-2xl border border-amber-500/35 bg-black/50 px-[clamp(1.1rem,2.2vw,2rem)] py-[clamp(1rem,2vw,1.65rem)] shadow-[inset_0_1px_0_rgba(251,191,36,0.1),0_18px_48px_rgba(0,0,0,0.35)] backdrop-blur-sm"
+          className="venue-rules-panel flex min-h-0 w-full flex-1 flex-col rounded-[clamp(1rem,2vmin,1.75rem)] border-2 border-amber-500/40 bg-black/55 px-[clamp(1.35rem,3vw,3.25rem)] py-[clamp(1.25rem,2.8vmin,2.75rem)] shadow-[inset_0_1px_0_rgba(251,191,36,0.12),0_22px_56px_rgba(0,0,0,0.4)] backdrop-blur-sm"
           initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.38, delay: skipMountIntro ? 0 : 0.08 }}
         >
-          <div className="grid grid-cols-1 gap-[clamp(1.15rem,2vmin,1.75rem)] lg:grid-cols-2 lg:items-start">
+          <div className="grid min-h-0 flex-1 grid-cols-1 gap-[clamp(1.5rem,3vmin,2.75rem)] lg:grid-cols-2 lg:items-stretch">
             <RulesColumn
               column={VENUE_RULES_WALL_COLUMNS[0]!}
               skipMountIntro={skipMountIntro}

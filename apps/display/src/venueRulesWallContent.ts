@@ -33,11 +33,11 @@ export const QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS = [
   'Think of a numeric answer',
   'Look at your two digit cards',
   'Bet or fold',
-  'Look at the five community digit cards',
+  'Look at the five community cards',
   'Bet or fold again',
-  'Build your answer with five digit cards',
-  'Add a decimal point wherever you like',
-  "If you're closest to the answer, win!",
+  'Build your answer from five cards',
+  'Place a decimal anywhere',
+  'Closest answer wins',
 ] as const
 
 /** Public-display rules wall — one card, two columns. */

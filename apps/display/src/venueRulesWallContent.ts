@@ -39,12 +39,12 @@ export const QUIZZ_EM_HOW_TO_PLAY_LINES = QUIZZ_EM_HOW_TO_PLAY_BULLETS
 export const VENUE_RULES_WALL_HEADLINE = 'Rules'
 
 export const VENUE_RULES_WALL_LEFT: VenueRulesWallColumn = {
-  title: 'How to play',
+  title: 'Playing to win',
   groups: QUIZZ_EM_HOW_TO_PLAY_GROUPS,
 }
 
 export const VENUE_RULES_WALL_RIGHT: VenueRulesWallColumn = {
-  title: 'Before the first hand',
+  title: 'Joining the game',
   groups: [
     {
       title: 'Join the game',

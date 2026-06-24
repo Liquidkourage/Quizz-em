@@ -30,13 +30,14 @@ export const QUIZZ_EM_HOW_TO_PLAY_GROUPS: readonly VenueRulesWallBulletGroup[] =
 /** Welcome / intro screen — “How it works” panel only (one hand, in order). */
 export const QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS = [
   'Read the question',
-  'Get your 2 hole card digits',
-  'Bet before the board',
-  'See five community cards dealt',
-  'Bet again after the board',
-  'Pick five cards to build your number',
-  'Submit within 45 seconds',
-  'Closest answer wins the pot',
+  'Think of a numeric answer',
+  'Look at your two digit cards',
+  'Bet or fold',
+  'Look at the five community digit cards',
+  'Bet or fold again',
+  'Build your answer with five digit cards',
+  'Add a decimal point wherever you like',
+  "If you're closest to the answer, win!",
 ] as const
 
 /** Public-display rules wall — one card, two columns. */

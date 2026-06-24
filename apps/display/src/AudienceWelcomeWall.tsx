@@ -428,19 +428,19 @@ function WelcomeHowItWorksPanel({
         <span className={ribbonClass}>How it works</span>
 
         <div className="flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] px-[clamp(4px,min(0.85vmin,_10px),_12px)]">
-          <ol className="m-0 flex min-h-0 flex-1 list-none flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] p-0">
-            {QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS.map((step, index) => (
+          <ul className="m-0 flex min-h-0 flex-1 list-none flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] p-0">
+            {QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS.map((step) => (
               <li key={step} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
                 <span
-                  className="display-text-welcome-tips-group-cq mt-[0.1em] shrink-0 font-black tabular-nums leading-none text-amber-400/95"
+                  className="display-text-welcome-tips-group-cq mt-[0.1em] shrink-0 font-black leading-none text-amber-400/95"
                   aria-hidden
                 >
-                  {index + 1}.
+                  •
                 </span>
                 <span className={`${bulletClass} block`}>{step}</span>
               </li>
             ))}
-          </ol>
+          </ul>
         </div>
       </VegasAttentionPanel>
     </section>

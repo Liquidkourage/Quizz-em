@@ -21,7 +21,15 @@ function playerJoinHref(): string {
   return `${window.location.origin}/player/`
 }
 
-/** Shown on the join card only; QR still embeds the full HTTPS URL.
+/** QR only — pre-fills venue code on the player join screen. */
+function playerJoinHrefForQr(venueCode: string): string {
+  const base = playerJoinHref()
+  const code = venueCode.trim().toUpperCase()
+  if (!code) return base
+  return `${base}?room=${encodeURIComponent(code)}`
+}
+
+/** Shown on the join card only; QR uses {@link playerJoinHrefForQr} with room pre-filled.
  *  Inserts zero-width spaces after slashes so the line can wrap cleanly at path segments. */
 function joinUrlForDisplay(url: string): string {
   const hostAndPath = url.replace(/^https:\/\//i, '').replace(/^http:\/\//i, '')
@@ -176,13 +184,13 @@ function VegasAttentionPanel({
 /** Scan-to-join column — narrow viewports stack full-width; `lg` fits the left ~30% band of the wall row (see parent grid). */
 function WelcomeQrColumn({
   sectionRibbon,
-  joinUrl,
+  qrJoinUrl,
   qrOk,
   setQrOk,
   reducedMotion,
 }: {
   sectionRibbon: string
-  joinUrl: string
+  qrJoinUrl: string
   qrOk: boolean
   setQrOk: (ok: boolean) => void
   reducedMotion: boolean
@@ -221,7 +229,7 @@ function WelcomeQrColumn({
           <div className={midClass}>
             <div className={whiteClass}>
               <img
-                src={qrImgSrc(joinUrl)}
+                src={qrImgSrc(qrJoinUrl)}
                 alt=""
                 width={640}
                 height={640}
@@ -472,6 +480,7 @@ function WelcomeWallHeader({
 
 export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcomeWallProps) {
   const joinUrl = playerJoinHref()
+  const qrJoinUrl = playerJoinHrefForQr(venueCode)
   const syncingCounts = wall == null
   const enrolled = syncingCounts ? null : (wall.lobbyPlayerCount ?? 0) + (wall.totalSeatedAtTables ?? 0)
   const [qrOk, setQrOk] = useState(true)
@@ -652,7 +661,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
               <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:max-h-full">
                 <WelcomeQrColumn
                   sectionRibbon={sectionRibbon}
-                  joinUrl={joinUrl}
+                  qrJoinUrl={qrJoinUrl}
                   qrOk={qrOk}
                   setQrOk={setQrOk}
                   reducedMotion={Boolean(reducedMotion)}

@@ -1044,8 +1044,13 @@
   }
 
   .display-text-welcome-tips-cq {
-    font-size: clamp(0.92rem, min(2.05vmin, 3.15cqh), 1.32rem);
-    line-height: 1.26;
+    font-size: clamp(1.05rem, min(2.45vmin, 3.65cqh), 1.72rem);
+    line-height: 1.28;
+  }
+
+  .display-text-welcome-tips-group-cq {
+    font-size: clamp(1.12rem, min(2.65vmin, 4cqh), 1.88rem);
+    line-height: 1.2;
   }
 
   /** Venue headline strip — smaller than full-screen primary so chips/countdown fit. */

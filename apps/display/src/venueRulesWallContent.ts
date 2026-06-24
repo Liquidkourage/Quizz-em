@@ -35,6 +35,10 @@ export const QUIZZ_EM_HOW_TO_PLAY_BULLETS = QUIZZ_EM_HOW_TO_PLAY_GROUPS.flatMap(
 /** Flat list for welcome wall and other consumers. */
 export const QUIZZ_EM_HOW_TO_PLAY_LINES = QUIZZ_EM_HOW_TO_PLAY_BULLETS
 
+/** Hint shown on the welcome wall while waiting for host seating assign. */
+export const VENUE_WELCOME_SEATING_HINT =
+  'Table felts appear after the host assigns seating.'
+
 /** Public-display rules wall — one card, two columns. */
 export const VENUE_RULES_WALL_HEADLINE = 'Rules'
 

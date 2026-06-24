@@ -158,3 +158,5 @@ export const DISPLAY_TEXT_WELCOME_DENSE_CQ = 'display-text-welcome-dense-cq lead
 export const DISPLAY_TEXT_WELCOME_URL_CQW = 'display-text-welcome-url-cqw leading-snug'
 
 export const DISPLAY_TEXT_WELCOME_TIPS_CQ = 'display-text-welcome-tips-cq'
+
+export const DISPLAY_TEXT_WELCOME_TIPS_GROUP_CQ = 'display-text-welcome-tips-group-cq'

@@ -14,7 +14,7 @@ import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
 import VenueSeatingChart from './VenueSeatingChart.tsx'
 import VenueLeaderboardWall from './VenueLeaderboardWall.tsx'
 import VenueSeatingRulesWall from './VenueSeatingRulesWall.tsx'
-import { buildVenueWallTileRows, venueWallShowSeatingChart } from './venueWallModel.ts'
+import { buildVenueWallTileRows, venueWallHasLiveTiles, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { venueWallFloorIsLive } from './venueWallAutoView.ts'
@@ -81,21 +81,24 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   /** All layouts are venue wall; legacy `singleTable` payloads are normalized server-side. */
   const onVenueWallLayout = true
   const tileRows = useMemo(() => buildVenueWallTileRows(venueWall), [venueWall])
+  const hasFloorTables = venueWallHasLiveTiles(venueWall)
   /** Hide join hero once the floor is live (tile phase or server headline — keeps every TV in sync). */
   const venueFloorIsLive = useMemo(
-    () => venueWallFloorIsLive(tileRows, venueWall?.headlinePhase ?? null),
-    [tileRows, venueWall?.headlinePhase],
+    () => hasFloorTables && venueWallFloorIsLive(tileRows, venueWall?.headlinePhase ?? null),
+    [hasFloorTables, tileRows, venueWall?.headlinePhase],
   )
   const hostWallView = layout.wallView ?? 'floor'
   const hostPinnedRules = onVenueWallLayout && hostWallView === 'rules'
   /**
    * Until the first venue snapshot arrives, `venueWall` is null — treat that as briefing so we never
    * flash `VenueEightTablesPreview` rehearsal tiles before `AudienceWelcomeWall` (TV pair / cold load).
+   * Stay on the QR welcome screen until the server sends populated table tiles — never show an empty floor.
    */
   const audienceBriefing =
     onVenueWallLayout &&
     !hostPinnedRules &&
     (venueWall === null ||
+      !hasFloorTables ||
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !venueFloorIsLive))
 
   const autoWallView = useVenueWallAutoView(hostPinnedRules ? null : venueWall)
@@ -126,6 +129,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     !showSeatingChart &&
     !bustAnnouncement.visible &&
     !showRules &&
+    hasFloorTables &&
     wallView === 'leaderboard' &&
     venueWall != null
 
@@ -269,7 +273,12 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
 
   const showBriefingHero = audienceBriefing
   const showVenueMosaicShell =
-    onVenueWallLayout && !audienceBriefing && !showSeatingChart && !showLeaderboard && !showRules
+    onVenueWallLayout &&
+    hasFloorTables &&
+    !audienceBriefing &&
+    !showSeatingChart &&
+    !showLeaderboard &&
+    !showRules
 
   const statePopup = useDisplayVenueStatePopups(
     showVenueMosaicShell && !bustAnnouncement.visible ? venueWall : null,

@@ -2114,20 +2114,7 @@ export default function VenueEightTablesPreview({
           compactVenueHeadline ? 'pb-0.5 sm:pb-1' : 'pb-3 sm:pb-4'
         } ${showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'}`}
       >
-        {wall != null && tileRows.length === 0 ? (
-          <motion.div
-            className="rounded-2xl border border-yellow-700/35 bg-black/55 p-10 text-center shadow-xl backdrop-blur-md sm:p-14"
-            initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="text-4xl font-semibold leading-snug text-white/92 sm:text-5xl md:text-6xl">
-              Felts open here after the host assigns players from the lobby.
-            </p>
-            <p className="mx-auto mt-5 max-w-2xl text-2xl leading-relaxed text-white/65 sm:text-3xl md:text-4xl">
-              Guests can keep joining from the briefing screen until seating runs.
-            </p>
-          </motion.div>
-        ) : floorTiles.length > 0 ? (
+        {floorTiles.length > 0 ? (
           <section
             aria-label="Venue floor — all populated tables"
             className={`flex min-h-0 flex-1 flex-col ${compactVenueHeadline ? 'gap-0' : 'gap-1.5 sm:gap-2'}`}

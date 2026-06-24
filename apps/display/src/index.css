@@ -1040,7 +1040,8 @@
   }
 
   .display-text-welcome-url-cqw {
-    font-size: clamp(1.1rem, min(2.75vmin, 5cqw), 1.95rem);
+    font-size: clamp(1.35rem, min(3.15vmin, 5.5cqw), 2.5rem);
+    line-height: 1.22;
   }
 
   .display-text-welcome-tips-cq {

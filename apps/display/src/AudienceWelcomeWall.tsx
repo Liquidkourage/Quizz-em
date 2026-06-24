@@ -12,7 +12,6 @@ import {
 } from './displayTypography'
 import {
   QUIZZ_EM_HOW_TO_PLAY_GROUPS,
-  VENUE_WELCOME_SEATING_HINT,
 } from './venueRulesWallContent'
 
 export type AudienceWelcomeWallProps = {
@@ -351,77 +350,66 @@ function WelcomeJoinCard({
   joinUrl: string
   joinUrlText: string
   venueMono: string
-  /** Same band style as “Scan here” / grid section ribbons. */
   joinRibbonClass: string
   reducedMotion: boolean
 }) {
-  const joinInnerFlex =
-    'relative z-[5] mx-auto flex min-h-0 min-w-0 h-full w-full max-w-[92%] flex-1 flex-col items-center justify-center gap-y-[clamp(10px,min(1.35vmin,_16px),_18px)] px-[clamp(8px,_1.5vmin,_20px)] py-[clamp(12px,min(1.5vmin,_22px),_26px)] text-center lg:flex-1 lg:min-h-0 lg:justify-between lg:gap-y-[clamp(10px,min(1.25vmin,_18px),_22px)] lg:px-[clamp(10px,_1.55vmin,_22px)] lg:py-[clamp(12px,min(1.55vmin,_24px),_28px)]'
+  const panelInnerFlex =
+    'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col justify-between gap-y-[clamp(6px,min(1.1vmin,_12px),_14px)] items-stretch overflow-hidden'
 
-  const playerPathLabel =
-    `font-black tracking-[0.06em] text-yellow-200 ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+  const ribbonClass = `${joinRibbonClass} shrink-0 w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
 
-  const seatingHintClass =
-    `min-w-0 text-balance font-medium leading-snug text-amber-100/78 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
+  const roomCodeLabelClass =
+    `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/88 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
 
   return (
-    <section aria-label="Alternative join instructions: URL and room code" className={className}>
+    <section aria-label="Join manually with link and room code" className={className}>
       <VegasAttentionPanel
         showCorners
         animateShimmer={false}
-        innerFlexClassName={joinInnerFlex}
-        className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-0 py-0 shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden"
+        innerFlexClassName={panelInnerFlex}
+        className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(8px,min(1.45vmin,_15px),_16px)] shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden"
       >
-        <div className="flex w-full shrink-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] px-[2px]">
-          <p className={`${joinRibbonClass} block w-full shrink-0 px-[clamp(8px,min(1.5vmin,_16px),_20px)] pb-0 text-center leading-[1.08] opacity-95`}>
-            No camera? Join manually
+        <span className={ribbonClass}>Join manually</span>
+
+        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-y-[clamp(10px,min(1.35vmin,_16px),_20px)] rounded-2xl border-2 border-amber-500/45 bg-black/70 px-[clamp(10px,min(1.5vmin,_18px),_22px)] py-[clamp(12px,min(1.65vmin,_20px),_24px)] shadow-[inset_0_1px_0_rgba(251,211,141,0.12)]">
+          <p
+            className={`${joinUrlText} mx-auto w-full max-w-full min-w-0`}
+            aria-label={joinUrl}
+          >
+            {joinUrlForDisplay(joinUrl)}
           </p>
-          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(4px,min(0.75vmin,_8px),_10px)]">
-            <p className={`${joinRibbonClass} block w-full shrink-0 px-[clamp(8px,min(1.5vmin,_16px),_20px)] pb-0 text-center leading-[1.08] opacity-90`}>
-              Open
-            </p>
-            <p className={`${playerPathLabel} w-full shrink-0 px-[clamp(4px,min(0.85vmin,_10px),_12px)]`}>/player/</p>
-            <p
-              className={`${joinUrlText} mx-auto w-full max-w-full min-w-0 shrink-0 px-[2px] opacity-80`}
-              aria-label={joinUrl}
+
+          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/30 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
+            <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
+            <motion.div
+              className="isolate inline-block w-max max-w-full rounded-[clamp(8px,_1.25vmin,_12px)] border-[2px] border-amber-300/98 bg-black/82 px-[clamp(10px,_1.5vmin,_18px)] py-[clamp(6px,_1.1vmin,_12px)]"
+              animate={
+                reducedMotion
+                  ? undefined
+                  : {
+                      boxShadow: [
+                        '0 0 8px rgba(234,179,8,0.2), inset 0 0 0 1px rgba(251,211,141,0.16)',
+                        '0 0 18px rgba(234,179,8,0.38), inset 0 0 0 1px rgba(253,246,178,0.22)',
+                        '0 0 8px rgba(234,179,8,0.2), inset 0 0 0 1px rgba(251,211,141,0.16)',
+                      ],
+                    }
+              }
+              transition={{ duration: 2.85, repeat: Infinity, ease: 'easeInOut' }}
             >
-              {joinUrlForDisplay(joinUrl)}
-            </p>
+              <div className={venueMono}>{venueCode}</div>
+            </motion.div>
           </div>
-          <p className={`${joinRibbonClass} block w-full shrink-0 px-[clamp(8px,min(1.5vmin,_16px),_20px)] pt-0 text-center leading-[1.08] opacity-90`}>
-            Enter room code
-          </p>
         </div>
-        <motion.div
-          className="isolate mx-auto inline-block w-max max-w-full shrink-0 rounded-[clamp(8px,_1.25vmin,_12px)] border-[2px] border-amber-300/98 bg-black/82 px-[clamp(8px,_1.35vmin,_16px)] py-[clamp(4px,_1vmin,_10px)]"
-          animate={
-            reducedMotion
-              ? undefined
-              : {
-                  boxShadow: [
-                    '0 0 8px rgba(234,179,8,0.2), inset 0 0 0 1px rgba(251,211,141,0.16)',
-                    '0 0 18px rgba(234,179,8,0.38), inset 0 0 0 1px rgba(253,246,178,0.22)',
-                    '0 0 8px rgba(234,179,8,0.2), inset 0 0 0 1px rgba(251,211,141,0.16)',
-                  ],
-                }
-          }
-          transition={{ duration: 2.85, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <div className={venueMono}>{venueCode}</div>
-        </motion.div>
-        <p className={`${seatingHintClass} w-full max-w-[28rem] shrink-0 px-[clamp(6px,min(1.2vmin,_14px),_16px)]`}>
-          {VENUE_WELCOME_SEATING_HINT}
-        </p>
       </VegasAttentionPanel>
     </section>
   )
 }
 
 function WelcomePlayingToWinPanel({
-  hintsTitleClass,
+  sectionRibbon,
   reducedMotion,
 }: {
-  hintsTitleClass: string
+  sectionRibbon: string
   reducedMotion: boolean
 }) {
   const bulletClass =
@@ -430,35 +418,42 @@ function WelcomePlayingToWinPanel({
   const groupTitleClass =
     `font-black uppercase tracking-[0.12em] text-amber-100/88 ${DISPLAY_TEXT_WELCOME_TIPS_GROUP_CQ} [text-shadow:0_0_16px_rgba(251,191,36,0.28),0_2px_6px_rgba(0,0,0,_0.88)]`
 
+  const panelInnerFlex =
+    'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col justify-between gap-y-[clamp(6px,min(1.1vmin,_12px),_14px)] items-stretch overflow-hidden'
+
+  const ribbonClass = `${sectionRibbon} shrink-0 w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
+
   return (
     <section aria-label="Playing to win — how Quizz'em Hold'em works" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col">
       <VegasAttentionPanel
         showCorners
         animateShimmer={!reducedMotion}
-        innerFlexClassName="relative z-[5] flex h-full min-h-0 min-w-0 w-full flex-1 flex-col lg:h-full"
-        className="flex min-h-0 min-w-0 h-full w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-0 py-0 shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:min-h-0 lg:h-full lg:flex-1"
+        innerFlexClassName={panelInnerFlex}
+        className="flex min-h-0 min-w-0 h-full w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(8px,min(1.45vmin,_15px),_16px)] shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:min-h-0 lg:h-full lg:flex-1"
       >
-        <div className="relative z-[1] flex h-full min-h-0 flex-1 flex-col gap-[clamp(6px,min(1vmin,_12px),_14px)] overflow-hidden px-[clamp(10px,min(1.75vmin,_20px),_24px)] py-[clamp(8px,min(1.35vmin,_16px),_18px)]">
-          <p className={`${hintsTitleClass} shrink-0 text-center leading-tight lg:text-left`}>Playing to win</p>
-          <div className="flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(0.65rem,1.35vmin,1.1rem)]">
-            {QUIZZ_EM_HOW_TO_PLAY_GROUPS.map((group) => (
-              <div key={group.title}>
-                <h3 className={`${groupTitleClass} mb-[clamp(0.35rem,0.65vmin,0.55rem)] text-center lg:text-left`}>
-                  {group.title}
-                </h3>
-                <ul className="m-0 list-none space-y-[clamp(0.35rem,0.75vmin,0.65rem)] p-0">
-                  {group.bullets.map((bullet) => (
-                    <li key={bullet} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
-                      <span className="display-text-welcome-tips-group-cq mt-[0.1em] shrink-0 font-black leading-none text-amber-400/95" aria-hidden>
-                        •
-                      </span>
-                      <span className={`${bulletClass} block`}>{bullet}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+        <span className={ribbonClass}>Playing to win</span>
+
+        <div className="flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(0.55rem,1.15vmin,0.95rem)] px-[clamp(4px,min(0.85vmin,_10px),_12px)]">
+          {QUIZZ_EM_HOW_TO_PLAY_GROUPS.map((group) => (
+            <div key={group.title}>
+              <h3 className={`${groupTitleClass} mb-[clamp(0.35rem,0.65vmin,0.55rem)] text-center`}>
+                {group.title}
+              </h3>
+              <ul className="m-0 list-none space-y-[clamp(0.35rem,0.75vmin,0.65rem)] p-0">
+                {group.bullets.map((bullet) => (
+                  <li key={bullet} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
+                    <span
+                      className="display-text-welcome-tips-group-cq mt-[0.1em] shrink-0 font-black leading-none text-amber-400/95"
+                      aria-hidden
+                    >
+                      •
+                    </span>
+                    <span className={`${bulletClass} block`}>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </VegasAttentionPanel>
     </section>
@@ -496,9 +491,6 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
   /** `min-w-0` + wrapping so wide tracking / long words cannot blow past grid tracks */
   const sectionRibbon =
     `min-w-0 font-black uppercase tracking-[0.18em] text-amber-50/98 break-words text-balance whitespace-normal ${DISPLAY_TEXT_WELCOME_SECONDARY_CQ} [text-shadow:0_0_32px_rgba(251,191,36,0.45),0_0_72px_rgba(239,68,68,0.14),0_2px_4px_rgba(0,0,0,_0.95)]`
-
-  const hintsTitleClass =
-    `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/97 break-words text-balance whitespace-normal ${DISPLAY_TEXT_WELCOME_SECONDARY_CQ} [text-shadow:0_0_24px_rgba(251,191,36,0.45),0_2px_8px_rgba(0,0,0,_0.92)]`
 
   /** Credit under the wordmark — readable title case, subtler than headline chrome. */
   const taglineCredit =
@@ -699,7 +691,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
               </div>
               <div className="flex min-h-0 min-w-0 shrink-0 flex-col max-lg:min-h-[26vh] max-lg:max-h-[38vh] lg:h-full lg:min-h-0 lg:max-h-full lg:w-full lg:flex-col">
                 <WelcomePlayingToWinPanel
-                  hintsTitleClass={hintsTitleClass}
+                  sectionRibbon={sectionRibbon}
                   reducedMotion={Boolean(reducedMotion)}
                 />
               </div>

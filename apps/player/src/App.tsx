@@ -1,6 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   connect,
+  disconnect,
   onState,
   onToast,
   onSeated,
@@ -16,7 +17,11 @@ import {
 import type { PlayerGameStateWire, PlayerVenueBrief } from '@qhe/net'
 import { LOBBY_TABLE_ID, inChipContest } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
-import { readPlayerJoinPrefs, persistPlayerJoinPrefs, type PlayerJoinPrefs } from './playerUrlParams'
+import {
+  readPlayerJoinPrefs,
+  persistPlayerJoinPrefs,
+  type PlayerJoinBootstrap,
+} from './playerUrlParams'
 import { useAnswerCountdown } from './hooks/useAnswerCountdown'
 import { useHandSummary } from './hooks/useHandSummary'
 import {
@@ -31,6 +36,7 @@ import {
 import { buildBettingContext, resolveMyPlayerIndex } from './playerModel/bettingModel'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
+import LobbyWaitingScreen from './components/LobbyWaitingScreen'
 import EliminatedScreen from './components/EliminatedScreen'
 import PlayerToast from './components/PlayerToast'
 import PlayerTableHeader from './components/PlayerTableHeader'
@@ -45,9 +51,13 @@ import BettingMobileDock from './components/BettingMobileDock'
 import AnswerMobileDock from './components/AnswerMobileDock'
 import TableFeltView from './components/TableFeltView'
 
+type JoinPhase = 'form' | 'connecting' | 'in_venue'
+
 function PlayerApp() {
-  const [joinPrefs, setJoinPrefs] = useState<PlayerJoinPrefs>(() => readPlayerJoinPrefs())
-  const [isJoined, setIsJoined] = useState(false)
+  const [joinPrefs, setJoinPrefs] = useState<PlayerJoinBootstrap>(() => readPlayerJoinPrefs())
+  const [joinPhase, setJoinPhase] = useState<JoinPhase>('form')
+  const [joinError, setJoinError] = useState<string | null>(null)
+  const [joinNonce, setJoinNonce] = useState(0)
   const [gameState, setGameState] = useState<PlayerGameStateWire | null>(null)
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -67,18 +77,40 @@ function PlayerApp() {
     window.setTimeout(() => setToastMessage(null), ms)
   }, [])
 
+  const handleJoinPrefsChange = useCallback((next: PlayerJoinBootstrap) => {
+    setJoinPrefs(next)
+    setJoinError(null)
+  }, [])
+
   const handleJoin = () => {
     if (!playerName || !joinPrefs.roomCode.trim()) return
     if (!joinPrefs.autoSeat && !String(joinPrefs.tableId || '').trim()) return
     persistPlayerJoinPrefs(joinPrefs)
-    connect('player', playerName, joinPrefs.roomCode.trim(), joinTableId)
-    setIsJoined(true)
+    setJoinError(null)
+    setJoinPhase('connecting')
+    setJoinNonce((n) => n + 1)
   }
 
   useEffect(() => {
-    if (!isJoined) return undefined
+    if (joinNonce === 0) return undefined
+
+    let cancelled = false
+
+    connect('player', playerName, joinPrefs.roomCode.trim(), joinTableId, {
+      onHelloAck: (ack) => {
+        if (cancelled) return
+        if (!ack.ok) {
+          setJoinError(ack.message)
+          setJoinPhase('form')
+          disconnect()
+          return
+        }
+        setJoinPhase('in_venue')
+      },
+    })
 
     const offState = onState((state) => {
+      if (cancelled) return
       recordServerClockSample(state.serverNowMs ?? null)
       setGameState(state)
       setDisconnected(false)
@@ -88,12 +120,13 @@ function PlayerApp() {
     const offBrief = onPlayerVenueBrief(setVenueBrief)
 
     return () => {
+      cancelled = true
       offState()
       offToast()
       offSeated()
       offBrief()
     }
-  }, [isJoined, showToast])
+  }, [joinNonce, playerName, joinPrefs.roomCode, joinTableId, showToast])
 
   useEffect(() => {
     if (!socket) return undefined
@@ -114,8 +147,8 @@ function PlayerApp() {
     }
   }, [gameState?.phase, gameState?.round.roundId])
 
-  const currentPlayer = gameState?.players.find((p) => p.name === playerName)
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
+  const currentPlayer = gameState && myIndex >= 0 ? gameState.players[myIndex] : undefined
   const handSummary = useHandSummary(gameState, currentPlayer)
   const remainingSec = useAnswerCountdown(gameState?.round.answerDeadline)
 
@@ -124,7 +157,7 @@ function PlayerApp() {
       gameState && currentPlayer
         ? buildBettingContext({ gameState, currentPlayer, myIndex, raiseAmount })
         : null,
-    [gameState, currentPlayer, myIndex, raiseAmount]
+    [gameState, currentPlayer, myIndex, raiseAmount],
   )
 
   const handleCardSelect = (type: 'hand' | 'community', index: number) => {
@@ -155,8 +188,16 @@ function PlayerApp() {
     })
   }
 
-  if (!isJoined) {
-    return <JoinScreen prefs={joinPrefs} onChange={setJoinPrefs} onJoin={handleJoin} />
+  if (joinPhase !== 'in_venue') {
+    return (
+      <JoinScreen
+        prefs={joinPrefs}
+        onChange={handleJoinPrefsChange}
+        onJoin={handleJoin}
+        joinError={joinError}
+        isConnecting={joinPhase === 'connecting'}
+      />
+    )
   }
 
   if (!gameState) {
@@ -170,6 +211,27 @@ function PlayerApp() {
 
   if (isEliminated) {
     return <EliminatedScreen playerName={playerName} />
+  }
+
+  const inLobbyPool =
+    (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
+    gameState.phase === 'lobby' &&
+    currentPlayer != null
+
+  if (inLobbyPool) {
+    const poolPosition = myIndex >= 0 ? myIndex + 1 : null
+    return (
+      <>
+        <PlayerToast message={toastMessage} />
+        <LobbyWaitingScreen
+          playerName={playerName}
+          venueCode={gameState.code}
+          poolCount={gameState.players.length}
+          poolPosition={poolPosition}
+          disconnected={disconnected}
+        />
+      </>
+    )
   }
 
   const showAnswerComposer =

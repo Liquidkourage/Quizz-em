@@ -9,11 +9,7 @@ export default function PhaseBanner({ gameState }: PhaseBannerProps) {
   const { phase, tableId } = gameState
 
   if (tableId === LOBBY_TABLE_ID && phase === 'lobby') {
-    return (
-      <div className="mx-auto mb-4 max-w-xl rounded-xl border border-amber-400/50 bg-amber-950/35 px-3 py-3 text-center text-xs text-amber-100 sm:mb-6 sm:text-sm">
-        Lobby pool — the host will assign you to a table when they tap <strong>Assign from lobby</strong>.
-      </div>
-    )
+    return null
   }
 
   if (phase === 'lobby' && tableId !== LOBBY_TABLE_ID) {

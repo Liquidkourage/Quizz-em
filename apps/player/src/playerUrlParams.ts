@@ -9,6 +9,11 @@ export type PlayerJoinPrefs = {
   tableId: string
 }
 
+export type PlayerJoinBootstrap = PlayerJoinPrefs & {
+  roomFromUrl: boolean
+  nameFromUrl: boolean
+}
+
 function readStoredPrefs(): Partial<PlayerJoinPrefs> {
   if (typeof window === 'undefined') return {}
   try {
@@ -21,26 +26,38 @@ function readStoredPrefs(): Partial<PlayerJoinPrefs> {
   }
 }
 
-export function readPlayerJoinPrefs(): PlayerJoinPrefs {
+export function readPlayerJoinPrefs(): PlayerJoinBootstrap {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const stored = readStoredPrefs()
-  const roomFromUrl = params?.get('room')?.trim().toUpperCase() ?? ''
-  const nameFromUrl = params?.get('name')?.trim() ?? ''
+  const roomFromUrl = Boolean(params?.get('room')?.trim())
+  const nameFromUrl = Boolean(params?.get('name')?.trim())
+  const roomFromUrlValue = params?.get('room')?.trim().toUpperCase() ?? ''
+  const nameFromUrlValue = params?.get('name')?.trim() ?? ''
   const manual = params?.get('manual') === 'true'
   const tableFromUrl = params?.get('table')?.trim() ?? ''
 
   return {
-    playerName: nameFromUrl || stored.playerName || '',
-    roomCode: roomFromUrl || stored.roomCode || '',
+    playerName: nameFromUrlValue || stored.playerName || '',
+    roomCode: roomFromUrlValue || stored.roomCode || '',
     autoSeat: manual ? false : stored.autoSeat !== false,
     tableId: tableFromUrl || stored.tableId || LOBBY_TABLE_ID,
+    roomFromUrl,
+    nameFromUrl,
   }
 }
 
 export function persistPlayerJoinPrefs(prefs: PlayerJoinPrefs): void {
   if (typeof window === 'undefined') return
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        playerName: prefs.playerName,
+        roomCode: prefs.roomCode,
+        autoSeat: prefs.autoSeat,
+        tableId: prefs.tableId,
+      }),
+    )
   } catch {
     /* ignore quota / private mode */
   }

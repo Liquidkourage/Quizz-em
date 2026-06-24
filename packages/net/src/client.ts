@@ -68,6 +68,8 @@ export type ConnectOptions = {
   displayFocusTable?: number | null
   /** Role display only: pairing flow — omit venue until host enters code */
   displayAwaitPairing?: boolean
+  /** First `ack` after `hello` (player join failures stay on the join form). */
+  onHelloAck?: (ack: ServerAck) => void
 }
 
 export function connect(
@@ -106,7 +108,11 @@ export function connect(
           }
         : {}),
     }
-    
+
+    if (options?.onHelloAck) {
+      socket!.once('ack', options.onHelloAck)
+    }
+
     socket!.emit('hello', hello)
   })
 

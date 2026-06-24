@@ -1414,6 +1414,17 @@ function allVenueSessionKeys(venueCode: string): string[] {
   return [...rooms.keys()].filter(k => k.startsWith(pref)).sort()
 }
 
+/** True once a host has opened this venue (rejects typo codes that would spawn empty rooms). */
+function venueHasHost(venueCode: string): boolean {
+  for (const tk of allVenueSessionKeys(venueCode)) {
+    const gs = rooms.get(tk)
+    if (gs != null && typeof gs.hostId === 'string' && gs.hostId.trim().length > 0) {
+      return true
+    }
+  }
+  return false
+}
+
 /** Playable tables only (excludes lobby pool). */
 function allTableSessionsInVenue(venueCode: string): string[] {
   return allVenueSessionKeys(venueCode).filter(k => !isLobbySessionKey(k))
@@ -2377,6 +2388,14 @@ io.on('connection', (socket) => {
     const helloSessionKey = tableSessionKey(venueCode, tableId)
 
     if (role !== 'display') {
+      if (role === 'player' && !venueHasHost(venueCode)) {
+        socket.emit('ack', {
+          ok: false,
+          message: 'No game found for that venue code. Check the code on the TV.',
+        })
+        return
+      }
+
       const candidateExists = !!rooms.get(helloSessionKey)
       if (
         tableId !== LOBBY_TABLE_ID &&

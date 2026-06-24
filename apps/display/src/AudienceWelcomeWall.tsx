@@ -10,9 +10,7 @@ import {
   DISPLAY_TEXT_WELCOME_TIPS_GROUP_CQ,
   DISPLAY_TEXT_WELCOME_URL_CQW,
 } from './displayTypography'
-import {
-  QUIZZ_EM_HOW_TO_PLAY_GROUPS,
-} from './venueRulesWallContent'
+import { QUIZZ_EM_WELCOME_HOW_IT_WORKS_GROUPS } from './venueRulesWallContent'
 
 export type AudienceWelcomeWallProps = {
   venueCode: string
@@ -358,6 +356,9 @@ function WelcomeJoinCard({
 
   const ribbonClass = `${joinRibbonClass} shrink-0 w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
 
+  const roomCodeLabelClass =
+    `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/88 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
+
   return (
     <section aria-label="Join manually" className={className}>
       <VegasAttentionPanel
@@ -376,7 +377,8 @@ function WelcomeJoinCard({
             {joinUrlForDisplay(joinUrl)}
           </p>
 
-          <div className="flex w-full min-w-0 flex-col items-center border-t border-amber-500/30 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
+          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/30 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
+            <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
             <motion.div
               className="isolate inline-block w-max max-w-full rounded-[clamp(8px,_1.25vmin,_12px)] border-[2px] border-amber-300/98 bg-black/82 px-[clamp(10px,_1.5vmin,_18px)] py-[clamp(6px,_1.1vmin,_12px)]"
               animate={
@@ -401,7 +403,7 @@ function WelcomeJoinCard({
   )
 }
 
-function WelcomePlayingToWinPanel({
+function WelcomeHowItWorksPanel({
   sectionRibbon,
   reducedMotion,
 }: {
@@ -420,17 +422,17 @@ function WelcomePlayingToWinPanel({
   const ribbonClass = `${sectionRibbon} shrink-0 w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
 
   return (
-    <section aria-label="Playing to win" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col">
+    <section aria-label="How it works" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col">
       <VegasAttentionPanel
         showCorners
         animateShimmer={!reducedMotion}
         innerFlexClassName={panelInnerFlex}
         className="flex min-h-0 min-w-0 h-full w-full flex-1 flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-500/65 bg-black/78 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(8px,min(1.45vmin,_15px),_16px)] shadow-[inset_0_0_22px_-8px_rgba(234,179,8,0.11),0_0_42px_-10px_rgba(52,211,153,0.14),0_0_54px_-12px_rgba(124,58,237,0.07)] ring-2 ring-purple-950/90 lg:min-h-0 lg:h-full lg:flex-1"
       >
-        <span className={ribbonClass}>Playing to win</span>
+        <span className={ribbonClass}>How it works</span>
 
         <div className="flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(0.55rem,1.15vmin,0.95rem)] px-[clamp(4px,min(0.85vmin,_10px),_12px)]">
-          {QUIZZ_EM_HOW_TO_PLAY_GROUPS.map((group) => (
+          {QUIZZ_EM_WELCOME_HOW_IT_WORKS_GROUPS.map((group) => (
             <div key={group.title}>
               <h3 className={`${groupTitleClass} mb-[clamp(0.35rem,0.65vmin,0.55rem)] text-center`}>
                 {group.title}
@@ -686,7 +688,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
                 </div>
               </div>
               <div className="flex min-h-0 min-w-0 shrink-0 flex-col max-lg:min-h-[26vh] max-lg:max-h-[38vh] lg:h-full lg:min-h-0 lg:max-h-full lg:w-full lg:flex-col">
-                <WelcomePlayingToWinPanel
+                <WelcomeHowItWorksPanel
                   sectionRibbon={sectionRibbon}
                   reducedMotion={Boolean(reducedMotion)}
                 />

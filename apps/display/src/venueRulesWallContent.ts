@@ -8,7 +8,7 @@ export type VenueRulesWallColumn = {
   groups: readonly VenueRulesWallBulletGroup[]
 }
 
-/** Shared how-to-play bullets — welcome wall + host Rules TV screen. */
+/** Rules TV screen — gameplay column under “Playing to win”. */
 export const QUIZZ_EM_HOW_TO_PLAY_GROUPS: readonly VenueRulesWallBulletGroup[] = [
   {
     title: 'The round',
@@ -23,6 +23,26 @@ export const QUIZZ_EM_HOW_TO_PLAY_GROUPS: readonly VenueRulesWallBulletGroup[] =
     bullets: [
       '45 seconds — pick five cards and submit',
       'Closest wins the pot',
+    ],
+  },
+] as const
+
+/** Welcome / intro screen — “How it works” panel only. */
+export const QUIZZ_EM_WELCOME_HOW_IT_WORKS_GROUPS: readonly VenueRulesWallBulletGroup[] = [
+  {
+    title: 'The round',
+    bullets: [
+      "Hold'em-style trivia with digit cards",
+      'Hole cards, then a betting round',
+      'Five community cards, then another betting round',
+    ],
+  },
+  {
+    title: 'Your answer',
+    bullets: [
+      'Pick five cards when betting closes',
+      '45 seconds to submit',
+      'Closest to the correct answer wins',
     ],
   },
 ] as const

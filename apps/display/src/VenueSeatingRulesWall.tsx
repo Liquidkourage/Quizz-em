@@ -50,16 +50,12 @@ function RulesSectionBody({
   section,
   skipMountIntro,
   startIndex,
-  compactTop,
 }: {
   section: VenueRulesWallSection
   skipMountIntro: boolean
   startIndex: number
-  compactTop?: boolean
 }) {
-  const topSpacing = compactTop
-    ? 'mt-[clamp(0.25rem,0.5vmin,0.4rem)]'
-    : 'mt-[clamp(0.4rem,0.85vmin,0.65rem)]'
+  const topSpacing = 'mt-[clamp(0.4rem,0.85vmin,0.65rem)]'
 
   if (section.groups?.length) {
     let offset = startIndex
@@ -132,7 +128,7 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
           </h1>
         </header>
 
-        <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-[clamp(0.75rem,1.6vmin,1.15rem)] lg:grid-cols-2 lg:items-stretch">
+        <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-[clamp(0.75rem,1.6vmin,1.15rem)] lg:grid-cols-3 lg:items-stretch">
           {VENUE_RULES_WALL_SECTIONS.map((section, sectionIndex) => {
             const sectionStart = bulletIndex
             const sectionBulletCount =
@@ -140,7 +136,6 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
               section.groups?.reduce((sum, group) => sum + group.bullets.length, 0) ??
               0
             bulletIndex += sectionBulletCount
-            const centerInPanel = Boolean(section.bullets?.length)
 
             return (
               <motion.section
@@ -153,18 +148,11 @@ export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueS
                 <h2 className="venue-rules-section-title shrink-0 text-center font-black uppercase tracking-wide text-emerald-200/95">
                   {section.title}
                 </h2>
-                <div
-                  className={
-                    centerInPanel
-                      ? 'flex min-h-0 flex-1 flex-col justify-center'
-                      : 'min-h-0 flex-1'
-                  }
-                >
+                <div className="min-h-0 flex-1">
                   <RulesSectionBody
                     section={section}
                     skipMountIntro={skipMountIntro}
                     startIndex={sectionStart}
-                    compactTop={centerInPanel}
                   />
                 </div>
               </motion.section>

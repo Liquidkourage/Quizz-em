@@ -243,7 +243,7 @@ function WelcomeQrColumn({
 }
 
 /**
- * Venue join wall: header, then three bands on `lg+` — QR (~34%), join & players (~40%), playing tips (~26%).
+ * Venue join wall: header, then three equal bands on `lg+` — QR, join & players, how it works.
  */
 type AttendanceSectionProps = {
   syncingCounts: boolean
@@ -653,7 +653,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
           <div className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden pb-[clamp(2px,min(0.5vmin,_8px),_8px)] max-[height:920px]:pb-[clamp(4px,min(0.85vmin,_10px),_11px)] lg:pb-0">
             <div
               aria-label="Join"
-              className="flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:grid-cols-[minmax(0,34fr)_minmax(0,40fr)_minmax(0,26fr)] lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
+              className="flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:grid-cols-3 lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
             >
               <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:max-h-full">
                 <WelcomeQrColumn

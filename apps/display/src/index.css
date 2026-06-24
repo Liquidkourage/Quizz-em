@@ -1045,12 +1045,12 @@
   }
 
   .display-text-welcome-tips-cq {
-    font-size: clamp(1.05rem, min(2.45vmin, 3.65cqh), 1.72rem);
+    font-size: clamp(1.25rem, min(2.9vmin, 4.35cqh), 2.05rem);
     line-height: 1.28;
   }
 
   .display-text-welcome-tips-group-cq {
-    font-size: clamp(1.12rem, min(2.65vmin, 4cqh), 1.88rem);
+    font-size: clamp(1.32rem, min(3.15vmin, 4.75cqh), 2.22rem);
     line-height: 1.2;
   }
 

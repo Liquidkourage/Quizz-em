@@ -5,22 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quizz'em — Player phone mockups</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Rajdhani:wght@500;600&display=swap"
       rel="stylesheet"
     />
     <style>
-      :root {
-        --emerald: #00ffb4;
-        --gold: #ffd700;
-        --purple: #8b5cf6;
-        --red: #ff4444;
-        --blue: #3b82f6;
-        --bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #0a0a0a 100%);
-        --glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-        --phone-w: 390px;
-        --phone-h: 844px;
-      }
-
       * {
         box-sizing: border-box;
       }
@@ -28,796 +16,119 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: 'Rajdhani', system-ui, sans-serif;
-        background: #07070f;
-        color: #fff;
+        font-family: Rajdhani, system-ui, sans-serif;
+        color: #f8fafc;
+        background:
+          radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 255, 180, 0.08), transparent),
+          radial-gradient(ellipse 60% 40% at 90% 100%, rgba(139, 92, 246, 0.1), transparent),
+          #06060c;
       }
 
-      .page-header {
-        padding: 2rem 1.5rem 1rem;
+      header {
+        padding: 2.5rem 1.5rem 1rem;
         text-align: center;
       }
 
-      .page-header h1 {
-        margin: 0 0 0.35rem;
+      header h1 {
+        margin: 0 0 0.4rem;
         font-family: Orbitron, monospace;
-        font-size: 1.35rem;
-        letter-spacing: 0.12em;
+        font-size: clamp(1rem, 2.5vw, 1.35rem);
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: var(--emerald);
+        color: #00ffb4;
       }
 
-      .page-header p {
+      header p {
         margin: 0;
-        color: rgba(255, 255, 255, 0.55);
-        font-size: 0.95rem;
+        max-width: 36rem;
+        margin-inline: auto;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1rem;
+        line-height: 1.45;
       }
 
       .gallery {
         display: flex;
-        gap: 2rem;
-        padding: 1.5rem 2rem 3rem;
+        gap: clamp(1.5rem, 4vw, 2.75rem);
+        padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 3.5rem;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
-        align-items: flex-start;
+        -webkit-overflow-scrolling: touch;
       }
 
-      .screen-wrap {
+      .slide {
         flex: 0 0 auto;
         scroll-snap-align: center;
         text-align: center;
       }
 
-      .screen-label {
-        margin-bottom: 0.75rem;
+      .slide figcaption {
+        margin-bottom: 0.85rem;
         font-family: Orbitron, monospace;
-        font-size: 0.72rem;
-        letter-spacing: 0.14em;
+        font-size: 0.7rem;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.45);
+        color: rgba(255, 255, 255, 0.42);
       }
 
-      .phone {
-        width: var(--phone-w);
-        height: var(--phone-h);
-        border-radius: 44px;
-        padding: 12px;
-        background: linear-gradient(145deg, #2a2a2e, #0d0d0f);
-        box-shadow:
-          0 30px 80px rgba(0, 0, 0, 0.65),
-          inset 0 0 0 2px rgba(255, 255, 255, 0.08);
-        position: relative;
-      }
-
-      .phone::before {
-        content: '';
-        position: absolute;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 120px;
-        height: 28px;
-        background: #000;
-        border-radius: 20px;
-        z-index: 20;
-      }
-
-      .phone-screen {
-        width: 100%;
-        height: 100%;
-        border-radius: 34px;
-        overflow: hidden;
-        position: relative;
-        background: var(--bg);
-      }
-
-      .bg-layer {
-        position: absolute;
-        inset: 0;
-        background: var(--bg);
-      }
-
-      .bg-layer::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          to top right,
-          rgba(0, 255, 180, 0.08) 0%,
-          transparent 45%,
-          rgba(59, 130, 246, 0.06) 100%
-        );
-      }
-
-      .screen-content {
-        position: relative;
-        z-index: 1;
-        height: 100%;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .glass {
-        background: var(--glass);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-      }
-
-      .chip {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        margin: 0 auto;
-        background: radial-gradient(circle at 30% 30%, #fff8dc, var(--gold) 40%, #b8860b 100%);
-        border: 3px dashed rgba(0, 0, 0, 0.35);
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.45);
-      }
-
-      .wordmark {
-        font-family: Orbitron, monospace;
-        font-weight: 900;
-        font-size: 1.35rem;
-        letter-spacing: 0.06em;
-        background: linear-gradient(180deg, #fef08a, var(--gold), #b45309);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        text-shadow: 0 0 24px rgba(255, 215, 0, 0.35);
-      }
-
-      .title-emerald {
-        font-family: Orbitron, monospace;
-        font-weight: 900;
-        color: var(--emerald);
-        text-shadow: 0 0 12px rgba(0, 255, 180, 0.35);
-      }
-
-      .input {
-        width: 100%;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        font: 600 1rem Rajdhani, sans-serif;
-      }
-
-      .input.focus {
-        border-color: var(--emerald);
-        box-shadow: 0 0 0 2px rgba(0, 255, 180, 0.25);
-      }
-
-      .input::placeholder {
-        color: rgba(255, 255, 255, 0.45);
-      }
-
-      .btn {
+      .slide img {
         display: block;
-        width: 100%;
-        padding: 14px;
-        border: none;
-        border-radius: 10px;
-        font: 700 1.05rem Rajdhani, sans-serif;
-        letter-spacing: 0.04em;
-        cursor: default;
+        height: min(78vh, 720px);
+        width: auto;
+        border-radius: 28px;
+        box-shadow:
+          0 40px 100px rgba(0, 0, 0, 0.65),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
       }
 
-      .btn-emerald {
-        background: linear-gradient(45deg, #00ffb4, #00e6a3);
-        color: #000;
-        box-shadow: 0 0 20px rgba(0, 255, 180, 0.45);
-      }
-
-      .btn-gold {
-        background: linear-gradient(45deg, #ffd700, #ffc800);
-        color: #000;
-      }
-
-      .btn-red {
-        background: linear-gradient(45deg, #ff4444, #ff3333);
-        color: #fff;
-      }
-
-      .btn-purple {
-        background: linear-gradient(45deg, #8b5cf6, #7c3aed);
-        color: #fff;
-      }
-
-      .btn-blue {
-        background: linear-gradient(45deg, #3b82f6, #2563eb);
-        color: #fff;
-      }
-
-      .btn-sm {
-        padding: 10px;
+      footer {
+        padding: 0 1.5rem 2.5rem;
+        text-align: center;
         font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.35);
       }
 
-      .muted {
-        color: rgba(255, 255, 255, 0.55);
-      }
-
-      .gold {
-        color: var(--gold);
-        font-weight: 700;
-      }
-
-      .emerald {
-        color: var(--emerald);
-        font-weight: 700;
-      }
-
-      .mono {
-        font-family: ui-monospace, monospace;
-      }
-
-      /* ——— Screen 1: Join ——— */
-      .join-center {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 48px 20px 24px;
-      }
-
-      .join-card {
-        width: 100%;
-        padding: 28px 22px;
-      }
-
-      .join-card h2 {
-        margin: 12px 0 6px;
-        font-size: 1.65rem;
-      }
-
-      .join-card .sub {
-        margin: 0 0 20px;
-        font-size: 0.88rem;
-        line-height: 1.35;
-      }
-
-      .field-stack {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        text-align: left;
-      }
-
-      .advanced-link {
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.4);
-      }
-
-      /* ——— Screen 2: Lobby ——— */
-      .lobby-center {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 56px 20px 24px;
-        gap: 20px;
-      }
-
-      .lobby-card {
-        width: 100%;
-        padding: 28px 22px;
-        text-align: center;
-      }
-
-      .lobby-card h2 {
-        margin: 0;
-        font-size: 1.45rem;
-        line-height: 1.2;
-      }
-
-      .lobby-card .sub {
-        margin: 12px 0 0;
-        font-size: 0.92rem;
-        line-height: 1.4;
-      }
-
-      .pool-box {
-        margin-top: 22px;
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid rgba(0, 255, 180, 0.28);
-        background: rgba(6, 78, 59, 0.28);
-        text-align: left;
-        font-size: 0.92rem;
-        line-height: 1.65;
-      }
-
-      .pool-count {
-        margin-top: 8px;
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: #a7f3d0;
-      }
-
-      /* ——— In-game shared ——— */
-      .game-scroll {
-        flex: 1;
-        overflow: hidden;
-        padding: 48px 14px 0;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .header-meta {
-        text-align: center;
-        font-size: 0.72rem;
-        line-height: 1.5;
-        color: rgba(255, 255, 255, 0.85);
-      }
-
-      .header-meta span.sep {
-        color: rgba(255, 255, 255, 0.28);
-        margin: 0 4px;
-      }
-
-      .panel {
-        padding: 14px;
-      }
-
-      .panel-title {
-        margin: 0 0 8px;
-        text-align: center;
-        font-family: Orbitron, monospace;
-        font-size: 0.95rem;
-        color: var(--emerald);
-      }
-
-      .pot {
-        text-align: center;
-        margin-bottom: 10px;
-      }
-
-      .pot .label {
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.65);
-      }
-
-      .pot .value {
-        font-size: 1.65rem;
-        font-weight: 700;
-        color: var(--emerald);
-      }
-
-      .question-box {
-        padding: 12px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        background: rgba(255, 255, 255, 0.08);
-        font-size: 0.88rem;
-        line-height: 1.35;
-      }
-
-      .question-box .q-label {
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.6);
-        margin-bottom: 4px;
-      }
-
-      .answer-display {
-        text-align: center;
-        padding: 12px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(255, 255, 255, 0.08);
-        font-size: 2rem;
-        font-weight: 900;
-        color: var(--gold);
-        min-height: 64px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .card-row {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .card-row .group-label {
-        width: 100%;
-        text-align: center;
-        font-size: 0.62rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-bottom: 4px;
-      }
-
-      .digit-card {
-        width: 44px;
-        height: 58px;
-        border-radius: 8px;
-        background: linear-gradient(160deg, #fff 0%, #e5e5e5 100%);
-        color: #111;
-        font: 900 1.35rem Orbitron, monospace;
-        display: grid;
-        place-items: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-      }
-
-      .digit-card.selected {
-        outline: 3px solid var(--gold);
-        box-shadow: 0 0 16px rgba(255, 215, 0, 0.55);
-      }
-
-      .digit-card.decimal {
-        font-size: 1.6rem;
-        background: linear-gradient(160deg, #fef3c7, #fde68a);
-      }
-
-      .felt-mini {
-        height: 72px;
-        border-radius: 50% / 38%;
-        background: radial-gradient(ellipse, #065f46 0%, #064e3b 55%, #022c22 100%);
-        border: 3px solid #92400e;
-        position: relative;
-        margin-top: auto;
-      }
-
-      .felt-seat {
-        position: absolute;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.55);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        font-size: 0.45rem;
-        display: grid;
-        place-items: center;
-        color: #fff;
-      }
-
-      .felt-seat.acting {
-        border-color: var(--gold);
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
-      }
-
-      .felt-seat.you {
-        background: rgba(0, 255, 180, 0.25);
-      }
-
-      .dock {
-        flex-shrink: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(0, 0, 0, 0.88);
-        backdrop-filter: blur(14px);
-        padding: 10px 12px 22px;
-      }
-
-      .dock-meta {
-        text-align: center;
-        font-size: 0.68rem;
-        color: rgba(255, 255, 255, 0.75);
-        margin-bottom: 8px;
-      }
-
-      .dock-grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-
-      .dock-row {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-      }
-
-      .raise-input {
-        flex: 1;
-        min-width: 0;
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        font: 600 0.9rem Rajdhani, sans-serif;
-      }
-
-      /* ——— Screen 5: Showdown ——— */
-      .result-panel {
-        border-color: rgba(139, 92, 246, 0.35);
-      }
-
-      .result-panel .panel-title {
-        color: #c4b5fd;
-        font-size: 1.05rem;
-      }
-
-      .result-line {
-        text-align: center;
-        font-size: 0.88rem;
-        margin: 6px 0;
-      }
-
-      .result-big {
-        font-size: 1.35rem;
-        font-weight: 900;
-      }
-
-      .win-badge {
-        display: inline-block;
-        margin-top: 10px;
-        padding: 6px 14px;
-        border-radius: 999px;
-        background: rgba(0, 255, 180, 0.15);
-        border: 1px solid rgba(0, 255, 180, 0.4);
-        color: var(--emerald);
-        font-weight: 700;
-        font-size: 0.85rem;
-      }
-
-      .stack-pill {
-        text-align: center;
-        padding: 12px;
-      }
-
-      .stack-pill .stack-val {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--gold);
+      footer a {
+        color: rgba(0, 255, 180, 0.7);
       }
     </style>
   </head>
   <body>
-    <header class="page-header">
-      <h1>Quizz'em Player — Phone mockups</h1>
-      <p>Five screens · 390×844 · matches current player app copy &amp; layout</p>
+    <header>
+      <h1>Quizz'em Player</h1>
+      <p>Five phone screens — join through showdown. Visual mockups for pitch decks and live-test walkthroughs.</p>
     </header>
 
-    <div class="gallery">
-      <!-- 1. Join -->
-      <div class="screen-wrap">
-        <div class="screen-label">1 · Join</div>
-        <div class="phone">
-          <div class="phone-screen">
-            <div class="bg-layer"></div>
-            <div class="screen-content">
-              <div class="join-center">
-                <div class="glass join-card">
-                  <div class="chip"></div>
-                  <h2 class="title-emerald">Join Quizz'em</h2>
-                  <p class="sub muted">
-                    Join the waiting pool. Host seats you before the first hand.
-                  </p>
-                  <div class="field-stack">
-                    <input class="input focus" type="text" placeholder="Your name" value="" readonly />
-                    <input class="input" type="text" placeholder="Venue code" value="HOST01" readonly />
-                    <span class="advanced-link">Advanced</span>
-                    <button class="btn btn-emerald" type="button">Join the waiting pool</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Lobby waiting -->
-      <div class="screen-wrap">
-        <div class="screen-label">2 · Waiting pool</div>
-        <div class="phone">
-          <div class="phone-screen">
-            <div class="bg-layer"></div>
-            <div class="screen-content">
-              <div class="lobby-center">
-                <div class="wordmark">QUIZZ'EM</div>
-                <div class="glass lobby-card">
-                  <h2 class="title-emerald">You're in — waiting to be seated</h2>
-                  <p class="sub muted">Host seats you before the first hand.</p>
-                  <div class="pool-box">
-                    <div><span class="muted">Playing as </span><strong>Alex</strong></div>
-                    <div><span class="muted">Venue </span><span class="mono gold">HOST01</span></div>
-                    <div class="pool-count">
-                      12 in the waiting pool
-                      <span class="muted" style="display: block; font-size: 0.82rem; font-weight: 600; margin-top: 4px"
-                        >You're #4</span
-                      >
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Betting -->
-      <div class="screen-wrap">
-        <div class="screen-label">3 · Betting</div>
-        <div class="phone">
-          <div class="phone-screen">
-            <div class="bg-layer"></div>
-            <div class="screen-content">
-              <div class="game-scroll" style="padding-bottom: 8px">
-                <div class="header-meta">
-                  <span>Venue <strong class="emerald">HOST01</strong></span>
-                  <span class="sep">·</span>
-                  <span>Table <strong class="gold">3</strong></span>
-                  <span class="sep">·</span>
-                  <span>Seat <strong class="gold">2</strong></span>
-                </div>
-                <div class="glass panel">
-                  <div class="pot">
-                    <div class="label">Pot</div>
-                    <div class="value">$120</div>
-                  </div>
-                  <div class="question-box">
-                    <div class="q-label">Question</div>
-                    How many miles from Earth to the Moon?
-                  </div>
-                </div>
-                <div class="glass stack-pill">
-                  <div class="muted" style="font-size: 0.75rem">Your stack</div>
-                  <div class="stack-val">$840</div>
-                </div>
-                <div class="felt-mini">
-                  <span class="felt-seat" style="top: 8%; left: 42%">J</span>
-                  <span class="felt-seat you acting" style="bottom: 6%; left: 42%">You</span>
-                  <span class="felt-seat" style="top: 42%; left: 4%">M</span>
-                  <span class="felt-seat" style="top: 42%; right: 4%">S</span>
-                </div>
-              </div>
-              <div class="dock">
-                <div class="dock-meta">
-                  Call <strong>$20</strong> · <strong class="gold">Your turn</strong> · Stack <strong class="gold">$840</strong>
-                </div>
-                <div class="dock-grid-2">
-                  <button class="btn btn-emerald btn-sm" type="button">Check</button>
-                  <button class="btn btn-gold btn-sm" type="button">Call $20</button>
-                </div>
-                <div class="dock-row">
-                  <input class="raise-input" type="text" value="40" readonly />
-                  <button class="btn btn-purple btn-sm" type="button" style="width: 88px">Raise</button>
-                </div>
-                <div class="dock-grid-2" style="margin-top: 8px">
-                  <button class="btn btn-red btn-sm" type="button">Fold</button>
-                  <button class="btn btn-blue btn-sm" type="button">All-in</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4. Answering -->
-      <div class="screen-wrap">
-        <div class="screen-label">4 · Answering</div>
-        <div class="phone">
-          <div class="phone-screen">
-            <div class="bg-layer"></div>
-            <div class="screen-content">
-              <div class="game-scroll" style="padding-bottom: 4px">
-                <div class="header-meta">
-                  <span>Venue <strong class="emerald">HOST01</strong></span>
-                  <span class="sep">·</span>
-                  <span>Table <strong class="gold">3</strong></span>
-                  <span class="sep">·</span>
-                  <span>Seat <strong class="gold">2</strong></span>
-                </div>
-                <div class="glass panel">
-                  <h3 class="panel-title">Compose your answer</h3>
-                  <div class="question-box" style="margin-bottom: 10px">
-                    <div class="q-label">Question</div>
-                    How many miles from Earth to the Moon?
-                  </div>
-                  <div class="muted" style="text-align: center; font-size: 0.72rem; margin-bottom: 6px">
-                    Tap exactly 5 cards · Selected 5/5
-                  </div>
-                  <div class="answer-display">384.4</div>
-                </div>
-                <div class="card-row" style="margin-top: 4px">
-                  <span class="group-label">Hole cards</span>
-                  <div class="digit-card selected">3</div>
-                  <div class="digit-card selected">8</div>
-                </div>
-                <div class="card-row">
-                  <span class="group-label">Community</span>
-                  <div class="digit-card selected">4</div>
-                  <div class="digit-card selected decimal">.</div>
-                  <div class="digit-card selected">4</div>
-                  <div class="digit-card">1</div>
-                  <div class="digit-card">2</div>
-                </div>
-              </div>
-              <div class="dock">
-                <div class="dock-meta">
-                  Time left: <strong class="gold" style="font-size: 1.15rem">28s</strong>
-                </div>
-                <div class="dock-grid-2">
-                  <button class="btn btn-red btn-sm" type="button">Clear</button>
-                  <button class="btn btn-emerald btn-sm" type="button">Submit</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 5. Showdown -->
-      <div class="screen-wrap">
-        <div class="screen-label">5 · Showdown</div>
-        <div class="phone">
-          <div class="phone-screen">
-            <div class="bg-layer"></div>
-            <div class="screen-content">
-              <div class="game-scroll">
-                <div class="header-meta">
-                  <span>Venue <strong class="emerald">HOST01</strong></span>
-                  <span class="sep">·</span>
-                  <span>Table <strong class="gold">3</strong></span>
-                  <span class="sep">·</span>
-                  <span>Seat <strong class="gold">2</strong></span>
-                </div>
-                <div
-                  class="muted"
-                  style="
-                    text-align: center;
-                    font-size: 0.75rem;
-                    padding: 8px 12px;
-                    border-radius: 10px;
-                    border: 1px solid rgba(52, 211, 153, 0.35);
-                    background: rgba(6, 78, 59, 0.25);
-                  "
-                >
-                  Showdown — chips and trivia points are being settled.
-                </div>
-                <div class="glass panel">
-                  <div class="pot">
-                    <div class="label">Pot</div>
-                    <div class="value">$120</div>
-                  </div>
-                  <div class="question-box">
-                    <div class="q-label">Question</div>
-                    How many miles from Earth to the Moon?
-                    <div style="margin-top: 8px; font-weight: 700; color: var(--emerald)">
-                      Answer: 238,855
-                    </div>
-                  </div>
-                </div>
-                <div class="glass panel result-panel">
-                  <h3 class="panel-title">Your result</h3>
-                  <p class="result-line">
-                    Your answer:
-                    <span class="result-big mono gold">384.4</span>
-                  </p>
-                  <p class="result-line">
-                    Correct:
-                    <span class="result-big mono" style="color: #6ee7b7">238,855</span>
-                  </p>
-                  <p class="result-line muted">
-                    Trivia score this hand: <strong class="emerald">0</strong>
-                  </p>
-                  <div style="text-align: center">
-                    <span class="win-badge">Closest at your table — won $120</span>
-                  </div>
-                </div>
-                <div class="glass stack-pill">
-                  <div class="muted" style="font-size: 0.75rem">Your stack</div>
-                  <div class="stack-val">$960</div>
-                  <div class="emerald" style="font-size: 0.82rem; margin-top: 4px">+$120 this hand</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="gallery" role="list">
+      <figure class="slide" role="listitem">
+        <figcaption>1 · Join</figcaption>
+        <img src="./images/01-join.png" alt="Join screen after QR scan — name and venue code" width="390" height="844" />
+      </figure>
+      <figure class="slide" role="listitem">
+        <figcaption>2 · Waiting pool</figcaption>
+        <img
+          src="./images/02-lobby-waiting.png"
+          alt="Lobby waiting — you're in, waiting to be seated"
+          width="390"
+          height="844"
+        />
+      </figure>
+      <figure class="slide" role="listitem">
+        <figcaption>3 · Betting</figcaption>
+        <img src="./images/03-betting.png" alt="Betting — your turn, call check fold" width="390" height="844" />
+      </figure>
+      <figure class="slide" role="listitem">
+        <figcaption>4 · Answering</figcaption>
+        <img src="./images/04-answering.png" alt="Answering — compose answer from digit cards" width="390" height="844" />
+      </figure>
+      <figure class="slide" role="listitem">
+        <figcaption>5 · Showdown</figcaption>
+        <img src="./images/05-showdown.png" alt="Showdown — your result and pot won" width="390" height="844" />
+      </figure>
     </div>
+
+    <footer>
+      Open live app at <a href="/player/">/player/</a> · PNGs in <code>mockups/images/</code>
+    </footer>
   </body>
 </html>

@@ -1232,7 +1232,7 @@
   /** Scan-to-join QR — compact squircle tile matching welcome mockup. */
   .welcome-qr-tile {
     border-radius: 22%;
-    padding: 13%;
+    padding: clamp(6px, 5.5%, 10px);
     box-shadow:
       0 10px 36px rgb(0 0 0 / 0.42),
       0 0 28px rgb(234 179 8 / 0.12);

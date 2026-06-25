@@ -39,7 +39,7 @@ function joinUrlForDisplay(url: string): string {
 
 /** Request a larger QR raster for sharp scaling. `margin` is module quiet zone in the PNG only (not the black pattern). */
 function qrImgSrc(joinUrl: string): string {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=8&data=${encodeURIComponent(joinUrl)}`
+  return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=4&data=${encodeURIComponent(joinUrl)}`
 }
 
 /** Panel shell — bordered surface with optional column tint. */
@@ -293,7 +293,7 @@ function WelcomeQrColumn({
     'welcome-qr-tile box-border flex min-h-0 min-w-0 items-center justify-center overflow-hidden bg-white mx-auto'
 
   const whiteClass =
-    `${whiteTileBase} aspect-square w-[min(52cqw,min(36cqh,210px))] max-w-full shrink-0`
+    `${whiteTileBase} aspect-square w-[min(58cqw,min(42cqh,240px))] max-w-full shrink-0`
 
   return (
     <section aria-label="Scan to join" className={sectionClass}>

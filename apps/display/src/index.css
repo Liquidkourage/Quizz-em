@@ -1166,9 +1166,8 @@
   }
 
   .welcome-background-plate {
-    /* Cover width + height; bottom anchor keeps the floor rail visible (may crop top arch). */
-    object-fit: cover;
-    object-position: center bottom;
+    /* Stretch to exactly fill the viewport (non-uniform scale). */
+    object-fit: fill;
     width: 100%;
     height: 100%;
   }

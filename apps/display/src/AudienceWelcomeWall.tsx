@@ -82,7 +82,7 @@ function WelcomeGlobeIcon() {
 
 /** Ornate gold corner brackets — PNG art from mockup (not CSS). */
 function WelcomePanelCornerBrackets() {
-  const size = 'clamp(4.25rem, min(21cqw, 17cqh), 8.5rem)'
+  const size = 'clamp(4.75rem, min(23cqw, 18cqh), 9.25rem)'
   const corners: { pos: string; transform?: string }[] = [
     { pos: 'left-0 top-0' },
     { pos: 'right-0 top-0', transform: 'scaleX(-1)' },
@@ -98,7 +98,7 @@ function WelcomePanelCornerBrackets() {
           src={WELCOME_WALL_ASSETS.bracketCorner}
           alt=""
           aria-hidden
-          className={`pointer-events-none absolute z-[4] h-auto max-w-[44%] select-none ${pos}`}
+          className={`pointer-events-none absolute z-[8] h-auto max-w-[44%] select-none ${pos}`}
           style={{ width: size, transform }}
           decoding="async"
           draggable={false}

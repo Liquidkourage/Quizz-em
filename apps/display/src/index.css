@@ -1138,14 +1138,7 @@
   }
 
   .welcome-panel-frame {
-    --welcome-bracket-size: clamp(1.75rem, min(9.5cqw, 7.25cqh), 3.35rem);
-    --welcome-bracket-inset: clamp(11px, 1.25vmin, 15px);
-    --welcome-bracket-vertex-x: 19%;
-    --welcome-bracket-vertex-y: 24%;
-  }
-
-  .welcome-panel-border {
-    inset: var(--welcome-bracket-inset);
+    --welcome-bracket-size: clamp(2.15rem, min(12cqw, 9.5cqh), 4.25rem);
   }
 
   .welcome-bracket-corner--tl {
@@ -1190,8 +1183,8 @@
 
   .welcome-panel-grid {
     flex: 0 0 auto;
-    height: var(--welcome-panel-h, min(56vh, 620px));
-    max-height: var(--welcome-panel-h, min(56vh, 620px));
+    height: var(--welcome-panel-h, min(52vh, 580px));
+    max-height: var(--welcome-panel-h, min(52vh, 580px));
     min-height: 0;
   }
 

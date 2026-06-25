@@ -42,23 +42,20 @@ function qrImgSrc(joinUrl: string): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=3&data=${encodeURIComponent(joinUrl)}`
 }
 
-/** Panel outer frame — brackets sit on this; border is inset inside. */
-const WELCOME_PANEL_FRAME =
-  'welcome-panel-frame relative flex h-full min-h-0 w-full flex-col overflow-visible'
-
-/** Inset gold border rect — sits inside bracket arms. */
-const WELCOME_PANEL_BORDER =
-  'welcome-panel-border absolute relative flex min-h-0 flex-col overflow-hidden rounded-[clamp(4px,min(0.55vmin,7px),7px)] border border-amber-400/72 bg-[#060608]/94 shadow-[inset_0_1px_0_rgba(253,246,178,0.12),inset_0_0_48px_rgba(0,0,0,0.52),0_0_28px_-10px_rgba(234,179,8,0.3)]'
+/** Panel shell — one bordered rect; brackets overlay the four corners. */
+const WELCOME_PANEL_SURFACE =
+  'welcome-panel-surface relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[clamp(6px,min(0.75vmin,9px),9px)] border border-amber-400/78 bg-[#060608]/94 shadow-[inset_0_1px_0_rgba(253,246,178,0.14),inset_0_0_56px_rgba(0,0,0,0.55),0_0_36px_-8px_rgba(234,179,8,0.32)]'
 
 const WELCOME_PANEL_PAD =
-  'px-[clamp(8px,min(1vmin,12px),12px)] py-[clamp(5px,min(0.85vmin,10px),10px)]'
+  'px-[clamp(10px,min(1.15vmin,14px),14px)] py-[clamp(8px,min(1vmin,12px),12px)]'
 
 /** Narrow strip below panel bottoms — room for baked floor reflection. */
 const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(10vh, 108px))'
 
-const WELCOME_PANEL_SHELL_QR = WELCOME_PANEL_FRAME
+const WELCOME_PANEL_SHELL_QR =
+  'welcome-panel-frame relative h-full min-h-0 w-full overflow-visible'
 
-const WELCOME_PANEL_SHELL_MID = WELCOME_PANEL_FRAME
+const WELCOME_PANEL_SHELL_MID = WELCOME_PANEL_SHELL_QR
 
 /** Recessed LED readout — room code and player count share this well. */
 const WELCOME_LED_WELL =
@@ -253,8 +250,7 @@ function VegasAttentionPanel({
     'relative z-[5] flex h-full min-h-0 min-w-0 flex-col'
   return (
     <div className={`@container/size ${className}`}>
-      {showCorners ? <WelcomePanelCornerBrackets /> : null}
-      <div className={`${WELCOME_PANEL_BORDER} ${WELCOME_PANEL_PAD}`}>
+      <div className={`${WELCOME_PANEL_SURFACE} ${WELCOME_PANEL_PAD}`}>
         {animateShimmer ? (
           <div
             aria-hidden
@@ -269,6 +265,7 @@ function VegasAttentionPanel({
           <div className={innerFlex}>{children}</div>
         </div>
       </div>
+      {showCorners ? <WelcomePanelCornerBrackets /> : null}
     </div>
   )
 }
@@ -294,16 +291,16 @@ function WelcomeQrColumn({
     'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col items-stretch justify-start gap-y-[clamp(3px,min(0.65vmin,_8px),_10px)] overflow-hidden'
 
   const aimClass =
-    `${sectionRibbon} w-full block text-center leading-[1.08] pb-0 px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance] lg:mb-0 [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:relative [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:z-[46]`
+    `${sectionRibbon} w-full block shrink-0 text-center leading-[1.08] pb-0 px-[clamp(8px,min(1.6vmin,_18px),_22px)] [text-wrap:balance]`
 
   const midClass =
-    'relative flex min-h-0 max-h-full w-full flex-1 flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(2px,min(0.42vmin,_4px),_5px)] lg:px-[clamp(5px,min(1.1vmin,_8px),_10px)] lg:py-[clamp(2px,min(0.48vmin,_4px),_6px)]'
+    'relative flex min-h-0 flex-1 w-full flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(2px,min(0.42vmin,_4px),_5px)]'
 
   const whiteTileBase =
     'box-border grid min-h-[120px] min-w-0 w-max max-w-full place-items-center overflow-hidden rounded-2xl border-2 border-amber-200/95 bg-white px-[clamp(1px,min(0.22vmin,_2px),_3px)] py-[clamp(1px,min(0.38vmin,_3px),_4px)] shadow-[inset_0_0_0_2px_rgba(254,249,231,1),0_0_48px_rgba(234,179,8,0.35),0_20px_64px_-16px_rgba(234,179,8,0.48)] ring-2 ring-amber-400/22 max-[height:880px]:shadow-[inset_0_0_0_2px_rgba(254,249,231,1),0_0_40px_rgba(234,179,8,0.32),0_16px_56px_-14px_rgba(234,179,8,0.42)] mx-auto'
 
   const whiteClass =
-    `${whiteTileBase} aspect-square max-h-full w-auto max-w-[min(100%,min(76vw,min(48dvh,480px)))] shrink-0 max-[height:880px]:max-w-[min(100%,min(74vw,min(44dvh,420px)))] lg:mx-auto lg:aspect-square lg:h-auto lg:max-h-[min(100%,30dvh)] lg:w-full lg:max-w-[88%] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:max-h-[min(26vmin,26dvh,260px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:max-w-[min(26vmin,26dvh,260px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:!py-[2px] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:!px-[2px] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:shadow-[0_8px_48px_-6px_rgba(0,0,0,0.55),inset_0_0_0_2px_rgba(254,249,231,1),0_0_40px_rgba(234,179,8,0.35)]`
+    `${whiteTileBase} aspect-square w-auto max-h-[min(100%,min(34dvh,340px))] max-w-[min(100%,min(34dvh,340px))] shrink-0 mx-auto lg:max-h-[min(100%,min(32dvh,320px))] lg:max-w-[min(100%,min(32dvh,320px))]`
 
   return (
     <section aria-label="Scan to join" className={sectionClass}>
@@ -564,8 +561,8 @@ function WelcomeHowItWorksPanel({
       >
         <WelcomeSectionTitle ribbonClass={ribbonClass}>How it works</WelcomeSectionTitle>
 
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-start px-[clamp(2px,min(0.55vmin,_6px),_8px)] py-[clamp(1px,min(0.3vmin,_3px),_4px)]">
-          <ul className="m-0 flex min-h-0 w-fit max-w-[min(100%,24rem)] list-none flex-col justify-start gap-[clamp(0.18rem,0.38vmin,0.34rem)] p-0 pl-[clamp(0.35rem,0.72vmin,0.62rem)]">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-[clamp(2px,min(0.55vmin,_6px),_8px)] py-[clamp(1px,min(0.3vmin,_3px),_4px)]">
+          <ul className="m-0 flex min-h-0 w-fit max-w-[min(100%,24rem)] list-none flex-col justify-center gap-[clamp(0.2rem,0.42vmin,0.38rem)] p-0 pl-[clamp(0.35rem,0.72vmin,0.62rem)]">
             {QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS.map((step) => (
               <li key={step} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
                 <span className="welcome-gold-bullet" aria-hidden />
@@ -638,7 +635,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(10vh,108px)] lg:[--welcome-floor-h:min(10vh,108px)] [--welcome-panel-h:min(56vh,620px)] lg:[--welcome-panel-h:min(56vh,620px)]"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(10vh,108px)] lg:[--welcome-floor-h:min(10vh,108px)] [--welcome-panel-h:min(52vh,580px)] lg:[--welcome-panel-h:min(52vh,580px)]"
     >
       <WelcomeWallBackdrop />
       <WelcomeFloorReflectionOverlay />

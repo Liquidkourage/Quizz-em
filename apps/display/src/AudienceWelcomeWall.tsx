@@ -42,19 +42,19 @@ function qrImgSrc(joinUrl: string): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=3&data=${encodeURIComponent(joinUrl)}`
 }
 
-/** Shared outer shell — thin gold edge, flat dark glass (mockup-aligned). */
+/** Shared outer shell — mockup dark glass + thin gold edge. */
 const WELCOME_PANEL_SHELL =
-  'box-border flex min-h-0 min-w-0 w-full flex-col overflow-visible rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border border-amber-400/68 bg-black/82 shadow-[inset_0_1px_0_rgba(253,246,178,0.2),inset_0_0_48px_-24px_rgba(0,0,0,0.55),0_0_56px_-10px_rgba(234,179,8,0.32)] backdrop-blur-[2px]'
+  'box-border flex min-h-0 min-w-0 w-full flex-col overflow-visible rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border border-amber-400/58 bg-[#060608]/90 shadow-[inset_0_1px_0_rgba(253,246,178,0.14),inset_0_0_72px_rgba(0,0,0,0.55),0_0_48px_-6px_rgba(234,179,8,0.38)] backdrop-blur-[1px]'
 
 /** Recessed LED readout — room code and player count share this well. */
 const WELCOME_LED_WELL =
-  'isolate inline-block w-max max-w-full rounded-[clamp(8px,_1.25vmin,_12px)] border border-amber-400/78 bg-[#050403] px-[clamp(12px,_1.65vmin,_20px)] py-[clamp(8px,_1.2vmin,_14px)] shadow-[inset_0_3px_14px_rgba(0,0,0,0.94),inset_0_-1px_0_rgba(251,211,141,0.1),0_0_24px_rgba(234,179,8,0.28)]'
+  'welcome-led-well isolate rounded-[clamp(8px,_1.25vmin,_12px)] border border-amber-400/78 bg-[#050403] px-[clamp(14px,_1.85vmin,_24px)] py-[clamp(10px,_1.35vmin,_16px)] shadow-[inset_0_3px_14px_rgba(0,0,0,0.94),inset_0_-1px_0_rgba(251,211,141,0.1),0_0_24px_rgba(234,179,8,0.28)]'
 
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[inherit]'
 
-/** Reflective floor strip height — must match WelcomeFloorStrip and root CSS var. */
-const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(15vh, 168px))'
+/** Reflective floor strip height — matches mockup bottom band (~22%). */
+const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(22vh, 226px))'
 
 const WELCOME_PANEL_SHELL_QR =
   `${WELCOME_PANEL_SHELL} h-full max-h-full flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]`
@@ -66,11 +66,40 @@ function WelcomeSectionTitle({ ribbonClass, children }: { ribbonClass: string; c
   return (
     <div className="flex w-full shrink-0 flex-col items-center gap-y-[clamp(3px,min(0.55vmin,_6px),_8px)]">
       <span className={ribbonClass}>{children}</span>
-      <div
-        aria-hidden
-        className="h-[clamp(2px,min(0.32vmin,_3px),_3px)] w-[clamp(2.75rem,min(38%,6.5rem),_7rem)] rounded-full bg-gradient-to-r from-transparent via-amber-200/95 to-transparent shadow-[0_0_14px_rgba(251,191,36,0.65),0_0_28px_rgba(234,179,8,0.28)]"
-      />
+      <div aria-hidden className="welcome-section-rule" />
     </div>
+  )
+}
+
+function WelcomeLedDisplay({
+  value,
+  glyphClass,
+  reducedMotion,
+  pulse,
+}: {
+  value: string
+  glyphClass: string
+  reducedMotion: boolean
+  pulse?: boolean
+}) {
+  return (
+    <motion.div
+      className={WELCOME_LED_WELL}
+      animate={
+        pulse && !reducedMotion
+          ? {
+              boxShadow: [
+                'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.1), 0 0 22px rgba(234,179,8,0.28)',
+                'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.14), 0 0 34px rgba(234,179,8,0.42)',
+                'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.1), 0 0 22px rgba(234,179,8,0.28)',
+              ],
+            }
+          : undefined
+      }
+      transition={{ duration: 2.85, repeat: pulse ? Infinity : 0, ease: 'easeInOut' }}
+    >
+      <div className={`${glyphClass} welcome-led-glyphs`}>{value}</div>
+    </motion.div>
   )
 }
 
@@ -92,12 +121,12 @@ function WelcomeGlobeIcon() {
 
 /** Ornate gold corner brackets — PNG art (transparent), overlaid on panel corners. */
 function WelcomePanelCornerBrackets() {
-  const size = 'clamp(3.15rem, min(16cqw, 12.5cqh), 6.25rem)'
+  const size = 'clamp(2.35rem, min(13cqw, 10cqh), 5.25rem)'
   const corners: { className: string; transform?: string }[] = [
-    { className: '-left-[0.15rem] -top-[0.15rem]' },
-    { className: '-right-[0.15rem] -top-[0.15rem]', transform: 'scaleX(-1)' },
-    { className: '-left-[0.15rem] -bottom-[0.15rem]', transform: 'scaleY(-1)' },
-    { className: '-right-[0.15rem] -bottom-[0.15rem]', transform: 'scaleX(-1) scaleY(-1)' },
+    { className: '-left-[0.08rem] -top-[0.08rem]' },
+    { className: '-right-[0.08rem] -top-[0.08rem]', transform: 'scaleX(-1)' },
+    { className: '-left-[0.08rem] -bottom-[0.08rem]', transform: 'scaleY(-1)' },
+    { className: '-right-[0.08rem] -bottom-[0.08rem]', transform: 'scaleX(-1) scaleY(-1)' },
   ]
 
   return (
@@ -130,17 +159,17 @@ function WelcomeWallBackdrop() {
         draggable={false}
       />
       <div
-        className="absolute inset-0 opacity-70"
+        className="absolute inset-0 opacity-[0.58]"
         style={{
           background:
-            'radial-gradient(ellipse 78% 68% at 50% 42%, transparent 38%, rgba(0, 0, 0, 0.42) 100%)',
+            'radial-gradient(ellipse 50% 32% at 6% 0%, rgba(124,58,237,0.32) 0%, transparent 68%), radial-gradient(ellipse 50% 32% at 94% 0%, rgba(16,185,129,0.26) 0%, transparent 68%), radial-gradient(ellipse 78% 68% at 50% 42%, transparent 38%, rgba(0, 0, 0, 0.38) 100%)',
         }}
       />
     </div>
   )
 }
 
-/** Polished floor + mirrored panel glow — sits directly under the panel row. */
+/** Polished floor + panel reflections — mockup bottom band. */
 function WelcomeFloorStrip() {
   return (
     <div
@@ -148,19 +177,11 @@ function WelcomeFloorStrip() {
       className="welcome-floor-zone relative z-[8] w-full shrink-0 overflow-hidden"
       style={{ height: WELCOME_FLOOR_RESERVE }}
     >
-      <div className="welcome-floor-reflection-glow pointer-events-none absolute inset-x-0 top-0 z-[2] grid h-[72%] grid-cols-3 gap-x-[2.5%] px-[clamp(6px,_1.2vw,_40px)] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)]">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="h-full rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] bg-gradient-to-b from-amber-300/28 via-amber-400/12 to-transparent blur-[clamp(6px,1.2vmin,14px)]"
-          />
-        ))}
-      </div>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px bg-amber-200/85 shadow-[0_0_14px_rgba(251,191,36,0.55),0_0_28px_rgba(234,179,8,0.28)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-px bg-amber-200/90 shadow-[0_0_16px_rgba(251,191,36,0.62),0_0_32px_rgba(234,179,8,0.32)]" />
       <img
         src={WELCOME_WALL_ASSETS.floorReflection}
         alt=""
-        className="absolute inset-0 z-[1] h-full w-full object-cover object-top opacity-96"
+        className="absolute inset-0 z-[1] h-full w-full object-cover object-top"
         decoding="async"
         draggable={false}
       />
@@ -270,7 +291,7 @@ function WelcomeQrColumn({
     'relative flex min-h-0 max-h-full w-full flex-1 flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(2px,min(0.42vmin,_4px),_5px)] lg:px-[clamp(5px,min(1.1vmin,_8px),_10px)] lg:py-[clamp(2px,min(0.48vmin,_4px),_6px)]'
 
   const whiteTileBase =
-    'box-border grid min-h-[120px] min-w-0 w-max max-w-full place-items-center overflow-hidden rounded-2xl border-[3px] border-amber-200/98 bg-white px-[clamp(1px,min(0.22vmin,_2px),_3px)] py-[clamp(1px,min(0.38vmin,_3px),_4px)] shadow-[inset_0_0_0_2px_rgba(254,249,231,1),0_0_72px_rgba(234,179,8,0.42),0_28px_96px_-16px_rgba(234,179,8,0.62),0_0_88px_rgba(255,255,255,0.1)] ring-[3px] ring-amber-400/30 max-[height:880px]:shadow-[inset_0_0_0_2px_rgba(254,249,231,1),0_0_56px_rgba(234,179,8,0.38),0_20px_72px_-14px_rgba(234,179,8,0.5),0_0_64px_rgba(255,255,255,0.08)] mx-auto'
+    'box-border grid min-h-[120px] min-w-0 w-max max-w-full place-items-center overflow-hidden rounded-2xl border-2 border-amber-200/95 bg-white px-[clamp(1px,min(0.22vmin,_2px),_3px)] py-[clamp(1px,min(0.38vmin,_3px),_4px)] shadow-[inset_0_0_0_2px_rgba(254,249,231,1),0_0_48px_rgba(234,179,8,0.35),0_20px_64px_-16px_rgba(234,179,8,0.48)] ring-2 ring-amber-400/22 max-[height:880px]:shadow-[inset_0_0_0_2px_rgba(254,249,231,1),0_0_40px_rgba(234,179,8,0.32),0_16px_56px_-14px_rgba(234,179,8,0.42)] mx-auto'
 
   const whiteClass =
     `${whiteTileBase} aspect-square max-h-full w-auto max-w-[min(100%,min(76vw,min(48dvh,480px)))] shrink-0 max-[height:880px]:max-w-[min(100%,min(74vw,min(44dvh,420px)))] lg:mx-auto lg:aspect-square lg:h-auto lg:max-h-[min(100%,38dvh)] lg:w-full lg:max-w-[94%] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:max-h-[min(29vmin,29dvh,290px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:max-w-[min(29vmin,29dvh,290px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:!py-[2px] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:!px-[2px] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:shadow-[0_8px_48px_-6px_rgba(0,0,0,0.55),inset_0_0_0_2px_rgba(254,249,231,1),0_0_40px_rgba(234,179,8,0.35)]`
@@ -394,17 +415,34 @@ function AttendanceSection({
     >
       <div className={tileClass}>
         <div className={labelClass}>Players</div>
-        <motion.div
-          className={`${statDigitBase} welcome-led-glyphs tabular-nums${digitWrapClass ? ` ${digitWrapClass}` : ''}`}
-          animate={
-            !reducedMotion && justJoined
-              ? { scale: [1, 1.08, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }
-              : undefined
-          }
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-        >
-          {display}
-        </motion.div>
+        {layout === 'inPanel' ? (
+          <motion.div
+            animate={
+              !reducedMotion && justJoined
+                ? { scale: [1, 1.08, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }
+                : undefined
+            }
+            transition={{ duration: 0.55, ease: 'easeOut' }}
+          >
+            <WelcomeLedDisplay
+              value={display}
+              glyphClass={statDigitBase}
+              reducedMotion={reducedMotion}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            className={`${statDigitBase} welcome-led-glyphs tabular-nums${digitWrapClass ? ` ${digitWrapClass}` : ''}`}
+            animate={
+              !reducedMotion && justJoined
+                ? { scale: [1, 1.08, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }
+                : undefined
+            }
+            transition={{ duration: 0.55, ease: 'easeOut' }}
+          >
+            {display}
+          </motion.div>
+        )}
       </div>
     </section>
   )
@@ -444,7 +482,7 @@ function WelcomeJoinCard({
     `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/88 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
 
   const urlChipClass =
-    'flex w-full min-w-0 items-center justify-center gap-x-[clamp(6px,min(1vmin,_10px),_12px)] rounded-[clamp(8px,min(1.2vmin,_12px),_14px)] border border-white/28 bg-black/48 px-[clamp(10px,min(1.45vmin,_18px),_22px)] py-[clamp(8px,min(1.15vmin,_12px),_14px)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
+    'flex w-full min-w-0 flex-col items-center justify-center gap-y-[clamp(4px,min(0.65vmin,_6px),_8px)] rounded-[clamp(8px,min(1.2vmin,_12px),_14px)] border border-white/30 bg-black/52 px-[clamp(10px,min(1.45vmin,_18px),_22px)] py-[clamp(8px,min(1.15vmin,_12px),_14px)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]'
 
   return (
     <section aria-label="Join manually" className={className}>
@@ -456,36 +494,25 @@ function WelcomeJoinCard({
       >
         <WelcomeSectionTitle ribbonClass={ribbonClass}>Join manually</WelcomeSectionTitle>
 
-        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-y-[clamp(10px,min(1.35vmin,_16px),_18px)] px-[clamp(10px,min(1.5vmin,_18px),_22px)] py-[clamp(8px,min(1.15vmin,_14px),_16px)]">
+        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-y-[clamp(8px,min(1.15vmin,_14px),_16px)] px-[clamp(10px,min(1.5vmin,_18px),_22px)] py-[clamp(6px,min(1vmin,_12px),_14px)]">
           <div className={urlChipClass}>
             <WelcomeGlobeIcon />
             <p
-              className={`${joinUrlText} mx-auto w-full max-w-full min-w-0 text-amber-50/96 [text-shadow:0_0_12px_rgba(251,191,36,0.22),0_1px_0_rgba(0,0,0,0.9)]`}
+              className={`${joinUrlText} mx-auto w-full max-w-full min-w-0 text-amber-50/96 lg:whitespace-nowrap lg:text-[clamp(0.82rem,min(1.85vmin,2.8cqw),1.35rem)] [text-shadow:0_0_12px_rgba(251,191,36,0.22),0_1px_0_rgba(0,0,0,0.9)]`}
               aria-label={joinUrl}
             >
               {joinUrlForDisplay(joinUrl)}
             </p>
           </div>
 
-          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/35 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
+          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/35 pt-[clamp(8px,min(1.15vmin,_14px),_16px)]">
             <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
-            <motion.div
-              className={WELCOME_LED_WELL}
-              animate={
-                reducedMotion
-                  ? undefined
-                  : {
-                      boxShadow: [
-                        'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.1), 0 0 22px rgba(234,179,8,0.28)',
-                        'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.14), 0 0 34px rgba(234,179,8,0.42)',
-                        'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.1), 0 0 22px rgba(234,179,8,0.28)',
-                      ],
-                    }
-              }
-              transition={{ duration: 2.85, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <div className={`${venueMono} welcome-led-glyphs`}>{venueCode}</div>
-            </motion.div>
+            <WelcomeLedDisplay
+              value={venueCode}
+              glyphClass={venueMono}
+              reducedMotion={reducedMotion}
+              pulse
+            />
           </div>
         </div>
 
@@ -528,8 +555,8 @@ function WelcomeHowItWorksPanel({
       >
         <WelcomeSectionTitle ribbonClass={ribbonClass}>How it works</WelcomeSectionTitle>
 
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-evenly px-[clamp(4px,min(0.85vmin,_10px),_12px)]">
-          <ul className="m-0 flex min-h-0 w-fit max-w-[min(100%,24rem)] list-none flex-col justify-evenly gap-[clamp(0.35rem,0.75vmin,0.65rem)] p-0 pl-[clamp(0.45rem,1vmin,0.8rem)]">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-[clamp(4px,min(0.85vmin,_10px),_12px)] py-[clamp(2px,min(0.45vmin,_4px),_6px)]">
+          <ul className="m-0 flex min-h-0 w-fit max-w-[min(100%,24rem)] list-none flex-col justify-center gap-[clamp(0.22rem,0.48vmin,0.42rem)] p-0 pl-[clamp(0.4rem,0.85vmin,0.72rem)]">
             {QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS.map((step) => (
               <li key={step} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
                 <span className="welcome-gold-bullet" aria-hidden />
@@ -552,7 +579,7 @@ function WelcomeWallHeader({
 }) {
   return (
     <header className="@container/size flex w-full max-w-full min-w-0 shrink-0 flex-col items-stretch px-0 sm:px-[clamp(2px,_0.45vw,_10px)]">
-      <div className="welcome-wordmark-stage relative mx-auto aspect-[958/592] w-full max-w-[min(552px,calc(92vw_*_0.6),calc((100vw_-_28px)_*_0.6))] shrink-0 overflow-visible lg:w-auto lg:max-h-[min(33.6vh,432px)] lg:max-w-[min(576px,calc(96vw_*_0.6),calc((100vw_-_36px)_*_0.6))]">
+      <div className="welcome-wordmark-stage relative mx-auto aspect-[958/592] w-full max-w-[min(480px,calc(88vw_*_0.58),calc((100vw_-_28px)_*_0.58))] shrink-0 overflow-visible lg:w-auto lg:max-h-[min(26vh,280px)] lg:max-w-[min(520px,calc(92vw_*_0.58),calc((100vw_-_36px)_*_0.58))]">
         <div aria-hidden className="welcome-wordmark-pool-glow pointer-events-none absolute inset-x-[8%] bottom-[4%] h-[24%]" />
         <QuizzEmWordmark layout="fill" depth="hero" />
       </div>
@@ -585,21 +612,24 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
   const playerCountLabelClass =
     `min-w-0 break-words text-balance font-black tracking-[0.12em] uppercase text-emerald-50/94 ${DISPLAY_TEXT_WELCOME_SECONDARY_CQ} [text-shadow:0_0_18px_rgba(167,243,208,0.28),0_2px_8px_rgba(0,0,0,.58)] mb-[clamp(3px,min(0.55vmin,_5px),_6px)]`
   const venueMono =
-    `max-w-full break-all text-center font-mono font-black leading-none tracking-[0.06em] uppercase ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+    `max-w-full break-all text-center font-mono font-black leading-none tracking-[0.04em] uppercase ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+
+  /** Player count uses the same LED scale as room code on the welcome wall. */
+  const playerCountGlyphs =
+    `tabular-nums leading-none font-black tracking-[0.04em] ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
   /** Join card URL — goldilocks scale: capped so long hosts fit, large enough for the room. */
   const joinUrlText =
     `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.03em] text-emerald-50/96 ${DISPLAY_TEXT_WELCOME_URL_CQW} [text-shadow:0_0_18px_rgba(167,243,208,0.42),0_0_42px_rgba(52,211,153,0.28),0_1px_0_rgba(0,0,0,0.9)]`
 
   /** Slightly taller digits limited on short viewports; default keeps large-TV punch. */
-  const statDigitBase =
-    `py-[clamp(3px,min(0.95vmin,_8px),_8px)] tabular-nums tracking-tight leading-none font-black ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+  const statDigitBase = playerCountGlyphs
 
   return (
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(15vh,168px)] lg:[--welcome-floor-h:min(16vh,184px)]"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(22vh,226px)] lg:[--welcome-floor-h:min(22vh,226px)]"
     >
       <WelcomeWallBackdrop />
 

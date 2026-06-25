@@ -1,5 +1,23 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Montserrat:ital,wght@1,600;1,700;1,800&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
+@font-face {
+  font-family: 'DSEG7 Classic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/keshikan/DSEG@master/fonts/DSEG7-Classic/DSEG7Classic-Regular.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'DSEG7 Classic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/keshikan/DSEG@master/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2')
+    format('woff2');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1045,8 +1063,8 @@
   }
 
   .display-text-welcome-tips-cq {
-    font-size: clamp(1.25rem, min(2.9vmin, 4.35cqh), 2.05rem);
-    line-height: 1.28;
+    font-size: clamp(1.05rem, min(2.35vmin, 3.65cqh), 1.72rem);
+    line-height: 1.22;
   }
 
   .display-text-welcome-tips-group-cq {
@@ -1054,19 +1072,49 @@
     line-height: 1.2;
   }
 
-  /** Welcome wall — LED-style numerals (room code, player count). */
+  /** Welcome wall — 7-segment LED numerals (room code, player count). */
   .welcome-led-glyphs {
-    font-family: Orbitron, ui-monospace, monospace;
-    font-weight: 900;
-    letter-spacing: 0.14em;
+    font-family: 'DSEG7 Classic', Orbitron, ui-monospace, monospace;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     font-variant-numeric: tabular-nums;
     color: #fef08a;
     text-shadow:
-      0 0 4px rgb(254 240 138 / 1),
-      0 0 12px rgb(254 240 138 / 0.85),
-      0 0 22px rgb(234 179 8 / 0.65),
-      0 0 36px rgb(251 191 36 / 0.35),
+      0 0 6px rgb(254 240 138 / 1),
+      0 0 16px rgb(254 240 138 / 0.9),
+      0 0 28px rgb(234 179 8 / 0.72),
+      0 0 44px rgb(251 191 36 / 0.38),
       0 2px 4px rgb(0 0 0 / 0.92);
+  }
+
+  .welcome-led-well {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: clamp(5.5rem, 28cqw, 12rem);
+  }
+
+  /** Section title underline with center diamond ornament. */
+  .welcome-section-rule {
+    position: relative;
+    height: clamp(2px, min(0.32vmin, 3px), 3px);
+    width: clamp(3.5rem, min(52%, 11rem), 11rem);
+    border-radius: 9999px;
+    background: linear-gradient(90deg, transparent 0%, rgb(253 230 138 / 0.95) 50%, transparent 100%);
+    box-shadow: 0 0 14px rgb(251 191 36 / 0.65), 0 0 28px rgb(234 179 8 / 0.28);
+  }
+
+  .welcome-section-rule::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(5px, min(0.72vmin, 7px), 7px);
+    height: clamp(5px, min(0.72vmin, 7px), 7px);
+    transform: translate(-50%, -50%) rotate(45deg);
+    border-radius: 1px;
+    background: linear-gradient(135deg, #fde68a 0%, #facc15 48%, #d97706 100%);
+    box-shadow: 0 0 10px rgb(251 191 36 / 0.75);
   }
 
   .welcome-gold-bullet {
@@ -1086,16 +1134,9 @@
     filter: drop-shadow(0 4px 16px rgb(251 191 36 / 0.38)) drop-shadow(0 2px 8px rgb(0 0 0 / 0.55));
   }
 
-  /** Welcome floor — horizon strip under panels with mirrored glow. */
+  /** Welcome floor — mockup reflection band under panels. */
   .welcome-floor-zone {
-    margin-top: -1px;
-  }
-
-  .welcome-floor-reflection-glow {
-    transform: scaleY(-1);
-    transform-origin: top center;
-    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.72) 0%, transparent 82%);
-    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.72) 0%, transparent 82%);
+    margin-top: -2px;
   }
 
   /** Welcome hero logo — subtle 3D lift (same PNG artwork). */

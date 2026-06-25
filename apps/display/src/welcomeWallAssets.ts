@@ -4,12 +4,12 @@ function welcomePublicUrl(file: string): string {
   return `${base}welcome/${file}`
 }
 
-/** Welcome wall art — image layers from the TV mockup + generated isolates. */
+/** Welcome wall art — layers extracted from welcome-wall-tv-mockup.png. */
 export const WELCOME_WALL_ASSETS = {
-  /** Purple/emerald felt with embossed suits (generated to match mockup). */
+  /** Purple/emerald felt with embossed club/diamond suits. */
   feltBg: welcomePublicUrl('felt-bg.jpg'),
-  /** Polished floor strip — procedural wood + gold horizon (no mockup UI ghosts). */
-  floorReflection: welcomePublicUrl('floor-reflection.jpg'),
-  /** Mockup-style L-bracket with marquee bulbs (simple, not baroque). */
+  /** Polished floor + column reflections (mockup bottom band). */
+  floorReflection: welcomePublicUrl('floor-reflection.png'),
+  /** L-bracket with marquee bulbs (mockup top-left panel corner). */
   bracketCorner: welcomePublicUrl('bracket-corner.png'),
 } as const

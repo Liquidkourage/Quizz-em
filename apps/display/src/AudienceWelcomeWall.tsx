@@ -121,21 +121,21 @@ function WelcomeGlobeIcon() {
   )
 }
 
-/** Ornate gold corner brackets — one asset, CSS mirrors for TR/BL/BR. */
+/** Ornate gold corner brackets — user-provided left/right PNGs; bottom corners flip Y. */
 function WelcomePanelCornerBrackets() {
   const corners = [
-    'welcome-bracket-corner--tl',
-    'welcome-bracket-corner--tr',
-    'welcome-bracket-corner--bl',
-    'welcome-bracket-corner--br',
+    { className: 'welcome-bracket-corner--tl', src: WELCOME_WALL_ASSETS.bracketCornerLeft },
+    { className: 'welcome-bracket-corner--tr', src: WELCOME_WALL_ASSETS.bracketCornerRight },
+    { className: 'welcome-bracket-corner--bl', src: WELCOME_WALL_ASSETS.bracketCornerLeft },
+    { className: 'welcome-bracket-corner--br', src: WELCOME_WALL_ASSETS.bracketCornerRight },
   ] as const
 
   return (
     <>
-      {corners.map((className) => (
+      {corners.map(({ className, src }) => (
         <img
           key={className}
-          src={WELCOME_WALL_ASSETS.bracketCorner}
+          src={src}
           alt=""
           aria-hidden
           className={`welcome-bracket-corner pointer-events-none absolute select-none ${className}`}

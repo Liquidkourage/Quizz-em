@@ -39,7 +39,7 @@ function joinUrlForDisplay(url: string): string {
 
 /** Request a larger QR raster for sharp scaling. `margin` is module quiet zone in the PNG only (not the black pattern). */
 function qrImgSrc(joinUrl: string): string {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=5&data=${encodeURIComponent(joinUrl)}`
+  return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=8&data=${encodeURIComponent(joinUrl)}`
 }
 
 /** Panel shell — bordered surface with optional column tint. */
@@ -287,13 +287,13 @@ function WelcomeQrColumn({
     `${sectionRibbon} welcome-card-heading w-full block shrink-0 text-center pb-0 px-[clamp(8px,min(1.6vmin,_18px),_22px)] [text-wrap:balance]`
 
   const midClass =
-    'relative flex min-h-0 flex-1 w-full flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(1px,min(0.25vmin,_3px),_4px)]'
+    'relative flex min-h-0 flex-1 w-full flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(10px,min(2.5cqw,_20px),_24px)] py-[clamp(6px,min(1.2vmin,_10px),_14px)]'
 
   const whiteTileBase =
-    'welcome-qr-tile box-border grid min-h-0 min-w-0 w-max max-w-full place-items-center overflow-hidden bg-white mx-auto'
+    'welcome-qr-tile box-border flex min-h-0 min-w-0 items-center justify-center overflow-hidden bg-white mx-auto'
 
   const whiteClass =
-    `${whiteTileBase} aspect-square w-[min(68cqw,min(52cqh,300px))] max-w-full shrink-0`
+    `${whiteTileBase} aspect-square w-[min(52cqw,min(36cqh,210px))] max-w-full shrink-0`
 
   return (
     <section aria-label="Scan to join" className={sectionClass}>

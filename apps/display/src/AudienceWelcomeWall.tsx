@@ -162,6 +162,17 @@ function WelcomeWallBackdrop() {
   )
 }
 
+/** Reserves layout space for the baked floor band — panels sit directly above this. */
+function WelcomeFloorSpacer() {
+  return (
+    <div
+      aria-hidden
+      className="welcome-floor-spacer w-full shrink-0"
+      style={{ height: WELCOME_FLOOR_RESERVE }}
+    />
+  )
+}
+
 /** Column glow over the baked floor — below panels, above backdrop. */
 function WelcomeFloorReflectionOverlay() {
   return (
@@ -272,7 +283,7 @@ function WelcomeQrColumn({
   reducedMotion: boolean
 }) {
   const sectionClass =
-    'relative flex min-h-0 min-w-0 w-full max-w-full flex-1 flex-col items-center overflow-hidden justify-self-center lg:h-full lg:max-h-full lg:flex-1 lg:justify-start'
+    'relative flex h-full min-h-0 min-w-0 w-full max-w-full flex-1 flex-col items-stretch overflow-hidden justify-self-stretch lg:h-full lg:min-h-0 lg:max-h-full lg:flex-1'
 
   const panelInnerFlex =
     'relative z-[5] flex min-h-0 min-w-0 max-h-full flex-1 flex-col justify-between gap-y-[clamp(4px,min(0.85vmin,_10px),_14px)] items-stretch overflow-hidden'
@@ -539,7 +550,7 @@ function WelcomeHowItWorksPanel({
   const ribbonClass = `${sectionRibbon} w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
 
   return (
-    <section aria-label="How it works" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col">
+    <section aria-label="How it works" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col self-stretch">
       <VegasAttentionPanel
         showCorners
         animateShimmer={!reducedMotion}
@@ -636,12 +647,12 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
         <div className="flex min-h-0 flex-1 flex-col gap-y-[clamp(1px,_0.25vmin,_3px)] overflow-hidden lg:gap-y-[1px]">
           <WelcomeWallHeader reducedMotion={Boolean(reducedMotion)} taglineClass={taglineCredit} />
 
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden pb-[var(--welcome-floor-h)]">
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden">
             <div
               aria-label="Join"
-              className="flex min-h-0 h-full flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:h-full lg:min-h-0 lg:grid-cols-3 lg:grid-rows-1 lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
+              className="welcome-panel-grid flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:min-h-0 lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)] lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch lg:content-stretch"
             >
-              <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:max-h-full">
+              <div className="welcome-panel-column flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0">
                 <WelcomeQrColumn
                   sectionRibbon={sectionRibbon}
                   qrJoinUrl={qrJoinUrl}
@@ -650,9 +661,9 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
                   reducedMotion={Boolean(reducedMotion)}
                 />
               </div>
-              <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:flex-1">
+              <div className="welcome-panel-column flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0">
                 <WelcomeJoinCard
-                  className="flex min-h-0 min-w-0 w-full flex-1 flex-col lg:h-full lg:min-h-0"
+                  className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col"
                   venueCode={venueCode}
                   joinUrl={joinUrl}
                   joinUrlText={joinUrlText}
@@ -665,13 +676,14 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
                   statDigitBase={statDigitBase}
                 />
               </div>
-              <div className="flex min-h-0 min-w-0 shrink-0 flex-col max-lg:min-h-[26vh] max-lg:max-h-[38vh] lg:h-full lg:min-h-0 lg:max-h-full lg:w-full lg:flex-col">
+              <div className="welcome-panel-column flex min-h-0 min-w-0 flex-col max-lg:min-h-[26vh] max-lg:max-h-[38vh] lg:h-full lg:min-h-0 lg:w-full">
                 <WelcomeHowItWorksPanel
                   sectionRibbon={sectionRibbon}
                   reducedMotion={Boolean(reducedMotion)}
                 />
               </div>
             </div>
+            <WelcomeFloorSpacer />
           </div>
         </div>
       </motion.div>

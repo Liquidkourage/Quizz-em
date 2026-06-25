@@ -1139,6 +1139,17 @@
     margin-top: -1px;
   }
 
+  /** Panel row fills all space above the floor spacer so card bottoms meet the horizon. */
+  .welcome-panel-grid {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+
+  .welcome-panel-column {
+    height: 100%;
+    min-height: 0;
+  }
+
   .welcome-background-plate {
     /* Anchor bottom so the baked floor rail + reflections are not cropped off. */
     object-position: center bottom;

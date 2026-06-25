@@ -1,73 +1,86 @@
-"""Build canonical welcome-wall art in public/welcome/.
-
-Sources:
-- felt-bg.jpg — generated felt plate (matches mockup purple/emerald + suits)
-- floor-reflection-mockup.jpg — bottom strip cropped from welcome-wall-tv-mockup.png
-- bracket-corner.png — generated ornate bracket (checkerboard keyed to alpha)
-
-Run from repo root:
-  python apps/display/scripts/prepare-welcome-assets.py
-"""
+"""Build canonical welcome-wall art in public/welcome/."""
 from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 WELCOME = ROOT / "public/welcome"
 MOCKUP = ROOT / "public/mockups/welcome-wall-tv-mockup.png"
-GENERATED = ROOT.parent.parent / ".cursor/projects/c-Users-liqui-quizzing-hold-em/assets"
-# Fallback when assets live in Cursor project storage
 CURSOR_ASSETS = Path.home() / ".cursor/projects/c-Users-liqui-quizzing-hold-em/assets"
 
 
-def _assets_dir() -> Path:
-    for candidate in (
-        GENERATED,
-        CURSOR_ASSETS,
-        ROOT / "public/mockups",
+def _bracket_source() -> Path | None:
+    for name in (
+        "welcome-bracket-corner-v2.png",
+        "welcome-bracket-corner-tl.png",
+        "bracket-corner-generated.png",
     ):
-        if (candidate / "welcome-felt-bg.png").exists() or (candidate / "welcome-bracket-corner-tl.png").exists():
-            return candidate
-    return CURSOR_ASSETS
+        for base in (CURSOR_ASSETS, WELCOME, ROOT / "public/mockups"):
+            candidate = base / name
+            if candidate.exists():
+                return candidate
+    return None
 
 
-def key_checkerboard_to_alpha(src: Path, dest: Path, threshold: int = 195) -> None:
+def key_bracket_to_alpha(src: Path, dest: Path) -> None:
+    """Remove checkerboard + black matte; keep gold filigree only."""
     im = Image.open(src).convert("RGBA")
     px = im.load()
     w, h = im.size
     for y in range(h):
         for x in range(w):
-            r, g, b, a = px[x, y]
-            if r >= threshold and g >= threshold and b >= threshold:
-                px[x, y] = (r, g, b, 0)
-            elif abs(r - g) < 18 and abs(g - b) < 18 and r > 110 and r < threshold:
-                px[x, y] = (r, g, b, 0)
-    im.thumbnail((420, 420), Image.Resampling.LANCZOS)
+            r, g, b, _a = px[x, y]
+            lum = 0.299 * r + 0.587 * g + 0.114 * b
+            max_c = max(r, g, b)
+            min_c = min(r, g, b)
+            chroma = max_c - min_c
+
+            if lum >= 198 and chroma < 36:
+                a = 0
+            elif abs(r - g) < 20 and abs(g - b) < 20 and 105 < lum < 198:
+                a = 0
+            elif lum < 36:
+                a = 0
+            elif lum < 78 and chroma < 32:
+                a = 0
+            elif max_c < 58:
+                a = 0
+            elif lum < 95 and r < 110 and g < 95:
+                a = max(0, min(255, int((lum - 32) * 4.2)))
+            else:
+                a = 255
+
+            px[x, y] = (r, g, b, a)
+
+    bbox = im.getbbox()
+    if bbox:
+        im = im.crop(bbox)
+    im = ImageOps.expand(im, border=6, fill=(0, 0, 0, 0))
+    im.thumbnail((360, 360), Image.Resampling.LANCZOS)
     im.save(dest, optimize=True)
 
 
 def main() -> None:
     WELCOME.mkdir(parents=True, exist_ok=True)
-    assets = _assets_dir()
+    assets = CURSOR_ASSETS
 
     felt_src = assets / "welcome-felt-bg.png"
     if felt_src.exists():
         Image.open(felt_src).convert("RGB").save(WELCOME / "felt-bg.jpg", quality=90, optimize=True)
 
-    bracket_src = assets / "welcome-bracket-corner-tl.png"
-    if not bracket_src.exists():
-        bracket_src = WELCOME / "bracket-corner-generated.png"
-    if bracket_src.exists():
-        key_checkerboard_to_alpha(bracket_src, WELCOME / "bracket-corner.png")
+    bracket_src = _bracket_source()
+    if bracket_src:
+        key_bracket_to_alpha(bracket_src, WELCOME / "bracket-corner.png")
 
     src = Image.open(MOCKUP).convert("RGB")
     w, h = src.size
-    floor = src.crop((0, int(h * 0.78), w, h))
+    # Wood + reflection only — below panel bottoms.
+    floor = src.crop((0, int(h * 0.84), w, h))
     floor.save(WELCOME / "floor-reflection-mockup.jpg", quality=90, optimize=True)
 
-    print(f"Canonical welcome art → {WELCOME}")
+    print(f"Canonical welcome art -> {WELCOME}")
 
 
 if __name__ == "__main__":

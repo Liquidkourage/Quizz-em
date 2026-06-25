@@ -44,13 +44,19 @@ function qrImgSrc(joinUrl: string): string {
 
 /** Shared outer shell — all three welcome columns use the same plaque depth. */
 const WELCOME_PANEL_SHELL =
-  'box-border flex min-h-0 min-w-0 w-full flex-col overflow-hidden rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-400/74 bg-gradient-to-b from-[#140818]/94 via-black/80 to-[#041510]/92 shadow-[inset_0_1px_0_rgba(253,246,178,0.26),inset_0_-32px_64px_-34px_rgba(124,58,237,0.22),inset_0_0_52px_-22px_rgba(234,179,8,0.1),0_0_88px_-6px_rgba(34,197,94,0.2),0_0_112px_-10px_rgba(234,179,8,0.22)] ring-2 ring-amber-600/48 backdrop-blur-[3px]'
+  'box-border flex min-h-0 min-w-0 w-full flex-col overflow-visible rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-400/74 bg-gradient-to-b from-[#140818]/94 via-black/80 to-[#041510]/92 shadow-[inset_0_1px_0_rgba(253,246,178,0.26),inset_0_-32px_64px_-34px_rgba(124,58,237,0.22),inset_0_0_52px_-22px_rgba(234,179,8,0.1),0_0_88px_-6px_rgba(34,197,94,0.2),0_0_112px_-10px_rgba(234,179,8,0.22)] ring-2 ring-amber-600/48 backdrop-blur-[3px]'
+
+const WELCOME_PANEL_INNER =
+  'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[inherit]'
+
+/** Reserve above the reflective floor strip (must match WelcomeWallBackdrop). */
+const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(22vh, 252px))'
 
 const WELCOME_PANEL_SHELL_QR =
   `${WELCOME_PANEL_SHELL} h-full max-h-full flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]`
 
 const WELCOME_PANEL_SHELL_MID =
-  `${WELCOME_PANEL_SHELL} h-full min-h-0 flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.05vmin,_11px),_12px)] lg:h-full lg:min-h-0 lg:flex-1 lg:overflow-hidden`
+  `${WELCOME_PANEL_SHELL} h-full min-h-0 flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.05vmin,_11px),_12px)] lg:h-full lg:min-h-0 lg:flex-1`
 
 function WelcomeSectionTitle({ ribbonClass, children }: { ribbonClass: string; children: ReactNode }) {
   return (
@@ -80,25 +86,25 @@ function WelcomeGlobeIcon() {
   )
 }
 
-/** Ornate gold corner brackets — PNG art from mockup (not CSS). */
+/** Ornate gold corner brackets — PNG art (transparent), overlaid on panel corners. */
 function WelcomePanelCornerBrackets() {
-  const size = 'clamp(4.75rem, min(23cqw, 18cqh), 9.25rem)'
-  const corners: { pos: string; transform?: string }[] = [
-    { pos: 'left-0 top-0' },
-    { pos: 'right-0 top-0', transform: 'scaleX(-1)' },
-    { pos: 'left-0 bottom-0', transform: 'scaleY(-1)' },
-    { pos: 'right-0 bottom-0', transform: 'scaleX(-1) scaleY(-1)' },
+  const size = 'clamp(3.65rem, min(18.5cqw, 14.5cqh), 7.25rem)'
+  const corners: { className: string; transform?: string }[] = [
+    { className: '-left-[0.3rem] -top-[0.3rem]' },
+    { className: '-right-[0.3rem] -top-[0.3rem]', transform: 'scaleX(-1)' },
+    { className: '-left-[0.3rem] -bottom-[0.3rem]', transform: 'scaleY(-1)' },
+    { className: '-right-[0.3rem] -bottom-[0.3rem]', transform: 'scaleX(-1) scaleY(-1)' },
   ]
 
   return (
     <>
-      {corners.map(({ pos, transform }) => (
+      {corners.map(({ className, transform }) => (
         <img
-          key={pos}
+          key={className}
           src={WELCOME_WALL_ASSETS.bracketCorner}
           alt=""
           aria-hidden
-          className={`pointer-events-none absolute z-[8] h-auto max-w-[44%] select-none ${pos}`}
+          className={`welcome-bracket-corner pointer-events-none absolute z-[9] h-auto max-w-[46%] select-none ${className}`}
           style={{ width: size, transform }}
           decoding="async"
           draggable={false}
@@ -119,15 +125,20 @@ function WelcomeWallBackdrop() {
         decoding="async"
         draggable={false}
       />
+      <div
+        className="absolute inset-x-0 z-[1] h-[2px] bg-gradient-to-r from-transparent via-amber-200/90 to-transparent shadow-[0_0_20px_rgba(251,191,36,0.55)]"
+        style={{ bottom: WELCOME_FLOOR_RESERVE }}
+      />
       <img
         src={WELCOME_WALL_ASSETS.floorReflection}
         alt=""
-        className="absolute inset-x-0 bottom-0 h-[min(30vh,340px)] w-full object-cover object-bottom opacity-95"
+        className="absolute inset-x-0 bottom-0 w-full object-cover object-bottom opacity-95"
+        style={{ height: WELCOME_FLOOR_RESERVE }}
         decoding="async"
         draggable={false}
       />
       <div
-        className="absolute inset-0 opacity-75"
+        className="absolute inset-0 opacity-70"
         style={{
           background:
             'radial-gradient(ellipse 78% 68% at 50% 42%, transparent 38%, rgba(0, 0, 0, 0.42) 100%)',
@@ -197,32 +208,34 @@ function VegasAttentionPanel({
     innerFlexClassName ??
     'relative z-[5] flex h-full min-h-0 min-w-0 flex-col'
   return (
-    <div className={`@container/size relative isolate overflow-hidden rounded-[inherit] ${className}`}>
+    <div className={`@container/size relative isolate overflow-visible rounded-[inherit] ${className}`}>
       {showCorners ? <WelcomePanelCornerBrackets /> : null}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-[3px] z-[1] rounded-[inherit] border border-amber-100/14 shadow-[inset_0_0_28px_rgba(251,191,36,0.07),inset_0_1px_0_rgba(253,246,178,0.12)]"
-      />
-      {animateShimmer ? (
+      <div className={WELCOME_PANEL_INNER}>
         <div
           aria-hidden
-          className={`${overlayBase} ${overlayLive}`}
-          style={{
-            background:
-              'radial-gradient(circle_at_72%_10%,rgba(253,244,202,0.65)_0%,transparent_36%), radial-gradient(circle_at_18%_92%,rgba(52,211,153,0.55)_0%,transparent_42%), radial-gradient(circle_at_50%_50%,rgba(192,132,252,0.45)_0%,transparent_58%)',
-          }}
+          className="pointer-events-none absolute inset-[3px] z-[1] rounded-[inherit] border border-amber-100/14 shadow-[inset_0_0_28px_rgba(251,191,36,0.07),inset_0_1px_0_rgba(253,246,178,0.12)]"
         />
-      ) : (
-        <div
-          aria-hidden
-          className={`${overlayBase} opacity-[0.045] md:opacity-[0.06]`}
-          style={{
-            background:
-              'radial-gradient(circle at 72% 10%,rgba(253,244,202,0.5)_0%,transparent 38%), radial-gradient(circle at 18% 92%,rgba(52,211,153,0.4)_0%,transparent 44%)',
-          }}
-        />
-      )}
-      <div className={innerFlex}>{children}</div>
+        {animateShimmer ? (
+          <div
+            aria-hidden
+            className={`${overlayBase} ${overlayLive}`}
+            style={{
+              background:
+                'radial-gradient(circle_at_72%_10%,rgba(253,244,202,0.65)_0%,transparent_36%), radial-gradient(circle_at_18%_92%,rgba(52,211,153,0.55)_0%,transparent_42%), radial-gradient(circle_at_50%_50%,rgba(192,132,252,0.45)_0%,transparent_58%)',
+            }}
+          />
+        ) : (
+          <div
+            aria-hidden
+            className={`${overlayBase} opacity-[0.045] md:opacity-[0.06]`}
+            style={{
+              background:
+                'radial-gradient(circle at 72% 10%,rgba(253,244,202,0.5)_0%,transparent 38%), radial-gradient(circle at 18% 92%,rgba(52,211,153,0.4)_0%,transparent 44%)',
+            }}
+          />
+        )}
+        <div className={innerFlex}>{children}</div>
+      </div>
     </div>
   )
 }
@@ -562,7 +575,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#05030c] antialiased text-white selection:bg-yellow-400/35"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(22vh,252px)] lg:[--welcome-floor-h:min(24vh,272px)]"
     >
       <WelcomeWallBackdrop />
 
@@ -575,10 +588,12 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
         <div className="flex min-h-0 flex-1 flex-col gap-y-[clamp(1px,_0.35vmin,_4px)] max-[height:920px]:gap-y-[clamp(2px,_0.55vmin,_6px)] overflow-hidden lg:gap-y-[2px]">
           <WelcomeWallHeader reducedMotion={Boolean(reducedMotion)} taglineClass={taglineCredit} />
 
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden pb-[clamp(2px,min(0.5vmin,_8px),_8px)] max-[height:920px]:pb-[clamp(4px,min(0.85vmin,_10px),_11px)] lg:pb-0">
+          <div
+            className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden pb-[var(--welcome-floor-h)] max-[height:920px]:pb-[calc(var(--welcome-floor-h)+4px)]"
+          >
             <div
               aria-label="Join"
-              className="flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:grid-cols-3 lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
+              className="flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:max-h-full lg:grid-cols-3 lg:grid-rows-1 lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
             >
               <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:max-h-full">
                 <WelcomeQrColumn

@@ -8,6 +8,7 @@ function welcomePublicUrl(file: string): string {
 export const WELCOME_WALL_ASSETS = {
   /** Full viewport background (felt, suits, top arc, floor rail) — no foreground UI. */
   backgroundPlate: welcomePublicUrl('welcome-background.png'),
-  /** L-bracket with marquee bulbs (mockup top-left panel corner). */
-  bracketCorner: welcomePublicUrl('bracket-corner.png'),
+  /** Ornate top-corner bracket pair (left / right PNGs with alpha). */
+  bracketCornerLeft: welcomePublicUrl('bracket-corner-left.png'),
+  bracketCornerRight: welcomePublicUrl('bracket-corner-right.png'),
 } as const

@@ -119,25 +119,33 @@ function WelcomeGlobeIcon() {
   )
 }
 
-/** Ornate gold corner brackets — PNG art (transparent), overlaid on panel corners. */
+/** Ornate gold corner brackets — user-provided PNG art (transparent), one per corner. */
 function WelcomePanelCornerBrackets() {
-  const size = 'clamp(2.35rem, min(13cqw, 10cqh), 5.25rem)'
-  const corners: { className: string; transform?: string }[] = [
-    { className: '-left-[0.08rem] -top-[0.08rem]' },
-    { className: '-right-[0.08rem] -top-[0.08rem]', transform: 'scaleX(-1)' },
-    { className: '-left-[0.08rem] -bottom-[0.08rem]', transform: 'scaleY(-1)' },
-    { className: '-right-[0.08rem] -bottom-[0.08rem]', transform: 'scaleX(-1) scaleY(-1)' },
+  const size = 'clamp(2.5rem, min(14cqw, 11cqh), 5.75rem)'
+  const corners: { className: string; src: string; transform?: string }[] = [
+    { className: '-left-[0.06rem] -top-[0.06rem]', src: WELCOME_WALL_ASSETS.bracketCornerLeft },
+    { className: '-right-[0.06rem] -top-[0.06rem]', src: WELCOME_WALL_ASSETS.bracketCornerRight },
+    {
+      className: '-left-[0.06rem] -bottom-[0.06rem]',
+      src: WELCOME_WALL_ASSETS.bracketCornerLeft,
+      transform: 'scaleY(-1)',
+    },
+    {
+      className: '-right-[0.06rem] -bottom-[0.06rem]',
+      src: WELCOME_WALL_ASSETS.bracketCornerRight,
+      transform: 'scaleY(-1)',
+    },
   ]
 
   return (
     <>
-      {corners.map(({ className, transform }) => (
+      {corners.map(({ className, src, transform }) => (
         <img
           key={className}
-          src={WELCOME_WALL_ASSETS.bracketCorner}
+          src={src}
           alt=""
           aria-hidden
-          className={`welcome-bracket-corner pointer-events-none absolute z-[9] h-auto max-w-[46%] select-none ${className}`}
+          className={`welcome-bracket-corner pointer-events-none absolute z-[9] h-auto max-w-[48%] select-none ${className}`}
           style={{ width: size, transform }}
           decoding="async"
           draggable={false}

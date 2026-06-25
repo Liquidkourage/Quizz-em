@@ -8,8 +8,8 @@ function welcomePublicUrl(file: string): string {
 export const WELCOME_WALL_ASSETS = {
   /** Full viewport background (felt, suits, top arc, floor rail) — no foreground UI. */
   backgroundPlate: welcomePublicUrl('welcome-background.png'),
-  /** Ornate corner bracket — top-left PNG; mirror in CSS for other corners. */
-  bracketCorner: welcomePublicUrl('bracket-corner-left.png'),
+  /** Ornate corner bracket — extracted from TV mockup; mirror in CSS for other corners. */
+  bracketCorner: welcomePublicUrl('bracket-corner-from-mockup.png'),
   /** @deprecated Use {@link bracketCorner} with CSS mirrors. */
   bracketCornerLeft: welcomePublicUrl('bracket-corner-left.png'),
   bracketCornerRight: welcomePublicUrl('bracket-corner-right.png'),

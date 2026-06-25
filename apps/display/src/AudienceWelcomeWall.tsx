@@ -269,13 +269,13 @@ function WelcomeQrColumn({
     `${sectionRibbon} welcome-card-heading w-full block shrink-0 text-center pb-0 px-[clamp(8px,min(1.6vmin,_18px),_22px)] [text-wrap:balance]`
 
   const midClass =
-    'relative flex min-h-0 flex-1 w-full flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(2px,min(0.42vmin,_4px),_5px)]'
+    'relative flex min-h-0 flex-1 w-full flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(1px,min(0.25vmin,_3px),_4px)]'
 
   const whiteTileBase =
-    'box-border grid min-h-[120px] min-w-0 w-max max-w-full place-items-center overflow-hidden rounded-2xl border-2 border-amber-200/95 bg-white px-[clamp(1px,min(0.22vmin,_2px),_3px)] py-[clamp(1px,min(0.38vmin,_3px),_4px)] shadow-[inset_0_0_0_2px_rgba(254,249,231,1),0_0_48px_rgba(234,179,8,0.35),0_20px_64px_-16px_rgba(234,179,8,0.48)] ring-2 ring-amber-400/22 max-[height:880px]:shadow-[inset_0_0_0_2px_rgba(254,249,231,1),0_0_40px_rgba(234,179,8,0.32),0_16px_56px_-14px_rgba(234,179,8,0.42)] mx-auto'
+    'box-border grid min-h-0 min-w-0 w-max max-w-full place-items-center overflow-hidden rounded-[clamp(10px,min(1.2vmin,_14px),_16px)] border-2 border-amber-200/95 bg-white px-[clamp(1px,min(0.15vmin,_2px),_2px)] py-[clamp(1px,min(0.25vmin,_3px),_3px)] shadow-[inset_0_0_0_1px_rgba(254,249,231,1),0_0_48px_rgba(234,179,8,0.35),0_20px_64px_-16px_rgba(234,179,8,0.48)] ring-2 ring-amber-400/22 mx-auto'
 
   const whiteClass =
-    `${whiteTileBase} aspect-square w-[clamp(280px,min(18vw,32dvh),350px)] max-w-full shrink-0 mx-auto`
+    `${whiteTileBase} aspect-square w-[min(90cqw,min(74cqh,440px))] max-w-full shrink-0 mx-auto`
 
   return (
     <section aria-label="Scan to join" className={sectionClass}>
@@ -520,7 +520,7 @@ function WelcomeHowItWorksPanel({
   reducedMotion: boolean
 }) {
   const bulletClass =
-    `text-pretty font-semibold text-amber-50/96 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
+    `text-pretty font-medium text-amber-50/94 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
 
   const panelInnerFlex =
     'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col justify-start gap-y-[clamp(4px,min(0.75vmin,_9px),_11px)] items-stretch overflow-hidden'
@@ -539,7 +539,7 @@ function WelcomeHowItWorksPanel({
         <WelcomeSectionTitle ribbonClass={ribbonClass}>How it works</WelcomeSectionTitle>
 
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-[clamp(2px,min(0.55vmin,_6px),_8px)] py-[clamp(1px,min(0.3vmin,_3px),_4px)]">
-          <ul className="m-0 flex min-h-0 w-fit max-w-[min(100%,24rem)] list-none flex-col justify-center gap-[clamp(0.2rem,0.42vmin,0.38rem)] p-0 pl-[clamp(0.35rem,0.72vmin,0.62rem)]">
+          <ul className="m-0 flex min-h-0 w-fit max-w-[min(100%,26rem)] list-none flex-col justify-center gap-[clamp(0.1rem,0.26vmin,0.24rem)] p-0 pl-[clamp(0.3rem,0.62vmin,0.55rem)]">
             {QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS.map((step) => (
               <li key={step} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
                 <span className="welcome-gold-bullet" aria-hidden />
@@ -583,10 +583,10 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     `welcome-section-label min-w-0 break-words text-balance font-black uppercase text-amber-50/92 ${DISPLAY_TEXT_WELCOME_DENSE_CQ} [text-shadow:0_0_14px_rgba(253,224,138,0.28),0_2px_8px_rgba(0,0,0,.58)]`
 
   const venueMono =
-    `welcome-room-code-glyphs welcome-led-glyphs max-w-full break-all text-center font-mono font-black leading-none tracking-[0.04em] uppercase ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+    `welcome-room-code-glyphs welcome-led-glyphs welcome-led-glyphs--room max-w-full break-all text-center leading-none uppercase ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
   const playerCountGlyphs =
-    `welcome-player-count-glyphs welcome-led-glyphs tabular-nums leading-none font-black tracking-[0.04em] ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+    `welcome-player-count-glyphs welcome-led-glyphs welcome-led-glyphs--count tabular-nums leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
   const joinUrlText =
     `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.03em] ${DISPLAY_TEXT_WELCOME_URL_CQW}`

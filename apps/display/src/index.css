@@ -18,6 +18,15 @@
     format('woff2');
 }
 
+@font-face {
+  font-family: 'DSEG14 Classic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/gh/keshikan/DSEG@master/fonts/DSEG14-Classic/DSEG14Classic-Bold.woff2')
+    format('woff2');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1063,13 +1072,13 @@
   }
 
   .display-text-welcome-tips-cq {
-    font-size: clamp(1.125rem, 2.05vmin, 1.5625rem);
-    line-height: 1.42;
+    font-size: clamp(0.875rem, 1.55vmin, 1.1875rem);
+    line-height: 1.34;
   }
 
   .display-text-welcome-tips-group-cq {
-    font-size: clamp(1.125rem, 2.05vmin, 1.5625rem);
-    line-height: 1.42;
+    font-size: clamp(0.875rem, 1.55vmin, 1.1875rem);
+    line-height: 1.34;
   }
 
   /** Welcome wall layout tokens — tuned for 16:9 venue displays. */
@@ -1077,9 +1086,9 @@
     --welcome-floor-h: clamp(72px, 10vh, 120px);
     --welcome-panel-h: clamp(520px, 58vh, 660px);
     --welcome-card-gap: 2.5%;
-    --welcome-bracket-size: clamp(2.35rem, min(13cqw, 10.5cqh), 4.75rem);
-    --welcome-bracket-vx: 15%;
-    --welcome-bracket-vy: 20%;
+    --welcome-bracket-size: clamp(3.5rem, min(21cqw, 17cqh), 7rem);
+    --welcome-bracket-vx: 11%;
+    --welcome-bracket-vy: 15%;
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 
@@ -1102,19 +1111,30 @@
     font-size: clamp(3.5rem, 7vmin, 5.625rem);
   }
 
-  /** Welcome wall — 7-segment LED numerals (room code, player count). */
+  /** Welcome wall — LED readouts (room code, player count). */
   .welcome-led-glyphs {
-    font-family: 'DSEG7 Classic', Orbitron, ui-monospace, monospace;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     font-variant-numeric: tabular-nums;
     color: #fef08a;
     text-shadow:
-      0 0 6px rgb(254 240 138 / 1),
-      0 0 16px rgb(254 240 138 / 0.9),
-      0 0 28px rgb(234 179 8 / 0.72),
-      0 0 44px rgb(251 191 36 / 0.38),
+      0 0 4px rgb(254 240 138 / 1),
+      0 0 12px rgb(254 240 138 / 0.95),
+      0 0 24px rgb(234 179 8 / 0.82),
+      0 0 40px rgb(251 191 36 / 0.45),
       0 2px 4px rgb(0 0 0 / 0.92);
+  }
+
+  /** 14-segment — room codes (letters + digits). */
+  .welcome-led-glyphs--room {
+    font-family: 'DSEG14 Classic', 'DSEG7 Classic', Orbitron, ui-monospace, monospace;
+    letter-spacing: 0.04em;
+  }
+
+  /** 7-segment — player count digits. */
+  .welcome-led-glyphs--count {
+    font-family: 'DSEG7 Classic', Orbitron, ui-monospace, monospace;
+    letter-spacing: 0.1em;
   }
 
   .welcome-led-well {
@@ -1207,7 +1227,7 @@
   .welcome-panel-frame {
     position: relative;
     isolation: isolate;
-    --welcome-bracket-size: clamp(2.35rem, min(13cqw, 10.5cqh), 4.75rem);
+    --welcome-bracket-size: clamp(3.5rem, min(21cqw, 17cqh), 7rem);
   }
 
   .welcome-panel-corners {
@@ -1230,29 +1250,29 @@
   }
 
   .welcome-bracket-corner--tl {
-    left: 0;
-    top: 0;
+    left: -1px;
+    top: -1px;
     transform-origin: var(--welcome-bracket-vx) var(--welcome-bracket-vy);
     transform: translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--tr {
-    right: 0;
-    top: 0;
+    right: -1px;
+    top: -1px;
     transform-origin: calc(100% - var(--welcome-bracket-vx)) var(--welcome-bracket-vy);
     transform: scaleX(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--bl {
-    left: 0;
-    bottom: 0;
+    left: -1px;
+    bottom: -1px;
     transform-origin: var(--welcome-bracket-vx) calc(100% - var(--welcome-bracket-vy));
     transform: scaleY(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--br {
-    right: 0;
-    bottom: 0;
+    right: -1px;
+    bottom: -1px;
     transform-origin: calc(100% - var(--welcome-bracket-vx)) calc(100% - var(--welcome-bracket-vy));
     transform: scale(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }

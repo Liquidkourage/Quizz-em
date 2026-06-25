@@ -1092,10 +1092,8 @@
     --welcome-bracket-vy: 9.2%;
     /** Align CSS rails with the gold arms baked into the bracket PNGs. */
     --welcome-rail-offset: clamp(4px, 0.48vmin, 6px);
-    /** Room below card for flipped bracket filigree (grid padding, not positioning). */
+    /** Room below card for flipped bracket filigree (grid padding only). */
     --welcome-bracket-bottom-bleed: clamp(12px, 1.5vmin, 20px);
-    /** Extra lift if rail still sits below card edge after bottom anchoring. */
-    --welcome-bracket-bottom-lift: clamp(0px, 0vmin, 0px);
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 
@@ -1298,10 +1296,10 @@
     );
   }
 
-  /** Bottom corners: scaleY flip anchored at card bottom (same vertex math as top). */
+  /** Bottom corners: exact vertical mirror of top — top:100% + same vertex translate + scaleY(-1). */
   .welcome-bracket-corner--bl {
     left: 0;
-    bottom: var(--welcome-bracket-bottom-lift);
+    top: 100%;
     transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
     transform: translate(
         calc(-1 * var(--welcome-bracket-vx-left) + var(--welcome-rail-offset)),
@@ -1312,7 +1310,7 @@
 
   .welcome-bracket-corner--br {
     right: 0;
-    bottom: var(--welcome-bracket-bottom-lift);
+    top: 100%;
     transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
     transform: translate(
         calc(var(--welcome-bracket-vx-right) - var(--welcome-rail-offset)),

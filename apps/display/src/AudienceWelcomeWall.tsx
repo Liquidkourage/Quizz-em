@@ -39,7 +39,7 @@ function joinUrlForDisplay(url: string): string {
 
 /** Request a larger QR raster for sharp scaling. `margin` is module quiet zone in the PNG only (not the black pattern). */
 function qrImgSrc(joinUrl: string): string {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=3&data=${encodeURIComponent(joinUrl)}`
+  return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=5&data=${encodeURIComponent(joinUrl)}`
 }
 
 /** Panel shell — bordered surface with optional column tint. */
@@ -290,10 +290,10 @@ function WelcomeQrColumn({
     'relative flex min-h-0 flex-1 w-full flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(1px,min(0.25vmin,_3px),_4px)]'
 
   const whiteTileBase =
-    'box-border grid min-h-0 min-w-0 w-max max-w-full place-items-center overflow-hidden rounded-[clamp(10px,min(1.2vmin,_14px),_16px)] border-2 border-amber-200/95 bg-white px-[clamp(1px,min(0.15vmin,_2px),_2px)] py-[clamp(1px,min(0.25vmin,_3px),_3px)] shadow-[inset_0_0_0_1px_rgba(254,249,231,1),0_0_48px_rgba(234,179,8,0.35),0_20px_64px_-16px_rgba(234,179,8,0.48)] ring-2 ring-amber-400/22 mx-auto'
+    'welcome-qr-tile box-border grid min-h-0 min-w-0 w-max max-w-full place-items-center overflow-hidden bg-white mx-auto'
 
   const whiteClass =
-    `${whiteTileBase} aspect-square w-[min(90cqw,min(74cqh,440px))] max-w-full shrink-0 mx-auto`
+    `${whiteTileBase} aspect-square w-[min(68cqw,min(52cqh,300px))] max-w-full shrink-0`
 
   return (
     <section aria-label="Scan to join" className={sectionClass}>
@@ -313,7 +313,7 @@ function WelcomeQrColumn({
                 alt=""
                 width={640}
                 height={640}
-                className="block h-auto w-full max-w-full min-h-0 min-w-0 rounded-sm object-contain object-center leading-none"
+                className="welcome-qr-image block h-full w-full object-contain object-center leading-none"
                 referrerPolicy="no-referrer"
                 onError={() => setQrOk(false)}
               />

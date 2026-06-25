@@ -1095,7 +1095,11 @@
     /** Room below card bottom for flipped bracket filigree (prevents clip). */
     --welcome-bracket-bottom-bleed: clamp(10px, 1.35vmin, 18px);
     /** Fine-tune bottom bracket/rail alignment with card edge. */
-    --welcome-bracket-bottom-nudge: clamp(5px, 0.65vmin, 9px);
+    --welcome-bracket-bottom-nudge: clamp(3px, 0.4vmin, 5px);
+    /** Card-bottom anchor — bleed zone sits below the frame, not under the rail. */
+    --welcome-bracket-bottom-anchor: calc(
+      var(--welcome-bracket-bottom-bleed) + var(--welcome-bracket-bottom-nudge)
+    );
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 
@@ -1244,14 +1248,17 @@
     inset: 0;
     z-index: 13;
     pointer-events: none;
+    --welcome-rail-span: calc(100% - var(--welcome-bracket-bottom-anchor) - var(--welcome-rail-offset));
     background:
       linear-gradient(rgb(251 191 36 / 0.82), rgb(251 191 36 / 0.82)) top / 100% 1.5px no-repeat,
       linear-gradient(rgb(251 191 36 / 0.82), rgb(251 191 36 / 0.82)) bottom / 100% 1.5px no-repeat,
-      linear-gradient(rgb(251 191 36 / 0.82), rgb(251 191 36 / 0.82)) left / 1.5px 100% no-repeat,
-      linear-gradient(rgb(251 191 36 / 0.82), rgb(251 191 36 / 0.82)) right / 1.5px 100% no-repeat;
+      linear-gradient(rgb(251 191 36 / 0.82), rgb(251 191 36 / 0.82)) left / 1.5px var(--welcome-rail-span)
+        no-repeat,
+      linear-gradient(rgb(251 191 36 / 0.82), rgb(251 191 36 / 0.82)) right / 1.5px var(--welcome-rail-span)
+        no-repeat;
     background-position:
       0 var(--welcome-rail-offset),
-      0 calc(100% - var(--welcome-rail-offset) - var(--welcome-bracket-bottom-nudge)),
+      0 calc(100% - var(--welcome-bracket-bottom-anchor) - var(--welcome-rail-offset)),
       var(--welcome-rail-offset) 0,
       calc(100% - var(--welcome-rail-offset)) 0;
     filter: drop-shadow(0 0 10px rgb(234 179 8 / 0.22));
@@ -1301,7 +1308,7 @@
   /** Bottom corners: vertical flip of the same top assets (└ / ┘), anchored at card bottom. */
   .welcome-bracket-corner--bl {
     left: 0;
-    top: calc(100% - var(--welcome-bracket-bottom-nudge));
+    top: calc(100% - var(--welcome-bracket-bottom-anchor));
     transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
     transform: scaleY(-1)
       translate(
@@ -1312,7 +1319,7 @@
 
   .welcome-bracket-corner--br {
     right: 0;
-    top: calc(100% - var(--welcome-bracket-bottom-nudge));
+    top: calc(100% - var(--welcome-bracket-bottom-anchor));
     transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
     transform: scaleY(-1)
       translate(

@@ -42,15 +42,19 @@ function qrImgSrc(joinUrl: string): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=3&data=${encodeURIComponent(joinUrl)}`
 }
 
-/** Shared outer shell — all three welcome columns use the same plaque depth. */
+/** Shared outer shell — thin gold edge, flat dark glass (mockup-aligned). */
 const WELCOME_PANEL_SHELL =
-  'box-border flex min-h-0 min-w-0 w-full flex-col overflow-visible rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border-[3px] border-amber-400/74 bg-gradient-to-b from-[#140818]/94 via-black/80 to-[#041510]/92 shadow-[inset_0_1px_0_rgba(253,246,178,0.26),inset_0_-32px_64px_-34px_rgba(124,58,237,0.22),inset_0_0_52px_-22px_rgba(234,179,8,0.1),0_0_88px_-6px_rgba(34,197,94,0.2),0_0_112px_-10px_rgba(234,179,8,0.22)] ring-2 ring-amber-600/48 backdrop-blur-[3px]'
+  'box-border flex min-h-0 min-w-0 w-full flex-col overflow-visible rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] border border-amber-400/68 bg-black/82 shadow-[inset_0_1px_0_rgba(253,246,178,0.2),inset_0_0_48px_-24px_rgba(0,0,0,0.55),0_0_56px_-10px_rgba(234,179,8,0.32)] backdrop-blur-[2px]'
+
+/** Recessed LED readout — room code and player count share this well. */
+const WELCOME_LED_WELL =
+  'isolate inline-block w-max max-w-full rounded-[clamp(8px,_1.25vmin,_12px)] border border-amber-400/78 bg-[#050403] px-[clamp(12px,_1.65vmin,_20px)] py-[clamp(8px,_1.2vmin,_14px)] shadow-[inset_0_3px_14px_rgba(0,0,0,0.94),inset_0_-1px_0_rgba(251,211,141,0.1),0_0_24px_rgba(234,179,8,0.28)]'
 
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[inherit]'
 
-/** Reserve above the reflective floor strip (must match WelcomeWallBackdrop). */
-const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(22vh, 252px))'
+/** Reflective floor strip height — must match WelcomeFloorStrip and root CSS var. */
+const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(15vh, 168px))'
 
 const WELCOME_PANEL_SHELL_QR =
   `${WELCOME_PANEL_SHELL} h-full max-h-full flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]`
@@ -114,7 +118,7 @@ function WelcomePanelCornerBrackets() {
   )
 }
 
-/** Full-viewport felt + polished floor — image layers only. */
+/** Full-viewport felt — floor lives in layout flow via WelcomeFloorStrip. */
 function WelcomeWallBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden bg-[#050806]">
@@ -126,23 +130,39 @@ function WelcomeWallBackdrop() {
         draggable={false}
       />
       <div
-        className="absolute inset-x-0 z-[1] h-px bg-amber-200/80 shadow-[0_0_12px_rgba(251,191,36,0.45)]"
-        style={{ bottom: WELCOME_FLOOR_RESERVE }}
-      />
-      <img
-        src={WELCOME_WALL_ASSETS.floorReflection}
-        alt=""
-        className="absolute inset-x-0 bottom-0 w-full object-cover object-bottom opacity-95"
-        style={{ height: WELCOME_FLOOR_RESERVE }}
-        decoding="async"
-        draggable={false}
-      />
-      <div
         className="absolute inset-0 opacity-70"
         style={{
           background:
             'radial-gradient(ellipse 78% 68% at 50% 42%, transparent 38%, rgba(0, 0, 0, 0.42) 100%)',
         }}
+      />
+    </div>
+  )
+}
+
+/** Polished floor + mirrored panel glow — sits directly under the panel row. */
+function WelcomeFloorStrip() {
+  return (
+    <div
+      aria-hidden
+      className="welcome-floor-zone relative z-[8] w-full shrink-0 overflow-hidden"
+      style={{ height: WELCOME_FLOOR_RESERVE }}
+    >
+      <div className="welcome-floor-reflection-glow pointer-events-none absolute inset-x-0 top-0 z-[2] grid h-[72%] grid-cols-3 gap-x-[2.5%] px-[clamp(6px,_1.2vw,_40px)] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)]">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="h-full rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] bg-gradient-to-b from-amber-300/28 via-amber-400/12 to-transparent blur-[clamp(6px,1.2vmin,14px)]"
+          />
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px bg-amber-200/85 shadow-[0_0_14px_rgba(251,191,36,0.55),0_0_28px_rgba(234,179,8,0.28)]" />
+      <img
+        src={WELCOME_WALL_ASSETS.floorReflection}
+        alt=""
+        className="absolute inset-0 z-[1] h-full w-full object-cover object-top opacity-96"
+        decoding="async"
+        draggable={false}
       />
     </div>
   )
@@ -200,10 +220,6 @@ function VegasAttentionPanel({
   innerFlexClassName?: string
   children: ReactNode
 }) {
-  const overlayBase =
-    'pointer-events-none absolute inset-0 z-[1] rounded-[inherit] motion-reduce:transition-none motion-reduce:animate-none motion-reduce:opacity-[0.05]'
-  const overlayLive =
-    'animate-vegas-shimmer-cards mix-blend-soft-light opacity-[0.06] md:opacity-[0.098]'
   const innerFlex =
     innerFlexClassName ??
     'relative z-[5] flex h-full min-h-0 min-w-0 flex-col'
@@ -211,29 +227,16 @@ function VegasAttentionPanel({
     <div className={`@container/size relative isolate overflow-visible rounded-[inherit] ${className}`}>
       {showCorners ? <WelcomePanelCornerBrackets /> : null}
       <div className={WELCOME_PANEL_INNER}>
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-[3px] z-[1] rounded-[inherit] border border-amber-100/14 shadow-[inset_0_0_28px_rgba(251,191,36,0.07),inset_0_1px_0_rgba(253,246,178,0.12)]"
-        />
         {animateShimmer ? (
           <div
             aria-hidden
-            className={`${overlayBase} ${overlayLive}`}
+            className="pointer-events-none absolute inset-0 z-[1] rounded-[inherit] opacity-[0.035] motion-reduce:opacity-[0.02]"
             style={{
               background:
-                'radial-gradient(circle_at_72%_10%,rgba(253,244,202,0.65)_0%,transparent_36%), radial-gradient(circle_at_18%_92%,rgba(52,211,153,0.55)_0%,transparent_42%), radial-gradient(circle_at_50%_50%,rgba(192,132,252,0.45)_0%,transparent_58%)',
+                'radial-gradient(circle at 72% 10%, rgba(253,244,202,0.45) 0%, transparent 38%), radial-gradient(circle at 18% 92%, rgba(52,211,153,0.35) 0%, transparent 44%)',
             }}
           />
-        ) : (
-          <div
-            aria-hidden
-            className={`${overlayBase} opacity-[0.045] md:opacity-[0.06]`}
-            style={{
-              background:
-                'radial-gradient(circle at 72% 10%,rgba(253,244,202,0.5)_0%,transparent 38%), radial-gradient(circle at 18% 92%,rgba(52,211,153,0.4)_0%,transparent 44%)',
-            }}
-          />
-        )}
+        ) : null}
         <div className={innerFlex}>{children}</div>
       </div>
     </div>
@@ -316,8 +319,8 @@ type AttendanceSectionProps = {
   statTile1080: string
   statDigitBase: string
   reducedMotion: boolean
-  /** Strip | under join legacy | stacked inside middle band with join card */
-  layout: 'strip' | 'underJoin' | 'middle'
+  /** Strip | under join legacy | stacked inside middle band | footer inside join panel */
+  layout: 'strip' | 'underJoin' | 'middle' | 'inPanel'
   className?: string
 }
 
@@ -357,20 +360,32 @@ function AttendanceSection({
 
   const gridMiddleWrapClass = 'relative z-[18] isolate w-full min-h-0 shrink-0 mx-auto max-w-none'
 
+  const inPanelWrapClass = 'relative z-[5] w-full min-h-0 shrink-0'
+
   const tileShared =
     `${statTile1080} min-h-0 min-w-0 rounded-[clamp(10px,min(1.5vmin,_18px),_18px)] border-2 px-[clamp(8px,min(1.35vmin,_14px),_14px)] py-[clamp(8px,min(1.25vmin,_14px),_16px)] text-center backdrop-blur-sm border-amber-300/95 bg-gradient-to-br from-[#1a1208]/78 via-black/72 to-[#0a0614]/82 shadow-[inset_0_1px_0_rgba(254,249,231,0.2),inset_0_-20px_44px_-28px_rgba(124,58,237,0.16),0_0_48px_-4px_rgba(234,179,8,0.48),0_0_72px_-8px_rgba(52,211,153,0.12)] ring-2 ring-amber-500/70 [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:shadow-[inset_0_1px_0_rgba(254,249,231,0.16),inset_0_-14px_36px_-22px_rgba(124,58,237,0.12),0_0_36px_-6px_rgba(234,179,8,0.38),0_0_54px_-10px_rgba(52,211,153,0.1)]`
 
   const stripTileClass = `${tileShared} w-full max-w-[min(100%,clamp(260px,38vw,440px))]`
   const underJoinTileClass = `${tileShared} w-full`
   const gridMiddleTileClass = `${tileShared} flex w-full min-h-0 flex-col justify-center`
+  const inPanelTileClass =
+    'flex w-full min-h-0 flex-col items-center justify-center border-t border-amber-500/38 px-[clamp(10px,min(1.5vmin,_18px),_22px)] pb-[clamp(8px,min(1.15vmin,_14px),_16px)] pt-[clamp(10px,min(1.35vmin,_16px),_18px)]'
 
   function wrapTileFor(layout: AttendanceSectionProps['layout']) {
     if (layout === 'strip') return { wrap: stripWrapClass, tile: stripTileClass }
     if (layout === 'underJoin') return { wrap: underJoinWrapClass, tile: underJoinTileClass }
+    if (layout === 'inPanel') return { wrap: inPanelWrapClass, tile: inPanelTileClass }
     return { wrap: gridMiddleWrapClass, tile: gridMiddleTileClass }
   }
 
   const { wrap: wrapClass, tile: tileClass } = wrapTileFor(layout)
+
+  const labelClass =
+    layout === 'inPanel'
+      ? `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/88 ${DISPLAY_TEXT_WELCOME_DENSE_CQ} mb-[clamp(3px,min(0.55vmin,_5px),_6px)]`
+      : playerCountLabelClass
+
+  const digitWrapClass = layout === 'inPanel' ? WELCOME_LED_WELL : undefined
 
   return (
     <section
@@ -378,9 +393,9 @@ function AttendanceSection({
       className={`${wrapClass}${className ? ` ${className}` : ''}`}
     >
       <div className={tileClass}>
-        <div className={playerCountLabelClass}>Players</div>
+        <div className={labelClass}>Players</div>
         <motion.div
-          className={`${statDigitBase} welcome-led-glyphs tabular-nums`}
+          className={`${statDigitBase} welcome-led-glyphs tabular-nums${digitWrapClass ? ` ${digitWrapClass}` : ''}`}
           animate={
             !reducedMotion && justJoined
               ? { scale: [1, 1.08, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }
@@ -403,6 +418,10 @@ function WelcomeJoinCard({
   venueMono,
   joinRibbonClass,
   reducedMotion,
+  syncingCounts,
+  enrolled,
+  playerCountLabelClass,
+  statDigitBase,
 }: {
   className: string
   venueCode: string
@@ -411,20 +430,21 @@ function WelcomeJoinCard({
   venueMono: string
   joinRibbonClass: string
   reducedMotion: boolean
+  syncingCounts: boolean
+  enrolled: number | null
+  playerCountLabelClass: string
+  statDigitBase: string
 }) {
   const panelInnerFlex =
-    'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col items-stretch overflow-hidden'
+    'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col items-stretch justify-between overflow-hidden'
 
   const ribbonClass = `${joinRibbonClass} w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] pb-[clamp(6px,min(1vmin,_12px),_14px)] pt-[clamp(2px,min(0.35vmin,_4px),_6px)] [text-wrap:balance]`
 
   const roomCodeLabelClass =
     `min-w-0 font-black uppercase tracking-[0.14em] text-amber-50/88 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
 
-  const insetPanelClass =
-    'flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-[clamp(8px,min(1.35vmin,_16px),_18px)] border-2 border-amber-500/52 bg-gradient-to-b from-black/84 to-[#07050a]/90 shadow-[inset_0_2px_0_rgba(251,211,141,0.12),inset_0_0_36px_rgba(0,0,0,0.48)]'
-
   const urlChipClass =
-    'flex w-full min-w-0 items-center justify-center gap-x-[clamp(6px,min(1vmin,_10px),_12px)] rounded-[clamp(8px,min(1.2vmin,_12px),_14px)] border-2 border-emerald-400/58 bg-black/62 px-[clamp(10px,min(1.45vmin,_18px),_22px)] py-[clamp(8px,min(1.15vmin,_12px),_14px)] shadow-[inset_0_0_0_1px_rgba(52,211,153,0.2),0_0_36px_-8px_rgba(16,185,129,0.38)]'
+    'flex w-full min-w-0 items-center justify-center gap-x-[clamp(6px,min(1vmin,_10px),_12px)] rounded-[clamp(8px,min(1.2vmin,_12px),_14px)] border border-white/28 bg-black/48 px-[clamp(10px,min(1.45vmin,_18px),_22px)] py-[clamp(8px,min(1.15vmin,_12px),_14px)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]'
 
   return (
     <section aria-label="Join manually" className={className}>
@@ -434,42 +454,50 @@ function WelcomeJoinCard({
         innerFlexClassName={panelInnerFlex}
         className={WELCOME_PANEL_SHELL_MID}
       >
-        <div className={insetPanelClass}>
-          <WelcomeSectionTitle ribbonClass={ribbonClass}>Join manually</WelcomeSectionTitle>
+        <WelcomeSectionTitle ribbonClass={ribbonClass}>Join manually</WelcomeSectionTitle>
 
-          <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-y-[clamp(10px,min(1.35vmin,_16px),_20px)] px-[clamp(10px,min(1.5vmin,_18px),_22px)] py-[clamp(10px,min(1.35vmin,_16px),_20px)]">
-            <div className={urlChipClass}>
-              <WelcomeGlobeIcon />
-              <p
-                className={`${joinUrlText} mx-auto w-full max-w-full min-w-0`}
-                aria-label={joinUrl}
-              >
-                {joinUrlForDisplay(joinUrl)}
-              </p>
-            </div>
+        <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-y-[clamp(10px,min(1.35vmin,_16px),_18px)] px-[clamp(10px,min(1.5vmin,_18px),_22px)] py-[clamp(8px,min(1.15vmin,_14px),_16px)]">
+          <div className={urlChipClass}>
+            <WelcomeGlobeIcon />
+            <p
+              className={`${joinUrlText} mx-auto w-full max-w-full min-w-0 text-amber-50/96 [text-shadow:0_0_12px_rgba(251,191,36,0.22),0_1px_0_rgba(0,0,0,0.9)]`}
+              aria-label={joinUrl}
+            >
+              {joinUrlForDisplay(joinUrl)}
+            </p>
+          </div>
 
-            <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/35 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
-              <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
-              <motion.div
-                className="isolate inline-block w-max max-w-full rounded-[clamp(8px,_1.25vmin,_12px)] border-2 border-amber-400/82 bg-[#050403] px-[clamp(12px,_1.65vmin,_20px)] py-[clamp(8px,_1.2vmin,_14px)] shadow-[inset_0_3px_14px_rgba(0,0,0,0.94),inset_0_-1px_0_rgba(251,211,141,0.1),0_0_28px_rgba(234,179,8,0.32)]"
-                animate={
-                  reducedMotion
-                    ? undefined
-                    : {
-                        boxShadow: [
-                          'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.1), 0 0 22px rgba(234,179,8,0.28)',
-                          'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.14), 0 0 36px rgba(234,179,8,0.48)',
-                          'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.1), 0 0 22px rgba(234,179,8,0.28)',
-                        ],
-                      }
-                }
-                transition={{ duration: 2.85, repeat: Infinity, ease: 'easeInOut' }}
-              >
-                <div className={`${venueMono} welcome-led-glyphs`}>{venueCode}</div>
-              </motion.div>
-            </div>
+          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(1vmin,_12px),_14px)] border-t border-amber-500/35 pt-[clamp(10px,min(1.25vmin,_15px),_18px)]">
+            <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
+            <motion.div
+              className={WELCOME_LED_WELL}
+              animate={
+                reducedMotion
+                  ? undefined
+                  : {
+                      boxShadow: [
+                        'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.1), 0 0 22px rgba(234,179,8,0.28)',
+                        'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.14), 0 0 34px rgba(234,179,8,0.42)',
+                        'inset 0 3px 14px rgba(0,0,0,0.94), inset 0 -1px 0 rgba(251,211,141,0.1), 0 0 22px rgba(234,179,8,0.28)',
+                      ],
+                    }
+              }
+              transition={{ duration: 2.85, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <div className={`${venueMono} welcome-led-glyphs`}>{venueCode}</div>
+            </motion.div>
           </div>
         </div>
+
+        <AttendanceSection
+          layout="inPanel"
+          syncingCounts={syncingCounts}
+          enrolled={enrolled}
+          playerCountLabelClass={playerCountLabelClass}
+          statTile1080=""
+          statDigitBase={statDigitBase}
+          reducedMotion={reducedMotion}
+        />
       </VegasAttentionPanel>
     </section>
   )
@@ -563,10 +591,6 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
   const joinUrlText =
     `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.03em] text-emerald-50/96 ${DISPLAY_TEXT_WELCOME_URL_CQW} [text-shadow:0_0_18px_rgba(167,243,208,0.42),0_0_42px_rgba(52,211,153,0.28),0_1px_0_rgba(0,0,0,0.9)]`
 
-  /** Tighter attendance strip on landscape 1080p-class TVs (≥1024 wide, ≤1080 tall); skips narrow/portrait. */
-  const statTile1080 =
-    '[@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:rounded-[clamp(8px,min(1.25vmin,_15px),_15px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:px-[clamp(5px,min(1.05vmin,_10px),_11px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:py-[clamp(3px,min(0.95vmin,_8px),_9px)]'
-
   /** Slightly taller digits limited on short viewports; default keeps large-TV punch. */
   const statDigitBase =
     `py-[clamp(3px,min(0.95vmin,_8px),_8px)] tabular-nums tracking-tight leading-none font-black ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
@@ -575,7 +599,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(11vh,118px)] lg:[--welcome-floor-h:min(12vh,128px)]"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(15vh,168px)] lg:[--welcome-floor-h:min(16vh,184px)]"
     >
       <WelcomeWallBackdrop />
 
@@ -588,12 +612,10 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
         <div className="flex min-h-0 flex-1 flex-col gap-y-[clamp(1px,_0.35vmin,_4px)] max-[height:920px]:gap-y-[clamp(2px,_0.55vmin,_6px)] overflow-hidden lg:gap-y-[2px]">
           <WelcomeWallHeader reducedMotion={Boolean(reducedMotion)} taglineClass={taglineCredit} />
 
-          <div
-            className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden pb-[var(--welcome-floor-h)] max-[height:920px]:pb-[calc(var(--welcome-floor-h)+4px)]"
-          >
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden">
             <div
               aria-label="Join"
-              className="flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:max-h-full lg:grid-cols-3 lg:grid-rows-1 lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
+              className="flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:max-h-full lg:min-h-0 lg:grid-cols-3 lg:grid-rows-1 lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
             >
               <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:max-h-full">
                 <WelcomeQrColumn
@@ -604,27 +626,20 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
                   reducedMotion={Boolean(reducedMotion)}
                 />
               </div>
-              <div className="flex min-h-0 min-w-0 flex-col justify-start gap-y-[clamp(6px,min(1vmin,_12px),_14px)] overflow-hidden lg:box-border lg:h-full lg:min-h-0 lg:flex-1 lg:gap-y-[clamp(6px,min(1vmin,_12px),_14px)]">
+              <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:flex-1">
                 <WelcomeJoinCard
-                  className="flex min-h-0 min-w-0 w-full flex-col max-lg:shrink-0 lg:min-h-0 lg:flex-1"
+                  className="flex min-h-0 min-w-0 w-full flex-1 flex-col lg:h-full lg:min-h-0"
                   venueCode={venueCode}
                   joinUrl={joinUrl}
                   joinUrlText={joinUrlText}
                   venueMono={venueMono}
                   joinRibbonClass={sectionRibbon}
                   reducedMotion={Boolean(reducedMotion)}
+                  syncingCounts={syncingCounts}
+                  enrolled={enrolled}
+                  playerCountLabelClass={playerCountLabelClass}
+                  statDigitBase={statDigitBase}
                 />
-                <div className="mt-0 w-full min-w-0 shrink-0 lg:mt-auto">
-                  <AttendanceSection
-                    layout="middle"
-                    syncingCounts={syncingCounts}
-                    enrolled={enrolled}
-                    playerCountLabelClass={playerCountLabelClass}
-                    statTile1080={statTile1080}
-                    statDigitBase={statDigitBase}
-                    reducedMotion={Boolean(reducedMotion)}
-                  />
-                </div>
               </div>
               <div className="flex min-h-0 min-w-0 shrink-0 flex-col max-lg:min-h-[26vh] max-lg:max-h-[38vh] lg:h-full lg:min-h-0 lg:max-h-full lg:w-full lg:flex-col">
                 <WelcomeHowItWorksPanel
@@ -633,6 +648,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
                 />
               </div>
             </div>
+            <WelcomeFloorStrip />
           </div>
         </div>
       </motion.div>

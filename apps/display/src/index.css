@@ -1086,6 +1086,18 @@
     filter: drop-shadow(0 4px 16px rgb(251 191 36 / 0.38)) drop-shadow(0 2px 8px rgb(0 0 0 / 0.55));
   }
 
+  /** Welcome floor — horizon strip under panels with mirrored glow. */
+  .welcome-floor-zone {
+    margin-top: -1px;
+  }
+
+  .welcome-floor-reflection-glow {
+    transform: scaleY(-1);
+    transform-origin: top center;
+    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.72) 0%, transparent 82%);
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.72) 0%, transparent 82%);
+  }
+
   /** Welcome hero logo — subtle 3D lift (same PNG artwork). */
   .welcome-wordmark-stage {
     perspective: 1100px;

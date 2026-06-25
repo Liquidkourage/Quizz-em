@@ -47,7 +47,7 @@ const WELCOME_PANEL_SURFACE_BASE =
   'welcome-panel-surface relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#060608]/94'
 
 const WELCOME_PANEL_PAD =
-  'px-[clamp(12px,min(1.35vmin,16px),16px)] py-[clamp(10px,min(1.15vmin,14px),14px)]'
+  'px-[clamp(12px,min(1.35vmin,16px),16px)] pt-[clamp(14px,min(1.55vmin,20px),22px)] pb-[clamp(10px,min(1.15vmin,14px),14px)]'
 
 /** Narrow strip below panel bottoms — room for baked floor reflection. */
 const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(10vh, 108px))'
@@ -66,7 +66,7 @@ const WELCOME_PANEL_INNER =
 
 function WelcomeSectionTitle({ ribbonClass, children }: { ribbonClass: string; children: ReactNode }) {
   return (
-    <div className="flex w-full shrink-0 flex-col items-center gap-y-[clamp(2px,min(0.45vmin,_5px),_6px)]">
+    <div className="welcome-section-title">
       <span className={ribbonClass}>{children}</span>
       <div aria-hidden className="welcome-section-rule" />
     </div>
@@ -283,8 +283,7 @@ function WelcomeQrColumn({
   const panelInnerFlex =
     'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col items-stretch justify-start gap-y-[clamp(3px,min(0.65vmin,_8px),_10px)] overflow-hidden'
 
-  const aimClass =
-    `${sectionRibbon} welcome-card-heading w-full block shrink-0 text-center pb-0 px-[clamp(8px,min(1.6vmin,_18px),_22px)] [text-wrap:balance]`
+  const aimClass = `${sectionRibbon} w-full block shrink-0 text-center [text-wrap:balance]`
 
   const midClass =
     'relative flex min-h-0 flex-1 w-full flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(10px,min(2.5cqw,_20px),_24px)] py-[clamp(6px,min(1.2vmin,_10px),_14px)]'
@@ -476,7 +475,7 @@ function WelcomeJoinCard({
   const panelInnerFlex =
     'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col items-stretch justify-between gap-y-[clamp(6px,min(0.9vmin,_11px),_13px)] overflow-hidden'
 
-  const ribbonClass = `${joinRibbonClass} welcome-card-heading w-full block text-center px-[clamp(8px,min(1.6vmin,_18px),_22px)] pb-[clamp(4px,min(0.75vmin,_9px),_10px)] pt-0 [text-wrap:balance]`
+  const ribbonClass = `${joinRibbonClass} w-full block shrink-0 text-center [text-wrap:balance]`
 
   const roomCodeLabelClass =
     `welcome-section-label min-w-0 font-black uppercase text-amber-50/92 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
@@ -543,7 +542,7 @@ function WelcomeHowItWorksPanel({
   const panelInnerFlex =
     'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col justify-start gap-y-[clamp(4px,min(0.75vmin,_9px),_11px)] items-stretch overflow-hidden'
 
-  const ribbonClass = `${sectionRibbon} w-full block text-center leading-[1.08] px-[clamp(10px,min(2vmin,_22px),_28px)] [text-wrap:balance]`
+  const ribbonClass = `${sectionRibbon} w-full block shrink-0 text-center [text-wrap:balance]`
 
   return (
     <section aria-label="How it works" className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col self-stretch">

@@ -53,8 +53,8 @@ const WELCOME_LED_WELL =
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[inherit]'
 
-/** Reflective floor zone height — aligns panel bottoms with the bg gold rail (~15%). */
-const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(15vh, 102px))'
+/** Reflective floor zone — bottom ~30% of welcome-background.png (floor starts ~70%). */
+const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(30vh, 310px))'
 
 const WELCOME_PANEL_SHELL_QR =
   `${WELCOME_PANEL_SHELL} h-full max-h-full flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]`
@@ -162,12 +162,12 @@ function WelcomeWallBackdrop() {
   )
 }
 
-/** Column glow reflections over the baked floor rail (no duplicate floor art). */
+/** Column glow over the baked floor — below panels, above backdrop. */
 function WelcomeFloorReflectionOverlay() {
   return (
     <div
       aria-hidden
-      className="welcome-floor-reflection-overlay pointer-events-none absolute inset-x-0 bottom-0 z-[8] overflow-hidden"
+      className="welcome-floor-reflection-overlay pointer-events-none absolute inset-x-0 bottom-0 z-[5] overflow-hidden"
       style={{ height: WELCOME_FLOOR_RESERVE }}
     >
       <div className="welcome-floor-reflection-glow absolute inset-x-0 top-0 grid h-[78%] grid-cols-3 gap-x-[2.5%] px-[clamp(6px,_1.2vw,_40px)] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)]">
@@ -622,7 +622,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(15vh,102px)] lg:[--welcome-floor-h:min(15vh,102px)]"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(30vh,310px)] lg:[--welcome-floor-h:min(30vh,310px)]"
     >
       <WelcomeWallBackdrop />
       <WelcomeFloorReflectionOverlay />

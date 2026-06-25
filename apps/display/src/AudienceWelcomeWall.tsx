@@ -53,8 +53,8 @@ const WELCOME_LED_WELL =
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[inherit]'
 
-/** Narrow strip below panel bottoms — mockup panels end ~96% down; ~4vh for floor reflection. */
-const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(4.5vh, 50px))'
+/** Narrow strip below panel bottoms — mockup ~96%; nudge up slightly for reflection breathing room. */
+const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(7vh, 76px))'
 
 const WELCOME_PANEL_SHELL_QR =
   `${WELCOME_PANEL_SHELL} flex h-full min-h-0 w-full max-h-none flex-1 self-stretch px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]`
@@ -633,7 +633,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(4.5vh,50px)] lg:[--welcome-floor-h:min(4.5vh,50px)]"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(7vh,76px)] lg:[--welcome-floor-h:min(7vh,76px)]"
     >
       <WelcomeWallBackdrop />
       <WelcomeFloorReflectionOverlay />

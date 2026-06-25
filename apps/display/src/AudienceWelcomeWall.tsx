@@ -53,14 +53,14 @@ const WELCOME_LED_WELL =
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[inherit]'
 
-/** Reflective floor zone — bottom ~30% of welcome-background.png (floor starts ~70%). */
-const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(30vh, 310px))'
+/** Narrow strip below panel bottoms — mockup panels end ~96% down; ~4vh for floor reflection. */
+const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(4.5vh, 50px))'
 
 const WELCOME_PANEL_SHELL_QR =
-  `${WELCOME_PANEL_SHELL} h-full max-h-full flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]`
+  `${WELCOME_PANEL_SHELL} flex h-full min-h-0 w-full max-h-none flex-1 self-stretch px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]`
 
 const WELCOME_PANEL_SHELL_MID =
-  `${WELCOME_PANEL_SHELL} h-full min-h-0 flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.05vmin,_11px),_12px)] lg:h-full lg:min-h-0 lg:flex-1`
+  `${WELCOME_PANEL_SHELL} flex h-full min-h-0 w-full max-h-none flex-1 self-stretch px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.05vmin,_11px),_12px)]`
 
 function WelcomeSectionTitle({ ribbonClass, children }: { ribbonClass: string; children: ReactNode }) {
   return (
@@ -167,7 +167,7 @@ function WelcomeFloorSpacer() {
   return (
     <div
       aria-hidden
-      className="welcome-floor-spacer w-full shrink-0"
+      className="welcome-floor-spacer w-full shrink-0 pb-[max(0px,env(safe-area-inset-bottom))]"
       style={{ height: WELCOME_FLOOR_RESERVE }}
     />
   )
@@ -555,7 +555,7 @@ function WelcomeHowItWorksPanel({
         showCorners
         animateShimmer={!reducedMotion}
         innerFlexClassName={panelInnerFlex}
-        className={`${WELCOME_PANEL_SHELL_MID} relative z-[1] min-h-0 h-full w-full flex-1 py-[clamp(8px,min(1.45vmin,_15px),_16px)] lg:min-h-0 lg:h-full lg:flex-1`}
+        className={`${WELCOME_PANEL_SHELL_MID} relative z-[1] flex h-full min-h-0 w-full max-h-none flex-1 self-stretch py-[clamp(8px,min(1.45vmin,_15px),_16px)]`}
       >
         <WelcomeSectionTitle ribbonClass={ribbonClass}>How it works</WelcomeSectionTitle>
 
@@ -633,13 +633,13 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(30vh,310px)] lg:[--welcome-floor-h:min(30vh,310px)]"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(4.5vh,50px)] lg:[--welcome-floor-h:min(4.5vh,50px)]"
     >
       <WelcomeWallBackdrop />
       <WelcomeFloorReflectionOverlay />
 
       <motion.div
-        className="relative z-10 mx-auto flex min-h-0 h-full max-h-full w-full max-w-none flex-col gap-y-[clamp(1px,_0.35vmin,_4px)] max-[height:920px]:gap-y-[clamp(2px,_0.55vmin,_6px)] px-[clamp(6px,_1.2vw,_40px)] py-[clamp(2px,_0.4vh,_8px)] max-[height:920px]:py-[clamp(3px,_0.48vh,_8px)] [@media(max-height:720px)]:gap-y-1 [@media(max-height:720px)]:py-1 [@media(max-height:720px)]:px-2 lg:gap-y-[2px] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)] lg:pb-[max(8px,env(safe-area-inset-bottom))] lg:pt-[max(2px,min(0.25vh,_4px))] overflow-hidden"
+        className="relative z-10 mx-auto flex min-h-0 h-full max-h-full w-full max-w-none flex-col gap-y-[clamp(1px,_0.35vmin,_4px)] max-[height:920px]:gap-y-[clamp(2px,_0.55vmin,_6px)] px-[clamp(6px,_1.2vw,_40px)] pt-[clamp(2px,_0.4vh,_8px)] max-[height:920px]:pt-[clamp(3px,_0.48vh,_8px)] pb-0 [@media(max-height:720px)]:gap-y-1 [@media(max-height:720px)]:py-1 [@media(max-height:720px)]:px-2 lg:gap-y-[2px] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)] lg:pt-[max(2px,min(0.25vh,_4px))] overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}

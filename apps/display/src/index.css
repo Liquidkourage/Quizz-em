@@ -1142,10 +1142,25 @@
   /** Panel row fills all space above the floor spacer so card bottoms meet the horizon. */
   .welcome-panel-grid {
     flex: 1 1 0%;
+    height: 0;
     min-height: 0;
   }
 
   .welcome-panel-column {
+    height: 100%;
+    min-height: 0;
+    align-self: stretch;
+  }
+
+  .welcome-panel-column > section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .welcome-panel-column > section > div:first-child {
+    flex: 1 1 0%;
     height: 100%;
     min-height: 0;
   }

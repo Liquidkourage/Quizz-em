@@ -154,7 +154,7 @@ function WelcomeWallBackdrop() {
       <img
         src={WELCOME_WALL_ASSETS.backgroundPlate}
         alt=""
-        className="welcome-background-plate absolute inset-0 h-full w-full object-contain object-bottom"
+        className="welcome-background-plate absolute inset-0 h-full w-full object-cover object-bottom"
         decoding="async"
         draggable={false}
       />

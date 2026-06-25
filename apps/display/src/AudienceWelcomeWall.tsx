@@ -601,7 +601,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
       <WelcomeFloorReflectionOverlay />
 
       <motion.div
-        className="relative z-10 mx-auto flex min-h-0 h-full max-h-full w-full max-w-none flex-col px-[clamp(10px,min(2.25vw,_48px),_48px)] pt-[clamp(4px,0.5vh,10px)] pb-0 overflow-hidden"
+        className="welcome-screen-content relative z-10 mx-auto flex min-h-0 h-full max-h-full w-full max-w-none flex-col px-[clamp(10px,min(2.25vw,_48px),_48px)] pt-[clamp(4px,0.5vh,10px)] pb-0 overflow-visible"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}

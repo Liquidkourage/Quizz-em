@@ -1092,6 +1092,8 @@
     --welcome-bracket-vy: 9.2%;
     /** Align CSS rails with the gold arms baked into the bracket PNGs. */
     --welcome-rail-offset: clamp(4px, 0.48vmin, 6px);
+    /** Room below card bottom for flipped bracket filigree (prevents clip). */
+    --welcome-bracket-bottom-bleed: clamp(10px, 1.35vmin, 18px);
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 
@@ -1255,7 +1257,10 @@
 
   .welcome-panel-corners {
     position: absolute;
-    inset: 0;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: calc(-1 * var(--welcome-bracket-bottom-bleed));
     z-index: 20;
     pointer-events: none;
     overflow: visible;
@@ -1324,6 +1329,7 @@
     flex: 1 1 0%;
     min-height: 0;
     justify-content: flex-end;
+    overflow: visible;
   }
 
   .welcome-panel-grid {
@@ -1332,12 +1338,16 @@
     max-height: var(--welcome-panel-h);
     min-height: 0;
     column-gap: var(--welcome-card-gap);
+    overflow: visible;
+    padding-bottom: var(--welcome-bracket-bottom-bleed);
+    box-sizing: border-box;
   }
 
   .welcome-panel-column {
     height: 100%;
     min-height: 0;
     align-self: stretch;
+    overflow: visible;
   }
 
   .welcome-panel-column > section {
@@ -1345,12 +1355,17 @@
     flex-direction: column;
     height: 100%;
     min-height: 0;
+    overflow: visible;
   }
 
   .welcome-panel-column > section > div:first-child {
     flex: 1 1 0%;
     height: 100%;
     min-height: 0;
+  }
+
+  .welcome-screen-content {
+    overflow: visible;
   }
 
   .welcome-background-plate {

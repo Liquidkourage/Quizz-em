@@ -1092,9 +1092,6 @@
     --welcome-bracket-vy: 9.2%;
     /** Align CSS rails with the gold arms baked into the bracket PNGs. */
     --welcome-rail-offset: clamp(4px, 0.48vmin, 6px);
-    --welcome-bracket-aspect-h: calc(var(--welcome-bracket-size) * 327 / 417);
-    /** Trim panel bottom so card edge meets bottom bracket rails (not empty fill below). */
-    --welcome-bracket-bottom-trim: calc(var(--welcome-bracket-aspect-h) * 0.4);
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 
@@ -1258,10 +1255,7 @@
 
   .welcome-panel-corners {
     position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: var(--welcome-bracket-bottom-trim);
+    inset: 0;
     z-index: 20;
     pointer-events: none;
     overflow: visible;
@@ -1270,8 +1264,8 @@
   .welcome-panel-surface {
     position: relative;
     z-index: 0;
-    height: calc(100% - var(--welcome-bracket-bottom-trim));
-    max-height: calc(100% - var(--welcome-bracket-bottom-trim));
+    height: 100%;
+    max-height: 100%;
     box-shadow:
       inset 0 1px 0 rgb(253 246 178 / 0.16),
       inset 0 0 64px rgb(0 0 0 / 0.58);
@@ -1297,11 +1291,12 @@
     );
   }
 
+  /** Bottom corners: vertical flip of the same top assets (└ / ┘), not rotate(180). */
   .welcome-bracket-corner--bl {
     left: 0;
-    top: 100%;
+    bottom: 0;
     transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
-    transform: rotate(180deg)
+    transform: scaleY(-1)
       translate(
         calc(-1 * var(--welcome-bracket-vx-left) + var(--welcome-rail-offset)),
         calc(-1 * var(--welcome-bracket-vy) + var(--welcome-rail-offset))
@@ -1310,9 +1305,9 @@
 
   .welcome-bracket-corner--br {
     right: 0;
-    top: 100%;
+    bottom: 0;
     transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
-    transform: rotate(180deg)
+    transform: scaleY(-1)
       translate(
         calc(var(--welcome-bracket-vx-right) - var(--welcome-rail-offset)),
         calc(-1 * var(--welcome-bracket-vy) + var(--welcome-rail-offset))

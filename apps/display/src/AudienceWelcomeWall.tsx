@@ -44,7 +44,7 @@ function qrImgSrc(joinUrl: string): string {
 
 /** Panel shell — bordered surface with optional column tint. */
 const WELCOME_PANEL_SURFACE_BASE =
-  'welcome-panel-surface relative flex min-h-0 w-full flex-col overflow-hidden bg-[#060608]/94'
+  'welcome-panel-surface relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#060608]/94'
 
 const WELCOME_PANEL_PAD =
   'px-[clamp(12px,min(1.35vmin,16px),16px)] py-[clamp(10px,min(1.15vmin,14px),14px)]'

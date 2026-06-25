@@ -53,8 +53,8 @@ const WELCOME_LED_WELL =
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[inherit]'
 
-/** Reflective floor strip — must match root --welcome-floor-h. */
-const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(22vh, 226px))'
+/** Reflective floor zone height — aligns panel bottoms with the bg gold rail (~15%). */
+const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(15vh, 102px))'
 
 const WELCOME_PANEL_SHELL_QR =
   `${WELCOME_PANEL_SHELL} h-full max-h-full flex-1 px-[clamp(6px,min(1.15vmin,_12px),_14px)] py-[clamp(6px,min(1.55vmin,_16px),_18px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:px-[clamp(6px,min(1.05vmin,_11px),_13px)] [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)_and_(max-width:1279px)]:py-[clamp(6px,min(1.35vmin,_14px),_16px)]`
@@ -147,14 +147,14 @@ function WelcomePanelCornerBrackets() {
   )
 }
 
-/** Full-viewport background plate (felt + floor baked in). */
+/** Full-viewport background plate (felt, suits, top arc, floor rail baked in). */
 function WelcomeWallBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden bg-[#050806]">
       <img
         src={WELCOME_WALL_ASSETS.backgroundPlate}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover object-center"
+        className="welcome-background-plate absolute inset-0 h-full w-full object-cover"
         decoding="async"
         draggable={false}
       />
@@ -162,30 +162,22 @@ function WelcomeWallBackdrop() {
   )
 }
 
-/** Live panel reflections + horizon — sits directly under the panel row. */
-function WelcomeFloorStrip() {
+/** Column glow reflections over the baked floor rail (no duplicate floor art). */
+function WelcomeFloorReflectionOverlay() {
   return (
     <div
       aria-hidden
-      className="welcome-floor-zone relative z-[8] w-full shrink-0 overflow-hidden"
+      className="welcome-floor-reflection-overlay pointer-events-none absolute inset-x-0 bottom-0 z-[8] overflow-hidden"
       style={{ height: WELCOME_FLOOR_RESERVE }}
     >
-      <div className="welcome-floor-reflection-glow pointer-events-none absolute inset-x-0 top-0 z-[2] grid h-[72%] grid-cols-3 gap-x-[2.5%] px-[clamp(6px,_1.2vw,_40px)] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)]">
+      <div className="welcome-floor-reflection-glow absolute inset-x-0 top-0 grid h-[78%] grid-cols-3 gap-x-[2.5%] px-[clamp(6px,_1.2vw,_40px)] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)]">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-full rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] bg-gradient-to-b from-amber-300/28 via-amber-400/12 to-transparent blur-[clamp(6px,1.2vmin,14px)]"
+            className="h-full rounded-[clamp(10px,min(1.6vmin,_20px),_20px)] bg-gradient-to-b from-amber-300/32 via-amber-400/14 to-transparent blur-[clamp(6px,1.2vmin,14px)]"
           />
         ))}
       </div>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[3] h-px bg-amber-200/90 shadow-[0_0_16px_rgba(251,191,36,0.62),0_0_32px_rgba(234,179,8,0.32)]" />
-      <img
-        src={WELCOME_WALL_ASSETS.floorReflection}
-        alt=""
-        className="absolute inset-0 z-[1] h-full w-full object-cover object-top"
-        decoding="async"
-        draggable={false}
-      />
     </div>
   )
 }
@@ -580,7 +572,7 @@ function WelcomeWallHeader({
 }) {
   return (
     <header className="@container/size flex w-full max-w-full min-w-0 shrink-0 flex-col items-stretch px-0 sm:px-[clamp(2px,_0.45vw,_10px)]">
-      <div className="welcome-wordmark-stage relative mx-auto aspect-[958/592] w-full max-w-[min(480px,calc(88vw_*_0.58),calc((100vw_-_28px)_*_0.58))] shrink-0 overflow-visible lg:w-auto lg:max-h-[min(26vh,280px)] lg:max-w-[min(520px,calc(92vw_*_0.58),calc((100vw_-_36px)_*_0.58))]">
+      <div className="welcome-wordmark-stage relative mx-auto aspect-[958/592] w-full max-w-[min(460px,calc(86vw_*_0.56),calc((100vw_-_28px)_*_0.56))] shrink-0 overflow-visible lg:w-auto lg:max-h-[min(22vh,210px)] lg:max-w-[min(500px,calc(90vw_*_0.56),calc((100vw_-_36px)_*_0.56))]">
         <div aria-hidden className="welcome-wordmark-pool-glow pointer-events-none absolute inset-x-[8%] bottom-[4%] h-[24%]" />
         <QuizzEmWordmark layout="fill" depth="hero" />
       </div>
@@ -630,23 +622,24 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(22vh,226px)] lg:[--welcome-floor-h:min(22vh,226px)]"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(15vh,102px)] lg:[--welcome-floor-h:min(15vh,102px)]"
     >
       <WelcomeWallBackdrop />
+      <WelcomeFloorReflectionOverlay />
 
       <motion.div
-        className="relative z-10 mx-auto flex min-h-0 h-full max-h-full w-full max-w-none flex-col gap-y-[clamp(2px,_0.5vmin,_7px)] max-[height:920px]:gap-y-[clamp(4px,_0.85vmin,_9px)] px-[clamp(6px,_1.2vw,_40px)] py-[clamp(2px,_0.4vh,_8px)] max-[height:920px]:py-[clamp(3px,_0.48vh,_8px)] [@media(max-height:720px)]:gap-y-1 [@media(max-height:720px)]:py-1 [@media(max-height:720px)]:px-2 lg:gap-y-[clamp(2px,_0.55vmin,_8px)] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)] lg:pb-[max(8px,env(safe-area-inset-bottom))] lg:pt-[max(4px,min(0.35vh,_6px))] overflow-hidden"
+        className="relative z-10 mx-auto flex min-h-0 h-full max-h-full w-full max-w-none flex-col gap-y-[clamp(1px,_0.35vmin,_4px)] max-[height:920px]:gap-y-[clamp(2px,_0.55vmin,_6px)] px-[clamp(6px,_1.2vw,_40px)] py-[clamp(2px,_0.4vh,_8px)] max-[height:920px]:py-[clamp(3px,_0.48vh,_8px)] [@media(max-height:720px)]:gap-y-1 [@media(max-height:720px)]:py-1 [@media(max-height:720px)]:px-2 lg:gap-y-[2px] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)] lg:pb-[max(8px,env(safe-area-inset-bottom))] lg:pt-[max(2px,min(0.25vh,_4px))] overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex min-h-0 flex-1 flex-col gap-y-[clamp(1px,_0.35vmin,_4px)] max-[height:920px]:gap-y-[clamp(2px,_0.55vmin,_6px)] overflow-hidden lg:gap-y-[2px]">
+        <div className="flex min-h-0 flex-1 flex-col gap-y-[clamp(1px,_0.25vmin,_3px)] overflow-hidden lg:gap-y-[1px]">
           <WelcomeWallHeader reducedMotion={Boolean(reducedMotion)} taglineClass={taglineCredit} />
 
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden">
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col w-full overflow-hidden pb-[var(--welcome-floor-h)]">
             <div
               aria-label="Join"
-              className="flex min-h-0 flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:max-h-full lg:min-h-0 lg:grid-cols-3 lg:grid-rows-1 lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
+              className="flex min-h-0 h-full flex-1 flex-col gap-y-[clamp(4px,min(0.85vmin,_10px),_12px)] max-[height:920px]:gap-y-[clamp(4px,min(0.95vmin,_11px),_12px)] overflow-hidden lg:grid lg:h-full lg:min-h-0 lg:grid-cols-3 lg:grid-rows-1 lg:gap-x-[2.5%] lg:gap-y-0 lg:items-stretch"
             >
               <div className="flex min-h-0 min-w-0 flex-col overflow-hidden lg:h-full lg:min-h-0 lg:max-h-full">
                 <WelcomeQrColumn
@@ -679,7 +672,6 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
                 />
               </div>
             </div>
-            <WelcomeFloorStrip />
           </div>
         </div>
       </motion.div>

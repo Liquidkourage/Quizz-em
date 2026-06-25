@@ -1134,9 +1134,13 @@
     filter: drop-shadow(0 4px 16px rgb(251 191 36 / 0.38)) drop-shadow(0 2px 8px rgb(0 0 0 / 0.55));
   }
 
-  /** Welcome floor — mockup reflection band under panels. */
-  .welcome-floor-zone {
-    margin-top: -2px;
+  /** Welcome floor — column glow over baked floor rail. */
+  .welcome-floor-reflection-overlay {
+    margin-top: -1px;
+  }
+
+  .welcome-background-plate {
+    object-position: center center;
   }
 
   .welcome-floor-reflection-glow {

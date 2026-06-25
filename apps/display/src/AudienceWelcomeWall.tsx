@@ -138,7 +138,7 @@ function WelcomePanelCornerBrackets() {
           src={WELCOME_WALL_ASSETS.bracketCorner}
           alt=""
           aria-hidden
-          className={`welcome-bracket-corner pointer-events-none absolute z-[9] select-none ${className}`}
+          className={`welcome-bracket-corner pointer-events-none absolute select-none ${className}`}
           decoding="async"
           draggable={false}
         />
@@ -236,7 +236,11 @@ function VegasAttentionPanel({
           <div className={innerFlex}>{children}</div>
         </div>
       </div>
-      {showCorners ? <WelcomePanelCornerBrackets /> : null}
+      {showCorners ? (
+        <div className="welcome-panel-corners" aria-hidden>
+          <WelcomePanelCornerBrackets />
+        </div>
+      ) : null}
     </div>
   )
 }

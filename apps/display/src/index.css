@@ -1050,7 +1050,7 @@
   }
 
   .display-text-welcome-secondary-cq {
-    font-size: clamp(1.625rem, 3.15vmin, 2.375rem);
+    font-size: clamp(2rem, 4.1vmin, 3rem);
   }
 
   .display-text-welcome-dense-cq {
@@ -1078,15 +1078,15 @@
     --welcome-panel-h: clamp(520px, 58vh, 660px);
     --welcome-card-gap: 2.5%;
     --welcome-bracket-size: clamp(2.35rem, min(13cqw, 10.5cqh), 4.75rem);
-    --welcome-bracket-vx: 19%;
-    --welcome-bracket-vy: 24%;
+    --welcome-bracket-vx: 15%;
+    --welcome-bracket-vy: 20%;
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 
   .welcome-card-heading {
-    font-size: clamp(1.625rem, 3.15vmin, 2.375rem);
-    letter-spacing: 0.16em;
-    line-height: 1.08;
+    font-size: clamp(2rem, 4.1vmin, 3rem);
+    letter-spacing: 0.14em;
+    line-height: 1;
   }
 
   .welcome-section-label {
@@ -1200,14 +1200,27 @@
     width: var(--welcome-bracket-size);
     height: auto;
     max-width: none;
+    z-index: 20;
     filter: drop-shadow(0 3px 12px rgb(251 191 36 / 0.34)) drop-shadow(0 1px 6px rgb(0 0 0 / 0.5));
   }
 
   .welcome-panel-frame {
+    position: relative;
+    isolation: isolate;
     --welcome-bracket-size: clamp(2.35rem, min(13cqw, 10.5cqh), 4.75rem);
   }
 
+  .welcome-panel-corners {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    overflow: visible;
+  }
+
   .welcome-panel-surface {
+    position: relative;
+    z-index: 0;
     border-width: 1.5px;
     border-color: rgb(251 191 36 / 0.82);
     box-shadow:
@@ -1219,24 +1232,28 @@
   .welcome-bracket-corner--tl {
     left: 0;
     top: 0;
+    transform-origin: var(--welcome-bracket-vx) var(--welcome-bracket-vy);
     transform: translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--tr {
     right: 0;
     top: 0;
+    transform-origin: calc(100% - var(--welcome-bracket-vx)) var(--welcome-bracket-vy);
     transform: scaleX(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--bl {
     left: 0;
     bottom: 0;
+    transform-origin: var(--welcome-bracket-vx) calc(100% - var(--welcome-bracket-vy));
     transform: scaleY(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--br {
     right: 0;
     bottom: 0;
+    transform-origin: calc(100% - var(--welcome-bracket-vx)) calc(100% - var(--welcome-bracket-vy));
     transform: scale(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 

@@ -8,8 +8,8 @@ function welcomePublicUrl(file: string): string {
 export const WELCOME_WALL_ASSETS = {
   /** Purple/emerald felt with embossed suits (generated to match mockup). */
   feltBg: welcomePublicUrl('felt-bg.jpg'),
-  /** Polished floor + gold bounce (from mockup bottom strip). */
-  floorReflection: welcomePublicUrl('floor-reflection-mockup.jpg'),
-  /** Ornate gold corner bracket (generated isolate, alpha PNG). */
+  /** Polished floor strip — procedural wood + gold horizon (no mockup UI ghosts). */
+  floorReflection: welcomePublicUrl('floor-reflection.jpg'),
+  /** Mockup-style L-bracket with marquee bulbs (simple, not baroque). */
   bracketCorner: welcomePublicUrl('bracket-corner.png'),
 } as const

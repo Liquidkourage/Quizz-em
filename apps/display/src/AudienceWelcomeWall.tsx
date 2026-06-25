@@ -88,12 +88,12 @@ function WelcomeGlobeIcon() {
 
 /** Ornate gold corner brackets — PNG art (transparent), overlaid on panel corners. */
 function WelcomePanelCornerBrackets() {
-  const size = 'clamp(3.65rem, min(18.5cqw, 14.5cqh), 7.25rem)'
+  const size = 'clamp(3.15rem, min(16cqw, 12.5cqh), 6.25rem)'
   const corners: { className: string; transform?: string }[] = [
-    { className: '-left-[0.3rem] -top-[0.3rem]' },
-    { className: '-right-[0.3rem] -top-[0.3rem]', transform: 'scaleX(-1)' },
-    { className: '-left-[0.3rem] -bottom-[0.3rem]', transform: 'scaleY(-1)' },
-    { className: '-right-[0.3rem] -bottom-[0.3rem]', transform: 'scaleX(-1) scaleY(-1)' },
+    { className: '-left-[0.15rem] -top-[0.15rem]' },
+    { className: '-right-[0.15rem] -top-[0.15rem]', transform: 'scaleX(-1)' },
+    { className: '-left-[0.15rem] -bottom-[0.15rem]', transform: 'scaleY(-1)' },
+    { className: '-right-[0.15rem] -bottom-[0.15rem]', transform: 'scaleX(-1) scaleY(-1)' },
   ]
 
   return (
@@ -126,7 +126,7 @@ function WelcomeWallBackdrop() {
         draggable={false}
       />
       <div
-        className="absolute inset-x-0 z-[1] h-[2px] bg-gradient-to-r from-transparent via-amber-200/90 to-transparent shadow-[0_0_20px_rgba(251,191,36,0.55)]"
+        className="absolute inset-x-0 z-[1] h-px bg-amber-200/80 shadow-[0_0_12px_rgba(251,191,36,0.45)]"
         style={{ bottom: WELCOME_FLOOR_RESERVE }}
       />
       <img
@@ -575,7 +575,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     <div
       role="main"
       aria-label="Join"
-      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(22vh,252px)] lg:[--welcome-floor-h:min(24vh,272px)]"
+      className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35 [--welcome-floor-h:min(11vh,118px)] lg:[--welcome-floor-h:min(12vh,128px)]"
     >
       <WelcomeWallBackdrop />
 

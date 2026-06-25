@@ -1090,6 +1090,7 @@
     --welcome-bracket-vx-left: 11%;
     --welcome-bracket-vx-right: 11.5%;
     --welcome-bracket-vy: 9.2%;
+    --welcome-bracket-overlap: 1px;
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 
@@ -1231,6 +1232,18 @@
     --welcome-bracket-size: clamp(3.25rem, min(16cqw, 13cqh), 5.75rem);
   }
 
+  /** Full-perimeter gold rail — square corners so lines run under bracket arms. */
+  .welcome-panel-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+    pointer-events: none;
+    border: 1.5px solid rgb(251 191 36 / 0.82);
+    border-radius: 0;
+    box-shadow: 0 0 40px rgb(234 179 8 / 0.18);
+  }
+
   .welcome-panel-corners {
     position: absolute;
     inset: 0;
@@ -1242,40 +1255,51 @@
   .welcome-panel-surface {
     position: relative;
     z-index: 0;
-    border-width: 1.5px;
-    border-color: rgb(251 191 36 / 0.82);
     box-shadow:
       inset 0 1px 0 rgb(253 246 178 / 0.16),
-      inset 0 0 64px rgb(0 0 0 / 0.58),
-      0 0 40px rgb(234 179 8 / 0.18);
+      inset 0 0 64px rgb(0 0 0 / 0.58);
   }
 
   .welcome-bracket-corner--tl {
     left: 0;
     top: 0;
     transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
-    transform: translate(calc(-1 * var(--welcome-bracket-vx-left)), calc(-1 * var(--welcome-bracket-vy)));
+    transform: translate(
+        calc(-1 * var(--welcome-bracket-vx-left) + var(--welcome-bracket-overlap)),
+        calc(-1 * var(--welcome-bracket-vy) + var(--welcome-bracket-overlap))
+      );
   }
 
   .welcome-bracket-corner--tr {
     right: 0;
     top: 0;
     transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
-    transform: translate(var(--welcome-bracket-vx-right), calc(-1 * var(--welcome-bracket-vy)));
+    transform: translate(
+        calc(var(--welcome-bracket-vx-right) - var(--welcome-bracket-overlap)),
+        calc(-1 * var(--welcome-bracket-vy) + var(--welcome-bracket-overlap))
+      );
   }
 
   .welcome-bracket-corner--bl {
     left: 0;
     bottom: 0;
     transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
-    transform: translate(calc(-1 * var(--welcome-bracket-vx-left)), var(--welcome-bracket-vy)) scaleY(-1);
+    transform: translate(
+        calc(-1 * var(--welcome-bracket-vx-left) + var(--welcome-bracket-overlap)),
+        calc(var(--welcome-bracket-vy) - var(--welcome-bracket-overlap))
+      )
+      scaleY(-1);
   }
 
   .welcome-bracket-corner--br {
     right: 0;
     bottom: 0;
     transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
-    transform: translate(var(--welcome-bracket-vx-right), var(--welcome-bracket-vy)) scaleY(-1);
+    transform: translate(
+        calc(var(--welcome-bracket-vx-right) - var(--welcome-bracket-overlap)),
+        calc(var(--welcome-bracket-vy) - var(--welcome-bracket-overlap))
+      )
+      scaleY(-1);
   }
 
   /** Welcome floor — column glow over baked floor rail. */

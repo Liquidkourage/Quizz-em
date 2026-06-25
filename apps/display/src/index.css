@@ -1267,15 +1267,15 @@
   .welcome-bracket-corner--bl {
     left: 0;
     bottom: 0;
-    transform-origin: var(--welcome-bracket-vx-left) calc(100% - var(--welcome-bracket-vy));
-    transform: scaleY(-1) translate(calc(-1 * var(--welcome-bracket-vx-left)), calc(-1 * var(--welcome-bracket-vy)));
+    transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
+    transform: translate(calc(-1 * var(--welcome-bracket-vx-left)), var(--welcome-bracket-vy)) scaleY(-1);
   }
 
   .welcome-bracket-corner--br {
     right: 0;
     bottom: 0;
-    transform-origin: calc(100% - var(--welcome-bracket-vx-right)) calc(100% - var(--welcome-bracket-vy));
-    transform: scaleY(-1) translate(var(--welcome-bracket-vx-right), calc(-1 * var(--welcome-bracket-vy)));
+    transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
+    transform: translate(var(--welcome-bracket-vx-right), var(--welcome-bracket-vy)) scaleY(-1);
   }
 
   /** Welcome floor — column glow over baked floor rail. */

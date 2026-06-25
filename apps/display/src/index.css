@@ -1131,7 +1131,49 @@
   }
 
   .welcome-bracket-corner {
-    filter: drop-shadow(0 4px 16px rgb(251 191 36 / 0.38)) drop-shadow(0 2px 8px rgb(0 0 0 / 0.55));
+    width: var(--welcome-bracket-size);
+    height: auto;
+    max-width: none;
+    filter: drop-shadow(0 3px 12px rgb(251 191 36 / 0.34)) drop-shadow(0 1px 6px rgb(0 0 0 / 0.5));
+  }
+
+  .welcome-panel-frame {
+    --welcome-bracket-size: clamp(1.75rem, min(9.5cqw, 7.25cqh), 3.35rem);
+    --welcome-bracket-inset: clamp(11px, 1.25vmin, 15px);
+    --welcome-bracket-vertex-x: 19%;
+    --welcome-bracket-vertex-y: 24%;
+  }
+
+  .welcome-panel-border {
+    inset: var(--welcome-bracket-inset);
+  }
+
+  .welcome-bracket-corner--tl {
+    left: 0;
+    top: 0;
+    transform-origin: 19% 24%;
+    transform: translate(-19%, -24%);
+  }
+
+  .welcome-bracket-corner--tr {
+    right: 0;
+    top: 0;
+    transform-origin: 81% 24%;
+    transform: translate(19%, -24%);
+  }
+
+  .welcome-bracket-corner--bl {
+    left: 0;
+    bottom: 0;
+    transform-origin: 19% 24%;
+    transform: scaleY(-1) translate(-19%, -24%);
+  }
+
+  .welcome-bracket-corner--br {
+    right: 0;
+    bottom: 0;
+    transform-origin: 81% 24%;
+    transform: scaleY(-1) translate(19%, -24%);
   }
 
   /** Welcome floor — column glow over baked floor rail. */
@@ -1139,10 +1181,17 @@
     margin-top: -1px;
   }
 
-  /** Panel row fills all space above the floor spacer so card bottoms meet the horizon. */
-  .welcome-panel-grid {
+  /** Panel row sits above the floor spacer — capped height, anchored to bottom. */
+  .welcome-panel-stage {
     flex: 1 1 0%;
-    height: 0;
+    min-height: 0;
+    justify-content: flex-end;
+  }
+
+  .welcome-panel-grid {
+    flex: 0 0 auto;
+    height: var(--welcome-panel-h, min(56vh, 620px));
+    max-height: var(--welcome-panel-h, min(56vh, 620px));
     min-height: 0;
   }
 

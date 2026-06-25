@@ -1092,14 +1092,10 @@
     --welcome-bracket-vy: 9.2%;
     /** Align CSS rails with the gold arms baked into the bracket PNGs. */
     --welcome-rail-offset: clamp(4px, 0.48vmin, 6px);
-    /** Room below card bottom for flipped bracket filigree (prevents clip). */
-    --welcome-bracket-bottom-bleed: clamp(10px, 1.35vmin, 18px);
-    /** Fine-tune bottom bracket/rail alignment with card edge. */
-    --welcome-bracket-bottom-nudge: clamp(3px, 0.4vmin, 5px);
-    /** Card-bottom anchor — bleed zone sits below the frame, not under the rail. */
-    --welcome-bracket-bottom-anchor: calc(
-      var(--welcome-bracket-bottom-bleed) + var(--welcome-bracket-bottom-nudge)
-    );
+    /** Room below card for flipped bracket filigree (grid padding, not positioning). */
+    --welcome-bracket-bottom-bleed: clamp(12px, 1.5vmin, 20px);
+    /** Extra lift if rail still sits below card edge after bottom anchoring. */
+    --welcome-bracket-bottom-lift: clamp(0px, 0vmin, 0px);
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 
@@ -1248,7 +1244,7 @@
     inset: 0;
     z-index: 13;
     pointer-events: none;
-    --welcome-rail-span: calc(100% - var(--welcome-bracket-bottom-anchor) - var(--welcome-rail-offset));
+    --welcome-rail-span: calc(100% - 2 * var(--welcome-rail-offset));
     background:
       linear-gradient(rgb(251 191 36 / 0.82), rgb(251 191 36 / 0.82)) top / 100% 1.5px no-repeat,
       linear-gradient(rgb(251 191 36 / 0.82), rgb(251 191 36 / 0.82)) bottom / 100% 1.5px no-repeat,
@@ -1258,7 +1254,7 @@
         no-repeat;
     background-position:
       0 var(--welcome-rail-offset),
-      0 calc(100% - var(--welcome-bracket-bottom-anchor) - var(--welcome-rail-offset)),
+      0 calc(100% - var(--welcome-rail-offset)),
       var(--welcome-rail-offset) 0,
       calc(100% - var(--welcome-rail-offset)) 0;
     filter: drop-shadow(0 0 10px rgb(234 179 8 / 0.22));
@@ -1266,10 +1262,7 @@
 
   .welcome-panel-corners {
     position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: calc(-1 * var(--welcome-bracket-bottom-bleed));
+    inset: 0;
     z-index: 20;
     pointer-events: none;
     overflow: visible;
@@ -1305,27 +1298,27 @@
     );
   }
 
-  /** Bottom corners: vertical flip of the same top assets (└ / ┘), anchored at card bottom. */
+  /** Bottom corners: scaleY flip anchored at card bottom (same vertex math as top). */
   .welcome-bracket-corner--bl {
     left: 0;
-    top: calc(100% - var(--welcome-bracket-bottom-anchor));
+    bottom: var(--welcome-bracket-bottom-lift);
     transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
-    transform: scaleY(-1)
-      translate(
+    transform: translate(
         calc(-1 * var(--welcome-bracket-vx-left) + var(--welcome-rail-offset)),
         calc(-1 * var(--welcome-bracket-vy) + var(--welcome-rail-offset))
-      );
+      )
+      scaleY(-1);
   }
 
   .welcome-bracket-corner--br {
     right: 0;
-    top: calc(100% - var(--welcome-bracket-bottom-anchor));
+    bottom: var(--welcome-bracket-bottom-lift);
     transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
-    transform: scaleY(-1)
-      translate(
+    transform: translate(
         calc(var(--welcome-bracket-vx-right) - var(--welcome-rail-offset)),
         calc(-1 * var(--welcome-bracket-vy) + var(--welcome-rail-offset))
-      );
+      )
+      scaleY(-1);
   }
 
   /** Welcome floor — column glow over baked floor rail. */

@@ -79,54 +79,89 @@ function WelcomeGlobeIcon() {
   )
 }
 
-/** Gold rail strokes at corners — long “┌” segments, not bordered squares (avoids checkbox look). */
+/** One polished brass bracket segment — specular highlight + soft reflection on felt. */
+function VegasBracketArm({
+  kind,
+  style,
+}: {
+  kind: 'tl-h' | 'tl-v' | 'tr-h' | 'tr-v' | 'bl-h' | 'bl-v' | 'br-h' | 'br-v'
+  style: React.CSSProperties
+}) {
+  const isHorizontal = kind.endsWith('-h')
+  const metalGrad: Record<typeof kind, string> = {
+    'tl-h':
+      'bg-[linear-gradient(90deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
+    'tl-v':
+      'bg-[linear-gradient(180deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
+    'tr-h':
+      'bg-[linear-gradient(270deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
+    'tr-v':
+      'bg-[linear-gradient(180deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
+    'bl-h':
+      'bg-[linear-gradient(90deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
+    'bl-v':
+      'bg-[linear-gradient(0deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
+    'br-h':
+      'bg-[linear-gradient(270deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
+    'br-v':
+      'bg-[linear-gradient(0deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
+  }
+  const bounceVClass =
+    kind === 'tl-v' || kind === 'bl-v' ? 'welcome-bracket-bounce-v-left' : 'welcome-bracket-bounce-v'
+
+  return (
+    <div className="welcome-bracket-arm pointer-events-none absolute z-[2]" style={style} aria-hidden>
+      <div className={`welcome-bracket-metal absolute inset-0 rounded-full ${metalGrad[kind]}`} />
+      <div className={isHorizontal ? 'welcome-bracket-specular-h' : 'welcome-bracket-specular-v'} />
+      <div className={isHorizontal ? 'welcome-bracket-bounce-h' : bounceVClass} />
+    </div>
+  )
+}
+
+/** Gold rail strokes at corners — long “┌” segments with brass specular + rivets. */
 function VegasCornerBrackets() {
   const inset = 'clamp(12px, 2vmin, 20px)'
   const arm = 'clamp(3.85rem, min(34vw, 26vh), 8.25rem)'
   const thickness = 'clamp(4px, 0.65vmin, 7px)'
-  const common =
-    'pointer-events-none absolute z-[2] rounded-full shadow-[0_0_24px_rgba(251,211,141,0.68),0_0_52px_rgba(234,179,8,0.28),0_0_80px_rgba(251,191,36,0.12)]'
+  const rivet = 'clamp(7px, 1vmin, 11px)'
+
+  const armStyle = (top?: string, right?: string, bottom?: string, left?: string, w?: string, h?: string) => ({
+    top,
+    right,
+    bottom,
+    left,
+    width: w,
+    height: h,
+  })
 
   return (
     <>
+      <VegasBracketArm kind="tl-h" style={armStyle(inset, undefined, undefined, inset, arm, thickness)} />
+      <VegasBracketArm kind="tl-v" style={armStyle(inset, undefined, undefined, inset, thickness, arm)} />
+      <VegasBracketArm kind="tr-h" style={armStyle(inset, inset, undefined, undefined, arm, thickness)} />
+      <VegasBracketArm kind="tr-v" style={armStyle(inset, inset, undefined, undefined, thickness, arm)} />
+      <VegasBracketArm kind="bl-h" style={armStyle(undefined, undefined, inset, inset, arm, thickness)} />
+      <VegasBracketArm kind="bl-v" style={armStyle(undefined, undefined, inset, inset, thickness, arm)} />
+      <VegasBracketArm kind="br-h" style={armStyle(undefined, inset, inset, undefined, arm, thickness)} />
+      <VegasBracketArm kind="br-v" style={armStyle(undefined, inset, inset, undefined, thickness, arm)} />
       <span
-        className={`${common} bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-700/95`}
-        style={{ top: inset, left: inset, width: arm, height: thickness }}
+        className="welcome-bracket-rivet pointer-events-none absolute z-[3]"
+        style={{ top: inset, left: inset, width: rivet, height: rivet }}
         aria-hidden
       />
       <span
-        className={`${common} bg-gradient-to-b from-amber-200 via-yellow-300 to-amber-700/95`}
-        style={{ top: inset, left: inset, width: thickness, height: arm }}
+        className="welcome-bracket-rivet pointer-events-none absolute z-[3]"
+        style={{ top: inset, right: inset, width: rivet, height: rivet }}
         aria-hidden
       />
       <span
-        className={`${common} bg-gradient-to-l from-amber-200 via-yellow-300 to-amber-700/95`}
-        style={{ top: inset, right: inset, width: arm, height: thickness }}
+        className="welcome-bracket-rivet pointer-events-none absolute z-[3]"
+        style={{ bottom: inset, left: inset, width: rivet, height: rivet }}
         aria-hidden
       />
       <span
-        className={`${common} bg-gradient-to-b from-amber-200 via-yellow-300 to-amber-700/95`}
-        style={{ top: inset, right: inset, width: thickness, height: arm }}
-        aria-hidden
-      />
-      <span
-        className={`${common} bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-700/95`}
-        style={{ bottom: inset, left: inset, width: arm, height: thickness }}
-        aria-hidden
-      />
-      <span
-        className={`${common} bg-gradient-to-t from-amber-200 via-yellow-300 to-amber-700/95`}
-        style={{ bottom: inset, left: inset, width: thickness, height: arm }}
-        aria-hidden
-      />
-      <span
-        className={`${common} bg-gradient-to-l from-amber-200 via-yellow-300 to-amber-700/95`}
-        style={{ bottom: inset, right: inset, width: arm, height: thickness }}
-        aria-hidden
-      />
-      <span
-        className={`${common} bg-gradient-to-t from-amber-200 via-yellow-300 to-amber-700/95`}
-        style={{ bottom: inset, right: inset, width: thickness, height: arm }}
+        className="welcome-bracket-rivet pointer-events-none absolute z-[3]"
+        style={{ bottom: inset, right: inset, width: rivet, height: rivet }}
         aria-hidden
       />
     </>
@@ -507,8 +542,9 @@ function WelcomeWallHeader({
 }) {
   return (
     <header className="@container/size flex w-full max-w-full min-w-0 shrink-0 flex-col items-stretch px-0 sm:px-[clamp(2px,_0.45vw,_10px)]">
-      <div className="relative mx-auto aspect-[958/592] w-full max-w-[min(552px,calc(92vw_*_0.6),calc((100vw_-_28px)_*_0.6))] shrink-0 overflow-visible lg:w-auto lg:max-h-[min(33.6vh,432px)] lg:max-w-[min(576px,calc(96vw_*_0.6),calc((100vw_-_36px)_*_0.6))]">
-        <QuizzEmWordmark layout="fill" />
+      <div className="welcome-wordmark-stage relative mx-auto aspect-[958/592] w-full max-w-[min(552px,calc(92vw_*_0.6),calc((100vw_-_28px)_*_0.6))] shrink-0 overflow-visible lg:w-auto lg:max-h-[min(33.6vh,432px)] lg:max-w-[min(576px,calc(96vw_*_0.6),calc((100vw_-_36px)_*_0.6))]">
+        <div aria-hidden className="welcome-wordmark-pool-glow pointer-events-none absolute inset-x-[8%] bottom-[4%] h-[24%]" />
+        <QuizzEmWordmark layout="fill" depth="hero" />
       </div>
       <p className={`${taglineClass} sr-only`}>By Liquid Kourage Entertainment</p>
       <VegasPulseDivider active={!reducedMotion} />
@@ -560,9 +596,26 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
       className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#05030c] antialiased text-white selection:bg-yellow-400/35"
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Base felt + velvet house lights */}
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/82 via-[#06483c] to-black" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-purple-950/52" />
+        {/* Dual-tone casino felt — purple house left, emerald house right */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 58% 72% at 16% 44%, rgba(109, 40, 217, 0.44) 0%, transparent 68%),
+              radial-gradient(ellipse 58% 72% at 84% 46%, rgba(5, 150, 105, 0.46) 0%, transparent 68%),
+              linear-gradient(180deg, #1a0a28 0%, #064e3b 48%, #020806 100%)
+            `,
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-purple-950/58" />
+        {/* Center spotlight — keeps panels readable */}
+        <div
+          className="absolute inset-0 opacity-90"
+          style={{
+            background:
+              'radial-gradient(ellipse 72% 58% at 50% 42%, rgba(6, 78, 59, 0.28) 0%, transparent 62%)',
+          }}
+        />
         {/* Gold chandeliers — twin pools */}
         <motion.div
           className="absolute -left-[8%] -top-[28%] h-[72vmin] w-[72vmin] rounded-full blur-[72px]"
@@ -622,20 +675,27 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
               'radial-gradient(ellipse 84% 70% at 50% 44%, transparent 44%, rgba(0, 0, 0, 0.38) 72%, rgba(0, 0, 0, 0.78) 100%)',
           }}
         />
-        {/* Suit watermarks — subtle felt emboss */}
+        {/* Suit watermarks — embossed into felt */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-[3%] top-[36%] select-none font-serif leading-none text-white/[0.034]"
-          style={{ fontSize: 'clamp(7rem, 21vmin, 15rem)' }}
+          className="welcome-suit-watermark pointer-events-none absolute left-[2%] top-[34%] select-none font-serif leading-none text-white/[0.075]"
+          style={{ fontSize: 'clamp(7.5rem, 23vmin, 16rem)' }}
         >
           ♣
         </div>
         <div
           aria-hidden
-          className="pointer-events-none absolute right-[4%] top-[40%] select-none font-serif leading-none text-red-200/[0.028]"
-          style={{ fontSize: 'clamp(6.5rem, 19vmin, 14rem)' }}
+          className="welcome-suit-watermark pointer-events-none absolute right-[3%] top-[38%] select-none font-serif leading-none text-red-100/[0.065]"
+          style={{ fontSize: 'clamp(7rem, 21vmin, 15rem)' }}
         >
           ♦
+        </div>
+        <div
+          aria-hidden
+          className="welcome-suit-watermark pointer-events-none absolute left-[38%] top-[58%] select-none font-serif leading-none text-amber-100/[0.028]"
+          style={{ fontSize: 'clamp(4rem, 12vmin, 8rem)' }}
+        >
+          ♠
         </div>
         {/* Felt texture AFTER vignette (otherwise grain/rail disappears) */}
         <div
@@ -692,21 +752,14 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
           animate={reducedMotion ? undefined : { opacity: [0.12, 0.26, 0.13] }}
           transition={{ duration: 8.5, repeat: Infinity, ease: 'easeInOut' }}
         />
-        {/* Wood rail + gold bounce at floor */}
+        {/* Wood rail + panel light bounce at floor */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[20vh] opacity-80"
-          style={{
-            background:
-              'linear-gradient(to top, rgba(14,8,5,0.94) 0%, rgba(38,24,12,0.58) 32%, transparent 100%)',
-          }}
+          className="welcome-wood-rail pointer-events-none absolute inset-x-0 bottom-0 h-[22vh] opacity-95"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[14vh] opacity-50"
-          style={{
-            background: 'linear-gradient(to top, rgba(251,191,36,0.14) 0%, transparent 70%)',
-          }}
+          className="welcome-floor-reflection pointer-events-none absolute inset-x-0 bottom-0 h-[18vh] opacity-70"
         />
       </div>
 

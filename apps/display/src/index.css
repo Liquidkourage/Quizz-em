@@ -1291,10 +1291,10 @@
     );
   }
 
-  /** Bottom corners: vertical flip of the same top assets (└ / ┘), not rotate(180). */
+  /** Bottom corners: vertical flip of the same top assets (└ / ┘), anchored at card bottom. */
   .welcome-bracket-corner--bl {
     left: 0;
-    bottom: 0;
+    top: 100%;
     transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
     transform: scaleY(-1)
       translate(
@@ -1305,7 +1305,7 @@
 
   .welcome-bracket-corner--br {
     right: 0;
-    bottom: 0;
+    top: 100%;
     transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
     transform: scaleY(-1)
       translate(

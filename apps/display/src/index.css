@@ -1044,32 +1044,62 @@
     font-size: clamp(2.75cqh, 3.75cqh, 5cqh);
   }
 
-  /** Audience welcome wall — 75% of default @container tiers. */
+  /** Audience welcome wall — casino marquee scale (1920×1080 targets). */
   .display-text-welcome-primary-cq {
-    font-size: clamp(2.625cqh, 5.25cqh, 8.25cqh);
+    font-size: clamp(3rem, 6.3vmin, 4.75rem);
   }
 
   .display-text-welcome-secondary-cq {
-    font-size: clamp(2.25cqh, 3.375cqh, 6cqh);
+    font-size: clamp(1.625rem, 3.15vmin, 2.375rem);
   }
 
   .display-text-welcome-dense-cq {
-    font-size: clamp(2.0625cqh, 2.8125cqh, 3.75cqh);
+    font-size: clamp(1.0625rem, 1.85vmin, 1.5rem);
   }
 
   .display-text-welcome-url-cqw {
-    font-size: clamp(1.35rem, min(3.15vmin, 5.5cqw), 2.5rem);
-    line-height: 1.22;
+    font-size: clamp(1.0625rem, 1.85vmin, 1.4375rem);
+    line-height: 1.35;
   }
 
   .display-text-welcome-tips-cq {
-    font-size: clamp(1.05rem, min(2.35vmin, 3.65cqh), 1.72rem);
-    line-height: 1.22;
+    font-size: clamp(1.125rem, 2.05vmin, 1.5625rem);
+    line-height: 1.42;
   }
 
   .display-text-welcome-tips-group-cq {
-    font-size: clamp(1.32rem, min(3.15vmin, 4.75cqh), 2.22rem);
-    line-height: 1.2;
+    font-size: clamp(1.125rem, 2.05vmin, 1.5625rem);
+    line-height: 1.42;
+  }
+
+  /** Welcome wall layout tokens — tuned for 16:9 venue displays. */
+  .welcome-screen {
+    --welcome-floor-h: clamp(72px, 10vh, 120px);
+    --welcome-panel-h: clamp(520px, 58vh, 660px);
+    --welcome-card-gap: 2.5%;
+    --welcome-bracket-size: clamp(2.35rem, min(13cqw, 10.5cqh), 4.75rem);
+    --welcome-bracket-vx: 19%;
+    --welcome-bracket-vy: 24%;
+    --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
+  }
+
+  .welcome-card-heading {
+    font-size: clamp(1.625rem, 3.15vmin, 2.375rem);
+    letter-spacing: 0.16em;
+    line-height: 1.08;
+  }
+
+  .welcome-section-label {
+    font-size: clamp(1.0625rem, 1.85vmin, 1.5rem);
+    letter-spacing: 0.14em;
+  }
+
+  .welcome-room-code-glyphs {
+    font-size: clamp(3rem, 6.3vmin, 4.75rem);
+  }
+
+  .welcome-player-count-glyphs {
+    font-size: clamp(3.5rem, 7vmin, 5.625rem);
   }
 
   /** Welcome wall — 7-segment LED numerals (room code, player count). */
@@ -1088,10 +1118,46 @@
   }
 
   .welcome-led-well {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    min-width: clamp(5.5rem, 28cqw, 12rem);
+    width: 100%;
+    min-width: 0;
+  }
+
+  .welcome-inset-panel {
+    width: 100%;
+    border-radius: clamp(8px, 1.1vmin, 12px);
+    border: 1px solid rgb(251 191 36 / 0.62);
+    background: rgb(5 4 3 / 0.88);
+    box-shadow:
+      inset 0 3px 16px rgb(0 0 0 / 0.92),
+      inset 0 -1px 0 rgb(251 211 141 / 0.1),
+      0 0 22px rgb(234 179 8 / 0.22);
+    padding: clamp(10px, 1.35vmin, 16px) clamp(12px, 1.6vmin, 20px);
+  }
+
+  .welcome-join-url-well {
+    width: 100%;
+    border-radius: clamp(8px, 1.1vmin, 12px);
+    border: 1px solid rgb(52 211 153 / 0.45);
+    background: linear-gradient(180deg, rgb(6 12 14 / 0.92) 0%, rgb(4 8 10 / 0.96) 100%);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.06),
+      0 0 18px rgb(52 211 153 / 0.12);
+    padding: clamp(8px, 1.1vmin, 12px) clamp(10px, 1.35vmin, 16px);
+  }
+
+  .welcome-panel-surface--scan {
+    background: linear-gradient(165deg, rgb(14 8 22 / 0.94) 0%, rgb(6 6 8 / 0.96) 55%, rgb(5 5 7 / 0.97) 100%);
+  }
+
+  .welcome-panel-surface--join {
+    background: linear-gradient(180deg, rgb(8 10 12 / 0.95) 0%, rgb(5 6 8 / 0.97) 100%);
+  }
+
+  .welcome-panel-surface--tips {
+    background: linear-gradient(195deg, rgb(6 8 12 / 0.95) 0%, rgb(5 10 12 / 0.94) 100%);
   }
 
   /** Section title underline with center diamond ornament. */
@@ -1138,35 +1204,40 @@
   }
 
   .welcome-panel-frame {
-    --welcome-bracket-size: clamp(2.15rem, min(12cqw, 9.5cqh), 4.25rem);
+    --welcome-bracket-size: clamp(2.35rem, min(13cqw, 10.5cqh), 4.75rem);
+  }
+
+  .welcome-panel-surface {
+    border-width: 1.5px;
+    border-color: rgb(251 191 36 / 0.82);
+    box-shadow:
+      inset 0 1px 0 rgb(253 246 178 / 0.16),
+      inset 0 0 64px rgb(0 0 0 / 0.58),
+      0 0 40px rgb(234 179 8 / 0.18);
   }
 
   .welcome-bracket-corner--tl {
     left: 0;
     top: 0;
-    transform-origin: 19% 24%;
-    transform: translate(-19%, -24%);
+    transform: translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--tr {
     right: 0;
     top: 0;
-    transform-origin: 81% 24%;
-    transform: translate(19%, -24%);
+    transform: scaleX(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--bl {
     left: 0;
     bottom: 0;
-    transform-origin: 19% 24%;
-    transform: scaleY(-1) translate(-19%, -24%);
+    transform: scaleY(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   .welcome-bracket-corner--br {
     right: 0;
     bottom: 0;
-    transform-origin: 81% 24%;
-    transform: scaleY(-1) translate(19%, -24%);
+    transform: scale(-1) translate(calc(-1 * var(--welcome-bracket-vx)), calc(-1 * var(--welcome-bracket-vy)));
   }
 
   /** Welcome floor — column glow over baked floor rail. */
@@ -1183,9 +1254,10 @@
 
   .welcome-panel-grid {
     flex: 0 0 auto;
-    height: var(--welcome-panel-h, min(52vh, 580px));
-    max-height: var(--welcome-panel-h, min(52vh, 580px));
+    height: var(--welcome-panel-h);
+    max-height: var(--welcome-panel-h);
     min-height: 0;
+    column-gap: var(--welcome-card-gap);
   }
 
   .welcome-panel-column {
@@ -1208,10 +1280,28 @@
   }
 
   .welcome-background-plate {
-    /* Stretch to exactly fill the viewport (non-uniform scale). */
-    object-fit: fill;
+    object-fit: cover;
+    object-position: center bottom;
     width: 100%;
     height: 100%;
+  }
+
+  .welcome-logo-region {
+    position: relative;
+    z-index: 20;
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    padding-top: clamp(6px, 0.85vh, 14px);
+    margin-bottom: clamp(-28px, -2.8vh, -14px);
+  }
+
+  .welcome-wordmark-stage {
+    perspective: 1100px;
+    perspective-origin: 50% 38%;
+    width: clamp(26rem, 27vw, 32.5rem);
+    max-width: min(96vw, 32.5rem);
+    max-height: min(30vh, 320px);
   }
 
   .welcome-floor-reflection-glow {
@@ -1222,11 +1312,6 @@
   }
 
   /** Welcome hero logo — subtle 3D lift (same PNG artwork). */
-  .welcome-wordmark-stage {
-    perspective: 1100px;
-    perspective-origin: 50% 38%;
-  }
-
   .welcome-wordmark-pool-glow {
     border-radius: 9999px;
     background: radial-gradient(

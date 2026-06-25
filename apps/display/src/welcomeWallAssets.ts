@@ -8,7 +8,9 @@ function welcomePublicUrl(file: string): string {
 export const WELCOME_WALL_ASSETS = {
   /** Full viewport background (felt, suits, top arc, floor rail) — no foreground UI. */
   backgroundPlate: welcomePublicUrl('welcome-background.png'),
-  /** Ornate top-corner bracket pair (left / right PNGs with alpha). */
+  /** Ornate corner bracket — top-left PNG; mirror in CSS for other corners. */
+  bracketCorner: welcomePublicUrl('bracket-corner-left.png'),
+  /** @deprecated Use {@link bracketCorner} with CSS mirrors. */
   bracketCornerLeft: welcomePublicUrl('bracket-corner-left.png'),
   bracketCornerRight: welcomePublicUrl('bracket-corner-right.png'),
 } as const

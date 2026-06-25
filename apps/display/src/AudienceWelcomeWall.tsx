@@ -285,14 +285,9 @@ function WelcomeQrColumn({
 
   const aimClass = `${sectionRibbon} w-full block shrink-0 text-center [text-wrap:balance]`
 
-  const midClass =
-    'relative flex min-h-0 flex-1 w-full flex-col items-center justify-center overflow-hidden min-w-0 px-[clamp(10px,min(2.5cqw,_20px),_24px)] py-[clamp(6px,min(1.2vmin,_10px),_14px)]'
+  const midClass = 'welcome-qr-stage'
 
-  const whiteTileBase =
-    'welcome-qr-tile box-border flex min-h-0 min-w-0 items-center justify-center overflow-hidden bg-white mx-auto'
-
-  const whiteClass =
-    `${whiteTileBase} aspect-square w-[min(58cqw,min(42cqh,240px))] max-w-full shrink-0`
+  const whiteTileBase = 'welcome-qr-tile'
 
   return (
     <section aria-label="Scan to join" className={sectionClass}>
@@ -306,7 +301,7 @@ function WelcomeQrColumn({
         <WelcomeSectionTitle ribbonClass={aimClass}>Scan to join</WelcomeSectionTitle>
         {qrOk ? (
           <div className={midClass}>
-            <div className={whiteClass}>
+            <div className={whiteTileBase}>
               <img
                 src={qrImgSrc(qrJoinUrl)}
                 alt=""

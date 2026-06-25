@@ -1266,6 +1266,15 @@
     overflow: visible;
   }
 
+  /** Flip a copy of the top bracket layer so bottom corners use identical placement math. */
+  .welcome-panel-corners-bottom {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    transform: scaleY(-1);
+  }
+
   .welcome-panel-surface {
     position: relative;
     z-index: 0;
@@ -1294,29 +1303,6 @@
       calc(var(--welcome-bracket-vx-right) - var(--welcome-rail-offset)),
       calc(-1 * var(--welcome-bracket-vy) + var(--welcome-rail-offset))
     );
-  }
-
-  /** Bottom corners: exact vertical mirror of top — top:100% + same vertex translate + scaleY(-1). */
-  .welcome-bracket-corner--bl {
-    left: 0;
-    top: 100%;
-    transform-origin: var(--welcome-bracket-vx-left) var(--welcome-bracket-vy);
-    transform: translate(
-        calc(-1 * var(--welcome-bracket-vx-left) + var(--welcome-rail-offset)),
-        calc(-1 * var(--welcome-bracket-vy) + var(--welcome-rail-offset))
-      )
-      scaleY(-1);
-  }
-
-  .welcome-bracket-corner--br {
-    right: 0;
-    top: 100%;
-    transform-origin: calc(100% - var(--welcome-bracket-vx-right)) var(--welcome-bracket-vy);
-    transform: translate(
-        calc(var(--welcome-bracket-vx-right) - var(--welcome-rail-offset)),
-        calc(-1 * var(--welcome-bracket-vy) + var(--welcome-rail-offset))
-      )
-      scaleY(-1);
   }
 
   /** Welcome floor — column glow over baked floor rail. */

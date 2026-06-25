@@ -121,28 +121,46 @@ function WelcomeGlobeIcon() {
   )
 }
 
-/** Ornate gold corner brackets — user-provided left/right PNGs; bottom corners flip Y. */
+/** Ornate gold corner brackets — bottom row reuses top positioning inside a Y-flipped wrapper. */
 function WelcomePanelCornerBrackets() {
-  const corners = [
-    { className: 'welcome-bracket-corner--tl', src: WELCOME_WALL_ASSETS.bracketCornerLeft },
-    { className: 'welcome-bracket-corner--tr', src: WELCOME_WALL_ASSETS.bracketCornerRight },
-    { className: 'welcome-bracket-corner--bl', src: WELCOME_WALL_ASSETS.bracketCornerLeft },
-    { className: 'welcome-bracket-corner--br', src: WELCOME_WALL_ASSETS.bracketCornerRight },
-  ] as const
+  const bracketClass = 'welcome-bracket-corner pointer-events-none absolute select-none'
 
   return (
     <>
-      {corners.map(({ className, src }) => (
+      <img
+        src={WELCOME_WALL_ASSETS.bracketCornerLeft}
+        alt=""
+        aria-hidden
+        className={`${bracketClass} welcome-bracket-corner--tl`}
+        decoding="async"
+        draggable={false}
+      />
+      <img
+        src={WELCOME_WALL_ASSETS.bracketCornerRight}
+        alt=""
+        aria-hidden
+        className={`${bracketClass} welcome-bracket-corner--tr`}
+        decoding="async"
+        draggable={false}
+      />
+      <div className="welcome-panel-corners-bottom" aria-hidden>
         <img
-          key={className}
-          src={src}
+          src={WELCOME_WALL_ASSETS.bracketCornerLeft}
           alt=""
           aria-hidden
-          className={`welcome-bracket-corner pointer-events-none absolute select-none ${className}`}
+          className={`${bracketClass} welcome-bracket-corner--tl`}
           decoding="async"
           draggable={false}
         />
-      ))}
+        <img
+          src={WELCOME_WALL_ASSETS.bracketCornerRight}
+          alt=""
+          aria-hidden
+          className={`${bracketClass} welcome-bracket-corner--tr`}
+          decoding="async"
+          draggable={false}
+        />
+      </div>
     </>
   )
 }

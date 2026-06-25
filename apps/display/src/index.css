@@ -1166,8 +1166,11 @@
   }
 
   .welcome-background-plate {
-    /* Anchor bottom so the baked floor rail + reflections are not cropped off. */
+    /* Contain — never scale/crop past the viewport (cover + bottom anchor was clipping the top arch). */
+    object-fit: contain;
     object-position: center bottom;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .welcome-floor-reflection-glow {

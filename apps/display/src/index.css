@@ -1095,7 +1095,7 @@
     /** Room below card bottom for flipped bracket filigree (prevents clip). */
     --welcome-bracket-bottom-bleed: clamp(10px, 1.35vmin, 18px);
     /** Fine-tune bottom bracket/rail alignment with card edge. */
-    --welcome-bracket-bottom-nudge: clamp(3px, 0.45vmin, 6px);
+    --welcome-bracket-bottom-nudge: clamp(5px, 0.65vmin, 9px);
     --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
   }
 

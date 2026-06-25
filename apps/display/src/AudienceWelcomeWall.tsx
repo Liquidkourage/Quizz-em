@@ -10,6 +10,7 @@ import {
   DISPLAY_TEXT_WELCOME_URL_CQW,
 } from './displayTypography'
 import { QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS } from './venueRulesWallContent'
+import { WELCOME_WALL_ASSETS } from './welcomeWallAssets'
 
 export type AudienceWelcomeWallProps = {
   venueCode: string
@@ -79,92 +80,60 @@ function WelcomeGlobeIcon() {
   )
 }
 
-/** One polished brass bracket segment — specular highlight + soft reflection on felt. */
-function VegasBracketArm({
-  kind,
-  style,
-}: {
-  kind: 'tl-h' | 'tl-v' | 'tr-h' | 'tr-v' | 'bl-h' | 'bl-v' | 'br-h' | 'br-v'
-  style: React.CSSProperties
-}) {
-  const isHorizontal = kind.endsWith('-h')
-  const metalGrad: Record<typeof kind, string> = {
-    'tl-h':
-      'bg-[linear-gradient(90deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
-    'tl-v':
-      'bg-[linear-gradient(180deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
-    'tr-h':
-      'bg-[linear-gradient(270deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
-    'tr-v':
-      'bg-[linear-gradient(180deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
-    'bl-h':
-      'bg-[linear-gradient(90deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
-    'bl-v':
-      'bg-[linear-gradient(0deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
-    'br-h':
-      'bg-[linear-gradient(270deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
-    'br-v':
-      'bg-[linear-gradient(0deg,#78350f_0%,#fde68a_34%,#fffbeb_52%,#ca8a04_86%,#713f12_100%)]',
-  }
-  const bounceVClass =
-    kind === 'tl-v' || kind === 'bl-v' ? 'welcome-bracket-bounce-v-left' : 'welcome-bracket-bounce-v'
-
-  return (
-    <div className="welcome-bracket-arm pointer-events-none absolute z-[2]" style={style} aria-hidden>
-      <div className={`welcome-bracket-metal absolute inset-0 rounded-full ${metalGrad[kind]}`} />
-      <div className={isHorizontal ? 'welcome-bracket-specular-h' : 'welcome-bracket-specular-v'} />
-      <div className={isHorizontal ? 'welcome-bracket-bounce-h' : bounceVClass} />
-    </div>
-  )
-}
-
-/** Gold rail strokes at corners — long “┌” segments with brass specular + rivets. */
-function VegasCornerBrackets() {
-  const inset = 'clamp(12px, 2vmin, 20px)'
-  const arm = 'clamp(3.85rem, min(34vw, 26vh), 8.25rem)'
-  const thickness = 'clamp(4px, 0.65vmin, 7px)'
-  const rivet = 'clamp(7px, 1vmin, 11px)'
-
-  const armStyle = (top?: string, right?: string, bottom?: string, left?: string, w?: string, h?: string) => ({
-    top,
-    right,
-    bottom,
-    left,
-    width: w,
-    height: h,
-  })
+/** Ornate gold corner brackets — PNG art from mockup (not CSS). */
+function WelcomePanelCornerBrackets() {
+  const size = 'clamp(4.25rem, min(21cqw, 17cqh), 8.5rem)'
+  const corners: { pos: string; transform?: string }[] = [
+    { pos: 'left-0 top-0' },
+    { pos: 'right-0 top-0', transform: 'scaleX(-1)' },
+    { pos: 'left-0 bottom-0', transform: 'scaleY(-1)' },
+    { pos: 'right-0 bottom-0', transform: 'scaleX(-1) scaleY(-1)' },
+  ]
 
   return (
     <>
-      <VegasBracketArm kind="tl-h" style={armStyle(inset, undefined, undefined, inset, arm, thickness)} />
-      <VegasBracketArm kind="tl-v" style={armStyle(inset, undefined, undefined, inset, thickness, arm)} />
-      <VegasBracketArm kind="tr-h" style={armStyle(inset, inset, undefined, undefined, arm, thickness)} />
-      <VegasBracketArm kind="tr-v" style={armStyle(inset, inset, undefined, undefined, thickness, arm)} />
-      <VegasBracketArm kind="bl-h" style={armStyle(undefined, undefined, inset, inset, arm, thickness)} />
-      <VegasBracketArm kind="bl-v" style={armStyle(undefined, undefined, inset, inset, thickness, arm)} />
-      <VegasBracketArm kind="br-h" style={armStyle(undefined, inset, inset, undefined, arm, thickness)} />
-      <VegasBracketArm kind="br-v" style={armStyle(undefined, inset, inset, undefined, thickness, arm)} />
-      <span
-        className="welcome-bracket-rivet pointer-events-none absolute z-[3]"
-        style={{ top: inset, left: inset, width: rivet, height: rivet }}
-        aria-hidden
-      />
-      <span
-        className="welcome-bracket-rivet pointer-events-none absolute z-[3]"
-        style={{ top: inset, right: inset, width: rivet, height: rivet }}
-        aria-hidden
-      />
-      <span
-        className="welcome-bracket-rivet pointer-events-none absolute z-[3]"
-        style={{ bottom: inset, left: inset, width: rivet, height: rivet }}
-        aria-hidden
-      />
-      <span
-        className="welcome-bracket-rivet pointer-events-none absolute z-[3]"
-        style={{ bottom: inset, right: inset, width: rivet, height: rivet }}
-        aria-hidden
-      />
+      {corners.map(({ pos, transform }) => (
+        <img
+          key={pos}
+          src={WELCOME_WALL_ASSETS.bracketCorner}
+          alt=""
+          aria-hidden
+          className={`pointer-events-none absolute z-[4] h-auto max-w-[44%] select-none ${pos}`}
+          style={{ width: size, transform }}
+          decoding="async"
+          draggable={false}
+        />
+      ))}
     </>
+  )
+}
+
+/** Full-viewport felt + polished floor — image layers only. */
+function WelcomeWallBackdrop() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden bg-[#050806]">
+      <img
+        src={WELCOME_WALL_ASSETS.feltBg}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-center"
+        decoding="async"
+        draggable={false}
+      />
+      <img
+        src={WELCOME_WALL_ASSETS.floorReflection}
+        alt=""
+        className="absolute inset-x-0 bottom-0 h-[min(30vh,340px)] w-full object-cover object-bottom opacity-95"
+        decoding="async"
+        draggable={false}
+      />
+      <div
+        className="absolute inset-0 opacity-75"
+        style={{
+          background:
+            'radial-gradient(ellipse 78% 68% at 50% 42%, transparent 38%, rgba(0, 0, 0, 0.42) 100%)',
+        }}
+      />
+    </div>
   )
 }
 
@@ -229,7 +198,7 @@ function VegasAttentionPanel({
     'relative z-[5] flex h-full min-h-0 min-w-0 flex-col'
   return (
     <div className={`@container/size relative isolate overflow-hidden rounded-[inherit] ${className}`}>
-      {showCorners ? <VegasCornerBrackets /> : null}
+      {showCorners ? <WelcomePanelCornerBrackets /> : null}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-[3px] z-[1] rounded-[inherit] border border-amber-100/14 shadow-[inset_0_0_28px_rgba(251,191,36,0.07),inset_0_1px_0_rgba(253,246,178,0.12)]"
@@ -514,7 +483,7 @@ function WelcomeHowItWorksPanel({
         showCorners
         animateShimmer={!reducedMotion}
         innerFlexClassName={panelInnerFlex}
-        className={`${WELCOME_PANEL_SHELL_MID} min-h-0 h-full w-full flex-1 py-[clamp(8px,min(1.45vmin,_15px),_16px)] lg:min-h-0 lg:h-full lg:flex-1`}
+        className={`${WELCOME_PANEL_SHELL_MID} relative z-[1] min-h-0 h-full w-full flex-1 py-[clamp(8px,min(1.45vmin,_15px),_16px)] lg:min-h-0 lg:h-full lg:flex-1`}
       >
         <WelcomeSectionTitle ribbonClass={ribbonClass}>How it works</WelcomeSectionTitle>
 
@@ -595,173 +564,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
       aria-label="Join"
       className="relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#05030c] antialiased text-white selection:bg-yellow-400/35"
     >
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Dual-tone casino felt — purple house left, emerald house right */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 58% 72% at 16% 44%, rgba(109, 40, 217, 0.44) 0%, transparent 68%),
-              radial-gradient(ellipse 58% 72% at 84% 46%, rgba(5, 150, 105, 0.46) 0%, transparent 68%),
-              linear-gradient(180deg, #1a0a28 0%, #064e3b 48%, #020806 100%)
-            `,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-purple-950/58" />
-        {/* Center spotlight — keeps panels readable */}
-        <div
-          className="absolute inset-0 opacity-90"
-          style={{
-            background:
-              'radial-gradient(ellipse 72% 58% at 50% 42%, rgba(6, 78, 59, 0.28) 0%, transparent 62%)',
-          }}
-        />
-        {/* Gold chandeliers — twin pools */}
-        <motion.div
-          className="absolute -left-[8%] -top-[28%] h-[72vmin] w-[72vmin] rounded-full blur-[72px]"
-          aria-hidden
-          style={{
-            background: 'radial-gradient(circle,rgba(250,230,154,0.32)_0%,rgba(251,191,36,0.06)_42%,transparent_70%)',
-          }}
-          animate={reducedMotion ? undefined : { opacity: [0.14, 0.26, 0.14] }}
-          transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute -right-[12%] -top-[22%] h-[62vmin] w-[62vmin] rounded-full blur-[64px]"
-          aria-hidden
-          style={{
-            background: 'radial-gradient(circle,rgba(251,218,146,0.26)_0%,rgba(234,179,8,0.05)_46%,transparent_72%)',
-          }}
-          animate={reducedMotion ? undefined : { opacity: [0.1, 0.22, 0.1] }}
-          transition={{ duration: 6.2, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-        />
-        {/* Red ramp light (subtle stakes) */}
-        <div
-          className="absolute inset-0 opacity-[0.12]"
-          style={{
-            background: 'radial-gradient(ellipse 90% 60% at 50% 100%,rgba(239,68,68,0.35)_0%,transparent 55%)',
-          }}
-        />
-        {/* Bright felt bank — emerald wash from footer */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.21]"
-          style={{
-            background: 'radial-gradient(ellipse 98% 78% at 50% 108%,rgba(16,185,129,0.42)_0%,transparent 60%)',
-          }}
-        />
-        {/* Drifting “confetti sparks” */}
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 mix-blend-screen opacity-[0.035] sm:opacity-[0.052]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at center,rgba(254,249,231,1)_0.55px,transparent 0.65px)',
-            backgroundSize: '36px 33px',
-          }}
-          animate={reducedMotion ? undefined : { backgroundPosition: ['0% 0%', '100% 100%'] }}
-          transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
-        />
-        {/* Air / haze sparkle */}
-        <div
-          aria-hidden
-          className={`pointer-events-none absolute inset-0 mix-blend-overlay ${reducedMotion ? 'bg-white/[0.03]' : 'motion-safe:animate-vegas-twinkle-field bg-white/[0.055]'}`}
-        />
-        {/* Cinema vignette — leave center open so felt reads */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse 84% 70% at 50% 44%, transparent 44%, rgba(0, 0, 0, 0.38) 72%, rgba(0, 0, 0, 0.78) 100%)',
-          }}
-        />
-        {/* Suit watermarks — embossed into felt */}
-        <div
-          aria-hidden
-          className="welcome-suit-watermark pointer-events-none absolute left-[2%] top-[34%] select-none font-serif leading-none text-white/[0.075]"
-          style={{ fontSize: 'clamp(7.5rem, 23vmin, 16rem)' }}
-        >
-          ♣
-        </div>
-        <div
-          aria-hidden
-          className="welcome-suit-watermark pointer-events-none absolute right-[3%] top-[38%] select-none font-serif leading-none text-red-100/[0.065]"
-          style={{ fontSize: 'clamp(7rem, 21vmin, 15rem)' }}
-        >
-          ♦
-        </div>
-        <div
-          aria-hidden
-          className="welcome-suit-watermark pointer-events-none absolute left-[38%] top-[58%] select-none font-serif leading-none text-amber-100/[0.028]"
-          style={{ fontSize: 'clamp(4rem, 12vmin, 8rem)' }}
-        >
-          ♠
-        </div>
-        {/* Felt texture AFTER vignette (otherwise grain/rail disappears) */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.52] mix-blend-soft-light md:opacity-[0.62]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 40% 35%, rgba(214, 245, 225, 0.55) 1.4px, transparent 2.1px), radial-gradient(circle at 50% 50%, rgba(15, 78, 58, 0.55) 1.1px, transparent 1.75px)',
-            backgroundSize: '6px 6px, 5px 5px',
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.72] mix-blend-soft-light md:opacity-[0.82]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(
-              "<svg xmlns='http://www.w3.org/2000/svg' width='128' height='128'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='5' stitchTiles='stitch' result='n'/><feColorMatrix type='saturate' values='0' in='n'/></filter><rect width='100%' height='100%' filter='url(#f)' fill='%23042f28'/></svg>"
-            )}")`,
-            backgroundSize: 'min(120px, 18vmin) min(120px, 18vmin)',
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.62] mix-blend-overlay md:opacity-[0.72]"
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(45deg,
-                transparent 0px,
-                transparent 24px,
-                rgba(253,246,226,0.16) 25px,
-                rgba(253,246,226,0.16) 27px,
-                transparent 28px,
-                transparent 60px),
-              repeating-linear-gradient(-45deg,
-                transparent 0px,
-                transparent 24px,
-                rgba(3, 44, 36, 0.38) 25px,
-                rgba(3, 44, 36, 0.38) 27px,
-                transparent 28px,
-                transparent 60px),
-              radial-gradient(ellipse 92% 80% at 50% 40%, rgba(224, 246, 229, 0.28) 0%, transparent 58%),
-              linear-gradient(108deg, rgba(255, 255, 255, 0.2) 0%, transparent 34%, transparent 66%, rgba(0, 0, 0, 0.14) 100%)
-            `,
-          }}
-        />
-        <motion.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 mix-blend-soft-light opacity-[0.14] md:opacity-[0.18]"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(173deg,rgba(255,255,255,0)_0px,rgba(255,255,255,0)_5px,rgba(255,255,255,.14)_6px,rgba(255,255,255,.14)_8px,rgba(255,255,255,0)_9px,rgba(255,255,255,0)_15px)',
-            backgroundSize: '100% 100%',
-          }}
-          animate={reducedMotion ? undefined : { opacity: [0.12, 0.26, 0.13] }}
-          transition={{ duration: 8.5, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        {/* Wood rail + panel light bounce at floor */}
-        <div
-          aria-hidden
-          className="welcome-wood-rail pointer-events-none absolute inset-x-0 bottom-0 h-[22vh] opacity-95"
-        />
-        <div
-          aria-hidden
-          className="welcome-floor-reflection pointer-events-none absolute inset-x-0 bottom-0 h-[18vh] opacity-70"
-        />
-      </div>
+      <WelcomeWallBackdrop />
 
       <motion.div
         className="relative z-10 mx-auto flex min-h-0 h-full max-h-full w-full max-w-none flex-col gap-y-[clamp(2px,_0.5vmin,_7px)] max-[height:920px]:gap-y-[clamp(4px,_0.85vmin,_9px)] px-[clamp(6px,_1.2vw,_40px)] py-[clamp(2px,_0.4vh,_8px)] max-[height:920px]:py-[clamp(3px,_0.48vh,_8px)] [@media(max-height:720px)]:gap-y-1 [@media(max-height:720px)]:py-1 [@media(max-height:720px)]:px-2 lg:gap-y-[clamp(2px,_0.55vmin,_8px)] lg:px-[clamp(10px,min(2.25vw,_48px),_48px)] lg:pb-[max(8px,env(safe-area-inset-bottom))] lg:pt-[max(4px,min(0.35vh,_6px))] overflow-hidden"

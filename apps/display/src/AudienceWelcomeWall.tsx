@@ -47,7 +47,7 @@ const WELCOME_PANEL_SURFACE_BASE =
   'welcome-panel-surface relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#060608]/94'
 
 const WELCOME_PANEL_PAD =
-  'px-[clamp(12px,min(1.35vmin,16px),16px)] pt-[clamp(14px,min(1.55vmin,20px),22px)] pb-[clamp(10px,min(1.15vmin,14px),14px)]'
+  'px-[clamp(11px,min(1.22vmin,14px),14px)] pt-[clamp(12px,min(1.4vmin,18px),20px)] pb-[clamp(9px,min(1.05vmin,13px),13px)]'
 
 /** Narrow strip below panel bottoms — room for baked floor reflection. */
 const WELCOME_FLOOR_RESERVE = 'var(--welcome-floor-h, min(10vh, 108px))'
@@ -59,7 +59,7 @@ const WELCOME_PANEL_SHELL_MID = WELCOME_PANEL_SHELL_QR
 
 /** Recessed LED readout — room code and player count share this well. */
 const WELCOME_LED_WELL =
-  'welcome-led-well welcome-led-readout-well isolate px-[clamp(12px,_1.6vmin,_20px)] py-[clamp(14px,_1.65vmin,_22px)]'
+  'welcome-led-well welcome-led-readout-well isolate px-[clamp(11px,_1.45vmin,_18px)] py-[clamp(12px,_1.5vmin,_20px)]'
 
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'

@@ -1052,24 +1052,24 @@
 
   /** Audience welcome wall — casino marquee scale (1920×1080 targets). */
   .display-text-welcome-primary-cq {
-    font-size: clamp(3rem, 6.3vmin, 4.75rem);
+    font-size: clamp(2.75rem, 5.75vmin, 4.35rem);
   }
 
   .display-text-welcome-secondary-cq {
-    font-size: clamp(2rem, 4.1vmin, 3rem);
+    font-size: clamp(1.85rem, 3.75vmin, 2.75rem);
   }
 
   .display-text-welcome-dense-cq {
-    font-size: clamp(1.0625rem, 1.85vmin, 1.5rem);
+    font-size: clamp(0.98rem, 1.68vmin, 1.38rem);
   }
 
   .display-text-welcome-url-cqw {
-    font-size: clamp(1.25rem, 2.35vmin, 1.875rem);
+    font-size: clamp(1.125rem, 2.15vmin, 1.72rem);
     line-height: 1.32;
   }
 
   .display-text-welcome-tips-cq {
-    font-size: clamp(1.125rem, 2.9cqh, 2.05rem);
+    font-size: clamp(1.04rem, 2.65cqh, 1.88rem);
     line-height: 1.42;
   }
 
@@ -1136,24 +1136,24 @@
   /** Welcome wall layout tokens — tuned for 16:9 venue displays. */
   .welcome-screen {
     --welcome-floor-h: clamp(72px, 10vh, 120px);
-    --welcome-panel-h: clamp(520px, 58vh, 660px);
-    --welcome-card-gap: 2.5%;
-    --welcome-bracket-size: clamp(3.25rem, min(16cqw, 13cqh), 5.75rem);
+    --welcome-panel-h: clamp(470px, 52vh, 590px);
+    --welcome-card-gap: 2.25%;
+    --welcome-bracket-size: clamp(3rem, min(14.8cqw, 12cqh), 5.3rem);
     --welcome-bracket-vx-left: 11%;
     --welcome-bracket-vx-right: 11.5%;
     --welcome-bracket-vy: 9.2%;
     /** Align CSS rails with the gold arms baked into the bracket PNGs. */
-    --welcome-rail-offset: clamp(4px, 0.48vmin, 6px);
+    --welcome-rail-offset: clamp(4px, 0.44vmin, 5px);
     /** Room below card for flipped bracket filigree (grid padding only). */
-    --welcome-bracket-bottom-bleed: clamp(12px, 1.5vmin, 20px);
-    --welcome-bracket-inset: clamp(13px, 1.45vmin, 18px);
+    --welcome-bracket-bottom-bleed: clamp(11px, 1.35vmin, 18px);
+    --welcome-bracket-inset: clamp(12px, 1.32vmin, 16px);
   }
 
   .welcome-card-heading {
-    font-size: clamp(2rem, 4.1vmin, 3rem);
+    font-size: clamp(1.85rem, 3.75vmin, 2.75rem);
     letter-spacing: 0.14em;
     line-height: 1.05;
-    padding-inline: clamp(10px, min(1.8vmin, 2cqw), 22px);
+    padding-inline: clamp(9px, min(1.65vmin, 1.85cqw), 20px);
   }
 
   /** Panel section header — spacing below top bracket, gap before content. */
@@ -1163,22 +1163,22 @@
     flex-shrink: 0;
     flex-direction: column;
     align-items: center;
-    gap: clamp(10px, min(1.35vmin, 1.4cqh), 16px);
-    padding-top: clamp(6px, min(1vmin, 1.1cqh), 12px);
-    padding-bottom: clamp(10px, min(1.35vmin, 1.45cqh), 18px);
+    gap: clamp(9px, min(1.22vmin, 1.25cqh), 14px);
+    padding-top: clamp(5px, min(0.9vmin, 1cqh), 11px);
+    padding-bottom: clamp(9px, min(1.22vmin, 1.32cqh), 16px);
   }
 
   .welcome-section-label {
-    font-size: clamp(1.0625rem, 1.85vmin, 1.5rem);
+    font-size: clamp(0.98rem, 1.68vmin, 1.38rem);
     letter-spacing: 0.14em;
   }
 
   .welcome-room-code-glyphs {
-    font-size: clamp(3rem, 6.3vmin, 4.75rem);
+    font-size: clamp(2.75rem, 5.75vmin, 4.35rem);
   }
 
   .welcome-player-count-glyphs {
-    font-size: clamp(3.5rem, 7vmin, 5.625rem);
+    font-size: clamp(3.2rem, 6.4vmin, 5.15rem);
   }
 
   /** Welcome wall — LED readouts (shared glow; font split by readout type). */
@@ -1239,7 +1239,7 @@
   }
 
   .welcome-label-rule-text {
-    font-size: clamp(0.8125rem, 1.45vmin, 1.125rem);
+    font-size: clamp(0.75rem, 1.32vmin, 1.02rem);
     font-weight: 900;
     letter-spacing: 0.16em;
     line-height: 1;
@@ -1274,7 +1274,7 @@
     box-shadow:
       inset 0 0 0 1px rgb(255 255 255 / 0.05),
       0 0 20px rgb(52 211 153 / 0.14);
-    padding: clamp(10px, 1.2vmin, 16px) clamp(12px, 1.4vmin, 18px);
+    padding: clamp(9px, 1.05vmin, 14px) clamp(11px, 1.25vmin, 16px);
   }
 
   /** Gold players tile — separate bottom container in join panel. */
@@ -1308,7 +1308,7 @@
       inset 0 2px 12px rgb(0 0 0 / 0.55),
       0 0 24px rgb(234 179 8 / 0.28),
       0 0 40px rgb(251 191 36 / 0.1);
-    padding: clamp(10px, 1.2vmin, 16px) clamp(12px, 1.4vmin, 18px);
+    padding: clamp(9px, 1.05vmin, 14px) clamp(11px, 1.25vmin, 16px);
   }
 
   .welcome-players-count {
@@ -1317,8 +1317,8 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: clamp(4.25rem, 12cqh, 7rem);
-    padding: clamp(6px, 0.85vmin, 12px) 0 clamp(4px, 0.55vmin, 8px);
+    min-height: clamp(3.85rem, 11cqh, 6.4rem);
+    padding: clamp(5px, 0.75vmin, 11px) 0 clamp(3px, 0.5vmin, 7px);
   }
 
   .welcome-led-well {
@@ -1328,7 +1328,7 @@
     justify-content: center;
     width: 100%;
     min-width: 0;
-    min-height: clamp(4.25rem, 12cqh, 7rem);
+    min-height: clamp(3.85rem, 11cqh, 6.4rem);
   }
 
   .welcome-inset-panel {
@@ -1425,9 +1425,9 @@
   .welcome-qr-tile-shell {
     display: flex;
     aspect-ratio: 1;
-    height: min(100%, 84cqw, 420px);
+    height: min(100%, 78cqw, 385px);
     width: auto;
-    max-width: min(100%, 84cqw, 420px);
+    max-width: min(100%, 78cqw, 385px);
     filter:
       drop-shadow(0 0 10px rgb(254 249 231 / 0.92))
       drop-shadow(0 0 22px rgb(251 191 36 / 0.48))
@@ -1620,15 +1620,15 @@
     display: flex;
     justify-content: center;
     padding-top: clamp(6px, 0.85vh, 14px);
-    margin-bottom: clamp(-28px, -2.8vh, -14px);
+    margin-bottom: clamp(-26px, -2.5vh, -12px);
   }
 
   .welcome-wordmark-stage {
     perspective: 1100px;
     perspective-origin: 50% 38%;
-    width: clamp(26rem, 27vw, 32.5rem);
-    max-width: min(96vw, 32.5rem);
-    max-height: min(30vh, 320px);
+    width: clamp(29rem, 31vw, 37rem);
+    max-width: min(96vw, 37rem);
+    max-height: min(35vh, 370px);
   }
 
   .welcome-floor-reflection-glow {

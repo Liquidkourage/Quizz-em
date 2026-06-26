@@ -585,7 +585,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     `welcome-player-count-glyphs welcome-led-glyphs tabular-nums leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
   const joinUrlText =
-    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold uppercase tracking-[0.04em] ${DISPLAY_TEXT_WELCOME_URL_CQW}`
+    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.03em] ${DISPLAY_TEXT_WELCOME_URL_CQW}`
 
   return (
     <div

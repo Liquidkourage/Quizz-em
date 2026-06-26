@@ -1069,7 +1069,7 @@
   }
 
   .display-text-welcome-tips-cq {
-    font-size: clamp(1.25rem, 3.25cqh, 2.25rem);
+    font-size: clamp(1.125rem, 2.9cqh, 2.05rem);
     line-height: 1.42;
   }
 
@@ -1123,8 +1123,9 @@
   .welcome-tips-step {
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
     text-transform: none;
+    white-space: nowrap;
   }
 
   .welcome-section-title--tips {

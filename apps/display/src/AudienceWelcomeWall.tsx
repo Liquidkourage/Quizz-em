@@ -524,7 +524,7 @@ function WelcomeHowItWorksPanel({
   reducedMotion: boolean
 }) {
   const bulletClass =
-    `welcome-tips-step text-pretty text-white/95 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
+    `welcome-tips-step text-white/95 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
 
   const panelInnerFlex =
     'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col items-stretch overflow-hidden'

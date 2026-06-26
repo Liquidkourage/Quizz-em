@@ -64,9 +64,17 @@ const WELCOME_LED_WELL =
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'
 
-function WelcomeSectionTitle({ ribbonClass, children }: { ribbonClass: string; children: ReactNode }) {
+function WelcomeSectionTitle({
+  ribbonClass,
+  className,
+  children,
+}: {
+  ribbonClass: string
+  className?: string
+  children: ReactNode
+}) {
   return (
-    <div className="welcome-section-title">
+    <div className={`welcome-section-title${className ? ` ${className}` : ''}`}>
       <span className={ribbonClass}>{children}</span>
       <div aria-hidden className="welcome-section-rule" />
     </div>
@@ -516,10 +524,10 @@ function WelcomeHowItWorksPanel({
   reducedMotion: boolean
 }) {
   const bulletClass =
-    `welcome-tips-step text-pretty font-medium uppercase text-amber-50/94 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
+    `welcome-tips-step text-pretty text-white/95 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
 
   const panelInnerFlex =
-    'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col justify-start gap-y-[clamp(4px,min(0.75vmin,_9px),_11px)] items-stretch overflow-hidden'
+    'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col items-stretch overflow-hidden'
 
   const ribbonClass = `${sectionRibbon} w-full block shrink-0 text-center [text-wrap:balance]`
 
@@ -532,7 +540,9 @@ function WelcomeHowItWorksPanel({
         innerFlexClassName={panelInnerFlex}
         className={`${WELCOME_PANEL_SHELL_MID} relative z-[1] h-full w-full flex-1`}
       >
-        <WelcomeSectionTitle ribbonClass={ribbonClass}>How it works</WelcomeSectionTitle>
+        <WelcomeSectionTitle ribbonClass={ribbonClass} className="welcome-section-title--tips">
+          How it works
+        </WelcomeSectionTitle>
 
         <div className="welcome-tips-stage">
           <ul className="welcome-tips-list">

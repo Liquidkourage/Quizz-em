@@ -1069,8 +1069,8 @@
   }
 
   .display-text-welcome-tips-cq {
-    font-size: clamp(1rem, 1.85vmin, 1.375rem);
-    line-height: 1.38;
+    font-size: clamp(1.25rem, 3.25cqh, 2.25rem);
+    line-height: 1.42;
   }
 
   .display-text-welcome-tips-group-cq {
@@ -1091,27 +1091,45 @@
     min-height: 0;
     flex: 1 1 0%;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: clamp(2px, 0.45vmin, 6px) clamp(4px, 0.75vmin, 10px);
+    align-items: stretch;
+    justify-content: stretch;
+    width: 100%;
+    padding: clamp(2px, 0.35vmin, 4px) clamp(10px, 2.2cqw, 22px) clamp(8px, 1.1vmin, 14px);
   }
 
   .welcome-tips-list {
     display: flex;
-    width: min(100%, 30rem);
+    width: 100%;
     min-height: 0;
+    flex: 1 1 0%;
     flex-direction: column;
-    justify-content: center;
-    gap: clamp(0.32rem, 0.62vmin, 0.52rem);
+    justify-content: stretch;
+    gap: clamp(0.35rem, 1.1cqh, 0.85rem);
     margin: 0;
-    padding: 0 0 0 clamp(0.35rem, 0.7vmin, 0.65rem);
+    padding: 0 0 0 clamp(0.25rem, 0.55vmin, 0.5rem);
     list-style: none;
   }
 
   .welcome-tips-item {
     display: flex;
-    gap: clamp(0.5rem, 0.95vmin, 0.8rem);
+    flex: 1 1 0%;
+    align-items: center;
+    gap: clamp(0.65rem, 1.25vmin, 1rem);
+    min-height: 0;
+    padding-block: clamp(2px, 0.35cqh, 6px);
     text-align: left;
+  }
+
+  .welcome-tips-step {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+
+  .welcome-section-title--tips {
+    gap: clamp(6px, 0.85vmin, 10px);
+    padding-bottom: clamp(4px, 0.55vmin, 8px);
   }
 
   /** Welcome wall layout tokens — tuned for 16:9 venue displays. */
@@ -1371,10 +1389,10 @@
   }
 
   .welcome-gold-bullet {
-    margin-top: 0.38em;
+    align-self: center;
     flex-shrink: 0;
-    width: clamp(0.5rem, 0.95vmin, 0.72rem);
-    height: clamp(0.5rem, 0.95vmin, 0.72rem);
+    width: clamp(0.58rem, 1.05vmin, 0.82rem);
+    height: clamp(0.58rem, 1.05vmin, 0.82rem);
     border-radius: 2px;
     background: linear-gradient(135deg, #fde68a 0%, #facc15 48%, #d97706 100%);
     box-shadow:

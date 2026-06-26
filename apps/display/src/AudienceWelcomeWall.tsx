@@ -301,16 +301,18 @@ function WelcomeQrColumn({
         <WelcomeSectionTitle ribbonClass={aimClass}>Scan to join</WelcomeSectionTitle>
         {qrOk ? (
           <div className={midClass}>
-            <div className={whiteTileBase}>
-              <img
-                src={qrImgSrc(qrJoinUrl)}
-                alt=""
-                width={640}
-                height={640}
-                className="welcome-qr-image block h-full w-full object-contain object-center leading-none"
-                referrerPolicy="no-referrer"
-                onError={() => setQrOk(false)}
-              />
+            <div className="welcome-qr-tile-shell">
+              <div className={whiteTileBase}>
+                <img
+                  src={qrImgSrc(qrJoinUrl)}
+                  alt=""
+                  width={640}
+                  height={640}
+                  className="welcome-qr-image block h-full w-full object-contain object-center leading-none"
+                  referrerPolicy="no-referrer"
+                  onError={() => setQrOk(false)}
+                />
+              </div>
             </div>
           </div>
         ) : (

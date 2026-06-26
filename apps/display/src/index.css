@@ -1253,23 +1253,38 @@
     padding: clamp(4px, 0.75vmin, 10px) clamp(8px, 1.75cqw, 16px);
   }
 
-  .welcome-qr-tile {
+  /** Outer glow halo — drop-shadow survives tile overflow clipping. */
+  .welcome-qr-tile-shell {
     display: flex;
-    box-sizing: border-box;
     aspect-ratio: 1;
     height: min(100%, 84cqw, 420px);
     width: auto;
     max-width: min(100%, 84cqw, 420px);
+    filter:
+      drop-shadow(0 0 10px rgb(254 249 231 / 0.92))
+      drop-shadow(0 0 22px rgb(251 191 36 / 0.48))
+      drop-shadow(0 0 36px rgb(234 179 8 / 0.22))
+      drop-shadow(0 12px 32px rgb(0 0 0 / 0.45));
+  }
+
+  .welcome-qr-tile {
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: #fff;
+    background: linear-gradient(165deg, #fff 0%, #fffaf0 52%, #fef3c7 100%);
+    border: 1.5px solid rgb(254 249 231 / 0.98);
     border-radius: 14%;
     padding: clamp(8px, 8%, 14px);
     box-shadow:
-      0 10px 36px rgb(0 0 0 / 0.42),
-      0 0 28px rgb(254 249 231 / 0.18),
-      0 0 40px rgb(234 179 8 / 0.14);
+      inset 0 2px 0 rgb(255 255 255 / 1),
+      inset 0 -3px 8px rgb(251 191 36 / 0.12),
+      inset 2px 0 0 rgb(255 255 255 / 0.65),
+      inset -2px 0 0 rgb(217 119 6 / 0.08),
+      0 0 0 1px rgb(251 191 36 / 0.42);
   }
 
   .welcome-qr-image {
@@ -1284,6 +1299,22 @@
     position: relative;
     isolation: isolate;
     --welcome-bracket-size: clamp(3.25rem, min(16cqw, 13cqh), 5.75rem);
+    filter: drop-shadow(0 16px 40px rgb(0 0 0 / 0.58)) drop-shadow(0 0 24px rgb(234 179 8 / 0.1));
+  }
+
+  /** Beveled card lip — raised gold edge with depth. */
+  .welcome-panel-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 14;
+    pointer-events: none;
+    box-shadow:
+      inset 0 2px 0 rgb(253 230 138 / 0.34),
+      inset 0 -4px 12px rgb(0 0 0 / 0.62),
+      inset 3px 0 0 rgb(255 255 255 / 0.05),
+      inset -3px 0 0 rgb(0 0 0 / 0.38),
+      inset 0 0 0 1px rgb(251 191 36 / 0.28);
   }
 
   /** Gold rails — full edge span at bracket arm height, under corner brackets. */
@@ -1306,7 +1337,7 @@
       0 calc(100% - var(--welcome-rail-offset)),
       var(--welcome-rail-offset) 0,
       calc(100% - var(--welcome-rail-offset)) 0;
-    filter: drop-shadow(0 0 10px rgb(234 179 8 / 0.22));
+    filter: drop-shadow(0 0 12px rgb(234 179 8 / 0.34)) drop-shadow(0 0 24px rgb(251 191 36 / 0.16));
   }
 
   .welcome-panel-corners {
@@ -1332,8 +1363,10 @@
     height: 100%;
     max-height: 100%;
     box-shadow:
-      inset 0 1px 0 rgb(253 246 178 / 0.16),
-      inset 0 0 64px rgb(0 0 0 / 0.58);
+      inset 0 1px 0 rgb(253 246 178 / 0.22),
+      inset 0 -2px 0 rgb(0 0 0 / 0.55),
+      inset 0 0 72px rgb(0 0 0 / 0.62),
+      0 1px 0 rgb(251 191 36 / 0.12);
   }
 
   .welcome-bracket-corner--tl {

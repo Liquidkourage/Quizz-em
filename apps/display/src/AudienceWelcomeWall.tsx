@@ -589,7 +589,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
       aria-label="Join"
       className="welcome-screen relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35"
     >
-      <DisplayWelcomeBackdrop />
+      <DisplayWelcomeBackdrop showFloorBand />
       <WelcomeFloorReflectionOverlay />
 
       <motion.div

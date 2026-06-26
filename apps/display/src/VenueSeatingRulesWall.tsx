@@ -6,6 +6,7 @@ import {
   type VenueRulesWallBulletGroup,
   type VenueRulesWallColumn,
 } from './venueRulesWallContent'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 export type VenueSeatingRulesWallProps = {
   skipMountIntro?: boolean
@@ -99,21 +100,11 @@ function RulesColumn({
 export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueSeatingRulesWallProps) {
   return (
     <div
-      className="venue-rules-wall flex min-h-[100dvh] w-full flex-col overflow-hidden bg-slate-950 text-white"
+      className="venue-rules-wall relative flex min-h-[100dvh] w-full flex-col overflow-hidden bg-[#050806] text-white"
       role="region"
       aria-label={VENUE_RULES_WALL_HEADLINE}
     >
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 18% 12%, rgba(251, 191, 36, 0.08) 0%, transparent 42%),
-            radial-gradient(circle at 82% 88%, rgba(52, 211, 153, 0.06) 0%, transparent 40%),
-            linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(2, 6, 23, 0.85) 100%)
-          `,
-        }}
-      />
+      <DisplayWelcomeBackdrop />
 
       <motion.div
         className="relative z-10 mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-[clamp(0.65rem,1.35vmin,1rem)] px-[clamp(1.25rem,3.5vw,4rem)] py-[max(0.65rem,env(safe-area-inset-top))] pb-[max(0.65rem,env(safe-area-inset-bottom))]"

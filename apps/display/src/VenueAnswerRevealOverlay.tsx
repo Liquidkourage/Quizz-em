@@ -3,6 +3,7 @@ import { QuizzEmWordmark } from '@qhe/ui'
 import { formatTriviaNumber } from '@qhe/core'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import type { VenueAnswerRevealPayload } from './useVenueAnswerReveal'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 export type VenueAnswerRevealOverlayProps = {
   payload: VenueAnswerRevealPayload
@@ -14,7 +15,7 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
 
   return (
     <motion.div
-      className="fixed inset-0 z-[205] flex items-center justify-center overflow-hidden bg-black/88 px-6 py-10 backdrop-blur-md"
+      className="fixed inset-0 z-[205] flex items-center justify-center overflow-hidden bg-black/72 px-6 py-10 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label={`Correct answer ${formatTriviaNumber(answer)}`}
@@ -23,13 +24,14 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
       exit={reducedMotion ? undefined : { opacity: 0 }}
       transition={{ duration: reducedMotion ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
+      <DisplayWelcomeBackdrop />
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_42%,rgba(251,191,36,0.18),transparent_68%)]"
         aria-hidden
       />
 
       <motion.div
-        className="relative flex w-full max-w-5xl flex-col rounded-2xl border border-amber-400/50 bg-gradient-to-b from-amber-950/90 via-[#120a04] to-black/92 px-6 py-8 shadow-[0_0_56px_rgba(251,191,36,0.22)] sm:px-10 sm:py-10"
+        className="relative z-10 flex w-full max-w-5xl flex-col rounded-2xl border border-amber-400/50 bg-gradient-to-b from-amber-950/90 via-[#120a04] to-black/92 px-6 py-8 shadow-[0_0_56px_rgba(251,191,36,0.22)] sm:px-10 sm:py-10"
         initial={reducedMotion ? false : { opacity: 0, y: 20, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={reducedMotion ? undefined : { opacity: 0, y: 12, scale: 0.98 }}

@@ -16,6 +16,7 @@ import {
   seatingChartWBottomLeftCss,
   seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 function SeatingTableCard({
   table,
@@ -176,13 +177,10 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
   const showPager = pageCount > 1
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-[#0c1220] to-slate-950">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute left-1/2 top-[42%] h-[min(48vh,28rem)] w-[min(88vw,56rem)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/[0.04] blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(251,191,36,0.06),transparent_55%)]" />
-      </div>
+    <div className="fixed inset-0 overflow-hidden bg-[#050806]">
+      <DisplayWelcomeBackdrop />
 
-      <div className="relative flex h-full min-h-0 flex-col overflow-hidden text-white">
+      <div className="relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white">
         <header className="shrink-0 border-b border-yellow-700/25 bg-black/35 px-6 py-3 backdrop-blur-md sm:px-8 sm:py-3.5">
           <div className="flex w-full max-w-none items-center gap-x-5 gap-y-3 sm:gap-x-6">
             <div className="w-[clamp(5.5rem,min(14vw,8rem),9rem)] shrink-0">

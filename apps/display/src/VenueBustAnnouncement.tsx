@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueBustEntry } from '@qhe/net'
 import { computeVenueBustGridLayout } from './venueBustGridLayout'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 function displayPlayerName(raw: string): string {
   const s = String(raw ?? '')
@@ -42,7 +43,7 @@ export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementPr
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden bg-black/82 px-6 py-10 backdrop-blur-md"
+      className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden bg-black/72 px-6 py-10 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label={title}
@@ -51,13 +52,14 @@ export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementPr
       exit={reducedMotion ? undefined : { opacity: 0 }}
       transition={{ duration: reducedMotion ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
+      <DisplayWelcomeBackdrop />
       <div
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_42%,rgba(239,68,68,0.16),transparent_68%)]"
         aria-hidden
       />
 
       <motion.div
-        className="relative flex w-full flex-col rounded-2xl border border-red-500/45 bg-gradient-to-b from-[#1a0508] via-[#12040a] to-black/90 px-6 py-7 shadow-[0_0_48px_rgba(239,68,68,0.22)] sm:px-10 sm:py-9"
+        className="relative z-10 flex w-full flex-col rounded-2xl border border-red-500/45 bg-gradient-to-b from-[#1a0508] via-[#12040a] to-black/90 px-6 py-7 shadow-[0_0_48px_rgba(239,68,68,0.22)] sm:px-10 sm:py-9"
         style={{ maxWidth: grid.cardMaxWidth }}
         initial={reducedMotion ? false : { opacity: 0, y: 18, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

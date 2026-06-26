@@ -11,6 +11,7 @@ import {
 } from './showdownDisplay'
 import { showdownWallLayout } from './showdownWallLayout'
 import { SHOWDOWN_FELT_STYLE } from './showdownTheme'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 type VenueMultiTableShowdownProps = {
   tiles: DisplayVenueTileSnapshot[]
@@ -58,7 +59,7 @@ export default function VenueMultiTableShowdown({
 
   const overlay = (
     <motion.div
-      className={`fixed inset-0 z-[85] flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-black text-white ${className}`}
+      className={`fixed inset-0 z-[85] flex flex-col overflow-hidden bg-[#050806] text-white ${className}`}
       role="dialog"
       aria-modal="true"
       aria-label={`Venue showdown — ${showdownTiles.length} table${showdownTiles.length === 1 ? '' : 's'}`}
@@ -67,8 +68,9 @@ export default function VenueMultiTableShowdown({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.35 }}
     >
+      <DisplayWelcomeBackdrop />
       <header
-        className="flex shrink-0 items-center gap-3 border-b border-yellow-600/50 px-3 py-2 sm:gap-4 sm:px-5 sm:py-2.5"
+        className="relative z-10 flex shrink-0 items-center gap-3 border-b border-yellow-600/50 px-3 py-2 sm:gap-4 sm:px-5 sm:py-2.5"
         style={{
           ...SHOWDOWN_FELT_STYLE,
           paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))',
@@ -109,7 +111,7 @@ export default function VenueMultiTableShowdown({
       </header>
 
       <div
-        className={`grid min-h-0 flex-1 p-2 sm:p-3 ${gapClass}`}
+        className={`relative z-10 grid min-h-0 flex-1 p-2 sm:p-3 ${gapClass}`}
         style={{
           gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
           gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,

@@ -6,6 +6,7 @@ import {
   DISPLAY_TEXT_PAIRING_LABEL,
   DISPLAY_TEXT_PAIRING_TITLE,
 } from './displayTypography'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 export default function PairingScreen({ onPaired }: { onPaired: (venueCode: string) => void }) {
   const [code, setCode] = useState('')
@@ -24,20 +25,8 @@ export default function PairingScreen({ onPaired }: { onPaired: (venueCode: stri
   }, [onPaired])
 
   return (
-    <div className="fixed inset-0 flex min-h-0 flex-col overflow-hidden bg-[#070d1f]">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.38]"
-        style={{
-          backgroundImage: `
-            radial-gradient(ellipse at 50% 18%, rgba(59, 130, 246, 0.12), transparent 52%),
-            radial-gradient(circle at 82% 88%, rgba(99, 102, 241, 0.08), transparent 42%),
-            radial-gradient(#ffffff 0.85px, transparent 0.85px)
-          `,
-          backgroundSize: '100% 100%, 100% 100%, 28px 28px',
-          backgroundPosition: '0 0, 0 0, 14px 14px',
-        }}
-      />
+    <div className="fixed inset-0 flex min-h-0 flex-col overflow-hidden bg-[#050806]">
+      <DisplayWelcomeBackdrop />
 
       <div className="relative z-[1] flex min-h-0 flex-1 flex-col items-center justify-center px-[clamp(2rem,8vw,6rem)] py-[clamp(2rem,6vh,4rem)]">
         <div className="w-full max-w-[min(56rem,94vw)] rounded-[1.25rem] border border-white/[0.08] bg-black/55 px-[clamp(2.5rem,6vw,5rem)] py-[clamp(3rem,7vh,5rem)] shadow-[0_24px_80px_rgba(0,0,0,0.55)] backdrop-blur-md">

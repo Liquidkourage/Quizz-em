@@ -10,6 +10,7 @@ import {
   DISPLAY_TEXT_WELCOME_URL_CQW,
 } from './displayTypography'
 import { QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS } from './venueRulesWallContent'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { WELCOME_WALL_ASSETS } from './welcomeWallAssets'
 
 export type AudienceWelcomeWallProps = {
@@ -162,21 +163,6 @@ function WelcomePanelCornerBrackets() {
         />
       </div>
     </>
-  )
-}
-
-/** Full-viewport background plate (felt, suits, top arc, floor rail baked in). */
-function WelcomeWallBackdrop() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden bg-[#050806]">
-      <img
-        src={WELCOME_WALL_ASSETS.backgroundPlate}
-        alt=""
-        className="welcome-background-plate absolute inset-0 h-full w-full"
-        decoding="async"
-        draggable={false}
-      />
-    </div>
   )
 }
 
@@ -603,7 +589,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
       aria-label="Join"
       className="welcome-screen relative h-[100dvh] max-h-[100dvh] w-full max-w-none overflow-x-hidden overflow-y-hidden overscroll-y-none bg-[#050806] antialiased text-white selection:bg-yellow-400/35"
     >
-      <WelcomeWallBackdrop />
+      <DisplayWelcomeBackdrop />
       <WelcomeFloorReflectionOverlay />
 
       <motion.div

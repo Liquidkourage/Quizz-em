@@ -24,6 +24,7 @@ import {
   showdownTableNums,
 } from './venueWallModel'
 import { useVenueHandStackBaselines } from './useVenueHandStackBaselines'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 function CrownIcon({ className }: { className?: string }) {
   return (
@@ -127,12 +128,10 @@ export default function VenueLeaderboardWall({
   const pageLabel = venueLeaderboardPageLabel(currentPage)
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-[#050a18] via-[#070f1f] to-[#050a18]">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_45%_at_50%_0%,rgba(251,191,36,0.07),transparent_58%)]" />
-      </div>
+    <div className="fixed inset-0 overflow-hidden bg-[#050806]">
+      <DisplayWelcomeBackdrop />
 
-      <div className="relative flex h-full min-h-0 flex-col overflow-hidden text-white">
+      <div className="relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white">
         <header className="shrink-0 border-b border-amber-700/35 bg-black/55 px-5 py-3 backdrop-blur-md sm:px-6">
           <div className="flex w-full items-start gap-x-5 gap-y-2">
             <div className="w-[clamp(5rem,min(13vw,8rem),9.5rem)] shrink-0">

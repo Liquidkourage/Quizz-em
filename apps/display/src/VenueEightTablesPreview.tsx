@@ -56,6 +56,7 @@ import {
   displayHeadlineQuestionClass,
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import {
   chunkTilesIntoRowGroups,
   populatedVenueTiles,
@@ -1807,30 +1808,6 @@ function VenueAerialFloorGrid({
       ) : null}
 
       <div
-        className="pointer-events-none absolute inset-x-0 top-[14%] bottom-[5%] opacity-[0.12]"
-        aria-hidden
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 50% 45%, rgba(251,191,36,0.28) 0%, transparent 58%),
-            repeating-linear-gradient(
-              60deg,
-              transparent,
-              transparent 42px,
-              rgba(255,255,255,0.02) 42px,
-              rgba(255,255,255,0.02) 43px
-            ),
-            repeating-linear-gradient(
-              -60deg,
-              transparent,
-              transparent 42px,
-              rgba(255,255,255,0.02) 42px,
-              rgba(255,255,255,0.02) 43px
-            )
-          `,
-        }}
-      />
-
-      <div
         ref={floorHostRef}
         className={`relative flex min-h-0 flex-1 flex-col overflow-hidden ${gridInsetClass}`}
         style={
@@ -2091,23 +2068,12 @@ export default function VenueEightTablesPreview({
   const sharedShowdownAnswer = inVenueShowdown ? venueShowdownAnswer : undefined
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="fixed inset-0 overflow-hidden bg-[#050806]">
+      <DisplayWelcomeBackdrop />
       <div
-        className={`relative flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
+        className={`relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
         style={venueWallUiScaleFrameStyle()}
       >
-      <div className="pointer-events-none absolute inset-0 opacity-35">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 20% 20%, rgba(139,69,19,0.25) 2px, transparent 2px),
-              linear-gradient(45deg, transparent 47%, rgba(160,82,45,0.12) 50%, transparent 53%)
-            `,
-            backgroundSize: '48px 48px, 64px 64px',
-          }}
-        />
-      </div>
 
       <main
         className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 sm:px-4 ${

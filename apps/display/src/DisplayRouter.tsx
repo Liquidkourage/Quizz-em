@@ -345,7 +345,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       {showVenueMosaicShell && (
         <motion.div
           key="venue-wall-shell"
-          className="relative z-10 min-h-screen w-full bg-slate-950"
+          className="relative z-10 min-h-screen w-full bg-[#050806]"
           role="presentation"
           initial={venueMosaicWasShownRef.current ? false : { opacity: 0, scale: 1.02 }}
           animate={{ opacity: 1, scale: 1 }}

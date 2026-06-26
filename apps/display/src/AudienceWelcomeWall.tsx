@@ -113,22 +113,6 @@ function WelcomeLedDisplay({
   )
 }
 
-function WelcomeGlobeIcon() {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 24 24"
-      className="h-[clamp(0.95rem,min(2.1vmin,_1.35rem),_1.35rem)] w-[clamp(0.95rem,min(2.1vmin,_1.35rem),_1.35rem)] shrink-0 text-emerald-300/90 drop-shadow-[0_0_8px_rgba(52,211,153,0.55)]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M3 12h18M12 3c2.5 2.8 3.8 6 3.8 9s-1.3 6.2-3.8 9M12 3c-2.5 2.8-3.8 6-3.8 9s1.3 6.2 3.8 9" />
-    </svg>
-  )
-}
-
 /** Ornate gold corner brackets — bottom row reuses top positioning inside a Y-flipped wrapper. */
 function WelcomePanelCornerBrackets() {
   const bracketClass = 'welcome-bracket-corner pointer-events-none absolute select-none'
@@ -491,8 +475,7 @@ function WelcomeJoinCard({
 
         <div className="welcome-join-body">
           <div className="welcome-join-info-well">
-            <div className="welcome-join-url-row flex w-full min-w-0 flex-col items-center gap-y-[clamp(4px,min(0.65vmin,_6px),_8px)]">
-              <WelcomeGlobeIcon />
+            <div className="welcome-join-url-row">
               <p
                 className={`${joinUrlText} mx-auto w-full max-w-full min-w-0 text-center text-emerald-50/96 [text-shadow:0_0_12px_rgba(52,211,153,0.35),0_1px_0_rgba(0,0,0,0.9)]`}
                 aria-label={joinUrl}
@@ -533,7 +516,7 @@ function WelcomeHowItWorksPanel({
   reducedMotion: boolean
 }) {
   const bulletClass =
-    `text-pretty font-medium text-amber-50/94 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
+    `welcome-tips-step text-pretty font-medium uppercase text-amber-50/94 [text-shadow:0_2px_14px_rgba(0,0,0,_0.82)] ${DISPLAY_TEXT_WELCOME_TIPS_CQ}`
 
   const panelInnerFlex =
     'relative z-[5] flex min-h-0 min-w-0 max-h-full w-full flex-1 flex-col justify-start gap-y-[clamp(4px,min(0.75vmin,_9px),_11px)] items-stretch overflow-hidden'
@@ -551,10 +534,10 @@ function WelcomeHowItWorksPanel({
       >
         <WelcomeSectionTitle ribbonClass={ribbonClass}>How it works</WelcomeSectionTitle>
 
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-[clamp(2px,min(0.55vmin,_6px),_8px)] py-[clamp(1px,min(0.3vmin,_3px),_4px)]">
-          <ul className="m-0 flex min-h-0 w-fit max-w-[min(100%,26rem)] list-none flex-col justify-center gap-[clamp(0.1rem,0.26vmin,0.24rem)] p-0 pl-[clamp(0.3rem,0.62vmin,0.55rem)]">
+        <div className="welcome-tips-stage">
+          <ul className="welcome-tips-list">
             {QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS.map((step) => (
-              <li key={step} className="flex gap-[clamp(0.4rem,0.75vmin,0.65rem)] text-left">
+              <li key={step} className="welcome-tips-item">
                 <span className="welcome-gold-bullet" aria-hidden />
                 <span className={`${bulletClass} block`}>{step}</span>
               </li>
@@ -602,7 +585,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     `welcome-player-count-glyphs welcome-led-glyphs tabular-nums leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
   const joinUrlText =
-    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.03em] ${DISPLAY_TEXT_WELCOME_URL_CQW}`
+    `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold uppercase tracking-[0.04em] ${DISPLAY_TEXT_WELCOME_URL_CQW}`
 
   return (
     <div

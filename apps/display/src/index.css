@@ -16,6 +16,14 @@
   src: url('/fonts/DSEG7Classic-Bold.woff2') format('woff2');
 }
 
+@font-face {
+  font-family: 'DSEG14 Classic';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/DSEG14Classic-Bold.woff2') format('woff2');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -1154,13 +1162,13 @@
     font-size: clamp(3.5rem, 7vmin, 5.625rem);
   }
 
-  /** Welcome wall — 7-segment LED readouts (room code, player count). */
+  /** Welcome wall — LED readouts (shared glow; font split by readout type). */
   .welcome-led-glyphs {
-    font-family: 'DSEG7 Classic', monospace;
     font-weight: 700;
     font-synthesis: none;
     letter-spacing: 0.14em;
     font-variant-numeric: tabular-nums;
+    text-transform: none;
     color: #fef08a;
     text-shadow:
       0 0 4px rgb(254 240 138 / 1),
@@ -1170,8 +1178,14 @@
       0 2px 4px rgb(0 0 0 / 0.92);
   }
 
-  .welcome-screen .welcome-led-glyphs {
-    font-family: 'DSEG7 Classic', monospace !important;
+  /** Room codes need A–Z; DSEG7 maps upper/lower to the same glyphs. */
+  .welcome-led-glyphs--room {
+    font-family: 'DSEG14 Classic', monospace;
+  }
+
+  /** Player count is digits-only — 7-segment reads cleaner at large sizes. */
+  .welcome-led-glyphs--count {
+    font-family: 'DSEG7 Classic', monospace;
   }
 
   .welcome-led-readout-well {

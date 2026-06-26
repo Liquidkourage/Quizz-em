@@ -5,8 +5,7 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('https://cdn.jsdelivr.net/gh/keshikan/DSEG@master/fonts/DSEG7-Classic/DSEG7Classic-Regular.woff2')
-    format('woff2');
+  src: url('/fonts/DSEG7Classic-Regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -14,17 +13,7 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('https://cdn.jsdelivr.net/gh/keshikan/DSEG@master/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2')
-    format('woff2');
-}
-
-@font-face {
-  font-family: 'DSEG14 Classic';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('https://cdn.jsdelivr.net/gh/keshikan/DSEG@master/fonts/DSEG14-Classic/DSEG14Classic-Bold.woff2')
-    format('woff2');
+  src: url('/fonts/DSEG7Classic-Bold.woff2') format('woff2');
 }
 
 @tailwind base;
@@ -1129,10 +1118,12 @@
     font-size: clamp(3.5rem, 7vmin, 5.625rem);
   }
 
-  /** Welcome wall — LED readouts (room code, player count). */
+  /** Welcome wall — 7-segment LED readouts (room code, player count). */
   .welcome-led-glyphs {
+    font-family: 'DSEG7 Classic', monospace;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    font-synthesis: none;
+    letter-spacing: 0.14em;
     font-variant-numeric: tabular-nums;
     color: #fef08a;
     text-shadow:
@@ -1143,13 +1134,8 @@
       0 2px 4px rgb(0 0 0 / 0.92);
   }
 
-  /** 7-segment — room code and player count. */
-  .welcome-led-glyphs--dseg7,
-  .welcome-led-glyphs--room,
-  .welcome-led-glyphs--count {
-    font-family: 'DSEG7 Classic', Orbitron, ui-monospace, monospace;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+  .welcome-screen .welcome-led-glyphs {
+    font-family: 'DSEG7 Classic', monospace !important;
   }
 
   .welcome-led-readout-well {

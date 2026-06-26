@@ -59,7 +59,7 @@ const WELCOME_PANEL_SHELL_MID = WELCOME_PANEL_SHELL_QR
 
 /** Recessed LED readout — room code and player count share this well. */
 const WELCOME_LED_WELL =
-  'welcome-led-well welcome-inset-panel isolate px-[clamp(12px,_1.6vmin,_20px)] py-[clamp(10px,_1.15vmin,_14px)]'
+  'welcome-led-well welcome-led-readout-well isolate px-[clamp(12px,_1.6vmin,_20px)] py-[clamp(10px,_1.15vmin,_14px)]'
 
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'
@@ -69,6 +69,14 @@ function WelcomeSectionTitle({ ribbonClass, children }: { ribbonClass: string; c
     <div className="welcome-section-title">
       <span className={ribbonClass}>{children}</span>
       <div aria-hidden className="welcome-section-rule" />
+    </div>
+  )
+}
+
+function WelcomeLabelRule({ children }: { children: ReactNode }) {
+  return (
+    <div className="welcome-label-rule">
+      <span className="welcome-label-rule-text">{children}</span>
     </div>
   )
 }
@@ -386,7 +394,7 @@ function AttendanceSection({
   const underJoinTileClass = `${tileShared} w-full`
   const gridMiddleTileClass = `${tileShared} flex w-full min-h-0 flex-col justify-center`
   const inPanelTileClass =
-    'flex w-full min-h-0 shrink-0 flex-col items-center justify-center gap-y-[clamp(4px,min(0.65vmin,_7px),_8px)] pt-[clamp(8px,min(1.1vmin,_12px),_14px)] mt-auto'
+    'welcome-players-well flex w-full min-h-0 shrink-0 flex-col items-stretch gap-y-[clamp(8px,min(1.05vmin,_12px),_14px)] mt-auto'
 
   function wrapTileFor(layout: AttendanceSectionProps['layout']) {
     if (layout === 'strip') return { wrap: stripWrapClass, tile: stripTileClass }
@@ -397,12 +405,7 @@ function AttendanceSection({
 
   const { wrap: wrapClass, tile: tileClass } = wrapTileFor(layout)
 
-  const labelClass =
-    layout === 'inPanel'
-      ? `welcome-section-label min-w-0 font-black uppercase text-amber-50/90 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
-      : playerCountLabelClass
-
-  const digitWrapClass = layout === 'inPanel' ? WELCOME_LED_WELL : undefined
+  const labelClass = playerCountLabelClass
 
   return (
     <section
@@ -410,9 +413,14 @@ function AttendanceSection({
       className={`${wrapClass}${className ? ` ${className}` : ''}`}
     >
       <div className={tileClass}>
-        <div className={labelClass}>Players</div>
+        {layout === 'inPanel' ? (
+          <WelcomeLabelRule>Players</WelcomeLabelRule>
+        ) : (
+          <div className={labelClass}>Players</div>
+        )}
         {layout === 'inPanel' ? (
           <motion.div
+            className="welcome-players-count"
             animate={
               !reducedMotion && justJoined
                 ? { scale: [1, 1.08, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }
@@ -420,15 +428,11 @@ function AttendanceSection({
             }
             transition={{ duration: 0.55, ease: 'easeOut' }}
           >
-            <WelcomeLedDisplay
-              value={display}
-              glyphClass={statDigitBase}
-              reducedMotion={reducedMotion}
-            />
+            <div className={`${statDigitBase} welcome-led-glyphs`}>{display}</div>
           </motion.div>
         ) : (
           <motion.div
-            className={`${statDigitBase} welcome-led-glyphs tabular-nums${digitWrapClass ? ` ${digitWrapClass}` : ''}`}
+            className={`${statDigitBase} welcome-led-glyphs tabular-nums`}
             animate={
               !reducedMotion && justJoined
                 ? { scale: [1, 1.08, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }
@@ -474,9 +478,6 @@ function WelcomeJoinCard({
 
   const ribbonClass = `${joinRibbonClass} w-full block shrink-0 text-center [text-wrap:balance]`
 
-  const roomCodeLabelClass =
-    `welcome-section-label min-w-0 font-black uppercase text-amber-50/92 ${DISPLAY_TEXT_WELCOME_DENSE_CQ}`
-
   return (
     <section aria-label="Join manually" className={className}>
       <VegasAttentionPanel
@@ -488,19 +489,19 @@ function WelcomeJoinCard({
       >
         <WelcomeSectionTitle ribbonClass={ribbonClass}>Join manually</WelcomeSectionTitle>
 
-        <div className="flex min-h-0 w-full flex-1 flex-col items-stretch justify-between gap-y-[clamp(8px,min(1.05vmin,_12px),_14px)]">
-          <div className="welcome-join-url-well flex w-full min-w-0 flex-col items-center gap-y-[clamp(4px,min(0.65vmin,_6px),_8px)]">
-            <WelcomeGlobeIcon />
-            <p
-              className={`${joinUrlText} mx-auto w-full max-w-full min-w-0 text-center text-emerald-50/96 [text-shadow:0_0_12px_rgba(52,211,153,0.35),0_1px_0_rgba(0,0,0,0.9)]`}
-              aria-label={joinUrl}
-            >
-              {joinUrlForDisplay(joinUrl)}
-            </p>
-          </div>
+        <div className="welcome-join-body">
+          <div className="welcome-join-info-well">
+            <div className="welcome-join-url-row flex w-full min-w-0 flex-col items-center gap-y-[clamp(4px,min(0.65vmin,_6px),_8px)]">
+              <WelcomeGlobeIcon />
+              <p
+                className={`${joinUrlText} mx-auto w-full max-w-full min-w-0 text-center text-emerald-50/96 [text-shadow:0_0_12px_rgba(52,211,153,0.35),0_1px_0_rgba(0,0,0,0.9)]`}
+                aria-label={joinUrl}
+              >
+                {joinUrlForDisplay(joinUrl)}
+              </p>
+            </div>
 
-          <div className="flex w-full min-w-0 flex-col items-center gap-y-[clamp(6px,min(0.85vmin,_10px),_12px)]">
-            <p className={`${roomCodeLabelClass} text-center`}>Room code</p>
+            <WelcomeLabelRule>Room code</WelcomeLabelRule>
             <WelcomeLedDisplay
               value={venueCode}
               glyphClass={venueMono}
@@ -509,18 +510,16 @@ function WelcomeJoinCard({
             />
           </div>
 
-          <div aria-hidden className="welcome-section-rule mx-auto w-[min(88%,11rem)] shrink-0" />
+          <AttendanceSection
+            layout="inPanel"
+            syncingCounts={syncingCounts}
+            enrolled={enrolled}
+            playerCountLabelClass={playerCountLabelClass}
+            statTile1080=""
+            statDigitBase={playerCountGlyphClass}
+            reducedMotion={reducedMotion}
+          />
         </div>
-
-        <AttendanceSection
-          layout="inPanel"
-          syncingCounts={syncingCounts}
-          enrolled={enrolled}
-          playerCountLabelClass={playerCountLabelClass}
-          statTile1080=""
-          statDigitBase={playerCountGlyphClass}
-          reducedMotion={reducedMotion}
-        />
       </VegasAttentionPanel>
     </section>
   )
@@ -597,10 +596,10 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     `welcome-section-label min-w-0 break-words text-balance font-black uppercase text-amber-50/92 ${DISPLAY_TEXT_WELCOME_DENSE_CQ} [text-shadow:0_0_14px_rgba(253,224,138,0.28),0_2px_8px_rgba(0,0,0,.58)]`
 
   const venueMono =
-    `welcome-room-code-glyphs welcome-led-glyphs welcome-led-glyphs--room max-w-full break-all text-center leading-none uppercase ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+    `welcome-room-code-glyphs welcome-led-glyphs welcome-led-glyphs--dseg7 max-w-full break-all text-center leading-none uppercase ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
   const playerCountGlyphs =
-    `welcome-player-count-glyphs welcome-led-glyphs welcome-led-glyphs--count tabular-nums leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+    `welcome-player-count-glyphs welcome-led-glyphs welcome-led-glyphs--dseg7 tabular-nums leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
   const joinUrlText =
     `hyphens-none min-w-0 whitespace-normal break-words text-center font-orbitron font-bold tracking-[0.03em] ${DISPLAY_TEXT_WELCOME_URL_CQW}`

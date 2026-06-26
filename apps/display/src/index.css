@@ -1235,8 +1235,8 @@
     flex: 1 1 0%;
     width: 100%;
     flex-direction: column;
-    justify-content: space-between;
-    gap: clamp(10px, 1.15vmin, 14px);
+    justify-content: flex-start;
+    gap: clamp(3px, 0.35vmin, 5px);
   }
 
   /** Teal stack — URL + room code (mockup middle container). */
@@ -1244,6 +1244,8 @@
     display: flex;
     width: 100%;
     min-width: 0;
+    min-height: 0;
+    flex: 1 1 0%;
     flex-direction: column;
     align-items: stretch;
     gap: clamp(10px, 1.1vmin, 14px);
@@ -1258,7 +1260,11 @@
 
   /** Gold players tile — separate bottom container in join panel. */
   .welcome-players-well {
+    display: flex;
     width: 100%;
+    min-height: 0;
+    flex: 1 1 0%;
+    flex-direction: column;
     border-radius: clamp(10px, 1.1vmin, 14px);
     border: 1.5px solid rgb(251 191 36 / 0.9);
     background:
@@ -1288,19 +1294,22 @@
 
   .welcome-players-count {
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: clamp(3.25rem, 8.5cqh, 5.25rem);
-    padding: clamp(4px, 0.65vmin, 8px) 0 clamp(2px, 0.35vmin, 4px);
+    min-height: clamp(4.25rem, 12cqh, 7rem);
+    padding: clamp(6px, 0.85vmin, 12px) 0 clamp(4px, 0.55vmin, 8px);
   }
 
   .welcome-led-well {
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
     justify-content: center;
     width: 100%;
     min-width: 0;
+    min-height: clamp(4.25rem, 12cqh, 7rem);
   }
 
   .welcome-inset-panel {

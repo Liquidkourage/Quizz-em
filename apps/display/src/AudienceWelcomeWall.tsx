@@ -59,7 +59,7 @@ const WELCOME_PANEL_SHELL_MID = WELCOME_PANEL_SHELL_QR
 
 /** Recessed LED readout — room code and player count share this well. */
 const WELCOME_LED_WELL =
-  'welcome-led-well welcome-led-readout-well isolate px-[clamp(12px,_1.6vmin,_20px)] py-[clamp(10px,_1.15vmin,_14px)]'
+  'welcome-led-well welcome-led-readout-well isolate px-[clamp(12px,_1.6vmin,_20px)] py-[clamp(14px,_1.65vmin,_22px)]'
 
 const WELCOME_PANEL_INNER =
   'relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden'
@@ -378,7 +378,7 @@ function AttendanceSection({
   const underJoinTileClass = `${tileShared} w-full`
   const gridMiddleTileClass = `${tileShared} flex w-full min-h-0 flex-col justify-center`
   const inPanelTileClass =
-    'welcome-players-well flex w-full min-h-0 shrink-0 flex-col items-stretch gap-y-[clamp(8px,min(1.05vmin,_12px),_14px)] mt-auto'
+    'welcome-players-well flex w-full min-h-0 flex-col items-stretch gap-y-[clamp(8px,min(1.05vmin,_12px),_14px)]'
 
   function wrapTileFor(layout: AttendanceSectionProps['layout']) {
     if (layout === 'strip') return { wrap: stripWrapClass, tile: stripTileClass }

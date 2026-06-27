@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { PokerTableGraphic, SeatCupholderMarker, stadiumCupholderSizePx } from '@qhe/ui'
+import { PokerTableGraphic } from '@qhe/ui'
+import { SeatingSeatBadge } from './SeatingSeatBadge'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
@@ -19,9 +20,11 @@ function splitSeatingDisplayName(name: string): { given: string; suffix: string 
 export function SeatingTableDiagram({
   occupiedSeatNums,
   variant = 'default',
+  highlightSeatNum = null,
 }: {
   occupiedSeatNums: number[]
   variant?: 'default' | 'premium'
+  highlightSeatNum?: number | null
 }) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [wrapPx, setWrapPx] = useState({ w: 0, h: 0 })
@@ -40,7 +43,7 @@ export function SeatingTableDiagram({
   }, [])
 
   const { w: wrapW, h: wrapH } = wrapPx
-  const feltScale = premium ? 0.94 : 0.88
+  const feltScale = premium ? 1.02 : 0.88
   const feltW = Math.min(wrapW * feltScale, wrapH * FELT_ASPECT * feltScale)
   const feltH = feltW / FELT_ASPECT
   const feltLeft = (wrapW - feltW) / 2
@@ -72,7 +75,6 @@ export function SeatingTableDiagram({
           const left = feltLeft + (rim.leftPct / 100) * feltW
           const top = feltTop + (rim.topPct / 100) * feltH
           const filled = occupied.has(seatNum)
-          const markerSize = stadiumCupholderSizePx(feltW) * (premium ? 1.12 : 1)
 
           return (
             <div
@@ -81,16 +83,11 @@ export function SeatingTableDiagram({
               style={{ left, top }}
               aria-hidden
             >
-              <SeatCupholderMarker
-                sizePx={markerSize}
-                label={seatNum}
-                labelClassName={
-                  premium
-                    ? 'font-mono text-[10px] tabular-nums sm:text-[11px]'
-                    : 'font-mono text-[9px] tabular-nums sm:text-[10px]'
-                }
-                state={filled ? 'default' : 'empty'}
-                className={premium ? 'seating-seat-marker-map' : undefined}
+              <SeatingSeatBadge
+                seatNum={seatNum}
+                size="map"
+                empty={!filled}
+                highlight={highlightSeatNum != null && seatNum === highlightSeatNum}
               />
             </div>
           )
@@ -108,46 +105,51 @@ function SeatingRosterRow({
   seatNum,
   name,
   variant,
+  highlight = false,
 }: {
   seatNum: number
   name: string | null
   variant: 'default' | 'premium'
+  highlight?: boolean
 }) {
   const premium = variant === 'premium'
   const occupied = name != null && name.trim().length > 0
   const { given, suffix } = occupied ? splitSeatingDisplayName(name) : { given: '', suffix: '' }
 
+  if (!premium) {
+    return (
+      <li className="flex min-h-0 min-w-0 items-center gap-2 rounded-md bg-white/[0.045] px-2 py-1.5 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-2">
+        <SeatingSeatBadge seatNum={seatNum} size="roster" empty={!occupied} />
+        {occupied ? (
+          <span className="min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm">
+            {given}
+            {suffix ? <span className="font-normal text-amber-100/55"> {suffix}</span> : null}
+          </span>
+        ) : null}
+      </li>
+    )
+  }
+
   return (
     <li
-      className={
-        premium
-          ? `seating-roster-row flex min-h-0 min-w-0 items-center gap-2 sm:gap-2.5 ${occupied ? '' : 'seating-roster-row--empty'}`
-          : 'flex min-h-0 min-w-0 items-center gap-2 rounded-md bg-white/[0.045] px-2 py-1.5 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-2'
-      }
+      className={[
+        'seating-roster-row flex min-h-0 min-w-0 items-center',
+        occupied ? '' : 'seating-roster-row--empty',
+        highlight ? 'seating-roster-row--highlight' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
-      <SeatCupholderMarker
-        sizeClassName={premium ? 'h-7 w-7 sm:h-8 sm:w-8' : 'h-6 w-6 sm:h-7 sm:w-7'}
-        label={seatNum}
-        labelClassName="font-mono text-[9px] tabular-nums sm:text-[10px]"
-        state={occupied ? 'default' : 'empty'}
-        className={premium ? 'seating-seat-marker-roster shrink-0' : undefined}
-      />
+      <SeatingSeatBadge seatNum={seatNum} size="roster" empty={!occupied} highlight={highlight} />
       {occupied ? (
-        <span
-          className={
-            premium
-              ? 'seating-roster-name min-w-0 truncate font-semibold leading-tight text-white'
-              : 'min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm'
-          }
-        >
+        <span className="seating-roster-name min-w-0 flex-1 truncate">
           {given}
-          {suffix ? <span className="font-normal text-amber-100/55"> {suffix}</span> : null}
+          {suffix ? <span className="seating-roster-suffix"> {suffix}</span> : null}
+          {highlight ? <span className="seating-roster-you">You</span> : null}
         </span>
-      ) : premium ? (
-        <span className="seating-roster-open min-w-0 truncate text-sm font-medium text-emerald-200/45 sm:text-base">
-          Open seat
-        </span>
-      ) : null}
+      ) : (
+        <span className="seating-roster-open min-w-0 flex-1 truncate">Open seat</span>
+      )}
     </li>
   )
 }
@@ -157,10 +159,13 @@ export function SeatingPlayerList({
   seats,
   showAllSlots = false,
   variant = 'default',
+  highlightSeatNum = null,
 }: {
   seats: SeatingTableSeat[]
   showAllSlots?: boolean
   variant?: 'default' | 'premium'
+  /** Optional local-player seat highlight when caller can identify it. */
+  highlightSeatNum?: number | null
 }) {
   const seatByNum = new Map(seats.map((s) => [s.seatNum, s.name]))
   const premium = variant === 'premium'
@@ -176,12 +181,14 @@ export function SeatingPlayerList({
               seatNum={leftSeat}
               name={seatByNum.get(leftSeat) ?? null}
               variant={variant}
+              highlight={highlightSeatNum != null && leftSeat === highlightSeatNum}
             />,
             <SeatingRosterRow
               key={rightSeat}
               seatNum={rightSeat}
               name={seatByNum.get(rightSeat) ?? null}
               variant={variant}
+              highlight={highlightSeatNum != null && rightSeat === highlightSeatNum}
             />,
           ]
         })}
@@ -202,7 +209,13 @@ export function SeatingPlayerList({
       style={premium ? undefined : { gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))` }}
     >
       {sorted.map((seat) => (
-        <SeatingRosterRow key={seat.seatNum} seatNum={seat.seatNum} name={seat.name} variant={variant} />
+        <SeatingRosterRow
+          key={seat.seatNum}
+          seatNum={seat.seatNum}
+          name={seat.name}
+          variant={variant}
+          highlight={highlightSeatNum != null && seat.seatNum === highlightSeatNum}
+        />
       ))}
     </ul>
   )

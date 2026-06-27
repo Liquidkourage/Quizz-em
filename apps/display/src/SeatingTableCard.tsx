@@ -1,5 +1,4 @@
 import type { VenueSeatingChartTable } from './venueWallModel'
-import { DISPLAY_TEXT_WELCOME_PRIMARY_CQ } from './displayTypography'
 import { DisplayVenueLabelRule, DisplayVenuePanelCornerBrackets } from './DisplayVenuePanelChrome'
 import { SeatingPlayerList, SeatingTableDiagram } from './SeatingTableFelt'
 
@@ -12,12 +11,12 @@ export function SeatingTableCard({ table }: { table: VenueSeatingChartTable }) {
       aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
     >
       <div className="seating-table-card-frame welcome-panel-frame relative h-full min-h-0 w-full overflow-visible">
-        <div className="seating-table-card-surface welcome-panel-surface welcome-panel-surface--join relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-[#060608]/96">
+        <div className="seating-table-card-surface welcome-panel-surface welcome-panel-surface--join relative flex h-full min-h-0 w-full flex-col overflow-hidden">
           <div className="seating-table-card-body flex min-h-0 flex-1 flex-col">
             <header className="seating-table-card-header shrink-0">
               <DisplayVenueLabelRule>Table</DisplayVenueLabelRule>
               <p
-                className={`seating-table-card-number welcome-led-glyphs welcome-led-glyphs--count tabular-nums leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`}
+                className="seating-table-card-number welcome-led-glyphs--count tabular-nums"
                 aria-label={`Table number ${table.tableNum}`}
               >
                 {table.tableNum}

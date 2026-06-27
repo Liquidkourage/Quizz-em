@@ -1949,102 +1949,566 @@
     color: rgb(110 231 183 / 0.35);
   }
 
-  /** Venue eagle-eye leaderboard wall — typography and panel chrome. */
+  /** Venue eagle-eye leaderboard wall — televised tournament presentation. */
+  .venue-lb-screen {
+    background: #04060c;
+    color: rgb(255 251 235 / 0.98);
+  }
+
+  .venue-lb-screen-bg {
+    background:
+      radial-gradient(ellipse 42% 58% at 8% 42%, rgb(168 85 247 / 0.11), transparent 68%),
+      radial-gradient(ellipse 42% 58% at 92% 42%, rgb(45 212 191 / 0.1), transparent 68%),
+      radial-gradient(circle at 25% 25%, rgb(139 69 19 / 0.08) 2px, transparent 2px),
+      radial-gradient(circle at 75% 75%, rgb(100 116 139 / 0.07) 2px, transparent 2px),
+      linear-gradient(180deg, rgb(6 8 16 / 1) 0%, rgb(3 5 10 / 1) 100%);
+    background-size:
+      auto,
+      auto,
+      36px 36px,
+      36px 36px,
+      auto;
+    background-position:
+      center,
+      center,
+      0 0,
+      18px 18px,
+      center;
+  }
+
+  .venue-lb-bezel {
+    padding: clamp(10px, 1.1vmin, 18px);
+    box-shadow: inset 0 0 48px rgb(0 0 0 / 0.72);
+  }
+
+  .venue-lb-viewport {
+    display: flex;
+    flex-direction: column;
+    border-radius: clamp(8px, 0.85vmin, 12px);
+    border: 2px solid rgb(100 116 139 / 0.38);
+    background: linear-gradient(180deg, rgb(8 10 18 / 0.94) 0%, rgb(4 6 12 / 0.98) 100%);
+    box-shadow:
+      inset 0 0 0 1px rgb(251 191 36 / 0.14),
+      inset 0 0 28px rgb(0 0 0 / 0.55),
+      0 0 0 1px rgb(168 85 247 / 0.22),
+      0 0 0 2px rgb(45 212 191 / 0.1);
+    padding: clamp(14px, 1.75vmin, 26px) clamp(16px, 2vw, 30px) clamp(12px, 1.5vmin, 22px);
+    gap: clamp(8px, 1.1vmin, 14px);
+  }
+
+  .venue-lb-header {
+    padding-bottom: clamp(2px, 0.35vmin, 4px);
+  }
+
+  .venue-lb-header-row {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(14px, 1.8vw, 24px);
+  }
+
+  .venue-lb-logo-wrap {
+    width: clamp(11rem, 18vw, 23.75rem);
+    flex-shrink: 0;
+  }
+
   .venue-lb-title {
     font-family: Orbitron, monospace;
-    font-size: clamp(2.625rem, 4.8vmin, 3.125rem);
+    font-size: clamp(3.25rem, 4.25vw, 5.125rem);
     font-weight: 900;
-    letter-spacing: 0.08em;
-    line-height: 1.05;
+    letter-spacing: 0.1em;
+    line-height: 0.98;
     text-transform: uppercase;
+    background: linear-gradient(180deg, #fff4b8 0%, #fbbf24 38%, #d4a017 72%, #a16207 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 2px 10px rgb(251 191 36 / 0.28));
   }
 
   .venue-lb-meta {
-    font-size: clamp(1.05rem, 1.75vmin, 1.3125rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(8px, 1vw, 14px);
+    margin-top: clamp(6px, 0.75vmin, 10px);
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(1.05rem, 1.35vw, 1.625rem);
     font-weight: 700;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgb(255 251 235 / 0.92);
+  }
+
+  .venue-lb-meta-sep {
+    color: rgb(251 191 36 / 0.42);
+    font-weight: 600;
+  }
+
+  .venue-lb-page-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
   }
 
   .venue-lb-page-label {
-    font-size: clamp(0.95rem, 1.5vmin, 1.125rem);
+    font-family: Orbitron, monospace;
+    font-size: clamp(0.82rem, 1.05vw, 1rem);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(253 230 138 / 0.88);
   }
 
   .venue-lb-page-range {
-    font-size: clamp(1rem, 1.65vmin, 1.25rem);
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(0.92rem, 1.15vw, 1.125rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  .venue-lb-answer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border-radius: 10px;
+    border: 1px solid rgb(251 191 36 / 0.55);
+    background: rgb(69 26 3 / 0.55);
+    padding: clamp(6px, 0.8vmin, 10px) clamp(10px, 1.2vw, 16px);
+    box-shadow: 0 0 20px rgb(251 191 36 / 0.12);
   }
 
   .venue-lb-answer-label {
-    font-size: clamp(0.75rem, 1.2vmin, 0.875rem);
+    font-family: Orbitron, monospace;
+    font-size: clamp(0.62rem, 0.85vw, 0.78rem);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(253 230 138 / 0.82);
   }
 
   .venue-lb-answer-value {
-    font-size: clamp(1.75rem, 3.2vmin, 2.25rem);
+    font-family: ui-monospace, monospace;
+    font-size: clamp(1.35rem, 2vw, 1.85rem);
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: rgb(254 243 199 / 0.98);
   }
 
-  .venue-lb-column-header {
-    font-size: clamp(0.95rem, 1.45vmin, 1.125rem);
-    font-weight: 800;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+  .venue-lb-status {
+    padding-block: clamp(2px, 0.35vmin, 6px);
+  }
+
+  .venue-lb-status-row {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 1.6vw, 22px);
+  }
+
+  .venue-lb-status-caption {
+    flex-shrink: 0;
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(1.05rem, 1.35vw, 1.4rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: rgb(255 251 235 / 0.92);
+  }
+
+  .venue-lb-status-num {
+    color: rgb(254 243 199 / 0.98);
+  }
+
+  .venue-lb-status-muted {
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  .venue-lb-status-dot {
+    margin-inline: clamp(4px, 0.55vw, 8px);
+    color: rgb(251 191 36 / 0.55);
+  }
+
+  .venue-lb-status-track-wrap {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .venue-lb-status-track {
+    position: relative;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgb(251 191 36 / 0.72), rgb(251 191 36 / 0.28));
+    box-shadow: 0 0 10px rgb(251 191 36 / 0.18);
+  }
+
+  .venue-lb-status-diamond {
+    position: absolute;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    transform: translate(-50%, -50%) rotate(45deg);
+    border-radius: 1px;
+    background: linear-gradient(135deg, #fff4b8, #fbbf24);
+    box-shadow: 0 0 10px rgb(251 191 36 / 0.65);
+  }
+
+  .venue-lb-main {
+    gap: clamp(8px, 1vmin, 12px);
+    min-height: 0;
+  }
+
+  .venue-lb-grid-stage {
+    padding-inline: clamp(2px, 0.35vw, 6px);
+  }
+
+  .venue-lb-grid {
+    gap: clamp(12px, 1.15vw, 18px);
   }
 
   .venue-lb-panel {
-    border: 1px solid rgba(217, 119, 6, 0.28);
-    border-radius: 0.5rem;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.72) 0%, rgba(2, 6, 23, 0.88) 100%);
+    border-radius: clamp(8px, 0.85vmin, 12px) clamp(8px, 0.85vmin, 12px) 0 0;
+    border: 1px solid rgb(251 191 36 / 0.28);
+    background: linear-gradient(180deg, rgb(12 16 28 / 0.88) 0%, rgb(5 8 16 / 0.94) 100%);
     box-shadow:
-      inset 0 1px 0 rgba(251, 191, 36, 0.08),
-      0 8px 24px rgba(0, 0, 0, 0.28);
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 10px 28px rgb(0 0 0 / 0.35);
+  }
+
+  .venue-lb-panel--accent-0 {
+    border-color: rgb(217 70 239 / 0.42);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 0 18px rgb(168 85 247 / 0.12),
+      0 10px 28px rgb(0 0 0 / 0.35);
+  }
+
+  .venue-lb-panel--accent-1 {
+    border-color: rgb(167 139 250 / 0.38);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 0 16px rgb(139 92 246 / 0.1),
+      0 10px 28px rgb(0 0 0 / 0.35);
+  }
+
+  .venue-lb-panel--accent-2 {
+    border-color: rgb(125 211 252 / 0.34);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 0 16px rgb(56 189 248 / 0.09),
+      0 10px 28px rgb(0 0 0 / 0.35);
+  }
+
+  .venue-lb-panel--accent-3 {
+    border-color: rgb(45 212 191 / 0.38);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 0 16px rgb(45 212 191 / 0.1),
+      0 10px 28px rgb(0 0 0 / 0.35);
+  }
+
+  .venue-lb-column-header {
+    flex-shrink: 0;
+    padding: clamp(8px, 0.95vmin, 12px) clamp(8px, 1vw, 12px);
+    border-bottom: 1px solid rgb(251 191 36 / 0.22);
+    background: rgb(0 0 0 / 0.28);
+    font-family: Orbitron, monospace;
+    font-size: clamp(1.15rem, 1.55vw, 1.85rem);
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1.1;
+    text-align: center;
+    text-transform: uppercase;
+    color: rgb(253 224 71 / 0.92);
+  }
+
+  .venue-lb-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: clamp(6px, 0.75vw, 10px);
+    min-height: 0;
+    min-width: 0;
+    padding-inline: clamp(8px, 0.95vw, 12px);
+  }
+
+  .venue-lb-row--standard {
+    border-bottom: 1px solid rgb(255 255 255 / 0.04);
+  }
+
+  .venue-lb-row--zebra {
+    background: rgb(255 255 255 / 0.028);
+  }
+
+  .venue-lb-row--podium-1 {
+    border: 1px solid rgb(251 191 36 / 0.62);
+    background: linear-gradient(90deg, rgb(120 53 15 / 0.72) 0%, rgb(69 26 3 / 0.55) 52%, rgb(15 23 42 / 0.45) 100%);
+    box-shadow: inset 0 0 24px rgb(251 191 36 / 0.14);
+  }
+
+  .venue-lb-row--podium-2 {
+    border: 1px solid rgb(203 213 225 / 0.42);
+    background: linear-gradient(90deg, rgb(71 85 105 / 0.55) 0%, rgb(30 41 59 / 0.48) 100%);
+    box-shadow: inset 0 0 16px rgb(148 163 184 / 0.12);
+  }
+
+  .venue-lb-row--podium-3 {
+    border: 1px solid rgb(251 146 60 / 0.45);
+    background: linear-gradient(90deg, rgb(124 45 18 / 0.58) 0%, rgb(41 25 14 / 0.48) 100%);
+    box-shadow: inset 0 0 14px rgb(251 146 60 / 0.1);
+  }
+
+  .venue-lb-row-rank-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(3px, 0.4vw, 6px);
+    min-width: clamp(2rem, 2.4vw, 2.75rem);
+  }
+
+  .venue-lb-crown-icon {
+    width: clamp(1.05rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.95), 1.65rem);
+    height: clamp(1.05rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.95), 1.65rem);
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+
+  .venue-lb-podium-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(1.15rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.92), 1.55rem);
+    height: clamp(1.15rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.92), 1.55rem);
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 2px solid;
+    font-family: ui-monospace, monospace;
+    font-size: clamp(0.62rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.52), 0.82rem);
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .venue-lb-podium-badge--2 {
+    border-color: rgb(226 232 240 / 0.75);
+    background: linear-gradient(180deg, rgb(203 213 225 / 0.35), rgb(100 116 139 / 0.35));
+    color: rgb(248 250 252 / 0.98);
+    box-shadow: 0 0 10px rgb(148 163 184 / 0.25);
+  }
+
+  .venue-lb-podium-badge--3 {
+    border-color: rgb(253 186 116 / 0.72);
+    background: linear-gradient(180deg, rgb(251 146 60 / 0.38), rgb(180 83 9 / 0.35));
+    color: rgb(255 247 237 / 0.98);
+    box-shadow: 0 0 10px rgb(251 146 60 / 0.22);
+  }
+
+  .venue-lb-row-rank-num {
+    font-family: ui-monospace, monospace;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: rgb(253 224 71 / 0.92);
+  }
+
+  .venue-lb-row--podium-1 .venue-lb-row-rank-num {
+    color: rgb(254 243 199 / 0.98);
+  }
+
+  .venue-lb-row--podium-2 .venue-lb-row-rank-num {
+    color: rgb(241 245 249 / 0.96);
+  }
+
+  .venue-lb-row--podium-3 .venue-lb-row-rank-num {
+    color: rgb(255 237 213 / 0.96);
+  }
+
+  .venue-lb-row-name-cell {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: Rajdhani, sans-serif;
+    font-weight: 700;
+    color: rgb(255 251 235 / 0.98);
+  }
+
+  .venue-lb-row-suffix {
+    font-weight: 600;
+    color: rgb(254 243 199 / 0.62);
+  }
+
+  .venue-lb-row-delta {
+    flex-shrink: 0;
+    width: 0.85em;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .venue-lb-row-delta--up {
+    color: rgb(52 211 153 / 0.95);
+  }
+
+  .venue-lb-row-delta--down {
+    color: rgb(251 113 133 / 0.95);
+  }
+
+  .venue-lb-row-delta--empty {
+    visibility: hidden;
+  }
+
+  .venue-lb-row-stack-cell {
+    flex-shrink: 0;
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: rgb(52 211 153 / 0.98);
   }
 
   .venue-lb-row-rank {
-    font-size: clamp(1.05rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.72), 1.25rem);
+    font-size: clamp(1rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.72), 1.25rem);
   }
 
   .venue-lb-row-name {
-    font-size: clamp(1.15rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.82), 1.375rem);
+    font-size: clamp(1.1rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.82), 1.375rem);
   }
 
   .venue-lb-row-stack {
-    font-size: clamp(1.2rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.86), 1.4375rem);
+    font-size: clamp(1.15rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.86), 1.4375rem);
   }
 
   .venue-lb-row-rank-top {
-    font-size: clamp(1.45rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.95), 1.875rem);
+    font-size: clamp(1.35rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.98), 1.875rem);
   }
 
   .venue-lb-row-name-top {
-    font-size: clamp(1.5rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1), 1.75rem);
+    font-size: clamp(1.45rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.02), 1.875rem);
   }
 
   .venue-lb-row-stack-top {
-    font-size: clamp(1.55rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.05), 1.875rem);
-  }
-
-  .venue-lb-stat-label {
-    font-size: clamp(0.9rem, 1.35vmin, 1.125rem);
-    font-weight: 700;
-  }
-
-  .venue-lb-stat-value {
-    font-size: clamp(1.05rem, 1.65vmin, 1.375rem);
+    font-size: clamp(1.5rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.06), 2rem);
   }
 
   .venue-lb-ribbon {
-    min-height: clamp(3.25rem, 6vh, 4.25rem);
+    border-radius: clamp(8px, 0.85vmin, 12px);
+    border: 1px solid rgb(251 191 36 / 0.42);
+    background: linear-gradient(180deg, rgb(10 12 20 / 0.96) 0%, rgb(4 6 12 / 0.98) 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      0 8px 24px rgb(0 0 0 / 0.35);
+    min-height: clamp(4.25rem, 8.5vh, 5.75rem);
   }
 
-  .venue-lb-condense-caption {
-    font-size: clamp(1.05rem, 1.75vmin, 1.375rem);
+  .venue-lb-ribbon-inner {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+    min-height: inherit;
+  }
+
+  .venue-lb-stat-section {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 1vw, 14px);
+    padding: clamp(10px, 1.25vmin, 16px) clamp(10px, 1.2vw, 18px);
+  }
+
+  .venue-lb-stat-section:not(:last-child) {
+    border-right: 1px solid rgb(251 191 36 / 0.22);
+  }
+
+  .venue-lb-stat-icon-wrap {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: rgb(251 191 36 / 0.88);
+  }
+
+  .venue-lb-stat-icon {
+    width: clamp(1.35rem, 1.75vw, 1.85rem);
+    height: clamp(1.35rem, 1.75vw, 1.85rem);
+  }
+
+  .venue-lb-stat-label {
+    font-family: Orbitron, monospace;
+    font-size: clamp(0.82rem, 1.05vw, 1.125rem);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: rgb(253 224 71 / 0.82);
+  }
+
+  .venue-lb-stat-value {
+    margin-top: clamp(2px, 0.25vmin, 4px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(1.25rem, 1.55vw, 1.75rem);
     font-weight: 700;
+    line-height: 1.15;
+    color: rgb(255 251 235 / 0.96);
   }
 
-  .venue-lb-standard-row {
-    min-height: 0;
+  .venue-lb-stat-name {
+    color: rgb(255 251 235 / 0.96);
   }
 
-  .venue-lb-podium-row {
-    min-height: 0;
+  .venue-lb-stat-amount {
+    font-family: ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    color: rgb(52 211 153 / 0.98);
+  }
+
+  .venue-lb-stat-count {
+    font-family: ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    color: rgb(255 251 235 / 0.96);
+  }
+
+  .venue-lb-pager-dot {
+    display: block;
+    height: 8px;
+    width: 8px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.25);
+    transition: all 0.3s ease;
+  }
+
+  .venue-lb-pager-dot--active {
+    width: 32px;
+    background: rgb(253 224 71 / 0.9);
+    box-shadow: 0 0 12px rgb(251 191 36 / 0.45);
+  }
+
+  @media (max-width: 1366px) {
+    .venue-lb-logo-wrap {
+      width: clamp(9rem, 16vw, 14rem);
+    }
+
+    .venue-lb-title {
+      font-size: clamp(2.65rem, 3.8vw, 3.75rem);
+    }
+
+    .venue-lb-ribbon-inner {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .venue-lb-stat-section:nth-child(2) {
+      border-right: none;
+    }
+
+    .venue-lb-stat-section:nth-child(1),
+    .venue-lb-stat-section:nth-child(3) {
+      border-bottom: 1px solid rgb(251 191 36 / 0.18);
+    }
   }
 
   /** Pairing gate — TV room scale (80% of prior 2.5× bump). */

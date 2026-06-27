@@ -2363,9 +2363,10 @@
       inset 0 1px 0 rgb(255 255 255 / 0.14),
       inset 0 -2px 4px rgb(0 0 0 / 0.65),
       0 0 8px rgb(251 191 36 / 0.22);
-    font-family: 'DSEG7 Classic', monospace;
+    font-family: 'Rajdhani', sans-serif;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
     line-height: 1;
     color: rgb(254 249 231 / 0.96);
     text-shadow: 0 1px 2px rgb(0 0 0 / 0.92);

@@ -33,12 +33,18 @@ describe('venueLeaderboardPageCount', () => {
 })
 
 describe('venueLeaderboardPageSizes', () => {
-  it('rebalances 65 players instead of a 64 + 1 tail page', () => {
-    expect(venueLeaderboardPageSizes(65)).toEqual([33, 32])
+  it('fills page 1 to 64 before paginating the tail', () => {
+    expect(venueLeaderboardPageSizes(65)).toEqual([64, 1])
+    expect(venueLeaderboardPageSizes(69)).toEqual([64, 5])
   })
 
   it('keeps a healthy tail when remainder is large enough', () => {
     expect(venueLeaderboardPageSizes(79)).toEqual([64, 15])
+  })
+
+  it('uses full 64-player pages for exact multiples', () => {
+    expect(venueLeaderboardPageSizes(128)).toEqual([64, 64])
+    expect(venueLeaderboardPageSizes(129)).toEqual([64, 64, 1])
   })
 })
 
@@ -75,14 +81,24 @@ describe('buildVenueLeaderboardPresentation', () => {
     expect(model.pages[1]!.showTopThreePodium).toBe(false)
   })
 
-  it('balances 65 players across two readable pages', () => {
+  it('paginates 69 players into 64 + 5 on page 1 and page 2', () => {
+    const model = buildVenueLeaderboardPresentation(mockRows(69))
+    expect(model.pages).toHaveLength(2)
+    expect(model.pages[0]!.rankStart).toBe(1)
+    expect(model.pages[0]!.rankEnd).toBe(64)
+    expect(model.pages[0]!.columnCount).toBe(4)
+    expect(model.pages[1]!.rankStart).toBe(65)
+    expect(model.pages[1]!.rankEnd).toBe(69)
+    expect(model.pages[1]!.columnCount).toBe(1)
+  })
+
+  it('paginates 65 players into 64 + 1', () => {
     const model = buildVenueLeaderboardPresentation(mockRows(65))
     expect(model.pages).toHaveLength(2)
     expect(model.pages[0]!.rankStart).toBe(1)
-    expect(model.pages[0]!.rankEnd).toBe(33)
-    expect(model.pages[1]!.rankStart).toBe(34)
+    expect(model.pages[0]!.rankEnd).toBe(64)
+    expect(model.pages[1]!.rankStart).toBe(65)
     expect(model.pages[1]!.rankEnd).toBe(65)
-    expect(model.pages[1]!.rankEnd - model.pages[1]!.rankStart + 1).toBeGreaterThan(1)
   })
 
   it('never exceeds 64 players per page', () => {

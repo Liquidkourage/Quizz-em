@@ -43,7 +43,7 @@ export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementPr
 
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden bg-black/72 px-6 py-10 backdrop-blur-md"
+      className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden bg-black/78 px-6 py-10 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label={title}
@@ -53,13 +53,12 @@ export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementPr
       transition={{ duration: reducedMotion ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
       <DisplayWelcomeBackdrop />
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_42%,rgba(239,68,68,0.16),transparent_68%)]"
-        aria-hidden
-      />
+      <div className="venue-bust-overlay-glow pointer-events-none absolute inset-0" aria-hidden />
 
       <motion.div
-        className="relative z-10 flex w-full flex-col rounded-2xl border border-red-500/45 bg-gradient-to-b from-[#1a0508] via-[#12040a] to-black/90 px-6 py-7 shadow-[0_0_48px_rgba(239,68,68,0.22)] sm:px-10 sm:py-9"
+        className={`venue-bust-overlay-panel relative z-10 flex w-full flex-col ${
+          grid.compact ? 'venue-bust-overlay-panel--compact' : ''
+        }`}
         style={{ maxWidth: grid.cardMaxWidth }}
         initial={reducedMotion ? false : { opacity: 0, y: 18, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -67,38 +66,25 @@ export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementPr
         transition={{ duration: reducedMotion ? 0 : 0.42, ease: [0.22, 1, 0.36, 1] }}
       >
         <div
-          className={`mb-4 shrink-0 flex items-center justify-between gap-4 border-b border-red-500/25 pb-4 ${
-            grid.compact ? 'mb-3 pb-3' : ''
+          className={`venue-bust-overlay-header ${
+            grid.compact ? 'venue-bust-overlay-header--compact' : ''
           }`}
         >
           <div className="min-w-0">
-            <p
-              className={`font-orbitron font-bold uppercase tracking-[0.22em] text-red-300/90 ${
-                grid.compact
-                  ? 'text-[clamp(0.65rem,1.1vw,0.82rem)]'
-                  : 'text-[clamp(0.72rem,1.35vw,0.92rem)]'
-              }`}
-            >
-              {title}
-              {busts.length > 1 ? (
-                <span className="ml-2 text-red-200/70">· {busts.length}</span>
-              ) : null}
+            <p className="venue-bust-overlay-eyebrow">
+              {title} · {busts.length}
             </p>
             <h2
-              className={`mt-1 font-orbitron font-black uppercase leading-none tracking-[0.06em] text-red-50 ${
-                grid.compact
-                  ? 'text-[clamp(1.35rem,2.8vw,2.1rem)]'
-                  : 'text-[clamp(1.65rem,3.8vw,2.75rem)]'
+              className={`venue-bust-overlay-title ${
+                grid.compact ? 'venue-bust-overlay-title--compact' : ''
               }`}
             >
               Out of the tournament
             </h2>
           </div>
           <div
-            className={`hidden shrink-0 sm:block ${
-              grid.compact
-                ? 'w-[clamp(3.5rem,9vw,5.5rem)]'
-                : 'w-[clamp(4.5rem,11vw,7rem)]'
+            className={`venue-bust-overlay-wordmark hidden shrink-0 sm:block ${
+              grid.compact ? 'venue-bust-overlay-wordmark--compact' : ''
             }`}
           >
             <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
@@ -108,14 +94,14 @@ export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementPr
         </div>
 
         <ul
-          className={`grid gap-2 ${grid.compact ? 'gap-1.5' : 'sm:gap-2.5'}`}
+          className={`venue-bust-overlay-grid ${grid.compact ? 'venue-bust-overlay-grid--compact' : ''}`}
           style={{ gridTemplateColumns: `repeat(${grid.columns}, minmax(0, 1fr))` }}
         >
           {busts.map((b, index) => (
             <motion.li
               key={`${b.name}-${b.tableNum}-${index}`}
-              className={`flex items-center justify-between gap-2 rounded-xl border border-red-400/30 bg-red-950/35 ${
-                grid.compact ? 'px-2.5 py-2' : 'gap-3 px-4 py-3'
+              className={`venue-bust-overlay-row ${
+                grid.compact ? 'venue-bust-overlay-row--compact' : ''
               }`}
               initial={reducedMotion ? false : { opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
@@ -126,23 +112,13 @@ export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementPr
               }}
             >
               <span
-                className={`min-w-0 truncate font-bold leading-tight text-red-50 ${
-                  grid.compact
-                    ? 'text-[clamp(0.95rem,1.5vw,1.25rem)]'
-                    : 'text-[clamp(1.15rem,2.2vw,1.65rem)]'
+                className={`venue-bust-overlay-name ${
+                  grid.compact ? 'venue-bust-overlay-name--compact' : ''
                 }`}
               >
                 {displayPlayerName(b.name)}
               </span>
-              <span
-                className={`shrink-0 rounded-md border border-red-400/35 bg-black/40 font-orbitron font-bold uppercase tracking-wider text-red-200/85 ${
-                  grid.compact
-                    ? 'px-1.5 py-px text-[0.65rem]'
-                    : 'px-2 py-0.5 text-[clamp(0.78rem,1.2vw,0.95rem)]'
-                }`}
-              >
-                Table {b.tableNum}
-              </span>
+              <span className="venue-bust-overlay-table-well">Table {b.tableNum}</span>
             </motion.li>
           ))}
         </ul>

@@ -4,8 +4,8 @@ import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { buildVenueWallTileRows, seatingChartTablesFromTiles } from './venueWallModel'
 import SeatingChartNameRoster from './SeatingChartNameRoster'
+import { SeatingTableCard } from './SeatingTableCard'
 import { seatingChartPlayerEntries, seatingChartRosterHalves } from './venueSeatingChartRoster'
-import { SeatingPlayerList, SeatingTableDiagram } from './SeatingTableFelt'
 import {
   SEATING_CHART_CARD_WIDTH_CSS,
   SEATING_CHART_FRAME_WIDTH_CSS,
@@ -17,44 +17,6 @@ import {
   seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
-import DisplayPanelCornerBrackets from './DisplayPanelCornerBrackets'
-
-function SeatingTableCard({
-  table,
-}: {
-  table: ReturnType<typeof seatingChartTablesFromTiles>[number]
-}) {
-  return (
-    <article
-      className="seating-table-card @container flex h-full w-full min-h-0 min-w-0 flex-col"
-      aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
-    >
-      <div className="seating-table-card-frame">
-        <div className="seating-table-card-surface">
-          <header className="seating-table-card-header">
-            <span className="seating-table-card-label">Table</span>
-            <span className="seating-table-card-num tabular-nums">{table.tableNum}</span>
-          </header>
-
-          <div className="seating-table-card-body">
-            <div className="seating-table-card-felt-well">
-              <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
-            </div>
-            <div className="seating-table-card-roster">
-              <SeatingPlayerList seats={table.seats} />
-            </div>
-          </div>
-        </div>
-
-        <DisplayPanelCornerBrackets
-          cornersClassName="seating-table-card-corners"
-          bracketClassName="seating-table-card-bracket pointer-events-none absolute select-none"
-          bottomFlipClassName="seating-table-card-corners-bottom"
-        />
-      </div>
-    </article>
-  )
-}
 
 function SeatingChartCardSlot({ table }: { table: ReturnType<typeof seatingChartTablesFromTiles>[number] }) {
   return (

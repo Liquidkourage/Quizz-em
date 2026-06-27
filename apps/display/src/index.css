@@ -2188,6 +2188,11 @@
     padding: clamp(2px, 0.35cqh, 4px);
   }
 
+  /** Size container — enables cqh/cqw for placard typography and roster badges. */
+  .seating-table-card {
+    container-type: size;
+  }
+
   .seating-table-card-surface {
     background:
       radial-gradient(ellipse 115% 70% at 50% -8%, rgb(251 191 36 / 0.07), transparent 52%),
@@ -2353,19 +2358,31 @@
   .seating-seat-badge {
     display: block;
     flex-shrink: 0;
+    box-sizing: border-box;
     object-fit: contain;
     pointer-events: none;
     user-select: none;
   }
 
   .seating-seat-badge--map {
-    width: clamp(1.45rem, 4.85cqh, 1.95rem);
-    height: clamp(1.45rem, 4.85cqh, 1.95rem);
+    width: clamp(1.25rem, 10.5cqw, 1.85rem);
+    height: clamp(1.25rem, 10.5cqw, 1.85rem);
+    max-width: 1.85rem;
+    max-height: 1.85rem;
   }
 
   .seating-seat-badge--roster {
-    width: clamp(1.85rem, 5.65cqh, 2.35rem);
-    height: clamp(1.85rem, 5.65cqh, 2.35rem);
+    width: clamp(1.5rem, 13cqw, 2.2rem);
+    height: clamp(1.5rem, 13cqw, 2.2rem);
+    max-width: 2.2rem;
+    max-height: 2.2rem;
+  }
+
+  .seating-seat-badge--fill {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   .seating-seat-badge--empty {

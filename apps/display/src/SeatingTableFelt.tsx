@@ -6,6 +6,11 @@ import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
 const FELT_ASPECT = 8 / 5
 
+/** Map marker diameter from felt width — keeps badges on the rail, not full-card size. */
+function seatingMapBadgePx(feltW: number): number {
+  return Math.max(20, Math.min(36, Math.round(feltW * 0.095)))
+}
+
 const SEATING_ROSTER_LEFT = [1, 3, 5, 7] as const
 const SEATING_ROSTER_RIGHT = [2, 4, 6, 8] as const
 
@@ -76,16 +81,19 @@ export function SeatingTableDiagram({
           const top = feltTop + (rim.topPct / 100) * feltH
           const filled = occupied.has(seatNum)
 
+          const markerPx = seatingMapBadgePx(feltW)
+
           return (
             <div
               key={seatNum}
-              className="absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ left, top }}
+              className="absolute flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+              style={{ left, top, width: markerPx, height: markerPx }}
               aria-hidden
             >
               <SeatingSeatBadge
                 seatNum={seatNum}
                 size="map"
+                fill
                 empty={!filled}
                 highlight={highlightSeatNum != null && seatNum === highlightSeatNum}
               />

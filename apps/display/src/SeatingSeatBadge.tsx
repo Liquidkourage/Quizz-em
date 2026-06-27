@@ -6,18 +6,22 @@ export function SeatingSeatBadge({
   size,
   empty = false,
   highlight = false,
+  fill = false,
   className = '',
 }: {
   seatNum: number
   size: 'map' | 'roster'
   empty?: boolean
   highlight?: boolean
+  /** Size to parent anchor (map markers sized from felt width). */
+  fill?: boolean
   className?: string
 }) {
   const src = seatingSeatBadgeSrc(seatNum)
   const classes = [
     'seating-seat-badge',
     `seating-seat-badge--${size}`,
+    fill ? 'seating-seat-badge--fill' : '',
     empty ? 'seating-seat-badge--empty' : '',
     highlight ? 'seating-seat-badge--highlight' : '',
     className,

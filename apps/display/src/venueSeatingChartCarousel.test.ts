@@ -1,15 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
   SEATING_CHART_PAGE_TABLES,
-  SEATING_CHART_W_CARD4_LEFT_CSS,
-  SEATING_CHART_W_CARD5_LEFT_CSS,
-  SEATING_CHART_W_SINGLE_BOTTOM_LEFT_CSS,
+  SEATING_CHART_PAGE_TABLES_NARROW,
   seatingChartPageCount,
   seatingChartPageLabel,
+  seatingChartPageSizeForViewport,
   seatingChartPageTables,
-  seatingChartWBottomLeftCss,
-  seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
+
+describe('seatingChartPageSizeForViewport', () => {
+  it('shows three placards on wide displays', () => {
+    expect(seatingChartPageSizeForViewport(1920)).toBe(SEATING_CHART_PAGE_TABLES)
+  })
+
+  it('shows two placards on narrow displays', () => {
+    expect(seatingChartPageSizeForViewport(1366)).toBe(SEATING_CHART_PAGE_TABLES_NARROW)
+  })
+})
 
 describe('seatingChartPageCount', () => {
   it('shows one page when at or below the page size', () => {
@@ -17,63 +24,47 @@ describe('seatingChartPageCount', () => {
     expect(seatingChartPageCount(SEATING_CHART_PAGE_TABLES)).toBe(1)
   })
 
-  it('pages larger venues', () => {
+  it('pages larger venues in groups of three', () => {
     expect(seatingChartPageCount(6)).toBe(2)
-    expect(seatingChartPageCount(20)).toBe(4)
+    expect(seatingChartPageCount(14)).toBe(5)
+    expect(seatingChartPageCount(20)).toBe(7)
+  })
+
+  it('pages in groups of two when configured', () => {
+    expect(seatingChartPageCount(14, SEATING_CHART_PAGE_TABLES_NARROW)).toBe(7)
   })
 })
 
 describe('seatingChartPageTables', () => {
-  const tables = Array.from({ length: 20 }, (_, i) => i + 1)
+  const tables = Array.from({ length: 14 }, (_, i) => i + 1)
 
-  it('slices tables for each page', () => {
-    expect(seatingChartPageTables(tables, 0)).toEqual([1, 2, 3, 4, 5])
-    expect(seatingChartPageTables(tables, 1)).toEqual([6, 7, 8, 9, 10])
-    expect(seatingChartPageTables(tables, 3)).toEqual([16, 17, 18, 19, 20])
+  it('slices tables three per page', () => {
+    expect(seatingChartPageTables(tables, 0)).toEqual([1, 2, 3])
+    expect(seatingChartPageTables(tables, 1)).toEqual([4, 5, 6])
+    expect(seatingChartPageTables(tables, 4)).toEqual([13, 14])
   })
 
   it('wraps page index', () => {
-    expect(seatingChartPageTables(tables, 4)).toEqual([1, 2, 3, 4, 5])
-  })
-})
-
-describe('seatingChartWFormationRows', () => {
-  it('places five tables in top + staggered bottom rows', () => {
-    expect(seatingChartWFormationRows(5)).toEqual({
-      topIndices: [0, 1, 2],
-      bottomIndices: [3, 4],
-    })
+    expect(seatingChartPageTables(tables, 5)).toEqual([1, 2, 3])
   })
 
-  it('shrink-wraps partial pages', () => {
-    expect(seatingChartWFormationRows(3)).toEqual({
-      topIndices: [0, 1, 2],
-      bottomIndices: [],
-    })
-    expect(seatingChartWFormationRows(4)).toEqual({
-      topIndices: [0, 1, 2],
-      bottomIndices: [3],
-    })
-  })
-
-  it('positions bottom cards between top gaps', () => {
-    expect(seatingChartWBottomLeftCss(0, 2)).toBe(SEATING_CHART_W_CARD4_LEFT_CSS)
-    expect(seatingChartWBottomLeftCss(1, 2)).toBe(SEATING_CHART_W_CARD5_LEFT_CSS)
-    expect(seatingChartWBottomLeftCss(0, 1)).toBe(SEATING_CHART_W_SINGLE_BOTTOM_LEFT_CSS)
+  it('slices two per page when configured', () => {
+    expect(seatingChartPageTables(tables, 0, SEATING_CHART_PAGE_TABLES_NARROW)).toEqual([1, 2])
+    expect(seatingChartPageTables(tables, 6, SEATING_CHART_PAGE_TABLES_NARROW)).toEqual([13, 14])
   })
 })
 
 describe('seatingChartPageLabel', () => {
   it('describes the visible table range', () => {
-    expect(seatingChartPageLabel(0, 20)).toEqual({
+    expect(seatingChartPageLabel(0, 14)).toEqual({
       page: 1,
-      pageCount: 4,
-      tableRange: '1–5',
+      pageCount: 5,
+      tableRange: '1–3',
     })
-    expect(seatingChartPageLabel(3, 20)).toEqual({
-      page: 4,
-      pageCount: 4,
-      tableRange: '16–20',
+    expect(seatingChartPageLabel(4, 14)).toEqual({
+      page: 5,
+      pageCount: 5,
+      tableRange: '13–14',
     })
   })
 })

@@ -7,70 +7,36 @@ import SeatingChartNameRoster from './SeatingChartNameRoster'
 import { SeatingTableCard } from './SeatingTableCard'
 import { seatingChartPlayerEntries, seatingChartRosterHalves } from './venueSeatingChartRoster'
 import {
-  SEATING_CHART_CARD_WIDTH_CSS,
-  SEATING_CHART_FRAME_WIDTH_CSS,
-  SEATING_CHART_GAP_X_REM,
   SEATING_CHART_PAGE_MS,
   seatingChartPageCount,
   seatingChartPageTables,
-  seatingChartWBottomLeftCss,
-  seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
+import { useSeatingChartPageSize } from './useSeatingChartPageSize'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
-function SeatingChartCardSlot({ table }: { table: ReturnType<typeof seatingChartTablesFromTiles>[number] }) {
+function SeatingChartCardSlot({
+  table,
+}: {
+  table: ReturnType<typeof seatingChartTablesFromTiles>[number]
+}) {
   return (
-    <div
-      className="flex h-full min-h-[11rem] min-w-0 shrink-0"
-      style={{ width: SEATING_CHART_CARD_WIDTH_CSS }}
-    >
+    <div className="seating-chart-card-slot">
       <SeatingTableCard table={table} />
     </div>
   )
 }
 
-function SeatingChartWPage({
+/** One centered row of up to three portrait placards. */
+function SeatingChartRowPage({
   tables,
 }: {
   tables: ReturnType<typeof seatingChartTablesFromTiles>
 }) {
-  const { topIndices, bottomIndices } = seatingChartWFormationRows(tables.length)
-  const gapX = `${SEATING_CHART_GAP_X_REM}rem`
-  const topRowFull = topIndices.length >= 3
-
   return (
-    <div className="flex h-full min-h-0 w-full max-h-full flex-1 flex-col items-center">
-      <div
-        className="mx-auto flex h-full min-h-0 w-full max-w-full flex-col gap-y-3 sm:gap-y-4"
-        style={{
-          width: SEATING_CHART_FRAME_WIDTH_CSS,
-        }}
-      >
-        <div
-          className={`flex min-h-0 flex-1 items-stretch ${topRowFull ? 'justify-between' : 'justify-center'}`}
-          style={topRowFull ? undefined : { gap: gapX }}
-        >
-          {topIndices.map((index) => (
-            <SeatingChartCardSlot key={tables[index]!.tableNum} table={tables[index]!} />
-          ))}
-        </div>
-        {bottomIndices.length > 0 ? (
-          <div className="relative min-h-0 flex-1">
-            {bottomIndices.map((index, bottomSlot) => (
-              <div
-                key={tables[index]!.tableNum}
-                className="absolute top-0 flex h-full min-h-0"
-                style={{
-                  left: seatingChartWBottomLeftCss(bottomSlot, bottomIndices.length),
-                  width: SEATING_CHART_CARD_WIDTH_CSS,
-                }}
-              >
-                <SeatingTableCard table={tables[index]!} />
-              </div>
-            ))}
-          </div>
-        ) : null}
-      </div>
+    <div className="seating-chart-card-stage" data-card-count={tables.length}>
+      {tables.map((table) => (
+        <SeatingChartCardSlot key={table.tableNum} table={table} />
+      ))}
     </div>
   )
 }
@@ -84,7 +50,7 @@ function SeatingChartPager({
 }) {
   return (
     <div
-      className="flex flex-col items-center gap-2.5"
+      className="seating-chart-pager flex flex-col items-center gap-2.5"
       aria-live="polite"
       aria-label={`Table page ${pageIndex + 1} of ${pageCount}`}
     >
@@ -115,12 +81,13 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
     return seatingChartTablesFromTiles(rows)
   }, [wall])
 
-  const pageCount = seatingChartPageCount(tables.length)
+  const pageSize = useSeatingChartPageSize()
+  const pageCount = seatingChartPageCount(tables.length, pageSize)
   const [pageIndex, setPageIndex] = useState(0)
 
   useEffect(() => {
     setPageIndex(0)
-  }, [tables.length])
+  }, [tables.length, pageSize])
 
   useEffect(() => {
     if (pageCount <= 1) return
@@ -131,8 +98,8 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
   }, [pageCount])
 
   const pageTables = useMemo(
-    () => seatingChartPageTables(tables, pageIndex),
-    [tables, pageIndex],
+    () => seatingChartPageTables(tables, pageIndex, pageSize),
+    [tables, pageIndex, pageSize],
   )
 
   const rosterHalves = useMemo(() => {
@@ -153,7 +120,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
       <DisplayWelcomeBackdrop />
 
       <div className="relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white">
-        <header className="shrink-0 border-b border-yellow-700/25 bg-black/35 px-6 py-3 backdrop-blur-md sm:px-8 sm:py-3.5">
+        <header className="seating-chart-header shrink-0 border-b border-yellow-700/25 bg-black/35 px-6 py-3 backdrop-blur-md sm:px-8 sm:py-3.5">
           <div className="flex w-full max-w-none items-center gap-x-5 gap-y-3 sm:gap-x-6">
             <div className="w-[clamp(5.5rem,min(14vw,8rem),9rem)] shrink-0">
               <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
@@ -175,27 +142,27 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
           </div>
         </header>
 
-        <main className="flex min-h-0 flex-1 overflow-hidden pb-3 pt-2 sm:pb-4 sm:pt-2.5">
+        <main className="seating-chart-main flex min-h-0 flex-1 overflow-hidden">
           <SeatingChartNameRoster title="A–M" entries={rosterHalves.am} align="left" />
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2 sm:px-3">
-            <div className="relative flex min-h-0 flex-1 flex-col items-center overflow-hidden">
+          <div className="seating-chart-center flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-2 sm:px-3">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
-                  key={pageIndex}
-                  className="flex h-full min-h-0 w-full max-h-full flex-1 justify-center"
+                  key={`${pageIndex}-${pageSize}`}
+                  className="flex h-full min-h-0 w-full max-h-full flex-1 items-center justify-center"
                   initial={skipMountIntro ? false : { opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -12 }}
                   transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <SeatingChartWPage tables={pageTables} />
+                  <SeatingChartRowPage tables={pageTables} />
                 </motion.div>
               </AnimatePresence>
             </div>
 
             {showPager ? (
-              <div className="shrink-0 pt-2 sm:pt-2.5">
+              <div className="seating-chart-pager-wrap shrink-0 pb-3 pt-1 sm:pb-4">
                 <SeatingChartPager pageIndex={pageIndex} pageCount={pageCount} />
               </div>
             ) : null}

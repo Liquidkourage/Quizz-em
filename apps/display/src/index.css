@@ -2088,11 +2088,104 @@
 
   /** Venue seating chart — premium table assignment cards. */
   .seating-chart-screen {
-    --welcome-bracket-size: clamp(1.65rem, min(13cqw, 10cqh), 2.85rem);
+    --seating-card-width: clamp(17.5rem, 20.5vw, 25rem);
+    --seating-card-aspect: 9 / 15.5;
+    --seating-card-gap: clamp(0.75rem, 1.45vw, 1.75rem);
+    --seating-sidebar-width: clamp(10.5rem, 12vw, 13.5rem);
+    --welcome-bracket-size: clamp(2rem, min(11cqw, 9cqh), 3.25rem);
     --welcome-bracket-vx-left: 10%;
     --welcome-bracket-vx-right: 10%;
     --welcome-bracket-vy: 8%;
     --welcome-rail-offset: clamp(3px, 0.38vmin, 4px);
+  }
+
+  @media (max-width: 1599px) {
+    .seating-chart-screen {
+      --seating-card-width: clamp(15.5rem, 26vw, 21rem);
+    }
+  }
+
+  @media (min-width: 2200px) {
+    .seating-chart-screen {
+      --seating-card-width: clamp(22rem, 18vw, 26rem);
+    }
+  }
+
+  .seating-chart-main {
+    padding-block: clamp(6px, 0.8vh, 12px);
+  }
+
+  .seating-chart-center {
+    min-width: 0;
+  }
+
+  .seating-chart-card-stage {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: var(--seating-card-gap);
+    padding-inline: clamp(4px, 0.5vw, 10px);
+  }
+
+  .seating-chart-card-slot {
+    display: flex;
+    width: var(--seating-card-width);
+    height: min(100%, calc(var(--seating-card-width) / 0.58));
+    max-height: min(47.5rem, calc(100vh - 11.5rem));
+    aspect-ratio: var(--seating-card-aspect);
+    flex-shrink: 0;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .seating-chart-pager-wrap {
+    padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
+  }
+
+  .seating-chart-sidebar {
+    width: var(--seating-sidebar-width);
+    max-width: 14%;
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.28) 0%, rgb(0 0 0 / 0.42) 100%);
+    padding-block: clamp(8px, 1vh, 14px);
+  }
+
+  .seating-chart-sidebar--left {
+    border-right: 1px solid rgb(255 255 255 / 0.08);
+    padding-inline: clamp(10px, 0.85vw, 16px) clamp(8px, 0.65vw, 12px);
+  }
+
+  .seating-chart-sidebar--right {
+    border-left: 1px solid rgb(255 255 255 / 0.08);
+    padding-inline: clamp(8px, 0.65vw, 12px) clamp(10px, 0.85vw, 16px);
+  }
+
+  .seating-chart-sidebar-title {
+    margin-bottom: clamp(6px, 0.75vh, 10px);
+    padding-bottom: clamp(6px, 0.65vh, 8px);
+    border-bottom: 1px solid rgb(251 191 36 / 0.22);
+    font-size: clamp(1.15rem, 2vmin, 1.65rem);
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: rgb(254 243 199 / 0.72);
+  }
+
+  .seating-chart-sidebar-row {
+    border-bottom: 1px solid rgb(255 255 255 / 0.05);
+    min-height: clamp(2.35rem, 4.2vh, 2.85rem);
+  }
+
+  .seating-chart-sidebar-row:last-child {
+    border-bottom: none;
+  }
+
+  .seating-table-card-frame {
+    padding: clamp(2px, 0.35cqh, 4px);
   }
 
   .seating-table-card-surface {
@@ -2117,12 +2210,12 @@
   }
 
   .seating-table-card-body {
-    display: flex;
+    display: grid;
     min-height: 0;
     flex: 1 1 auto;
-    flex-direction: column;
-    gap: clamp(5px, 0.9cqh, 8px);
-    padding: clamp(9px, 1.2cqh, 13px) clamp(10px, 1.45cqw, 14px) clamp(10px, 1.25cqh, 14px);
+    grid-template-rows: auto minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(6px, 1.05cqh, 10px);
+    padding: clamp(10px, 1.35cqh, 15px) clamp(11px, 1.55cqw, 15px) clamp(11px, 1.35cqh, 14px);
   }
 
   .seating-table-card-header {
@@ -2137,7 +2230,7 @@
   /** Crisp illuminated DSEG readout — solid core, restrained glow. */
   .seating-table-card-number {
     font-family: 'DSEG7 Classic', monospace;
-    font-size: clamp(2.15rem, 9.5cqh, 3.65rem);
+    font-size: clamp(2.75rem, 11.5cqh, 4.5rem);
     font-weight: 700;
     font-synthesis: none;
     letter-spacing: 0.1em;
@@ -2154,7 +2247,7 @@
 
   .seating-table-card-map-well {
     display: flex;
-    min-height: clamp(6.35rem, 31.5cqh, 10.75rem);
+    min-height: clamp(7.5rem, 34cqh, 12.5rem);
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
@@ -2166,7 +2259,7 @@
       inset 0 2px 14px rgb(0 0 0 / 0.52),
       inset 0 1px 0 rgb(251 191 36 / 0.12),
       0 0 10px rgb(52 211 153 / 0.07);
-    padding: clamp(3px, 0.55cqh, 6px) clamp(5px, 0.85cqw, 8px);
+    padding: clamp(2px, 0.4cqh, 5px) clamp(4px, 0.65cqw, 7px);
   }
 
   .seating-table-card-roster {
@@ -2183,7 +2276,7 @@
   }
 
   .seating-roster-row {
-    gap: clamp(8px, 1.45cqw, 11px);
+    gap: clamp(9px, 1.55cqw, 12px);
     border-radius: clamp(8px, 1.2cqh, 11px);
     border: 1.5px solid rgb(251 191 36 / 0.68);
     background:
@@ -2195,7 +2288,8 @@
       inset 0 -1px 0 rgb(0 0 0 / 0.55),
       inset 0 0 0 1px rgb(254 249 231 / 0.05),
       0 0 12px rgb(234 179 8 / 0.12);
-    padding: clamp(6px, 1.05cqh, 9px) clamp(8px, 1.25cqw, 11px);
+    padding: clamp(7px, 1.15cqh, 10px) clamp(9px, 1.35cqw, 12px);
+    min-height: clamp(2.65rem, 5.8cqh, 3.35rem);
   }
 
   .seating-roster-row--empty {
@@ -2221,7 +2315,7 @@
 
   .seating-roster-name {
     font-family: 'Rajdhani', sans-serif;
-    font-size: clamp(1rem, 2.95cqh, 1.28rem);
+    font-size: clamp(1.05rem, 3.25cqh, 1.42rem);
     font-weight: 700;
     letter-spacing: 0.012em;
     color: rgb(255 251 235 / 0.98);
@@ -2278,16 +2372,16 @@
   }
 
   .seating-seat-badge--map {
-    width: clamp(1.35rem, 4.35cqh, 1.72rem);
-    height: clamp(1.35rem, 4.35cqh, 1.72rem);
-    font-size: clamp(0.58rem, 1.75cqh, 0.72rem);
+    width: clamp(1.45rem, 4.85cqh, 1.95rem);
+    height: clamp(1.45rem, 4.85cqh, 1.95rem);
+    font-size: clamp(0.62rem, 1.95cqh, 0.82rem);
     border-width: 1.25px;
   }
 
   .seating-seat-badge--roster {
-    width: clamp(1.72rem, 5.1cqh, 2.05rem);
-    height: clamp(1.72rem, 5.1cqh, 2.05rem);
-    font-size: clamp(0.62rem, 1.85cqh, 0.78rem);
+    width: clamp(1.85rem, 5.65cqh, 2.35rem);
+    height: clamp(1.85rem, 5.65cqh, 2.35rem);
+    font-size: clamp(0.68rem, 2.05cqh, 0.88rem);
   }
 
   .seating-seat-badge--empty {

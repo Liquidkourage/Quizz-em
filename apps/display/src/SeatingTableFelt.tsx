@@ -43,7 +43,7 @@ export function SeatingTableDiagram({
   }, [])
 
   const { w: wrapW, h: wrapH } = wrapPx
-  const feltScale = premium ? 1.02 : 0.88
+  const feltScale = premium ? 1.06 : 0.88
   const feltW = Math.min(wrapW * feltScale, wrapH * FELT_ASPECT * feltScale)
   const feltH = feltW / FELT_ASPECT
   const feltLeft = (wrapW - feltW) / 2

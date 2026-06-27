@@ -81,7 +81,11 @@ function LeaderboardRankRow({ row, rank, zebra, podium }: RowProps) {
   )
 }
 
-function columnGridStyle(column: VenueLeaderboardColumnModel, podiumColumn: boolean): CSSProperties {
+function columnGridStyle(
+  column: VenueLeaderboardColumnModel,
+  podiumColumn: boolean,
+  fullField: boolean
+): CSSProperties {
   const rows = Math.max(1, column.gridRowCount)
 
   if (!podiumColumn || rows < 4) {
@@ -91,9 +95,13 @@ function columnGridStyle(column: VenueLeaderboardColumnModel, podiumColumn: bool
     }
   }
 
+  const top = fullField ? '1.36fr' : '1.58fr'
+  const second = fullField ? '1.22fr' : '1.42fr'
+  const third = fullField ? '1.12fr' : '1.28fr'
+
   return {
     ['--lb-rows' as string]: rows,
-    gridTemplateRows: `minmax(0, 1.58fr) minmax(0, 1.42fr) minmax(0, 1.28fr) repeat(${Math.max(0, rows - 3)}, minmax(0, 1fr))`,
+    gridTemplateRows: `minmax(0, ${top}) minmax(0, ${second}) minmax(0, ${third}) repeat(${Math.max(0, rows - 3)}, minmax(0, 1fr))`,
   }
 }
 
@@ -101,10 +109,12 @@ function LeaderboardColumnPanel({
   column,
   colIndex,
   showTopThreePodium,
+  fullField,
 }: {
   column: VenueLeaderboardColumnModel
   colIndex: number
   showTopThreePodium: boolean
+  fullField: boolean
 }) {
   const podiumColumn = showTopThreePodium && colIndex === 0
   const accentClass = `venue-lb-panel--accent-${Math.min(colIndex, 3)}`
@@ -114,7 +124,7 @@ function LeaderboardColumnPanel({
       <header className="venue-lb-column-header">{venueLeaderboardColumnRangeLabel(column)}</header>
       <div
         className="@container/size venue-lb-column-grid grid min-h-0 flex-1 overflow-hidden"
-        style={columnGridStyle(column, podiumColumn)}
+        style={columnGridStyle(column, podiumColumn, fullField)}
       >
         {column.players.map((player, rowIndex) => (
           <LeaderboardRankRow
@@ -132,9 +142,10 @@ function LeaderboardColumnPanel({
 
 type VenueLeaderboardPanelGridProps = {
   page: VenueLeaderboardPageModel
+  fullField?: boolean
 }
 
-export default function VenueLeaderboardPanelGrid({ page }: VenueLeaderboardPanelGridProps) {
+export default function VenueLeaderboardPanelGrid({ page, fullField = false }: VenueLeaderboardPanelGridProps) {
   const centered = page.columnCount < LEADERBOARD_MAX_COLUMNS
   const widthPct = page.columnCount === 1 ? 42 : page.columnCount === 2 ? 68 : page.columnCount === 3 ? 86 : 100
 
@@ -154,6 +165,7 @@ export default function VenueLeaderboardPanelGrid({ page }: VenueLeaderboardPane
             column={column}
             colIndex={colIndex}
             showTopThreePodium={page.showTopThreePodium}
+            fullField={fullField}
           />
         ))}
       </div>

@@ -8,6 +8,7 @@ import {
   venueLeaderboardPageColumnCount,
   venueLeaderboardPageCount,
   venueLeaderboardPageSizes,
+  venueLeaderboardPageUsesFullFieldLayout,
   venueLeaderboardSplitPageColumns,
 } from './venueLeaderboardPresentation'
 
@@ -52,6 +53,15 @@ describe('buildVenueLeaderboardPresentation', () => {
     expect(model.pages[0]!.columns[0]!.rankEnd).toBe(16)
     expect(model.pages[0]!.columns[3]!.rankStart).toBe(49)
     expect(model.pages[0]!.columns[3]!.rankEnd).toBe(64)
+  })
+
+  it('uses four columns for 62 players with 49–62 in the last column', () => {
+    const model = buildVenueLeaderboardPresentation(mockRows(62))
+    expect(model.pages).toHaveLength(1)
+    expect(model.pages[0]!.columnCount).toBe(4)
+    expect(model.pages[0]!.columns[3]!.rankStart).toBe(49)
+    expect(model.pages[0]!.columns[3]!.rankEnd).toBe(62)
+    expect(venueLeaderboardPageUsesFullFieldLayout(model.pages[0]!)).toBe(true)
   })
 
   it('paginates 79 players into 64 + 15 without a fifth column', () => {
@@ -110,6 +120,11 @@ describe('venueLeaderboardPageColumnCount', () => {
 
   it('uses two columns on page 1 for 9–16 players', () => {
     expect(venueLeaderboardPageColumnCount(15, true)).toBe(2)
+  })
+
+  it('uses four columns on page 1 for 33–48 players', () => {
+    expect(venueLeaderboardPageColumnCount(33, true)).toBe(4)
+    expect(venueLeaderboardPageColumnCount(48, true)).toBe(4)
   })
 })
 

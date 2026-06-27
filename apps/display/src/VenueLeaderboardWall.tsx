@@ -10,6 +10,7 @@ import { useVenueLeaderboardPager } from './useVenueLeaderboardPager'
 import {
   buildVenueLeaderboardPresentation,
   venueLeaderboardPageLabel,
+  venueLeaderboardPageUsesFullFieldLayout,
 } from './venueLeaderboardPresentation'
 import {
   venueLeaderboardFooterStats,
@@ -96,9 +97,10 @@ export default function VenueLeaderboardWall({
   if (rows.length === 0 || currentPage == null) return null
 
   const pageLabel = venueLeaderboardPageLabel(currentPage)
+  const fullFieldLayout = venueLeaderboardPageUsesFullFieldLayout(currentPage)
 
   return (
-    <LeaderboardFrame>
+    <LeaderboardFrame fullField={fullFieldLayout}>
       <LeaderboardHeader
         metaParts={metaParts}
         condenseProgress={condenseProgress}
@@ -118,7 +120,7 @@ export default function VenueLeaderboardWall({
               exit={{ opacity: 0, x: -24 }}
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             >
-              <VenueLeaderboardPanelGrid page={currentPage} />
+              <VenueLeaderboardPanelGrid page={currentPage} fullField={fullFieldLayout} />
             </motion.div>
           </AnimatePresence>
         </div>

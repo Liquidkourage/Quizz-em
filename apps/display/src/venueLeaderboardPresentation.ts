@@ -35,6 +35,9 @@ export type VenueLeaderboardPresentationModel = {
   totalPlayers: number
 }
 
+/** First-page column count switches to four-up at this size (up to 64 on one page). */
+export const LEADERBOARD_FULL_FIELD_MIN_PLAYERS = 49
+
 /** Column count for one page — never exceeds {@link LEADERBOARD_MAX_COLUMNS}. */
 export function venueLeaderboardPageColumnCount(
   playerCountOnPage: number,
@@ -53,8 +56,14 @@ export function venueLeaderboardPageColumnCount(
   if (n <= 8) return 1
   if (n <= 16) return 2
   if (n <= 32) return 2
-  if (n <= 48) return 3
   return LEADERBOARD_MAX_COLUMNS
+}
+
+/** Compact chrome when a page approaches the 4×16 full-field cap (e.g. 49–64 players). */
+export function venueLeaderboardPageUsesFullFieldLayout(page: VenueLeaderboardPageModel): boolean {
+  const playersOnPage = page.rankEnd - page.rankStart + 1
+  const maxColumnRows = page.columns.reduce((max, col) => Math.max(max, col.gridRowCount), 0)
+  return playersOnPage >= LEADERBOARD_FULL_FIELD_MIN_PLAYERS || maxColumnRows >= 14
 }
 
 function attachRanks(rows: readonly VenueLeaderboardRow[], rankOffset: number): VenueLeaderboardRankedPlayer[] {

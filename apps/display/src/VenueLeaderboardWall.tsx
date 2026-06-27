@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { LeaderboardFrame } from './LeaderboardFrame'
 import { LeaderboardHeader } from './LeaderboardHeader'
-import { LeaderboardStatusLine } from './LeaderboardStatusLine'
 import VenueLeaderboardPanelGrid from './VenueLeaderboardPanelGrid'
 import VenueLeaderboardStatsRibbon from './VenueLeaderboardStatsRibbon'
 import { resolveVenueShowdownAnswer } from './showdownDisplay'
@@ -102,12 +101,11 @@ export default function VenueLeaderboardWall({
     <LeaderboardFrame>
       <LeaderboardHeader
         metaParts={metaParts}
+        condenseProgress={condenseProgress}
         pageText={showPager ? pageLabel.pageText : undefined}
         rankRangeText={showPager ? pageLabel.rankRangeText : undefined}
         showdownAnswer={venueShowdownAnswer}
       />
-
-      {condenseProgress != null ? <LeaderboardStatusLine model={condenseProgress} /> : null}
 
       <main className="venue-lb-main flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="relative min-h-0 flex-1 overflow-hidden">

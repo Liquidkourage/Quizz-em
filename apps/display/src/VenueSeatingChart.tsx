@@ -17,6 +17,7 @@ import {
   seatingChartWFormationRows,
 } from './venueSeatingChartCarousel'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
+import DisplayPanelCornerBrackets from './DisplayPanelCornerBrackets'
 
 function SeatingTableCard({
   table,
@@ -25,22 +26,31 @@ function SeatingTableCard({
 }) {
   return (
     <article
-      className="@container flex h-full w-full min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-b from-slate-800/95 to-slate-950 shadow-[0_16px_48px_rgba(0,0,0,0.42),0_0_0_1px_rgba(251,191,36,0.1),inset_0_1px_0_rgba(255,255,255,0.07)]"
+      className="seating-table-card @container flex h-full w-full min-h-0 min-w-0 flex-col"
       aria-label={`Table ${table.tableNum}, ${table.seats.length} players`}
     >
-      <header className="flex shrink-0 items-center border-b border-amber-500/25 bg-gradient-to-r from-amber-500/18 via-amber-400/12 to-amber-500/18 px-4 py-2 sm:px-5 sm:py-2.5">
-        <span className="text-xl font-black tabular-nums leading-none text-amber-50 sm:text-2xl">
-          {table.tableNum}
-        </span>
-      </header>
+      <div className="seating-table-card-frame">
+        <div className="seating-table-card-surface">
+          <header className="seating-table-card-header">
+            <span className="seating-table-card-label">Table</span>
+            <span className="seating-table-card-num tabular-nums">{table.tableNum}</span>
+          </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-2 px-2.5 py-2 sm:gap-2.5 sm:px-3 sm:py-2.5">
-        <div className="flex h-[clamp(5rem,20cqh,8.25rem)] shrink-0 items-center justify-center overflow-hidden border-b border-white/[0.06] pb-2">
-          <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
+          <div className="seating-table-card-body">
+            <div className="seating-table-card-felt-well">
+              <SeatingTableDiagram occupiedSeatNums={table.seats.map((s) => s.seatNum)} />
+            </div>
+            <div className="seating-table-card-roster">
+              <SeatingPlayerList seats={table.seats} />
+            </div>
+          </div>
         </div>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          <SeatingPlayerList seats={table.seats} />
-        </div>
+
+        <DisplayPanelCornerBrackets
+          cornersClassName="seating-table-card-corners"
+          bracketClassName="seating-table-card-bracket pointer-events-none absolute select-none"
+          bottomFlipClassName="seating-table-card-corners-bottom"
+        />
       </div>
     </article>
   )
@@ -177,7 +187,7 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
   const showPager = pageCount > 1
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#050806]">
+    <div className="seating-chart-screen fixed inset-0 overflow-hidden bg-[#050806]">
       <DisplayWelcomeBackdrop />
 
       <div className="relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white">

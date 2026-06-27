@@ -44,10 +44,10 @@ export function SeatingTableDiagram({ occupiedSeatNums }: { occupiedSeatNums: nu
     >
       {wrapW > 0 && wrapH > 0 ? (
         <div
-          className="absolute"
+          className="absolute drop-shadow-[0_8px_20px_rgba(0,0,0,0.55)]"
           style={{ left: feltLeft, top: feltTop, width: feltW, height: feltH }}
         >
-          <PokerTableGraphic className="h-full w-full drop-shadow-md" />
+          <PokerTableGraphic className="h-full w-full" />
         </div>
       ) : null}
 
@@ -85,32 +85,49 @@ export type SeatingTableSeat = {
   name: string
 }
 
-/** Numbered player roster — full names, sorted by seat; rows stretch to fill card height. */
+/** Numbered player roster — full grid with open seats; sorted by seat. */
 export function SeatingPlayerList({ seats }: { seats: SeatingTableSeat[] }) {
-  const sorted = [...seats].sort((a, b) => a.seatNum - b.seatNum)
-  const rowCount = Math.max(1, Math.ceil(sorted.length / 2))
+  const bySeat = new Map(seats.map((seat) => [seat.seatNum, seat]))
+  const slots = Array.from({ length: VENUE_WALL_SEAT_SLOTS }, (_, index) => {
+    const seatNum = index + 1
+    return bySeat.get(seatNum) ?? { seatNum, name: '' }
+  })
+  const rowCount = Math.max(1, Math.ceil(slots.length / 2))
 
   return (
     <ul
-      className="grid h-full min-h-0 grid-cols-2 gap-x-2 gap-y-1.5 sm:gap-x-2.5 sm:gap-y-2"
+      className="seating-table-roster-grid grid h-full min-h-0 grid-cols-2 gap-x-1.5 gap-y-1 sm:gap-x-2 sm:gap-y-1.5"
       style={{ gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))` }}
     >
-      {sorted.map((seat) => {
+      {slots.map((seat) => {
+        const occupied = seat.name.trim().length > 0
         const { given, suffix } = splitSeatingDisplayName(seat.name)
+
         return (
           <li
             key={seat.seatNum}
-            className="flex min-h-0 min-w-0 items-center gap-2 rounded-md bg-white/[0.045] px-2 py-1.5 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-2"
+            className={
+              occupied
+                ? 'seating-table-player-well seating-table-player-well--filled'
+                : 'seating-table-player-well seating-table-player-well--open'
+            }
           >
             <SeatCupholderMarker
-              sizeClassName="h-6 w-6 sm:h-7 sm:w-7"
+              sizeClassName="h-6 w-6 shrink-0 sm:h-7 sm:w-7"
               label={seat.seatNum}
               labelClassName="font-mono text-[9px] tabular-nums sm:text-[10px]"
+              state={occupied ? 'default' : 'empty'}
             />
-            <span className="min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm">
-              {given}
-              {suffix ? <span className="font-normal text-amber-100/50"> {suffix}</span> : null}
-            </span>
+            {occupied ? (
+              <span className="seating-table-player-name min-w-0 truncate">
+                {given}
+                {suffix ? <span className="seating-table-player-suffix"> {suffix}</span> : null}
+              </span>
+            ) : (
+              <span className="seating-table-player-open" aria-label={`Seat ${seat.seatNum} open`}>
+                Open
+              </span>
+            )}
           </li>
         )
       })}

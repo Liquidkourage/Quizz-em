@@ -11,8 +11,8 @@ import {
 } from './displayTypography'
 import { QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS } from './venueRulesWallContent'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
+import DisplayPanelCornerBrackets from './DisplayPanelCornerBrackets'
 import { welcomeWallTableCount } from './venueWallModel'
-import { WELCOME_WALL_ASSETS } from './welcomeWallAssets'
 
 export type AudienceWelcomeWallProps = {
   venueCode: string
@@ -123,50 +123,6 @@ function WelcomeLedDisplay({
   )
 }
 
-/** Ornate gold corner brackets — bottom row reuses top positioning inside a Y-flipped wrapper. */
-function WelcomePanelCornerBrackets() {
-  const bracketClass = 'welcome-bracket-corner pointer-events-none absolute select-none'
-
-  return (
-    <>
-      <img
-        src={WELCOME_WALL_ASSETS.bracketCornerLeft}
-        alt=""
-        aria-hidden
-        className={`${bracketClass} welcome-bracket-corner--tl`}
-        decoding="async"
-        draggable={false}
-      />
-      <img
-        src={WELCOME_WALL_ASSETS.bracketCornerRight}
-        alt=""
-        aria-hidden
-        className={`${bracketClass} welcome-bracket-corner--tr`}
-        decoding="async"
-        draggable={false}
-      />
-      <div className="welcome-panel-corners-bottom" aria-hidden>
-        <img
-          src={WELCOME_WALL_ASSETS.bracketCornerLeft}
-          alt=""
-          aria-hidden
-          className={`${bracketClass} welcome-bracket-corner--tl`}
-          decoding="async"
-          draggable={false}
-        />
-        <img
-          src={WELCOME_WALL_ASSETS.bracketCornerRight}
-          alt=""
-          aria-hidden
-          className={`${bracketClass} welcome-bracket-corner--tr`}
-          decoding="async"
-          draggable={false}
-        />
-      </div>
-    </>
-  )
-}
-
 /** Reserves layout space for the baked floor band — panels sit directly above this. */
 function WelcomeFloorSpacer() {
   return (
@@ -241,11 +197,7 @@ function VegasAttentionPanel({
           <div className={innerFlex}>{children}</div>
         </div>
       </div>
-      {showCorners ? (
-        <div className="welcome-panel-corners" aria-hidden>
-          <WelcomePanelCornerBrackets />
-        </div>
-      ) : null}
+      {showCorners ? <DisplayPanelCornerBrackets /> : null}
     </div>
   )
 }

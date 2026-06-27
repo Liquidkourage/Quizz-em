@@ -122,7 +122,7 @@ export default function VenueLeaderboardWall({
               exit={{ opacity: 0, x: -24 }}
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             >
-              <VenueLeaderboardPanelGrid page={currentPage} fullField={fullFieldLayout} />
+              <VenueLeaderboardPanelGrid page={currentPage} />
             </motion.div>
           </AnimatePresence>
         </div>

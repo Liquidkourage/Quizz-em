@@ -119,6 +119,14 @@ describe('venueLeaderboardColumnRangeLabel', () => {
     expect(columns.length).toBeLessThanOrEqual(4)
   })
 
+  it('puts sixteen players in column one for a sixty-four player field', () => {
+    const model = buildVenueLeaderboardPresentation(mockRows(64))
+    const col0 = model.pages[0]!.columns[0]!
+    expect(col0.players).toHaveLength(16)
+    expect(col0.gridRowCount).toBe(16)
+    expect(col0.players.at(-1)!.rank).toBe(16)
+  })
+
   it('labels 1–16 when rank 16 is in the column', () => {
     const ranked = mockRows(64).map((row, i) => ({ ...row, rank: i + 1 }))
     const columns = venueLeaderboardSplitPageColumns(ranked, 4)

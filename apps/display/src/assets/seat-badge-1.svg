@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Seat 1">
+<defs>
+  <radialGradient id="face" cx="40%" cy="32%" r="78%">
+    <stop offset="0" stop-color="#24190a"/>
+    <stop offset="0.58" stop-color="#0b0906"/>
+    <stop offset="1" stop-color="#020202"/>
+  </radialGradient>
+  <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff0a8"/>
+    <stop offset="0.18" stop-color="#d4a028"/>
+    <stop offset="0.38" stop-color="#fff7c9"/>
+    <stop offset="0.66" stop-color="#98600c"/>
+    <stop offset="0.86" stop-color="#e7b93a"/>
+    <stop offset="1" stop-color="#6a3d06"/>
+  </linearGradient>
+  <linearGradient id="num" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff8d6"/>
+    <stop offset="0.32" stop-color="#ffe987"/>
+    <stop offset="0.76" stop-color="#d6a42d"/>
+    <stop offset="1" stop-color="#9b620b"/>
+  </linearGradient>
+  <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="3.6" result="b"/>
+    <feColorMatrix in="b" type="matrix" values="1 0 0 0 0.85 0 1 0 0 0.52 0 0 1 0 0.05 0 0 0 0.52 0"/>
+    <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="numShadow" x="-25%" y="-25%" width="150%" height="150%">
+    <feDropShadow dx="0" dy="3" stdDeviation="2.3" flood-color="#000" flood-opacity="0.92"/>
+  </filter>
+</defs>
+<g filter="url(#glow)">
+  <circle cx="128" cy="128" r="106" fill="url(#face)" stroke="#5f3b09" stroke-width="8"/>
+  <circle cx="128" cy="128" r="106" fill="none" stroke="url(#ring)" stroke-width="4.5"/>
+  <circle cx="128" cy="128" r="99" fill="none" stroke="#d8a936" stroke-opacity="0.52" stroke-width="1.7"/>
+</g>
+<path d="M50 78 A94 94 0 0 1 130 34" fill="none" stroke="#fff4bf" stroke-opacity="0.63" stroke-width="3.2" stroke-linecap="round"/>
+<path d="M168.0909090909091 172.38429752066116V190.0H97.45454545454545V172.38429752066116H122.44628099173553V103.48347107438016Q122.44628099173553 101.22727272727272 122.53305785123966 98.88429752066115Q122.61983471074379 96.54132231404958 122.79338842975207 94.11157024793388L106.30578512396694 107.82231404958678Q104.57024793388429 109.12396694214875 102.92148760330578 109.47107438016528Q101.27272727272727 109.81818181818181 99.79752066115702 109.51446280991735Q98.32231404958677 109.2107438016529 97.19421487603304 108.47314049586777Q96.06611570247934 107.73553719008264 95.4586776859504 106.95454545454545L87.9090909090909 96.80165289256198L126.61157024793388 64.0H146.3099173553719V172.38429752066116Z" fill="url(#num)" stroke="#5c3505" stroke-width="1.1" paint-order="stroke fill" filter="url(#numShadow)"/>
+</svg>

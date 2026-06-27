@@ -1,4 +1,6 @@
-/** Shared gold circular seat badge — map markers and roster rows. */
+import { seatingSeatBadgeSrc } from './seatingSeatBadgeAssets'
+
+/** Shared gold seat-badge art — map markers and roster rows. */
 export function SeatingSeatBadge({
   seatNum,
   size,
@@ -12,6 +14,7 @@ export function SeatingSeatBadge({
   highlight?: boolean
   className?: string
 }) {
+  const src = seatingSeatBadgeSrc(seatNum)
   const classes = [
     'seating-seat-badge',
     `seating-seat-badge--${size}`,
@@ -22,9 +25,22 @@ export function SeatingSeatBadge({
     .filter(Boolean)
     .join(' ')
 
+  if (src == null) {
+    return (
+      <span className={classes} aria-hidden={size === 'map' ? true : undefined}>
+        {seatNum}
+      </span>
+    )
+  }
+
   return (
-    <span className={classes} aria-hidden={size === 'map' ? true : undefined}>
-      {seatNum}
-    </span>
+    <img
+      src={src}
+      alt={size === 'map' ? '' : `Seat ${seatNum}`}
+      aria-hidden={size === 'map' ? true : undefined}
+      className={classes}
+      decoding="async"
+      draggable={false}
+    />
   )
 }

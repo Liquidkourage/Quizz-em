@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { LeaderboardFrame } from './LeaderboardFrame'
 import { LeaderboardHeader } from './LeaderboardHeader'
+import { LeaderboardStatusRow } from './LeaderboardStatusRow'
 import VenueLeaderboardPanelGrid from './VenueLeaderboardPanelGrid'
 import VenueLeaderboardStatsRibbon from './VenueLeaderboardStatsRibbon'
 import { resolveVenueShowdownAnswer } from './showdownDisplay'
@@ -103,11 +104,12 @@ export default function VenueLeaderboardWall({
     <LeaderboardFrame fullField={fullFieldLayout}>
       <LeaderboardHeader
         metaParts={metaParts}
-        condenseProgress={condenseProgress}
         pageText={showPager ? pageLabel.pageText : undefined}
         rankRangeText={showPager ? pageLabel.rankRangeText : undefined}
         showdownAnswer={venueShowdownAnswer}
       />
+
+      {condenseProgress != null ? <LeaderboardStatusRow model={condenseProgress} /> : null}
 
       <main className="venue-lb-main flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="relative min-h-0 flex-1 overflow-hidden">
@@ -129,7 +131,7 @@ export default function VenueLeaderboardWall({
       </main>
 
       {showPager ? (
-        <div className="venue-lb-pager pointer-events-none absolute bottom-[clamp(5.5rem,11vh,7rem)] left-0 right-0 flex justify-center">
+        <div className="venue-lb-pager pointer-events-none absolute bottom-[clamp(6.5rem,12vh,8.5rem)] left-0 right-0 flex justify-center">
           <div className="flex items-center gap-2" aria-hidden>
             {Array.from({ length: pageCount }, (_, i) => (
               <span

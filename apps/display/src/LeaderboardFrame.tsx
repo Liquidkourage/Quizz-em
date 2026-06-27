@@ -21,7 +21,9 @@ export function LeaderboardFrame({ children, fullField = false }: LeaderboardFra
             fullField ? ' venue-lb-viewport--full-field' : ''
           }`}
         >
-          {children}
+          <div className="venue-lb-viewport-inner relative flex min-h-0 flex-1 flex-col overflow-hidden">
+            {children}
+          </div>
         </div>
       </div>
     </div>

@@ -95,9 +95,9 @@ function columnGridStyle(
     }
   }
 
-  const top = fullField ? '1.36fr' : '1.58fr'
-  const second = fullField ? '1.22fr' : '1.42fr'
-  const third = fullField ? '1.12fr' : '1.28fr'
+  const top = fullField ? '1.42fr' : '1.58fr'
+  const second = fullField ? '1.28fr' : '1.42fr'
+  const third = fullField ? '1.16fr' : '1.28fr'
 
   return {
     ['--lb-rows' as string]: rows,

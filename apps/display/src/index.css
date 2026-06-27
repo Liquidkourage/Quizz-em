@@ -1977,59 +1977,77 @@
   }
 
   .venue-lb-bezel {
-    padding: clamp(10px, 1.1vmin, 18px);
+    position: relative;
+    padding: clamp(8px, 0.85vmin, 14px);
     box-shadow: inset 0 0 48px rgb(0 0 0 / 0.72);
   }
 
+  .venue-lb-bezel::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: clamp(4px, 0.45vmin, 8px);
+    border-radius: clamp(6px, 0.65vmin, 10px);
+    border: 1px solid rgb(148 163 184 / 0.22);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.04),
+      -2px 0 14px rgb(168 85 247 / 0.35),
+      0 2px 12px rgb(168 85 247 / 0.2);
+  }
+
+  .venue-lb-bezel::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: clamp(4px, 0.45vmin, 8px);
+    border-radius: clamp(6px, 0.65vmin, 10px);
+    box-shadow:
+      2px 0 14px rgb(45 212 191 / 0.32),
+      0 -2px 12px rgb(45 212 191 / 0.16);
+  }
+
   .venue-lb-bezel--full-field {
-    padding: clamp(8px, 0.85vmin, 12px);
+    padding: clamp(6px, 0.7vmin, 10px);
   }
 
   .venue-lb-viewport {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
-    border-radius: clamp(8px, 0.85vmin, 12px);
-    border: 2px solid rgb(100 116 139 / 0.38);
+    min-height: 0;
+    flex: 1 1 auto;
+    border-radius: clamp(6px, 0.65vmin, 10px);
+    border: 1.5px solid rgb(100 116 139 / 0.42);
     background: linear-gradient(180deg, rgb(8 10 18 / 0.94) 0%, rgb(4 6 12 / 0.98) 100%);
     box-shadow:
-      inset 0 0 0 1px rgb(251 191 36 / 0.14),
-      inset 0 0 28px rgb(0 0 0 / 0.55),
-      0 0 0 1px rgb(168 85 247 / 0.22),
-      0 0 0 2px rgb(45 212 191 / 0.1);
-    padding: clamp(14px, 1.75vmin, 26px) clamp(16px, 2vw, 30px) clamp(12px, 1.5vmin, 22px);
-    gap: clamp(8px, 1.1vmin, 14px);
+      inset 0 0 0 1px rgb(251 191 36 / 0.12),
+      inset 0 0 28px rgb(0 0 0 / 0.55);
+    padding: clamp(12px, 1.35vmin, 20px) clamp(14px, 1.65vw, 24px) clamp(10px, 1.15vmin, 18px);
+    gap: clamp(6px, 0.65vmin, 10px);
+  }
+
+  .venue-lb-viewport-inner {
+    gap: clamp(6px, 0.65vmin, 10px);
   }
 
   /** 49–64 players on one page — reclaim chrome for the 4×16 grid at 1080p. */
   .venue-lb-viewport--full-field {
-    padding: clamp(8px, 1vmin, 14px) clamp(12px, 1.55vw, 22px) clamp(6px, 0.85vmin, 12px);
-    gap: clamp(4px, 0.55vmin, 7px);
+    padding: clamp(10px, 1.1vmin, 16px) clamp(12px, 1.45vw, 20px) clamp(8px, 0.95vmin, 14px);
+    gap: clamp(4px, 0.45vmin, 7px);
   }
 
-  .venue-lb-viewport--full-field .venue-lb-logo-wrap {
-    width: clamp(8.75rem, 13.5vw, 16.5rem);
-  }
-
-  .venue-lb-viewport--full-field .venue-lb-title {
-    font-size: clamp(2.75rem, 3.55vw, 4rem);
-    line-height: 0.95;
-  }
-
-  .venue-lb-viewport--full-field .venue-lb-meta-band {
-    margin-top: clamp(3px, 0.4vmin, 6px);
-  }
-
-  .venue-lb-viewport--full-field .venue-lb-meta {
-    font-size: clamp(0.95rem, 1.15vw, 1.35rem);
+  .venue-lb-viewport--full-field .venue-lb-viewport-inner {
+    gap: clamp(4px, 0.45vmin, 7px);
   }
 
   .venue-lb-viewport--full-field .venue-lb-column-header {
-    padding: clamp(5px, 0.65vmin, 8px) clamp(6px, 0.8vw, 10px);
-    font-size: clamp(1rem, 1.25vw, 1.45rem);
+    padding: clamp(6px, 0.75vmin, 9px) clamp(6px, 0.8vw, 10px);
+    font-size: clamp(1.05rem, 1.35vw, 1.55rem);
   }
 
   .venue-lb-viewport--full-field .venue-lb-grid {
-    gap: clamp(8px, 0.85vw, 14px);
+    gap: clamp(10px, 0.95vw, 15px);
   }
 
   .venue-lb-viewport--full-field .venue-lb-row {
@@ -2062,63 +2080,68 @@
   }
 
   .venue-lb-viewport--full-field .venue-lb-ribbon {
-    min-height: clamp(3.15rem, 5.75vh, 4.15rem);
+    min-height: clamp(5.25rem, 9.5vh, 6.75rem);
   }
 
   .venue-lb-viewport--full-field .venue-lb-stat-section {
-    padding: clamp(6px, 0.85vmin, 10px) clamp(8px, 1vw, 14px);
+    padding: clamp(8px, 1vmin, 12px) clamp(10px, 1.15vw, 16px);
   }
 
   .venue-lb-viewport--full-field .venue-lb-stat-value {
-    font-size: clamp(1.1rem, 1.35vw, 1.5rem);
+    font-size: clamp(1.2rem, 1.45vw, 1.65rem);
   }
 
   .venue-lb-header {
-    padding-bottom: clamp(2px, 0.35vmin, 4px);
+    padding-bottom: 0;
   }
 
   .venue-lb-header-row {
     display: flex;
-    align-items: flex-start;
-    gap: clamp(14px, 1.8vw, 24px);
+    align-items: center;
+    gap: clamp(12px, 1.45vw, 20px);
   }
 
   .venue-lb-logo-wrap {
-    width: clamp(11rem, 18vw, 23.75rem);
+    width: clamp(12.5rem, 14.5vw, 17.75rem);
     flex-shrink: 0;
+  }
+
+  .venue-lb-title-row {
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 0.85vw, 12px);
   }
 
   .venue-lb-title {
     font-family: Orbitron, monospace;
-    font-size: clamp(3.25rem, 4.25vw, 5.125rem);
+    font-size: clamp(3.5rem, 4vw, 4.875rem);
     font-weight: 900;
-    letter-spacing: 0.1em;
-    line-height: 0.98;
+    letter-spacing: 0.08em;
+    line-height: 0.96;
     text-transform: uppercase;
     background: linear-gradient(180deg, #fff4b8 0%, #fbbf24 38%, #d4a017 72%, #a16207 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    text-shadow: none;
-    filter: drop-shadow(0 2px 10px rgb(251 191 36 / 0.28));
+    filter: drop-shadow(0 2px 8px rgb(251 191 36 / 0.32)) drop-shadow(0 1px 0 rgb(0 0 0 / 0.85));
   }
 
-  .venue-lb-meta-band {
-    display: flex;
-    align-items: center;
-    gap: clamp(12px, 1.6vw, 22px);
-    margin-top: clamp(6px, 0.75vmin, 10px);
-    min-width: 0;
+  .venue-lb-title-crown {
+    width: clamp(1.35rem, 1.65vw, 1.85rem);
+    height: clamp(1.35rem, 1.65vw, 1.85rem);
+    flex-shrink: 0;
+    color: rgb(251 191 36 / 0.88);
+    filter: drop-shadow(0 0 8px rgb(251 191 36 / 0.45));
   }
 
   .venue-lb-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: clamp(8px, 1vw, 14px);
-    flex-shrink: 0;
+    gap: clamp(7px, 0.85vw, 12px);
+    margin-top: clamp(4px, 0.45vmin, 7px);
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(1.05rem, 1.35vw, 1.625rem);
+    font-size: clamp(1.05rem, 1.2vw, 1.45rem);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -2138,12 +2161,45 @@
     font-weight: 600;
   }
 
-  .venue-lb-meta-track-wrap {
-    min-width: clamp(4rem, 12vw, 10rem);
+  .venue-lb-status {
+    padding-block: clamp(2px, 0.25vmin, 4px);
+  }
+
+  .venue-lb-status-row {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 1.35vw, 18px);
+  }
+
+  .venue-lb-status-caption {
+    flex-shrink: 0;
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(1rem, 1.15vw, 1.3rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: rgb(255 251 235 / 0.92);
+  }
+
+  .venue-lb-status-num {
+    color: rgb(254 243 199 / 0.98);
+  }
+
+  .venue-lb-status-muted {
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  .venue-lb-status-dot {
+    margin-inline: clamp(4px, 0.5vw, 7px);
+    color: rgb(251 191 36 / 0.55);
+  }
+
+  .venue-lb-status-track-wrap {
+    min-width: 0;
     flex: 1 1 auto;
   }
 
-  .venue-lb-meta-track {
+  .venue-lb-status-track {
     position: relative;
     height: 2px;
     border-radius: 999px;
@@ -2151,7 +2207,7 @@
     box-shadow: 0 0 10px rgb(251 191 36 / 0.18);
   }
 
-  .venue-lb-meta-diamond {
+  .venue-lb-status-diamond {
     position: absolute;
     top: 50%;
     width: 9px;
@@ -2160,6 +2216,11 @@
     border-radius: 1px;
     background: linear-gradient(135deg, #fff4b8, #fbbf24);
     box-shadow: 0 0 10px rgb(251 191 36 / 0.65);
+  }
+
+  .venue-lb-header-aside {
+    align-self: flex-start;
+    margin-left: auto;
   }
 
   .venue-lb-page-indicator {
@@ -2172,19 +2233,19 @@
 
   .venue-lb-page-label {
     font-family: Orbitron, monospace;
-    font-size: clamp(0.82rem, 1.05vw, 1rem);
+    font-size: clamp(0.95rem, 1.15vw, 1.25rem);
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgb(253 230 138 / 0.88);
+    color: rgb(253 230 138 / 0.92);
   }
 
   .venue-lb-page-range {
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.92rem, 1.15vw, 1.125rem);
+    font-size: clamp(0.88rem, 1vw, 1.125rem);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    color: rgb(255 255 255 / 0.72);
+    color: rgb(255 251 235 / 0.78);
   }
 
   .venue-lb-answer-card {
@@ -2217,72 +2278,80 @@
   }
 
   .venue-lb-main {
-    gap: clamp(8px, 1vmin, 12px);
+    gap: clamp(6px, 0.65vmin, 10px);
     min-height: 0;
   }
 
   .venue-lb-grid-stage {
-    padding-inline: clamp(2px, 0.35vw, 6px);
+    padding-inline: 0;
   }
 
   .venue-lb-grid {
-    gap: clamp(12px, 1.15vw, 18px);
+    gap: clamp(12px, 1.05vw, 17px);
   }
 
   .venue-lb-panel {
     border-radius: clamp(8px, 0.85vmin, 12px) clamp(8px, 0.85vmin, 12px) 0 0;
-    border: 1px solid rgb(251 191 36 / 0.28);
-    background: linear-gradient(180deg, rgb(12 16 28 / 0.88) 0%, rgb(5 8 16 / 0.94) 100%);
+    border: 1.5px solid rgb(251 191 36 / 0.32);
+    background:
+      repeating-linear-gradient(
+        0deg,
+        rgb(255 255 255 / 0.012) 0,
+        rgb(255 255 255 / 0.012) 1px,
+        transparent 1px,
+        transparent 3px
+      ),
+      linear-gradient(180deg, rgb(12 16 28 / 0.92) 0%, rgb(5 8 16 / 0.96) 100%);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
       0 10px 28px rgb(0 0 0 / 0.35);
   }
 
   .venue-lb-panel--accent-0 {
-    border-color: rgb(217 70 239 / 0.42);
+    border-color: rgb(217 70 239 / 0.55);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.05),
-      0 0 18px rgb(168 85 247 / 0.12),
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 0 22px rgb(168 85 247 / 0.16),
       0 10px 28px rgb(0 0 0 / 0.35);
   }
 
   .venue-lb-panel--accent-1 {
-    border-color: rgb(167 139 250 / 0.38);
+    border-color: rgb(167 139 250 / 0.48);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.05),
-      0 0 16px rgb(139 92 246 / 0.1),
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 0 20px rgb(139 92 246 / 0.14),
       0 10px 28px rgb(0 0 0 / 0.35);
   }
 
   .venue-lb-panel--accent-2 {
-    border-color: rgb(125 211 252 / 0.34);
+    border-color: rgb(125 211 252 / 0.44);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.05),
-      0 0 16px rgb(56 189 248 / 0.09),
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 0 20px rgb(56 189 248 / 0.12),
       0 10px 28px rgb(0 0 0 / 0.35);
   }
 
   .venue-lb-panel--accent-3 {
-    border-color: rgb(45 212 191 / 0.38);
+    border-color: rgb(45 212 191 / 0.48);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.05),
-      0 0 16px rgb(45 212 191 / 0.1),
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 0 20px rgb(45 212 191 / 0.14),
       0 10px 28px rgb(0 0 0 / 0.35);
   }
 
   .venue-lb-column-header {
     flex-shrink: 0;
-    padding: clamp(8px, 0.95vmin, 12px) clamp(8px, 1vw, 12px);
-    border-bottom: 1px solid rgb(251 191 36 / 0.22);
-    background: rgb(0 0 0 / 0.28);
+    padding: clamp(9px, 1vmin, 12px) clamp(8px, 1vw, 12px);
+    border-bottom: 1px solid rgb(251 191 36 / 0.28);
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.42) 0%, rgb(0 0 0 / 0.28) 100%);
     font-family: Orbitron, monospace;
-    font-size: clamp(1.15rem, 1.55vw, 1.85rem);
+    font-size: clamp(1.2rem, 1.55vw, 1.75rem);
     font-weight: 800;
     letter-spacing: 0.14em;
     line-height: 1.1;
     text-align: center;
     text-transform: uppercase;
-    color: rgb(253 224 71 / 0.92);
+    color: rgb(253 224 71 / 0.95);
   }
 
   .venue-lb-row {
@@ -2296,29 +2365,35 @@
   }
 
   .venue-lb-row--standard {
-    border-bottom: 1px solid rgb(255 255 255 / 0.04);
+    border-bottom: 1px solid rgb(255 255 255 / 0.055);
   }
 
   .venue-lb-row--zebra {
-    background: rgb(255 255 255 / 0.028);
+    background: rgb(255 255 255 / 0.038);
   }
 
   .venue-lb-row--podium-1 {
-    border: 1px solid rgb(251 191 36 / 0.62);
-    background: linear-gradient(90deg, rgb(120 53 15 / 0.72) 0%, rgb(69 26 3 / 0.55) 52%, rgb(15 23 42 / 0.45) 100%);
-    box-shadow: inset 0 0 24px rgb(251 191 36 / 0.14);
+    border: 1.5px solid rgb(251 191 36 / 0.78);
+    background: linear-gradient(90deg, rgb(146 64 14 / 0.82) 0%, rgb(92 38 6 / 0.62) 48%, rgb(15 23 42 / 0.42) 100%);
+    box-shadow:
+      inset 0 0 28px rgb(251 191 36 / 0.18),
+      inset 0 1px 0 rgb(254 243 199 / 0.12);
   }
 
   .venue-lb-row--podium-2 {
-    border: 1px solid rgb(203 213 225 / 0.42);
-    background: linear-gradient(90deg, rgb(71 85 105 / 0.55) 0%, rgb(30 41 59 / 0.48) 100%);
-    box-shadow: inset 0 0 16px rgb(148 163 184 / 0.12);
+    border: 1.5px solid rgb(203 213 225 / 0.52);
+    background: linear-gradient(90deg, rgb(88 99 122 / 0.62) 0%, rgb(38 48 66 / 0.52) 100%);
+    box-shadow:
+      inset 0 0 18px rgb(148 163 184 / 0.16),
+      inset 0 1px 0 rgb(241 245 249 / 0.08);
   }
 
   .venue-lb-row--podium-3 {
-    border: 1px solid rgb(251 146 60 / 0.45);
-    background: linear-gradient(90deg, rgb(124 45 18 / 0.58) 0%, rgb(41 25 14 / 0.48) 100%);
-    box-shadow: inset 0 0 14px rgb(251 146 60 / 0.1);
+    border: 1.5px solid rgb(251 146 60 / 0.55);
+    background: linear-gradient(90deg, rgb(146 64 14 / 0.68) 0%, rgb(62 32 14 / 0.52) 100%);
+    box-shadow:
+      inset 0 0 16px rgb(251 146 60 / 0.14),
+      inset 0 1px 0 rgb(255 237 213 / 0.08);
   }
 
   .venue-lb-row-rank-cell {
@@ -2454,12 +2529,13 @@
 
   .venue-lb-ribbon {
     border-radius: clamp(8px, 0.85vmin, 12px);
-    border: 1px solid rgb(251 191 36 / 0.42);
-    background: linear-gradient(180deg, rgb(10 12 20 / 0.96) 0%, rgb(4 6 12 / 0.98) 100%);
+    border: 1.5px solid rgb(251 191 36 / 0.48);
+    background: linear-gradient(180deg, rgb(10 12 20 / 0.98) 0%, rgb(4 6 12 / 0.99) 100%);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.05),
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      inset 0 0 24px rgb(251 191 36 / 0.06),
       0 8px 24px rgb(0 0 0 / 0.35);
-    min-height: clamp(4.25rem, 8.5vh, 5.75rem);
+    min-height: clamp(5.5rem, 10vh, 7rem);
   }
 
   .venue-lb-ribbon-inner {
@@ -2491,18 +2567,18 @@
   }
 
   .venue-lb-stat-icon {
-    width: clamp(1.35rem, 1.75vw, 1.85rem);
-    height: clamp(1.35rem, 1.75vw, 1.85rem);
+    width: clamp(2.4rem, 3vw, 3.4rem);
+    height: clamp(2.4rem, 3vw, 3.4rem);
   }
 
   .venue-lb-stat-label {
     font-family: Orbitron, monospace;
-    font-size: clamp(0.82rem, 1.05vw, 1.125rem);
+    font-size: clamp(0.88rem, 1.05vw, 1.2rem);
     font-weight: 800;
     letter-spacing: 0.12em;
     line-height: 1.2;
     text-transform: uppercase;
-    color: rgb(253 224 71 / 0.82);
+    color: rgb(253 224 71 / 0.88);
   }
 
   .venue-lb-stat-value {

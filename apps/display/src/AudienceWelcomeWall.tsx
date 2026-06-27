@@ -495,20 +495,20 @@ function WelcomeJoinCard({
 
           <div className="welcome-join-stats-row" aria-label="Venue stats">
             <WelcomeLedCountSection
-              label="Tables"
+              label="Players"
               layout="inPanelStat"
               syncingCounts={syncingCounts}
-              count={tableCount}
+              count={enrolled}
               playerCountLabelClass={playerCountLabelClass}
               statTile1080=""
               statDigitBase={playerCountGlyphClass}
               reducedMotion={reducedMotion}
             />
             <WelcomeLedCountSection
-              label="Players"
+              label="Tables"
               layout="inPanelStat"
               syncingCounts={syncingCounts}
-              count={enrolled}
+              count={tableCount}
               playerCountLabelClass={playerCountLabelClass}
               statTile1080=""
               statDigitBase={playerCountGlyphClass}

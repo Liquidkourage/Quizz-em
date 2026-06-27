@@ -11,6 +11,7 @@ import {
 } from './displayTypography'
 import { QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS } from './venueRulesWallContent'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
+import { welcomeWallTableCount } from './venueWallModel'
 import { WELCOME_WALL_ASSETS } from './welcomeWallAssets'
 
 export type AudienceWelcomeWallProps = {
@@ -314,10 +315,10 @@ function WelcomeQrColumn({
 /**
  * Venue join wall: header, then three equal bands on `lg+` — QR, join & players, how it works.
  */
-type AttendanceSectionProps = {
+type WelcomeLedCountSectionProps = {
+  label: string
   syncingCounts: boolean
-  /** Total human players in the venue (lobby + seated). */
-  enrolled: number | null
+  count: number | null
   playerCountLabelClass: string
   statTile1080: string
   statDigitBase: string
@@ -327,33 +328,34 @@ type AttendanceSectionProps = {
   className?: string
 }
 
-function AttendanceSection({
+function WelcomeLedCountSection({
+  label,
   syncingCounts,
-  enrolled,
+  count,
   playerCountLabelClass,
   statTile1080,
   statDigitBase,
   reducedMotion,
   layout,
   className,
-}: AttendanceSectionProps) {
-  const display = syncingCounts ? '—' : String(enrolled ?? 0)
-  const prevEnrolledRef = useRef<number | null>(null)
-  const [justJoined, setJustJoined] = useState(false)
+}: WelcomeLedCountSectionProps) {
+  const display = syncingCounts ? '—' : String(count ?? 0)
+  const prevCountRef = useRef<number | null>(null)
+  const [justIncreased, setJustIncreased] = useState(false)
 
   useEffect(() => {
-    if (syncingCounts || enrolled == null) {
-      prevEnrolledRef.current = enrolled
+    if (syncingCounts || count == null) {
+      prevCountRef.current = count
       return
     }
-    if (prevEnrolledRef.current != null && enrolled > prevEnrolledRef.current) {
-      setJustJoined(true)
-      const id = window.setTimeout(() => setJustJoined(false), 750)
-      prevEnrolledRef.current = enrolled
+    if (prevCountRef.current != null && count > prevCountRef.current) {
+      setJustIncreased(true)
+      const id = window.setTimeout(() => setJustIncreased(false), 750)
+      prevCountRef.current = count
       return () => window.clearTimeout(id)
     }
-    prevEnrolledRef.current = enrolled
-  }, [enrolled, syncingCounts])
+    prevCountRef.current = count
+  }, [count, syncingCounts])
 
   const stripWrapClass =
     'relative z-[18] flex w-full min-h-0 shrink-0 justify-center [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:px-[clamp(12px,min(2.4vw,_48px),_56px)]'
@@ -374,7 +376,7 @@ function AttendanceSection({
   const inPanelTileClass =
     'welcome-players-well flex w-full min-h-0 flex-col items-stretch gap-y-[clamp(8px,min(1.05vmin,_12px),_14px)]'
 
-  function wrapTileFor(layout: AttendanceSectionProps['layout']) {
+  function wrapTileFor(layout: WelcomeLedCountSectionProps['layout']) {
     if (layout === 'strip') return { wrap: stripWrapClass, tile: stripTileClass }
     if (layout === 'underJoin') return { wrap: underJoinWrapClass, tile: underJoinTileClass }
     if (layout === 'inPanel') return { wrap: inPanelWrapClass, tile: inPanelTileClass }
@@ -387,20 +389,20 @@ function AttendanceSection({
 
   return (
     <section
-      aria-label="Players"
+      aria-label={label}
       className={`${wrapClass}${className ? ` ${className}` : ''}`}
     >
       <div className={tileClass}>
         {layout === 'inPanel' ? (
-          <WelcomeLabelRule>Players</WelcomeLabelRule>
+          <WelcomeLabelRule>{label}</WelcomeLabelRule>
         ) : (
-          <div className={labelClass}>Players</div>
+          <div className={labelClass}>{label}</div>
         )}
         {layout === 'inPanel' ? (
           <motion.div
             className="welcome-players-count"
             animate={
-              !reducedMotion && justJoined
+              !reducedMotion && justIncreased
                 ? { scale: [1, 1.08, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }
                 : undefined
             }
@@ -412,7 +414,7 @@ function AttendanceSection({
           <motion.div
             className={`${statDigitBase} welcome-led-glyphs tabular-nums`}
             animate={
-              !reducedMotion && justJoined
+              !reducedMotion && justIncreased
                 ? { scale: [1, 1.08, 1], filter: ['brightness(1)', 'brightness(1.35)', 'brightness(1)'] }
                 : undefined
             }
@@ -436,6 +438,7 @@ function WelcomeJoinCard({
   reducedMotion,
   syncingCounts,
   enrolled,
+  tableCount,
   playerCountLabelClass,
   playerCountGlyphClass,
 }: {
@@ -448,6 +451,7 @@ function WelcomeJoinCard({
   reducedMotion: boolean
   syncingCounts: boolean
   enrolled: number | null
+  tableCount: number | null
   playerCountLabelClass: string
   playerCountGlyphClass: string
 }) {
@@ -487,15 +491,28 @@ function WelcomeJoinCard({
             />
           </div>
 
-          <AttendanceSection
-            layout="inPanel"
-            syncingCounts={syncingCounts}
-            enrolled={enrolled}
-            playerCountLabelClass={playerCountLabelClass}
-            statTile1080=""
-            statDigitBase={playerCountGlyphClass}
-            reducedMotion={reducedMotion}
-          />
+          <div className="welcome-join-stats-row">
+            <WelcomeLedCountSection
+              label="Tables"
+              layout="inPanel"
+              syncingCounts={syncingCounts}
+              count={tableCount}
+              playerCountLabelClass={playerCountLabelClass}
+              statTile1080=""
+              statDigitBase={playerCountGlyphClass}
+              reducedMotion={reducedMotion}
+            />
+            <WelcomeLedCountSection
+              label="Players"
+              layout="inPanel"
+              syncingCounts={syncingCounts}
+              count={enrolled}
+              playerCountLabelClass={playerCountLabelClass}
+              statTile1080=""
+              statDigitBase={playerCountGlyphClass}
+              reducedMotion={reducedMotion}
+            />
+          </div>
         </div>
       </VegasAttentionPanel>
     </section>
@@ -561,6 +578,8 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
   const qrJoinUrl = playerJoinHrefForQr(venueCode)
   const syncingCounts = wall == null
   const enrolled = syncingCounts ? null : (wall.lobbyPlayerCount ?? 0) + (wall.totalSeatedAtTables ?? 0)
+  const tableCount =
+    syncingCounts || enrolled == null ? null : welcomeWallTableCount(wall, enrolled)
   const [qrOk, setQrOk] = useState(true)
   const reducedMotion = useReducedMotion()
 
@@ -625,6 +644,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
                   reducedMotion={Boolean(reducedMotion)}
                   syncingCounts={syncingCounts}
                   enrolled={enrolled}
+                  tableCount={tableCount}
                   playerCountLabelClass={playerCountLabelClass}
                   playerCountGlyphClass={playerCountGlyphs}
                 />

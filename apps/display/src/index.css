@@ -1258,6 +1258,19 @@
     gap: clamp(3px, 0.35vmin, 5px);
   }
 
+  .welcome-join-stats-row {
+    display: flex;
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 0%;
+    gap: clamp(3px, 0.35vmin, 5px);
+  }
+
+  .welcome-join-stats-row .welcome-players-well {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
   /** Teal stack — URL + room code (mockup middle container). */
   .welcome-join-info-well {
     display: flex;

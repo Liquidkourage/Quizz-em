@@ -2,7 +2,11 @@ import {
   DISPLAY_PREVIEW_BANKROLLS,
   DISPLAY_PREVIEW_SYNCED_PHASE,
   DISPLAY_PREVIEW_TABLES,
+  VENUE_CONDENSE_MAX_SEATS,
+  VENUE_CONDENSE_MIN_SEATS,
+  VENUE_NUMBERED_TABLE_MAX,
   VENUE_WALL_SEAT_SLOTS,
+  computeOptimalTableCount,
   displayBlindSeatIndices,
   isVenueTileWageringPaused,
   listVenueCondenseMilestones,
@@ -73,6 +77,20 @@ export function floorFeaturedTileIndex(tileRows: DisplayVenueTileSnapshot[]): nu
 
 export function venueWallHasLiveTiles(wall: DisplayVenueWallSnapshot | null): boolean {
   return wall != null && wall.tiles != null && wall.tiles.length > 0
+}
+
+/** Welcome wall: seated tables when assigned, else projected from enrollment (assign-from-lobby sizing). */
+export function welcomeWallTableCount(
+  wall: DisplayVenueWallSnapshot | null,
+  enrolled: number,
+): number {
+  const activeFromTiles = wall?.tiles?.filter((t) => t.seated > 0).length ?? 0
+  if (activeFromTiles > 0) return activeFromTiles
+  if (enrolled <= 0) return 0
+  return Math.min(
+    VENUE_NUMBERED_TABLE_MAX,
+    computeOptimalTableCount(enrolled, VENUE_CONDENSE_MAX_SEATS, VENUE_CONDENSE_MIN_SEATS),
+  )
 }
 
 export function showdownTableNums(tileRows: DisplayVenueTileSnapshot[]): number[] {

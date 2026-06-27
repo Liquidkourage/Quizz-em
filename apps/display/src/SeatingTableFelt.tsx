@@ -127,7 +127,9 @@ function SeatingRosterRow({
   if (!premium) {
     return (
       <li className="flex min-h-0 min-w-0 items-center gap-2 rounded-md bg-white/[0.045] px-2 py-1.5 ring-1 ring-white/[0.06] sm:gap-2.5 sm:px-2.5 sm:py-2">
-        <SeatingSeatBadge seatNum={seatNum} size="roster" empty={!occupied} />
+        <div className="seating-roster-badge-anchor">
+          <SeatingSeatBadge seatNum={seatNum} size="roster" fill empty={!occupied} />
+        </div>
         {occupied ? (
           <span className="min-w-0 truncate text-xs font-semibold leading-tight text-white sm:text-sm">
             {given}
@@ -148,7 +150,15 @@ function SeatingRosterRow({
         .filter(Boolean)
         .join(' ')}
     >
-      <SeatingSeatBadge seatNum={seatNum} size="roster" empty={!occupied} highlight={highlight} />
+      <div className="seating-roster-badge-anchor">
+        <SeatingSeatBadge
+          seatNum={seatNum}
+          size="roster"
+          fill
+          empty={!occupied}
+          highlight={highlight}
+        />
+      </div>
       {occupied ? (
         <span className="seating-roster-name min-w-0 flex-1 truncate">
           {given}

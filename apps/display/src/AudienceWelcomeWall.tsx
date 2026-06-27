@@ -323,8 +323,8 @@ type WelcomeLedCountSectionProps = {
   statTile1080: string
   statDigitBase: string
   reducedMotion: boolean
-  /** Strip | under join legacy | stacked inside middle band | footer inside join panel */
-  layout: 'strip' | 'underJoin' | 'middle' | 'inPanel'
+  /** Strip | under join legacy | stacked inside middle band | full-width join panel | side-by-side join stat */
+  layout: 'strip' | 'underJoin' | 'middle' | 'inPanel' | 'inPanelStat'
   className?: string
 }
 
@@ -366,6 +366,7 @@ function WelcomeLedCountSection({
   const gridMiddleWrapClass = 'relative z-[18] isolate w-full min-h-0 shrink-0 mx-auto max-w-none'
 
   const inPanelWrapClass = 'relative z-[5] w-full min-h-0 shrink-0'
+  const inPanelStatWrapClass = 'relative z-[5] flex min-h-0 min-w-0 flex-1 flex-col'
 
   const tileShared =
     `${statTile1080} min-h-0 min-w-0 rounded-[clamp(10px,min(1.5vmin,_18px),_18px)] border-2 px-[clamp(8px,min(1.35vmin,_14px),_14px)] py-[clamp(8px,min(1.25vmin,_14px),_16px)] text-center backdrop-blur-sm border-amber-300/95 bg-gradient-to-br from-[#1a1208]/78 via-black/72 to-[#0a0614]/82 shadow-[inset_0_1px_0_rgba(254,249,231,0.2),inset_0_-20px_44px_-28px_rgba(124,58,237,0.16),0_0_48px_-4px_rgba(234,179,8,0.48),0_0_72px_-8px_rgba(52,211,153,0.12)] ring-2 ring-amber-500/70 [@media(max-height:1080px)_and_(min-width:1024px)_and_(orientation:landscape)]:shadow-[inset_0_1px_0_rgba(254,249,231,0.16),inset_0_-14px_36px_-22px_rgba(124,58,237,0.12),0_0_36px_-6px_rgba(234,179,8,0.38),0_0_54px_-10px_rgba(52,211,153,0.1)]`
@@ -380,6 +381,7 @@ function WelcomeLedCountSection({
     if (layout === 'strip') return { wrap: stripWrapClass, tile: stripTileClass }
     if (layout === 'underJoin') return { wrap: underJoinWrapClass, tile: underJoinTileClass }
     if (layout === 'inPanel') return { wrap: inPanelWrapClass, tile: inPanelTileClass }
+    if (layout === 'inPanelStat') return { wrap: inPanelStatWrapClass, tile: inPanelTileClass }
     return { wrap: gridMiddleWrapClass, tile: gridMiddleTileClass }
   }
 
@@ -393,12 +395,12 @@ function WelcomeLedCountSection({
       className={`${wrapClass}${className ? ` ${className}` : ''}`}
     >
       <div className={tileClass}>
-        {layout === 'inPanel' ? (
+        {layout === 'inPanel' || layout === 'inPanelStat' ? (
           <WelcomeLabelRule>{label}</WelcomeLabelRule>
         ) : (
           <div className={labelClass}>{label}</div>
         )}
-        {layout === 'inPanel' ? (
+        {layout === 'inPanel' || layout === 'inPanelStat' ? (
           <motion.div
             className="welcome-players-count"
             animate={
@@ -491,10 +493,10 @@ function WelcomeJoinCard({
             />
           </div>
 
-          <div className="welcome-join-stats-row">
+          <div className="welcome-join-stats-row" aria-label="Venue stats">
             <WelcomeLedCountSection
               label="Tables"
-              layout="inPanel"
+              layout="inPanelStat"
               syncingCounts={syncingCounts}
               count={tableCount}
               playerCountLabelClass={playerCountLabelClass}
@@ -504,7 +506,7 @@ function WelcomeJoinCard({
             />
             <WelcomeLedCountSection
               label="Players"
-              layout="inPanel"
+              layout="inPanelStat"
               syncingCounts={syncingCounts}
               count={enrolled}
               playerCountLabelClass={playerCountLabelClass}

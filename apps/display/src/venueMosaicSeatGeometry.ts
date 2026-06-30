@@ -4,54 +4,54 @@ import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 export const MOSAIC_RING_FALLBACK_W_PX = 264
 export const MOSAIC_RING_FALLBACK_H_PX = 140
 
-/** Amber rail band inset inside the ring wrapper (matches {@link venueRailBoundsFrac}). */
-const RAIL_INSET_TOP = 0.02
-const RAIL_INSET_RIGHT = 0.02
-const RAIL_INSET_BOTTOM = 0.02
-const RAIL_INSET_LEFT = 0.02
+/** Venue wall always renders eight physical chairs per felt. */
+export const VENUE_MOSAIC_SEAT_COUNT = VENUE_WALL_SEAT_SLOTS
 
 const VENUE_FELT_INSET_TOP = 0.1
 const VENUE_FELT_INSET_RIGHT = 0.06
 const VENUE_FELT_INSET_BOTTOM = 0.13
 const VENUE_FELT_INSET_LEFT = 0.06
 
-/** Pull cupholder centers slightly inward from the rail midline (px at authoring scale). */
-const MOSAIC_SEAT_RAIL_INSET_PX = 12
-/** Extra inward pull at 3 / 9 o'clock — SVG rail is narrower than the stadium apex. */
-const MOSAIC_SIDE_SEAT_CUP_PULL_FRAC = 0.16
+/**
+ * Fixed cupholder centers on the felt wrapper (0–100%).
+ * Seat 0 = top center; advances clockwise on screen.
+ * Authored for aspect 17/10 against the poker-table asset (side seats inset vs stadium apex).
+ */
+export const VENUE_MOSAIC_CUP_ANCHORS_PCT: ReadonlyArray<{
+  readonly leftPct: number
+  readonly topPct: number
+}> = [
+  { leftPct: 50.0, topPct: 10.6 },
+  { leftPct: 79.6, topPct: 12.9 },
+  { leftPct: 86.5, topPct: 50.0 },
+  { leftPct: 79.6, topPct: 87.1 },
+  { leftPct: 50.0, topPct: 89.4 },
+  { leftPct: 20.4, topPct: 87.1 },
+  { leftPct: 13.5, topPct: 50.0 },
+  { leftPct: 20.4, topPct: 12.9 },
+]
 
-/** Hole cards at 12 / 6 — fraction from cup toward felt center. */
-const MOSAIC_HOLE_CARD_INWARD_FRAC_POLE = 0.42
-/** Hole cards at 3 / 9 — stay closer to the cup on the wider side span. */
-const MOSAIC_HOLE_CARD_INWARD_FRAC_SIDE = 0.2
-/** Extra inward nudge on diagonal arc seats — fanned cards clear the rail lip. */
-const MOSAIC_HOLE_CARD_CORNER_INWARD_BUMP = 0.1
-
-/** Blend pole → side inset by how horizontal the seat is (0 = 12/6, 1 = 3/9). */
-function mosaicHoleCardInwardFrac(outX: number, outY: number): number {
-  const len = Math.hypot(outX, outY) || 1
-  const horizBias = Math.abs(outX) / len
-  const base =
-    MOSAIC_HOLE_CARD_INWARD_FRAC_POLE +
-    (MOSAIC_HOLE_CARD_INWARD_FRAC_SIDE - MOSAIC_HOLE_CARD_INWARD_FRAC_POLE) * horizBias
-  const cornerWeight = 4 * horizBias * (1 - horizBias)
-  return base + MOSAIC_HOLE_CARD_CORNER_INWARD_BUMP * cornerWeight
-}
+/** Fixed hole-card pair centers on the felt wrapper (0–100%). */
+export const VENUE_MOSAIC_HOLE_ANCHORS_PCT: ReadonlyArray<{
+  readonly leftPct: number
+  readonly topPct: number
+}> = [
+  { leftPct: 50.0, topPct: 26.5 },
+  { leftPct: 68.6, topPct: 26.1 },
+  { leftPct: 79.2, topPct: 49.7 },
+  { leftPct: 68.3, topPct: 72.4 },
+  { leftPct: 50.0, topPct: 72.2 },
+  { leftPct: 31.7, topPct: 72.4 },
+  { leftPct: 20.8, topPct: 49.7 },
+  { leftPct: 31.4, topPct: 26.1 },
+]
 
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8
 
-function mosaicRailRectPx(w: number, h: number) {
-  const ww = w > 0 ? w : MOSAIC_RING_FALLBACK_W_PX
-  const hh = h > 0 ? h : MOSAIC_RING_FALLBACK_H_PX
-  return {
-    left: ww * RAIL_INSET_LEFT,
-    top: hh * RAIL_INSET_TOP,
-    width: ww * (1 - RAIL_INSET_LEFT - RAIL_INSET_RIGHT),
-    height: hh * (1 - RAIL_INSET_TOP - RAIL_INSET_BOTTOM),
-    wrapW: ww,
-    wrapH: hh,
-  }
+function mosaicSeatIndex(seatIndex: number): number {
+  const n = VENUE_MOSAIC_SEAT_COUNT
+  return ((Math.floor(seatIndex) % n) + n) % n
 }
 
 /** Green felt center in ring wrapper % (0–100). */
@@ -64,122 +64,53 @@ export function venueMosaicFeltCenterPct(): { leftPct: number; topPct: number } 
   }
 }
 
-/** Stadium perimeter walk inside a local width × height box (px, origin top-left). */
-function mosaicStadiumDotLocalPx(
-  seatIndex: number,
-  seatCount: number,
-  ww: number,
-  hh: number
-): { x: number; y: number } {
-  const halfW = ww / 2
-  const halfH = hh / 2
-  const r = halfH
-  const flat = Math.max(0, halfW - r)
-  const perimeter = 4 * flat + 2 * Math.PI * r
-  const denom = seatCount > 0 ? seatCount : VENUE_WALL_SEAT_SLOTS
-  let s = ((seatIndex / denom) * perimeter) % perimeter
-  if (s < 0) s += perimeter
-
-  let lx: number
-  let ly: number
-  let nx: number
-  let ny: number
-
-  if (s <= flat) {
-    lx = s
-    ly = -halfH
-    nx = 0
-    ny = -1
-  } else if ((s -= flat) <= Math.PI * r) {
-    const a = -Math.PI / 2 + s / r
-    lx = flat + r * Math.cos(a)
-    ly = r * Math.sin(a)
-    nx = Math.cos(a)
-    ny = Math.sin(a)
-  } else if ((s -= Math.PI * r) <= 2 * flat) {
-    lx = flat - s
-    ly = halfH
-    nx = 0
-    ny = 1
-  } else if ((s -= 2 * flat) <= Math.PI * r) {
-    const a = Math.PI / 2 + s / r
-    lx = -flat + r * Math.cos(a)
-    ly = r * Math.sin(a)
-    nx = Math.cos(a)
-    ny = Math.sin(a)
-  } else {
-    s -= Math.PI * r
-    lx = -flat + s
-    ly = -halfH
-    nx = 0
-    ny = -1
-  }
-
-  const x = halfW + lx - nx * MOSAIC_SEAT_RAIL_INSET_PX
-  const y = halfH + ly - ny * MOSAIC_SEAT_RAIL_INSET_PX
-  return { x, y }
-}
-
-function localPxToWrapperPct(
-  x: number,
-  y: number,
-  rail: ReturnType<typeof mosaicRailRectPx>
-): { leftPct: number; topPct: number } {
-  return {
-    leftPct: ((rail.left + x) / rail.wrapW) * 100,
-    topPct: ((rail.top + y) / rail.wrapH) * 100,
-  }
+function mosaicHoleRotateDeg(
+  cup: { leftPct: number; topPct: number },
+  center: { leftPct: number; topPct: number }
+): number {
+  const outX = cup.leftPct - center.leftPct
+  const outY = cup.topPct - center.topPct
+  const len = Math.hypot(outX, outY) || 1
+  return (Math.atan2(outY / len, outX / len) * 180) / Math.PI + 90
 }
 
 /**
- * Mosaic crawl: seat dots at equal arc length on the stadium rail band.
- * Seat 0 = top center; advances clockwise on screen.
+ * Mosaic cupholder / seat-dot position — fixed anchor on the felt wrapper.
+ * `w` / `h` are ignored (percentages scale with the measured ring automatically).
  */
 export function mosaicSeatDotPct(
   seatIndex: number,
-  seatCount: number,
-  w: number,
-  h: number
+  _seatCount: number,
+  _w: number,
+  _h: number
 ): { leftPct: number; topPct: number } {
-  const rail = mosaicRailRectPx(w, h)
-  const local = mosaicStadiumDotLocalPx(seatIndex, seatCount, rail.width, rail.height)
-  let { leftPct, topPct } = localPxToWrapperPct(local.x, local.y, rail)
-
-  const center = venueMosaicFeltCenterPct()
-  const outX = leftPct - center.leftPct
-  const outY = topPct - center.topPct
-  const len = Math.hypot(outX, outY) || 1
-  const horizBias = Math.abs(outX / len)
-  const pull = horizBias * horizBias * MOSAIC_SIDE_SEAT_CUP_PULL_FRAC
-  leftPct = leftPct + (center.leftPct - leftPct) * pull
-  topPct = topPct + (center.topPct - topPct) * pull
-
-  return { leftPct, topPct }
+  return { ...VENUE_MOSAIC_CUP_ANCHORS_PCT[mosaicSeatIndex(seatIndex)]! }
 }
 
 /** Hole-card pair center on felt just inside the rail, rotated toward the cup. */
 export function mosaicSeatHoleLayout(
   seatIndex: number,
-  seatCount: number,
-  w: number,
-  h: number,
+  _seatCount: number,
+  _w: number,
+  _h: number,
   inwardFrac?: number
 ): { leftPct: number; topPct: number; rotateDeg: number } {
-  const outer = mosaicSeatDotPct(seatIndex, seatCount, w, h)
+  const idx = mosaicSeatIndex(seatIndex)
+  const cup = VENUE_MOSAIC_CUP_ANCHORS_PCT[idx]!
   const center = venueMosaicFeltCenterPct()
 
-  const rail = mosaicRailRectPx(w, h)
-  const ox = (outer.leftPct / 100) * rail.wrapW
-  const oy = (outer.topPct / 100) * rail.wrapH
-  const ccx = (center.leftPct / 100) * rail.wrapW
-  const ccy = (center.topPct / 100) * rail.wrapH
-  const outX = ox - ccx
-  const outY = oy - ccy
-  const len = Math.hypot(outX, outY) || 1
-  const frac = inwardFrac ?? mosaicHoleCardInwardFrac(outX, outY)
-  const leftPct = outer.leftPct + (center.leftPct - outer.leftPct) * frac
-  const topPct = outer.topPct + (center.topPct - outer.topPct) * frac
-  const rotateDeg = (Math.atan2(outY / len, outX / len) * 180) / Math.PI + 90
+  if (inwardFrac != null) {
+    return {
+      leftPct: cup.leftPct + (center.leftPct - cup.leftPct) * inwardFrac,
+      topPct: cup.topPct + (center.topPct - cup.topPct) * inwardFrac,
+      rotateDeg: mosaicHoleRotateDeg(cup, center),
+    }
+  }
 
-  return { leftPct, topPct, rotateDeg }
+  const hole = VENUE_MOSAIC_HOLE_ANCHORS_PCT[idx]!
+  return {
+    leftPct: hole.leftPct,
+    topPct: hole.topPct,
+    rotateDeg: mosaicHoleRotateDeg(cup, center),
+  }
 }

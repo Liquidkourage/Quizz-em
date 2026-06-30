@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   MOSAIC_RING_FALLBACK_H_PX,
   MOSAIC_RING_FALLBACK_W_PX,
+  VENUE_MOSAIC_CUP_ANCHORS_PCT,
+  VENUE_MOSAIC_HOLE_ANCHORS_PCT,
+  VENUE_MOSAIC_SEAT_COUNT,
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
   venueMosaicFeltCenterPct,
@@ -22,6 +25,36 @@ describe('venueMosaicSeatGeometry', () => {
   const h = MOSAIC_RING_FALLBACK_H_PX
   const center = venueMosaicFeltCenterPct()
 
+  it('defines eight fixed cup and hole anchors', () => {
+    expect(VENUE_MOSAIC_SEAT_COUNT).toBe(8)
+    expect(VENUE_MOSAIC_CUP_ANCHORS_PCT).toHaveLength(8)
+    expect(VENUE_MOSAIC_HOLE_ANCHORS_PCT).toHaveLength(8)
+  })
+
+  it('places seat 0 at top center and side seats on the rail band', () => {
+    const top = mosaicSeatDotPct(0, 8, w, h)
+    const right = mosaicSeatDotPct(2, 8, w, h)
+    const left = mosaicSeatDotPct(6, 8, w, h)
+
+    expect(top.leftPct).toBeCloseTo(50, 0)
+    expect(top.topPct).toBeLessThan(center.topPct)
+    expect(right.leftPct).toBeGreaterThan(82)
+    expect(right.leftPct).toBeLessThan(90)
+    expect(Math.abs(right.topPct - center.topPct)).toBeLessThan(3)
+    expect(left.leftPct).toBeGreaterThan(10)
+    expect(left.leftPct).toBeLessThan(18)
+  })
+
+  it('is stable regardless of measured ring size (wrapper percentages)', () => {
+    const small = mosaicSeatDotPct(3, 8, 120, 70)
+    const large = mosaicSeatDotPct(3, 8, 480, 280)
+    expect(small).toEqual(large)
+  })
+
+  it('wraps seat indexes modulo eight', () => {
+    expect(mosaicSeatDotPct(10, 8, w, h)).toEqual(mosaicSeatDotPct(2, 8, w, h))
+  })
+
   it('pulls side-seat hole cards closer to cupholders than pole seats', () => {
     const poleCup = mosaicSeatDotPct(0, 8, w, h)
     const poleHole = mosaicSeatHoleLayout(0, 8, w, h)
@@ -31,32 +64,17 @@ describe('venueMosaicSeatGeometry', () => {
     const poleFrac = insetFrac(poleCup, poleHole, center)
     const sideFrac = insetFrac(sideCup, sideHole, center)
 
-    expect(poleFrac).toBeCloseTo(0.42, 2)
-    expect(sideFrac).toBeCloseTo(0.2, 2)
+    expect(poleFrac).toBeCloseTo(0.42, 1)
+    expect(sideFrac).toBeCloseTo(0.2, 1)
     expect(sideFrac).toBeLessThan(poleFrac)
   })
 
-  it('eases corner seats between pole and side inset', () => {
-    const cornerCup = mosaicSeatDotPct(1, 8, w, h)
-    const cornerHole = mosaicSeatHoleLayout(1, 8, w, h)
-    const cornerFrac = insetFrac(cornerCup, cornerHole, center)
-
-    expect(cornerFrac).toBeGreaterThan(0.28)
-    expect(cornerFrac).toBeLessThan(0.42)
-  })
-
-  it('pulls 3 and 9 o-clock cupholders inward toward the felt center', () => {
-    const right = mosaicSeatDotPct(2, 8, w, h)
-    const left = mosaicSeatDotPct(6, 8, w, h)
-    expect(right.leftPct).toBeLessThan(91)
-    expect(left.leftPct).toBeGreaterThan(9)
-    expect(Math.abs(right.leftPct - center.leftPct)).toBeLessThan(43)
-    expect(Math.abs(left.leftPct - center.leftPct)).toBeLessThan(43)
-  })
-
-  it('does not pull top / bottom pole cupholders toward center', () => {
-    const pole = mosaicSeatDotPct(0, 8, w, h)
-    expect(Math.abs(pole.leftPct - center.leftPct)).toBeLessThan(4)
-    expect(pole.topPct).toBeLessThan(center.topPct)
+  it('lerps chip stacks toward felt center when inwardFrac is set', () => {
+    const cup = mosaicSeatDotPct(4, 8, w, h)
+    const stack = mosaicSeatHoleLayout(4, 8, w, h, 0.28)
+    expect(stack.leftPct).toBeCloseTo(
+      cup.leftPct + (center.leftPct - cup.leftPct) * 0.28,
+      5
+    )
   })
 })

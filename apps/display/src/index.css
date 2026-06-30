@@ -1929,6 +1929,51 @@
     padding: 0.125rem 0.25rem;
   }
 
+  .vfd-mosaic-action-band {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    justify-content: center;
+    gap: clamp(5px, 0.65vw, 9px);
+    border-radius: 6px;
+    border: 1px solid rgb(251 191 36 / 0.58);
+    background: linear-gradient(180deg, rgb(69 26 3 / 0.78) 0%, rgb(24 10 2 / 0.92) 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(254 243 199 / 0.14),
+      0 0 16px rgb(251 191 36 / 0.18);
+    padding: clamp(7px, 0.95vmin, 11px) clamp(10px, 1.25vw, 16px);
+    margin-bottom: clamp(2px, 0.35vmin, 4px);
+  }
+
+  .vfd-mosaic-action-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(1.05rem, 2.25vmin, 1.55rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: rgb(255 251 235 / 0.98);
+  }
+
+  .vfd-mosaic-action-label {
+    flex-shrink: 0;
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(0.88rem, 1.65vmin, 1.15rem);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  .vfd-mosaic-action-amount.vfd-mosaic-dollar {
+    flex-shrink: 0;
+    font-size: clamp(1.2rem, 2.55vmin, 1.85rem);
+    line-height: 1;
+  }
+
   .vfd-mosaic-felt-cap {
     max-height: var(--vfd-felt-max-height);
   }

@@ -101,6 +101,35 @@ export function displayHeadlineQuestionClass(tier: VenueFloorPublicTypographyTie
   return DISPLAY_TEXT_HEADLINE_QUESTION_ULTRA
 }
 
+/** Max starting font (vh) and fit-host class for {@link DisplayFitQuestionText}. */
+export function displayHeadlineQuestionFitProfile(
+  tier: VenueFloorPublicTypographyTier,
+  denseHeadline = false
+): { maxFontVh: number; hostClassName: string } {
+  if (denseHeadline) {
+    return {
+      maxFontVh: 0.055,
+      hostClassName: 'venue-headline-question-fit-host-dense',
+    }
+  }
+  if (tier === 'spacious') {
+    return {
+      maxFontVh: 0.0925,
+      hostClassName: 'venue-headline-question-fit-host-spacious',
+    }
+  }
+  if (tier === 'standard') {
+    return {
+      maxFontVh: 0.075,
+      hostClassName: 'venue-headline-question-fit-host-compact',
+    }
+  }
+  return {
+    maxFontVh: 0.07,
+    hostClassName: 'venue-headline-question-fit-host-ultra',
+  }
+}
+
 export function displayHeadlineCaptionClass(
   tier: VenueFloorPublicTypographyTier,
   denseHeadline = false

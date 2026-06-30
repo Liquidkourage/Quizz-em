@@ -1755,14 +1755,54 @@
 
   /** Venue headline question — viewport-scaled for room readability (not fixed px tokens). */
   .display-text-headline-question-spacious {
-    font-size: clamp(4.75vh, min(7.25vh, 5.25cqw), 9.25vh);
     font-weight: 700;
     line-height: 1.18;
   }
 
   .venue-headline-question-card {
     container-type: inline-size;
-    max-height: min(32vh, 14.5rem);
+  }
+
+  /** Capped headline box — {@link DisplayFitQuestionText} shrinks font to show full question. */
+  .display-fit-question-host,
+  .venue-headline-question-fit-host-spacious,
+  .venue-headline-question-fit-host-compact,
+  .venue-headline-question-fit-host-ultra,
+  .venue-headline-question-fit-host-dense,
+  .display-fit-question-host-app,
+  .display-fit-question-host-reveal {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .venue-headline-question-fit-host-spacious {
+    max-height: min(24vh, 11rem);
+  }
+
+  .venue-headline-question-fit-host-compact {
+    max-height: min(20vh, 9.5rem);
+  }
+
+  .venue-headline-question-fit-host-ultra {
+    max-height: min(18vh, 8.75rem);
+  }
+
+  .venue-headline-question-fit-host-dense {
+    max-height: min(16vh, 7.5rem);
+  }
+
+  .display-fit-question-host-app {
+    max-height: min(28vh, 9.5rem);
+  }
+
+  .display-fit-question-host-reveal {
+    max-height: min(26vh, 10rem);
   }
 
   .venue-headline-answer-timer {
@@ -1771,53 +1811,34 @@
   }
 
   .display-text-headline-question-compact {
-    font-size: clamp(3.75vh, 5.75vh, 7.5vh);
     font-weight: 700;
     line-height: 1.22;
   }
 
   .display-text-headline-question-ultra {
-    font-size: clamp(3.5vh, 5.25vh, 7vh);
     font-weight: 700;
     line-height: 1.2;
   }
 
   .display-text-headline-question-dense {
-    font-size: clamp(2.65vh, 4vh, 5.5vh);
     font-weight: 700;
     line-height: 1.18;
   }
 
-  /** Reserve ~2 lines so the table grid does not jump; cap long questions the same. */
-  .venue-headline-question-slot {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-    min-height: 2.44em;
-    max-height: 2.44em;
+  .display-fit-question-text-app {
+    width: 100%;
     text-align: center;
-    text-overflow: ellipsis;
+    font-weight: 700;
+    line-height: 1.25;
+    color: rgb(250 204 21);
   }
 
-  .venue-headline-question-slot.display-text-headline-question-spacious {
-    min-height: 2.44em;
-    max-height: 2.44em;
-  }
-
-  .venue-headline-question-slot.display-text-headline-question-compact {
-    min-height: 2.44em;
-    max-height: 2.44em;
-  }
-
-  .venue-headline-question-slot.display-text-headline-question-dense {
-    min-height: 2.36em;
-    max-height: 2.36em;
-  }
-
-  .venue-headline-question-slot.display-text-headline-question-ultra {
-    min-height: 2.4em;
-    max-height: 2.4em;
+  /** Question copy inside a fit host — full text, font size set by JS. */
+  .venue-headline-question-slot {
+    width: 100%;
+    margin: 0;
+    text-align: center;
+    text-wrap: balance;
   }
 
   .display-text-headline-blinds-label {

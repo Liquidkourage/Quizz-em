@@ -54,7 +54,9 @@ import {
   DISPLAY_TEXT_HEADLINE_QUESTION_DENSE,
   displayHeadlineStatsClass,
   displayHeadlineQuestionClass,
+  displayHeadlineQuestionFitProfile,
 } from './displayTypography'
+import { DisplayFitQuestionText } from './DisplayFitQuestionText'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import {
@@ -2092,6 +2094,10 @@ export default function VenueEightTablesPreview({
     if (compactVenueHeadline) return DISPLAY_TEXT_HEADLINE_QUESTION_DENSE
     return displayHeadlineQuestionClass(publicTypographyTier)
   }, [compactVenueHeadline, publicTypographyTier])
+  const headlineQuestionFit = useMemo(
+    () => displayHeadlineQuestionFitProfile(publicTypographyTier, compactVenueHeadline),
+    [compactVenueHeadline, publicTypographyTier],
+  )
   const headlineStatsClass = useMemo(
     () => displayHeadlineStatsClass(compactVenueHeadline),
     [compactVenueHeadline],
@@ -2198,11 +2204,12 @@ export default function VenueEightTablesPreview({
                     </div>
                   ) : null}
                   {headlineQuestionDisplay ? (
-                    <p
-                      className={`venue-headline-question-slot min-h-0 min-w-0 text-balance text-center tracking-tight text-yellow-400 ${headlineQuestionClass}`}
-                    >
-                      {headlineQuestionDisplay}
-                    </p>
+                    <DisplayFitQuestionText
+                      text={headlineQuestionDisplay}
+                      hostClassName={headlineQuestionFit.hostClassName}
+                      maxFontVh={headlineQuestionFit.maxFontVh}
+                      textClassName={`venue-headline-question-slot text-balance text-center tracking-tight text-yellow-400 ${headlineQuestionClass}`}
+                    />
                   ) : inVenueShowdown ? (
                     <p className="sr-only">Showdown in progress.</p>
                   ) : inAnsweringCountdown ? (

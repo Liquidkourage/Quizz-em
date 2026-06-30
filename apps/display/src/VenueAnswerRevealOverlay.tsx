@@ -4,6 +4,7 @@ import { formatTriviaNumber } from '@qhe/core'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import type { VenueAnswerRevealPayload } from './useVenueAnswerReveal'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
+import { DisplayFitQuestionText } from './DisplayFitQuestionText'
 
 export type VenueAnswerRevealOverlayProps = {
   payload: VenueAnswerRevealPayload
@@ -53,9 +54,12 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
           </div>
         </div>
 
-        <p className="line-clamp-3 overflow-hidden text-balance text-left font-semibold leading-snug tracking-tight text-yellow-300/95 display-text-headline-question-spacious">
-          {question}
-        </p>
+        <DisplayFitQuestionText
+          text={question}
+          hostClassName="display-fit-question-host-reveal"
+          maxFontVh={0.0925}
+          textClassName="venue-headline-question-slot text-balance text-left font-semibold leading-snug tracking-tight text-yellow-300/95 display-text-headline-question-spacious"
+        />
 
         <div className="mt-6 flex flex-col items-center gap-4 sm:mt-8">
           {answerRow != null && answerRow.answerCards.length > 0 ? (

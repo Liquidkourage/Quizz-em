@@ -25,6 +25,7 @@ import seatChipStackImg from './assets/seat-chip-stack.png'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { showdownRowsFromGameState } from './showdownDisplay'
 import { nowOnServerClock } from './serverClock'
+import { DisplayFitQuestionText } from './DisplayFitQuestionText'
 
 /** Authoring viewport (logical px). Embedded venue heroes scale uniformly to fit the measured game plane; fullscreen uses live `gw/gh`. */
 const EMBEDDED_FELT_LAYOUT_W = 1280
@@ -1408,9 +1409,12 @@ function DisplayTableLive({
             <div className="mx-auto flex max-w-7xl flex-col gap-4 rounded-2xl border-2 border-yellow-500/50 bg-black/90 p-5 shadow-2xl backdrop-blur-md sm:flex-row sm:items-stretch">
               <div className="min-w-0 flex-1 text-center">
                 <div className="mb-2 text-2xl font-semibold text-white md:text-3xl">🎯 Current question</div>
-                <div className="text-balance line-clamp-4 max-h-[min(28vh,9.5rem)] overflow-hidden text-4xl font-bold leading-snug text-yellow-400 sm:text-5xl md:text-6xl">
-                  {effectiveQuestionText ?? 'Question pending…'}
-                </div>
+                <DisplayFitQuestionText
+                  text={effectiveQuestionText ?? 'Question pending…'}
+                  hostClassName="display-fit-question-host-app"
+                  maxFontVh={0.065}
+                  textClassName="display-fit-question-text-app text-balance"
+                />
               </div>
 
               {showQuestionStripTimer ? (

@@ -17,6 +17,8 @@ const VENUE_FELT_INSET_LEFT = 0.06
 
 /** Pull cupholder centers slightly inward from the rail midline (px at authoring scale). */
 const MOSAIC_SEAT_RAIL_INSET_PX = 12
+/** Extra inward pull at 3 / 9 o'clock — SVG rail is narrower than the stadium apex. */
+const MOSAIC_SIDE_SEAT_CUP_PULL_FRAC = 0.16
 
 /** Hole cards at 12 / 6 — fraction from cup toward felt center. */
 const MOSAIC_HOLE_CARD_INWARD_FRAC_POLE = 0.42
@@ -141,7 +143,18 @@ export function mosaicSeatDotPct(
 ): { leftPct: number; topPct: number } {
   const rail = mosaicRailRectPx(w, h)
   const local = mosaicStadiumDotLocalPx(seatIndex, seatCount, rail.width, rail.height)
-  return localPxToWrapperPct(local.x, local.y, rail)
+  let { leftPct, topPct } = localPxToWrapperPct(local.x, local.y, rail)
+
+  const center = venueMosaicFeltCenterPct()
+  const outX = leftPct - center.leftPct
+  const outY = topPct - center.topPct
+  const len = Math.hypot(outX, outY) || 1
+  const horizBias = Math.abs(outX / len)
+  const pull = horizBias * horizBias * MOSAIC_SIDE_SEAT_CUP_PULL_FRAC
+  leftPct = leftPct + (center.leftPct - leftPct) * pull
+  topPct = topPct + (center.topPct - topPct) * pull
+
+  return { leftPct, topPct }
 }
 
 /** Hole-card pair center on felt just inside the rail, rotated toward the cup. */

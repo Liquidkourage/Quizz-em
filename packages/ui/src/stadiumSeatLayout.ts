@@ -98,9 +98,9 @@ const MOSAIC_HOLE_CARD_SCALE_AT_REFERENCE = 0.38
 /** Hole-card width on mosaic felts at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX}. */
 const MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE = 20
 /** Community board card width at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX}. */
-const MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE = 26
-/** Felt-relative floor so cards grow with large banquet tiles (not only the legacy scale cap). */
-const MOSAIC_COMMUNITY_CARD_WIDTH_FRAC = 0.12
+const MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE = 28
+/** Community cards read slightly larger than hole cards — not full felt width. */
+const MOSAIC_COMMUNITY_TO_HOLE_WIDTH_RATIO = 1.28
 
 export type StadiumMosaicDensity = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
 
@@ -164,8 +164,9 @@ export function stadiumMosaicCommunityCardWidthPx(
   if (density === 'hero') {
     return Math.max(14, Math.round(fromLegacy))
   }
-  const fromFelt = w * MOSAIC_COMMUNITY_CARD_WIDTH_FRAC
-  return Math.max(14, Math.round(Math.max(fromLegacy, fromFelt)))
+  const fromHole =
+    stadiumMosaicHoleCardWidthPx(w, density) * MOSAIC_COMMUNITY_TO_HOLE_WIDTH_RATIO
+  return Math.max(14, Math.round(Math.max(fromLegacy, fromHole)))
 }
 
 /** Community board card height at 5:7 aspect. */

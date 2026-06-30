@@ -45,13 +45,18 @@ describe('venueMosaicSeatGeometry', () => {
     expect(cornerFrac).toBeLessThan(0.42)
   })
 
-  it('leaves pole and side inset unchanged when corner bump applies', () => {
-    const poleCup = mosaicSeatDotPct(0, 8, w, h)
-    const poleHole = mosaicSeatHoleLayout(0, 8, w, h)
-    const sideCup = mosaicSeatDotPct(2, 8, w, h)
-    const sideHole = mosaicSeatHoleLayout(2, 8, w, h)
+  it('pulls 3 and 9 o-clock cupholders inward toward the felt center', () => {
+    const right = mosaicSeatDotPct(2, 8, w, h)
+    const left = mosaicSeatDotPct(6, 8, w, h)
+    expect(right.leftPct).toBeLessThan(91)
+    expect(left.leftPct).toBeGreaterThan(9)
+    expect(Math.abs(right.leftPct - center.leftPct)).toBeLessThan(43)
+    expect(Math.abs(left.leftPct - center.leftPct)).toBeLessThan(43)
+  })
 
-    expect(insetFrac(poleCup, poleHole, center)).toBeCloseTo(0.42, 2)
-    expect(insetFrac(sideCup, sideHole, center)).toBeCloseTo(0.2, 2)
+  it('does not pull top / bottom pole cupholders toward center', () => {
+    const pole = mosaicSeatDotPct(0, 8, w, h)
+    expect(Math.abs(pole.leftPct - center.leftPct)).toBeLessThan(4)
+    expect(pole.topPct).toBeLessThan(center.topPct)
   })
 })

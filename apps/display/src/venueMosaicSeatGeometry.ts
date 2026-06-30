@@ -1,3 +1,4 @@
+import { imageNormToWrapperPct } from '@qhe/ui'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
 /** Authoring size for mosaic seat layout before ResizeObserver (16.5rem × 8.75rem @ 16px). */
@@ -7,44 +8,41 @@ export const MOSAIC_RING_FALLBACK_H_PX = 140
 /** Venue wall always renders eight physical chairs per felt. */
 export const VENUE_MOSAIC_SEAT_COUNT = VENUE_WALL_SEAT_SLOTS
 
-const VENUE_FELT_INSET_TOP = 0.1
-const VENUE_FELT_INSET_RIGHT = 0.06
-const VENUE_FELT_INSET_BOTTOM = 0.13
-const VENUE_FELT_INSET_LEFT = 0.06
-
 /**
- * Fixed cupholder centers on the felt wrapper (0–100%).
+ * Fixed cupholder centers on the poker-table artwork (0–1 within the SVG).
  * Seat 0 = top center; advances clockwise on screen.
- * Authored for aspect 17/10 against the poker-table asset (side seats inset vs stadium apex).
  */
-export const VENUE_MOSAIC_CUP_ANCHORS_PCT: ReadonlyArray<{
-  readonly leftPct: number
-  readonly topPct: number
+export const VENUE_MOSAIC_CUP_ANCHORS_UV: ReadonlyArray<{
+  readonly u: number
+  readonly v: number
 }> = [
-  { leftPct: 50.0, topPct: 10.6 },
-  { leftPct: 79.6, topPct: 12.9 },
-  { leftPct: 86.5, topPct: 50.0 },
-  { leftPct: 79.6, topPct: 87.1 },
-  { leftPct: 50.0, topPct: 89.4 },
-  { leftPct: 20.4, topPct: 87.1 },
-  { leftPct: 13.5, topPct: 50.0 },
-  { leftPct: 20.4, topPct: 12.9 },
+  { u: 0.5, v: 0.0899 },
+  { u: 0.796, v: 0.1139 },
+  { u: 0.865, v: 0.5 },
+  { u: 0.796, v: 0.8861 },
+  { u: 0.5, v: 0.9101 },
+  { u: 0.204, v: 0.8861 },
+  { u: 0.135, v: 0.5 },
+  { u: 0.204, v: 0.1139 },
 ]
 
-/** Fixed hole-card pair centers on the felt wrapper (0–100%). */
-export const VENUE_MOSAIC_HOLE_ANCHORS_PCT: ReadonlyArray<{
-  readonly leftPct: number
-  readonly topPct: number
+/** Fixed hole-card pair centers on the poker-table artwork (0–1). */
+export const VENUE_MOSAIC_HOLE_ANCHORS_UV: ReadonlyArray<{
+  readonly u: number
+  readonly v: number
 }> = [
-  { leftPct: 50.0, topPct: 26.5 },
-  { leftPct: 68.6, topPct: 26.1 },
-  { leftPct: 79.2, topPct: 49.7 },
-  { leftPct: 68.3, topPct: 72.4 },
-  { leftPct: 50.0, topPct: 72.2 },
-  { leftPct: 31.7, topPct: 72.4 },
-  { leftPct: 20.8, topPct: 49.7 },
-  { leftPct: 31.4, topPct: 26.1 },
+  { u: 0.5, v: 0.2554 },
+  { u: 0.686, v: 0.2512 },
+  { u: 0.792, v: 0.4969 },
+  { u: 0.683, v: 0.7331 },
+  { u: 0.5, v: 0.7311 },
+  { u: 0.317, v: 0.7331 },
+  { u: 0.208, v: 0.4969 },
+  { u: 0.314, v: 0.2512 },
 ]
+
+/** Green felt center on the poker-table artwork (0–1). */
+export const VENUE_MOSAIC_FELT_CENTER_UV = { u: 0.5, v: 0.4844 } as const
 
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8
@@ -54,14 +52,20 @@ function mosaicSeatIndex(seatIndex: number): number {
   return ((Math.floor(seatIndex) % n) + n) % n
 }
 
+function mosaicAnchorToWrapperPct(
+  anchor: { u: number; v: number },
+  w: number,
+  h: number
+): { leftPct: number; topPct: number } {
+  return imageNormToWrapperPct(anchor.u, anchor.v, w, h)
+}
+
 /** Green felt center in ring wrapper % (0–100). */
-export function venueMosaicFeltCenterPct(): { leftPct: number; topPct: number } {
-  const innerW = 1 - VENUE_FELT_INSET_LEFT - VENUE_FELT_INSET_RIGHT
-  const innerH = 1 - VENUE_FELT_INSET_TOP - VENUE_FELT_INSET_BOTTOM
-  return {
-    leftPct: (VENUE_FELT_INSET_LEFT + innerW / 2) * 100,
-    topPct: (VENUE_FELT_INSET_TOP + innerH / 2) * 100,
-  }
+export function venueMosaicFeltCenterPct(
+  w = MOSAIC_RING_FALLBACK_W_PX,
+  h = MOSAIC_RING_FALLBACK_H_PX
+): { leftPct: number; topPct: number } {
+  return mosaicAnchorToWrapperPct(VENUE_MOSAIC_FELT_CENTER_UV, w, h)
 }
 
 function mosaicHoleRotateDeg(
@@ -75,42 +79,42 @@ function mosaicHoleRotateDeg(
 }
 
 /**
- * Mosaic cupholder / seat-dot position — fixed anchor on the felt wrapper.
- * `w` / `h` are ignored (percentages scale with the measured ring automatically).
+ * Mosaic cupholder / seat-dot position — fixed anchor on the table artwork,
+ * mapped through `object-contain` into wrapper percentages.
  */
 export function mosaicSeatDotPct(
   seatIndex: number,
   _seatCount: number,
-  _w: number,
-  _h: number
+  w: number,
+  h: number
 ): { leftPct: number; topPct: number } {
-  return { ...VENUE_MOSAIC_CUP_ANCHORS_PCT[mosaicSeatIndex(seatIndex)]! }
+  return mosaicAnchorToWrapperPct(VENUE_MOSAIC_CUP_ANCHORS_UV[mosaicSeatIndex(seatIndex)]!, w, h)
 }
 
 /** Hole-card pair center on felt just inside the rail, rotated toward the cup. */
 export function mosaicSeatHoleLayout(
   seatIndex: number,
   _seatCount: number,
-  _w: number,
-  _h: number,
+  w: number,
+  h: number,
   inwardFrac?: number
 ): { leftPct: number; topPct: number; rotateDeg: number } {
   const idx = mosaicSeatIndex(seatIndex)
-  const cup = VENUE_MOSAIC_CUP_ANCHORS_PCT[idx]!
-  const center = venueMosaicFeltCenterPct()
+  const cupUV = VENUE_MOSAIC_CUP_ANCHORS_UV[idx]!
+  const cup = mosaicAnchorToWrapperPct(cupUV, w, h)
+  const center = venueMosaicFeltCenterPct(w, h)
 
   if (inwardFrac != null) {
+    const u = cupUV.u + (VENUE_MOSAIC_FELT_CENTER_UV.u - cupUV.u) * inwardFrac
+    const v = cupUV.v + (VENUE_MOSAIC_FELT_CENTER_UV.v - cupUV.v) * inwardFrac
     return {
-      leftPct: cup.leftPct + (center.leftPct - cup.leftPct) * inwardFrac,
-      topPct: cup.topPct + (center.topPct - cup.topPct) * inwardFrac,
+      ...mosaicAnchorToWrapperPct({ u, v }, w, h),
       rotateDeg: mosaicHoleRotateDeg(cup, center),
     }
   }
 
-  const hole = VENUE_MOSAIC_HOLE_ANCHORS_PCT[idx]!
   return {
-    leftPct: hole.leftPct,
-    topPct: hole.topPct,
+    ...mosaicAnchorToWrapperPct(VENUE_MOSAIC_HOLE_ANCHORS_UV[idx]!, w, h),
     rotateDeg: mosaicHoleRotateDeg(cup, center),
   }
 }

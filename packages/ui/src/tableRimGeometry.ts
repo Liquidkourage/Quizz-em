@@ -3,6 +3,48 @@
  * Matches CSS `border-radius: rx% / 50%` on wide rounded rectangles.
  */
 
+/** Intrinsic aspect of `poker-table.svg` (1262×643). */
+export const POKER_TABLE_GRAPHIC_ASPECT = 1262 / 643
+
+export type ObjectContainRect = { x: number; y: number; w: number; h: number }
+
+/** Painted content box for `object-contain` inside a wrapper (px, origin top-left). */
+export function objectContainContentRect(
+  containerW: number,
+  containerH: number,
+  contentAspect: number
+): ObjectContainRect {
+  if (!(containerW > 0 && containerH > 0 && contentAspect > 0)) {
+    return { x: 0, y: 0, w: containerW, h: containerH }
+  }
+  const containerAspect = containerW / containerH
+  if (containerAspect > contentAspect) {
+    const h = containerH
+    const w = h * contentAspect
+    return { x: (containerW - w) / 2, y: 0, w, h }
+  }
+  const w = containerW
+  const h = w / contentAspect
+  return { x: 0, y: (containerH - h) / 2, w, h }
+}
+
+/** Map normalized coordinates on the table artwork (0–1) to wrapper percentages. */
+export function imageNormToWrapperPct(
+  u: number,
+  v: number,
+  containerW: number,
+  containerH: number,
+  contentAspect: number = POKER_TABLE_GRAPHIC_ASPECT
+): { leftPct: number; topPct: number } {
+  const rect = objectContainContentRect(containerW, containerH, contentAspect)
+  const x = rect.x + u * rect.w
+  const y = rect.y + v * rect.h
+  return {
+    leftPct: containerW > 0 ? (x / containerW) * 100 : 50,
+    topPct: containerH > 0 ? (y / containerH) * 100 : 50,
+  }
+}
+
 export type CapsuleHit = { x: number; y: number; nx: number; ny: number; t: number }
 
 function capsuleBoundaryHitsAlongRayPx(

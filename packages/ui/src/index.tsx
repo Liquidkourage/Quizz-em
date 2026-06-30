@@ -274,7 +274,11 @@ export {
   capsuleBorderRadiusCss,
   seatDotCenterOnRailPx,
   seatDotCenterOnRailPct,
+  objectContainContentRect,
+  imageNormToWrapperPct,
+  POKER_TABLE_GRAPHIC_ASPECT,
   type CapsuleHit,
+  type ObjectContainRect,
 } from './tableRimGeometry';
 export {
   stadiumSeatThetaRad,

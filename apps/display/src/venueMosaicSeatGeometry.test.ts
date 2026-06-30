@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   MOSAIC_RING_FALLBACK_H_PX,
   MOSAIC_RING_FALLBACK_W_PX,
-  VENUE_MOSAIC_CUP_ANCHORS_PCT,
-  VENUE_MOSAIC_HOLE_ANCHORS_PCT,
+  VENUE_MOSAIC_CUP_ANCHORS_UV,
+  VENUE_MOSAIC_HOLE_ANCHORS_UV,
   VENUE_MOSAIC_SEAT_COUNT,
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
@@ -23,12 +23,12 @@ function insetFrac(
 describe('venueMosaicSeatGeometry', () => {
   const w = MOSAIC_RING_FALLBACK_W_PX
   const h = MOSAIC_RING_FALLBACK_H_PX
-  const center = venueMosaicFeltCenterPct()
+  const center = venueMosaicFeltCenterPct(w, h)
 
   it('defines eight fixed cup and hole anchors', () => {
     expect(VENUE_MOSAIC_SEAT_COUNT).toBe(8)
-    expect(VENUE_MOSAIC_CUP_ANCHORS_PCT).toHaveLength(8)
-    expect(VENUE_MOSAIC_HOLE_ANCHORS_PCT).toHaveLength(8)
+    expect(VENUE_MOSAIC_CUP_ANCHORS_UV).toHaveLength(8)
+    expect(VENUE_MOSAIC_HOLE_ANCHORS_UV).toHaveLength(8)
   })
 
   it('places seat 0 at top center and side seats on the rail band', () => {
@@ -45,10 +45,12 @@ describe('venueMosaicSeatGeometry', () => {
     expect(left.leftPct).toBeLessThan(18)
   })
 
-  it('is stable regardless of measured ring size (wrapper percentages)', () => {
-    const small = mosaicSeatDotPct(3, 8, 120, 70)
-    const large = mosaicSeatDotPct(3, 8, 480, 280)
-    expect(small).toEqual(large)
+  it('tracks the table artwork when wrapper aspect ratio changes', () => {
+    const narrow = mosaicSeatDotPct(2, 8, 400, 200)
+    const wide = mosaicSeatDotPct(2, 8, 320, 180)
+    expect(narrow.leftPct).not.toEqual(wide.leftPct)
+    expect(narrow.leftPct).toBeCloseTo(85.82, 1)
+    expect(wide.leftPct).toBeCloseTo(86.5, 1)
   })
 
   it('wraps seat indexes modulo eight', () => {

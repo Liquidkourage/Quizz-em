@@ -49,20 +49,21 @@ describe('venueMosaicSeatGeometry', () => {
     expect(left.u).toBeLessThan(0.1)
   })
 
-  it('places corner seats on semicircle 1/5/7/11 o’clock arc', () => {
+  it('places corner seats slightly off semicircle 12/6 toward the side arc', () => {
     const topRight = mosaicStadiumCupUV(1)
     const topLeft = mosaicStadiumCupUV(7)
     const bottomRight = mosaicStadiumCupUV(3)
     const bottomLeft = mosaicStadiumCupUV(5)
     const rightSide = mosaicStadiumCupUV(2)
     const leftSide = mosaicStadiumCupUV(6)
+    const flatTopRight = { u: (631 + 310.7) / 1262, v: (311 - 253.8) / 643 }
 
-    expect(topRight.u).toBeGreaterThan(0.8)
+    expect(topRight.u).toBeGreaterThan(flatTopRight.u)
     expect(topRight.u).toBeLessThan(rightSide.u)
-    expect(topLeft.u).toBeLessThan(0.2)
+    expect(topLeft.u).toBeLessThan(1 - flatTopRight.u)
     expect(topLeft.u).toBeGreaterThan(leftSide.u)
-    expect(bottomRight.u).toBeGreaterThan(0.8)
-    expect(bottomLeft.u).toBeLessThan(0.2)
+    expect(bottomRight.u).toBeGreaterThan(flatTopRight.u)
+    expect(bottomLeft.u).toBeLessThan(1 - flatTopRight.u)
     const bottomCenter = mosaicStadiumCupUV(4)
     expect(topRight.v).toBeGreaterThan(mosaicStadiumCupUV(0).v)
     expect(topLeft.v).toBeGreaterThan(mosaicStadiumCupUV(0).v)

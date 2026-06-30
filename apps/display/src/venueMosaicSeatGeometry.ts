@@ -29,27 +29,30 @@ const VENUE_MOSAIC_STADIUM_FLAT_HALF_PX =
   VENUE_MOSAIC_STADIUM_HALF_W_PX - VENUE_MOSAIC_STADIUM_R_SIDE_PX
 
 /**
- * Corner seats sit on the semicircle arc at 1 / 5 / 7 / 11 o'clock (30° off the
- * flat edge), not at the semicircle 12 / 6 junction with the rectangle.
+ * How far corner seats are rotated along each semicircle from 12 / 6 toward 3 / 9.
+ * 0° = flat junction; 30° ≈ 1 / 5 / 7 / 11 o'clock; 15° splits the difference.
  */
-const VENUE_MOSAIC_CORNER_CLOCK_HOURS = {
-  rightTop: 1,
-  rightBottom: 5,
-  leftBottom: 7,
-  leftTop: 11,
-} as const
+export const VENUE_MOSAIC_CORNER_ARC_DEG = 15
 
-/** Point on a semicircle at a clock hour (12 = top), y-down screen coords. */
-function semicircleClockPointPx(
+/** Point on a semicircle arc, nudged `arcDeg` from 12 (top) or 6 (bottom) toward the side. */
+function semicircleCornerPointPx(
   scx: number,
   scy: number,
   r: number,
-  hour: number
+  anchor: 'top' | 'bottom',
+  toward: 'right' | 'left'
 ): { x: number; y: number } {
-  const rad = ((hour % 12) * Math.PI) / 6
+  const rad = (VENUE_MOSAIC_CORNER_ARC_DEG * Math.PI) / 180
+  const sign = toward === 'right' ? 1 : -1
+  if (anchor === 'top') {
+    return {
+      x: scx + sign * r * Math.sin(rad),
+      y: scy - r * Math.cos(rad),
+    }
+  }
   return {
-    x: scx + r * Math.sin(rad),
-    y: scy - r * Math.cos(rad),
+    x: scx + sign * r * Math.sin(rad),
+    y: scy + r * Math.cos(rad),
   }
 }
 
@@ -57,9 +60,10 @@ function mosaicSemicircleCupUV(
   scx: number,
   scy: number,
   r: number,
-  hour: number
+  anchor: 'top' | 'bottom',
+  toward: 'right' | 'left'
 ): { u: number; v: number } {
-  const { x, y } = semicircleClockPointPx(scx, scy, r, hour)
+  const { x, y } = semicircleCornerPointPx(scx, scy, r, anchor, toward)
   return { u: x / POKER_TABLE_IMG_W, v: y / POKER_TABLE_IMG_H }
 }
 
@@ -71,7 +75,7 @@ export const MOSAIC_HOLE_CARD_FAN_DEG = 8
 
 /**
  * Eight seat headings — explicit semicircle + rectangle points (not equal angles from center).
- * Seat 0 = rect top · 1 R1 · 2 R3 · 3 R5 · 4 rect bottom · 5 L7 · 6 L9 · 7 L11
+ * Seat 0 = rect top · 1 R~12:30 · 2 R3 · 3 R~5:30 · 4 rect bottom · 5 L~6:30 · 6 L9 · 7 L~11:30
  */
 export function mosaicStadiumSeatThetaRad(seatIndex: number): number {
   return (mosaicSeatIndex(seatIndex) / VENUE_MOSAIC_SEAT_COUNT) * 2 * Math.PI - Math.PI / 2
@@ -97,12 +101,7 @@ export function mosaicStadiumCupUV(seatIndex: number): { u: number; v: number } 
     case 0:
       return { u: cx / POKER_TABLE_IMG_W, v: (cy - VENUE_MOSAIC_STADIUM_R_TOP_PX) / POKER_TABLE_IMG_H }
     case 1:
-      return mosaicSemicircleCupUV(
-        xRight,
-        cy,
-        VENUE_MOSAIC_STADIUM_R_TOP_PX,
-        VENUE_MOSAIC_CORNER_CLOCK_HOURS.rightTop
-      )
+      return mosaicSemicircleCupUV(xRight, cy, VENUE_MOSAIC_STADIUM_R_TOP_PX, 'top', 'right')
     case 2:
       return {
         u: (cx + VENUE_MOSAIC_STADIUM_HALF_W_PX) / POKER_TABLE_IMG_W,
@@ -113,7 +112,8 @@ export function mosaicStadiumCupUV(seatIndex: number): { u: number; v: number } 
         xRight,
         cy,
         VENUE_MOSAIC_STADIUM_R_BOTTOM_PX,
-        VENUE_MOSAIC_CORNER_CLOCK_HOURS.rightBottom
+        'bottom',
+        'right'
       )
     case 4:
       return { u: cx / POKER_TABLE_IMG_W, v: (cy + VENUE_MOSAIC_STADIUM_R_BOTTOM_PX) / POKER_TABLE_IMG_H }
@@ -122,7 +122,8 @@ export function mosaicStadiumCupUV(seatIndex: number): { u: number; v: number } 
         xLeft,
         cy,
         VENUE_MOSAIC_STADIUM_R_BOTTOM_PX,
-        VENUE_MOSAIC_CORNER_CLOCK_HOURS.leftBottom
+        'bottom',
+        'left'
       )
     case 6:
       return {
@@ -130,12 +131,7 @@ export function mosaicStadiumCupUV(seatIndex: number): { u: number; v: number } 
         v: cy / POKER_TABLE_IMG_H,
       }
     case 7:
-      return mosaicSemicircleCupUV(
-        xLeft,
-        cy,
-        VENUE_MOSAIC_STADIUM_R_TOP_PX,
-        VENUE_MOSAIC_CORNER_CLOCK_HOURS.leftTop
-      )
+      return mosaicSemicircleCupUV(xLeft, cy, VENUE_MOSAIC_STADIUM_R_TOP_PX, 'top', 'left')
     default:
       return { ...VENUE_MOSAIC_FELT_CENTER_UV }
   }

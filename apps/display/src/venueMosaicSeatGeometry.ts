@@ -14,12 +14,19 @@ const POKER_TABLE_IMG_H = 643
 
 /**
  * Stadium table on the artwork: left semicircle + center rectangle + right semicircle.
- * Calibrated so cupholders on the PNG rail match the pure shape (top, sides, corners).
+ * `halfW` = center → side (3/9 o'clock); `rSide` = semicircle radius; flat span = halfW − rSide.
+ * `rBottom` > `rTop` matches the artwork’s slightly deeper bottom rail.
  */
 export const VENUE_MOSAIC_FELT_CENTER_UV = { u: 0.5, v: 0.484 } as const
 
 const VENUE_MOSAIC_STADIUM_HALF_W_PX = 564.5
-const VENUE_MOSAIC_STADIUM_HALF_H_PX = 253.8
+const VENUE_MOSAIC_STADIUM_R_SIDE_PX = 253.8
+const VENUE_MOSAIC_STADIUM_R_TOP_PX = 253.8
+const VENUE_MOSAIC_STADIUM_R_BOTTOM_PX = 270.4
+
+/** Half-width of the flat rectangle between the two semicircles. */
+const VENUE_MOSAIC_STADIUM_FLAT_HALF_PX =
+  VENUE_MOSAIC_STADIUM_HALF_W_PX - VENUE_MOSAIC_STADIUM_R_SIDE_PX
 
 /** Hole-card pair inset from cup toward felt center (0 = on cup, 1 = at center). */
 export const VENUE_MOSAIC_HOLE_INWARD_FRAC = 0.22
@@ -27,57 +34,68 @@ export const VENUE_MOSAIC_HOLE_INWARD_FRAC = 0.22
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8
 
+/**
+ * Eight seat headings — explicit semicircle + rectangle points (not equal angles from center).
+ * Seat 0 = rect top · 1 R12 · 2 R3 · 3 R6 · 4 rect bottom · 5 L6 · 6 L9 · 7 L12
+ */
+export function mosaicStadiumSeatThetaRad(seatIndex: number): number {
+  return (mosaicSeatIndex(seatIndex) / VENUE_MOSAIC_SEAT_COUNT) * 2 * Math.PI - Math.PI / 2
+}
+
 function mosaicSeatIndex(seatIndex: number): number {
   const n = VENUE_MOSAIC_SEAT_COUNT
   return ((Math.floor(seatIndex) % n) + n) % n
 }
 
-type MosaicStadiumPx = { cx: number; cy: number; halfW: number; halfH: number; flatHalf: number }
-
-function mosaicStadiumPx(): MosaicStadiumPx {
+/**
+ * Cupholder on the stadium rail — each of the eight authored points from the
+ * semicircle + rectangle model, then normalized to artwork u/v.
+ */
+export function mosaicStadiumCupUV(seatIndex: number): { u: number; v: number } {
   const cx = VENUE_MOSAIC_FELT_CENTER_UV.u * POKER_TABLE_IMG_W
   const cy = VENUE_MOSAIC_FELT_CENTER_UV.v * POKER_TABLE_IMG_H
-  const halfW = VENUE_MOSAIC_STADIUM_HALF_W_PX
-  const halfH = VENUE_MOSAIC_STADIUM_HALF_H_PX
-  return { cx, cy, halfW, halfH, flatHalf: halfW - halfH }
-}
-
-/**
- * Eight rail points on the stadium outline — not equal angles from center.
- * Seat 0 = rectangle top center; clockwise on screen:
- *   0 rect top · 1 R12 · 2 R3 · 3 R6 · 4 rect bottom · 5 L6 · 6 L9 · 7 L12
- */
-export function mosaicStadiumCupPx(seatIndex: number): { x: number; y: number } {
-  const { cx, cy, halfH, flatHalf } = mosaicStadiumPx()
-  const rightCx = cx + flatHalf
-  const leftCx = cx - flatHalf
+  const flat = VENUE_MOSAIC_STADIUM_FLAT_HALF_PX
+  const xRight = cx + flat
+  const xLeft = cx - flat
 
   switch (mosaicSeatIndex(seatIndex)) {
     case 0:
-      return { x: cx, y: cy - halfH }
+      return { u: cx / POKER_TABLE_IMG_W, v: (cy - VENUE_MOSAIC_STADIUM_R_TOP_PX) / POKER_TABLE_IMG_H }
     case 1:
-      return { x: rightCx, y: cy - halfH }
+      return {
+        u: xRight / POKER_TABLE_IMG_W,
+        v: (cy - VENUE_MOSAIC_STADIUM_R_TOP_PX) / POKER_TABLE_IMG_H,
+      }
     case 2:
-      return { x: rightCx + halfH, y: cy }
+      return {
+        u: (cx + VENUE_MOSAIC_STADIUM_HALF_W_PX) / POKER_TABLE_IMG_W,
+        v: cy / POKER_TABLE_IMG_H,
+      }
     case 3:
-      return { x: rightCx, y: cy + halfH }
+      return {
+        u: xRight / POKER_TABLE_IMG_W,
+        v: (cy + VENUE_MOSAIC_STADIUM_R_BOTTOM_PX) / POKER_TABLE_IMG_H,
+      }
     case 4:
-      return { x: cx, y: cy + halfH }
+      return { u: cx / POKER_TABLE_IMG_W, v: (cy + VENUE_MOSAIC_STADIUM_R_BOTTOM_PX) / POKER_TABLE_IMG_H }
     case 5:
-      return { x: leftCx, y: cy + halfH }
+      return {
+        u: xLeft / POKER_TABLE_IMG_W,
+        v: (cy + VENUE_MOSAIC_STADIUM_R_BOTTOM_PX) / POKER_TABLE_IMG_H,
+      }
     case 6:
-      return { x: leftCx - halfH, y: cy }
+      return {
+        u: (cx - VENUE_MOSAIC_STADIUM_HALF_W_PX) / POKER_TABLE_IMG_W,
+        v: cy / POKER_TABLE_IMG_H,
+      }
     case 7:
-      return { x: leftCx, y: cy - halfH }
+      return {
+        u: xLeft / POKER_TABLE_IMG_W,
+        v: (cy - VENUE_MOSAIC_STADIUM_R_TOP_PX) / POKER_TABLE_IMG_H,
+      }
     default:
-      return { x: cx, y: cy }
+      return { ...VENUE_MOSAIC_FELT_CENTER_UV }
   }
-}
-
-/** Cupholder on the stadium rail in normalized artwork coordinates. */
-export function mosaicStadiumCupUV(seatIndex: number): { u: number; v: number } {
-  const { x, y } = mosaicStadiumCupPx(seatIndex)
-  return { u: x / POKER_TABLE_IMG_W, v: y / POKER_TABLE_IMG_H }
 }
 
 /** Hole-card center between cup and felt center in artwork coordinates. */

@@ -49,16 +49,19 @@ describe('venueMosaicSeatGeometry', () => {
     expect(left.u).toBeLessThan(0.1)
   })
 
-  it('places corner seats further out on the semicircle arc than equal-angle rays would', () => {
-    const corner = mosaicStadiumCupUV(1)
-    expect(corner.u).toBeCloseTo(0.7462, 3)
-    expect(corner.u).toBeGreaterThan(0.7011)
-  })
+  it('places corner seats on semicircle 12/6 o’clock, not the flat-to-curve bisector', () => {
+    const topRight = mosaicStadiumCupUV(1)
+    const topLeft = mosaicStadiumCupUV(7)
+    const bottomRight = mosaicStadiumCupUV(3)
+    const bottomLeft = mosaicStadiumCupUV(5)
 
-  it('mirrors left and right semicircle seats across the table centerline', () => {
-    expect(mosaicStadiumCupUV(1).u + mosaicStadiumCupUV(7).u).toBeCloseTo(1, 2)
-    expect(mosaicStadiumCupUV(2).u + mosaicStadiumCupUV(6).u).toBeCloseTo(1, 2)
-    expect(mosaicStadiumCupUV(3).u + mosaicStadiumCupUV(5).u).toBeCloseTo(1, 2)
+    expect(topRight.u).toBeGreaterThan(0.73)
+    expect(topLeft.u).toBeLessThan(0.27)
+    expect(bottomRight.u).toBeGreaterThan(0.73)
+    expect(bottomLeft.u).toBeLessThan(0.27)
+    expect(topRight.v).toBeCloseTo(topLeft.v, 2)
+    expect(bottomRight.v).toBeCloseTo(bottomLeft.v, 2)
+    expect(bottomRight.v).toBeGreaterThan(0.89)
   })
 
   it('tracks the table artwork when wrapper aspect ratio changes', () => {

@@ -1456,7 +1456,7 @@ function VenueMosaicTableCard({
   const tn = row.tableNum
   const seats = row.seated
   const pot = Math.max(0, Math.floor(Number.isFinite(row.pot) ? row.pot : 0))
-  const ph = row.phase
+  const ph = String(row.phase ?? '').trim().toLowerCase()
   const seatNames = padSeatNames(row.seatNames)
   const seatBankrolls = padSeatBankrolls(row.seatBankrolls)
   const seatFolded = padSeatFolded(row.seatFolded)
@@ -1521,9 +1521,11 @@ function VenueMosaicTableCard({
     return null
   })()
   const showStatusBand = statusBandKind != null
-  /** Venue headline covers round phase — table bands carry local state instead. */
+  /** Status band + venue headline cover these — never duplicate as a header corner chip. */
+  const suppressCornerPhaseChip =
+    showNoMoreBets || ph === 'answering' || (wageringLive && ph === 'betting')
   const showHeaderPhaseChip =
-    !denseMosaicChrome && !showFloorShowdownOverlay && !showStatusBand
+    !denseMosaicChrome && !showFloorShowdownOverlay && !suppressCornerPhaseChip
   const potOnFelt = denseMosaicChrome && !showFloorShowdownOverlay
   const potMuted =
     ph === 'lobby' || ph === 'question'

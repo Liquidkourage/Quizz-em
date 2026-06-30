@@ -53,7 +53,7 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
           </div>
         </div>
 
-        <p className="text-balance text-left font-semibold leading-snug tracking-tight text-yellow-300/95 display-text-headline-question-spacious">
+        <p className="line-clamp-3 overflow-hidden text-balance text-left font-semibold leading-snug tracking-tight text-yellow-300/95 display-text-headline-question-spacious">
           {question}
         </p>
 

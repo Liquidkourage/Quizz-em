@@ -1408,7 +1408,7 @@ function DisplayTableLive({
             <div className="mx-auto flex max-w-7xl flex-col gap-4 rounded-2xl border-2 border-yellow-500/50 bg-black/90 p-5 shadow-2xl backdrop-blur-md sm:flex-row sm:items-stretch">
               <div className="min-w-0 flex-1 text-center">
                 <div className="mb-2 text-2xl font-semibold text-white md:text-3xl">🎯 Current question</div>
-                <div className="text-balance text-4xl font-bold leading-snug text-yellow-400 sm:text-5xl md:text-6xl">
+                <div className="text-balance line-clamp-4 max-h-[min(28vh,9.5rem)] overflow-hidden text-4xl font-bold leading-snug text-yellow-400 sm:text-5xl md:text-6xl">
                   {effectiveQuestionText ?? 'Question pending…'}
                 </div>
               </div>

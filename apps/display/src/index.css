@@ -1762,6 +1762,7 @@
 
   .venue-headline-question-card {
     container-type: inline-size;
+    max-height: min(32vh, 14.5rem);
   }
 
   .venue-headline-answer-timer {
@@ -1787,29 +1788,36 @@
     line-height: 1.18;
   }
 
-  /** Reserve ~2 lines so the table grid does not jump with short vs long questions. */
+  /** Reserve ~2 lines so the table grid does not jump; cap long questions the same. */
   .venue-headline-question-slot {
-    display: flex;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
     min-height: 2.44em;
-    align-items: center;
-    justify-content: center;
+    max-height: 2.44em;
     text-align: center;
+    text-overflow: ellipsis;
   }
 
   .venue-headline-question-slot.display-text-headline-question-spacious {
     min-height: 2.44em;
+    max-height: 2.44em;
   }
 
   .venue-headline-question-slot.display-text-headline-question-compact {
     min-height: 2.44em;
+    max-height: 2.44em;
   }
 
   .venue-headline-question-slot.display-text-headline-question-dense {
     min-height: 2.36em;
+    max-height: 2.36em;
   }
 
   .venue-headline-question-slot.display-text-headline-question-ultra {
     min-height: 2.4em;
+    max-height: 2.4em;
   }
 
   .display-text-headline-blinds-label {

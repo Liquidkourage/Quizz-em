@@ -49,6 +49,12 @@ describe('venueMosaicSeatGeometry', () => {
     expect(left.u).toBeLessThan(0.1)
   })
 
+  it('places corner seats further out on the semicircle arc than equal-angle rays would', () => {
+    const corner = mosaicStadiumCupUV(1)
+    expect(corner.u).toBeCloseTo(0.7462, 3)
+    expect(corner.u).toBeGreaterThan(0.7011)
+  })
+
   it('mirrors left and right semicircle seats across the table centerline', () => {
     expect(mosaicStadiumCupUV(1).u + mosaicStadiumCupUV(7).u).toBeCloseTo(1, 2)
     expect(mosaicStadiumCupUV(2).u + mosaicStadiumCupUV(6).u).toBeCloseTo(1, 2)

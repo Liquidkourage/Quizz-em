@@ -28,6 +28,41 @@ const VENUE_MOSAIC_STADIUM_R_BOTTOM_PX = 270.4
 const VENUE_MOSAIC_STADIUM_FLAT_HALF_PX =
   VENUE_MOSAIC_STADIUM_HALF_W_PX - VENUE_MOSAIC_STADIUM_R_SIDE_PX
 
+/**
+ * Corner seats sit on the semicircle arc at 1 / 5 / 7 / 11 o'clock (30° off the
+ * flat edge), not at the semicircle 12 / 6 junction with the rectangle.
+ */
+const VENUE_MOSAIC_CORNER_CLOCK_HOURS = {
+  rightTop: 1,
+  rightBottom: 5,
+  leftBottom: 7,
+  leftTop: 11,
+} as const
+
+/** Point on a semicircle at a clock hour (12 = top), y-down screen coords. */
+function semicircleClockPointPx(
+  scx: number,
+  scy: number,
+  r: number,
+  hour: number
+): { x: number; y: number } {
+  const rad = ((hour % 12) * Math.PI) / 6
+  return {
+    x: scx + r * Math.sin(rad),
+    y: scy - r * Math.cos(rad),
+  }
+}
+
+function mosaicSemicircleCupUV(
+  scx: number,
+  scy: number,
+  r: number,
+  hour: number
+): { u: number; v: number } {
+  const { x, y } = semicircleClockPointPx(scx, scy, r, hour)
+  return { u: x / POKER_TABLE_IMG_W, v: y / POKER_TABLE_IMG_H }
+}
+
 /** Hole-card pair inset from cup toward felt center (0 = on cup, 1 = at center). */
 export const VENUE_MOSAIC_HOLE_INWARD_FRAC = 0.22
 
@@ -36,7 +71,7 @@ export const MOSAIC_HOLE_CARD_FAN_DEG = 8
 
 /**
  * Eight seat headings — explicit semicircle + rectangle points (not equal angles from center).
- * Seat 0 = rect top · 1 R12 · 2 R3 · 3 R6 · 4 rect bottom · 5 L6 · 6 L9 · 7 L12
+ * Seat 0 = rect top · 1 R1 · 2 R3 · 3 R5 · 4 rect bottom · 5 L7 · 6 L9 · 7 L11
  */
 export function mosaicStadiumSeatThetaRad(seatIndex: number): number {
   return (mosaicSeatIndex(seatIndex) / VENUE_MOSAIC_SEAT_COUNT) * 2 * Math.PI - Math.PI / 2
@@ -62,37 +97,45 @@ export function mosaicStadiumCupUV(seatIndex: number): { u: number; v: number } 
     case 0:
       return { u: cx / POKER_TABLE_IMG_W, v: (cy - VENUE_MOSAIC_STADIUM_R_TOP_PX) / POKER_TABLE_IMG_H }
     case 1:
-      return {
-        u: xRight / POKER_TABLE_IMG_W,
-        v: (cy - VENUE_MOSAIC_STADIUM_R_TOP_PX) / POKER_TABLE_IMG_H,
-      }
+      return mosaicSemicircleCupUV(
+        xRight,
+        cy,
+        VENUE_MOSAIC_STADIUM_R_TOP_PX,
+        VENUE_MOSAIC_CORNER_CLOCK_HOURS.rightTop
+      )
     case 2:
       return {
         u: (cx + VENUE_MOSAIC_STADIUM_HALF_W_PX) / POKER_TABLE_IMG_W,
         v: cy / POKER_TABLE_IMG_H,
       }
     case 3:
-      return {
-        u: xRight / POKER_TABLE_IMG_W,
-        v: (cy + VENUE_MOSAIC_STADIUM_R_BOTTOM_PX) / POKER_TABLE_IMG_H,
-      }
+      return mosaicSemicircleCupUV(
+        xRight,
+        cy,
+        VENUE_MOSAIC_STADIUM_R_BOTTOM_PX,
+        VENUE_MOSAIC_CORNER_CLOCK_HOURS.rightBottom
+      )
     case 4:
       return { u: cx / POKER_TABLE_IMG_W, v: (cy + VENUE_MOSAIC_STADIUM_R_BOTTOM_PX) / POKER_TABLE_IMG_H }
     case 5:
-      return {
-        u: xLeft / POKER_TABLE_IMG_W,
-        v: (cy + VENUE_MOSAIC_STADIUM_R_BOTTOM_PX) / POKER_TABLE_IMG_H,
-      }
+      return mosaicSemicircleCupUV(
+        xLeft,
+        cy,
+        VENUE_MOSAIC_STADIUM_R_BOTTOM_PX,
+        VENUE_MOSAIC_CORNER_CLOCK_HOURS.leftBottom
+      )
     case 6:
       return {
         u: (cx - VENUE_MOSAIC_STADIUM_HALF_W_PX) / POKER_TABLE_IMG_W,
         v: cy / POKER_TABLE_IMG_H,
       }
     case 7:
-      return {
-        u: xLeft / POKER_TABLE_IMG_W,
-        v: (cy - VENUE_MOSAIC_STADIUM_R_TOP_PX) / POKER_TABLE_IMG_H,
-      }
+      return mosaicSemicircleCupUV(
+        xLeft,
+        cy,
+        VENUE_MOSAIC_STADIUM_R_TOP_PX,
+        VENUE_MOSAIC_CORNER_CLOCK_HOURS.leftTop
+      )
     default:
       return { ...VENUE_MOSAIC_FELT_CENTER_UV }
   }

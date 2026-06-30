@@ -2199,7 +2199,7 @@ export default function VenueEightTablesPreview({
                   ) : null}
                   {headlineQuestionDisplay ? (
                     <p
-                      className={`venue-headline-question-slot min-h-0 min-w-0 flex-1 text-balance text-left tracking-tight text-yellow-400 ${headlineQuestionClass}`}
+                      className={`venue-headline-question-slot min-h-0 min-w-0 flex-1 text-balance text-center tracking-tight text-yellow-400 ${headlineQuestionClass}`}
                     >
                       {headlineQuestionDisplay}
                     </p>

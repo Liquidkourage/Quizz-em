@@ -1792,6 +1792,8 @@
     display: flex;
     min-height: 2.44em;
     align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 
   .venue-headline-question-slot.display-text-headline-question-spacious {

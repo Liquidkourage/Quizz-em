@@ -1,10 +1,70 @@
 import { Fragment } from 'react'
 import {
+  formatVenueHeadlineCondensePart,
   venueHeadlineCondenseCaption,
   venueHeadlineCondenseCaptionParts,
   type VenueCondenseProgressModel,
 } from './venueWallModel'
-import { VenueHeadlineMetaPart } from './VenueHeadlineMetaPart'
+
+function HeadlineStatPart({ part }: { part: string }) {
+  const formatted = formatVenueHeadlineCondensePart(part)
+  const remainingMatch = formatted.match(/^(\d+)\s+(remaining.*)$/i)
+  if (remainingMatch) {
+    return (
+      <>
+        <span className="text-amber-100">{remainingMatch[1]}</span>
+        <span className="text-white/80"> {remainingMatch[2]}</span>
+      </>
+    )
+  }
+
+  const tablesMatch = formatted.match(/^(\d+)\s+(tables?)$/i)
+  if (tablesMatch) {
+    return (
+      <>
+        <span className="text-amber-100">{tablesMatch[1]}</span>
+        <span className="text-white/80"> {tablesMatch[2]}</span>
+      </>
+    )
+  }
+
+  const reseatingAtMatch = formatted.match(/^Re-seating at (\d+)$/i)
+  if (reseatingAtMatch) {
+    return (
+      <>
+        <span className="text-white/80">Re-seating at </span>
+        <span className="text-amber-100">{reseatingAtMatch[1]}</span>
+      </>
+    )
+  }
+
+  if (/^Re-seating now$/i.test(formatted)) {
+    return <span className="text-white/80">Re-seating now</span>
+  }
+
+  const combineAtMatch = formatted.match(/^Combine at (\d+)$/i)
+  if (combineAtMatch) {
+    return (
+      <>
+        <span className="text-white/80">Combine at </span>
+        <span className="text-amber-100">{combineAtMatch[1]}</span>
+      </>
+    )
+  }
+
+  const combiningToMatch = formatted.match(/^Combining to (\d+)\s+(tables?)$/i)
+  if (combiningToMatch) {
+    return (
+      <>
+        <span className="text-white/80">Combining to </span>
+        <span className="text-amber-100">{combiningToMatch[1]}</span>
+        <span className="text-white/80"> {combiningToMatch[2]}</span>
+      </>
+    )
+  }
+
+  return formatted
+}
 
 export default function VenueHeadlineCondenseStatsPill({
   model,
@@ -30,7 +90,7 @@ export default function VenueHeadlineCondenseStatsPill({
             </span>
           ) : null}
           <span className="shrink-0 whitespace-nowrap">
-            <VenueHeadlineMetaPart part={part} />
+            <HeadlineStatPart part={part} />
           </span>
         </Fragment>
       ))}

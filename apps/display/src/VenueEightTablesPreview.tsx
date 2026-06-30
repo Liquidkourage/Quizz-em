@@ -180,35 +180,65 @@ function VenuePotAmount({
   )
 }
 
-/** Raised action cue — sits between header and felt during open wagering. */
-function MosaicActionBand({
+type MosaicTableStatusBandKind = 'to-call' | 'no-more-bets' | 'answering'
+
+/** Table status cue — sits between header and felt (to-call, closed betting, answering). */
+function MosaicTableStatusBand({
+  kind,
   playerName,
   callAmount,
   prefersReducedMotion = false,
   gridRowClass = '',
 }: {
-  playerName: string
-  callAmount: number
+  kind: MosaicTableStatusBandKind
+  playerName?: string
+  callAmount?: number
   prefersReducedMotion?: boolean
   gridRowClass?: string
 }) {
-  const amount = Math.max(0, Math.floor(callAmount))
+  if (kind === 'to-call' && playerName && callAmount != null) {
+    const amount = Math.max(0, Math.floor(callAmount))
+    return (
+      <div
+        className={`vfd-mosaic-status-band vfd-mosaic-status-band--call shrink-0 ${gridRowClass}`}
+        aria-live="polite"
+        aria-label={`${playerName} to call ${formatVenueBankroll(amount)}`}
+      >
+        <span className="vfd-mosaic-status-band-name" title={playerName}>
+          {playerName}
+        </span>
+        <span className="vfd-mosaic-status-band-label">to call</span>
+        <MosaicBungeeDollarAmount
+          amount={amount}
+          className="vfd-mosaic-status-band-amount vfd-mosaic-dollar--live"
+          prefersReducedMotion={prefersReducedMotion}
+          pulseOnChange
+        />
+      </div>
+    )
+  }
+
+  if (kind === 'no-more-bets') {
+    return (
+      <div
+        className={`vfd-mosaic-status-band vfd-mosaic-status-band--closed shrink-0 ${gridRowClass}`}
+        aria-live="polite"
+        role="status"
+        aria-label="No more bets"
+      >
+        <span className="vfd-mosaic-status-band-message">No more bets</span>
+      </div>
+    )
+  }
+
   return (
     <div
-      className={`vfd-mosaic-action-band shrink-0 ${gridRowClass}`}
+      className={`vfd-mosaic-status-band vfd-mosaic-status-band--answering shrink-0 ${gridRowClass}`}
       aria-live="polite"
-      aria-label={`${playerName} to call ${formatVenueBankroll(amount)}`}
+      role="status"
+      aria-label="Answer on your phone"
     >
-      <span className="vfd-mosaic-action-name" title={playerName}>
-        {playerName}
-      </span>
-      <span className="vfd-mosaic-action-label">to call</span>
-      <MosaicBungeeDollarAmount
-        amount={amount}
-        className="vfd-mosaic-action-amount vfd-mosaic-dollar--live"
-        prefersReducedMotion={prefersReducedMotion}
-        pulseOnChange
-      />
+      <span className="vfd-mosaic-status-band-message">Answer on your phone</span>
     </div>
   )
 }
@@ -1476,17 +1506,24 @@ function VenueMosaicTableCard({
     Number.isFinite(row.actingCallAmount)
       ? Math.max(0, Math.floor(row.actingCallAmount))
       : null
-  const showActionBand =
-    !showFloorShowdownOverlay &&
-    wageringLive &&
-    actingSeat != null &&
-    actingPlayerName != null &&
-    actingCallAmount != null
-  /** Venue headline already announces open wagering — keep table-specific chips only. */
+  const statusBandKind = ((): MosaicTableStatusBandKind | null => {
+    if (showFloorShowdownOverlay) return null
+    if (
+      wageringLive &&
+      actingSeat != null &&
+      actingPlayerName != null &&
+      actingCallAmount != null
+    ) {
+      return 'to-call'
+    }
+    if (showNoMoreBets && seats >= 2) return 'no-more-bets'
+    if (ph === 'answering' && seats >= 2) return 'answering'
+    return null
+  })()
+  const showStatusBand = statusBandKind != null
+  /** Venue headline covers round phase — table bands carry local state instead. */
   const showHeaderPhaseChip =
-    !denseMosaicChrome &&
-    !showFloorShowdownOverlay &&
-    !(wageringLive && ph === 'betting')
+    !denseMosaicChrome && !showFloorShowdownOverlay && !showStatusBand
   const potOnFelt = denseMosaicChrome && !showFloorShowdownOverlay
   const potMuted =
     ph === 'lobby' || ph === 'question'
@@ -1494,26 +1531,33 @@ function VenueMosaicTableCard({
         ? ('dim' as const)
         : ('faint' as const)
       : ('live' as const)
-  const feltGridRow = showActionBand ? 'col-start-1 row-start-3' : 'col-start-1 row-start-2'
-  const actionGridRow = 'col-start-1 row-start-2 min-w-0'
-  const showdownPanelGridRow = showActionBand ? 'col-start-1 row-start-4' : 'col-start-1 row-start-3'
+  const feltGridRow = showStatusBand ? 'col-start-1 row-start-3' : 'col-start-1 row-start-2'
+  const statusBandGridRow = 'col-start-1 row-start-2 min-w-0'
+  const showdownPanelGridRow = showStatusBand ? 'col-start-1 row-start-4' : 'col-start-1 row-start-3'
 
   const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
-    : wageringLive
-      ? 'rounded-xl border-2 border-amber-500/70 bg-black/55 shadow-[0_0_22px_rgba(251,191,36,0.28)] ring-1 ring-amber-400/25'
-      : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
+    : ph === 'answering'
+      ? 'rounded-xl border-2 border-cyan-500/55 bg-black/55 shadow-[0_0_18px_rgba(34,211,238,0.18)] ring-1 ring-cyan-400/20'
+      : wageringLive
+        ? 'rounded-xl border-2 border-amber-500/70 bg-black/55 shadow-[0_0_22px_rgba(251,191,36,0.28)] ring-1 ring-amber-400/25'
+        : 'rounded-xl border-2 border-yellow-700/40 bg-black/55 shadow-lg'
+
+  const statusBandAria =
+    statusBandKind === 'to-call' && actingPlayerName && actingCallAmount != null
+      ? `, ${actingPlayerName} to call ${formatVenueBankroll(actingCallAmount)}`
+      : statusBandKind === 'no-more-bets'
+        ? ', no more bets'
+        : statusBandKind === 'answering'
+          ? ', answer on your phone'
+          : ''
 
   return (
       <article
         ref={tileRef}
         data-table-tile={tn}
         role="group"
-        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${
-          showActionBand && actingPlayerName && actingCallAmount != null
-            ? `, ${actingPlayerName} to call ${formatVenueBankroll(actingCallAmount)}`
-            : ''
-        }${showNoMoreBets ? ', no more bets' : ''}, venue floor`}
+        aria-label={`Table ${tn}, pot ${formatVenueBankroll(pot)}${statusBandAria}, venue floor`}
         style={tileTypographyStyle}
         className={`@container/size relative min-h-0 min-w-0 ${mosaicTypography.rootClass} ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           showFloorShowdownOverlay && shrinkWrapRowHeight
@@ -1522,7 +1566,7 @@ function VenueMosaicTableCard({
             ? 'flex h-full min-h-0 w-full flex-col'
             : shrinkWrapRowHeight || mosaicShrinkWrap
               ? 'flex h-auto flex-col'
-              : feltFillsCell && showActionBand
+              : feltFillsCell && showStatusBand
                 ? 'grid h-full grid-rows-[auto_auto_minmax(0,1fr)]'
                 : feltFillsCell
                   ? 'grid h-full grid-rows-[auto_minmax(0,1fr)]'
@@ -1563,9 +1607,9 @@ function VenueMosaicTableCard({
           {potOnFelt ? (
             <div
               className="min-w-0 px-0.5 text-center"
-              aria-label={actingPlayerName && !showActionBand ? `${actingPlayerName} to act` : undefined}
+              aria-label={actingPlayerName && !showStatusBand ? `${actingPlayerName} to act` : undefined}
             >
-              {actingPlayerName && !showActionBand ? (
+              {actingPlayerName && !showStatusBand ? (
                 <span className={mosaicTypography.actingName} title={actingPlayerName}>
                   {actingPlayerName}
                 </span>
@@ -1609,12 +1653,13 @@ function VenueMosaicTableCard({
           ) : null}
         </div>
 
-        {showActionBand && actingPlayerName && actingCallAmount != null ? (
-          <MosaicActionBand
-            playerName={actingPlayerName}
-            callAmount={actingCallAmount}
+        {statusBandKind != null ? (
+          <MosaicTableStatusBand
+            kind={statusBandKind}
+            playerName={actingPlayerName ?? undefined}
+            callAmount={actingCallAmount ?? undefined}
             prefersReducedMotion={prefersReducedMotion}
-            gridRowClass={feltFillsCell ? actionGridRow : ''}
+            gridRowClass={feltFillsCell ? statusBandGridRow : ''}
           />
         ) : null}
 
@@ -1687,7 +1732,7 @@ function VenueMosaicTableCard({
           />
         ) : null}
 
-        {showNoMoreBets && seats >= 2 && !showFloorShowdownOverlay ? (
+        {showNoMoreBets && seats >= 2 && !showFloorShowdownOverlay && statusBandKind !== 'no-more-bets' ? (
           <VenueMosaicNoMoreBetsWatermark offsetClass={mosaicTypography.noMoreBetsOffsetClass} />
         ) : null}
       </article>

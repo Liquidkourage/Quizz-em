@@ -3,10 +3,12 @@ import {
   MOSAIC_RING_FALLBACK_H_PX,
   MOSAIC_RING_FALLBACK_W_PX,
   VENUE_MOSAIC_CUP_ANCHORS_UV,
+  VENUE_MOSAIC_FELT_CENTER_UV,
   VENUE_MOSAIC_HOLE_ANCHORS_UV,
   VENUE_MOSAIC_SEAT_COUNT,
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
+  mosaicStadiumCupUV,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
 
@@ -25,24 +27,32 @@ describe('venueMosaicSeatGeometry', () => {
   const h = MOSAIC_RING_FALLBACK_H_PX
   const center = venueMosaicFeltCenterPct(w, h)
 
-  it('defines eight fixed cup and hole anchors', () => {
+  it('defines eight stadium-derived cup and hole anchors', () => {
     expect(VENUE_MOSAIC_SEAT_COUNT).toBe(8)
     expect(VENUE_MOSAIC_CUP_ANCHORS_UV).toHaveLength(8)
     expect(VENUE_MOSAIC_HOLE_ANCHORS_UV).toHaveLength(8)
   })
 
-  it('places seat 0 at top center and side seats on the rail band', () => {
-    const top = mosaicSeatDotPct(0, 8, w, h)
-    const right = mosaicSeatDotPct(2, 8, w, h)
-    const left = mosaicSeatDotPct(6, 8, w, h)
+  it('places pole seats on the rectangle flat edges and side seats on the semicircles', () => {
+    const top = mosaicStadiumCupUV(0)
+    const right = mosaicStadiumCupUV(2)
+    const bottom = mosaicStadiumCupUV(4)
+    const left = mosaicStadiumCupUV(6)
 
-    expect(top.leftPct).toBeCloseTo(50, 0)
-    expect(top.topPct).toBeLessThan(center.topPct)
-    expect(right.leftPct).toBeGreaterThan(90)
-    expect(right.leftPct).toBeLessThan(98)
-    expect(Math.abs(right.topPct - center.topPct)).toBeLessThan(3)
-    expect(left.leftPct).toBeGreaterThan(2)
-    expect(left.leftPct).toBeLessThan(10)
+    expect(top.u).toBeCloseTo(0.5, 2)
+    expect(bottom.u).toBeCloseTo(0.5, 2)
+    expect(top.v).toBeLessThan(VENUE_MOSAIC_FELT_CENTER_UV.v)
+    expect(bottom.v).toBeGreaterThan(VENUE_MOSAIC_FELT_CENTER_UV.v)
+    expect(right.v).toBeCloseTo(VENUE_MOSAIC_FELT_CENTER_UV.v, 2)
+    expect(left.v).toBeCloseTo(VENUE_MOSAIC_FELT_CENTER_UV.v, 2)
+    expect(right.u).toBeGreaterThan(0.9)
+    expect(left.u).toBeLessThan(0.1)
+  })
+
+  it('mirrors left and right semicircle seats across the table centerline', () => {
+    expect(mosaicStadiumCupUV(1).u + mosaicStadiumCupUV(7).u).toBeCloseTo(1, 2)
+    expect(mosaicStadiumCupUV(2).u + mosaicStadiumCupUV(6).u).toBeCloseTo(1, 2)
+    expect(mosaicStadiumCupUV(3).u + mosaicStadiumCupUV(5).u).toBeCloseTo(1, 2)
   })
 
   it('tracks the table artwork when wrapper aspect ratio changes', () => {

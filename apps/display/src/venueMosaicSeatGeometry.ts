@@ -1,4 +1,8 @@
-import { imageNormToWrapperPct } from '@qhe/ui'
+import {
+  capsuleOuterBoundaryHitPx,
+  imageNormToWrapperPct,
+  POKER_TABLE_GRAPHIC_ASPECT,
+} from '@qhe/ui'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
 /** Authoring size for mosaic seat layout before ResizeObserver (16.5rem × 8.75rem @ 16px). */
@@ -8,57 +12,82 @@ export const MOSAIC_RING_FALLBACK_H_PX = 140
 /** Venue wall always renders eight physical chairs per felt. */
 export const VENUE_MOSAIC_SEAT_COUNT = VENUE_WALL_SEAT_SLOTS
 
+/** `poker-table.svg` pixel size — stadium math is authored in this space, then normalized to u/v. */
+const POKER_TABLE_IMG_W = 1262
+const POKER_TABLE_IMG_H = 643
+
 /**
- * Fixed cupholder centers on the poker-table artwork (0–1 within the SVG).
- * Seat 0 = top center; advances clockwise on screen.
- * Sampled from `poker-table.svg` outer rail along rays from felt center (0.5, 0.484).
+ * Stadium table on the artwork: left semicircle + center rectangle + right semicircle.
+ * Calibrated so cupholders on the PNG rail match the pure shape (top, sides, corners).
  */
-export const VENUE_MOSAIC_CUP_ANCHORS_UV: ReadonlyArray<{
-  readonly u: number
-  readonly v: number
-}> = [
-  { u: 0.5, v: 0.089 },
-  { u: 0.7014, v: 0.0887 },
-  { u: 0.9473, v: 0.484 },
-  { u: 0.7143, v: 0.9046 },
-  { u: 0.5, v: 0.9047 },
-  { u: 0.2857, v: 0.9046 },
-  { u: 0.0531, v: 0.484 },
-  { u: 0.2986, v: 0.0887 },
-]
-
-/** Fixed hole-card pair centers on the poker-table artwork (0–1). ~22% inward from each cup toward felt center. */
-export const VENUE_MOSAIC_HOLE_ANCHORS_UV: ReadonlyArray<{
-  readonly u: number
-  readonly v: number
-}> = [
-  { u: 0.5, v: 0.1759 },
-  { u: 0.6571, v: 0.1756 },
-  { u: 0.8489, v: 0.484 },
-  { u: 0.6672, v: 0.8121 },
-  { u: 0.5, v: 0.8121 },
-  { u: 0.3328, v: 0.8121 },
-  { u: 0.1514, v: 0.484 },
-  { u: 0.3429, v: 0.1756 },
-]
-
-/** Green felt center on the poker-table artwork (0–1). */
 export const VENUE_MOSAIC_FELT_CENTER_UV = { u: 0.5, v: 0.484 } as const
+
+const VENUE_MOSAIC_STADIUM_HALF_W_PX = 564.5
+const VENUE_MOSAIC_STADIUM_HALF_H_PX = 253.8
+
+/** Hole-card pair inset from cup toward felt center (0 = on cup, 1 = at center). */
+export const VENUE_MOSAIC_HOLE_INWARD_FRAC = 0.22
 
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8
+
+/**
+ * Eight seat headings on the stadium outline — seat 0 at rectangle top center,
+ * advancing clockwise on screen:
+ *   0 rect top · 1 R12 · 2 R3 · 3 R6 · 4 rect bottom · 5 L6 · 6 L9 · 7 L12
+ */
+export function mosaicStadiumSeatThetaRad(seatIndex: number): number {
+  return (mosaicSeatIndex(seatIndex) / VENUE_MOSAIC_SEAT_COUNT) * 2 * Math.PI - Math.PI / 2
+}
 
 function mosaicSeatIndex(seatIndex: number): number {
   const n = VENUE_MOSAIC_SEAT_COUNT
   return ((Math.floor(seatIndex) % n) + n) % n
 }
 
+/** Cupholder on the outer stadium rail in normalized artwork coordinates. */
+export function mosaicStadiumCupUV(seatIndex: number): { u: number; v: number } {
+  const cx = VENUE_MOSAIC_FELT_CENTER_UV.u * POKER_TABLE_IMG_W
+  const cy = VENUE_MOSAIC_FELT_CENTER_UV.v * POKER_TABLE_IMG_H
+  const θ = mosaicStadiumSeatThetaRad(seatIndex)
+  const hit = capsuleOuterBoundaryHitPx(
+    cx,
+    cy,
+    VENUE_MOSAIC_STADIUM_HALF_W_PX,
+    VENUE_MOSAIC_STADIUM_HALF_H_PX,
+    Math.cos(θ),
+    Math.sin(θ)
+  )
+  if (!hit) return { ...VENUE_MOSAIC_FELT_CENTER_UV }
+  return { u: hit.x / POKER_TABLE_IMG_W, v: hit.y / POKER_TABLE_IMG_H }
+}
+
+/** Hole-card center between cup and felt center in artwork coordinates. */
+export function mosaicStadiumHoleUV(
+  seatIndex: number,
+  inwardFrac = VENUE_MOSAIC_HOLE_INWARD_FRAC
+): { u: number; v: number } {
+  const cup = mosaicStadiumCupUV(seatIndex)
+  return {
+    u: cup.u + (VENUE_MOSAIC_FELT_CENTER_UV.u - cup.u) * inwardFrac,
+    v: cup.v + (VENUE_MOSAIC_FELT_CENTER_UV.v - cup.v) * inwardFrac,
+  }
+}
+
+/** Precomputed cup UVs (stable reference for tests and debugging). */
+export const VENUE_MOSAIC_CUP_ANCHORS_UV: ReadonlyArray<{ readonly u: number; readonly v: number }> =
+  Array.from({ length: VENUE_MOSAIC_SEAT_COUNT }, (_, i) => mosaicStadiumCupUV(i))
+
+/** Precomputed hole UVs at {@link VENUE_MOSAIC_HOLE_INWARD_FRAC}. */
+export const VENUE_MOSAIC_HOLE_ANCHORS_UV: ReadonlyArray<{ readonly u: number; readonly v: number }> =
+  Array.from({ length: VENUE_MOSAIC_SEAT_COUNT }, (_, i) => mosaicStadiumHoleUV(i))
+
 function mosaicAnchorToWrapperPct(
   anchor: { u: number; v: number },
   w: number,
   h: number
 ): { leftPct: number; topPct: number } {
-  return imageNormToWrapperPct(anchor.u, anchor.v, w, h)
+  return imageNormToWrapperPct(anchor.u, anchor.v, w, h, POKER_TABLE_GRAPHIC_ASPECT)
 }
 
 /** Green felt center in ring wrapper % (0–100). */
@@ -80,8 +109,8 @@ function mosaicHoleRotateDeg(
 }
 
 /**
- * Mosaic cupholder / seat-dot position — fixed anchor on the table artwork,
- * mapped through `object-contain` into wrapper percentages.
+ * Mosaic cupholder / seat-dot — stadium rail point mapped through `object-contain`
+ * into wrapper percentages.
  */
 export function mosaicSeatDotPct(
   seatIndex: number,
@@ -89,7 +118,7 @@ export function mosaicSeatDotPct(
   w: number,
   h: number
 ): { leftPct: number; topPct: number } {
-  return mosaicAnchorToWrapperPct(VENUE_MOSAIC_CUP_ANCHORS_UV[mosaicSeatIndex(seatIndex)]!, w, h)
+  return mosaicAnchorToWrapperPct(mosaicStadiumCupUV(seatIndex), w, h)
 }
 
 /** Hole-card pair center on felt just inside the rail, rotated toward the cup. */
@@ -100,22 +129,14 @@ export function mosaicSeatHoleLayout(
   h: number,
   inwardFrac?: number
 ): { leftPct: number; topPct: number; rotateDeg: number } {
-  const idx = mosaicSeatIndex(seatIndex)
-  const cupUV = VENUE_MOSAIC_CUP_ANCHORS_UV[idx]!
+  const cupUV = mosaicStadiumCupUV(seatIndex)
   const cup = mosaicAnchorToWrapperPct(cupUV, w, h)
   const center = venueMosaicFeltCenterPct(w, h)
-
-  if (inwardFrac != null) {
-    const u = cupUV.u + (VENUE_MOSAIC_FELT_CENTER_UV.u - cupUV.u) * inwardFrac
-    const v = cupUV.v + (VENUE_MOSAIC_FELT_CENTER_UV.v - cupUV.v) * inwardFrac
-    return {
-      ...mosaicAnchorToWrapperPct({ u, v }, w, h),
-      rotateDeg: mosaicHoleRotateDeg(cup, center),
-    }
-  }
+  const holeUV =
+    inwardFrac != null ? mosaicStadiumHoleUV(seatIndex, inwardFrac) : mosaicStadiumHoleUV(seatIndex)
 
   return {
-    ...mosaicAnchorToWrapperPct(VENUE_MOSAIC_HOLE_ANCHORS_UV[idx]!, w, h),
+    ...mosaicAnchorToWrapperPct(holeUV, w, h),
     rotateDeg: mosaicHoleRotateDeg(cup, center),
   }
 }

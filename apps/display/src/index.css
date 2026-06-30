@@ -1817,6 +1817,108 @@
     font-size: clamp(14px, 2.25vmin, 22px);
   }
 
+  /** Venue floor — compact unified headline (logo + meta row + question). */
+  .venue-floor-headline {
+    border-bottom: 1px solid rgb(251 191 36 / 0.28);
+    background: linear-gradient(180deg, rgb(0 0 0 / 0.88) 0%, rgb(0 0 0 / 0.72) 100%);
+    padding: clamp(6px, 0.75vmin, 10px) clamp(10px, 1.25vw, 16px) clamp(8px, 0.9vmin, 12px);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(8px);
+  }
+
+  .venue-floor-headline--compact {
+    padding: clamp(4px, 0.55vmin, 7px) clamp(8px, 1.1vw, 14px) clamp(6px, 0.7vmin, 9px);
+  }
+
+  .venue-floor-headline-row {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 1.25vw, 16px);
+  }
+
+  .venue-floor-headline-logo {
+    align-self: center;
+  }
+
+  .venue-floor-headline-copy {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: clamp(3px, 0.35vmin, 5px);
+  }
+
+  .venue-floor-headline-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(6px, 0.75vw, 10px);
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(0.95rem, 1.15vw, 1.25rem);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: rgb(255 251 235 / 0.92);
+  }
+
+  .venue-floor-headline-meta-sep {
+    color: rgb(251 191 36 / 0.42);
+    font-weight: 600;
+  }
+
+  .venue-floor-headline-meta-num {
+    color: rgb(254 243 199 / 0.98);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .venue-floor-headline-meta-muted {
+    color: rgb(255 255 255 / 0.78);
+    text-transform: none;
+  }
+
+  .venue-floor-headline-question.display-text-headline-question-spacious,
+  .venue-floor-headline-question.display-text-headline-question-compact,
+  .venue-floor-headline-question.display-text-headline-question-ultra {
+    font-size: clamp(2.85vh, 4.75vh, 6.25vh);
+    line-height: 1.2;
+  }
+
+  .venue-floor-headline .venue-headline-question-slot {
+    min-height: 0;
+    max-height: 2.4em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .venue-floor-headline-aside {
+    align-self: center;
+  }
+
+  .venue-floor-headline-aside-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 8px;
+    padding: clamp(6px, 0.75vmin, 9px) clamp(10px, 1.1vw, 14px);
+  }
+
+  .venue-floor-headline-aside-card--answer {
+    border: 1px solid rgb(251 191 36 / 0.48);
+    background: rgb(69 26 3 / 0.5);
+    box-shadow: 0 0 16px rgb(251 191 36 / 0.1);
+  }
+
+  .venue-floor-headline-aside-card--urgent {
+    border: 1px solid rgb(34 211 238 / 0.48);
+    background: rgb(8 51 68 / 0.55);
+    box-shadow: 0 0 16px rgb(34 211 238 / 0.12);
+  }
+
   /**
    * Venue-floor mosaic density — felt cap only on wall root.
    * Tile typography is set per-card via {@link venueMosaicTileTypographyStyle}.

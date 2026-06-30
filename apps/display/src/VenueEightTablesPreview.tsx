@@ -24,7 +24,6 @@ import {
 } from '@qhe/ui'
 import { mosaicSeatDotPct, mosaicSeatHoleLayout, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
 import {
-  formatTriviaNumber,
   isVenueTileWageringPaused,
   venueTileActingSeatIndex,
 } from '@qhe/core'
@@ -38,21 +37,12 @@ import {
 } from './VenueFloorShowdownOverlay'
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
-import VenueHeadlineCondenseStatsPill from './VenueHeadlineCondenseStatsPill'
+import VenueFloorHeadline from './VenueFloorHeadline'
 import {
-  DISPLAY_TEXT_HEADLINE_BADGE,
-  DISPLAY_TEXT_HEADLINE_META,
-  DISPLAY_TEXT_HEADLINE_SETLIST_BADGE,
-  DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_LABEL,
-  DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_AMOUNT,
-  DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_META,
-  DISPLAY_TEXT_HEADLINE_PHASE_BADGE,
   DISPLAY_TEXT_HEADLINE_QUESTION_DENSE,
-  displayHeadlineStatsClass,
   displayHeadlineQuestionClass,
 } from './displayTypography'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
@@ -2037,18 +2027,11 @@ export default function VenueEightTablesPreview({
     if (compactVenueHeadline) return DISPLAY_TEXT_HEADLINE_QUESTION_DENSE
     return displayHeadlineQuestionClass(publicTypographyTier)
   }, [compactVenueHeadline, publicTypographyTier])
-  const headlineStatsClass = useMemo(
-    () => displayHeadlineStatsClass(compactVenueHeadline),
-    [compactVenueHeadline],
-  )
   const headlineLogoWidthClass = ultraCompactVenueHeadline
-    ? 'w-[clamp(6.5rem,min(18vw,9rem),11rem)]'
+    ? 'w-[clamp(5.5rem,min(14vw,8rem),9rem)]'
     : compactVenueHeadline
-      ? 'w-[clamp(7.5rem,min(20vw,10.5rem),12.5rem)]'
-      : 'w-[clamp(8.5rem,min(22vw,12rem),15rem)] sm:w-[clamp(9.5rem,min(24vw,13rem),16.5rem)]'
-  const headlineQuestionCardPadClass = compactVenueHeadline
-    ? 'px-2 py-1 sm:px-2.5 sm:py-1.5'
-    : 'px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4'
+      ? 'w-[clamp(6.25rem,min(16vw,9rem),10.5rem)]'
+      : 'w-[clamp(6.75rem,min(17vw,10rem),11.5rem)]'
   const venueTypographyRootClass = useMemo(
     () => venueFloorMosaicTypography(floorLayoutTableCount).rootClass,
     [floorLayoutTableCount],
@@ -2090,158 +2073,28 @@ export default function VenueEightTablesPreview({
             </p>
 
             {showHeadline ? (
-              <motion.div
-                className={`sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:px-4 md:px-5 ${
-                  ultraCompactVenueHeadline
-                    ? 'gap-0.5 py-0.5'
-                    : compactVenueHeadline
-                      ? 'gap-1 py-1 sm:gap-1.5'
-                      : 'gap-1.5 py-1.5 sm:gap-2 sm:py-2 md:gap-2.5 md:py-2'
-                }`}
-                style={{
-                  paddingTop: 'max(0.35rem, env(safe-area-inset-top, 0px))',
-                }}
-                initial={skipMountIntro ? false : { opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <div className="flex w-full min-w-0 items-stretch gap-2 sm:gap-3 md:gap-4">
-                <div
-                  className={`pointer-events-none flex shrink-0 items-center self-center ${headlineLogoWidthClass}`}
-                >
-                  <div
-                    className="w-full shadow-black/70 drop-shadow-xl"
-                    style={{ aspectRatio: '958 / 592' }}
-                  >
-                    <QuizzEmWordmark layout="fill" />
-                  </div>
-                </div>
-                <motion.div
-                  className={`flex min-h-0 min-w-0 flex-1 flex-col gap-1 rounded-xl border border-casino-emerald/35 bg-black/35 shadow-[inset_0_0_0_1px_rgba(0,255,180,0.06)] backdrop-blur-md ${headlineQuestionCardPadClass}`}
-                  initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  {showSetlistCue || condenseProgress != null || headlineDivergenceNote ? (
-                    <div className="flex min-w-0 items-start justify-between gap-x-2 gap-y-1">
-                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                        {showSetlistCue ? (
-                          <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 sm:px-2.5 sm:py-1 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}>
-                            Question {setlistCueNumber} of {setlistCueTotal}
-                          </span>
-                        ) : null}
-                        {headlineDivergenceNote ? (
-                          <span className={`font-semibold text-white/65 ${DISPLAY_TEXT_HEADLINE_META}`}>
-                            {headlineDivergenceNote}
-                          </span>
-                        ) : null}
-                      </div>
-                      {condenseProgress != null ? (
-                        <VenueHeadlineCondenseStatsPill
-                          model={condenseProgress}
-                          className={`ml-auto shrink-0 ${headlineStatsClass}`}
-                        />
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {headlineQuestionDisplay ? (
-                    <p
-                      className={`venue-headline-question-slot min-w-0 text-balance text-left tracking-tight text-yellow-400 ${headlineQuestionClass}`}
-                    >
-                      {headlineQuestionDisplay}
-                    </p>
-                  ) : inVenueShowdown ? (
-                    <p className="sr-only">Showdown in progress.</p>
-                  ) : inAnsweringCountdown ? (
-                    <p className="text-left text-lg font-bold leading-snug tracking-tight text-cyan-200 sm:text-xl">
-                      Answer on your phone now
-                    </p>
-                  ) : (
-                    <p className="sr-only">Answering in progress.</p>
-                  )}
-                </motion.div>
-                <div className="flex shrink-0 flex-col items-stretch justify-center gap-1.5 sm:min-w-[8.5rem] md:min-w-[10rem] lg:min-w-[11rem]">
-                  {headlinePhaseBadge != null && !inVenueShowdown ? (
-                    <span
-                      className={`inline-flex items-center justify-center rounded-lg border border-emerald-500/45 bg-emerald-950/50 px-2.5 py-1 text-center font-black uppercase tracking-wide text-emerald-100/95 sm:px-3 sm:py-1.5 ${DISPLAY_TEXT_HEADLINE_PHASE_BADGE}`}
-                    >
-                      {headlinePhaseBadge}
-                    </span>
-                  ) : null}
-                  {showVenueBlindsHeadline && venueBlindsHeadline != null ? (
-                    <div
-                      className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-amber-500/55 bg-amber-950/50 px-3 py-2 shadow-[0_0_20px_rgba(251,191,36,0.12)] sm:px-4 sm:py-2.5"
-                      aria-label={
-                        venueBlindsHeadline.meta
-                          ? `Blinds ${venueBlindsHeadline.amount}, ${venueBlindsHeadline.meta}`
-                          : `Blinds ${venueBlindsHeadline.amount}`
-                      }
-                    >
-                      <span className={`text-center font-black uppercase tracking-wide text-amber-200/90 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_LABEL}`}>
-                        Blinds
-                      </span>
-                      <div className={`text-center font-mono font-black tabular-nums tracking-tight text-amber-50 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_AMOUNT}`}>
-                        {venueBlindsHeadline.amount}
-                      </div>
-                      {venueBlindsHeadline.meta ? (
-                        <div className="flex max-w-[11rem] flex-col items-center gap-0.5 text-center">
-                          {venueBlindsHeadline.meta.split(' · ').map((line) => (
-                            <span
-                              key={line}
-                              className={`font-semibold text-amber-200/75 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_META}`}
-                            >
-                              {line}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {inVenueShowdown && venueShowdownAnswer != null ? (
-                    <div
-                      className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-amber-400/55 bg-amber-950/45 px-2 py-1.5 shadow-[0_0_20px_rgba(251,191,36,0.1)] sm:px-3 sm:py-2"
-                      aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
-                    >
-                      <span className={`font-semibold uppercase tracking-wide text-amber-200/70 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
-                        Correct answer
-                      </span>
-                      {venueShowdownAnswerRow != null && venueShowdownAnswerRow.answerCards.length > 0 ? (
-                        <ShowdownFiveCardsUsed row={venueShowdownAnswerRow} size="sm" />
-                      ) : (
-                        <div className="font-mono text-2xl font-black tracking-tight text-amber-100 sm:text-4xl md:text-5xl">
-                          {formatTriviaNumber(venueShowdownAnswer)}
-                        </div>
-                      )}
-                    </div>
-                  ) : headlineAnswering ? (
-                    <div
-                      className={`flex shrink-0 flex-col items-stretch justify-center gap-1 rounded-lg border px-2 py-1.5 sm:px-3 sm:py-2 ${
-                        inAnsweringCountdown && typeof timerSeconds === 'number' && timerSeconds <= 10
-                          ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_20px_rgba(34,211,238,0.12)]'
-                          : 'border-cyan-600/35 bg-cyan-950/25'
-                      }`}
-                      aria-live="polite"
-                      aria-label={
-                        inAnsweringCountdown && typeof timerSeconds === 'number'
-                          ? `Answer on your phone, ${timerSeconds} seconds remaining`
-                          : 'Answer on your phone — timer starts when every table finishes wagering'
-                      }
-                    >
-                      <span className={`text-center font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
-                        Answer on your phone
-                      </span>
-                      {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
-                        <div className="text-center font-mono text-2xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-4xl md:text-5xl">
-                          {timerSeconds}s
-                        </div>
-                      ) : othersStillWagering ? (
-                        <div className={`text-center font-semibold text-cyan-200/80 ${DISPLAY_TEXT_HEADLINE_META}`}>
-                          Waiting for last table
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-                </div>
-              </motion.div>
+              <VenueFloorHeadline
+                skipMountIntro={skipMountIntro}
+                logoWidthClass={headlineLogoWidthClass}
+                questionClass={headlineQuestionClass}
+                compactShell={compactVenueHeadline || ultraCompactVenueHeadline}
+                showSetlistCue={showSetlistCue}
+                setlistCueNumber={setlistCueNumber}
+                setlistCueTotal={setlistCueTotal}
+                headlineDivergenceNote={headlineDivergenceNote}
+                condenseProgress={condenseProgress}
+                headlinePhaseBadge={headlinePhaseBadge}
+                showVenueBlindsHeadline={showVenueBlindsHeadline}
+                venueBlindsHeadline={venueBlindsHeadline}
+                headlineQuestionDisplay={headlineQuestionDisplay}
+                inVenueShowdown={inVenueShowdown}
+                headlineAnswering={headlineAnswering}
+                inAnsweringCountdown={inAnsweringCountdown}
+                venueShowdownAnswer={venueShowdownAnswer}
+                venueShowdownAnswerRow={venueShowdownAnswerRow}
+                timerSeconds={timerSeconds}
+                othersStillWagering={othersStillWagering}
+              />
             ) : null}
 
             <div className="relative flex min-h-0 flex-1 flex-col">

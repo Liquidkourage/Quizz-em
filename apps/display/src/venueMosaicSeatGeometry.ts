@@ -11,38 +11,39 @@ export const VENUE_MOSAIC_SEAT_COUNT = VENUE_WALL_SEAT_SLOTS
 /**
  * Fixed cupholder centers on the poker-table artwork (0–1 within the SVG).
  * Seat 0 = top center; advances clockwise on screen.
+ * Sampled from `poker-table.svg` outer rail along rays from felt center (0.5, 0.484).
  */
 export const VENUE_MOSAIC_CUP_ANCHORS_UV: ReadonlyArray<{
   readonly u: number
   readonly v: number
 }> = [
-  { u: 0.5, v: 0.0899 },
-  { u: 0.796, v: 0.1139 },
-  { u: 0.865, v: 0.5 },
-  { u: 0.796, v: 0.8861 },
-  { u: 0.5, v: 0.9101 },
-  { u: 0.204, v: 0.8861 },
-  { u: 0.135, v: 0.5 },
-  { u: 0.204, v: 0.1139 },
+  { u: 0.5, v: 0.089 },
+  { u: 0.7014, v: 0.0887 },
+  { u: 0.9473, v: 0.484 },
+  { u: 0.7143, v: 0.9046 },
+  { u: 0.5, v: 0.9047 },
+  { u: 0.2857, v: 0.9046 },
+  { u: 0.0531, v: 0.484 },
+  { u: 0.2986, v: 0.0887 },
 ]
 
-/** Fixed hole-card pair centers on the poker-table artwork (0–1). */
+/** Fixed hole-card pair centers on the poker-table artwork (0–1). ~22% inward from each cup toward felt center. */
 export const VENUE_MOSAIC_HOLE_ANCHORS_UV: ReadonlyArray<{
   readonly u: number
   readonly v: number
 }> = [
-  { u: 0.5, v: 0.2554 },
-  { u: 0.686, v: 0.2512 },
-  { u: 0.792, v: 0.4969 },
-  { u: 0.683, v: 0.7331 },
-  { u: 0.5, v: 0.7311 },
-  { u: 0.317, v: 0.7331 },
-  { u: 0.208, v: 0.4969 },
-  { u: 0.314, v: 0.2512 },
+  { u: 0.5, v: 0.1759 },
+  { u: 0.6571, v: 0.1756 },
+  { u: 0.8489, v: 0.484 },
+  { u: 0.6672, v: 0.8121 },
+  { u: 0.5, v: 0.8121 },
+  { u: 0.3328, v: 0.8121 },
+  { u: 0.1514, v: 0.484 },
+  { u: 0.3429, v: 0.1756 },
 ]
 
 /** Green felt center on the poker-table artwork (0–1). */
-export const VENUE_MOSAIC_FELT_CENTER_UV = { u: 0.5, v: 0.4844 } as const
+export const VENUE_MOSAIC_FELT_CENTER_UV = { u: 0.5, v: 0.484 } as const
 
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8

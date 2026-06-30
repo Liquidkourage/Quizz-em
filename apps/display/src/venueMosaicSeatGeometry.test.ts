@@ -38,37 +38,33 @@ describe('venueMosaicSeatGeometry', () => {
 
     expect(top.leftPct).toBeCloseTo(50, 0)
     expect(top.topPct).toBeLessThan(center.topPct)
-    expect(right.leftPct).toBeGreaterThan(82)
-    expect(right.leftPct).toBeLessThan(90)
+    expect(right.leftPct).toBeGreaterThan(90)
+    expect(right.leftPct).toBeLessThan(98)
     expect(Math.abs(right.topPct - center.topPct)).toBeLessThan(3)
-    expect(left.leftPct).toBeGreaterThan(10)
-    expect(left.leftPct).toBeLessThan(18)
+    expect(left.leftPct).toBeGreaterThan(2)
+    expect(left.leftPct).toBeLessThan(10)
   })
 
   it('tracks the table artwork when wrapper aspect ratio changes', () => {
     const narrow = mosaicSeatDotPct(2, 8, 400, 200)
     const wide = mosaicSeatDotPct(2, 8, 320, 180)
     expect(narrow.leftPct).not.toEqual(wide.leftPct)
-    expect(narrow.leftPct).toBeCloseTo(85.82, 1)
-    expect(wide.leftPct).toBeCloseTo(86.5, 1)
+    expect(narrow.leftPct).toBeCloseTo(93.5, 0)
+    expect(wide.leftPct).toBeCloseTo(94.73, 1)
   })
 
   it('wraps seat indexes modulo eight', () => {
     expect(mosaicSeatDotPct(10, 8, w, h)).toEqual(mosaicSeatDotPct(2, 8, w, h))
   })
 
-  it('pulls side-seat hole cards closer to cupholders than pole seats', () => {
-    const poleCup = mosaicSeatDotPct(0, 8, w, h)
-    const poleHole = mosaicSeatHoleLayout(0, 8, w, h)
-    const sideCup = mosaicSeatDotPct(2, 8, w, h)
-    const sideHole = mosaicSeatHoleLayout(2, 8, w, h)
-
-    const poleFrac = insetFrac(poleCup, poleHole, center)
-    const sideFrac = insetFrac(sideCup, sideHole, center)
-
-    expect(poleFrac).toBeCloseTo(0.42, 1)
-    expect(sideFrac).toBeCloseTo(0.2, 1)
-    expect(sideFrac).toBeLessThan(poleFrac)
+  it('keeps hole cards between cupholders and felt center', () => {
+    for (let i = 0; i < 8; i++) {
+      const cup = mosaicSeatDotPct(i, 8, w, h)
+      const hole = mosaicSeatHoleLayout(i, 8, w, h)
+      const frac = insetFrac(cup, hole, center)
+      expect(frac).toBeGreaterThan(0.12)
+      expect(frac).toBeLessThan(0.35)
+    }
   })
 
   it('lerps chip stacks toward felt center when inwardFrac is set', () => {

@@ -1755,9 +1755,18 @@
 
   /** Venue headline question — viewport-scaled for room readability (not fixed px tokens). */
   .display-text-headline-question-spacious {
-    font-size: clamp(4vh, 6.5vh, 8.5vh);
+    font-size: clamp(4.75vh, min(7.25vh, 5.25cqw), 9.25vh);
     font-weight: 700;
-    line-height: 1.22;
+    line-height: 1.18;
+  }
+
+  .venue-headline-question-card {
+    container-type: inline-size;
+  }
+
+  .venue-headline-answer-timer {
+    font-size: clamp(2.75rem, 6.5vmin, 5.5rem);
+    line-height: 1;
   }
 
   .display-text-headline-question-compact {
@@ -1782,7 +1791,7 @@
   .venue-headline-question-slot {
     display: flex;
     min-height: 2.44em;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .venue-headline-question-slot.display-text-headline-question-spacious {

@@ -41,7 +41,7 @@ describe('stadiumMosaicScaleForWidth', () => {
     const wide = 660
     expect(stadiumMosaicScaleForWidth(wide, 'hero')).toBe(1.55)
     expect(stadiumMosaicScaleForWidth(wide, 'large')).toBe(1.35)
-    expect(stadiumMosaicCommunityCardWidthPx(wide, 'hero')).toBeLessThan(40)
+    expect(stadiumMosaicCommunityCardWidthPx(wide, 'hero')).toBeLessThanOrEqual(40)
   })
 
   it('keeps dense micro tiles capped', () => {
@@ -50,6 +50,10 @@ describe('stadiumMosaicScaleForWidth', () => {
 
   it('preserves reference sizing at the authoring width', () => {
     expect(stadiumMosaicHoleCardWidthPx(STADIUM_MOSAIC_REFERENCE_WIDTH_PX, 'hero')).toBe(20)
-    expect(stadiumMosaicCommunityCardWidthPx(STADIUM_MOSAIC_REFERENCE_WIDTH_PX, 'large')).toBe(24)
+    expect(stadiumMosaicCommunityCardWidthPx(STADIUM_MOSAIC_REFERENCE_WIDTH_PX, 'large')).toBe(26)
+  })
+
+  it('scales community cards with felt width on large banquet tiles', () => {
+    expect(stadiumMosaicCommunityCardWidthPx(360, 'large')).toBeGreaterThan(40)
   })
 })

@@ -97,8 +97,10 @@ const MOSAIC_CUPHOLDER_PX_AT_REFERENCE = 32
 const MOSAIC_HOLE_CARD_SCALE_AT_REFERENCE = 0.38
 /** Hole-card width on mosaic felts at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX}. */
 const MOSAIC_HOLE_CARD_WIDTH_AT_REFERENCE = 20
-/** Community board card width at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX} (~10.5% of ring). */
-const MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE = 24
+/** Community board card width at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX}. */
+const MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE = 26
+/** Felt-relative floor so cards grow with large banquet tiles (not only the legacy scale cap). */
+const MOSAIC_COMMUNITY_CARD_WIDTH_FRAC = 0.12
 
 export type StadiumMosaicDensity = 'hero' | 'large' | 'medium' | 'compact' | 'micro'
 
@@ -156,10 +158,14 @@ export function stadiumMosaicCommunityCardWidthPx(
   tableWidthPx: number,
   density?: StadiumMosaicDensity
 ): number {
-  return Math.max(
-    14,
-    Math.round(MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE * stadiumMosaicScaleForWidth(tableWidthPx, density))
-  )
+  const w = tableWidthPx > 0 ? tableWidthPx : STADIUM_MOSAIC_REFERENCE_WIDTH_PX
+  const scale = stadiumMosaicScaleForWidth(w, density)
+  const fromLegacy = MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE * scale
+  if (density === 'hero') {
+    return Math.max(14, Math.round(fromLegacy))
+  }
+  const fromFelt = w * MOSAIC_COMMUNITY_CARD_WIDTH_FRAC
+  return Math.max(14, Math.round(Math.max(fromLegacy, fromFelt)))
 }
 
 /** Community board card height at 5:7 aspect. */

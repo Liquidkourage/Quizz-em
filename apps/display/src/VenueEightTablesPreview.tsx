@@ -39,7 +39,7 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
-import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import VenueHeadlineCondenseStatsPill from './VenueHeadlineCondenseStatsPill'
@@ -2041,6 +2041,14 @@ export default function VenueEightTablesPreview({
   const headlineAnswering =
     headlineSource.phase === 'answering' || wall?.headlinePhase === 'answering'
   const othersStillWagering = useMemo(() => venueHasOpenWagering(tileRows), [tileRows])
+  const allTablesAnswering = useMemo(() => venueAllTablesAnswering(tileRows), [tileRows])
+  /** Every populated table is answering — strip blinds/phase chrome; show countdown only. */
+  const headlineAnsweringUnified =
+    headlineAnswering && allTablesAnswering && !othersStillWagering
+  const headlineTimerOnly =
+    headlineAnsweringUnified &&
+    inAnsweringCountdown &&
+    typeof timerSeconds === 'number'
   const showHeadline =
     hasLiveWall &&
     (headlineQuestionText != null || answerDeadlineMs != null || inVenueShowdown || headlineAnswering)
@@ -2163,7 +2171,7 @@ export default function VenueEightTablesPreview({
                   </div>
                 </div>
                 <motion.div
-                  className={`flex min-h-0 min-w-0 flex-1 flex-col gap-1 rounded-xl border border-casino-emerald/35 bg-black/35 shadow-[inset_0_0_0_1px_rgba(0,255,180,0.06)] backdrop-blur-md ${headlineQuestionCardPadClass}`}
+                  className={`venue-headline-question-card flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-1 rounded-xl border border-casino-emerald/35 bg-black/35 shadow-[inset_0_0_0_1px_rgba(0,255,180,0.06)] backdrop-blur-md ${headlineQuestionCardPadClass}`}
                   initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
@@ -2191,7 +2199,7 @@ export default function VenueEightTablesPreview({
                   ) : null}
                   {headlineQuestionDisplay ? (
                     <p
-                      className={`venue-headline-question-slot min-w-0 text-balance text-left tracking-tight text-yellow-400 ${headlineQuestionClass}`}
+                      className={`venue-headline-question-slot min-h-0 min-w-0 flex-1 text-balance text-left tracking-tight text-yellow-400 ${headlineQuestionClass}`}
                     >
                       {headlineQuestionDisplay}
                     </p>
@@ -2205,15 +2213,21 @@ export default function VenueEightTablesPreview({
                     <p className="sr-only">Answering in progress.</p>
                   )}
                 </motion.div>
-                <div className="flex shrink-0 flex-col items-stretch justify-center gap-1.5 sm:min-w-[8.5rem] md:min-w-[10rem] lg:min-w-[11rem]">
-                  {headlinePhaseBadge != null && !inVenueShowdown ? (
+                <div
+                  className={`flex shrink-0 flex-col justify-center ${
+                    headlineAnsweringUnified
+                      ? 'items-end'
+                      : 'items-stretch gap-1.5 sm:min-w-[8.5rem] md:min-w-[10rem] lg:min-w-[11rem]'
+                  }`}
+                >
+                  {headlinePhaseBadge != null && !inVenueShowdown && !headlineAnsweringUnified ? (
                     <span
                       className={`inline-flex items-center justify-center rounded-lg border border-emerald-500/45 bg-emerald-950/50 px-2.5 py-1 text-center font-black uppercase tracking-wide text-emerald-100/95 sm:px-3 sm:py-1.5 ${DISPLAY_TEXT_HEADLINE_PHASE_BADGE}`}
                     >
                       {headlinePhaseBadge}
                     </span>
                   ) : null}
-                  {showVenueBlindsHeadline && venueBlindsHeadline != null ? (
+                  {showVenueBlindsHeadline && venueBlindsHeadline != null && !headlineAnsweringUnified ? (
                     <div
                       className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-amber-500/55 bg-amber-950/50 px-3 py-2 shadow-[0_0_20px_rgba(251,191,36,0.12)] sm:px-4 sm:py-2.5"
                       aria-label={
@@ -2258,6 +2272,22 @@ export default function VenueEightTablesPreview({
                         </div>
                       )}
                     </div>
+                  ) : headlineTimerOnly ? (
+                    <div
+                      className={`flex shrink-0 items-center justify-center rounded-xl border px-3 py-1.5 sm:px-4 sm:py-2 ${
+                        timerSeconds <= 10
+                          ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_24px_rgba(34,211,238,0.16)]'
+                          : 'border-cyan-600/35 bg-cyan-950/25'
+                      }`}
+                      aria-live="polite"
+                      aria-label={`${timerSeconds} seconds remaining to answer`}
+                    >
+                      <div className="venue-headline-answer-timer font-mono font-black tabular-nums tracking-tight text-cyan-100">
+                        {timerSeconds}s
+                      </div>
+                    </div>
+                  ) : headlineAnsweringUnified ? (
+                    <p className="sr-only">Answer on your phone — timer starts when every table finishes wagering</p>
                   ) : headlineAnswering ? (
                     <div
                       className={`flex shrink-0 flex-col items-stretch justify-center gap-1 rounded-lg border px-2 py-1.5 sm:px-3 sm:py-2 ${

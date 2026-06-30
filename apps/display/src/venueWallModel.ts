@@ -172,6 +172,13 @@ export function venueHasOpenWagering(tileRows: DisplayVenueTileSnapshot[]): bool
   return tileRows.some((t) => t.seated >= 2 && t.phase === 'betting' && t.isBettingOpen === true)
 }
 
+/** True when every populated table is in the answering phase. */
+export function venueAllTablesAnswering(tileRows: DisplayVenueTileSnapshot[]): boolean {
+  const active = tileRows.filter((t) => t.seated >= 2)
+  if (active.length === 0) return false
+  return active.every((t) => String(t.phase ?? '').trim().toLowerCase() === 'answering')
+}
+
 export function venueHeadlineDivergenceNote(
   tileRows: DisplayVenueTileSnapshot[],
   headlinePhase: string | null

@@ -275,6 +275,33 @@ function venueBlindMarkerSizePx(rimW: number, mode: 'broadcast' | 'lg' | 'md'): 
   return Math.round(base * scale)
 }
 
+/** Felt center HUD on n=1 broadcast — scales with measured table width. */
+function broadcastCenterTypographyPx(rimW: number): {
+  potLabelPx: number
+  potSignPx: number
+  potDigitsPx: number
+  actionNamePx: number
+  actionLabelPx: number
+  actionSignPx: number
+  actionDigitsPx: number
+  messagePx: number
+  gapPx: number
+} {
+  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  return {
+    potLabelPx: Math.round(28 * scale),
+    potSignPx: Math.round(48 * scale),
+    potDigitsPx: Math.round(102 * scale),
+    actionNamePx: Math.round(36 * scale),
+    actionLabelPx: Math.round(28 * scale),
+    actionSignPx: Math.round(32 * scale),
+    actionDigitsPx: Math.round(46 * scale),
+    messagePx: Math.round(28 * scale),
+    gapPx: Math.round(10 * scale),
+  }
+}
+
 /** Broadcast hero (n=1): pot + acting line centered on felt — replaces header status band. */
 function VenueBroadcastCenterStack({
   pot,
@@ -286,6 +313,7 @@ function VenueBroadcastCenterStack({
   communityCardWidthPx,
   communityCardHeightPx,
   prefersReducedMotion,
+  rimW,
 }: {
   pot: number
   potMuted: 'dim' | 'faint' | 'live'
@@ -296,21 +324,30 @@ function VenueBroadcastCenterStack({
   communityCardWidthPx: number
   communityCardHeightPx: number
   prefersReducedMotion: boolean
+  rimW: number
 }) {
   const feltBounds = venueFeltBoundsFrac()
+  const centerTypo = broadcastCenterTypographyPx(rimW)
+  const centerStackStyle = {
+    position: 'absolute' as const,
+    left: `${feltBounds.cx * 100}%`,
+    top: `${feltBounds.cy * 100}%`,
+    transform: 'translate(-50%, -50%)',
+    gap: centerTypo.gapPx,
+    ['--vfd-broadcast-pot-label-px' as string]: `${centerTypo.potLabelPx}px`,
+    ['--vfd-broadcast-pot-sign-px' as string]: `${centerTypo.potSignPx}px`,
+    ['--vfd-broadcast-pot-digits-px' as string]: `${centerTypo.potDigitsPx}px`,
+    ['--vfd-broadcast-action-sign-px' as string]: `${centerTypo.actionSignPx}px`,
+    ['--vfd-broadcast-action-digits-px' as string]: `${centerTypo.actionDigitsPx}px`,
+  }
   return (
     <div
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
       aria-hidden={pot <= 0 && actionKind == null && communityDigits.length === 0}
     >
       <div
-        className="vfd-broadcast-center-stack flex max-w-[94%] flex-col items-center justify-center gap-0.5 text-center sm:gap-1"
-        style={{
-          position: 'absolute',
-          left: `${feltBounds.cx * 100}%`,
-          top: `${feltBounds.cy * 100}%`,
-          transform: 'translate(-50%, -50%)',
-        }}
+        className="vfd-broadcast-center-stack flex max-w-[94%] flex-col items-center justify-center text-center"
+        style={centerStackStyle}
       >
         {communityDigits.length > 0 ? (
           <div
@@ -340,11 +377,20 @@ function VenueBroadcastCenterStack({
             aria-live="polite"
             aria-label={`${actingPlayerName} to call ${formatVenueBankroll(callAmount)}`}
           >
-            <span className="vfd-broadcast-action-name" title={actingPlayerName}>
+            <span
+              className="vfd-broadcast-action-name"
+              title={actingPlayerName}
+              style={{ fontSize: centerTypo.actionNamePx }}
+            >
               {actingPlayerName}
             </span>
             <div className="vfd-broadcast-action-row flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0">
-              <span className="vfd-broadcast-action-label">TO CALL</span>
+              <span
+                className="vfd-broadcast-action-label"
+                style={{ fontSize: centerTypo.actionLabelPx }}
+              >
+                TO CALL
+              </span>
               <MosaicBungeeDollarAmount
                 amount={callAmount}
                 className="vfd-broadcast-action-amount vfd-mosaic-dollar--live"
@@ -354,11 +400,19 @@ function VenueBroadcastCenterStack({
             </div>
           </div>
         ) : actionKind === 'no-more-bets' ? (
-          <span className="vfd-broadcast-action-message" role="status">
+          <span
+            className="vfd-broadcast-action-message"
+            role="status"
+            style={{ fontSize: centerTypo.messagePx }}
+          >
             No more bets
           </span>
         ) : actionKind === 'answering' ? (
-          <span className="vfd-broadcast-action-message vfd-broadcast-action-message--answering" role="status">
+          <span
+            className="vfd-broadcast-action-message vfd-broadcast-action-message--answering"
+            role="status"
+            style={{ fontSize: centerTypo.messagePx }}
+          >
             Answer on your phone
           </span>
         ) : null}
@@ -1176,6 +1230,7 @@ function SeatRingWithLabels({
             communityCardWidthPx={broadcastCommunityCardW}
             communityCardHeightPx={broadcastCommunityCardH}
             prefersReducedMotion={prefersReducedMotion}
+            rimW={rimW}
           />
         ) : (
           <VenueMosaicFeltCenterStack

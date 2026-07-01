@@ -22,7 +22,7 @@ import {
   stadiumSeatPointPx,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
-import { mosaicSeatDotPct, mosaicSeatHoleLayout, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
+import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -1090,6 +1090,17 @@ function SeatRingWithLabels({
     if (isMosaic) {
       return Array.from({ length: VENUE_SEAT_SLOTS }, () => null as { leftPct: number; topPct: number } | null)
     }
+    if (isBroadcast) {
+      const empty = Array.from({ length: VENUE_SEAT_SLOTS }, () => null as { leftPct: number; topPct: number } | null)
+      const { w, h } = ringPx
+      if (!(w > 0 && h > 0)) return empty
+      const cupPx = Math.round(stadiumCupholderSizePx(w) * 1.2)
+      const labelOutwardPx = cupPx * 0.62 + (feltSeatStacks ? 26 : 18)
+      return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
+        if (!(seatNames[i]?.trim() ?? '')) return null
+        return mosaicSeatLabelPct(i, w, h, labelOutwardPx)
+      })
+    }
     return computeSeatLabelAnchorsPct({
       w: ringPx.w,
       h: ringPx.h,
@@ -1097,7 +1108,7 @@ function SeatRingWithLabels({
       feltSeatStacks,
       seatNames,
     })
-  }, [feltSeatStacks, isMosaic, ringPx.h, ringPx.w, seatNames, size])
+  }, [feltSeatStacks, isBroadcast, isMosaic, ringPx.h, ringPx.w, seatNames, size])
 
   const rimW = ringPx.w
   const rimH = ringPx.h
@@ -1246,7 +1257,7 @@ function SeatRingWithLabels({
           raw && ((feltSeatStacks && size === 'lg') || (isBroadcast && isActing))
         )
         const rimDisplayName = isBroadcast ? broadcastRimDisplayName(raw) : raw
-        const labelVy = seatNameLabelVerticalNudgePx(i, isBroadcast ? 'lg' : size)
+        const labelVy = isBroadcast ? 0 : seatNameLabelVerticalNudgePx(i, size)
         const lastBetAct =
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
         const showFoldOut = isFolded && !(showSeatBettingActions && lastBetAct === 'fold')
@@ -1380,13 +1391,15 @@ function SeatRingWithLabels({
               if (blindSeats == null) return null
               const tags = blindTagsForSeat(i, blindSeats)
               if (tags.length === 0) return null
-              const blindPt = stadiumSeatPointPx(
-                i,
-                seatCountForLayout,
-                rimW,
-                rimH,
-                STADIUM_BLIND_BADGE_RADIAL
-              )
+              const blindPt = isBroadcast
+                ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, 0.12)
+                : stadiumSeatPointPx(
+                    i,
+                    seatCountForLayout,
+                    rimW,
+                    rimH,
+                    STADIUM_BLIND_BADGE_RADIAL
+                  )
               const badgeText =
                 size === 'lg'
                   ? 'text-[8px] font-black leading-none tracking-tight sm:text-[9px]'

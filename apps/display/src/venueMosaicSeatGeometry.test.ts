@@ -8,6 +8,7 @@ import {
   VENUE_MOSAIC_SEAT_COUNT,
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
+  mosaicSeatLabelPct,
   mosaicStadiumCupUV,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
@@ -102,5 +103,16 @@ describe('venueMosaicSeatGeometry', () => {
       cup.leftPct + (center.leftPct - cup.leftPct) * 0.28,
       5
     )
+  })
+
+  it('places name labels outward from cup through felt center', () => {
+    for (let i = 0; i < 8; i++) {
+      const cup = mosaicSeatDotPct(i, 8, w, h)
+      const label = mosaicSeatLabelPct(i, w, h, 24)
+      const center = venueMosaicFeltCenterPct(w, h)
+      const cupToCenter = Math.hypot(center.leftPct - cup.leftPct, center.topPct - cup.topPct)
+      const labelToCenter = Math.hypot(center.leftPct - label.leftPct, center.topPct - label.topPct)
+      expect(labelToCenter).toBeGreaterThan(cupToCenter)
+    }
   })
 })

@@ -215,3 +215,29 @@ export function mosaicSeatHoleLayout(
     rotateDeg: mosaicHoleRotateDeg(cup, center),
   }
 }
+
+/**
+ * Player name label just outside the cupholder — outward from felt center through the cup.
+ * Matches {@link mosaicSeatDotPct} so broadcast / hero labels track the artwork.
+ */
+export function mosaicSeatLabelPct(
+  seatIndex: number,
+  w: number,
+  h: number,
+  outwardPx: number
+): { leftPct: number; topPct: number } {
+  const cup = mosaicSeatDotPct(seatIndex, VENUE_MOSAIC_SEAT_COUNT, w, h)
+  if (!(w > 0 && h > 0) || outwardPx <= 0) return cup
+
+  const center = venueMosaicFeltCenterPct(w, h)
+  const cupX = (cup.leftPct / 100) * w
+  const cupY = (cup.topPct / 100) * h
+  const centerX = (center.leftPct / 100) * w
+  const centerY = (center.topPct / 100) * h
+  const dx = cupX - centerX
+  const dy = cupY - centerY
+  const len = Math.hypot(dx, dy) || 1
+  const lx = cupX + (dx / len) * outwardPx
+  const ly = cupY + (dy / len) * outwardPx
+  return { leftPct: (lx / w) * 100, topPct: (ly / h) * 100 }
+}

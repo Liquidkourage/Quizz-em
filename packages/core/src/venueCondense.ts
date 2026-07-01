@@ -17,8 +17,6 @@ export const VENUE_CONDENSE_MAX_SEATS = 8
 export const VENUE_CONDENSE_MIN_SEATS = 2
 /** Scheduled merge when optimal table count is at least this many below live table count. */
 export const VENUE_CONDENSE_MERGE_MIN_TABLE_DROP = 2
-/** Soft rebalance moves per End Round (same table count). */
-export const VENUE_SEATING_MAX_REBALANCE_MOVES = 3
 /** Sparse tables closed per End Round before considering shotgun. */
 export const VENUE_SEATING_MAX_CLOSURES_PER_ROUND = 2
 
@@ -133,7 +131,7 @@ export type VenueCondenseScheduledMerge = {
 }
 
 export type VenueCondensePlan = {
-  /** Incremental moves in apply order (solo → rebalance → closure). */
+  /** Incremental moves in apply order (solo → closure). */
   playerMoves: VenueCondensePlayerMove[]
   scheduledMerge: VenueCondenseScheduledMerge | null
 }
@@ -153,12 +151,6 @@ function liveTablesWithChipSurvivors(tables: VenueTableRoster[]): VenueTableRost
 
 function countSurvivorsAcross(tables: VenueTableRoster[]): number {
   return tables.reduce((n, t) => n + t.players.length, 0)
-}
-
-function tableSizeSpread(tables: VenueTableRoster[]): number {
-  if (tables.length === 0) return 0
-  const sizes = tables.map((t) => t.players.length)
-  return Math.max(...sizes) - Math.min(...sizes)
 }
 
 function tableSizesAfterMove(
@@ -292,45 +284,6 @@ function pickSoloMove(tables: VenueTableRoster[], maxSeats: number): VenueConden
   }
 }
 
-function pickRebalanceMove(tables: VenueTableRoster[], maxSeats: number): VenueCondensePlayerMove | null {
-  if (tables.length < 2) return null
-  const beforeSpread = tableSizeSpread(tables)
-  if (beforeSpread <= 1) return null
-
-  let bestMove: VenueCondensePlayerMove | null = null
-  let bestSpread = beforeSpread
-
-  for (const from of tables) {
-    for (const player of from.players) {
-      for (const to of tables) {
-        if (to.tableNum === from.tableNum) continue
-        const score = scoreMoveDestination(tables, from.tableNum, to, maxSeats)
-        if (score === -Infinity) continue
-
-        const sizesAfter = tableSizesAfterMove(tables, from.tableNum, to.tableNum)
-        const spread = Math.max(...sizesAfter) - Math.min(...sizesAfter)
-        if (
-          spread < bestSpread ||
-          (spread === bestSpread &&
-            bestMove != null &&
-            (to.tableNum < bestMove.toTableNum ||
-              (to.tableNum === bestMove.toTableNum && from.tableNum < bestMove.fromTableNum)))
-        ) {
-          bestSpread = spread
-          bestMove = {
-            playerId: player.id,
-            fromTableNum: from.tableNum,
-            toTableNum: to.tableNum,
-            reason: 'rebalance',
-          }
-        }
-      }
-    }
-  }
-
-  return bestMove
-}
-
 function pickTableToClose(tables: VenueTableRoster[], idealTables: number): VenueTableRoster | null {
   if (tables.length <= idealTables) return null
   return [...tables].sort((a, b) => {
@@ -389,7 +342,8 @@ function buildScheduledMerge(
 }
 
 /**
- * Plan sticky seating: solo rescue → soft rebalance → table closure → shotgun fallback.
+ * Plan sticky seating: solo rescue → table closure → shotgun fallback.
+ * Uneven table sizes at the correct table count are tolerated until closure or merge.
  */
 export function planVenueCondense(
   tablesIn: VenueTableRoster[],
@@ -403,13 +357,6 @@ export function planVenueCondense(
 
   for (let guard = 0; guard < 64; guard++) {
     const move = pickSoloMove(tables, maxSeats)
-    if (!move) break
-    playerMoves.push(move)
-    tables = applyPlayerMove(tables, move)
-  }
-
-  for (let i = 0; i < VENUE_SEATING_MAX_REBALANCE_MOVES; i++) {
-    const move = pickRebalanceMove(tables, maxSeats)
     if (!move) break
     playerMoves.push(move)
     tables = applyPlayerMove(tables, move)

@@ -88,10 +88,10 @@ describe('planVenueCondense', () => {
     expect(closedTables.size).toBeLessThanOrEqual(VENUE_SEATING_MAX_CLOSURES_PER_ROUND)
   })
 
-  it('rebalances uneven tables without changing table count when possible', () => {
-    const tables = [roster(1, 8), roster(2, 3), roster(3, 3)]
+  it('does not move players when table count is optimal but sizes are uneven', () => {
+    const tables = [roster(1, 8), roster(2, 5), roster(3, 5)]
     const plan = planVenueCondense(tables, { rng: () => 0 })
     expect(plan.scheduledMerge).toBeNull()
-    expect(plan.playerMoves.some((m) => m.reason === 'rebalance')).toBe(true)
+    expect(plan.playerMoves).toHaveLength(0)
   })
 })

@@ -419,7 +419,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       seatingAnnouncement.seating != null &&
       venueSeatingAnnouncementHasContent(seatingAnnouncement.seating) ? (
         <VenueSeatingAnnouncement
-          key={`venue-seating-${wall?.lastHandEndMs ?? 'x'}`}
+          key={`venue-seating-${venueWall?.lastHandEndMs ?? 'x'}`}
           seating={seatingAnnouncement.seating}
         />
       ) : null}

@@ -2104,6 +2104,30 @@
     pointer-events: none;
   }
 
+  .vfd-broadcast-center-line {
+    display: flex;
+    max-width: min(92vw, 44rem);
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.2em 0.45em;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .vfd-broadcast-center-line--pot {
+    align-items: baseline;
+  }
+
+  .vfd-broadcast-center-line--action .vfd-broadcast-action-name {
+    max-width: min(16rem, 52vw);
+  }
+
+  .vfd-broadcast-center-line--status {
+    margin: 0;
+    justify-content: center;
+  }
+
   .vfd-broadcast-center-stack {
     --vfd-broadcast-pot-label-px: 1.75rem;
     --vfd-broadcast-pot-sign-px: 3rem;
@@ -2170,8 +2194,10 @@
   .vfd-broadcast-action-label {
     font-size: clamp(1rem, 2.6vh, 2rem);
     font-weight: 800;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: rgb(251 191 36 / 0.95);
+    white-space: nowrap;
   }
 
   .vfd-broadcast-action-amount .vfd-mosaic-dollar-sign {

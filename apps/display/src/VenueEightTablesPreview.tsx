@@ -286,6 +286,7 @@ function broadcastCenterTypographyPx(rimW: number): {
   actionDigitsPx: number
   messagePx: number
   gapPx: number
+  lineGapPx: number
 } {
   const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
@@ -299,6 +300,7 @@ function broadcastCenterTypographyPx(rimW: number): {
     actionDigitsPx: Math.round(40 * scale),
     messagePx: Math.round(24 * scale),
     gapPx: Math.round(8 * scale),
+    lineGapPx: Math.round(5 * scale),
   }
 }
 
@@ -381,7 +383,7 @@ function VenueBroadcastCenterStack({
     display: 'flex' as const,
     flexDirection: 'column' as const,
     alignItems: 'center' as const,
-    gap: centerTypo.gapPx,
+    gap: centerTypo.lineGapPx,
     maxWidth: '94%',
     textAlign: 'center' as const,
     ['--vfd-broadcast-pot-label-px' as string]: `${centerTypo.potLabelPx}px`,
@@ -417,16 +419,18 @@ function VenueBroadcastCenterStack({
         </div>
       ) : null}
       <div className="vfd-broadcast-pot-stack" style={potStackStyle}>
-        <span className="vfd-broadcast-pot-label">Pot</span>
-        <VenuePotAmount
-          amount={pot}
-          prefersReducedMotion={prefersReducedMotion}
-          potMuted={potMuted}
-          className="vfd-broadcast-pot vfd-broadcast-pot--hero block truncate"
-        />
+        <div className="vfd-broadcast-center-line vfd-broadcast-center-line--pot">
+          <span className="vfd-broadcast-pot-label">Pot</span>
+          <VenuePotAmount
+            amount={pot}
+            prefersReducedMotion={prefersReducedMotion}
+            potMuted={potMuted}
+            className="vfd-broadcast-pot vfd-broadcast-pot--hero inline-flex max-w-full shrink truncate"
+          />
+        </div>
         {actionKind === 'to-call' && actingPlayerName && callAmount != null ? (
           <div
-            className="vfd-broadcast-action mt-0.5 flex flex-col items-center gap-0.5 sm:mt-1 sm:gap-1"
+            className="vfd-broadcast-center-line vfd-broadcast-center-line--action"
             aria-live="polite"
             aria-label={`${actingPlayerName} to call ${formatVenueBankroll(callAmount)}`}
           >
@@ -437,37 +441,32 @@ function VenueBroadcastCenterStack({
             >
               {actingPlayerName}
             </span>
-            <div className="vfd-broadcast-action-row flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0">
-              <span
-                className="vfd-broadcast-action-label"
-                style={{ fontSize: centerTypo.actionLabelPx }}
-              >
-                TO CALL
-              </span>
-              <MosaicBungeeDollarAmount
-                amount={callAmount}
-                className="vfd-broadcast-action-amount vfd-mosaic-dollar--live"
-                prefersReducedMotion={prefersReducedMotion}
-                pulseOnChange
-              />
-            </div>
+            <span className="vfd-broadcast-action-label" style={{ fontSize: centerTypo.actionLabelPx }}>
+              to call
+            </span>
+            <MosaicBungeeDollarAmount
+              amount={callAmount}
+              className="vfd-broadcast-action-amount vfd-mosaic-dollar--live"
+              prefersReducedMotion={prefersReducedMotion}
+              pulseOnChange
+            />
           </div>
         ) : actionKind === 'no-more-bets' ? (
-          <span
-            className="vfd-broadcast-action-message"
+          <p
+            className="vfd-broadcast-center-line vfd-broadcast-center-line--status vfd-broadcast-action-message"
             role="status"
             style={{ fontSize: centerTypo.messagePx }}
           >
             No more bets
-          </span>
+          </p>
         ) : actionKind === 'answering' ? (
-          <span
-            className="vfd-broadcast-action-message vfd-broadcast-action-message--answering"
+          <p
+            className="vfd-broadcast-center-line vfd-broadcast-center-line--status vfd-broadcast-action-message vfd-broadcast-action-message--answering"
             role="status"
             style={{ fontSize: centerTypo.messagePx }}
           >
             Answer on your phone
-          </span>
+          </p>
         ) : null}
       </div>
     </div>

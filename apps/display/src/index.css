@@ -2177,10 +2177,6 @@
     line-height: 1;
   }
 
-  .venue-single-table-broadcast {
-    container-type: size;
-  }
-
   /** Venue eagle-eye leaderboard wall — televised tournament presentation. */
   .venue-lb-screen {
     background: #04060c;

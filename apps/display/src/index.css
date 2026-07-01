@@ -2102,17 +2102,22 @@
   /** n=1 broadcast felt center — pot is scoreboard-sized; sizes set via CSS vars from table width. */
   .vfd-broadcast-pot-stack {
     pointer-events: none;
+    isolation: isolate;
   }
 
   .vfd-broadcast-center-line {
     display: flex;
     max-width: min(92vw, 44rem);
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: baseline;
     justify-content: center;
-    gap: 0.2em 0.45em;
+    gap: 0.35em 0.55em;
     line-height: 1;
     text-align: center;
+  }
+
+  .vfd-broadcast-center-line--action {
+    flex-wrap: wrap;
   }
 
   .vfd-broadcast-center-line--pot {

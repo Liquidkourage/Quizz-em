@@ -23,7 +23,7 @@ import {
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
-import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, mosaicSeatChipInwardFrac, mosaicSeatHoleInwardFrac, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
+import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, mosaicSeatChipInwardFrac, mosaicSeatHoleInwardFrac, venueMosaicFeltCenterPct, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -95,7 +95,7 @@ import { nowOnServerClock } from './serverClock'
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
 /** Stacking inside each mini felt ({@link SeatRingWithLabels}): name + bankroll beside name always top; then center hint, badges, pile, rim. */
-const SEAT_LAYER_FELT_POT = 'z-[108]'
+const SEAT_LAYER_FELT_POT = 'z-[130]'
 const SEAT_LAYER_DOT = 'z-[20]'
 const SEAT_LAYER_FELT_CHIP_PILE = 'z-[115]'
 const SEAT_LAYER_BLIND_OUT = 'z-[117]'
@@ -315,9 +315,68 @@ function broadcastCommunityCardLayoutPx(
   return {
     widthPx,
     heightPx,
-    boardGapPx: Math.round(18 * scale),
+    boardGapPx: Math.round(24 * scale),
     gapPx: Math.max(6, Math.round(widthPx * 0.12)),
   }
+}
+
+/** Push felt assets outward when they fall inside the broadcast center HUD keep-out. */
+function clampPointAwayFromFeltCenter(
+  leftPct: number,
+  topPct: number,
+  rimW: number,
+  rimH: number,
+  minDistPx: number
+): { leftPct: number; topPct: number } {
+  if (!(rimW > 0 && rimH > 0 && minDistPx > 0)) return { leftPct, topPct }
+  const center = venueMosaicFeltCenterPct(rimW, rimH)
+  const x = (leftPct / 100) * rimW
+  const y = (topPct / 100) * rimH
+  const cx = (center.leftPct / 100) * rimW
+  const cy = (center.topPct / 100) * rimH
+  const dx = x - cx
+  const dy = y - cy
+  const dist = Math.hypot(dx, dy)
+  if (dist >= minDistPx || dist < 1) return { leftPct, topPct }
+  const scale = minDistPx / dist
+  return {
+    leftPct: ((cx + dx * scale) / rimW) * 100,
+    topPct: ((cy + dy * scale) / rimH) * 100,
+  }
+}
+
+function broadcastSeatAssetInwardFrac(seatIndex: number): number {
+  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
+  if (i === 0 || i === 4) return 0.05
+  return mosaicSeatChipInwardFrac(seatIndex)
+}
+
+function broadcastSeatHoleInwardFrac(seatIndex: number): number {
+  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
+  if (i === 0 || i === 4) return 0.08
+  return mosaicSeatHoleInwardFrac(seatIndex)
+}
+
+function broadcastCenterKeepoutRadiusPx(
+  rimW: number,
+  hasBoard: boolean,
+  communityCardHeightPx: number,
+  communityBoardGapPx: number,
+  centerTypo: ReturnType<typeof broadcastCenterTypographyPx>,
+  hasActionLine: boolean
+): number {
+  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  const potBandPx = centerTypo.potLabelPx + centerTypo.potDigitsPx * 0.98
+  const actionBandPx = hasActionLine
+    ? centerTypo.lineGapPx + Math.max(centerTypo.actionNamePx, centerTypo.messagePx) + 6
+    : 0
+  const belowCenterPx = potBandPx + actionBandPx + Math.round(16 * scale)
+  const aboveCenterPx = hasBoard
+    ? communityCardHeightPx / 2 + communityBoardGapPx + Math.round(12 * scale)
+    : potBandPx * 0.45
+  const chipClearancePx = Math.round(42 * scale)
+  return Math.max(aboveCenterPx, belowCenterPx) + chipClearancePx
 }
 
 /** Folded-player OUT badge on broadcast hero felts. */
@@ -1243,6 +1302,18 @@ function SeatRingWithLabels({
     isBroadcast && rimW > 0 ? broadcastCommunityCardLayoutPx(rimW) : null
   const broadcastCommunityCardW = broadcastCommunityLayout?.widthPx ?? 0
   const broadcastCommunityCardH = broadcastCommunityLayout?.heightPx ?? 0
+  const broadcastCenterTypo = isBroadcast && rimW > 0 ? broadcastCenterTypographyPx(rimW) : null
+  const broadcastKeepoutPx =
+    isBroadcast && broadcastCenterTypo && rimW > 0 && rimH > 0
+      ? broadcastCenterKeepoutRadiusPx(
+          rimW,
+          communityDigits.length > 0,
+          broadcastCommunityCardH,
+          broadcastCommunityLayout?.boardGapPx ?? 0,
+          broadcastCenterTypo,
+          broadcastActionKind != null
+        )
+      : 0
 
   const showFeltBoardCenter =
     (isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)) ||
@@ -1326,18 +1397,28 @@ function SeatRingWithLabels({
                 seatCountForLayout,
                 rimW,
                 rimH,
-                mosaicSeatChipInwardFrac(i)
+                isBroadcast ? broadcastSeatAssetInwardFrac(i) : mosaicSeatChipInwardFrac(i)
               )
             : stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
-        const chipPos = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
-        const holeLayout =
+        const chipPosRaw = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
+        const chipPos =
+          broadcastKeepoutPx > 0
+            ? clampPointAwayFromFeltCenter(
+                chipPosRaw.leftPct,
+                chipPosRaw.topPct,
+                rimW,
+                rimH,
+                broadcastKeepoutPx
+              )
+            : chipPosRaw
+        const holeLayoutRaw =
           isMosaic || isBroadcast
             ? mosaicSeatHoleLayout(
                 i,
                 seatCountForLayout,
                 rimW,
                 rimH,
-                mosaicSeatHoleInwardFrac(i)
+                isBroadcast ? broadcastSeatHoleInwardFrac(i) : mosaicSeatHoleInwardFrac(i)
               )
             : (() => {
                 const pt = stadiumSeatPointPx(
@@ -1353,6 +1434,19 @@ function SeatRingWithLabels({
                   rotateDeg: pt.rotateDeg,
                 }
               })()
+        const holeLayout =
+          broadcastKeepoutPx > 0
+            ? {
+                ...holeLayoutRaw,
+                ...clampPointAwayFromFeltCenter(
+                  holeLayoutRaw.leftPct,
+                  holeLayoutRaw.topPct,
+                  rimW,
+                  rimH,
+                  broadcastKeepoutPx * 0.92
+                ),
+              }
+            : holeLayoutRaw
         const anchored = labelAnchorsPct[i]
         const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && (size === 'lg' || isBroadcast)))
         const fallbackPos = venueSeatRimPct(i, fb, rimW, rimH)
@@ -1517,8 +1611,14 @@ function SeatRingWithLabels({
               )
               const markers = heroSeatBlindMarkerPills(i, blindSeats, 'onFelt', markerSizePx)
               if (markers.length === 0) return null
-              const blindPt = isBroadcast
-                ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, 0.05)
+              const blindPtRaw = isBroadcast
+                ? mosaicSeatHoleLayout(
+                    i,
+                    seatCountForLayout,
+                    rimW,
+                    rimH,
+                    broadcastSeatAssetInwardFrac(i)
+                  )
                 : stadiumSeatPointPx(
                     i,
                     seatCountForLayout,
@@ -1526,6 +1626,16 @@ function SeatRingWithLabels({
                     rimH,
                     STADIUM_BLIND_BADGE_RADIAL
                   )
+              const blindPt =
+                broadcastKeepoutPx > 0
+                  ? clampPointAwayFromFeltCenter(
+                      blindPtRaw.leftPct,
+                      blindPtRaw.topPct,
+                      rimW,
+                      rimH,
+                      broadcastKeepoutPx * 0.88
+                    )
+                  : blindPtRaw
               return (
                 <div
                   className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center`}

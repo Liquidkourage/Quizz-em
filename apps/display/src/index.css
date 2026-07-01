@@ -2073,6 +2073,54 @@
     color: rgb(110 231 183 / 0.35);
   }
 
+  /** n=1 broadcast hero — pot + action centered on felt. */
+  .vfd-broadcast-pot .vfd-mosaic-dollar-sign {
+    font-size: clamp(1.35rem, 3.2vw, 2.35rem);
+  }
+
+  .vfd-broadcast-pot .vfd-mosaic-dollar-digits {
+    font-size: clamp(2.25rem, 6.5vw, 4.75rem);
+    letter-spacing: -0.02em;
+  }
+
+  .vfd-broadcast-action-name {
+    max-width: min(18rem, 52vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: clamp(1rem, 2.4vw, 1.65rem);
+    font-weight: 800;
+    color: rgb(255 251 235 / 0.96);
+  }
+
+  .vfd-broadcast-action-label {
+    font-size: clamp(0.85rem, 1.8vw, 1.15rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgb(251 191 36 / 0.88);
+  }
+
+  .vfd-broadcast-action-amount .vfd-mosaic-dollar-sign {
+    font-size: clamp(1rem, 2.4vw, 1.65rem);
+  }
+
+  .vfd-broadcast-action-amount .vfd-mosaic-dollar-digits {
+    font-size: clamp(1.35rem, 3.5vw, 2.35rem);
+  }
+
+  .vfd-broadcast-action-message {
+    font-size: clamp(0.95rem, 2vw, 1.35rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgb(167 243 208 / 0.95);
+  }
+
+  .vfd-broadcast-action-message--answering {
+    color: rgb(207 250 254 / 0.98);
+  }
+
   /** Venue eagle-eye leaderboard wall — televised tournament presentation. */
   .venue-lb-screen {
     background: #04060c;

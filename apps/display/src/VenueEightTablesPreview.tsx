@@ -20,6 +20,7 @@ import {
   stadiumMosaicCommunityCardWidthPx,
   stadiumMosaicCommunityCardHeightPx,
   stadiumSeatPointPx,
+  stadiumSeatThetaRad,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
 import { mosaicSeatDotPct, mosaicSeatHoleLayout, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
@@ -241,6 +242,95 @@ function MosaicTableStatusBand({
       aria-label="Answer on your phone"
     >
       <span className="vfd-mosaic-status-band-message">Answer on your phone</span>
+    </div>
+  )
+}
+
+/** Broadcast hero (n=1): pot + acting line centered on felt — replaces header status band. */
+function VenueBroadcastCenterStack({
+  pot,
+  potMuted,
+  actionKind,
+  actingPlayerName,
+  callAmount,
+  communityDigits,
+  communityCardWidthPx,
+  communityCardHeightPx,
+  prefersReducedMotion,
+}: {
+  pot: number
+  potMuted: 'dim' | 'faint' | 'live'
+  actionKind: MosaicTableStatusBandKind | null
+  actingPlayerName?: string | null
+  callAmount?: number | null
+  communityDigits: number[]
+  communityCardWidthPx: number
+  communityCardHeightPx: number
+  prefersReducedMotion: boolean
+}) {
+  const feltBounds = venueFeltBoundsFrac()
+  return (
+    <div
+      className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
+      aria-hidden={pot <= 0 && actionKind == null && communityDigits.length === 0}
+    >
+      <div
+        className="flex max-w-[92%] flex-col items-center justify-center gap-1.5 text-center sm:gap-2"
+        style={{
+          position: 'absolute',
+          left: `${feltBounds.cx * 100}%`,
+          top: `${feltBounds.cy * 100}%`,
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        {communityDigits.length > 0 ? (
+          <div
+            className="flex items-center justify-center"
+            style={{ gap: Math.max(3, Math.round(communityCardWidthPx * 0.08)) }}
+          >
+            {communityDigits.map((digit, i) => (
+              <MosaicDigitCard
+                key={`${i}-${digit}`}
+                digit={digit}
+                widthPx={communityCardWidthPx}
+                heightPx={communityCardHeightPx}
+              />
+            ))}
+          </div>
+        ) : null}
+        <VenuePotAmount
+          amount={pot}
+          prefersReducedMotion={prefersReducedMotion}
+          potMuted={potMuted}
+          className="vfd-broadcast-pot block truncate"
+        />
+        {actionKind === 'to-call' && actingPlayerName && callAmount != null ? (
+          <div
+            className="vfd-broadcast-action flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5"
+            aria-live="polite"
+            aria-label={`${actingPlayerName} to call ${formatVenueBankroll(callAmount)}`}
+          >
+            <span className="vfd-broadcast-action-name" title={actingPlayerName}>
+              {actingPlayerName}
+            </span>
+            <span className="vfd-broadcast-action-label">to call</span>
+            <MosaicBungeeDollarAmount
+              amount={callAmount}
+              className="vfd-broadcast-action-amount vfd-mosaic-dollar--live"
+              prefersReducedMotion={prefersReducedMotion}
+              pulseOnChange
+            />
+          </div>
+        ) : actionKind === 'no-more-bets' ? (
+          <span className="vfd-broadcast-action-message" role="status">
+            No more bets
+          </span>
+        ) : actionKind === 'answering' ? (
+          <span className="vfd-broadcast-action-message vfd-broadcast-action-message--answering" role="status">
+            Answer on your phone
+          </span>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -855,6 +945,9 @@ function SeatRingWithLabels({
   showSeatBettingActions = false,
   seatLastBettingAction: seatLastBettingActionIn,
   actingCallAmount,
+  broadcastActionKind = null,
+  broadcastActingPlayerName = null,
+  broadcastCallAmount = null,
   mosaicFluidWidth = false,
   /** Honeycomb floor density — drives legible mosaic seat markers on dense grids. */
   mosaicDensity,
@@ -883,8 +976,8 @@ function SeatRingWithLabels({
   seatNames: string[]
   seatBankrolls: number[]
   size?: 'md' | 'lg'
-  /** `mosaic` = rail + seat dots only (crawl tiles); `full` = names, actions, and felt stacks. */
-  ringMode?: 'mosaic' | 'full'
+  /** `mosaic` = rail + seat dots only (crawl tiles); `full` = names, actions, and felt stacks; `broadcast` = n=1 hero. */
+  ringMode?: 'mosaic' | 'full' | 'broadcast'
   /** Honeycomb floor: ring scales with tile width (no fixed 8.75rem height). */
   mosaicFluidWidth?: boolean
   mosaicDensity?: VenueFloorTableSize
@@ -910,6 +1003,10 @@ function SeatRingWithLabels({
   seatLastBettingAction?: (SeatBettingAction | null)[]
   /** Active seat only: chips to call (venue snapshot). */
   actingCallAmount?: number | null
+  /** Broadcast hero: pot action line on felt (replaces status band). */
+  broadcastActionKind?: MosaicTableStatusBandKind | null
+  broadcastActingPlayerName?: string | null
+  broadcastCallAmount?: number | null
   winnerSeatIndexes?: ReadonlySet<number> | null
   seatHoleDigits?: (readonly [number, number] | null)[]
   communityDigits?: number[]
@@ -925,9 +1022,11 @@ function SeatRingWithLabels({
     communityDigitsIn?.filter((d) => Number.isInteger(d) && d >= 0 && d <= 9) ?? []
   const prefersReducedMotion = usePrefersReducedMotion()
   const isMosaic = ringMode === 'mosaic'
-  /** Spotlight hero — wide capsule; mosaic tiles use smaller md ring below. */
-  const lgRing =
-    'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
+  const isBroadcast = ringMode === 'broadcast'
+  /** Spotlight / broadcast hero — wide capsule; mosaic tiles use smaller md ring below. */
+  const lgRing = isBroadcast
+    ? 'relative mx-auto aspect-[14/8] h-full max-h-full w-auto max-w-[min(100%,calc(100dvw-1rem))] min-h-0 min-w-0 shrink-0'
+    : 'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
   /** Mosaic crawl — stadium capsule; fit cell with width-first sizing so aspect ratio holds. */
   const mdRing = isMosaic
     ? mosaicFluidWidth
@@ -942,7 +1041,7 @@ function SeatRingWithLabels({
           : 'relative mx-auto aspect-[8/5] h-auto w-full max-h-full max-w-full min-h-0 min-w-0'
       : 'relative mx-auto aspect-[8/5] h-[8.75rem] w-full max-w-[16.5rem] shrink-0'
     : 'mx-auto aspect-[13/8] h-auto w-full max-w-[min(100%,22rem)] shrink-0 sm:max-w-[min(100%,23rem)]'
-  const wrap = size === 'lg' ? lgRing : mdRing
+  const wrap = isBroadcast ? lgRing : size === 'lg' ? lgRing : mdRing
   const ringWrapStyle =
     isMosaic && mosaicFeltMaxHeightCss != null && !mosaicFillHeight
       ? ({ maxHeight: mosaicFeltMaxHeightCss } as CSSProperties)
@@ -977,7 +1076,7 @@ function SeatRingWithLabels({
   }, [])
 
   const labelAnchorsPct = useMemo(() => {
-    if (isMosaic) {
+    if (isMosaic || isBroadcast) {
       return Array.from({ length: VENUE_SEAT_SLOTS }, () => null as { leftPct: number; topPct: number } | null)
     }
     return computeSeatLabelAnchorsPct({
@@ -987,7 +1086,23 @@ function SeatRingWithLabels({
       feltSeatStacks,
       seatNames,
     })
-  }, [feltSeatStacks, isMosaic, ringPx.h, ringPx.w, seatNames, size])
+  }, [feltSeatStacks, isBroadcast, isMosaic, ringPx.h, ringPx.w, seatNames, size])
+
+  const occupiedPhysicalSeats = useMemo(() => {
+    if (!isBroadcast) return null
+    return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => i).filter(
+      (i) => (seatNames[i]?.trim() ?? '').length > 0
+    )
+  }, [isBroadcast, seatNames])
+
+  const physicalToLayout = useCallback(
+    (physical: number): number => {
+      if (!isBroadcast || occupiedPhysicalSeats == null) return physical
+      const idx = occupiedPhysicalSeats.indexOf(physical)
+      return idx >= 0 ? idx : physical
+    },
+    [isBroadcast, occupiedPhysicalSeats]
+  )
 
   const rimW = ringPx.w
   const rimH = ringPx.h
@@ -1013,11 +1128,22 @@ function SeatRingWithLabels({
   const mosaicCommunityCardH = isMosaic
     ? stadiumMosaicCommunityCardHeightPx(rimW, mosaicDensityTier)
     : 0
-  /** Physical seat slots (0–7) — always distribute around the full eight-seat stadium. */
-  const seatCountForLayout = VENUE_SEAT_SLOTS
+  /** Physical seat slots (0–7) — broadcast redistributes occupied seats evenly on the ring. */
+  const seatCountForLayout =
+    isBroadcast && occupiedPhysicalSeats != null
+      ? Math.max(1, occupiedPhysicalSeats.length)
+      : VENUE_SEAT_SLOTS
+
+  const potFromBroadcast = isBroadcast ? mosaicCenterPot : null
+  const broadcastCommunityCardW = isBroadcast ? stadiumMosaicCommunityCardWidthPx(rimW, 'hero') : 0
+  const broadcastCommunityCardH = isBroadcast ? stadiumMosaicCommunityCardHeightPx(rimW, 'hero') : 0
 
   const showFeltBoardCenter =
-    isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)
+    (isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)) ||
+    (isBroadcast &&
+      (communityDigits.length > 0 ||
+        broadcastActionKind != null ||
+        potFromBroadcast != null))
 
   const layoutReady = rimW > 0 && rimH > 0
 
@@ -1037,27 +1163,43 @@ function SeatRingWithLabels({
         />
       ) : null}
       {showFeltBoardCenter ? (
-        <VenueMosaicFeltCenterStack
-          communityDigits={communityDigits}
-          communityCardWidthPx={mosaicCommunityCardW}
-          communityCardHeightPx={mosaicCommunityCardH}
-          pot={mosaicCenterPot}
-          potClass={mosaicCenterPotClass}
-          potMuted={mosaicCenterPotMuted}
-          prefersReducedMotion={prefersReducedMotion}
-        />
+        isBroadcast ? (
+          <VenueBroadcastCenterStack
+            pot={potFromBroadcast ?? 0}
+            potMuted={mosaicCenterPotMuted}
+            actionKind={broadcastActionKind}
+            actingPlayerName={broadcastActingPlayerName}
+            callAmount={broadcastCallAmount}
+            communityDigits={communityDigits}
+            communityCardWidthPx={broadcastCommunityCardW}
+            communityCardHeightPx={broadcastCommunityCardH}
+            prefersReducedMotion={prefersReducedMotion}
+          />
+        ) : (
+          <VenueMosaicFeltCenterStack
+            communityDigits={communityDigits}
+            communityCardWidthPx={mosaicCommunityCardW}
+            communityCardHeightPx={mosaicCommunityCardH}
+            pot={mosaicCenterPot}
+            potClass={mosaicCenterPotClass}
+            potMuted={mosaicCenterPotMuted}
+            prefersReducedMotion={prefersReducedMotion}
+          />
+        )
       ) : null}
       {layoutReady &&
         Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         const raw = seatNames[i]?.trim() ?? ''
         const filled = raw.length > 0
-        if (isMosaic && !filled) return null
+        if ((isMosaic || isBroadcast) && !filled) return null
+
+        const layoutIdx = physicalToLayout(i)
 
         const seatRimPt = isMosaic
-          ? mosaicSeatDotPct(i, seatCountForLayout, rimW, rimH)
+          ? mosaicSeatDotPct(layoutIdx, seatCountForLayout, rimW, rimH)
           : (() => {
               const pt = stadiumSeatPointPx(
-                i,
+                layoutIdx,
                 seatCountForLayout,
                 rimW,
                 rimH,
@@ -1066,14 +1208,14 @@ function SeatRingWithLabels({
               return { leftPct: pt.leftPct, topPct: pt.topPct }
             })()
         const chipPt = isMosaic
-          ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, 0.28)
-          : stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
+          ? mosaicSeatHoleLayout(layoutIdx, seatCountForLayout, rimW, rimH, 0.28)
+          : stadiumSeatPointPx(layoutIdx, seatCountForLayout, rimW, rimH, chipInnerScale)
         const chipPos = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
         const holeLayout = isMosaic
-          ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH)
+          ? mosaicSeatHoleLayout(layoutIdx, seatCountForLayout, rimW, rimH)
           : (() => {
               const pt = stadiumSeatPointPx(
-                i,
+                layoutIdx,
                 seatCountForLayout,
                 rimW,
                 rimH,
@@ -1086,9 +1228,15 @@ function SeatRingWithLabels({
               }
             })()
         const anchored = labelAnchorsPct[i]
-        const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && size === 'lg'))
+        const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && (size === 'lg' || isBroadcast)))
         const fallbackPos = venueSeatRimPct(i, fb, rimW, rimH)
-        const labelPos = anchored ?? fallbackPos
+        const broadcastLabelOutward = isBroadcast
+          ? stadiumSeatPointPx(layoutIdx, seatCountForLayout, rimW, rimH, 1.06)
+          : null
+        const labelPos =
+          isBroadcast && broadcastLabelOutward
+            ? { leftPct: broadcastLabelOutward.leftPct, topPct: broadcastLabelOutward.topPct }
+            : anchored ?? fallbackPos
         const mosaicInitials =
           isMosaic && raw.length > 0
             ? raw
@@ -1099,8 +1247,13 @@ function SeatRingWithLabels({
                 .toUpperCase()
             : ''
         const chips = seatBankrolls[i] ?? 0
-        const showFeltStack = Boolean(raw && feltSeatStacks && size === 'lg')
-        const labelVy = seatNameLabelVerticalNudgePx(i, size)
+        const showFeltStack = Boolean(raw && ((feltSeatStacks && size === 'lg') || isBroadcast))
+        const labelVy = isBroadcast
+          ? -Math.sin(stadiumSeatThetaRad(layoutIdx, seatCountForLayout)) *
+            (size === 'lg' || isBroadcast
+              ? SEAT_NAME_LABEL_VERTICAL_NUDGE_PX_LG
+              : SEAT_NAME_LABEL_VERTICAL_NUDGE_PX_MD)
+          : seatNameLabelVerticalNudgePx(i, size)
         const isFolded = filled && seatFolded[i] === true
         const lastBetAct =
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
@@ -1121,7 +1274,8 @@ function SeatRingWithLabels({
           showSeatBettingActions &&
           actingCallAmount != null &&
           typeof actingCallAmount === 'number'
-        const showActionPanel = Boolean(lastBetAct != null || showActingCallLine)
+        const showActionPanel =
+          !isBroadcast && Boolean(lastBetAct != null || showActingCallLine)
         /** Below the name/stack cluster — keeps CHECK / CALL off the felt center. */
         const actionPanelBelowPx =
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
@@ -1222,7 +1376,7 @@ function SeatRingWithLabels({
               const tags = blindTagsForSeat(i, blindSeats)
               if (tags.length === 0) return null
               const blindPt = stadiumSeatPointPx(
-                i,
+                layoutIdx,
                 seatCountForLayout,
                 rimW,
                 rimH,
@@ -1298,7 +1452,11 @@ function SeatRingWithLabels({
             ) : null}
             {!isMosaic && raw ? (
               <div
-                className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} text-center font-semibold leading-tight shadow-black/80 drop-shadow ${labelClass} ${
+                className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} text-center font-semibold leading-tight shadow-black/80 drop-shadow ${
+                  isBroadcast
+                    ? 'max-w-[min(14rem,38vw)] text-[1.05rem] leading-tight sm:text-[1.2rem] sm:leading-snug md:text-[1.45rem] lg:text-[1.65rem]'
+                    : labelClass
+                } ${
                   isFolded ? 'text-white/60' : 'text-white/92'
                 }`}
                 style={{
@@ -1910,6 +2068,133 @@ function VenueAerialFloorGrid({
   )
 }
 
+/** n=1 broadcast hero — full-viewport felt, names + stacks, pot/action on felt center. */
+function VenueSingleTableBroadcast({
+  tile,
+  prefersReducedMotion: _prefersReducedMotion,
+  sharedShowdownAnswer,
+}: {
+  tile: DisplayVenueTileSnapshot
+  prefersReducedMotion: boolean
+  sharedShowdownAnswer?: number
+}) {
+  const seats = tile.seated
+  const pot = Math.max(0, Math.floor(Number.isFinite(tile.pot) ? tile.pot : 0))
+  const ph = String(tile.phase ?? '').trim().toLowerCase()
+  const seatNames = padSeatNames(tile.seatNames)
+  const seatBankrolls = padSeatBankrolls(tile.seatBankrolls)
+  const seatFolded = padSeatFolded(tile.seatFolded)
+  const blindSeatSnapshot = venueTileBlindSeats(tile)
+  const actingSeat = venueTileActingSeat(tile)
+  const seatLastBettingAction = padSeatLastBettingAction(tile.seatLastBettingAction)
+  const inShowdown = ph === 'showdown'
+  const floorShowdownRows = inShowdown ? showdownRowsFromTile(tile) : []
+  const floorShowdownAnswer = inShowdown
+    ? (sharedShowdownAnswer ?? showdownCorrectAnswerFromTile(tile))
+    : undefined
+  const mosaicShowdownOverlay = inShowdown && floorShowdownRows.length > 0
+  const showFloorShowdownOverlay = mosaicShowdownOverlay
+  const floorShowdownPresentation = useMemo(() => {
+    if (!showFloorShowdownOverlay) return null
+    return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
+  }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
+  const floorShowdownPot = useMemo(() => {
+    if (!showFloorShowdownOverlay) return 0
+    return resolveShowdownDisplayPot(tile, floorShowdownRows, floorShowdownAnswer)
+  }, [showFloorShowdownOverlay, tile, floorShowdownRows, floorShowdownAnswer])
+  const winnerSeatIndexes = showFloorShowdownOverlay
+    ? floorShowdownPresentation?.winnerSeatIndexes ?? null
+    : null
+  const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(tile, false)
+  const actingPlayerName =
+    wageringLive && !showFloorShowdownOverlay
+      ? mosaicActingPlayerName(actingSeat, seatNames)
+      : null
+  const actingCallAmount =
+    tile.actingCallAmount != null &&
+    typeof tile.actingCallAmount === 'number' &&
+    Number.isFinite(tile.actingCallAmount)
+      ? Math.max(0, Math.floor(tile.actingCallAmount))
+      : null
+  const broadcastActionKind = ((): MosaicTableStatusBandKind | null => {
+    if (showFloorShowdownOverlay) return null
+    if (
+      wageringLive &&
+      actingSeat != null &&
+      actingPlayerName != null &&
+      actingCallAmount != null
+    ) {
+      return 'to-call'
+    }
+    if (showNoMoreBets && seats >= 2) return 'no-more-bets'
+    if (ph === 'answering' && seats >= 2) return 'answering'
+    return null
+  })()
+  const potMuted =
+    ph === 'lobby' || ph === 'question'
+      ? pot > 0
+        ? ('dim' as const)
+        : ('faint' as const)
+      : ('live' as const)
+  const phaseShell = showNoMoreBets
+    ? 'ring-2 ring-emerald-500/55 shadow-[0_0_28px_rgba(52,211,153,0.18)]'
+    : ph === 'answering'
+      ? 'ring-2 ring-cyan-500/45 shadow-[0_0_28px_rgba(34,211,238,0.16)]'
+      : wageringLive
+        ? 'ring-2 ring-amber-500/55 shadow-[0_0_32px_rgba(251,191,36,0.22)]'
+        : ''
+
+  return (
+    <div
+      className="venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-center justify-center px-1 pb-1 pt-0 sm:px-2"
+      aria-label={`Final table, pot ${formatVenueBankroll(pot)}`}
+    >
+      <div
+        className={`relative flex h-full min-h-0 w-full max-w-[84rem] flex-col items-center justify-center ${phaseShell}`}
+      >
+        <div className="flex h-full min-h-0 w-full items-center justify-center">
+          <SeatRingWithLabels
+            ringMode="broadcast"
+            size="lg"
+            feltSeatStacks
+            seatedCount={seats}
+            seatNames={seatNames}
+            seatBankrolls={seatBankrolls}
+            blindSeats={blindSeatSnapshot}
+            seatFolded={seatFolded}
+            actingSeatIndex={actingSeat}
+            seatLastBettingAction={seatLastBettingAction}
+            actingCallAmount={tile.actingCallAmount}
+            mosaicCenterPot={showFloorShowdownOverlay ? null : pot}
+            mosaicCenterPotMuted={potMuted}
+            broadcastActionKind={broadcastActionKind}
+            broadcastActingPlayerName={actingPlayerName}
+            broadcastCallAmount={actingCallAmount}
+            winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
+            seatHoleDigits={tile.seatHoleDigits}
+            communityDigits={tile.communityDigits}
+            betsInPaused={showNoMoreBets}
+            seatSubmittedAnswers={tile.seatSubmittedAnswers}
+            answeringPhase={ph === 'answering'}
+          />
+        </div>
+        {showFloorShowdownOverlay ? (
+          <VenueFloorShowdownByVariant
+            tableNum={tile.tableNum}
+            pot={floorShowdownPot}
+            rows={floorShowdownRows}
+            correctAnswer={floorShowdownAnswer}
+            layoutTableCount={1}
+          />
+        ) : null}
+        {showNoMoreBets && seats >= 2 && !showFloorShowdownOverlay && broadcastActionKind !== 'no-more-bets' ? (
+          <VenueMosaicNoMoreBetsWatermark offsetClass="translate-y-[8%] text-[clamp(1.75rem,6vw,3.5rem)]" />
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 function VenueHeroSpotlightLayout({
   featured,
   companions,
@@ -2126,6 +2411,7 @@ export default function VenueEightTablesPreview({
   }, [floorTiles, hostFocusTable])
 
   const showHeroSpotlight = hostFocusTable != null && featuredTile != null
+  const isSingleTableBroadcast = floorTiles.length === 1
   const sharedShowdownAnswer = inVenueShowdown ? venueShowdownAnswer : undefined
 
   return (
@@ -2331,14 +2617,26 @@ export default function VenueEightTablesPreview({
             <div className="relative flex min-h-0 flex-1 flex-col">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={showHeroSpotlight ? `spotlight-${hostFocusTable}` : 'floor'}
+                  key={
+                    isSingleTableBroadcast
+                      ? 'broadcast'
+                      : showHeroSpotlight
+                        ? `spotlight-${hostFocusTable}`
+                        : 'floor'
+                  }
                   className="flex h-full min-h-0 flex-1 flex-col"
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
                   transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {showHeroSpotlight ? (
+                  {isSingleTableBroadcast ? (
+                    <VenueSingleTableBroadcast
+                      tile={floorTiles[0]!}
+                      prefersReducedMotion={prefersReducedMotion}
+                      sharedShowdownAnswer={sharedShowdownAnswer}
+                    />
+                  ) : showHeroSpotlight ? (
                     <VenueHeroSpotlightLayout
                       featured={featuredTile!}
                       companions={companionTiles}

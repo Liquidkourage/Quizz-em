@@ -2169,44 +2169,49 @@ function VenueBroadcastHeadlineStrip({
   timerSeconds: number | null
 }) {
   const broadcastQuestionFit = displayBroadcastHeadlineQuestionFitProfile()
+  const questionTimerClass = headlineQuestionDisplay
+    ? 'venue-broadcast-answer-timer'
+    : 'venue-broadcast-answer-timer venue-broadcast-answer-timer--hero'
 
   return (
     <motion.div
-      className="venue-broadcast-headline sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col gap-1.5 rounded-b-xl border-2 border-yellow-400/85 bg-black/88 px-3 py-2 shadow-[0_10px_32px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-5 sm:py-2.5"
+      className="venue-broadcast-headline sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col gap-1 rounded-b-xl border-2 border-yellow-400/85 bg-black/88 px-3 py-2 shadow-[0_10px_32px_rgba(0,0,0,0.55)] backdrop-blur-md sm:gap-1.5 sm:px-5 sm:py-2.5"
       style={{ paddingTop: 'max(0.25rem, env(safe-area-inset-top, 0px))' }}
       initial={skipMountIntro ? false : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
-        {showSetlistCue && setlistCueNumber != null && setlistCueTotal != null ? (
-          <span
-            className="vfd-broadcast-setlist-badge inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2.5 py-1 font-black uppercase tracking-wide text-violet-100/95"
-          >
-            Q {setlistCueNumber}/{setlistCueTotal}
-          </span>
-        ) : null}
-        {headlineQuestionDisplay ? (
-          <DisplayFitQuestionText
-            text={headlineQuestionDisplay}
-            hostClassName={broadcastQuestionFit.hostClassName}
-            maxFontVh={broadcastQuestionFit.maxFontVh}
-            textClassName="venue-headline-question-slot min-w-0 flex-1 text-balance text-center tracking-tight text-yellow-400 display-text-headline-question-broadcast leading-snug"
-          />
-        ) : inVenueShowdown ? (
-          <p className="sr-only">Showdown in progress.</p>
-        ) : null}
-        {broadcastMetaLine ? (
-          <div
-            className="vfd-broadcast-headline-meta hidden shrink-0 flex-col items-end text-right sm:flex"
-            aria-label={broadcastMetaLine}
-          >
-            <span className="vfd-broadcast-headline-meta-primary">{broadcastMetaLine}</span>
-            {showVenueBlindsHeadline && venueBlindsHeadline?.amount ? (
-              <span className="vfd-broadcast-headline-meta-blinds">{venueBlindsHeadline.amount}</span>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
+      {headlineQuestionDisplay ? (
+        <DisplayFitQuestionText
+          text={headlineQuestionDisplay}
+          hostClassName={broadcastQuestionFit.hostClassName}
+          maxFontVh={broadcastQuestionFit.maxFontVh}
+          textClassName="venue-headline-question-slot w-full min-w-0 text-balance text-center tracking-tight text-yellow-400 display-text-headline-question-broadcast leading-snug"
+        />
+      ) : inVenueShowdown ? (
+        <p className="sr-only">Showdown in progress.</p>
+      ) : null}
+      {showSetlistCue || broadcastMetaLine ? (
+        <div className="flex w-full min-w-0 items-center justify-between gap-2 sm:gap-3">
+          {showSetlistCue && setlistCueNumber != null && setlistCueTotal != null ? (
+            <span className="vfd-broadcast-setlist-badge inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 sm:px-2.5 sm:py-1">
+              Q {setlistCueNumber}/{setlistCueTotal}
+            </span>
+          ) : (
+            <span className="min-w-0 shrink" aria-hidden />
+          )}
+          {broadcastMetaLine ? (
+            <div
+              className="vfd-broadcast-headline-meta hidden min-w-0 shrink-0 flex-col items-end text-right sm:flex"
+              aria-label={broadcastMetaLine}
+            >
+              <span className="vfd-broadcast-headline-meta-primary">{broadcastMetaLine}</span>
+              {showVenueBlindsHeadline && venueBlindsHeadline?.amount ? (
+                <span className="vfd-broadcast-headline-meta-blinds">{venueBlindsHeadline.amount}</span>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {broadcastMetaLine ? (
         <p className="vfd-broadcast-headline-meta-mobile text-center sm:hidden" aria-hidden>
           {broadcastMetaLine}
@@ -2231,7 +2236,7 @@ function VenueBroadcastHeadlineStrip({
           {venueShowdownAnswerRow != null && venueShowdownAnswerRow.answerCards.length > 0 ? (
             <ShowdownFiveCardsUsed row={venueShowdownAnswerRow} size="sm" />
           ) : (
-            <div className="font-mono text-3xl font-black tracking-tight text-amber-100 sm:text-5xl">
+            <div className="font-mono text-2xl font-black tracking-tight text-amber-100 sm:text-3xl">
               {formatTriviaNumber(venueShowdownAnswer)}
             </div>
           )}
@@ -2246,7 +2251,7 @@ function VenueBroadcastHeadlineStrip({
           aria-live="polite"
           aria-label={`${timerSeconds} seconds remaining to answer`}
         >
-          <div className="venue-broadcast-answer-timer font-mono font-black tabular-nums tracking-tight text-cyan-100">
+          <div className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight text-cyan-100`}>
             {timerSeconds}s
           </div>
         </div>
@@ -2262,7 +2267,7 @@ function VenueBroadcastHeadlineStrip({
             Answer on your phone
           </span>
           {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
-            <div className="venue-broadcast-answer-timer font-mono font-black tabular-nums tracking-tight text-cyan-100">
+            <div className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight text-cyan-100`}>
               {timerSeconds}s
             </div>
           ) : null}

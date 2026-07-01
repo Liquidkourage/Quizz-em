@@ -108,35 +108,35 @@ export function displayHeadlineQuestionFitProfile(
 ): { maxFontVh: number; hostClassName: string } {
   if (denseHeadline) {
     return {
-      maxFontVh: 0.055,
+      maxFontVh: 0.062,
       hostClassName: 'venue-headline-question-fit-host-dense',
     }
   }
   if (tier === 'spacious') {
     return {
-      maxFontVh: 0.0925,
+      maxFontVh: 0.1025,
       hostClassName: 'venue-headline-question-fit-host-spacious',
     }
   }
   if (tier === 'standard') {
     return {
-      maxFontVh: 0.075,
+      maxFontVh: 0.082,
       hostClassName: 'venue-headline-question-fit-host-compact',
     }
   }
   return {
-    maxFontVh: 0.07,
+    maxFontVh: 0.076,
     hostClassName: 'venue-headline-question-fit-host-ultra',
   }
 }
 
-/** n=1 broadcast — cap question height so the felt keeps scoreboard room. */
+/** n=1 broadcast — question is the dominant on-screen text. */
 export function displayBroadcastHeadlineQuestionFitProfile(): {
   maxFontVh: number
   hostClassName: string
 } {
   return {
-    maxFontVh: 0.088,
+    maxFontVh: 0.118,
     hostClassName: 'venue-headline-question-fit-host-broadcast',
   }
 }

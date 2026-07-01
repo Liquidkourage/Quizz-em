@@ -1755,8 +1755,8 @@
 
   /** Venue headline question — viewport-scaled for room readability (not fixed px tokens). */
   .display-text-headline-question-spacious {
-    font-weight: 700;
-    line-height: 1.18;
+    font-weight: 800;
+    line-height: 1.16;
   }
 
   .venue-headline-question-card {
@@ -1783,42 +1783,43 @@
   }
 
   .venue-headline-question-fit-host-spacious {
-    max-height: min(24vh, 11rem);
+    max-height: min(26vh, 12.5rem);
   }
 
   .venue-headline-question-fit-host-compact {
-    max-height: min(20vh, 9.5rem);
+    max-height: min(22vh, 10.5rem);
   }
 
   .venue-headline-question-fit-host-ultra {
-    max-height: min(18vh, 8.75rem);
+    max-height: min(20vh, 9.75rem);
   }
 
   .venue-headline-question-fit-host-dense {
-    max-height: min(16vh, 7.5rem);
+    max-height: min(18vh, 8.75rem);
   }
 
   .venue-headline-question-fit-host-broadcast {
-    max-height: min(17vh, 9.5rem);
+    max-height: min(28vh, 13.5rem);
+    min-height: min(12vh, 5.5rem);
   }
 
   .display-text-headline-question-broadcast {
-    font-weight: 700;
-    line-height: 1.12;
+    font-weight: 800;
+    line-height: 1.1;
   }
 
   .vfd-broadcast-setlist-badge {
-    font-size: clamp(1.25rem, 3.2vh, 2.15rem);
+    font-size: clamp(0.95rem, 2.2vh, 1.45rem);
     line-height: 1;
   }
 
   .vfd-broadcast-phase-badge {
-    font-size: clamp(1.2rem, 3vh, 2rem);
+    font-size: clamp(0.95rem, 2.15vh, 1.4rem);
     line-height: 1.1;
   }
 
   .vfd-broadcast-answer-prompt {
-    font-size: clamp(1.15rem, 2.85vh, 1.85rem);
+    font-size: clamp(0.95rem, 2.15vh, 1.4rem);
     line-height: 1.1;
   }
 
@@ -1831,23 +1832,23 @@
   }
 
   .venue-headline-answer-timer {
-    font-size: clamp(2.75rem, 6.5vmin, 5.5rem);
+    font-size: clamp(1.65rem, 3.85vh, 3rem);
     line-height: 1;
   }
 
   .display-text-headline-question-compact {
-    font-weight: 700;
-    line-height: 1.22;
-  }
-
-  .display-text-headline-question-ultra {
-    font-weight: 700;
+    font-weight: 800;
     line-height: 1.2;
   }
 
-  .display-text-headline-question-dense {
-    font-weight: 700;
+  .display-text-headline-question-ultra {
+    font-weight: 800;
     line-height: 1.18;
+  }
+
+  .display-text-headline-question-dense {
+    font-weight: 800;
+    line-height: 1.16;
   }
 
   .display-fit-question-text-app {
@@ -2098,9 +2099,9 @@
     color: rgb(110 231 183 / 0.35);
   }
 
-  /** n=1 broadcast hero — scoreboard-sized pot + action on felt. */
+  /** n=1 broadcast felt HUD — subordinate to headline question copy. */
   .vfd-broadcast-pot-label {
-    font-size: clamp(1rem, 2.8vh, 1.65rem);
+    font-size: clamp(0.75rem, 1.75vh, 1.1rem);
     font-weight: 800;
     letter-spacing: 0.22em;
     text-transform: uppercase;
@@ -2109,11 +2110,11 @@
   }
 
   .vfd-broadcast-pot .vfd-mosaic-dollar-sign {
-    font-size: clamp(2rem, 5.2vh, 3.75rem);
+    font-size: clamp(1rem, 2.2vh, 1.55rem);
   }
 
   .vfd-broadcast-pot .vfd-mosaic-dollar-digits {
-    font-size: clamp(3.35rem, 10.5vh, 8.25rem);
+    font-size: clamp(1.45rem, 3.5vh, 2.65rem);
     letter-spacing: -0.03em;
     line-height: 0.95;
   }
@@ -2123,8 +2124,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: clamp(2rem, 6.5vh, 5rem);
-    font-weight: 900;
+    font-size: clamp(1.1rem, 2.65vh, 2rem);
+    font-weight: 800;
     letter-spacing: -0.02em;
     color: rgb(255 251 235 / 0.98);
     text-shadow: 0 2px 12px rgb(0 0 0 / 0.85);
@@ -2136,23 +2137,23 @@
   }
 
   .vfd-broadcast-action-label {
-    font-size: clamp(1.45rem, 4.5vh, 3.25rem);
-    font-weight: 900;
+    font-size: clamp(0.85rem, 2vh, 1.45rem);
+    font-weight: 800;
     letter-spacing: 0.12em;
     color: rgb(251 191 36 / 0.95);
   }
 
   .vfd-broadcast-action-amount .vfd-mosaic-dollar-sign {
-    font-size: clamp(1.5rem, 4.6vh, 3rem);
+    font-size: clamp(0.95rem, 2.15vh, 1.55rem);
   }
 
   .vfd-broadcast-action-amount .vfd-mosaic-dollar-digits {
-    font-size: clamp(2rem, 5.8vh, 4.25rem);
+    font-size: clamp(1.15rem, 2.65vh, 2rem);
   }
 
   .vfd-broadcast-action-message {
-    font-size: clamp(1.45rem, 4vh, 2.85rem);
-    font-weight: 900;
+    font-size: clamp(0.9rem, 2.1vh, 1.45rem);
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.14em;
     color: rgb(167 243 208 / 0.98);
@@ -2163,13 +2164,13 @@
   }
 
   .vfd-broadcast-rim-name {
-    font-size: clamp(1.25rem, 3.4vh, 2.35rem);
+    font-size: clamp(1rem, 2.35vh, 1.75rem);
     font-weight: 700;
     line-height: 1.1;
   }
 
   .vfd-broadcast-rim-name--acting {
-    font-size: clamp(1.45rem, 4vh, 2.75rem);
+    font-size: clamp(1.1rem, 2.65vh, 1.95rem);
   }
 
   .vfd-broadcast-rim-stack {
@@ -2181,32 +2182,37 @@
   }
 
   .vfd-broadcast-headline-meta-primary {
-    font-size: clamp(1.35rem, 3.4vh, 2.25rem);
-    font-weight: 800;
+    font-size: clamp(0.9rem, 2.1vh, 1.35rem);
+    font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: rgb(255 251 235 / 0.92);
+    color: rgb(255 251 235 / 0.82);
     line-height: 1.15;
   }
 
   .vfd-broadcast-headline-meta-blinds {
-    font-size: clamp(1.55rem, 3.8vh, 2.65rem);
-    font-weight: 900;
+    font-size: clamp(0.95rem, 2.25vh, 1.45rem);
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
-    color: rgb(251 191 36 / 0.96);
+    color: rgb(251 191 36 / 0.92);
     line-height: 1.1;
   }
 
   .vfd-broadcast-headline-meta-mobile {
-    font-size: clamp(1.15rem, 2.85vh, 1.75rem);
-    font-weight: 700;
+    font-size: clamp(0.85rem, 2vh, 1.25rem);
+    font-weight: 600;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: rgb(255 251 235 / 0.82);
+    color: rgb(255 251 235 / 0.72);
   }
 
   .venue-broadcast-answer-timer {
-    font-size: clamp(3.5rem, 9vh, 7rem);
+    font-size: clamp(1.65rem, 3.85vh, 3rem);
+    line-height: 1;
+  }
+
+  .venue-broadcast-answer-timer--hero {
+    font-size: clamp(2.25rem, 5.5vh, 4.25rem);
     line-height: 1;
   }
 

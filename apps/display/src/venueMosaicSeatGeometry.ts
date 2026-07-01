@@ -242,6 +242,40 @@ export function mosaicSeatHoleLayout(
 }
 
 /**
+ * Broadcast BTN / blind lammers — nudge clockwise along the rail toward the next seat.
+ * Uses actual cup positions so offset matches the artwork, not a synthetic tangent from center.
+ */
+export function broadcastBlindMarkerPct(
+  seatIndex: number,
+  seatCount: number,
+  w: number,
+  h: number,
+  markerSizePx: number
+): { leftPct: number; topPct: number } {
+  const n = seatCount > 0 ? seatCount : VENUE_MOSAIC_SEAT_COUNT
+  const i = ((Math.floor(seatIndex) % n) + n) % n
+  const cup = mosaicSeatDotPct(i, n, w, h)
+  if (!(w > 0 && h > 0)) return cup
+
+  const nextCup = mosaicSeatDotPct((i + 1) % n, n, w, h)
+  const cupX = (cup.leftPct / 100) * w
+  const cupY = (cup.topPct / 100) * h
+  const nextX = (nextCup.leftPct / 100) * w
+  const nextY = (nextCup.topPct / 100) * h
+  let tx = nextX - cupX
+  let ty = nextY - cupY
+  const len = Math.hypot(tx, ty) || 1
+  tx /= len
+  ty /= len
+
+  const sideOffsetPx = Math.max(34, Math.round(markerSizePx * 0.85))
+  return {
+    leftPct: ((cupX + tx * sideOffsetPx) / w) * 100,
+    topPct: ((cupY + ty * sideOffsetPx) / h) * 100,
+  }
+}
+
+/**
  * Player name label just outside the cupholder — outward from felt center through the cup.
  * Matches {@link mosaicSeatDotPct} so broadcast / hero labels track the artwork.
  */

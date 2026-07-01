@@ -23,7 +23,7 @@ import {
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
-import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, mosaicSeatChipInwardFrac, mosaicSeatHoleInwardFrac, venueMosaicFeltCenterPct, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
+import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, mosaicSeatChipInwardFrac, mosaicSeatHoleInwardFrac, venueMosaicFeltCenterPct, broadcastBlindMarkerPct, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -317,36 +317,6 @@ function broadcastCommunityCardLayoutPx(
     heightPx,
     boardGapPx: Math.round(24 * scale),
     gapPx: Math.max(6, Math.round(widthPx * 0.12)),
-  }
-}
-
-/** Blind / BTN beside the cup — tangential nudge off the seat, clear of chip stacks. */
-function broadcastBlindMarkerPct(
-  seatIndex: number,
-  seatCount: number,
-  w: number,
-  h: number,
-  markerSizePx: number
-): { leftPct: number; topPct: number } {
-  const cup = mosaicSeatDotPct(seatIndex, seatCount, w, h)
-  if (!(w > 0 && h > 0)) return cup
-
-  const center = venueMosaicFeltCenterPct(w, h)
-  const cupX = (cup.leftPct / 100) * w
-  const cupY = (cup.topPct / 100) * h
-  const centerX = (center.leftPct / 100) * w
-  const centerY = (center.topPct / 100) * h
-  const dx = cupX - centerX
-  const dy = cupY - centerY
-  const len = Math.hypot(dx, dy) || 1
-  const tx = -dy / len
-  const ty = dx / len
-  const sign = seatIndex % 2 === 0 ? 1 : -1
-  const sideOffsetPx = Math.max(38, Math.round(markerSizePx * 1.05))
-
-  return {
-    leftPct: ((cupX + tx * sideOffsetPx * sign) / w) * 100,
-    topPct: ((cupY + ty * sideOffsetPx * sign) / h) * 100,
   }
 }
 

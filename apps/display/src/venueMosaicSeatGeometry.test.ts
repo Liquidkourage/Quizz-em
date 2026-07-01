@@ -11,6 +11,7 @@ import {
   mosaicSeatLabelPct,
   mosaicSeatChipInwardFrac,
   mosaicStadiumCupUV,
+  broadcastBlindMarkerPct,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
 
@@ -132,5 +133,31 @@ describe('venueMosaicSeatGeometry', () => {
     expect(mosaicSeatChipInwardFrac(3)).toBe(0.02)
     expect(mosaicSeatChipInwardFrac(7)).toBe(0.02)
     expect(mosaicSeatChipInwardFrac(3)).toBeLessThan(mosaicSeatChipInwardFrac(2))
+  })
+
+  it('offsets broadcast blind markers clockwise along the rail toward the next seat', () => {
+    const markerPx = 44
+    for (let i = 0; i < 8; i++) {
+      const cup = mosaicSeatDotPct(i, 8, w, h)
+      const blind = broadcastBlindMarkerPct(i, 8, w, h, markerPx)
+      const nextCup = mosaicSeatDotPct((i + 1) % 8, 8, w, h)
+      const cupX = (cup.leftPct / 100) * w
+      const cupY = (cup.topPct / 100) * h
+      const blindX = (blind.leftPct / 100) * w
+      const blindY = (blind.topPct / 100) * h
+      const nextX = (nextCup.leftPct / 100) * w
+      const nextY = (nextCup.topPct / 100) * h
+      const alongX = nextX - cupX
+      const alongY = nextY - cupY
+      const alongLen = Math.hypot(alongX, alongY) || 1
+      const ux = alongX / alongLen
+      const uy = alongY / alongLen
+      const deltaX = blindX - cupX
+      const deltaY = blindY - cupY
+      const projected = deltaX * ux + deltaY * uy
+      expect(projected).toBeGreaterThan(20)
+      expect(projected).toBeLessThan(60)
+      expect(Math.hypot(deltaX, deltaY)).toBeCloseTo(projected, 0)
+    }
   })
 })

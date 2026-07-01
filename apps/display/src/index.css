@@ -1799,12 +1799,22 @@
   }
 
   .venue-headline-question-fit-host-broadcast {
-    max-height: min(12vh, 6.5rem);
+    max-height: min(13vh, 7rem);
   }
 
   .display-text-headline-question-broadcast {
     font-weight: 700;
     line-height: 1.15;
+  }
+
+  .vfd-broadcast-setlist-badge {
+    font-size: clamp(1rem, 2.4vh, 1.55rem);
+    line-height: 1;
+  }
+
+  .vfd-broadcast-phase-badge {
+    font-size: clamp(1rem, 2.35vh, 1.5rem);
+    line-height: 1.1;
   }
 
   .display-fit-question-host-app {
@@ -2085,7 +2095,7 @@
 
   /** n=1 broadcast hero — scoreboard-sized pot + action on felt. */
   .vfd-broadcast-pot-label {
-    font-size: clamp(0.85rem, 2.2vh, 1.35rem);
+    font-size: clamp(1rem, 2.8vh, 1.65rem);
     font-weight: 800;
     letter-spacing: 0.22em;
     text-transform: uppercase;
@@ -2094,21 +2104,21 @@
   }
 
   .vfd-broadcast-pot .vfd-mosaic-dollar-sign {
-    font-size: clamp(1.75rem, 4.5vh, 3.25rem);
+    font-size: clamp(2rem, 5.2vh, 3.75rem);
   }
 
   .vfd-broadcast-pot .vfd-mosaic-dollar-digits {
-    font-size: clamp(3rem, 9.5vh, 7.5rem);
+    font-size: clamp(3.35rem, 10.5vh, 8.25rem);
     letter-spacing: -0.03em;
     line-height: 0.95;
   }
 
   .vfd-broadcast-action-name {
-    max-width: min(22rem, 88vw);
+    max-width: min(24rem, 92vw);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: clamp(1.75rem, 5.5vh, 4.25rem);
+    font-size: clamp(2rem, 6.5vh, 5rem);
     font-weight: 900;
     letter-spacing: -0.02em;
     color: rgb(255 251 235 / 0.98);
@@ -2121,22 +2131,22 @@
   }
 
   .vfd-broadcast-action-label {
-    font-size: clamp(1.25rem, 3.8vh, 2.85rem);
+    font-size: clamp(1.45rem, 4.5vh, 3.25rem);
     font-weight: 900;
     letter-spacing: 0.12em;
     color: rgb(251 191 36 / 0.95);
   }
 
   .vfd-broadcast-action-amount .vfd-mosaic-dollar-sign {
-    font-size: clamp(1.35rem, 4vh, 2.75rem);
+    font-size: clamp(1.5rem, 4.6vh, 3rem);
   }
 
   .vfd-broadcast-action-amount .vfd-mosaic-dollar-digits {
-    font-size: clamp(1.75rem, 5vh, 3.75rem);
+    font-size: clamp(2rem, 5.8vh, 4.25rem);
   }
 
   .vfd-broadcast-action-message {
-    font-size: clamp(1.25rem, 3.5vh, 2.5rem);
+    font-size: clamp(1.45rem, 4vh, 2.85rem);
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.14em;
@@ -2147,8 +2157,26 @@
     color: rgb(207 250 254 / 0.98);
   }
 
+  .vfd-broadcast-rim-name {
+    font-size: clamp(1.25rem, 3.4vh, 2.35rem);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .vfd-broadcast-rim-name--acting {
+    font-size: clamp(1.45rem, 4vh, 2.75rem);
+  }
+
+  .vfd-broadcast-rim-stack {
+    font-size: clamp(1.15rem, 3.2vh, 2rem);
+  }
+
+  .vfd-broadcast-blind-badge {
+    font-size: clamp(0.65rem, 1.6vh, 0.95rem);
+  }
+
   .vfd-broadcast-headline-meta-primary {
-    font-size: clamp(0.95rem, 2.2vh, 1.45rem);
+    font-size: clamp(1.15rem, 2.8vh, 1.85rem);
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -2157,7 +2185,7 @@
   }
 
   .vfd-broadcast-headline-meta-blinds {
-    font-size: clamp(1.05rem, 2.6vh, 1.75rem);
+    font-size: clamp(1.35rem, 3.2vh, 2.15rem);
     font-weight: 900;
     font-variant-numeric: tabular-nums;
     color: rgb(251 191 36 / 0.96);
@@ -2165,7 +2193,7 @@
   }
 
   .vfd-broadcast-headline-meta-mobile {
-    font-size: clamp(0.85rem, 1.9vh, 1.2rem);
+    font-size: clamp(1rem, 2.3vh, 1.45rem);
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -2173,7 +2201,7 @@
   }
 
   .venue-broadcast-answer-timer {
-    font-size: clamp(3rem, 8vh, 6.5rem);
+    font-size: clamp(3.5rem, 9vh, 7rem);
     line-height: 1;
   }
 

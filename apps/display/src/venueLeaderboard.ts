@@ -18,6 +18,19 @@ export function formatVenueBankroll(amount: number): string {
   return `$${formatVenueBankrollDigits(amount)}`
 }
 
+/** Public venue display — first name + surname initial (e.g. `Alice S.`). */
+export function formatVenueDisplayPlayerName(fullName: string): string {
+  const t = fullName.trim()
+  if (!t) return ''
+  const parts = t.split(/\s+/).filter(Boolean)
+  if (parts.length <= 1) return parts[0] ?? t
+  const first = parts[0]!
+  const lastToken = parts[parts.length - 1]!
+  const initial = lastToken.replace(/\./g, '').charAt(0).toUpperCase()
+  if (!initial) return first
+  return `${first} ${initial}.`
+}
+
 /** Digits only (no currency sign) — pairs with mosaic Bungee dollar markup. */
 export function formatVenueBankrollDigits(amount: number): string {
   const n = Number.isFinite(amount) ? Math.round(amount) : 0

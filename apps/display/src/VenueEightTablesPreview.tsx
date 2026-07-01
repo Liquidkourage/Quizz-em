@@ -40,7 +40,11 @@ import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineCondenseCaptionParts, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
-import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
+import {
+  formatVenueBankroll,
+  formatVenueBankrollDigits,
+  formatVenueDisplayPlayerName,
+} from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import VenueHeadlineCondenseStatsPill from './VenueHeadlineCondenseStatsPill'
 import {
@@ -246,14 +250,6 @@ function MosaicTableStatusBand({
   )
 }
 
-/** First name on the broadcast rim — full name stays in the center HUD. */
-function broadcastRimDisplayName(fullName: string): string {
-  const t = fullName.trim()
-  const parts = t.split(/\s+/).filter(Boolean)
-  if (parts.length <= 1) return t
-  return parts[0]!
-}
-
 /** Broadcast hero (n=1): pot + acting line centered on felt — replaces header status band. */
 function VenueBroadcastCenterStack({
   pot,
@@ -423,7 +419,8 @@ function mosaicActingPlayerName(
   if (actingSeatIndex == null) return null
   if (actingSeatIndex < 0 || actingSeatIndex >= VENUE_SEAT_SLOTS) return null
   const raw = seatNames[actingSeatIndex]?.trim() ?? ''
-  return raw || `Seat ${actingSeatIndex + 1}`
+  if (!raw) return `Seat ${actingSeatIndex + 1}`
+  return formatVenueDisplayPlayerName(raw)
 }
 
 /** Diagonal stamp when wagering is closed on this felt. */
@@ -1095,7 +1092,7 @@ function SeatRingWithLabels({
       const { w, h } = ringPx
       if (!(w > 0 && h > 0)) return empty
       const cupPx = Math.round(stadiumCupholderSizePx(w) * 1.2)
-      const labelOutwardPx = cupPx * 0.62 + (feltSeatStacks ? 26 : 18)
+      const labelOutwardPx = cupPx * 0.72 + (feltSeatStacks ? 32 : 22)
       return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         if (!(seatNames[i]?.trim() ?? '')) return null
         return mosaicSeatLabelPct(i, w, h, labelOutwardPx)
@@ -1256,7 +1253,7 @@ function SeatRingWithLabels({
         const showFeltStack = Boolean(
           raw && ((feltSeatStacks && size === 'lg') || (isBroadcast && isActing))
         )
-        const rimDisplayName = isBroadcast ? broadcastRimDisplayName(raw) : raw
+        const rimDisplayName = isBroadcast ? formatVenueDisplayPlayerName(raw) : raw
         const labelVy = isBroadcast ? 0 : seatNameLabelVerticalNudgePx(i, size)
         const lastBetAct =
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
@@ -1400,8 +1397,9 @@ function SeatRingWithLabels({
                     rimH,
                     STADIUM_BLIND_BADGE_RADIAL
                   )
-              const badgeText =
-                size === 'lg'
+              const badgeText = isBroadcast
+                ? 'vfd-broadcast-blind-badge font-black leading-none tracking-tight'
+                : size === 'lg'
                   ? 'text-[8px] font-black leading-none tracking-tight sm:text-[9px]'
                   : 'text-[7px] font-black leading-none tracking-tight sm:text-[8px]'
               return (
@@ -1461,9 +1459,19 @@ function SeatRingWithLabels({
                   width={96}
                   height={72}
                   draggable={false}
-                  className="pointer-events-none h-[2.6925rem] w-auto max-w-[4.6rem] shrink-0 select-none object-contain opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] sm:h-[3.0875rem] sm:max-w-[5.35rem]"
+                  className={`pointer-events-none w-auto shrink-0 select-none object-contain opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${
+                    isBroadcast
+                      ? 'h-[clamp(2.75rem,6vh,4.25rem)] max-w-[clamp(4.75rem,10vw,7rem)]'
+                      : 'h-[2.6925rem] max-w-[4.6rem] sm:h-[3.0875rem] sm:max-w-[5.35rem]'
+                  }`}
                 />
-                <span className="max-w-[10rem] text-center font-mono text-[1.16rem] font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[11rem] sm:text-[1.26rem] md:text-[1.315rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)]">
+                <span
+                  className={`max-w-[10rem] text-center font-mono font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[11rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
+                    isBroadcast
+                      ? 'vfd-broadcast-rim-stack'
+                      : 'text-[1.16rem] sm:text-[1.26rem] md:text-[1.315rem]'
+                  }`}
+                >
                   {formatVenueBankroll(chips)}
                 </span>
               </div>
@@ -1472,10 +1480,8 @@ function SeatRingWithLabels({
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} text-center font-semibold leading-tight shadow-black/80 drop-shadow ${
                   isBroadcast
-                    ? `max-w-[min(11rem,30vw)] ${
-                        isActing
-                          ? 'text-[clamp(1.05rem,2.8vh,1.85rem)] font-black text-amber-100'
-                          : 'text-[clamp(0.95rem,2.2vh,1.55rem)]'
+                    ? `vfd-broadcast-rim-name max-w-[min(13rem,34vw)] ${
+                        isActing ? 'vfd-broadcast-rim-name--acting font-black text-amber-100' : ''
                       }`
                     : labelClass
                 } ${
@@ -2140,7 +2146,7 @@ function VenueBroadcastHeadlineStrip({
       <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
         {showSetlistCue && setlistCueNumber != null && setlistCueTotal != null ? (
           <span
-            className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}
+            className="vfd-broadcast-setlist-badge inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2.5 py-1 font-black uppercase tracking-wide text-violet-100/95"
           >
             Q {setlistCueNumber}/{setlistCueTotal}
           </span>
@@ -2176,7 +2182,7 @@ function VenueBroadcastHeadlineStrip({
         </p>
       ) : null}
       {headlinePhaseBadge != null && !inVenueShowdown && !headlineAnsweringUnified ? (
-        <p className="text-center text-sm font-black uppercase tracking-wide text-emerald-200/90 sm:text-base">
+        <p className="vfd-broadcast-phase-badge text-center font-black uppercase tracking-wide text-emerald-200/90">
           {headlinePhaseBadge}
         </p>
       ) : null}

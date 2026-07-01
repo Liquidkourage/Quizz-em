@@ -4,6 +4,7 @@ import {
   captureVenueHandStackBaselines,
   formatVenueBankroll,
   formatVenueBankrollDigits,
+  formatVenueDisplayPlayerName,
   venueLeaderboardColumns,
   venueLeaderboardFooterStats,
   venueLeaderboardPlayerKey,
@@ -89,5 +90,13 @@ describe('formatVenueBankrollDigits', () => {
     expect(formatVenueBankrollDigits(160)).toBe('160')
     expect(formatVenueBankroll(160)).toBe('$160')
     expect(formatVenueBankrollDigits(7030)).toBe('7,030')
+  })
+})
+
+describe('formatVenueDisplayPlayerName', () => {
+  it('uses first name and last initial', () => {
+    expect(formatVenueDisplayPlayerName('Alice Chen')).toBe('Alice C.')
+    expect(formatVenueDisplayPlayerName('Carla M.')).toBe('Carla M.')
+    expect(formatVenueDisplayPlayerName('Grace')).toBe('Grace')
   })
 })

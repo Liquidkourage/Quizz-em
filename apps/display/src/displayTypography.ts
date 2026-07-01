@@ -136,7 +136,7 @@ export function displayBroadcastHeadlineQuestionFitProfile(): {
   hostClassName: string
 } {
   return {
-    maxFontVh: 0.068,
+    maxFontVh: 0.088,
     hostClassName: 'venue-headline-question-fit-host-broadcast',
   }
 }

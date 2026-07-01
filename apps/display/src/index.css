@@ -1799,21 +1799,26 @@
   }
 
   .venue-headline-question-fit-host-broadcast {
-    max-height: min(13vh, 7rem);
+    max-height: min(17vh, 9.5rem);
   }
 
   .display-text-headline-question-broadcast {
     font-weight: 700;
-    line-height: 1.15;
+    line-height: 1.12;
   }
 
   .vfd-broadcast-setlist-badge {
-    font-size: clamp(1rem, 2.4vh, 1.55rem);
+    font-size: clamp(1.25rem, 3.2vh, 2.15rem);
     line-height: 1;
   }
 
   .vfd-broadcast-phase-badge {
-    font-size: clamp(1rem, 2.35vh, 1.5rem);
+    font-size: clamp(1.2rem, 3vh, 2rem);
+    line-height: 1.1;
+  }
+
+  .vfd-broadcast-answer-prompt {
+    font-size: clamp(1.15rem, 2.85vh, 1.85rem);
     line-height: 1.1;
   }
 
@@ -2176,7 +2181,7 @@
   }
 
   .vfd-broadcast-headline-meta-primary {
-    font-size: clamp(1.15rem, 2.8vh, 1.85rem);
+    font-size: clamp(1.35rem, 3.4vh, 2.25rem);
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -2185,7 +2190,7 @@
   }
 
   .vfd-broadcast-headline-meta-blinds {
-    font-size: clamp(1.35rem, 3.2vh, 2.15rem);
+    font-size: clamp(1.55rem, 3.8vh, 2.65rem);
     font-weight: 900;
     font-variant-numeric: tabular-nums;
     color: rgb(251 191 36 / 0.96);
@@ -2193,7 +2198,7 @@
   }
 
   .vfd-broadcast-headline-meta-mobile {
-    font-size: clamp(1rem, 2.3vh, 1.45rem);
+    font-size: clamp(1.15rem, 2.85vh, 1.75rem);
     font-weight: 700;
     letter-spacing: 0.03em;
     text-transform: uppercase;

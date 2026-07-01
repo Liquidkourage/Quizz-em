@@ -20,6 +20,7 @@ import {
   stadiumMosaicCommunityCardWidthPx,
   stadiumMosaicCommunityCardHeightPx,
   stadiumSeatPointPx,
+  STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
 import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
@@ -248,6 +249,21 @@ function MosaicTableStatusBand({
       <span className="vfd-mosaic-status-band-message">Answer on your phone</span>
     </div>
   )
+}
+
+/** Chip stack on broadcast felt — scales with measured table width (matches fullscreen hero). */
+function broadcastChipStackLayoutPx(rimW: number): {
+  heightPx: number
+  maxWidthPx: number
+  fontPx: number
+} {
+  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  return {
+    heightPx: Math.round(70 * scale),
+    maxWidthPx: Math.round(118 * scale),
+    fontPx: Math.round(34 * scale),
+  }
 }
 
 /** Broadcast hero (n=1): pot + acting line centered on felt — replaces header status band. */
@@ -1251,8 +1267,12 @@ function SeatRingWithLabels({
         const isFolded = filled && seatFolded[i] === true
         const isActing = filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded
         const showFeltStack = Boolean(
-          raw && ((feltSeatStacks && size === 'lg') || (isBroadcast && isActing))
+          raw &&
+            !isFolded &&
+            ((feltSeatStacks && size === 'lg') || isBroadcast)
         )
+        const broadcastChipLayout =
+          isBroadcast && showFeltStack && rimW > 0 ? broadcastChipStackLayoutPx(rimW) : null
         const rimDisplayName = isBroadcast ? formatVenueDisplayPlayerName(raw) : raw
         const labelVy = isBroadcast ? 0 : seatNameLabelVerticalNudgePx(i, size)
         const lastBetAct =
@@ -1461,16 +1481,30 @@ function SeatRingWithLabels({
                   draggable={false}
                   className={`pointer-events-none w-auto shrink-0 select-none object-contain opacity-95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] ${
                     isBroadcast
-                      ? 'h-[clamp(2.75rem,6vh,4.25rem)] max-w-[clamp(4.75rem,10vw,7rem)]'
+                      ? ''
                       : 'h-[2.6925rem] max-w-[4.6rem] sm:h-[3.0875rem] sm:max-w-[5.35rem]'
                   }`}
+                  style={
+                    broadcastChipLayout
+                      ? {
+                          height: `${broadcastChipLayout.heightPx}px`,
+                          maxWidth: `${broadcastChipLayout.maxWidthPx}px`,
+                        }
+                      : undefined
+                  }
                 />
                 <span
                   className={`max-w-[10rem] text-center font-mono font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[11rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
-                    isBroadcast
-                      ? 'vfd-broadcast-rim-stack'
-                      : 'text-[1.16rem] sm:text-[1.26rem] md:text-[1.315rem]'
+                    isBroadcast ? '' : 'text-[1.16rem] sm:text-[1.26rem] md:text-[1.315rem]'
                   }`}
+                  style={
+                    broadcastChipLayout
+                      ? {
+                          fontSize: `${broadcastChipLayout.fontPx}px`,
+                          maxWidth: `${Math.round(broadcastChipLayout.maxWidthPx * 1.65)}px`,
+                        }
+                      : undefined
+                  }
                 >
                   {formatVenueBankroll(chips)}
                 </span>
@@ -2138,7 +2172,7 @@ function VenueBroadcastHeadlineStrip({
 
   return (
     <motion.div
-      className="venue-broadcast-headline sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col gap-1 rounded-b-xl border-2 border-yellow-400/85 bg-black/88 px-3 py-1.5 shadow-[0_10px_32px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-4 sm:py-2"
+      className="venue-broadcast-headline sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col gap-1.5 rounded-b-xl border-2 border-yellow-400/85 bg-black/88 px-3 py-2 shadow-[0_10px_32px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-5 sm:py-2.5"
       style={{ paddingTop: 'max(0.25rem, env(safe-area-inset-top, 0px))' }}
       initial={skipMountIntro ? false : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -2224,7 +2258,7 @@ function VenueBroadcastHeadlineStrip({
               : 'border-cyan-600/35 bg-cyan-950/25'
           }`}
         >
-          <span className={`font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+          <span className="vfd-broadcast-answer-prompt font-black uppercase tracking-wide text-cyan-100/90">
             Answer on your phone
           </span>
           {inAnsweringCountdown && typeof timerSeconds === 'number' ? (

@@ -263,6 +263,18 @@ export type BroadcastRimClusterLayout = {
   stackFirst: boolean
 }
 
+/** Semicircle arc seats — need extra vertical gap between rim name and bankroll. */
+const BROADCAST_ARC_SEAT_INDEXES = new Set([1, 3, 5, 7])
+
+/** Scaled gap from rim name to bankroll label (px). */
+export function broadcastRimStackOffsetPx(seatIndex: number, stackFontPx: number): number {
+  const i = mosaicSeatIndex(seatIndex)
+  if (stackFontPx <= 0) return 0
+  if (BROADCAST_ARC_SEAT_INDEXES.has(i)) return Math.round(stackFontPx * 1.42)
+  if (i === 2 || i === 6) return Math.round(stackFontPx * 1.15)
+  return Math.round(stackFontPx * 1.08)
+}
+
 /** Bankroll label — under the rim name; flat side seats stack vertically (+Y). */
 export function broadcastRimStackPct(
   seatIndex: number,
@@ -274,20 +286,34 @@ export function broadcastRimStackPct(
   if (!(w > 0 && h > 0) || inwardFromNamePx <= 0) return namePos
   const i = mosaicSeatIndex(seatIndex)
   const center = venueMosaicFeltCenterPct(w, h)
+  const cup = mosaicSeatDotPct(i, VENUE_MOSAIC_SEAT_COUNT, w, h)
   const nameX = (namePos.leftPct / 100) * w
   const nameY = (namePos.topPct / 100) * h
   const cx = (center.leftPct / 100) * w
   const cy = (center.topPct / 100) * h
 
+  const horizontalPullTowardCenter = (pullScale: number) => {
+    const towardCenterX = cx - nameX
+    return (
+      Math.sign(towardCenterX || 1) *
+      Math.min(Math.abs(towardCenterX) * pullScale, inwardFromNamePx * 0.3)
+    )
+  }
+
   /** 3 and 9 o'clock flats — inward is mostly horizontal; keep name over stake vertically. */
   if (i === 2 || i === 6) {
-    const towardCenterX = cx - nameX
-    const horizontalPull =
-      Math.sign(towardCenterX || 1) *
-      Math.min(Math.abs(towardCenterX) * 0.055, inwardFromNamePx * 0.32)
     return {
-      leftPct: ((nameX + horizontalPull) / w) * 100,
+      leftPct: ((nameX + horizontalPullTowardCenter(0.055)) / w) * 100,
       topPct: ((nameY + inwardFromNamePx * 0.95) / h) * 100,
+    }
+  }
+
+  /** Corner arc seats — emphasize vertical gap (name ↔ stake reads as two lines). */
+  if (BROADCAST_ARC_SEAT_INDEXES.has(i)) {
+    const verticalSign = cup.topPct < center.topPct ? 1 : -1
+    return {
+      leftPct: ((nameX + horizontalPullTowardCenter(0.048)) / w) * 100,
+      topPct: ((nameY + verticalSign * inwardFromNamePx) / h) * 100,
     }
   }
 

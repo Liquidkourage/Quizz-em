@@ -32,6 +32,7 @@ import {
   venueMosaicFeltCenterPct,
   broadcastBlindMarkerPct,
   broadcastRimStackPct,
+  broadcastRimStackOffsetPx,
   MOSAIC_HOLE_CARD_FAN_DEG,
 } from './venueMosaicSeatGeometry'
 import {
@@ -1524,7 +1525,7 @@ function SeatRingWithLabels({
         const broadcastRimStack = isBroadcast && filled
         const broadcastRimStackInwardPx =
           broadcastRimStack && broadcastChipLayout
-            ? Math.round(broadcastChipLayout.fontPx * 1.05)
+            ? broadcastRimStackOffsetPx(i, broadcastChipLayout.fontPx)
             : 0
         const broadcastStackPos =
           broadcastRimStack && broadcastRimStackInwardPx > 0 && rimW > 0 && rimH > 0

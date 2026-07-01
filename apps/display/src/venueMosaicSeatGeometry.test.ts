@@ -13,6 +13,7 @@ import {
   mosaicStadiumCupUV,
   broadcastBlindMarkerPct,
   broadcastRimStackPct,
+  broadcastRimStackOffsetPx,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
 
@@ -185,6 +186,22 @@ describe('venueMosaicSeatGeometry', () => {
       } else {
         expect(stack.leftPct).toBeGreaterThan(name.leftPct)
       }
+    }
+  })
+
+  it('gives arc seats a larger name-to-stack gap than pole seats', () => {
+    const fontPx = 34
+    expect(broadcastRimStackOffsetPx(1, fontPx)).toBeGreaterThan(broadcastRimStackOffsetPx(0, fontPx))
+    expect(broadcastRimStackOffsetPx(3, fontPx)).toBeGreaterThan(broadcastRimStackOffsetPx(4, fontPx))
+  })
+
+  it('separates arc seat name and stack primarily on the vertical axis', () => {
+    for (const i of [1, 7]) {
+      const name = mosaicSeatLabelPct(i, w, h, 28)
+      const offset = broadcastRimStackOffsetPx(i, 34)
+      const stack = broadcastRimStackPct(i, name, w, h, offset)
+      expect(Math.abs(stack.topPct - name.topPct)).toBeGreaterThan(0.35)
+      expect(Math.abs(stack.leftPct - name.leftPct)).toBeLessThan(1.5)
     }
   })
 })

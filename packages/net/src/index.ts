@@ -208,8 +208,27 @@ export type DisplayVenueWallSnapshot = {
   showAudienceWelcome: boolean
   /** Players eliminated on the most recent paid hand (cleared when the next hand opens). */
   lastHandBusts?: DisplayVenueBustEntry[]
-  /** Server epoch ms when that hand ended; pairs with {@link lastHandBusts}. */
+  /** Server epoch ms when that hand ended; pairs with {@link lastHandBusts} / {@link lastHandSeating}. */
   lastHandEndMs?: number | null
+  /** Table moves / closures / shuffle from the most recent End Round seating pass. */
+  lastHandSeating?: DisplayVenueSeatingAnnouncement | null
+}
+
+/** Public display: one player moved tables after End Round. */
+export type DisplayVenueSeatingMoveEntry = {
+  name: string
+  fromTableNum: number
+  toTableNum: number
+}
+
+/** Public display: seating changes after End Round (solo rescue, closed felts, scheduled shuffle). */
+export type DisplayVenueSeatingAnnouncement = {
+  moves: DisplayVenueSeatingMoveEntry[]
+  closedTableNums: number[]
+  shuffled: boolean
+  tablesBefore: number
+  tablesAfter: number
+  playerCount: number
 }
 
 /** Public display: one player busted on the last completed hand. */

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { DisplayLayoutPayload, DisplayVenueWallSnapshot } from '@qhe/net'
+import type { DisplayLayoutPayload, DisplayVenueSeatingAnnouncement, DisplayVenueWallSnapshot } from '@qhe/net'
 import {
   connect,
   onDisplayLayout,
@@ -20,6 +20,8 @@ import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { venueWallFloorIsLive } from './venueWallAutoView.ts'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
+import { useVenueSeatingAnnouncement, venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
+import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 import { useDisplayVenueStatePopups } from './useDisplayVenueStatePopups'
 import DisplayVenueStatePopup from './DisplayVenueStatePopup.tsx'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
@@ -44,6 +46,54 @@ function normalizeVenueWallTiles(
     }
   }
   return [...byNum.keys()].sort((a, b) => a - b).map((n) => byNum.get(n)!)
+}
+
+function normalizeLastHandSeating(raw: unknown): DisplayVenueSeatingAnnouncement | null {
+  if (raw == null || typeof raw !== 'object') return null
+  const s = raw as Partial<DisplayVenueSeatingAnnouncement>
+  const moves = Array.isArray(s.moves)
+    ? s.moves
+        .map((m) => {
+          if (m == null || typeof m !== 'object') return null
+          const row = m as Partial<DisplayVenueSeatingAnnouncement['moves'][number]>
+          if (typeof row.name !== 'string' || typeof row.fromTableNum !== 'number' || typeof row.toTableNum !== 'number') {
+            return null
+          }
+          return {
+            name: row.name.trim(),
+            fromTableNum: Math.floor(row.fromTableNum),
+            toTableNum: Math.floor(row.toTableNum),
+          }
+        })
+        .filter((m): m is DisplayVenueSeatingAnnouncement['moves'][number] => m != null)
+    : []
+  const closedTableNums = Array.isArray(s.closedTableNums)
+    ? s.closedTableNums
+        .filter((n): n is number => typeof n === 'number' && Number.isFinite(n))
+        .map((n) => Math.floor(n))
+    : []
+  const shuffled = s.shuffled === true
+  const tablesBefore =
+    typeof s.tablesBefore === 'number' && Number.isFinite(s.tablesBefore)
+      ? Math.floor(s.tablesBefore)
+      : 0
+  const tablesAfter =
+    typeof s.tablesAfter === 'number' && Number.isFinite(s.tablesAfter)
+      ? Math.floor(s.tablesAfter)
+      : 0
+  const playerCount =
+    typeof s.playerCount === 'number' && Number.isFinite(s.playerCount)
+      ? Math.floor(s.playerCount)
+      : 0
+  const out: DisplayVenueSeatingAnnouncement = {
+    moves,
+    closedTableNums,
+    shuffled,
+    tablesBefore,
+    tablesAfter,
+    playerCount,
+  }
+  return venueSeatingAnnouncementHasContent(out) ? out : null
 }
 
 function venueOverviewFocusOff(l: DisplayLayoutPayload) {
@@ -118,16 +168,18 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     venueWall != null &&
     wallViewBeforeBust === 'leaderboard'
   const bustAnnouncement = useVenueBustAnnouncement(venueWall, leaderboardRequested)
+  const seatingAnnouncement = useVenueSeatingAnnouncement(venueWall, bustAnnouncement.visible)
+  const handOverlayVisible = bustAnnouncement.visible || seatingAnnouncement.visible
   const wallView =
-    bustAnnouncement.visible && hostWallView !== 'rules' ? 'floor' : wallViewBeforeBust
-  const showSeatingChart = wouldShowSeatingChart && !bustAnnouncement.visible
+    handOverlayVisible && hostWallView !== 'rules' ? 'floor' : wallViewBeforeBust
+  const showSeatingChart = wouldShowSeatingChart && !handOverlayVisible
   const showRules =
-    onVenueWallLayout && !bustAnnouncement.visible && wallView === 'rules'
+    onVenueWallLayout && !handOverlayVisible && wallView === 'rules'
   const showLeaderboard =
     onVenueWallLayout &&
     !audienceBriefing &&
     !showSeatingChart &&
-    !bustAnnouncement.visible &&
+    !handOverlayVisible &&
     !showRules &&
     hasFloorTables &&
     wallView === 'leaderboard' &&
@@ -257,6 +309,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           typeof p.lastHandEndMs === 'number' && Number.isFinite(p.lastHandEndMs)
             ? Math.floor(p.lastHandEndMs)
             : null,
+        lastHandSeating: normalizeLastHandSeating(p.lastHandSeating),
       }
       setVenueWall(next)
     })
@@ -279,10 +332,10 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     !showRules
 
   const statePopup = useDisplayVenueStatePopups(
-    showVenueMosaicShell && !bustAnnouncement.visible ? venueWall : null,
+    showVenueMosaicShell && !handOverlayVisible ? venueWall : null,
   )
   const answerReveal = useVenueAnswerReveal(
-    showVenueMosaicShell && !bustAnnouncement.visible ? venueWall : null,
+    showVenueMosaicShell && !handOverlayVisible ? venueWall : null,
   )
 
   return (
@@ -361,6 +414,14 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     <AnimatePresence>
       {bustAnnouncement.visible && bustAnnouncement.busts.length > 0 ? (
         <VenueBustAnnouncement key="venue-bust-announcement" busts={bustAnnouncement.busts} />
+      ) : null}
+      {seatingAnnouncement.visible &&
+      seatingAnnouncement.seating != null &&
+      venueSeatingAnnouncementHasContent(seatingAnnouncement.seating) ? (
+        <VenueSeatingAnnouncement
+          key={`venue-seating-${wall?.lastHandEndMs ?? 'x'}`}
+          seating={seatingAnnouncement.seating}
+        />
       ) : null}
       {statePopup.visible && statePopup.popup ? (
         <DisplayVenueStatePopup key={`${statePopup.popup.kind}-${statePopup.popup.title}`} popup={statePopup.popup} />

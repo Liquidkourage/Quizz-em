@@ -1,6 +1,7 @@
 import { type GameState, previewChipPayoutByPlayerId } from '@qhe/core'
 import type {
   DisplayVenueTileSnapshot,
+  DisplayVenueSeatingAnnouncement,
   HostVenueActionRow,
   HostVenueBigWinEntry,
   HostVenueBustEntry,
@@ -19,6 +20,7 @@ const venueHostLogs = new Map<string, VenueHostLog>()
 type VenueLastHandDisplay = {
   endMs: number
   busts: HostVenueBustEntry[]
+  seating: DisplayVenueSeatingAnnouncement | null
 }
 
 const venueLastHandDisplay = new Map<string, VenueLastHandDisplay>()
@@ -38,7 +40,19 @@ export function clearVenueHostLog(vn: string): void {
 }
 
 export function setVenueLastHandDisplay(vn: string, busts: HostVenueBustEntry[]): void {
-  venueLastHandDisplay.set(vn, { endMs: Date.now(), busts })
+  venueLastHandDisplay.set(vn, { endMs: Date.now(), busts, seating: null })
+}
+
+export function attachVenueLastHandSeating(
+  vn: string,
+  seating: DisplayVenueSeatingAnnouncement | null,
+): void {
+  const cur = venueLastHandDisplay.get(vn)
+  if (cur == null) {
+    venueLastHandDisplay.set(vn, { endMs: Date.now(), busts: [], seating })
+    return
+  }
+  cur.seating = seating
 }
 
 export function getVenueLastHandDisplay(vn: string): VenueLastHandDisplay | null {

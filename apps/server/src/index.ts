@@ -95,7 +95,11 @@ import {
   openAnsweringPhase,
   planVenueWageringOrchestration,
 } from './venue-wagering-orchestration'
-import { applyVenueCondenseAfterRound, venueCondenseSnapshotFromRooms } from './venue-condense'
+import {
+  applyVenueCondenseAfterRound,
+  venueCondenseSnapshotFromRooms,
+  venueSeatingAnnouncementFromResult,
+} from './venue-condense'
 import {
   getVenueHandsCompleted,
   loadVenueShuffleSettingsFromDisk,
@@ -112,6 +116,7 @@ import {
   getVenueLastHandDisplay,
   recordVenueHostHandResults,
   setVenueLastHandDisplay,
+  attachVenueLastHandSeating,
   clearVenueLastHandDisplay,
 } from './venue-host-log'
 import {
@@ -1498,9 +1503,13 @@ function moveHumanToTableSession(playerId: string, toSessionKey: string, tableId
   sock.emit('seated', { tableId })
 }
 
-function runVenueCondenseAfterRound(vnRaw: string, hostId: string, shuffle: boolean): string[] {
+function runVenueCondenseAfterRound(
+  vnRaw: string,
+  hostId: string,
+  shuffle: boolean,
+): import('./venue-condense').VenueCondenseApplyResult {
   const vn = normalizeVenueCode(vnRaw)
-  const result = applyVenueCondenseAfterRound(
+  return applyVenueCondenseAfterRound(
     {
       venueCode: vn,
       hostId,
@@ -1516,7 +1525,6 @@ function runVenueCondenseAfterRound(vnRaw: string, hostId: string, shuffle: bool
     },
     { shuffle },
   )
-  return result.hostToasts
 }
 
 /**
@@ -2158,10 +2166,23 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     venueChipSurvivorCount: condenseCounts.chipSurvivorCount,
     venueHandsUntilShuffle: shuffleDisplay.handsUntilShuffle,
     venueShuffleEveryHands: shuffleDisplay.shuffleEveryHands,
-    ...(lastHandDisplay != null && lastHandDisplay.busts.length > 0
+    ...(lastHandDisplay != null &&
+    (lastHandDisplay.busts.length > 0 ||
+      (lastHandDisplay.seating != null &&
+        (lastHandDisplay.seating.shuffled ||
+          lastHandDisplay.seating.moves.length > 0 ||
+          lastHandDisplay.seating.closedTableNums.length > 0)))
       ? {
-          lastHandBusts: lastHandDisplay.busts.map((b) => ({ name: b.name, tableNum: b.tableNum })),
           lastHandEndMs: lastHandDisplay.endMs,
+          ...(lastHandDisplay.busts.length > 0
+            ? {
+                lastHandBusts: lastHandDisplay.busts.map((b) => ({
+                  name: b.name,
+                  tableNum: b.tableNum,
+                })),
+              }
+            : {}),
+          ...(lastHandDisplay.seating != null ? { lastHandSeating: lastHandDisplay.seating } : {}),
         }
       : {}),
   }
@@ -3251,14 +3272,15 @@ io.on('connection', (socket) => {
           syncVenueBlindsToAllSessions(vnEnd)
           await emitHostLibrary(vnEnd)
           const shuffleTick = recordVenueShuffleHandCompleted(vnEnd)
-          const condenseToasts = runVenueCondenseAfterRound(
+          const condenseResult = runVenueCondenseAfterRound(
             vnEnd,
             gameState.hostId,
             shuffleTick.shuffleThisRound,
           )
+          attachVenueLastHandSeating(vnEnd, venueSeatingAnnouncementFromResult(condenseResult))
           emitDisplayVenueSnapshotNow(vnEnd)
           socket.emit('toast', `Round cleared — lobby on all ${lockEnd.length} felts at this venue.`)
-          for (const msg of condenseToasts) {
+          for (const msg of condenseResult.hostToasts) {
             socket.emit('toast', msg)
             io.to(hostVenueRoom(vnEnd)).emit('toast', msg)
           }

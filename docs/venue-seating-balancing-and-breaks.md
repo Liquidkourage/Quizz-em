@@ -58,7 +58,9 @@ After busts are applied on every felt:
 
 **Host toast:** `Tables shuffled — 20 → 18 (110 players remaining).`
 
-**TV / players:** `Shuffle in N hands` countdown; `Shuffle next hand` when one away.
+**TV overlay:** Full-screen pop-up (like eliminations) for solo moves, closed felts, and shuffles — via `lastHandSeating` on the venue snapshot. Plays after the bust overlay when both happen on the same End Round.
+
+**Display copy:** `91 remaining · Shuffle in 3 hands` countdown on the stats pill.
 
 ---
 

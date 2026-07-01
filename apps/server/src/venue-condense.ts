@@ -1,3 +1,4 @@
+import type { DisplayVenueSeatingAnnouncement } from '@qhe/net'
 import type { Server as SocketIOServer } from 'socket.io'
 import {
   type GameState,
@@ -31,6 +32,8 @@ export type VenueCondenseApplyResult = {
   survivorsBefore: number
   survivorsAfter: number
   hostToasts: string[]
+  seatingMoves: { name: string; fromTableNum: number; toTableNum: number }[]
+  closedTableNums: number[]
 }
 
 function collectRosters(deps: VenueCondenseApplyDeps): VenueTableRoster[] {
@@ -77,18 +80,18 @@ export function venueCondenseSnapshotFromRooms(deps: {
 function applyPlayerMoveToRooms(
   deps: VenueCondenseApplyDeps,
   move: VenueCondensePlayerMove,
-): void {
+): { name: string } | null {
   const vn = deps.venueCode
   const fromKey = deps.tableSessionKey(vn, String(move.fromTableNum))
   const toKey = deps.tableSessionKey(vn, String(move.toTableNum))
   const fromGs = deps.getState(fromKey)
   let toGs = deps.getState(toKey)
-  if (!fromGs) return
+  if (!fromGs) return null
   if (!toGs) {
     toGs = createEmptyGame(vn, fromGs.hostId, String(move.toTableNum))
   }
   const pi = fromGs.players.findIndex((p) => p.id === move.playerId)
-  if (pi < 0) return
+  if (pi < 0) return null
   const player = fromGs.players[pi]!
   const nextFrom: GameState = { ...fromGs, players: fromGs.players.filter((_, i) => i !== pi) }
   const nextTo: GameState = { ...toGs, players: toGs.players.concat(player) }
@@ -104,6 +107,7 @@ function applyPlayerMoveToRooms(
     'toast',
     `Table ${move.fromTableNum} closed — ${player.name} moved to Table ${move.toTableNum}.`,
   )
+  return { name: player.name.trim() || move.playerId }
 }
 
 function applyScheduledMerge(
@@ -158,15 +162,23 @@ export function applyVenueCondenseAfterRound(
 ): VenueCondenseApplyResult {
   const hostToasts: string[] = []
   let rosters = collectRosters(deps)
+  const tablesBeforeSet = new Set(rosters.map((t) => t.tableNum))
   const tablesBefore = rosters.length
   const survivorsBefore = rosters.reduce((n, t) => n + t.players.length, 0)
 
   const plan = planVenueCondense(rosters, { shuffle: options.shuffle })
   let soloRescues = 0
+  const seatingMoves: VenueCondenseApplyResult['seatingMoves'] = []
 
   for (const move of plan.playerMoves) {
-    applyPlayerMoveToRooms(deps, move)
+    const applied = applyPlayerMoveToRooms(deps, move)
+    if (applied == null) continue
     soloRescues++
+    seatingMoves.push({
+      name: applied.name,
+      fromTableNum: move.fromTableNum,
+      toTableNum: move.toTableNum,
+    })
     hostToasts.push(
       `Table ${move.fromTableNum} closed — player rescued to Table ${move.toTableNum}.`,
     )
@@ -183,6 +195,11 @@ export function applyVenueCondenseAfterRound(
   }
 
   rosters = collectRosters(deps)
+  const tablesAfterSet = new Set(rosters.map((t) => t.tableNum))
+  const closedTableNums = [...tablesBeforeSet]
+    .filter((n) => !tablesAfterSet.has(n))
+    .sort((a, b) => a - b)
+
   return {
     soloRescues,
     shuffled,
@@ -191,5 +208,31 @@ export function applyVenueCondenseAfterRound(
     survivorsBefore,
     survivorsAfter: rosters.reduce((n, t) => n + t.players.length, 0),
     hostToasts,
+    seatingMoves,
+    closedTableNums,
+  }
+}
+
+export function venueSeatingAnnouncementFromResult(
+  result: VenueCondenseApplyResult,
+): DisplayVenueSeatingAnnouncement | null {
+  if (
+    !result.shuffled &&
+    result.seatingMoves.length === 0 &&
+    result.closedTableNums.length === 0
+  ) {
+    return null
+  }
+  return {
+    moves: result.seatingMoves.map((m) => ({
+      name: m.name,
+      fromTableNum: m.fromTableNum,
+      toTableNum: m.toTableNum,
+    })),
+    closedTableNums: result.closedTableNums,
+    shuffled: result.shuffled,
+    tablesBefore: result.tablesBefore,
+    tablesAfter: result.tablesAfter,
+    playerCount: result.survivorsAfter,
   }
 }

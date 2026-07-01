@@ -2100,10 +2100,14 @@
   }
 
   /** n=1 broadcast felt center — pot is scoreboard-sized; sizes set via CSS vars from table width. */
+  .vfd-broadcast-pot-stack {
+    pointer-events: none;
+  }
+
   .vfd-broadcast-center-stack {
     --vfd-broadcast-pot-label-px: 1.75rem;
     --vfd-broadcast-pot-sign-px: 3rem;
-    --vfd-broadcast-pot-digits-px: 6.375rem;
+    --vfd-broadcast-pot-digits-px: 7.375rem;
     --vfd-broadcast-action-sign-px: 2rem;
     --vfd-broadcast-action-digits-px: 2.875rem;
   }
@@ -2117,8 +2121,9 @@
     font-weight: 800;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: rgb(251 191 36 / 0.88);
+    color: rgb(251 191 36 / 0.92);
     line-height: 1;
+    text-shadow: 0 1px 8px rgb(0 0 0 / 0.75);
   }
 
   .vfd-broadcast-pot .vfd-mosaic-dollar-sign {
@@ -2129,6 +2134,20 @@
     font-size: var(--vfd-broadcast-pot-digits-px);
     letter-spacing: -0.03em;
     line-height: 0.92;
+  }
+
+  .vfd-broadcast-pot--hero.vfd-mosaic-dollar--live .vfd-mosaic-dollar-sign,
+  .vfd-broadcast-pot--hero.vfd-mosaic-dollar--live .vfd-mosaic-dollar-digits {
+    color: rgb(255 248 220);
+    text-shadow:
+      0 0 18px rgb(251 191 36 / 0.55),
+      0 0 36px rgb(251 191 36 / 0.28),
+      0 3px 12px rgb(0 0 0 / 0.92),
+      0 1px 0 rgb(255 255 255 / 0.35);
+  }
+
+  .vfd-broadcast-pot--hero {
+    filter: drop-shadow(0 4px 14px rgb(0 0 0 / 0.65));
   }
 
   .vfd-broadcast-action-name {

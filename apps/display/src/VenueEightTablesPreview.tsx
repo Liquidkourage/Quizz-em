@@ -290,15 +290,15 @@ function broadcastCenterTypographyPx(rimW: number): {
   const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
   return {
-    potLabelPx: Math.round(28 * scale),
-    potSignPx: Math.round(48 * scale),
-    potDigitsPx: Math.round(102 * scale),
-    actionNamePx: Math.round(36 * scale),
-    actionLabelPx: Math.round(28 * scale),
-    actionSignPx: Math.round(32 * scale),
-    actionDigitsPx: Math.round(46 * scale),
-    messagePx: Math.round(28 * scale),
-    gapPx: Math.round(10 * scale),
+    potLabelPx: Math.round(26 * scale),
+    potSignPx: Math.round(52 * scale),
+    potDigitsPx: Math.round(118 * scale),
+    actionNamePx: Math.round(32 * scale),
+    actionLabelPx: Math.round(24 * scale),
+    actionSignPx: Math.round(28 * scale),
+    actionDigitsPx: Math.round(40 * scale),
+    messagePx: Math.round(24 * scale),
+    gapPx: Math.round(8 * scale),
   }
 }
 
@@ -313,7 +313,7 @@ function broadcastCommunityCardLayoutPx(
   return {
     widthPx,
     heightPx,
-    boardGapPx: Math.round(14 * scale),
+    boardGapPx: Math.round(18 * scale),
     gapPx: Math.max(6, Math.round(widthPx * 0.12)),
   }
 }
@@ -367,12 +367,23 @@ function VenueBroadcastCenterStack({
   const centerTypo = broadcastCenterTypographyPx(rimW)
   const centerCxPct = feltBounds.cx * 100
   const centerCyPct = feltBounds.cy * 100
-  const centerStackStyle = {
+  const hasCommunityBoard = communityDigits.length > 0
+  const potBelowBoardPx = hasCommunityBoard
+    ? Math.round(communityCardHeightPx / 2 + communityBoardGapPx)
+    : 0
+  const potStackStyle = {
     position: 'absolute' as const,
     left: `${centerCxPct}%`,
     top: `${centerCyPct}%`,
-    transform: 'translate(-50%, -50%)',
+    transform: hasCommunityBoard
+      ? `translate(-50%, ${potBelowBoardPx}px)`
+      : 'translate(-50%, -50%)',
+    display: 'flex' as const,
+    flexDirection: 'column' as const,
+    alignItems: 'center' as const,
     gap: centerTypo.gapPx,
+    maxWidth: '94%',
+    textAlign: 'center' as const,
     ['--vfd-broadcast-pot-label-px' as string]: `${centerTypo.potLabelPx}px`,
     ['--vfd-broadcast-pot-sign-px' as string]: `${centerTypo.potSignPx}px`,
     ['--vfd-broadcast-pot-digits-px' as string]: `${centerTypo.potDigitsPx}px`,
@@ -384,31 +395,34 @@ function VenueBroadcastCenterStack({
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
       aria-hidden={pot <= 0 && actionKind == null && communityDigits.length === 0}
     >
-      <div
-        className="vfd-broadcast-center-stack flex max-w-[94%] flex-col items-center justify-center text-center"
-        style={centerStackStyle}
-      >
-        {communityDigits.length > 0 ? (
-          <div
-            className="vfd-broadcast-community-board flex max-w-full items-center justify-center"
-            style={{ gap: communityCardGapPx, marginBottom: communityBoardGapPx }}
-          >
-            {communityDigits.map((digit, i) => (
-              <MosaicDigitCard
-                key={`${i}-${digit}`}
-                digit={digit}
-                widthPx={communityCardWidthPx}
-                heightPx={communityCardHeightPx}
-              />
-            ))}
-          </div>
-        ) : null}
+      {hasCommunityBoard ? (
+        <div
+          className="vfd-broadcast-community-board flex max-w-[92%] items-center justify-center"
+          style={{
+            position: 'absolute',
+            left: `${centerCxPct}%`,
+            top: `${centerCyPct}%`,
+            transform: 'translate(-50%, -50%)',
+            gap: communityCardGapPx,
+          }}
+        >
+          {communityDigits.map((digit, i) => (
+            <MosaicDigitCard
+              key={`${i}-${digit}`}
+              digit={digit}
+              widthPx={communityCardWidthPx}
+              heightPx={communityCardHeightPx}
+            />
+          ))}
+        </div>
+      ) : null}
+      <div className="vfd-broadcast-pot-stack" style={potStackStyle}>
         <span className="vfd-broadcast-pot-label">Pot</span>
         <VenuePotAmount
           amount={pot}
           prefersReducedMotion={prefersReducedMotion}
           potMuted={potMuted}
-          className="vfd-broadcast-pot block truncate"
+          className="vfd-broadcast-pot vfd-broadcast-pot--hero block truncate"
         />
         {actionKind === 'to-call' && actingPlayerName && callAmount != null ? (
           <div

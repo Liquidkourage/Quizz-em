@@ -9,6 +9,7 @@ import {
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
   mosaicSeatLabelPct,
+  mosaicSeatChipInwardFrac,
   mosaicStadiumCupUV,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
@@ -114,5 +115,22 @@ describe('venueMosaicSeatGeometry', () => {
       const labelToCenter = Math.hypot(center.leftPct - label.leftPct, center.topPct - label.topPct)
       expect(labelToCenter).toBeGreaterThan(cupToCenter)
     }
+  })
+
+  it('keeps semicircle seats 3 and 7 closer to the rail than flat side seats', () => {
+    const sideSeat = 2
+    const arcSeat = 3
+    const cupSide = mosaicSeatDotPct(sideSeat, 8, w, h)
+    const cupArc = mosaicSeatDotPct(arcSeat, 8, w, h)
+    const chipSide = mosaicSeatHoleLayout(sideSeat, 8, w, h, mosaicSeatChipInwardFrac(sideSeat))
+    const chipArc = mosaicSeatHoleLayout(arcSeat, 8, w, h, mosaicSeatChipInwardFrac(arcSeat))
+    const center = venueMosaicFeltCenterPct(w, h)
+
+    const sideInset = insetFrac(cupSide, chipSide, center)
+    const arcInset = insetFrac(cupArc, chipArc, center)
+    expect(arcInset).toBeLessThan(sideInset)
+    expect(mosaicSeatChipInwardFrac(3)).toBe(0.09)
+    expect(mosaicSeatChipInwardFrac(7)).toBe(0.09)
+    expect(mosaicSeatChipInwardFrac(3)).toBeLessThan(mosaicSeatChipInwardFrac(2))
   })
 })

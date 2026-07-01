@@ -73,6 +73,28 @@ export const VENUE_MOSAIC_HOLE_INWARD_FRAC = 0.22
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8
 
+/** Semicircle rail seats (1, 3, 5, 7) — default inward frac pulls assets too deep on the felt. */
+const MOSAIC_ARC_SEAT_INDEXES = new Set([1, 3, 5, 7])
+
+/** Seats 3 and 7 need the strongest rail-ward nudge on broadcast hero felts. */
+const MOSAIC_DEEP_INSET_SEAT_INDEXES = new Set([3, 7])
+
+/** Chip stack anchor — fraction from cup toward felt center (lower = closer to rail). */
+export function mosaicSeatChipInwardFrac(seatIndex: number): number {
+  const i = mosaicSeatIndex(seatIndex)
+  if (MOSAIC_DEEP_INSET_SEAT_INDEXES.has(i)) return 0.09
+  if (MOSAIC_ARC_SEAT_INDEXES.has(i)) return 0.13
+  return 0.28
+}
+
+/** Hole-card anchor — fraction from cup toward felt center (lower = closer to rail). */
+export function mosaicSeatHoleInwardFrac(seatIndex: number): number {
+  const i = mosaicSeatIndex(seatIndex)
+  if (MOSAIC_DEEP_INSET_SEAT_INDEXES.has(i)) return 0.11
+  if (MOSAIC_ARC_SEAT_INDEXES.has(i)) return 0.15
+  return VENUE_MOSAIC_HOLE_INWARD_FRAC
+}
+
 /**
  * Eight seat headings — explicit semicircle + rectangle points (not equal angles from center).
  * Seat 0 = rect top · 1 R~12:30 · 2 R3 · 3 R~5:30 · 4 rect bottom · 5 L~6:30 · 6 L9 · 7 L~11:30

@@ -23,7 +23,7 @@ import {
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
-import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
+import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, mosaicSeatChipInwardFrac, mosaicSeatHoleInwardFrac, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -302,6 +302,41 @@ function broadcastCenterTypographyPx(rimW: number): {
   }
 }
 
+/** Community board on n=1 broadcast — stadium-scaled, not mosaic tile sizing. */
+function broadcastCommunityCardLayoutPx(
+  rimW: number,
+  rimH: number
+): { widthPx: number; heightPx: number; boardOffsetPx: number; gapPx: number } {
+  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  const widthPx = Math.round(76 * scale)
+  const heightPx = Math.round((widthPx * 7) / 5)
+  const boardOffsetPx = Math.round(Math.max(rimH * 0.16, 56 * scale))
+  return {
+    widthPx,
+    heightPx,
+    boardOffsetPx,
+    gapPx: Math.max(6, Math.round(widthPx * 0.12)),
+  }
+}
+
+/** Folded-player OUT badge on broadcast hero felts. */
+function broadcastFoldOutBadgePx(rimW: number): {
+  fontPx: number
+  padXPx: number
+  padYPx: number
+  minWidthPx: number
+} {
+  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  return {
+    fontPx: Math.round(24 * scale),
+    padXPx: Math.round(14 * scale),
+    padYPx: Math.round(5 * scale),
+    minWidthPx: Math.round(52 * scale),
+  }
+}
+
 /** Broadcast hero (n=1): pot + acting line centered on felt — replaces header status band. */
 function VenueBroadcastCenterStack({
   pot,
@@ -312,6 +347,8 @@ function VenueBroadcastCenterStack({
   communityDigits,
   communityCardWidthPx,
   communityCardHeightPx,
+  communityBoardOffsetPx,
+  communityCardGapPx,
   prefersReducedMotion,
   rimW,
 }: {
@@ -323,15 +360,19 @@ function VenueBroadcastCenterStack({
   communityDigits: number[]
   communityCardWidthPx: number
   communityCardHeightPx: number
+  communityBoardOffsetPx: number
+  communityCardGapPx: number
   prefersReducedMotion: boolean
   rimW: number
 }) {
   const feltBounds = venueFeltBoundsFrac()
   const centerTypo = broadcastCenterTypographyPx(rimW)
-  const centerStackStyle = {
+  const centerCxPct = feltBounds.cx * 100
+  const centerCyPct = feltBounds.cy * 100
+  const potStackStyle = {
     position: 'absolute' as const,
-    left: `${feltBounds.cx * 100}%`,
-    top: `${feltBounds.cy * 100}%`,
+    left: `${centerCxPct}%`,
+    top: `${centerCyPct}%`,
     transform: 'translate(-50%, -50%)',
     gap: centerTypo.gapPx,
     ['--vfd-broadcast-pot-label-px' as string]: `${centerTypo.potLabelPx}px`,
@@ -345,25 +386,31 @@ function VenueBroadcastCenterStack({
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
       aria-hidden={pot <= 0 && actionKind == null && communityDigits.length === 0}
     >
+      {communityDigits.length > 0 ? (
+        <div
+          className="vfd-broadcast-community-board flex max-w-[92%] items-center justify-center"
+          style={{
+            position: 'absolute',
+            left: `${centerCxPct}%`,
+            top: `${centerCyPct}%`,
+            transform: `translate(-50%, calc(-100% - ${communityBoardOffsetPx}px))`,
+            gap: communityCardGapPx,
+          }}
+        >
+          {communityDigits.map((digit, i) => (
+            <MosaicDigitCard
+              key={`${i}-${digit}`}
+              digit={digit}
+              widthPx={communityCardWidthPx}
+              heightPx={communityCardHeightPx}
+            />
+          ))}
+        </div>
+      ) : null}
       <div
         className="vfd-broadcast-center-stack flex max-w-[94%] flex-col items-center justify-center text-center"
-        style={centerStackStyle}
+        style={potStackStyle}
       >
-        {communityDigits.length > 0 ? (
-          <div
-            className="flex items-center justify-center"
-            style={{ gap: Math.max(4, Math.round(communityCardWidthPx * 0.1)) }}
-          >
-            {communityDigits.map((digit, i) => (
-              <MosaicDigitCard
-                key={`${i}-${digit}`}
-                digit={digit}
-                widthPx={communityCardWidthPx}
-                heightPx={communityCardHeightPx}
-              />
-            ))}
-          </div>
-        ) : null}
         <span className="vfd-broadcast-pot-label">Pot</span>
         <VenuePotAmount
           amount={pot}
@@ -1187,8 +1234,10 @@ function SeatRingWithLabels({
   const seatCountForLayout = VENUE_SEAT_SLOTS
 
   const potFromBroadcast = isBroadcast ? mosaicCenterPot : null
-  const broadcastCommunityCardW = isBroadcast ? stadiumMosaicCommunityCardWidthPx(rimW, 'hero') : 0
-  const broadcastCommunityCardH = isBroadcast ? stadiumMosaicCommunityCardHeightPx(rimW, 'hero') : 0
+  const broadcastCommunityLayout =
+    isBroadcast && rimW > 0 && rimH > 0 ? broadcastCommunityCardLayoutPx(rimW, rimH) : null
+  const broadcastCommunityCardW = broadcastCommunityLayout?.widthPx ?? 0
+  const broadcastCommunityCardH = broadcastCommunityLayout?.heightPx ?? 0
 
   const showFeltBoardCenter =
     (isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)) ||
@@ -1229,6 +1278,8 @@ function SeatRingWithLabels({
             communityDigits={communityDigits}
             communityCardWidthPx={broadcastCommunityCardW}
             communityCardHeightPx={broadcastCommunityCardH}
+            communityBoardOffsetPx={broadcastCommunityLayout?.boardOffsetPx ?? 0}
+            communityCardGapPx={broadcastCommunityLayout?.gapPx ?? 0}
             prefersReducedMotion={prefersReducedMotion}
             rimW={rimW}
           />
@@ -1265,12 +1316,24 @@ function SeatRingWithLabels({
               })()
         const chipPt =
           isMosaic || isBroadcast
-            ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, 0.28)
+            ? mosaicSeatHoleLayout(
+                i,
+                seatCountForLayout,
+                rimW,
+                rimH,
+                mosaicSeatChipInwardFrac(i)
+              )
             : stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
         const chipPos = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
         const holeLayout =
           isMosaic || isBroadcast
-            ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH)
+            ? mosaicSeatHoleLayout(
+                i,
+                seatCountForLayout,
+                rimW,
+                rimH,
+                mosaicSeatHoleInwardFrac(i)
+              )
             : (() => {
                 const pt = stadiumSeatPointPx(
                   i,
@@ -1313,6 +1376,8 @@ function SeatRingWithLabels({
         const lastBetAct =
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
         const showFoldOut = isFolded && !(showSeatBettingActions && lastBetAct === 'fold')
+        const broadcastFoldOutLayout =
+          isBroadcast && showFoldOut && rimW > 0 ? broadcastFoldOutBadgePx(rimW) : null
         const answerLocked =
           filled &&
           answeringPhase &&
@@ -1480,9 +1545,22 @@ function SeatRingWithLabels({
                 }}
               >
                 <span
-                  className={`whitespace-nowrap rounded border border-rose-300/90 bg-rose-950/95 px-[3px] py-px font-black uppercase leading-none tracking-tight text-rose-100 shadow-[0_1px_4px_rgba(0,0,0,0.85)] ${
-                    size === 'lg' ? 'text-[8px] sm:text-[9px]' : 'text-[7px] sm:text-[8px]'
+                  className={`inline-flex items-center justify-center whitespace-nowrap rounded-md border font-black uppercase leading-none tracking-wide text-rose-50 shadow-[0_2px_10px_rgba(0,0,0,0.75)] ${
+                    broadcastFoldOutLayout
+                      ? 'border-rose-200/90 bg-gradient-to-b from-rose-500 to-rose-950'
+                      : `border-rose-300/90 bg-rose-950/95 shadow-[0_1px_4px_rgba(0,0,0,0.85)] ${
+                          size === 'lg' ? 'px-1.5 py-0.5 text-[8px] sm:text-[9px]' : 'px-[3px] py-px text-[7px] sm:text-[8px]'
+                        }`
                   }`}
+                  style={
+                    broadcastFoldOutLayout
+                      ? {
+                          fontSize: `${broadcastFoldOutLayout.fontPx}px`,
+                          padding: `${broadcastFoldOutLayout.padYPx}px ${broadcastFoldOutLayout.padXPx}px`,
+                          minWidth: `${broadcastFoldOutLayout.minWidthPx}px`,
+                        }
+                      : undefined
+                  }
                 >
                   Out
                 </span>

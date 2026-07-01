@@ -2108,6 +2108,10 @@
     --vfd-broadcast-action-digits-px: 2.875rem;
   }
 
+  .vfd-broadcast-community-board {
+    filter: drop-shadow(0 6px 14px rgb(0 0 0 / 0.45));
+  }
+
   .vfd-broadcast-pot-label {
     font-size: var(--vfd-broadcast-pot-label-px);
     font-weight: 800;

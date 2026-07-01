@@ -18,49 +18,19 @@ function HeadlineStatPart({ part }: { part: string }) {
     )
   }
 
-  const tablesMatch = formatted.match(/^(\d+)\s+(tables?)$/i)
-  if (tablesMatch) {
+  const shuffleInMatch = formatted.match(/^Shuffle in (\d+) hands$/i)
+  if (shuffleInMatch) {
     return (
       <>
-        <span className="text-amber-100">{tablesMatch[1]}</span>
-        <span className="text-white/80"> {tablesMatch[2]}</span>
+        <span className="text-white/80">Shuffle in </span>
+        <span className="text-amber-100">{shuffleInMatch[1]}</span>
+        <span className="text-white/80"> hands</span>
       </>
     )
   }
 
-  const reseatingAtMatch = formatted.match(/^Re-seating at (\d+)$/i)
-  if (reseatingAtMatch) {
-    return (
-      <>
-        <span className="text-white/80">Re-seating at </span>
-        <span className="text-amber-100">{reseatingAtMatch[1]}</span>
-      </>
-    )
-  }
-
-  if (/^Re-seating now$/i.test(formatted)) {
-    return <span className="text-white/80">Re-seating now</span>
-  }
-
-  const combineAtMatch = formatted.match(/^Combine at (\d+)$/i)
-  if (combineAtMatch) {
-    return (
-      <>
-        <span className="text-white/80">Combine at </span>
-        <span className="text-amber-100">{combineAtMatch[1]}</span>
-      </>
-    )
-  }
-
-  const combiningToMatch = formatted.match(/^Combining to (\d+)\s+(tables?)$/i)
-  if (combiningToMatch) {
-    return (
-      <>
-        <span className="text-white/80">Combining to </span>
-        <span className="text-amber-100">{combiningToMatch[1]}</span>
-        <span className="text-white/80"> {combiningToMatch[2]}</span>
-      </>
-    )
+  if (/^Shuffle next hand$/i.test(formatted)) {
+    return <span className="text-white/80">Shuffle next hand</span>
   }
 
   return formatted

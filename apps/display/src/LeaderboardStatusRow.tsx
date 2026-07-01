@@ -18,30 +18,28 @@ function StatusPart({ part }: { part: string }) {
     )
   }
 
-  const reseatingAtMatch = formatted.match(/^Re-seating at (\d+)$/i)
-  if (reseatingAtMatch) {
+  const shuffleInMatch = formatted.match(/^Shuffle in (\d+) hands$/i)
+  if (shuffleInMatch) {
     return (
       <>
-        <span className="venue-lb-status-muted">Re-seating at </span>
-        <span className="venue-lb-status-num">{reseatingAtMatch[1]}</span>
+        <span className="venue-lb-status-muted">Shuffle in </span>
+        <span className="venue-lb-status-num">{shuffleInMatch[1]}</span>
+        <span className="venue-lb-status-muted"> hands</span>
       </>
     )
   }
 
-  if (/^Re-seating now$/i.test(formatted)) {
-    return <span className="venue-lb-status-muted">Re-seating now</span>
+  if (/^Shuffle next hand$/i.test(formatted)) {
+    return <span className="venue-lb-status-muted">Shuffle next hand</span>
   }
 
   return formatted
 }
 
-/** Remaining / re-seating caption with gold threshold track — sits below header metadata. */
+/** Remaining + shuffle countdown — sits below header metadata. */
 export function LeaderboardStatusRow({ model }: { model: VenueCondenseProgressModel }) {
   const parts = venueHeadlineCondenseCaptionParts(model)
-  const showTrack = model.liveTables > 1 && model.marks.length > 0
-  const nextMark =
-    model.marks.find((m) => m.atSurvivors === model.nextAt) ?? model.marks.find((m) => m.status === 'next')
-  const thresholdPct = nextMark?.pct ?? null
+  const showTrack = model.liveTables > 1 && model.handsUntilShuffle != null
 
   if (model.liveTables <= 1 && parts.length <= 1) {
     return (
@@ -84,9 +82,10 @@ export function LeaderboardStatusRow({ model }: { model: VenueCondenseProgressMo
         {showTrack ? (
           <div className="venue-lb-status-track-wrap" aria-hidden>
             <div className="venue-lb-status-track">
-              {thresholdPct != null ? (
-                <span className="venue-lb-status-diamond" style={{ left: `${thresholdPct}%` }} />
-              ) : null}
+              <span
+                className="venue-lb-status-diamond"
+                style={{ left: `${Math.max(0, Math.min(100, model.shuffleFillPct))}%` }}
+              />
             </div>
           </div>
         ) : null}

@@ -15,7 +15,7 @@ type VenueCondenseProgressBarProps = {
   captionClass?: string
 }
 
-/** Emphasize leading numerals in stat fragments like "91 remaining" or "Combine at 74". */
+/** Emphasize leading numerals in stat fragments like "91 remaining" or "Shuffle in 3 hands". */
 function HeadlineStatPart({ part }: { part: string }) {
   const formatted = formatVenueHeadlineCondensePart(part)
   const remainingMatch = formatted.match(/^(\d+)\s+(remaining.*)$/i)
@@ -28,49 +28,19 @@ function HeadlineStatPart({ part }: { part: string }) {
     )
   }
 
-  const tablesMatch = formatted.match(/^(\d+)\s+(tables?)$/i)
-  if (tablesMatch) {
+  const shuffleInMatch = formatted.match(/^Shuffle in (\d+) hands$/i)
+  if (shuffleInMatch) {
     return (
       <>
-        <span className="text-amber-100">{tablesMatch[1]}</span>
-        <span className="text-white/80"> {tablesMatch[2]}</span>
+        <span className="text-white/80">Shuffle in </span>
+        <span className="text-amber-100">{shuffleInMatch[1]}</span>
+        <span className="text-white/80"> hands</span>
       </>
     )
   }
 
-  const reseatingAtMatch = formatted.match(/^Re-seating at (\d+)$/i)
-  if (reseatingAtMatch) {
-    return (
-      <>
-        <span className="text-white/80">Re-seating at </span>
-        <span className="text-amber-100">{reseatingAtMatch[1]}</span>
-      </>
-    )
-  }
-
-  if (/^Re-seating now$/i.test(formatted)) {
-    return <span className="text-white/80">Re-seating now</span>
-  }
-
-  const combineAtMatch = formatted.match(/^Combine at (\d+)$/i)
-  if (combineAtMatch) {
-    return (
-      <>
-        <span className="text-white/80">Combine at </span>
-        <span className="text-amber-100">{combineAtMatch[1]}</span>
-      </>
-    )
-  }
-
-  const combiningToMatch = formatted.match(/^Combining to (\d+)\s+(tables?)$/i)
-  if (combiningToMatch) {
-    return (
-      <>
-        <span className="text-white/80">Combining to </span>
-        <span className="text-amber-100">{combiningToMatch[1]}</span>
-        <span className="text-white/80"> {combiningToMatch[2]}</span>
-      </>
-    )
+  if (/^Shuffle next hand$/i.test(formatted)) {
+    return <span className="text-white/80">Shuffle next hand</span>
   }
 
   return formatted
@@ -81,12 +51,12 @@ export default function VenueCondenseProgressBar({
   variant = 'bottom',
   captionClass = DISPLAY_TEXT_HEADLINE_CAPTION,
 }: VenueCondenseProgressBarProps) {
-  const { survivors, peakSurvivors, liveTables, fillPct, marks, nextAt } = model
-  if (liveTables <= 1 && marks.length === 0) return null
+  const { survivors, peakSurvivors, liveTables, fillPct, shuffleFillPct, handsUntilShuffle } = model
+  if (liveTables <= 1 && handsUntilShuffle == null) return null
 
-  const showMarks = marks.length > 0 && liveTables > 1
   const headline = variant === 'headline'
   const sidebar = variant === 'sidebar'
+  const trackPct = handsUntilShuffle != null ? shuffleFillPct : fillPct
 
   if (headline) {
     return (
@@ -114,7 +84,6 @@ export default function VenueCondenseProgressBar({
   }
 
   const trackHeight = sidebar ? 'h-2' : 'h-2 sm:h-2.5'
-  const tickClass = 'w-px'
 
   return (
     <div
@@ -140,44 +109,13 @@ export default function VenueCondenseProgressBar({
           {venueHeadlineCondenseCaption(model)}
         </p>
 
-        <div className={`relative ${sidebar ? 'pt-2.5' : ''}`}>
-          {showMarks ? (
-            <div className="absolute inset-x-0 top-0 h-2.5" aria-hidden>
-              {marks.map((mark) => (
-                <span
-                  key={`${mark.atSurvivors}-${mark.toTables}`}
-                  className={`absolute bottom-0 block ${tickClass} -translate-x-1/2 rounded-full ${
-                    mark.status === 'next'
-                      ? 'h-3 bg-amber-300 shadow-[0_0_6px_rgba(251,191,36,0.55)] sm:h-3.5'
-                      : mark.status === 'passed'
-                        ? 'h-1.5 bg-white/25'
-                        : 'h-2 bg-white/55 sm:h-2.5'
-                  }`}
-                  style={{ left: `${mark.pct}%` }}
-                  title={`${mark.atSurvivors} players → ${mark.toTables} tables`}
-                />
-              ))}
-            </div>
-          ) : null}
-
+        <div className={`relative ${sidebar ? '' : ''}`}>
           <div className={`overflow-hidden rounded-full bg-white/10 ${trackHeight}`}>
             <div
               className="h-full rounded-full bg-gradient-to-r from-violet-500/80 to-violet-400/70 transition-[width] duration-500 ease-out"
-              style={{ width: `${fillPct}%` }}
+              style={{ width: `${trackPct}%` }}
             />
           </div>
-
-          {showMarks && nextAt != null && survivors > nextAt ? (
-            <span
-              className="absolute -top-0.5 -translate-x-1/2 font-mono text-[8px] font-bold tabular-nums text-amber-200/95"
-              style={{
-                left: `${marks.find((m) => m.atSurvivors === nextAt)?.pct ?? 0}%`,
-              }}
-              aria-hidden
-            >
-              {nextAt}
-            </span>
-          ) : null}
         </div>
       </div>
     </div>

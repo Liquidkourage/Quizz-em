@@ -29,8 +29,12 @@ export default function VenueStatusStrip({ brief, tableBlinds }: VenueStatusStri
   if (brief?.venueLiveTableCount != null) {
     parts.push(`${brief.venueLiveTableCount} tables`)
   }
-  if (brief?.venueNextCondenseAtSurvivors != null) {
-    parts.push(`Combine at ${brief.venueNextCondenseAtSurvivors}`)
+  if (brief?.venueHandsUntilShuffle != null) {
+    parts.push(
+      brief.venueHandsUntilShuffle === 1
+        ? 'Shuffle next hand'
+        : `Shuffle in ${brief.venueHandsUntilShuffle} hands`,
+    )
   }
 
   if (parts.length === 0) return null

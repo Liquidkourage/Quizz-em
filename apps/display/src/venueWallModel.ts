@@ -9,7 +9,6 @@ import {
   computeOptimalTableCount,
   displayBlindSeatIndices,
   isVenueTileWageringPaused,
-  listVenueCondenseMilestones,
   rehearsalSeatDisplayName,
 } from '@qhe/core'
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot } from '@qhe/net'
@@ -232,15 +231,15 @@ export function venueWallBlindsHeadline(
 export type VenueCondenseHeadline = {
   survivors: number
   liveTables: number
-  nextAt: number | null
-  targetTables: number | null
+  handsUntilShuffle: number | null
+  shuffleEveryHands: number
   /** Primary audience line for the TV strip. */
   primary: string
   /** Secondary detail line. */
   secondary: string | null
 }
 
-/** Audience-facing table-combine forecast for the venue wall header. */
+/** Audience-facing field + shuffle countdown for the venue wall header. */
 export function venueWallCondenseHeadline(wall: DisplayVenueWallSnapshot | null): VenueCondenseHeadline | null {
   if (wall == null) return null
   const survivors =
@@ -255,80 +254,55 @@ export function venueWallCondenseHeadline(wall: DisplayVenueWallSnapshot | null)
       : null
   if (survivors == null || liveTables == null || liveTables <= 0) return null
 
-  const nextAt =
-    typeof wall.venueNextCondenseAtSurvivors === 'number' &&
-    Number.isFinite(wall.venueNextCondenseAtSurvivors)
-      ? Math.floor(wall.venueNextCondenseAtSurvivors)
-      : null
-  const targetTables =
-    typeof wall.venueTargetTablesAfterCondense === 'number' &&
-    Number.isFinite(wall.venueTargetTablesAfterCondense)
-      ? Math.floor(wall.venueTargetTablesAfterCondense)
-      : null
+  const shuffleEveryHands =
+    typeof wall.venueShuffleEveryHands === 'number' && Number.isFinite(wall.venueShuffleEveryHands)
+      ? Math.max(1, Math.floor(wall.venueShuffleEveryHands))
+      : 5
+  const handsUntilShuffle =
+    typeof wall.venueHandsUntilShuffle === 'number' && Number.isFinite(wall.venueHandsUntilShuffle)
+      ? Math.max(1, Math.floor(wall.venueHandsUntilShuffle))
+      : liveTables <= 1
+        ? null
+        : shuffleEveryHands
 
   if (liveTables <= 1) {
     return {
       survivors,
       liveTables,
-      nextAt: null,
-      targetTables: null,
+      handsUntilShuffle: null,
+      shuffleEveryHands,
       primary: survivors <= 8 ? 'Final table' : `${survivors} players remain`,
       secondary: null,
     }
   }
 
-  if (nextAt == null) {
-    return {
-      survivors,
-      liveTables,
-      nextAt: null,
-      targetTables: null,
-      primary: `${liveTables} tables · ${survivors} players`,
-      secondary: null,
-    }
-  }
-
-  if (survivors <= nextAt) {
-    const to = targetTables ?? liveTables - 2
-    return {
-      survivors,
-      liveTables,
-      nextAt,
-      targetTables: targetTables,
-      primary: `Combining to ${to} tables now`,
-      secondary: `${survivors} players remaining`,
-    }
-  }
+  const shuffleLine =
+    handsUntilShuffle === 1
+      ? 'Shuffle next hand'
+      : handsUntilShuffle != null
+        ? `Shuffle in ${handsUntilShuffle} hands`
+        : null
 
   return {
     survivors,
     liveTables,
-    nextAt,
-    targetTables,
-    primary: `Next combine at ${nextAt} players`,
-    secondary:
-      targetTables != null
-        ? `${liveTables} tables now → ${targetTables} tables`
-        : `${liveTables} tables · ${survivors} players remaining`,
+    handsUntilShuffle,
+    shuffleEveryHands,
+    primary: `${survivors} players · ${liveTables} tables`,
+    secondary: shuffleLine,
   }
-}
-
-export type VenueCondenseProgressMark = {
-  atSurvivors: number
-  toTables: number
-  /** 0–100 from left (full field) to right (final). */
-  pct: number
-  status: 'passed' | 'next' | 'upcoming'
 }
 
 export type VenueCondenseProgressModel = {
   survivors: number
   peakSurvivors: number
   liveTables: number
+  /** Field shrink 0–100 (left = start, right = fewer players). */
   fillPct: number
-  marks: VenueCondenseProgressMark[]
-  nextAt: number | null
-  nextToTables: number | null
+  handsUntilShuffle: number | null
+  shuffleEveryHands: number
+  /** Progress toward next shuffle 0–100. */
+  shuffleFillPct: number
 }
 
 function survivorTrackPct(survivors: number, peakSurvivors: number): number {
@@ -338,24 +312,31 @@ function survivorTrackPct(survivors: number, peakSurvivors: number): number {
   return (clamped / peakSurvivors) * 100
 }
 
+function shuffleTrackPct(handsUntilShuffle: number | null, shuffleEveryHands: number): number {
+  if (handsUntilShuffle == null || shuffleEveryHands <= 0) return 0
+  const elapsed = shuffleEveryHands - handsUntilShuffle
+  return Math.max(0, Math.min(100, (elapsed / shuffleEveryHands) * 100))
+}
+
 export function formatVenueHeadlineCondensePart(part: string): string {
-  if (part.startsWith('re-seating at ')) {
-    return `Re-seating at ${part.slice('re-seating at '.length)}`
+  if (part.startsWith('shuffle in ')) {
+    const n = part.slice('shuffle in '.length)
+    return n === '1 hand' ? 'Shuffle next hand' : `Shuffle in ${n}`
   }
-  if (part === 're-seating now') {
-    return 'Re-seating now'
+  if (part === 'shuffle next hand') {
+    return 'Shuffle next hand'
   }
   return part
 }
 
 export function venueHeadlineCondenseCaptionParts(model: VenueCondenseProgressModel): string[] {
-  const { survivors, liveTables, nextAt } = model
+  const { survivors, liveTables, handsUntilShuffle } = model
   const parts = [`${survivors} remaining`]
-  if (liveTables <= 1) return parts
-  if (nextAt != null && survivors > nextAt) {
-    parts.push(`re-seating at ${nextAt}`)
-  } else if (nextAt != null) {
-    parts.push('re-seating now')
+  if (liveTables <= 1 || handsUntilShuffle == null) return parts
+  if (handsUntilShuffle === 1) {
+    parts.push('shuffle next hand')
+  } else {
+    parts.push(`shuffle in ${handsUntilShuffle} hands`)
   }
   return parts
 }
@@ -373,44 +354,16 @@ export function buildVenueCondenseProgress(args: {
   if (headline == null) return null
 
   const peakSurvivors = Math.max(args.peakSurvivors, headline.survivors, 1)
-  const { survivors, liveTables, nextAt, targetTables } = headline
-
-  if (liveTables <= 1) {
-    return {
-      survivors,
-      peakSurvivors,
-      liveTables,
-      fillPct: survivorTrackPct(survivors, peakSurvivors),
-      marks: [],
-      nextAt: null,
-      nextToTables: null,
-    }
-  }
-
-  const milestones = listVenueCondenseMilestones(liveTables, peakSurvivors)
-  const marks: VenueCondenseProgressMark[] = milestones.map((m) => {
-    let status: VenueCondenseProgressMark['status'] = 'upcoming'
-    if (nextAt != null && m.atSurvivors === nextAt) {
-      status = survivors <= nextAt ? 'next' : 'upcoming'
-    } else if (survivors < m.atSurvivors) {
-      status = 'passed'
-    }
-    return {
-      atSurvivors: m.atSurvivors,
-      toTables: m.toTables,
-      pct: survivorTrackPct(m.atSurvivors, peakSurvivors),
-      status,
-    }
-  })
+  const { survivors, liveTables, handsUntilShuffle, shuffleEveryHands } = headline
 
   return {
     survivors,
     peakSurvivors,
     liveTables,
     fillPct: survivorTrackPct(survivors, peakSurvivors),
-    marks,
-    nextAt,
-    nextToTables: targetTables,
+    handsUntilShuffle,
+    shuffleEveryHands,
+    shuffleFillPct: shuffleTrackPct(handsUntilShuffle, shuffleEveryHands),
   }
 }
 

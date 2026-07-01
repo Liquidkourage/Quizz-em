@@ -68,7 +68,10 @@ export type PlayerVenueBrief = {
   blindLevelNumber?: number | null
   blindLevelCount?: number | null
   handsUntilNextBlindLevel?: number | null
-  venueNextCondenseAtSurvivors?: number | null
+  /** Hands until the next scheduled table shuffle; null at final table. */
+  venueHandsUntilShuffle?: number | null
+  /** Shuffle cadence (typically 5 venue-wide End Rounds). */
+  venueShuffleEveryHands?: number | null
 }
 
 /** Server `state` payload may include wire-only timing metadata. */
@@ -194,10 +197,10 @@ export type DisplayVenueWallSnapshot = {
   venueLiveTableCount?: number | null
   /** Seated field players (elimination only at endRound — bankroll can be $0 mid-hand). */
   venueChipSurvivorCount?: number | null
-  /** Scheduled merge triggers when survivors drop to this count or below; null at one table. */
-  venueNextCondenseAtSurvivors?: number | null
-  /** Table count after the next scheduled combine. */
-  venueTargetTablesAfterCondense?: number | null
+  /** Hands until the next scheduled table shuffle; null at final table. */
+  venueHandsUntilShuffle?: number | null
+  /** Shuffle cadence (typically 5 venue-wide End Rounds). */
+  venueShuffleEveryHands?: number | null
   /**
    * Public TV briefing: false after host **Assign from lobby** (or **Start Game** fallback for single-table flows),
    * mosaic tile phases, or local mosaic force.

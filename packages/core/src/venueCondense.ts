@@ -15,10 +15,8 @@ function shuffleWithRng<T>(arr: readonly T[], rng: () => number): T[] {
 /** Max seats per numbered felt on the venue wall (and condense cap). */
 export const VENUE_CONDENSE_MAX_SEATS = 8
 export const VENUE_CONDENSE_MIN_SEATS = 2
-/** Scheduled merge when optimal table count is at least this many below live table count. */
-export const VENUE_CONDENSE_MERGE_MIN_TABLE_DROP = 2
-/** Sparse tables closed per End Round before considering shotgun. */
-export const VENUE_SEATING_MAX_CLOSURES_PER_ROUND = 2
+/** Full table shuffle every N venue-wide End Rounds (after solo rescue). */
+export const VENUE_SHUFFLE_EVERY_HANDS = 5
 
 export function isChipSurvivor(p: Pick<PlayerState, 'bankroll'>): boolean {
   return typeof p.bankroll === 'number' && Number.isFinite(p.bankroll) && p.bankroll > 0
@@ -37,70 +35,30 @@ export function optimalVenueTableCount(survivorCount: number): number {
   )
 }
 
-/** True when a scheduled shotgun merge should run (not solo rescue). */
-export function shouldScheduleVenueMerge(liveTableCount: number, survivorCount: number): boolean {
-  if (liveTableCount <= 1 || survivorCount <= 0) return false
-  const target = optimalVenueTableCount(survivorCount)
-  return target <= liveTableCount - VENUE_CONDENSE_MERGE_MIN_TABLE_DROP
-}
-
-/** Table count after a scheduled merge at `survivorCount`. */
+/** Table count after a full shuffle at `survivorCount`. */
 export function mergeTargetTableCount(survivorCount: number): number {
   return Math.max(1, optimalVenueTableCount(survivorCount))
 }
 
-/**
- * Smallest survivor headcount that triggers the next scheduled merge (audience-facing threshold).
- * `null` when already at one table or no merge is scheduled before the field ends.
- */
-export function computeNextCondenseAtSurvivors(
-  liveTableCount: number,
-  currentSurvivors: number,
-): number | null {
-  if (liveTableCount <= 1 || currentSurvivors <= 0) return null
-
-  for (let s = currentSurvivors; s >= 1; s--) {
-    if (shouldScheduleVenueMerge(liveTableCount, s)) return s
-  }
-  return null
+/** Hands remaining until the next scheduled table shuffle. */
+export function handsUntilVenueShuffle(
+  handsCompletedAtVenue: number,
+  every: number = VENUE_SHUFFLE_EVERY_HANDS,
+): number {
+  const n = Math.max(0, Math.floor(handsCompletedAtVenue))
+  const step = Math.max(1, Math.floor(every))
+  const mod = n % step
+  return mod === 0 ? step : step - mod
 }
 
-export type VenueCondenseMilestone = {
-  atSurvivors: number
-  fromTables: number
-  toTables: number
-}
-
-/**
- * Scheduled combine thresholds from `scanFromSurvivors` down to final table,
- * simulating each merge and the next threshold at the new table count.
- */
-export function listVenueCondenseMilestones(
-  liveTableCount: number,
-  scanFromSurvivors: number,
-): VenueCondenseMilestone[] {
-  if (liveTableCount <= 1 || scanFromSurvivors <= 0) return []
-
-  const out: VenueCondenseMilestone[] = []
-  let tables = liveTableCount
-  let scanFrom = scanFromSurvivors
-
-  while (tables > 1 && scanFrom >= 1) {
-    const at = computeNextCondenseAtSurvivors(tables, scanFrom)
-    if (at == null) break
-
-    const toTables = mergeTargetTableCount(at)
-    const last = out[out.length - 1]
-    if (last?.atSurvivors !== at || last?.fromTables !== tables) {
-      out.push({ atSurvivors: at, fromTables: tables, toTables })
-    }
-
-    if (toTables >= tables) break
-    tables = toTables
-    scanFrom = at - 1
-  }
-
-  return out
+/** True when `handsCompletedAtVenue` is on a shuffle boundary (5, 10, 15, …). */
+export function isVenueShuffleHand(
+  handsCompletedAtVenue: number,
+  every: number = VENUE_SHUFFLE_EVERY_HANDS,
+): boolean {
+  const n = Math.max(0, Math.floor(handsCompletedAtVenue))
+  const step = Math.max(1, Math.floor(every))
+  return n > 0 && n % step === 0
 }
 
 export type VenueTableRoster = {
@@ -108,7 +66,7 @@ export type VenueTableRoster = {
   players: PlayerState[]
 }
 
-export type VenueCondenseMoveReason = 'solo' | 'rebalance' | 'closure'
+export type VenueCondenseMoveReason = 'solo'
 
 export type VenueCondensePlayerMove = {
   playerId: string
@@ -131,7 +89,7 @@ export type VenueCondenseScheduledMerge = {
 }
 
 export type VenueCondensePlan = {
-  /** Incremental moves in apply order (solo → closure). */
+  /** Solo rescue moves in apply order. */
   playerMoves: VenueCondensePlayerMove[]
   scheduledMerge: VenueCondenseScheduledMerge | null
 }
@@ -284,43 +242,6 @@ function pickSoloMove(tables: VenueTableRoster[], maxSeats: number): VenueConden
   }
 }
 
-function pickTableToClose(tables: VenueTableRoster[], idealTables: number): VenueTableRoster | null {
-  if (tables.length <= idealTables) return null
-  return [...tables].sort((a, b) => {
-    const diff = a.players.length - b.players.length
-    return diff !== 0 ? diff : a.tableNum - b.tableNum
-  })[0]!
-}
-
-function planClosureMoves(tables: VenueTableRoster[], maxSeats: number): VenueCondensePlayerMove[] {
-  const moves: VenueCondensePlayerMove[] = []
-  let state = cloneTables(tables)
-
-  for (let closed = 0; closed < VENUE_SEATING_MAX_CLOSURES_PER_ROUND; closed++) {
-    const ideal = optimalVenueTableCount(countSurvivorsAcross(state))
-    const target = pickTableToClose(state, ideal)
-    if (target == null) break
-
-    const playersToMove = [...target.players]
-    for (const player of playersToMove) {
-      const dest = pickBestDestination(state, target.tableNum, maxSeats, {
-        allowSoloDest: true,
-        ignoreFromTableSolo: true,
-      })
-      if (dest == null) break
-      moves.push({
-        playerId: player.id,
-        fromTableNum: target.tableNum,
-        toTableNum: dest.tableNum,
-        reason: 'closure',
-      })
-      state = applyPlayerMove(state, moves[moves.length - 1]!)
-    }
-  }
-
-  return moves
-}
-
 function buildScheduledMerge(
   tables: VenueTableRoster[],
   rng: () => number,
@@ -342,12 +263,11 @@ function buildScheduledMerge(
 }
 
 /**
- * Plan sticky seating: solo rescue → table closure → shotgun fallback.
- * Uneven table sizes at the correct table count are tolerated until closure or merge.
+ * Plan venue seating after End Round: solo rescue, then optional scheduled full shuffle.
  */
 export function planVenueCondense(
   tablesIn: VenueTableRoster[],
-  options?: { maxSeats?: number; rng?: () => number },
+  options?: { maxSeats?: number; rng?: () => number; shuffle?: boolean },
 ): VenueCondensePlan {
   const maxSeats = options?.maxSeats ?? VENUE_CONDENSE_MAX_SEATS
   const rng = options?.rng ?? Math.random
@@ -362,34 +282,30 @@ export function planVenueCondense(
     tables = applyPlayerMove(tables, move)
   }
 
-  const closureMoves = planClosureMoves(tables, maxSeats)
-  for (const move of closureMoves) {
-    playerMoves.push(move)
-    tables = applyPlayerMove(tables, move)
-  }
-
-  const liveCount = tables.length
   const survivorCount = countSurvivorsAcross(tables)
-  const scheduledMerge = shouldScheduleVenueMerge(liveCount, survivorCount)
-    ? buildScheduledMerge(tables, rng)
-    : null
+  const scheduledMerge =
+    options?.shuffle === true && tables.length > 1 && survivorCount > 0
+      ? buildScheduledMerge(tables, rng)
+      : null
 
   return { playerMoves, scheduledMerge }
 }
 
-/** Audience copy inputs derived from current venue rosters. */
-export function venueCondenseDisplayFields(args: {
+/** Audience copy inputs for the scheduled shuffle countdown. */
+export function venueShuffleDisplayFields(args: {
+  handsCompletedAtVenue: number
   liveTableCount: number
-  chipSurvivorCount: number
+  every?: number
 }): {
-  nextCondenseAtSurvivors: number | null
-  targetTablesAfterCondense: number | null
+  handsUntilShuffle: number | null
+  shuffleEveryHands: number
 } {
-  const { liveTableCount, chipSurvivorCount } = args
-  const nextCondenseAtSurvivors = computeNextCondenseAtSurvivors(liveTableCount, chipSurvivorCount)
-  const targetTablesAfterCondense =
-    nextCondenseAtSurvivors != null
-      ? mergeTargetTableCount(nextCondenseAtSurvivors)
-      : null
-  return { nextCondenseAtSurvivors, targetTablesAfterCondense }
+  const shuffleEveryHands = Math.max(1, Math.floor(args.every ?? VENUE_SHUFFLE_EVERY_HANDS))
+  if (args.liveTableCount <= 1) {
+    return { handsUntilShuffle: null, shuffleEveryHands }
+  }
+  return {
+    handsUntilShuffle: handsUntilVenueShuffle(args.handsCompletedAtVenue, shuffleEveryHands),
+    shuffleEveryHands,
+  }
 }

@@ -25,9 +25,7 @@ export type VenueCondenseApplyDeps = {
 
 export type VenueCondenseApplyResult = {
   soloRescues: number
-  rebalanceMoves: number
-  closureMoves: number
-  merged: boolean
+  shuffled: boolean
   tablesBefore: number
   tablesAfter: number
   survivorsBefore: number
@@ -52,7 +50,7 @@ function collectRosters(deps: VenueCondenseApplyDeps): VenueTableRoster[] {
   return out
 }
 
-/** Audience + threshold display: count seated roster, not chips in play (bankroll can hit $0 mid-hand). */
+/** Audience display: seated headcount across numbered tables. */
 export function venueCondenseSnapshotFromRooms(deps: {
   venueCode: string
   getState: (sessionKey: string) => GameState | undefined
@@ -102,17 +100,10 @@ function applyPlayerMoveToRooms(
     deps.moveHumanSocket(player.id, toKey, String(move.toTableNum))
   }
 
-  if (move.reason === 'solo' || move.reason === 'closure') {
-    deps.io.to(toKey).emit(
-      'toast',
-      `Table ${move.fromTableNum} closed — ${player.name} moved to Table ${move.toTableNum}.`,
-    )
-  } else {
-    deps.io.to(toKey).emit(
-      'toast',
-      `${player.name} moved from Table ${move.fromTableNum} to Table ${move.toTableNum} (rebalance).`,
-    )
-  }
+  deps.io.to(toKey).emit(
+    'toast',
+    `Table ${move.fromTableNum} closed — ${player.name} moved to Table ${move.toTableNum}.`,
+  )
 }
 
 function applyScheduledMerge(
@@ -161,47 +152,40 @@ function applyScheduledMerge(
   }
 }
 
-export function applyVenueCondenseAfterRound(deps: VenueCondenseApplyDeps): VenueCondenseApplyResult {
+export function applyVenueCondenseAfterRound(
+  deps: VenueCondenseApplyDeps,
+  options: { shuffle: boolean },
+): VenueCondenseApplyResult {
   const hostToasts: string[] = []
   let rosters = collectRosters(deps)
   const tablesBefore = rosters.length
   const survivorsBefore = rosters.reduce((n, t) => n + t.players.length, 0)
 
-  const plan = planVenueCondense(rosters)
+  const plan = planVenueCondense(rosters, { shuffle: options.shuffle })
   let soloRescues = 0
-  let rebalanceMoves = 0
-  let closureMoves = 0
 
   for (const move of plan.playerMoves) {
     applyPlayerMoveToRooms(deps, move)
-    if (move.reason === 'solo') {
-      soloRescues++
-      hostToasts.push(
-        `Table ${move.fromTableNum} closed — player rescued to Table ${move.toTableNum}.`,
-      )
-    } else if (move.reason === 'closure') {
-      closureMoves++
-    } else {
-      rebalanceMoves++
-    }
+    soloRescues++
+    hostToasts.push(
+      `Table ${move.fromTableNum} closed — player rescued to Table ${move.toTableNum}.`,
+    )
     rosters = collectRosters(deps)
   }
 
-  let merged = false
+  let shuffled = false
   if (plan.scheduledMerge) {
     const from = rosters.length
     const to = plan.scheduledMerge.targetTableCount
     applyScheduledMerge(deps, plan.scheduledMerge)
-    merged = true
-    hostToasts.push(`Tables combined — ${from} → ${to} (${survivorsBefore} players remaining).`)
+    shuffled = true
+    hostToasts.push(`Tables shuffled — ${from} → ${to} (${survivorsBefore} players remaining).`)
   }
 
   rosters = collectRosters(deps)
   return {
     soloRescues,
-    rebalanceMoves,
-    closureMoves,
-    merged,
+    shuffled,
     tablesBefore,
     tablesAfter: rosters.length,
     survivorsBefore,

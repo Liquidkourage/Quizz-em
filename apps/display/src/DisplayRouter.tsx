@@ -242,15 +242,13 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           typeof p.venueChipSurvivorCount === 'number' && Number.isFinite(p.venueChipSurvivorCount)
             ? Math.floor(p.venueChipSurvivorCount)
             : null,
-        venueNextCondenseAtSurvivors:
-          typeof p.venueNextCondenseAtSurvivors === 'number' &&
-          Number.isFinite(p.venueNextCondenseAtSurvivors)
-            ? Math.floor(p.venueNextCondenseAtSurvivors)
+        venueHandsUntilShuffle:
+          typeof p.venueHandsUntilShuffle === 'number' && Number.isFinite(p.venueHandsUntilShuffle)
+            ? Math.floor(p.venueHandsUntilShuffle)
             : null,
-        venueTargetTablesAfterCondense:
-          typeof p.venueTargetTablesAfterCondense === 'number' &&
-          Number.isFinite(p.venueTargetTablesAfterCondense)
-            ? Math.floor(p.venueTargetTablesAfterCondense)
+        venueShuffleEveryHands:
+          typeof p.venueShuffleEveryHands === 'number' && Number.isFinite(p.venueShuffleEveryHands)
+            ? Math.floor(p.venueShuffleEveryHands)
             : null,
         /** Older servers never sent this — keep briefing until reconnect to a newer build. */
         showAudienceWelcome: p.showAudienceWelcome !== false,

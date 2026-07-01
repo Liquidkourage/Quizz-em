@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
-  computeNextCondenseAtSurvivors,
-  listVenueCondenseMilestones,
+  handsUntilVenueShuffle,
+  isVenueShuffleHand,
   mergeTargetTableCount,
   optimalVenueTableCount,
   planVenueCondense,
-  shouldScheduleVenueMerge,
-  VENUE_CONDENSE_MERGE_MIN_TABLE_DROP,
-  VENUE_SEATING_MAX_CLOSURES_PER_ROUND,
+  VENUE_SHUFFLE_EVERY_HANDS,
+  venueShuffleDisplayFields,
 } from './venueCondense'
 import type { PlayerState } from './index'
 
@@ -29,28 +28,26 @@ function roster(tableNum: number, count: number) {
   }
 }
 
-describe('venue condense thresholds', () => {
-  it('mergeMinTableDrop=2: 20 tables merge at 110 survivors', () => {
-    expect(VENUE_CONDENSE_MERGE_MIN_TABLE_DROP).toBe(2)
-    expect(optimalVenueTableCount(134)).toBeGreaterThan(20 - 2)
-    expect(shouldScheduleVenueMerge(20, 134)).toBe(false)
-    expect(shouldScheduleVenueMerge(20, 110)).toBe(true)
-    expect(mergeTargetTableCount(110)).toBe(18)
-    expect(computeNextCondenseAtSurvivors(20, 134)).toBe(110)
+describe('venue shuffle schedule', () => {
+  it('every 5 hands', () => {
+    expect(VENUE_SHUFFLE_EVERY_HANDS).toBe(5)
+    expect(handsUntilVenueShuffle(0)).toBe(5)
+    expect(handsUntilVenueShuffle(1)).toBe(4)
+    expect(handsUntilVenueShuffle(4)).toBe(1)
+    expect(handsUntilVenueShuffle(5)).toBe(5)
+    expect(isVenueShuffleHand(4)).toBe(false)
+    expect(isVenueShuffleHand(5)).toBe(true)
+    expect(isVenueShuffleHand(10)).toBe(true)
   })
 
-  it('returns null at one table', () => {
-    expect(computeNextCondenseAtSurvivors(1, 5)).toBeNull()
-  })
-
-  it('lists merge ladder from 20 tables down', () => {
-    const ladder = listVenueCondenseMilestones(20, 134)
-    expect(ladder.length).toBeGreaterThan(0)
-    expect(ladder[0]).toEqual({ atSurvivors: 110, fromTables: 20, toTables: 18 })
-    for (let i = 1; i < ladder.length; i++) {
-      expect(ladder[i]!.atSurvivors).toBeLessThan(ladder[i - 1]!.atSurvivors)
-      expect(ladder[i]!.fromTables).toBeLessThanOrEqual(ladder[i - 1]!.toTables)
-    }
+  it('display fields hide countdown at final table', () => {
+    expect(venueShuffleDisplayFields({ handsCompletedAtVenue: 3, liveTableCount: 1 })).toEqual({
+      handsUntilShuffle: null,
+      shuffleEveryHands: 5,
+    })
+    expect(
+      venueShuffleDisplayFields({ handsCompletedAtVenue: 3, liveTableCount: 12 }).handsUntilShuffle,
+    ).toBe(2)
   })
 })
 
@@ -65,6 +62,7 @@ describe('planVenueCondense', () => {
     expect(soloMoves).toHaveLength(1)
     expect(soloMoves[0]!.fromTableNum).toBe(2)
     expect(soloMoves[0]!.toTableNum).toBe(1)
+    expect(plan.scheduledMerge).toBeNull()
   })
 
   it('does not rescue lone survivor on only table', () => {
@@ -72,26 +70,32 @@ describe('planVenueCondense', () => {
     expect(plan.playerMoves).toHaveLength(0)
   })
 
-  it('soft-closes sparse tables instead of shotgun when possible', () => {
-    const tables = Array.from({ length: 20 }, (_, i) => roster(i + 1, i < 10 ? 5 : 6))
-    const plan = planVenueCondense(tables, { rng: () => 0 })
-    expect(plan.scheduledMerge).toBeNull()
-    expect(plan.playerMoves.some((m) => m.reason === 'closure')).toBe(true)
-  })
-
-  it('limits table closures per round', () => {
-    const tables = Array.from({ length: 20 }, (_, i) => roster(i + 1, 5))
-    const plan = planVenueCondense(tables, { rng: () => 0 })
-    const closedTables = new Set(
-      plan.playerMoves.filter((m) => m.reason === 'closure').map((m) => m.fromTableNum),
-    )
-    expect(closedTables.size).toBeLessThanOrEqual(VENUE_SEATING_MAX_CLOSURES_PER_ROUND)
-  })
-
   it('does not move players when table count is optimal but sizes are uneven', () => {
     const tables = [roster(1, 8), roster(2, 5), roster(3, 5)]
     const plan = planVenueCondense(tables, { rng: () => 0 })
     expect(plan.scheduledMerge).toBeNull()
     expect(plan.playerMoves).toHaveLength(0)
+  })
+
+  it('shuffles all survivors into optimal tables on shuffle hands', () => {
+    const tables = Array.from({ length: 20 }, (_, i) => roster(i + 1, i < 10 ? 5 : 6))
+    const plan = planVenueCondense(tables, { rng: () => 0, shuffle: true })
+    expect(plan.scheduledMerge).not.toBeNull()
+    const survivors = tables.reduce((n, t) => n + t.players.length, 0)
+    expect(plan.scheduledMerge!.targetTableCount).toBe(optimalVenueTableCount(survivors))
+    expect(plan.scheduledMerge!.targetTableCount).toBe(mergeTargetTableCount(survivors))
+    const assigned = [...plan.scheduledMerge!.assignments.values()].flat()
+    expect(assigned).toHaveLength(survivors)
+  })
+
+  it('skips shuffle on a single table', () => {
+    const plan = planVenueCondense([roster(1, 6)], { shuffle: true, rng: () => 0 })
+    expect(plan.scheduledMerge).toBeNull()
+  })
+
+  it('does not shuffle between scheduled hands', () => {
+    const tables = [roster(1, 8), roster(2, 3), roster(3, 3)]
+    const plan = planVenueCondense(tables, { shuffle: false, rng: () => 0 })
+    expect(plan.scheduledMerge).toBeNull()
   })
 })

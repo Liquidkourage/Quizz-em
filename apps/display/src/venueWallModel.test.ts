@@ -17,9 +17,9 @@ function model(overrides: Partial<VenueCondenseProgressModel>): VenueCondensePro
     peakSurvivors: 120,
     liveTables: 12,
     fillPct: 75,
-    marks: [],
-    nextAt: 74,
-    nextToTables: 10,
+    handsUntilShuffle: 3,
+    shuffleEveryHands: 5,
+    shuffleFillPct: 40,
     ...overrides,
   }
 }
@@ -45,24 +45,24 @@ describe('venueAllTablesAnswering', () => {
 })
 
 describe('venueHeadlineCondenseCaptionParts', () => {
-  it('shows remaining and re-seating threshold without table count', () => {
+  it('shows remaining and shuffle countdown', () => {
     expect(venueHeadlineCondenseCaptionParts(model({}))).toEqual([
       '91 remaining',
-      're-seating at 74',
+      'shuffle in 3 hands',
     ])
-    expect(venueHeadlineCondenseCaption(model({}))).toBe('91 remaining · Re-seating at 74')
+    expect(venueHeadlineCondenseCaption(model({}))).toBe('91 remaining · Shuffle in 3 hands')
   })
 
-  it('shows re-seating now when at or below the threshold', () => {
-    expect(venueHeadlineCondenseCaptionParts(model({ survivors: 74 }))).toEqual([
-      '74 remaining',
-      're-seating now',
+  it('shows shuffle next hand when one hand away', () => {
+    expect(venueHeadlineCondenseCaptionParts(model({ handsUntilShuffle: 1 }))).toEqual([
+      '91 remaining',
+      'shuffle next hand',
     ])
   })
 
   it('shows only remaining on the final table', () => {
-    expect(venueHeadlineCondenseCaptionParts(model({ liveTables: 1, nextAt: null }))).toEqual([
-      '91 remaining',
-    ])
+    expect(
+      venueHeadlineCondenseCaptionParts(model({ liveTables: 1, handsUntilShuffle: null })),
+    ).toEqual(['91 remaining'])
   })
 })

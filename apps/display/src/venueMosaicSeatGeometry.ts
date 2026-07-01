@@ -82,16 +82,19 @@ const MOSAIC_DEEP_INSET_SEAT_INDEXES = new Set([3, 7])
 /** Chip stack anchor — fraction from cup toward felt center (lower = closer to rail). */
 export function mosaicSeatChipInwardFrac(seatIndex: number): number {
   const i = mosaicSeatIndex(seatIndex)
-  if (MOSAIC_DEEP_INSET_SEAT_INDEXES.has(i)) return 0.09
-  if (MOSAIC_ARC_SEAT_INDEXES.has(i)) return 0.13
+  if (MOSAIC_DEEP_INSET_SEAT_INDEXES.has(i)) return 0.02
+  // 3 and 9 o'clock flats — horizontal path still reads too center at default.
+  if (i === 2 || i === 6) return 0.07
+  if (MOSAIC_ARC_SEAT_INDEXES.has(i)) return 0.08
   return 0.28
 }
 
 /** Hole-card anchor — fraction from cup toward felt center (lower = closer to rail). */
 export function mosaicSeatHoleInwardFrac(seatIndex: number): number {
   const i = mosaicSeatIndex(seatIndex)
-  if (MOSAIC_DEEP_INSET_SEAT_INDEXES.has(i)) return 0.11
-  if (MOSAIC_ARC_SEAT_INDEXES.has(i)) return 0.15
+  if (MOSAIC_DEEP_INSET_SEAT_INDEXES.has(i)) return 0.04
+  if (i === 2 || i === 6) return 0.1
+  if (MOSAIC_ARC_SEAT_INDEXES.has(i)) return 0.12
   return VENUE_MOSAIC_HOLE_INWARD_FRAC
 }
 

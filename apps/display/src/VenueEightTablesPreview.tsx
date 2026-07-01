@@ -304,18 +304,16 @@ function broadcastCenterTypographyPx(rimW: number): {
 
 /** Community board on n=1 broadcast — stadium-scaled, not mosaic tile sizing. */
 function broadcastCommunityCardLayoutPx(
-  rimW: number,
-  rimH: number
-): { widthPx: number; heightPx: number; boardOffsetPx: number; gapPx: number } {
+  rimW: number
+): { widthPx: number; heightPx: number; boardGapPx: number; gapPx: number } {
   const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
   const widthPx = Math.round(76 * scale)
   const heightPx = Math.round((widthPx * 7) / 5)
-  const boardOffsetPx = Math.round(Math.max(rimH * 0.16, 56 * scale))
   return {
     widthPx,
     heightPx,
-    boardOffsetPx,
+    boardGapPx: Math.round(14 * scale),
     gapPx: Math.max(6, Math.round(widthPx * 0.12)),
   }
 }
@@ -347,7 +345,7 @@ function VenueBroadcastCenterStack({
   communityDigits,
   communityCardWidthPx,
   communityCardHeightPx,
-  communityBoardOffsetPx,
+  communityBoardGapPx,
   communityCardGapPx,
   prefersReducedMotion,
   rimW,
@@ -360,7 +358,7 @@ function VenueBroadcastCenterStack({
   communityDigits: number[]
   communityCardWidthPx: number
   communityCardHeightPx: number
-  communityBoardOffsetPx: number
+  communityBoardGapPx: number
   communityCardGapPx: number
   prefersReducedMotion: boolean
   rimW: number
@@ -369,7 +367,7 @@ function VenueBroadcastCenterStack({
   const centerTypo = broadcastCenterTypographyPx(rimW)
   const centerCxPct = feltBounds.cx * 100
   const centerCyPct = feltBounds.cy * 100
-  const potStackStyle = {
+  const centerStackStyle = {
     position: 'absolute' as const,
     left: `${centerCxPct}%`,
     top: `${centerCyPct}%`,
@@ -386,31 +384,25 @@ function VenueBroadcastCenterStack({
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
       aria-hidden={pot <= 0 && actionKind == null && communityDigits.length === 0}
     >
-      {communityDigits.length > 0 ? (
-        <div
-          className="vfd-broadcast-community-board flex max-w-[92%] items-center justify-center"
-          style={{
-            position: 'absolute',
-            left: `${centerCxPct}%`,
-            top: `${centerCyPct}%`,
-            transform: `translate(-50%, calc(-100% - ${communityBoardOffsetPx}px))`,
-            gap: communityCardGapPx,
-          }}
-        >
-          {communityDigits.map((digit, i) => (
-            <MosaicDigitCard
-              key={`${i}-${digit}`}
-              digit={digit}
-              widthPx={communityCardWidthPx}
-              heightPx={communityCardHeightPx}
-            />
-          ))}
-        </div>
-      ) : null}
       <div
         className="vfd-broadcast-center-stack flex max-w-[94%] flex-col items-center justify-center text-center"
-        style={potStackStyle}
+        style={centerStackStyle}
       >
+        {communityDigits.length > 0 ? (
+          <div
+            className="vfd-broadcast-community-board flex max-w-full items-center justify-center"
+            style={{ gap: communityCardGapPx, marginBottom: communityBoardGapPx }}
+          >
+            {communityDigits.map((digit, i) => (
+              <MosaicDigitCard
+                key={`${i}-${digit}`}
+                digit={digit}
+                widthPx={communityCardWidthPx}
+                heightPx={communityCardHeightPx}
+              />
+            ))}
+          </div>
+        ) : null}
         <span className="vfd-broadcast-pot-label">Pot</span>
         <VenuePotAmount
           amount={pot}
@@ -1235,7 +1227,7 @@ function SeatRingWithLabels({
 
   const potFromBroadcast = isBroadcast ? mosaicCenterPot : null
   const broadcastCommunityLayout =
-    isBroadcast && rimW > 0 && rimH > 0 ? broadcastCommunityCardLayoutPx(rimW, rimH) : null
+    isBroadcast && rimW > 0 ? broadcastCommunityCardLayoutPx(rimW) : null
   const broadcastCommunityCardW = broadcastCommunityLayout?.widthPx ?? 0
   const broadcastCommunityCardH = broadcastCommunityLayout?.heightPx ?? 0
 
@@ -1278,7 +1270,7 @@ function SeatRingWithLabels({
             communityDigits={communityDigits}
             communityCardWidthPx={broadcastCommunityCardW}
             communityCardHeightPx={broadcastCommunityCardH}
-            communityBoardOffsetPx={broadcastCommunityLayout?.boardOffsetPx ?? 0}
+            communityBoardGapPx={broadcastCommunityLayout?.boardGapPx ?? 0}
             communityCardGapPx={broadcastCommunityLayout?.gapPx ?? 0}
             prefersReducedMotion={prefersReducedMotion}
             rimW={rimW}

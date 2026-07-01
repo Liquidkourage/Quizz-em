@@ -320,7 +320,7 @@ function broadcastCommunityCardLayoutPx(
   }
 }
 
-/** Rail-tight blind / BTN anchor — tangential offset so pucks don't cover chip stacks. */
+/** Blind / BTN beside the cup — tangential nudge off the seat, clear of chip stacks. */
 function broadcastBlindMarkerPct(
   seatIndex: number,
   seatCount: number,
@@ -328,10 +328,9 @@ function broadcastBlindMarkerPct(
   h: number,
   markerSizePx: number
 ): { leftPct: number; topPct: number } {
-  const railTight = mosaicSeatHoleLayout(seatIndex, seatCount, w, h, 0.035)
-  if (!(w > 0 && h > 0)) return { leftPct: railTight.leftPct, topPct: railTight.topPct }
-
   const cup = mosaicSeatDotPct(seatIndex, seatCount, w, h)
+  if (!(w > 0 && h > 0)) return cup
+
   const center = venueMosaicFeltCenterPct(w, h)
   const cupX = (cup.leftPct / 100) * w
   const cupY = (cup.topPct / 100) * h
@@ -343,13 +342,11 @@ function broadcastBlindMarkerPct(
   const tx = -dy / len
   const ty = dx / len
   const sign = seatIndex % 2 === 0 ? 1 : -1
-  const tangentSepPx = Math.max(26, Math.round(markerSizePx * 0.62))
+  const sideOffsetPx = Math.max(38, Math.round(markerSizePx * 1.05))
 
-  const baseX = (railTight.leftPct / 100) * w
-  const baseY = (railTight.topPct / 100) * h
   return {
-    leftPct: ((baseX + tx * tangentSepPx * sign) / w) * 100,
-    topPct: ((baseY + ty * tangentSepPx * sign) / h) * 100,
+    leftPct: ((cupX + tx * sideOffsetPx * sign) / w) * 100,
+    topPct: ((cupY + ty * sideOffsetPx * sign) / h) * 100,
   }
 }
 
@@ -1712,13 +1709,11 @@ function SeatRingWithLabels({
                   : blindPtRaw
               return (
                 <div
-                  className={`pointer-events-none absolute ${isBroadcast ? 'z-[114]' : SEAT_LAYER_BLIND_OUT} flex flex-col items-center`}
+                  className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.55)]`}
                   style={{
                     left: `${blindPt.leftPct}%`,
                     top: `${blindPt.topPct}%`,
-                    transform: isBroadcast
-                      ? broadcastPoleChipTransform(i, rimH)
-                      : 'translate(-50%, -50%)',
+                    transform: 'translate(-50%, -50%)',
                     gap: Math.max(2, Math.round(markerSizePx * 0.1)),
                   }}
                 >

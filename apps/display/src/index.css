@@ -1769,6 +1769,7 @@
   .venue-headline-question-fit-host-compact,
   .venue-headline-question-fit-host-ultra,
   .venue-headline-question-fit-host-dense,
+  .venue-headline-question-fit-host-broadcast,
   .display-fit-question-host-app,
   .display-fit-question-host-reveal {
     display: flex;
@@ -1795,6 +1796,15 @@
 
   .venue-headline-question-fit-host-dense {
     max-height: min(16vh, 7.5rem);
+  }
+
+  .venue-headline-question-fit-host-broadcast {
+    max-height: min(12vh, 6.5rem);
+  }
+
+  .display-text-headline-question-broadcast {
+    font-weight: 700;
+    line-height: 1.15;
   }
 
   .display-fit-question-host-app {
@@ -2073,52 +2083,102 @@
     color: rgb(110 231 183 / 0.35);
   }
 
-  /** n=1 broadcast hero — pot + action centered on felt. */
+  /** n=1 broadcast hero — scoreboard-sized pot + action on felt. */
+  .vfd-broadcast-pot-label {
+    font-size: clamp(0.85rem, 2.2vh, 1.35rem);
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(251 191 36 / 0.82);
+    line-height: 1;
+  }
+
   .vfd-broadcast-pot .vfd-mosaic-dollar-sign {
-    font-size: clamp(1.35rem, 3.2vw, 2.35rem);
+    font-size: clamp(1.75rem, 4.5vh, 3.25rem);
   }
 
   .vfd-broadcast-pot .vfd-mosaic-dollar-digits {
-    font-size: clamp(2.25rem, 6.5vw, 4.75rem);
-    letter-spacing: -0.02em;
+    font-size: clamp(3rem, 9.5vh, 7.5rem);
+    letter-spacing: -0.03em;
+    line-height: 0.95;
   }
 
   .vfd-broadcast-action-name {
-    max-width: min(18rem, 52vw);
+    max-width: min(22rem, 88vw);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: clamp(1rem, 2.4vw, 1.65rem);
-    font-weight: 800;
-    color: rgb(255 251 235 / 0.96);
+    font-size: clamp(1.75rem, 5.5vh, 4.25rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: rgb(255 251 235 / 0.98);
+    text-shadow: 0 2px 12px rgb(0 0 0 / 0.85);
+    line-height: 1.05;
+  }
+
+  .vfd-broadcast-action-row {
+    line-height: 1;
   }
 
   .vfd-broadcast-action-label {
-    font-size: clamp(0.85rem, 1.8vw, 1.15rem);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: rgb(251 191 36 / 0.88);
+    font-size: clamp(1.25rem, 3.8vh, 2.85rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: rgb(251 191 36 / 0.95);
   }
 
   .vfd-broadcast-action-amount .vfd-mosaic-dollar-sign {
-    font-size: clamp(1rem, 2.4vw, 1.65rem);
+    font-size: clamp(1.35rem, 4vh, 2.75rem);
   }
 
   .vfd-broadcast-action-amount .vfd-mosaic-dollar-digits {
-    font-size: clamp(1.35rem, 3.5vw, 2.35rem);
+    font-size: clamp(1.75rem, 5vh, 3.75rem);
   }
 
   .vfd-broadcast-action-message {
-    font-size: clamp(0.95rem, 2vw, 1.35rem);
-    font-weight: 800;
+    font-size: clamp(1.25rem, 3.5vh, 2.5rem);
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: rgb(167 243 208 / 0.95);
+    letter-spacing: 0.14em;
+    color: rgb(167 243 208 / 0.98);
   }
 
   .vfd-broadcast-action-message--answering {
     color: rgb(207 250 254 / 0.98);
+  }
+
+  .vfd-broadcast-headline-meta-primary {
+    font-size: clamp(0.95rem, 2.2vh, 1.45rem);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgb(255 251 235 / 0.92);
+    line-height: 1.15;
+  }
+
+  .vfd-broadcast-headline-meta-blinds {
+    font-size: clamp(1.05rem, 2.6vh, 1.75rem);
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    color: rgb(251 191 36 / 0.96);
+    line-height: 1.1;
+  }
+
+  .vfd-broadcast-headline-meta-mobile {
+    font-size: clamp(0.85rem, 1.9vh, 1.2rem);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: rgb(255 251 235 / 0.82);
+  }
+
+  .venue-broadcast-answer-timer {
+    font-size: clamp(3rem, 8vh, 6.5rem);
+    line-height: 1;
+  }
+
+  .venue-single-table-broadcast {
+    container-type: size;
   }
 
   /** Venue eagle-eye leaderboard wall — televised tournament presentation. */

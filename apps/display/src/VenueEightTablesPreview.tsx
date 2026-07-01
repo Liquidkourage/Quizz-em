@@ -40,7 +40,7 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
-import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineCondenseCaptionParts, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import VenueCondenseProgressBar from './VenueCondenseProgressBar'
 import VenueHeadlineCondenseStatsPill from './VenueHeadlineCondenseStatsPill'
@@ -56,6 +56,7 @@ import {
   displayHeadlineStatsClass,
   displayHeadlineQuestionClass,
   displayHeadlineQuestionFitProfile,
+  displayBroadcastHeadlineQuestionFitProfile,
 } from './displayTypography'
 import { DisplayFitQuestionText } from './DisplayFitQuestionText'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
@@ -246,6 +247,14 @@ function MosaicTableStatusBand({
   )
 }
 
+/** First name on the broadcast rim — full name stays in the center HUD. */
+function broadcastRimDisplayName(fullName: string): string {
+  const t = fullName.trim()
+  const parts = t.split(/\s+/).filter(Boolean)
+  if (parts.length <= 1) return t
+  return parts[0]!
+}
+
 /** Broadcast hero (n=1): pot + acting line centered on felt — replaces header status band. */
 function VenueBroadcastCenterStack({
   pot,
@@ -275,7 +284,7 @@ function VenueBroadcastCenterStack({
       aria-hidden={pot <= 0 && actionKind == null && communityDigits.length === 0}
     >
       <div
-        className="flex max-w-[92%] flex-col items-center justify-center gap-1.5 text-center sm:gap-2"
+        className="vfd-broadcast-center-stack flex max-w-[94%] flex-col items-center justify-center gap-0.5 text-center sm:gap-1"
         style={{
           position: 'absolute',
           left: `${feltBounds.cx * 100}%`,
@@ -286,7 +295,7 @@ function VenueBroadcastCenterStack({
         {communityDigits.length > 0 ? (
           <div
             className="flex items-center justify-center"
-            style={{ gap: Math.max(3, Math.round(communityCardWidthPx * 0.08)) }}
+            style={{ gap: Math.max(4, Math.round(communityCardWidthPx * 0.1)) }}
           >
             {communityDigits.map((digit, i) => (
               <MosaicDigitCard
@@ -298,6 +307,7 @@ function VenueBroadcastCenterStack({
             ))}
           </div>
         ) : null}
+        <span className="vfd-broadcast-pot-label">Pot</span>
         <VenuePotAmount
           amount={pot}
           prefersReducedMotion={prefersReducedMotion}
@@ -306,20 +316,22 @@ function VenueBroadcastCenterStack({
         />
         {actionKind === 'to-call' && actingPlayerName && callAmount != null ? (
           <div
-            className="vfd-broadcast-action flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5"
+            className="vfd-broadcast-action mt-0.5 flex flex-col items-center gap-0.5 sm:mt-1 sm:gap-1"
             aria-live="polite"
             aria-label={`${actingPlayerName} to call ${formatVenueBankroll(callAmount)}`}
           >
             <span className="vfd-broadcast-action-name" title={actingPlayerName}>
               {actingPlayerName}
             </span>
-            <span className="vfd-broadcast-action-label">to call</span>
-            <MosaicBungeeDollarAmount
-              amount={callAmount}
-              className="vfd-broadcast-action-amount vfd-mosaic-dollar--live"
-              prefersReducedMotion={prefersReducedMotion}
-              pulseOnChange
-            />
+            <div className="vfd-broadcast-action-row flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0">
+              <span className="vfd-broadcast-action-label">TO CALL</span>
+              <MosaicBungeeDollarAmount
+                amount={callAmount}
+                className="vfd-broadcast-action-amount vfd-mosaic-dollar--live"
+                prefersReducedMotion={prefersReducedMotion}
+                pulseOnChange
+              />
+            </div>
           </div>
         ) : actionKind === 'no-more-bets' ? (
           <span className="vfd-broadcast-action-message" role="status">
@@ -1025,7 +1037,7 @@ function SeatRingWithLabels({
   const isBroadcast = ringMode === 'broadcast'
   /** Spotlight / broadcast hero — wide capsule; mosaic tiles use smaller md ring below. */
   const lgRing = isBroadcast
-    ? 'relative mx-auto aspect-[14/8] h-full max-h-full w-auto max-w-[min(100%,calc(100dvw-1rem))] min-h-0 min-w-0 shrink-0'
+    ? 'venue-broadcast-felt relative mx-auto aspect-[14/8] h-auto max-h-full w-[min(100%,calc(100cqh*14/8))] min-h-0 min-w-0 shrink-0'
     : 'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
   /** Mosaic crawl — stadium capsule; fit cell with width-first sizing so aspect ratio holds. */
   const mdRing = isMosaic
@@ -1109,7 +1121,9 @@ function SeatRingWithLabels({
   const mosaicDensityTier = mosaicDensity as StadiumMosaicDensity | undefined
   const cupSizePx = isMosaic
     ? stadiumMosaicCupholderSizePx(rimW, mosaicDensityTier)
-    : stadiumCupholderSizePx(rimW)
+    : isBroadcast
+      ? Math.round(stadiumCupholderSizePx(rimW) * 1.2)
+      : stadiumCupholderSizePx(rimW)
   const holeCardScale = isMosaic
     ? stadiumMosaicHoleCardScale(rimW, mosaicDensityTier)
     : stadiumHoleCardScale(rimW)
@@ -1231,7 +1245,7 @@ function SeatRingWithLabels({
         const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && (size === 'lg' || isBroadcast)))
         const fallbackPos = venueSeatRimPct(i, fb, rimW, rimH)
         const broadcastLabelOutward = isBroadcast
-          ? stadiumSeatPointPx(layoutIdx, seatCountForLayout, rimW, rimH, 1.06)
+          ? stadiumSeatPointPx(layoutIdx, seatCountForLayout, rimW, rimH, 1.0)
           : null
         const labelPos =
           isBroadcast && broadcastLabelOutward
@@ -1247,18 +1261,21 @@ function SeatRingWithLabels({
                 .toUpperCase()
             : ''
         const chips = seatBankrolls[i] ?? 0
-        const showFeltStack = Boolean(raw && ((feltSeatStacks && size === 'lg') || isBroadcast))
+        const isFolded = filled && seatFolded[i] === true
+        const isActing = filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded
+        const showFeltStack = Boolean(
+          raw && ((feltSeatStacks && size === 'lg') || (isBroadcast && isActing))
+        )
+        const rimDisplayName = isBroadcast ? broadcastRimDisplayName(raw) : raw
         const labelVy = isBroadcast
           ? -Math.sin(stadiumSeatThetaRad(layoutIdx, seatCountForLayout)) *
             (size === 'lg' || isBroadcast
               ? SEAT_NAME_LABEL_VERTICAL_NUDGE_PX_LG
               : SEAT_NAME_LABEL_VERTICAL_NUDGE_PX_MD)
           : seatNameLabelVerticalNudgePx(i, size)
-        const isFolded = filled && seatFolded[i] === true
         const lastBetAct =
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
         const showFoldOut = isFolded && !(showSeatBettingActions && lastBetAct === 'fold')
-        const isActing = filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded
         const answerLocked =
           filled &&
           answeringPhase &&
@@ -1281,6 +1298,8 @@ function SeatRingWithLabels({
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
         const actingSoftPulse =
           'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden motion-safe:animate-pulse'
+        const broadcastActingGlow =
+          'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-300/30 ring-[3px] ring-amber-300/75 motion-reduce:hidden motion-safe:animate-pulse shadow-[0_0_28px_rgba(251,191,36,0.55)]'
         return (
           <div key={i}>
             <div
@@ -1292,11 +1311,23 @@ function SeatRingWithLabels({
               }}
             >
               {isActing && !prefersReducedMotion ? (
-                <span
-                  aria-hidden
-                  className={`${actingSoftPulse} motion-safe:[animation-duration:2.8s]`}
-                  style={{ width: cupSizePx * 1.15, height: cupSizePx * 1.15 }}
-                />
+                <>
+                  <span
+                    aria-hidden
+                    className={`${isBroadcast ? broadcastActingGlow : actingSoftPulse} motion-safe:[animation-duration:2.8s]`}
+                    style={{
+                      width: cupSizePx * (isBroadcast ? 2.35 : 1.15),
+                      height: cupSizePx * (isBroadcast ? 2.35 : 1.15),
+                    }}
+                  />
+                  {isBroadcast ? (
+                    <span
+                      aria-hidden
+                      className={`${actingSoftPulse} motion-safe:[animation-duration:1.6s]`}
+                      style={{ width: cupSizePx * 1.55, height: cupSizePx * 1.55 }}
+                    />
+                  ) : null}
+                </>
               ) : answerLocked && !prefersReducedMotion ? (
                 <span
                   aria-hidden
@@ -1454,7 +1485,11 @@ function SeatRingWithLabels({
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} text-center font-semibold leading-tight shadow-black/80 drop-shadow ${
                   isBroadcast
-                    ? 'max-w-[min(14rem,38vw)] text-[1.05rem] leading-tight sm:text-[1.2rem] sm:leading-snug md:text-[1.45rem] lg:text-[1.65rem]'
+                    ? `max-w-[min(11rem,30vw)] ${
+                        isActing
+                          ? 'text-[clamp(1.05rem,2.8vh,1.85rem)] font-black text-amber-100'
+                          : 'text-[clamp(0.95rem,2.2vh,1.55rem)]'
+                      }`
                     : labelClass
                 } ${
                   isFolded ? 'text-white/60' : 'text-white/92'
@@ -1468,7 +1503,7 @@ function SeatRingWithLabels({
                 <span
                   className={`block max-w-full truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
                 >
-                  {raw}
+                  {rimDisplayName}
                 </span>
                 {(() => {
                   const showMonoStackUnderName = !(feltSeatStacks && size === 'lg')
@@ -2068,6 +2103,148 @@ function VenueAerialFloorGrid({
   )
 }
 
+/** Slim sports-bar headline when only one table is live. */
+function VenueBroadcastHeadlineStrip({
+  skipMountIntro,
+  showSetlistCue,
+  setlistCueNumber,
+  setlistCueTotal,
+  headlineQuestionDisplay,
+  broadcastMetaLine,
+  headlinePhaseBadge,
+  showVenueBlindsHeadline,
+  venueBlindsHeadline,
+  inVenueShowdown,
+  venueShowdownAnswer,
+  venueShowdownAnswerRow,
+  headlineTimerOnly,
+  headlineAnsweringUnified,
+  headlineAnswering,
+  inAnsweringCountdown,
+  timerSeconds,
+}: {
+  skipMountIntro?: boolean
+  showSetlistCue: boolean
+  setlistCueNumber: number | null
+  setlistCueTotal: number | null
+  headlineQuestionDisplay: string | null
+  broadcastMetaLine: string | null
+  headlinePhaseBadge: string | null
+  showVenueBlindsHeadline: boolean
+  venueBlindsHeadline: { amount: string; meta: string | null } | null
+  inVenueShowdown: boolean
+  venueShowdownAnswer: number | null | undefined
+  venueShowdownAnswerRow: ReturnType<typeof showdownCorrectAnswerRowFromTile> | null
+  headlineTimerOnly: boolean
+  headlineAnsweringUnified: boolean
+  headlineAnswering: boolean
+  inAnsweringCountdown: boolean
+  timerSeconds: number | null
+}) {
+  const broadcastQuestionFit = displayBroadcastHeadlineQuestionFitProfile()
+
+  return (
+    <motion.div
+      className="venue-broadcast-headline sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col gap-1 rounded-b-xl border-2 border-yellow-400/85 bg-black/88 px-3 py-1.5 shadow-[0_10px_32px_rgba(0,0,0,0.55)] backdrop-blur-md sm:px-4 sm:py-2"
+      style={{ paddingTop: 'max(0.25rem, env(safe-area-inset-top, 0px))' }}
+      initial={skipMountIntro ? false : { opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      <div className="flex w-full min-w-0 items-center gap-2 sm:gap-3">
+        {showSetlistCue && setlistCueNumber != null && setlistCueTotal != null ? (
+          <span
+            className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}
+          >
+            Q {setlistCueNumber}/{setlistCueTotal}
+          </span>
+        ) : null}
+        {headlineQuestionDisplay ? (
+          <DisplayFitQuestionText
+            text={headlineQuestionDisplay}
+            hostClassName={broadcastQuestionFit.hostClassName}
+            maxFontVh={broadcastQuestionFit.maxFontVh}
+            textClassName="venue-headline-question-slot min-w-0 flex-1 text-balance text-center tracking-tight text-yellow-400 display-text-headline-question-broadcast leading-snug"
+          />
+        ) : inVenueShowdown ? (
+          <p className="sr-only">Showdown in progress.</p>
+        ) : null}
+        {broadcastMetaLine ? (
+          <div
+            className="vfd-broadcast-headline-meta hidden shrink-0 flex-col items-end text-right sm:flex"
+            aria-label={broadcastMetaLine}
+          >
+            <span className="vfd-broadcast-headline-meta-primary">{broadcastMetaLine}</span>
+            {showVenueBlindsHeadline && venueBlindsHeadline?.amount ? (
+              <span className="vfd-broadcast-headline-meta-blinds">{venueBlindsHeadline.amount}</span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+      {broadcastMetaLine ? (
+        <p className="vfd-broadcast-headline-meta-mobile text-center sm:hidden" aria-hidden>
+          {broadcastMetaLine}
+          {showVenueBlindsHeadline && venueBlindsHeadline?.amount
+            ? ` · ${venueBlindsHeadline.amount}`
+            : ''}
+        </p>
+      ) : null}
+      {headlinePhaseBadge != null && !inVenueShowdown && !headlineAnsweringUnified ? (
+        <p className="text-center text-sm font-black uppercase tracking-wide text-emerald-200/90 sm:text-base">
+          {headlinePhaseBadge}
+        </p>
+      ) : null}
+      {inVenueShowdown && venueShowdownAnswer != null ? (
+        <div
+          className="flex flex-col items-center justify-center gap-1 rounded-lg border border-amber-400/55 bg-amber-950/45 px-3 py-2"
+          aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
+        >
+          <span className={`font-semibold uppercase tracking-wide text-amber-200/70 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+            Correct answer
+          </span>
+          {venueShowdownAnswerRow != null && venueShowdownAnswerRow.answerCards.length > 0 ? (
+            <ShowdownFiveCardsUsed row={venueShowdownAnswerRow} size="sm" />
+          ) : (
+            <div className="font-mono text-3xl font-black tracking-tight text-amber-100 sm:text-5xl">
+              {formatTriviaNumber(venueShowdownAnswer)}
+            </div>
+          )}
+        </div>
+      ) : headlineTimerOnly && typeof timerSeconds === 'number' ? (
+        <div
+          className={`flex items-center justify-center rounded-xl border px-4 py-2 ${
+            timerSeconds <= 10
+              ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_24px_rgba(34,211,238,0.16)]'
+              : 'border-cyan-600/35 bg-cyan-950/25'
+          }`}
+          aria-live="polite"
+          aria-label={`${timerSeconds} seconds remaining to answer`}
+        >
+          <div className="venue-broadcast-answer-timer font-mono font-black tabular-nums tracking-tight text-cyan-100">
+            {timerSeconds}s
+          </div>
+        </div>
+      ) : headlineAnsweringUnified || headlineAnswering ? (
+        <div
+          className={`flex flex-col items-center justify-center gap-1 rounded-lg border px-3 py-2 ${
+            inAnsweringCountdown && typeof timerSeconds === 'number' && timerSeconds <= 10
+              ? 'border-cyan-400/55 bg-cyan-950/45'
+              : 'border-cyan-600/35 bg-cyan-950/25'
+          }`}
+        >
+          <span className={`font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+            Answer on your phone
+          </span>
+          {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
+            <div className="venue-broadcast-answer-timer font-mono font-black tabular-nums tracking-tight text-cyan-100">
+              {timerSeconds}s
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </motion.div>
+  )
+}
+
 /** n=1 broadcast hero — full-viewport felt, names + stacks, pot/action on felt center. */
 function VenueSingleTableBroadcast({
   tile,
@@ -2146,11 +2323,11 @@ function VenueSingleTableBroadcast({
 
   return (
     <div
-      className="venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-center justify-center px-1 pb-1 pt-0 sm:px-2"
+      className="venue-single-table-broadcast @container flex min-h-0 flex-1 flex-col items-stretch justify-center px-0 pb-0 pt-0"
       aria-label={`Final table, pot ${formatVenueBankroll(pot)}`}
     >
       <div
-        className={`relative flex h-full min-h-0 w-full max-w-[84rem] flex-col items-center justify-center ${phaseShell}`}
+        className={`relative flex min-h-0 flex-1 w-full flex-col items-center justify-center ${phaseShell}`}
       >
         <div className="flex h-full min-h-0 w-full items-center justify-center">
           <SeatRingWithLabels
@@ -2412,6 +2589,19 @@ export default function VenueEightTablesPreview({
 
   const showHeroSpotlight = hostFocusTable != null && featuredTile != null
   const isSingleTableBroadcast = floorTiles.length === 1
+  const broadcastMetaLine = useMemo(() => {
+    if (!isSingleTableBroadcast) return null
+    const parts: string[] = ['Final table']
+    const seated = floorTiles[0]?.seated
+    if (typeof seated === 'number' && seated > 0) parts.push(`${seated} players`)
+    if (condenseProgress != null) {
+      const survivorPart = venueHeadlineCondenseCaptionParts(condenseProgress).find((p) =>
+        /remaining/i.test(p)
+      )
+      if (survivorPart) parts.push(survivorPart.replace(/\s*remaining/i, ' left'))
+    }
+    return parts.join(' · ')
+  }, [condenseProgress, floorTiles, isSingleTableBroadcast])
   const sharedShowdownAnswer = inVenueShowdown ? venueShowdownAnswer : undefined
 
   return (
@@ -2419,12 +2609,14 @@ export default function VenueEightTablesPreview({
       <DisplayWelcomeBackdrop />
       <div
         className={`relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
-        style={venueWallUiScaleFrameStyle()}
+        style={venueWallUiScaleFrameStyle({ broadcast: isSingleTableBroadcast })}
       >
 
       <main
-        className={`relative z-10 flex min-h-0 flex-1 flex-col px-3 sm:px-4 ${
-          compactVenueHeadline ? 'pb-0.5 sm:pb-1' : 'pb-3 sm:pb-4'
+        className={`relative z-10 flex min-h-0 flex-1 flex-col ${
+          isSingleTableBroadcast ? 'px-1 pb-0' : 'px-3 sm:px-4'
+        } ${
+          compactVenueHeadline ? 'pb-0.5 sm:pb-1' : isSingleTableBroadcast ? 'pb-0' : 'pb-3 sm:pb-4'
         } ${showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'}`}
       >
         {floorTiles.length > 0 ? (
@@ -2437,6 +2629,27 @@ export default function VenueEightTablesPreview({
             </p>
 
             {showHeadline ? (
+              isSingleTableBroadcast ? (
+                <VenueBroadcastHeadlineStrip
+                  skipMountIntro={skipMountIntro}
+                  showSetlistCue={showSetlistCue}
+                  setlistCueNumber={setlistCueNumber}
+                  setlistCueTotal={setlistCueTotal}
+                  headlineQuestionDisplay={headlineQuestionDisplay}
+                  broadcastMetaLine={broadcastMetaLine}
+                  headlinePhaseBadge={headlinePhaseBadge}
+                  showVenueBlindsHeadline={showVenueBlindsHeadline}
+                  venueBlindsHeadline={venueBlindsHeadline}
+                  inVenueShowdown={inVenueShowdown}
+                  venueShowdownAnswer={venueShowdownAnswer}
+                  venueShowdownAnswerRow={venueShowdownAnswerRow}
+                  headlineTimerOnly={headlineTimerOnly}
+                  headlineAnsweringUnified={headlineAnsweringUnified}
+                  headlineAnswering={headlineAnswering}
+                  inAnsweringCountdown={inAnsweringCountdown}
+                  timerSeconds={timerSeconds}
+                />
+              ) : (
               <motion.div
                 className={`sticky top-0 z-[45] shrink-0 flex w-full min-w-0 flex-col rounded-b-2xl border-2 border-yellow-400/85 bg-black/82 px-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.5)] backdrop-blur-md sm:px-4 md:px-5 ${
                   ultraCompactVenueHeadline
@@ -2612,6 +2825,7 @@ export default function VenueEightTablesPreview({
                 </div>
                 </div>
               </motion.div>
+              )
             ) : null}
 
             <div className="relative flex min-h-0 flex-1 flex-col">

@@ -6,6 +6,9 @@ import type { CSSProperties } from 'react'
  */
 export const VENUE_WALL_UI_SCALE = 0.88
 
+/** n=1 broadcast hero — full 1:1 scale for sports-bar TV legibility. */
+export const VENUE_WALL_BROADCAST_UI_SCALE = 1
+
 /**
  * CSS px so visual size matches `renderedPx` after {@link VENUE_WALL_UI_SCALE} zoom.
  * Typography tokens on the venue wall are authored with this compensation.
@@ -21,12 +24,13 @@ export function venueWallCssPxForRendered(renderedPx: number): number {
  */
 export const VENUE_WALL_TYPE_EMPHASIS = 1.2
 
-export function venueWallUiScaleFrameStyle(): CSSProperties {
+export function venueWallUiScaleFrameStyle(opts?: { broadcast?: boolean }): CSSProperties {
+  const scale = opts?.broadcast ? VENUE_WALL_BROADCAST_UI_SCALE : VENUE_WALL_UI_SCALE
   return {
-    zoom: VENUE_WALL_UI_SCALE,
+    zoom: scale,
     width: '100%',
     height: '100%',
     WebkitFontSmoothing: 'antialiased',
-    ['--venue-wall-ui-scale' as string]: String(VENUE_WALL_UI_SCALE),
+    ['--venue-wall-ui-scale' as string]: String(scale),
   }
 }

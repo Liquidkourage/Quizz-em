@@ -130,6 +130,17 @@ export function displayHeadlineQuestionFitProfile(
   }
 }
 
+/** n=1 broadcast — cap question height so the felt keeps scoreboard room. */
+export function displayBroadcastHeadlineQuestionFitProfile(): {
+  maxFontVh: number
+  hostClassName: string
+} {
+  return {
+    maxFontVh: 0.058,
+    hostClassName: 'venue-headline-question-fit-host-broadcast',
+  }
+}
+
 export function displayHeadlineCaptionClass(
   tier: VenueFloorPublicTypographyTier,
   denseHeadline = false

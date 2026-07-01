@@ -241,8 +241,51 @@ export function mosaicSeatHoleLayout(
   }
 }
 
+export type BroadcastSeatSideNudge = {
+  /** Extra px along the rail tangent. */
+  alongPx?: number
+  /** Extra screen-space px (right +). */
+  dx?: number
+  /** Extra screen-space px (down +). */
+  dy?: number
+}
+
+/** Per-seat broadcast puck tweaks (seat index 0 = 12 o'clock). */
+export const BROADCAST_BLIND_SEAT_NUDGES: Partial<Record<number, BroadcastSeatSideNudge>> = {
+  0: { dx: 14 }, // user seat 1 — BTN slightly right
+}
+
+export type BroadcastRimClusterLayout = {
+  flexDirection: 'column' | 'column-reverse' | 'row' | 'row-reverse'
+  gapRem: number
+  /** When true, render bankroll before name in DOM (name still sits on the outer rim). */
+  stackFirst: boolean
+}
+
+/** Name on the outer rim edge; bankroll inward (under name toward felt). */
+export function broadcastRimClusterLayout(
+  seatIndex: number,
+  w: number,
+  h: number
+): BroadcastRimClusterLayout {
+  const i = mosaicSeatIndex(seatIndex)
+  const cup = mosaicSeatDotPct(i, VENUE_MOSAIC_SEAT_COUNT, w, h)
+  const center = venueMosaicFeltCenterPct(w, h)
+  const absDx = Math.abs(cup.leftPct - center.leftPct)
+  const absDy = Math.abs(cup.topPct - center.topPct)
+
+  if (absDy > absDx) {
+    return cup.topPct < center.topPct
+      ? { flexDirection: 'column', gapRem: 0.12, stackFirst: false }
+      : { flexDirection: 'column', gapRem: 0.12, stackFirst: true }
+  }
+  return cup.leftPct > center.leftPct
+    ? { flexDirection: 'row-reverse', gapRem: 0.35, stackFirst: true }
+    : { flexDirection: 'row', gapRem: 0.35, stackFirst: false }
+}
+
 /**
- * Broadcast BTN / blind lammers — nudge clockwise along the rail toward the next seat.
+ * Broadcast BTN / blind lammers — nudge along the rail toward the next or previous seat.
  * Uses actual cup positions so offset matches the artwork, not a synthetic tangent from center.
  */
 export function broadcastBlindMarkerPct(
@@ -250,28 +293,33 @@ export function broadcastBlindMarkerPct(
   seatCount: number,
   w: number,
   h: number,
-  markerSizePx: number
+  markerSizePx: number,
+  direction: 'clockwise' | 'counterclockwise' = 'clockwise'
 ): { leftPct: number; topPct: number } {
   const n = seatCount > 0 ? seatCount : VENUE_MOSAIC_SEAT_COUNT
   const i = ((Math.floor(seatIndex) % n) + n) % n
   const cup = mosaicSeatDotPct(i, n, w, h)
   if (!(w > 0 && h > 0)) return cup
 
-  const nextCup = mosaicSeatDotPct((i + 1) % n, n, w, h)
+  const neighborSeat =
+    direction === 'clockwise' ? (i + 1) % n : (i - 1 + n) % n
+  const neighborCup = mosaicSeatDotPct(neighborSeat, n, w, h)
   const cupX = (cup.leftPct / 100) * w
   const cupY = (cup.topPct / 100) * h
-  const nextX = (nextCup.leftPct / 100) * w
-  const nextY = (nextCup.topPct / 100) * h
-  let tx = nextX - cupX
-  let ty = nextY - cupY
+  const neighborX = (neighborCup.leftPct / 100) * w
+  const neighborY = (neighborCup.topPct / 100) * h
+  let tx = neighborX - cupX
+  let ty = neighborY - cupY
   const len = Math.hypot(tx, ty) || 1
   tx /= len
   ty /= len
 
-  const sideOffsetPx = Math.max(34, Math.round(markerSizePx * 0.85))
+  const nudge = BROADCAST_BLIND_SEAT_NUDGES[i]
+  const sideOffsetPx =
+    Math.max(34, Math.round(markerSizePx * 0.85)) + (nudge?.alongPx ?? 0)
   return {
-    leftPct: ((cupX + tx * sideOffsetPx) / w) * 100,
-    topPct: ((cupY + ty * sideOffsetPx) / h) * 100,
+    leftPct: ((cupX + tx * sideOffsetPx + (nudge?.dx ?? 0)) / w) * 100,
+    topPct: ((cupY + ty * sideOffsetPx + (nudge?.dy ?? 0)) / h) * 100,
   }
 }
 

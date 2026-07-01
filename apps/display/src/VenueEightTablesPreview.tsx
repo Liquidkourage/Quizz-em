@@ -23,7 +23,17 @@ import {
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
-import { mosaicSeatDotPct, mosaicSeatHoleLayout, mosaicSeatLabelPct, mosaicSeatChipInwardFrac, mosaicSeatHoleInwardFrac, venueMosaicFeltCenterPct, broadcastBlindMarkerPct, MOSAIC_HOLE_CARD_FAN_DEG } from './venueMosaicSeatGeometry'
+import {
+  mosaicSeatDotPct,
+  mosaicSeatHoleLayout,
+  mosaicSeatLabelPct,
+  mosaicSeatChipInwardFrac,
+  mosaicSeatHoleInwardFrac,
+  venueMosaicFeltCenterPct,
+  broadcastBlindMarkerPct,
+  broadcastRimClusterLayout,
+  MOSAIC_HOLE_CARD_FAN_DEG,
+} from './venueMosaicSeatGeometry'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -368,10 +378,6 @@ function broadcastPoleChipTransform(seatIndex: number, rimH: number): string {
   return i === 0
     ? `translate(-50%, calc(-50% - ${nudge}px))`
     : `translate(-50%, calc(-50% + ${nudge}px))`
-}
-
-function broadcastPoleNameClusterFlexDirection(seatIndex: number): 'column' | 'column-reverse' {
-  return isBroadcastPoleSeat(seatIndex) && ((seatIndex % 8) + 8) % 8 === 0 ? 'column-reverse' : 'column'
 }
 
 function broadcastCenterKeepoutRadiusPx(
@@ -1296,9 +1302,8 @@ function SeatRingWithLabels({
       const labelOutwardPx = cupPx * 0.72 + (feltSeatStacks ? 32 : 22)
       return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         if (!(seatNames[i]?.trim() ?? '')) return null
-        const poleLabelExtra =
-          feltSeatStacks && isBroadcastPoleSeat(i) ? Math.round(cupPx * 0.28) : 0
-        return mosaicSeatLabelPct(i, w, h, labelOutwardPx + poleLabelExtra)
+        const rimClusterExtra = feltSeatStacks ? Math.round(cupPx * 0.26) : 0
+        return mosaicSeatLabelPct(i, w, h, labelOutwardPx + rimClusterExtra)
       })
     }
     return computeSeatLabelAnchorsPct({
@@ -1515,8 +1520,12 @@ function SeatRingWithLabels({
             ((feltSeatStacks && size === 'lg') || isBroadcast)
         )
         const broadcastChipLayout =
-          isBroadcast && showFeltStack && rimW > 0 ? broadcastChipStackLayoutPx(rimW) : null
-        const broadcastPoleFeltStack = isBroadcast && isBroadcastPoleSeat(i) && showFeltStack
+          isBroadcast && rimW > 0 && filled ? broadcastChipStackLayoutPx(rimW) : null
+        const broadcastRimStack = isBroadcast && filled
+        const broadcastRimLayout =
+          broadcastRimStack && rimW > 0 && rimH > 0
+            ? broadcastRimClusterLayout(i, rimW, rimH)
+            : null
         const rimDisplayName = isBroadcast ? formatVenueDisplayPlayerName(raw) : raw
         const labelVy = isBroadcast ? 0 : seatNameLabelVerticalNudgePx(i, size)
         const lastBetAct =
@@ -1694,11 +1703,29 @@ function SeatRingWithLabels({
             {!isMosaic && showFoldOut && raw ? (
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center`}
-                style={{
-                  left: `${chipPt.leftPct}%`,
-                  top: `${chipPt.topPct}%`,
-                  transform: 'translate(-50%, -50%)',
-                }}
+                style={
+                  isBroadcast && broadcastFoldOutLayout
+                    ? (() => {
+                        const outPt = broadcastBlindMarkerPct(
+                          i,
+                          seatCountForLayout,
+                          rimW,
+                          rimH,
+                          broadcastFoldOutLayout.minWidthPx,
+                          'counterclockwise'
+                        )
+                        return {
+                          left: `${outPt.leftPct}%`,
+                          top: `${outPt.topPct}%`,
+                          transform: 'translate(-50%, -50%)',
+                        }
+                      })()
+                    : {
+                        left: `${chipPt.leftPct}%`,
+                        top: `${chipPt.topPct}%`,
+                        transform: 'translate(-50%, -50%)',
+                      }
+                }
               >
                 <span
                   className={`inline-flex items-center justify-center whitespace-nowrap rounded-md border font-black uppercase leading-none tracking-wide text-rose-50 shadow-[0_2px_10px_rgba(0,0,0,0.75)] ${
@@ -1755,7 +1782,7 @@ function SeatRingWithLabels({
                       : undefined
                   }
                 />
-                {!broadcastPoleFeltStack ? (
+                {!broadcastRimStack ? (
                 <span
                   className={`max-w-[10rem] text-center font-mono font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[11rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
                     isBroadcast ? '' : 'text-[1.16rem] sm:text-[1.26rem] md:text-[1.315rem]'
@@ -1783,50 +1810,64 @@ function SeatRingWithLabels({
                       }`
                     : labelClass
                 } ${
-                  isFolded ? 'text-white/60' : 'text-white/92'
+                  isFolded ? (isBroadcast ? 'text-white/78' : 'text-white/60') : 'text-white/92'
                 }`}
                 style={{
                   left: `${labelPos.leftPct}%`,
                   top: `${labelPos.topPct}%`,
                   transform: `translate(-50%, calc(-50% + ${labelVy}px))`,
-                  ...(broadcastPoleFeltStack
-                    ? { display: 'flex', flexDirection: broadcastPoleNameClusterFlexDirection(i), alignItems: 'center', gap: '0.15rem' }
+                  ...(broadcastRimLayout
+                    ? {
+                        display: 'flex',
+                        flexDirection: broadcastRimLayout.flexDirection,
+                        alignItems: 'center',
+                        gap: `${broadcastRimLayout.gapRem}rem`,
+                      }
                     : {}),
                 }}
               >
-                {broadcastPoleFeltStack ? (
-                  <span
-                    className={`vfd-broadcast-rim-stack max-w-full truncate font-mono font-extrabold tabular-nums tracking-tight text-amber-50 [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
-                      isFolded ? 'text-white/45' : ''
-                    }`}
-                    style={
-                      broadcastChipLayout
-                        ? { fontSize: `${broadcastChipLayout.fontPx}px` }
-                        : undefined
-                    }
-                  >
-                    {formatVenueBankroll(chips)}
-                  </span>
-                ) : null}
-                <span
-                  className={`block max-w-full truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
-                >
-                  {rimDisplayName}
-                </span>
                 {(() => {
-                  const showMonoStackUnderName =
-                    !(feltSeatStacks && size === 'lg') && !broadcastPoleFeltStack
+                  const nameEl = (
+                    <span
+                      className={`block max-w-full shrink-0 truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
+                    >
+                      {rimDisplayName}
+                    </span>
+                  )
+                  const stackEl = broadcastRimStack ? (
+                    <span
+                      className={`vfd-broadcast-rim-stack max-w-full shrink-0 truncate font-mono font-extrabold tabular-nums tracking-tight text-amber-50 [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
+                        isFolded ? 'text-white/45' : ''
+                      }`}
+                      style={
+                        broadcastChipLayout
+                          ? { fontSize: `${broadcastChipLayout.fontPx}px` }
+                          : undefined
+                      }
+                    >
+                      {formatVenueBankroll(chips)}
+                    </span>
+                  ) : !(feltSeatStacks && size === 'lg') ? (
+                    <span
+                      className={`mt-0.5 block max-w-full truncate font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
+                        isFolded ? 'text-white/40' : 'text-casino-emerald'
+                      }`}
+                    >
+                      {formatVenueBankroll(chips)}
+                    </span>
+                  ) : null
+                  if (broadcastRimLayout?.stackFirst) {
+                    return (
+                      <>
+                        {stackEl}
+                        {nameEl}
+                      </>
+                    )
+                  }
                   return (
                     <>
-                      {showMonoStackUnderName ? (
-                        <span
-                          className={`mt-0.5 block max-w-full truncate font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
-                            isFolded ? 'text-white/40' : 'text-casino-emerald'
-                          }`}
-                        >
-                          {formatVenueBankroll(chips)}
-                        </span>
-                      ) : null}
+                      {nameEl}
+                      {stackEl}
                     </>
                   )
                 })()}

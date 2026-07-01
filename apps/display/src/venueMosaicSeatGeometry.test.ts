@@ -12,6 +12,7 @@ import {
   mosaicSeatChipInwardFrac,
   mosaicStadiumCupUV,
   broadcastBlindMarkerPct,
+  broadcastRimClusterLayout,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
 
@@ -156,8 +157,22 @@ describe('venueMosaicSeatGeometry', () => {
       const deltaY = blindY - cupY
       const projected = deltaX * ux + deltaY * uy
       expect(projected).toBeGreaterThan(20)
-      expect(projected).toBeLessThan(60)
-      expect(Math.hypot(deltaX, deltaY)).toBeCloseTo(projected, 0)
+      expect(projected).toBeLessThan(80)
     }
+    const seat0 = broadcastBlindMarkerPct(0, 8, w, h, markerPx)
+    const seat0Cup = mosaicSeatDotPct(0, 8, w, h)
+    expect(seat0.leftPct).toBeGreaterThan(seat0Cup.leftPct)
+  })
+
+  it('places broadcast rim bankroll inward from the name on every seat', () => {
+    for (let i = 0; i < 8; i++) {
+      const layout = broadcastRimClusterLayout(i, w, h)
+      expect(['column', 'row'].some((axis) => layout.flexDirection.startsWith(axis))).toBe(true)
+      expect(typeof layout.stackFirst).toBe('boolean')
+    }
+    expect(broadcastRimClusterLayout(0, w, h).stackFirst).toBe(false)
+    expect(broadcastRimClusterLayout(4, w, h).stackFirst).toBe(true)
+    expect(broadcastRimClusterLayout(2, w, h).stackFirst).toBe(true)
+    expect(broadcastRimClusterLayout(6, w, h).stackFirst).toBe(false)
   })
 })

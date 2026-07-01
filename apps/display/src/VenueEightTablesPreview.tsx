@@ -351,6 +351,29 @@ function isBroadcastPoleSeat(seatIndex: number): boolean {
   return i === 0 || i === 4
 }
 
+function broadcastSeatChipInwardFrac(seatIndex: number): number {
+  if (isBroadcastPoleSeat(seatIndex)) return 0.08
+  return mosaicSeatChipInwardFrac(seatIndex)
+}
+
+function broadcastSeatHoleInwardFrac(seatIndex: number): number {
+  if (isBroadcastPoleSeat(seatIndex)) return 0.1
+  return mosaicSeatHoleInwardFrac(seatIndex)
+}
+
+function broadcastPoleChipTransform(seatIndex: number, rimH: number): string {
+  if (!isBroadcastPoleSeat(seatIndex) || !(rimH > 0)) return 'translate(-50%, -50%)'
+  const nudge = Math.max(6, Math.round(rimH * 0.022))
+  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
+  return i === 0
+    ? `translate(-50%, calc(-50% - ${nudge}px))`
+    : `translate(-50%, calc(-50% + ${nudge}px))`
+}
+
+function broadcastPoleNameClusterFlexDirection(seatIndex: number): 'column' | 'column-reverse' {
+  return isBroadcastPoleSeat(seatIndex) && ((seatIndex % 8) + 8) % 8 === 0 ? 'column-reverse' : 'column'
+}
+
 function broadcastCenterKeepoutRadiusPx(
   rimW: number,
   hasBoard: boolean,
@@ -1273,7 +1296,9 @@ function SeatRingWithLabels({
       const labelOutwardPx = cupPx * 0.72 + (feltSeatStacks ? 32 : 22)
       return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         if (!(seatNames[i]?.trim() ?? '')) return null
-        return mosaicSeatLabelPct(i, w, h, labelOutwardPx)
+        const poleLabelExtra =
+          feltSeatStacks && isBroadcastPoleSeat(i) ? Math.round(cupPx * 0.28) : 0
+        return mosaicSeatLabelPct(i, w, h, labelOutwardPx + poleLabelExtra)
       })
     }
     return computeSeatLabelAnchorsPct({
@@ -1407,6 +1432,10 @@ function SeatRingWithLabels({
                 )
                 return { leftPct: pt.leftPct, topPct: pt.topPct }
               })()
+        const chipInwardFrac =
+          isBroadcast ? broadcastSeatChipInwardFrac(i) : mosaicSeatChipInwardFrac(i)
+        const holeInwardFrac =
+          isBroadcast ? broadcastSeatHoleInwardFrac(i) : mosaicSeatHoleInwardFrac(i)
         const chipPt =
           isMosaic || isBroadcast
             ? mosaicSeatHoleLayout(
@@ -1414,7 +1443,7 @@ function SeatRingWithLabels({
                 seatCountForLayout,
                 rimW,
                 rimH,
-                mosaicSeatChipInwardFrac(i)
+                chipInwardFrac
               )
             : stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
         const chipPosRaw = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
@@ -1435,7 +1464,7 @@ function SeatRingWithLabels({
                 seatCountForLayout,
                 rimW,
                 rimH,
-                mosaicSeatHoleInwardFrac(i)
+                holeInwardFrac
               )
             : (() => {
                 const pt = stadiumSeatPointPx(
@@ -1487,6 +1516,7 @@ function SeatRingWithLabels({
         )
         const broadcastChipLayout =
           isBroadcast && showFeltStack && rimW > 0 ? broadcastChipStackLayoutPx(rimW) : null
+        const broadcastPoleFeltStack = isBroadcast && isBroadcastPoleSeat(i) && showFeltStack
         const rimDisplayName = isBroadcast ? formatVenueDisplayPlayerName(raw) : raw
         const labelVy = isBroadcast ? 0 : seatNameLabelVerticalNudgePx(i, size)
         const lastBetAct =
@@ -1629,7 +1659,7 @@ function SeatRingWithLabels({
               const markers = heroSeatBlindMarkerPills(i, blindSeats, 'onFelt', markerSizePx)
               if (markers.length === 0) return null
               const blindPtRaw = isBroadcast
-                ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, mosaicSeatChipInwardFrac(i))
+                ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, chipInwardFrac)
                 : stadiumSeatPointPx(
                     i,
                     seatCountForLayout,
@@ -1700,7 +1730,9 @@ function SeatRingWithLabels({
                 style={{
                   left: `${chipPos.leftPct}%`,
                   top: `${chipPos.topPct}%`,
-                  transform: 'translate(-50%, -50%)',
+                  transform: isBroadcast
+                    ? broadcastPoleChipTransform(i, rimH)
+                    : 'translate(-50%, -50%)',
                 }}
               >
                 <img
@@ -1723,6 +1755,7 @@ function SeatRingWithLabels({
                       : undefined
                   }
                 />
+                {!broadcastPoleFeltStack ? (
                 <span
                   className={`max-w-[10rem] text-center font-mono font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[11rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
                     isBroadcast ? '' : 'text-[1.16rem] sm:text-[1.26rem] md:text-[1.315rem]'
@@ -1738,6 +1771,7 @@ function SeatRingWithLabels({
                 >
                   {formatVenueBankroll(chips)}
                 </span>
+                ) : null}
               </div>
             ) : null}
             {!isMosaic && raw ? (
@@ -1755,15 +1789,33 @@ function SeatRingWithLabels({
                   left: `${labelPos.leftPct}%`,
                   top: `${labelPos.topPct}%`,
                   transform: `translate(-50%, calc(-50% + ${labelVy}px))`,
+                  ...(broadcastPoleFeltStack
+                    ? { display: 'flex', flexDirection: broadcastPoleNameClusterFlexDirection(i), alignItems: 'center', gap: '0.15rem' }
+                    : {}),
                 }}
               >
+                {broadcastPoleFeltStack ? (
+                  <span
+                    className={`vfd-broadcast-rim-stack max-w-full truncate font-mono font-extrabold tabular-nums tracking-tight text-amber-50 [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
+                      isFolded ? 'text-white/45' : ''
+                    }`}
+                    style={
+                      broadcastChipLayout
+                        ? { fontSize: `${broadcastChipLayout.fontPx}px` }
+                        : undefined
+                    }
+                  >
+                    {formatVenueBankroll(chips)}
+                  </span>
+                ) : null}
                 <span
                   className={`block max-w-full truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
                 >
                   {rimDisplayName}
                 </span>
                 {(() => {
-                  const showMonoStackUnderName = !(feltSeatStacks && size === 'lg')
+                  const showMonoStackUnderName =
+                    !(feltSeatStacks && size === 'lg') && !broadcastPoleFeltStack
                   return (
                     <>
                       {showMonoStackUnderName ? (

@@ -2254,6 +2254,8 @@
 
   .vfd-broadcast-rim-stack {
     font-size: clamp(1.15rem, 3.2vh, 2rem);
+    font-weight: 800;
+    line-height: 1;
   }
 
   .vfd-broadcast-headline-meta-primary {

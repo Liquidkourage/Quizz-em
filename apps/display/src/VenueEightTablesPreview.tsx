@@ -2180,16 +2180,6 @@ function VenueBroadcastHeadlineStrip({
       initial={skipMountIntro ? false : { opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      {headlineQuestionDisplay ? (
-        <DisplayFitQuestionText
-          text={headlineQuestionDisplay}
-          hostClassName={broadcastQuestionFit.hostClassName}
-          maxFontVh={broadcastQuestionFit.maxFontVh}
-          textClassName="venue-headline-question-slot w-full min-w-0 text-balance text-center tracking-tight text-yellow-400 display-text-headline-question-broadcast leading-snug"
-        />
-      ) : inVenueShowdown ? (
-        <p className="sr-only">Showdown in progress.</p>
-      ) : null}
       {showSetlistCue || broadcastMetaLine ? (
         <div className="flex w-full min-w-0 items-center justify-between gap-2 sm:gap-3">
           {showSetlistCue && setlistCueNumber != null && setlistCueTotal != null ? (
@@ -2224,6 +2214,16 @@ function VenueBroadcastHeadlineStrip({
         <p className="vfd-broadcast-phase-badge text-center font-black uppercase tracking-wide text-emerald-200/90">
           {headlinePhaseBadge}
         </p>
+      ) : null}
+      {headlineQuestionDisplay ? (
+        <DisplayFitQuestionText
+          text={headlineQuestionDisplay}
+          hostClassName={broadcastQuestionFit.hostClassName}
+          maxFontVh={broadcastQuestionFit.maxFontVh}
+          textClassName="venue-headline-question-slot w-full min-w-0 text-balance text-center tracking-tight text-yellow-400 display-text-headline-question-broadcast leading-snug"
+        />
+      ) : inVenueShowdown ? (
+        <p className="sr-only">Showdown in progress.</p>
       ) : null}
       {inVenueShowdown && venueShowdownAnswer != null ? (
         <div

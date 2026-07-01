@@ -63,6 +63,7 @@ import {
   displayBroadcastHeadlineQuestionFitProfile,
 } from './displayTypography'
 import { DisplayFitQuestionText } from './DisplayFitQuestionText'
+import { heroSeatBlindMarkerPills } from './heroBlindMarkers'
 import { venueWallUiScaleFrameStyle } from './venueWallUiScale'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import {
@@ -264,6 +265,14 @@ function broadcastChipStackLayoutPx(rimW: number): {
     maxWidthPx: Math.round(118 * scale),
     fontPx: Math.round(34 * scale),
   }
+}
+
+/** Dealer puck / blind lammers — scale with table width on venue walls. */
+function venueBlindMarkerSizePx(rimW: number, mode: 'broadcast' | 'lg' | 'md'): number {
+  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  const base = mode === 'broadcast' ? 58 : mode === 'lg' ? 38 : 30
+  return Math.round(base * scale)
 }
 
 /** Broadcast hero (n=1): pot + acting line centered on felt — replaces header status band. */
@@ -715,35 +724,6 @@ type VenueWallBlindSeats = {
   dealerSeatIndex: number | null
   smallBlindSeatIndex: number | null
   bigBlindSeatIndex: number | null
-}
-
-function blindTagsForSeat(seatIndex: number, blindSeats: VenueWallBlindSeats) {
-  const out: { key: string; label: string; short: string; pill: string }[] = []
-  if (blindSeats.dealerSeatIndex === seatIndex) {
-    out.push({
-      key: 'btn',
-      label: 'Dealer button',
-      short: 'BTN',
-      pill: 'border-amber-700/40 bg-amber-400 text-black shadow-sm',
-    })
-  }
-  if (blindSeats.smallBlindSeatIndex === seatIndex) {
-    out.push({
-      key: 'sb',
-      label: 'Small blind',
-      short: 'SB',
-      pill: 'border-sky-900/35 bg-sky-500 text-white shadow-sm',
-    })
-  }
-  if (blindSeats.bigBlindSeatIndex === seatIndex) {
-    out.push({
-      key: 'bb',
-      label: 'Big blind',
-      short: 'BB',
-      pill: 'border-rose-900/40 bg-rose-600 text-white shadow-sm',
-    })
-  }
-  return out
 }
 
 function venueTileBlindSeats(row: DisplayVenueTileSnapshot): VenueWallBlindSeats | null {
@@ -1406,10 +1386,14 @@ function SeatRingWithLabels({
             ) : null}
             {isMosaic ? null : (() => {
               if (blindSeats == null) return null
-              const tags = blindTagsForSeat(i, blindSeats)
-              if (tags.length === 0) return null
+              const markerSizePx = venueBlindMarkerSizePx(
+                rimW,
+                isBroadcast ? 'broadcast' : size === 'lg' ? 'lg' : 'md'
+              )
+              const markers = heroSeatBlindMarkerPills(i, blindSeats, 'onFelt', markerSizePx)
+              if (markers.length === 0) return null
               const blindPt = isBroadcast
-                ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, 0.12)
+                ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, 0.05)
                 : stadiumSeatPointPx(
                     i,
                     seatCountForLayout,
@@ -1417,30 +1401,17 @@ function SeatRingWithLabels({
                     rimH,
                     STADIUM_BLIND_BADGE_RADIAL
                   )
-              const badgeText = isBroadcast
-                ? 'vfd-broadcast-blind-badge font-black leading-none tracking-tight'
-                : size === 'lg'
-                  ? 'text-[8px] font-black leading-none tracking-tight sm:text-[9px]'
-                  : 'text-[7px] font-black leading-none tracking-tight sm:text-[8px]'
               return (
                 <div
-                  className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center gap-px`}
+                  className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center`}
                   style={{
                     left: `${blindPt.leftPct}%`,
                     top: `${blindPt.topPct}%`,
                     transform: 'translate(-50%, -50%)',
+                    gap: Math.max(2, Math.round(markerSizePx * 0.1)),
                   }}
                 >
-                  {tags.map((t) => (
-                    <span
-                      key={t.key}
-                      title={t.label}
-                      aria-label={t.label}
-                      className={`rounded border px-[3px] py-px uppercase ${badgeText} ${t.pill}`}
-                    >
-                      {t.short}
-                    </span>
-                  ))}
+                  {markers}
                 </div>
               )
             })()}

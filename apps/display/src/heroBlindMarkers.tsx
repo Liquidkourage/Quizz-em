@@ -2,25 +2,58 @@ import { displayBlindSeatIndices } from '@qhe/core'
 import type { ReactNode } from 'react'
 import { DISPLAY_TEXT_SECONDARY } from './displayTypography'
 
+export type BlindSeatSnapshot = {
+  dealerSeatIndex: number | null
+  smallBlindSeatIndex: number | null
+  bigBlindSeatIndex: number | null
+}
+
 /** Raised white dealer puck (~TV-poker readability on green felt). */
-function FeltDealerPuck() {
+function FeltDealerPuck({ sizePx }: { sizePx?: number }) {
+  if (sizePx == null) {
+    return (
+      <div
+        title="Dealer button"
+        aria-label="Dealer button"
+        className="
+          relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center
+          rounded-full border-[3px] border-neutral-900/92
+          bg-gradient-to-br from-white via-neutral-50 to-neutral-300
+          shadow-[inset_0_3px_10px_rgba(255,255,255,.95),inset_0_-8px_16px_rgba(0,0,0,.1),0_8px_18px_rgba(0,0,0,.55),0_2px_0_rgba(255,255,255,.65)]
+          md:h-[4.25rem] md:w-[4.25rem]"
+      >
+        <div
+          className="pointer-events-none absolute inset-[5px] rounded-full border border-white/85 bg-gradient-to-br from-transparent via-transparent to-neutral-900/10 shadow-[inset_0_-2px_4px_rgba(0,0,0,.12)] md:inset-[6px]"
+          aria-hidden
+        />
+        <span
+          className={`relative z-[1] select-none font-extrabold leading-none tracking-tight text-neutral-900 [text-shadow:0_1px_0_rgba(255,255,255,.9),0_-1px_1px_rgba(0,0,0,.22)] ${DISPLAY_TEXT_SECONDARY}`}
+        >
+          BTN
+        </span>
+      </div>
+    )
+  }
+
+  const borderPx = Math.max(2, Math.round(sizePx * 0.05))
+  const insetPx = Math.max(3, Math.round(sizePx * 0.083))
+  const fontPx = Math.max(9, Math.round(sizePx * 0.26))
+
   return (
     <div
       title="Dealer button"
       aria-label="Dealer button"
-      className="
-        relative flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center
-        rounded-full border-[3px] border-neutral-900/92
-        bg-gradient-to-br from-white via-neutral-50 to-neutral-300
-        shadow-[inset_0_3px_10px_rgba(255,255,255,.95),inset_0_-8px_16px_rgba(0,0,0,.1),0_8px_18px_rgba(0,0,0,.55),0_2px_0_rgba(255,255,255,.65)]
-        md:h-[4.25rem] md:w-[4.25rem]"
+      className="relative flex shrink-0 items-center justify-center rounded-full border-neutral-900/92 bg-gradient-to-br from-white via-neutral-50 to-neutral-300 shadow-[inset_0_3px_10px_rgba(255,255,255,.95),inset_0_-8px_16px_rgba(0,0,0,.1),0_8px_18px_rgba(0,0,0,.55),0_2px_0_rgba(255,255,255,.65)]"
+      style={{ width: sizePx, height: sizePx, borderWidth: borderPx }}
     >
       <div
-        className="pointer-events-none absolute inset-[5px] rounded-full border border-white/85 bg-gradient-to-br from-transparent via-transparent to-neutral-900/10 shadow-[inset_0_-2px_4px_rgba(0,0,0,.12)] md:inset-[6px]"
+        className="pointer-events-none absolute rounded-full border border-white/85 bg-gradient-to-br from-transparent via-transparent to-neutral-900/10 shadow-[inset_0_-2px_4px_rgba(0,0,0,.12)]"
+        style={{ inset: insetPx }}
         aria-hidden
       />
       <span
-        className={`relative z-[1] select-none font-extrabold leading-none tracking-tight text-neutral-900 [text-shadow:0_1px_0_rgba(255,255,255,.9),0_-1px_1px_rgba(0,0,0,.22)] ${DISPLAY_TEXT_SECONDARY}`}
+        className="relative z-[1] select-none font-extrabold leading-none tracking-tight text-neutral-900 [text-shadow:0_1px_0_rgba(255,255,255,.9),0_-1px_1px_rgba(0,0,0,.22)]"
+        style={{ fontSize: fontPx }}
       >
         BTN
       </span>
@@ -32,10 +65,12 @@ function FeltBlindLammer({
   variant,
   label,
   titleShort,
+  sizePx,
 }: {
   variant: 'sb' | 'bb'
   label: string
   titleShort: string
+  sizePx?: number
 }) {
   const chrome =
     variant === 'sb'
@@ -49,22 +84,50 @@ function FeltBlindLammer({
         border-rose-950/90
         shadow-[inset_0_2px_6px_rgba(255,255,255,.4),inset_0_-5px_10px_rgba(0,0,0,.3),0_6px_14px_rgba(0,0,0,.52)]
       `
+
+  if (sizePx == null) {
+    return (
+      <div
+        title={`${titleShort} blind`}
+        aria-label={`${titleShort} blind`}
+        className={`
+          relative flex h-[3.15rem] w-[3.15rem] shrink-0 items-center justify-center
+          rounded-full border-[3px] md:h-[3.6rem] md:w-[3.6rem]
+          ${chrome.trim()}
+        `}
+      >
+        <div
+          className="pointer-events-none absolute inset-[4px] rounded-full border border-white/35 shadow-[inset_0_-3px_6px_rgba(0,0,0,.35)] md:inset-[5px]"
+          aria-hidden
+        />
+        <span
+          className={`relative z-[1] select-none font-extrabold leading-none tracking-[0.06em] text-white [text-shadow:0_1px_0_rgba(255,255,255,.32),0_-2px_4px_rgba(0,0,0,.42)] ${DISPLAY_TEXT_SECONDARY}`}
+        >
+          {label}
+        </span>
+      </div>
+    )
+  }
+
+  const borderPx = Math.max(2, Math.round(sizePx * 0.048))
+  const insetPx = Math.max(3, Math.round(sizePx * 0.08))
+  const fontPx = Math.max(8, Math.round(sizePx * 0.28))
+
   return (
     <div
       title={`${titleShort} blind`}
       aria-label={`${titleShort} blind`}
-      className={`
-        relative flex h-[3.15rem] w-[3.15rem] shrink-0 items-center justify-center
-        rounded-full border-[3px] md:h-[3.6rem] md:w-[3.6rem]
-        ${chrome.trim()}
-      `}
+      className={`relative flex shrink-0 items-center justify-center rounded-full ${chrome.trim()}`}
+      style={{ width: sizePx, height: sizePx, borderWidth: borderPx }}
     >
       <div
-        className="pointer-events-none absolute inset-[4px] rounded-full border border-white/35 shadow-[inset_0_-3px_6px_rgba(0,0,0,.35)] md:inset-[5px]"
+        className="pointer-events-none absolute rounded-full border border-white/35 shadow-[inset_0_-3px_6px_rgba(0,0,0,.35)]"
+        style={{ inset: insetPx }}
         aria-hidden
       />
       <span
-        className={`relative z-[1] select-none font-extrabold leading-none tracking-[0.06em] text-white [text-shadow:0_1px_0_rgba(255,255,255,.32),0_-2px_4px_rgba(0,0,0,.42)] ${DISPLAY_TEXT_SECONDARY}`}
+        className="relative z-[1] select-none font-extrabold leading-none tracking-[0.06em] text-white [text-shadow:0_1px_0_rgba(255,255,255,.32),0_-2px_4px_rgba(0,0,0,.42)]"
+        style={{ fontSize: fontPx }}
       >
         {label}
       </span>
@@ -74,23 +137,33 @@ function FeltBlindLammer({
 
 /**
  * Dealer button + blind markers — `{@link onFelt}` uses puck / lammer discs; `{@link inline}` stays compact.
+ * Pass `feltMarkerSizePx` on venue walls so discs scale with table width.
  */
 export function heroSeatBlindMarkerPills(
   seatIndex: number,
-  blindSeats: ReturnType<typeof displayBlindSeatIndices>,
-  presentation: 'onFelt' | 'inline' = 'inline'
+  blindSeats: ReturnType<typeof displayBlindSeatIndices> | BlindSeatSnapshot,
+  presentation: 'onFelt' | 'inline' = 'inline',
+  feltMarkerSizePx?: number
 ): ReactNode[] {
   const out: ReactNode[] = []
+  const lammerPx =
+    feltMarkerSizePx != null
+      ? Math.round(feltMarkerSizePx * 0.84)
+      : undefined
 
   if (presentation === 'onFelt') {
     if (blindSeats.dealerSeatIndex === seatIndex) {
-      out.push(<FeltDealerPuck key="btn" />)
+      out.push(<FeltDealerPuck key="btn" sizePx={feltMarkerSizePx} />)
     }
     if (blindSeats.smallBlindSeatIndex === seatIndex) {
-      out.push(<FeltBlindLammer key="sb" variant="sb" label="SB" titleShort="Small" />)
+      out.push(
+        <FeltBlindLammer key="sb" variant="sb" label="SB" titleShort="Small" sizePx={lammerPx} />
+      )
     }
     if (blindSeats.bigBlindSeatIndex === seatIndex) {
-      out.push(<FeltBlindLammer key="bb" variant="bb" label="BB" titleShort="Big" />)
+      out.push(
+        <FeltBlindLammer key="bb" variant="bb" label="BB" titleShort="Big" sizePx={lammerPx} />
+      )
     }
     return out
   }

@@ -263,19 +263,34 @@ export type BroadcastRimClusterLayout = {
   stackFirst: boolean
 }
 
-/** Bankroll label — inward from the rim name toward felt center. */
+/** Bankroll label — under the rim name; flat side seats stack vertically (+Y). */
 export function broadcastRimStackPct(
+  seatIndex: number,
   namePos: { leftPct: number; topPct: number },
   w: number,
   h: number,
   inwardFromNamePx: number
 ): { leftPct: number; topPct: number } {
   if (!(w > 0 && h > 0) || inwardFromNamePx <= 0) return namePos
+  const i = mosaicSeatIndex(seatIndex)
   const center = venueMosaicFeltCenterPct(w, h)
   const nameX = (namePos.leftPct / 100) * w
   const nameY = (namePos.topPct / 100) * h
   const cx = (center.leftPct / 100) * w
   const cy = (center.topPct / 100) * h
+
+  /** 3 and 9 o'clock flats — inward is mostly horizontal; keep name over stake vertically. */
+  if (i === 2 || i === 6) {
+    const towardCenterX = cx - nameX
+    const horizontalPull =
+      Math.sign(towardCenterX || 1) *
+      Math.min(Math.abs(towardCenterX) * 0.055, inwardFromNamePx * 0.32)
+    return {
+      leftPct: ((nameX + horizontalPull) / w) * 100,
+      topPct: ((nameY + inwardFromNamePx * 0.95) / h) * 100,
+    }
+  }
+
   let ix = cx - nameX
   let iy = cy - nameY
   const len = Math.hypot(ix, iy) || 1

@@ -1528,7 +1528,7 @@ function SeatRingWithLabels({
             : 0
         const broadcastStackPos =
           broadcastRimStack && broadcastRimStackInwardPx > 0 && rimW > 0 && rimH > 0
-            ? broadcastRimStackPct(labelPos, rimW, rimH, broadcastRimStackInwardPx)
+            ? broadcastRimStackPct(i, labelPos, rimW, rimH, broadcastRimStackInwardPx)
             : null
         const rimDisplayName = isBroadcast ? formatVenueDisplayPlayerName(raw) : raw
         const labelVy = isBroadcast ? 0 : seatNameLabelVerticalNudgePx(i, size)

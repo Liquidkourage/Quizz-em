@@ -167,11 +167,24 @@ describe('venueMosaicSeatGeometry', () => {
   it('places broadcast rim stack inward from the name toward felt center', () => {
     for (let i = 0; i < 8; i++) {
       const name = mosaicSeatLabelPct(i, w, h, 28)
-      const stack = broadcastRimStackPct(name, w, h, 36)
+      const stack = broadcastRimStackPct(i, name, w, h, 36)
       const center = venueMosaicFeltCenterPct(w, h)
       const nameDist = Math.hypot(name.leftPct - center.leftPct, name.topPct - center.topPct)
       const stackDist = Math.hypot(stack.leftPct - center.leftPct, stack.topPct - center.topPct)
       expect(stackDist).toBeLessThan(nameDist)
+    }
+  })
+
+  it('stacks broadcast rim bankroll below the name on flat side seats', () => {
+    for (const i of [2, 6]) {
+      const name = mosaicSeatLabelPct(i, w, h, 28)
+      const stack = broadcastRimStackPct(i, name, w, h, 36)
+      expect(stack.topPct).toBeGreaterThan(name.topPct)
+      if (i === 2) {
+        expect(stack.leftPct).toBeLessThan(name.leftPct)
+      } else {
+        expect(stack.leftPct).toBeGreaterThan(name.leftPct)
+      }
     }
   })
 })

@@ -345,18 +345,6 @@ function clampPointAwayFromFeltCenter(
   }
 }
 
-function broadcastSeatAssetInwardFrac(seatIndex: number): number {
-  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
-  if (i === 0 || i === 4) return 0.05
-  return mosaicSeatChipInwardFrac(seatIndex)
-}
-
-function broadcastSeatHoleInwardFrac(seatIndex: number): number {
-  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
-  if (i === 0 || i === 4) return 0.08
-  return mosaicSeatHoleInwardFrac(seatIndex)
-}
-
 function broadcastCenterKeepoutRadiusPx(
   rimW: number,
   hasBoard: boolean,
@@ -371,10 +359,15 @@ function broadcastCenterKeepoutRadiusPx(
   const actionBandPx = hasActionLine
     ? centerTypo.lineGapPx + Math.max(centerTypo.actionNamePx, centerTypo.messagePx) + 6
     : 0
-  const belowCenterPx = potBandPx + actionBandPx + Math.round(16 * scale)
+  const padPx = Math.round(12 * scale)
   const aboveCenterPx = hasBoard
-    ? communityCardHeightPx / 2 + communityBoardGapPx + Math.round(12 * scale)
-    : potBandPx * 0.45
+    ? communityCardHeightPx / 2 + communityBoardGapPx + potBandPx + padPx
+    : potBandPx * 0.5
+  const belowCenterPx = hasBoard
+    ? communityCardHeightPx / 2 + communityBoardGapPx + actionBandPx + padPx
+    : hasActionLine
+      ? potBandPx * 0.55 + actionBandPx + padPx
+      : 0
   const chipClearancePx = Math.round(42 * scale)
   return Math.max(aboveCenterPx, belowCenterPx) + chipClearancePx
 }
@@ -429,28 +422,43 @@ function VenueBroadcastCenterStack({
   const centerCxPct = feltBounds.cx * 100
   const centerCyPct = feltBounds.cy * 100
   const hasCommunityBoard = communityDigits.length > 0
-  const potBelowBoardPx = hasCommunityBoard
-    ? Math.round(communityCardHeightPx / 2 + communityBoardGapPx)
-    : 0
-  const potStackStyle = {
+  const boardHalfPx = hasCommunityBoard ? Math.round(communityCardHeightPx / 2) : 0
+  const centerAnchorStyle = {
     position: 'absolute' as const,
     left: `${centerCxPct}%`,
     top: `${centerCyPct}%`,
+    maxWidth: '94%',
+    textAlign: 'center' as const,
+  }
+  const potAboveBoardPx = boardHalfPx + communityBoardGapPx
+  const actionBelowBoardPx = boardHalfPx + communityBoardGapPx
+  const potStackStyle = {
+    ...centerAnchorStyle,
     transform: hasCommunityBoard
-      ? `translate(-50%, ${potBelowBoardPx}px)`
+      ? `translate(-50%, calc(-100% - ${potAboveBoardPx}px))`
       : 'translate(-50%, -50%)',
     display: 'flex' as const,
     flexDirection: 'column' as const,
     alignItems: 'center' as const,
-    gap: centerTypo.lineGapPx,
-    maxWidth: '94%',
-    textAlign: 'center' as const,
     ['--vfd-broadcast-pot-label-px' as string]: `${centerTypo.potLabelPx}px`,
     ['--vfd-broadcast-pot-sign-px' as string]: `${centerTypo.potSignPx}px`,
     ['--vfd-broadcast-pot-digits-px' as string]: `${centerTypo.potDigitsPx}px`,
     ['--vfd-broadcast-action-sign-px' as string]: `${centerTypo.actionSignPx}px`,
     ['--vfd-broadcast-action-digits-px' as string]: `${centerTypo.actionDigitsPx}px`,
   }
+  const actionStackStyle = {
+    ...centerAnchorStyle,
+    transform: hasCommunityBoard
+      ? `translate(-50%, ${actionBelowBoardPx}px)`
+      : `translate(-50%, calc(-50% + ${Math.round(centerTypo.potLabelPx + centerTypo.potDigitsPx * 0.55 + centerTypo.lineGapPx)}px))`,
+    display: 'flex' as const,
+    flexDirection: 'column' as const,
+    alignItems: 'center' as const,
+  }
+  const hasActionLine =
+    actionKind === 'to-call' ||
+    actionKind === 'no-more-bets' ||
+    actionKind === 'answering'
   return (
     <div
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
@@ -487,6 +495,9 @@ function VenueBroadcastCenterStack({
             className="vfd-broadcast-pot vfd-broadcast-pot--hero inline-flex max-w-full shrink truncate"
           />
         </div>
+      </div>
+      {hasActionLine ? (
+        <div className="vfd-broadcast-action-stack" style={actionStackStyle}>
         {actionKind === 'to-call' && actingPlayerName && callAmount != null ? (
           <div
             className="vfd-broadcast-center-line vfd-broadcast-center-line--action"
@@ -527,7 +538,8 @@ function VenueBroadcastCenterStack({
             Answer on your phone
           </p>
         ) : null}
-      </div>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -1397,7 +1409,7 @@ function SeatRingWithLabels({
                 seatCountForLayout,
                 rimW,
                 rimH,
-                isBroadcast ? broadcastSeatAssetInwardFrac(i) : mosaicSeatChipInwardFrac(i)
+                mosaicSeatChipInwardFrac(i)
               )
             : stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
         const chipPosRaw = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
@@ -1418,7 +1430,7 @@ function SeatRingWithLabels({
                 seatCountForLayout,
                 rimW,
                 rimH,
-                isBroadcast ? broadcastSeatHoleInwardFrac(i) : mosaicSeatHoleInwardFrac(i)
+                mosaicSeatHoleInwardFrac(i)
               )
             : (() => {
                 const pt = stadiumSeatPointPx(
@@ -1612,13 +1624,7 @@ function SeatRingWithLabels({
               const markers = heroSeatBlindMarkerPills(i, blindSeats, 'onFelt', markerSizePx)
               if (markers.length === 0) return null
               const blindPtRaw = isBroadcast
-                ? mosaicSeatHoleLayout(
-                    i,
-                    seatCountForLayout,
-                    rimW,
-                    rimH,
-                    broadcastSeatAssetInwardFrac(i)
-                  )
+                ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, mosaicSeatChipInwardFrac(i))
                 : stadiumSeatPointPx(
                     i,
                     seatCountForLayout,

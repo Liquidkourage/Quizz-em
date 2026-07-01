@@ -2100,7 +2100,8 @@
   }
 
   /** n=1 broadcast felt center — pot is scoreboard-sized; sizes set via CSS vars from table width. */
-  .vfd-broadcast-pot-stack {
+  .vfd-broadcast-pot-stack,
+  .vfd-broadcast-action-stack {
     pointer-events: none;
     isolation: isolate;
   }

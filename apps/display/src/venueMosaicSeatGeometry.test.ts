@@ -12,7 +12,7 @@ import {
   mosaicSeatChipInwardFrac,
   mosaicStadiumCupUV,
   broadcastBlindMarkerPct,
-  broadcastRimClusterLayout,
+  broadcastRimStackPct,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
 
@@ -164,15 +164,14 @@ describe('venueMosaicSeatGeometry', () => {
     expect(seat0.leftPct).toBeGreaterThan(seat0Cup.leftPct)
   })
 
-  it('places broadcast rim bankroll inward from the name on every seat', () => {
+  it('places broadcast rim stack inward from the name toward felt center', () => {
     for (let i = 0; i < 8; i++) {
-      const layout = broadcastRimClusterLayout(i, w, h)
-      expect(['column', 'row'].some((axis) => layout.flexDirection.startsWith(axis))).toBe(true)
-      expect(typeof layout.stackFirst).toBe('boolean')
+      const name = mosaicSeatLabelPct(i, w, h, 28)
+      const stack = broadcastRimStackPct(name, w, h, 36)
+      const center = venueMosaicFeltCenterPct(w, h)
+      const nameDist = Math.hypot(name.leftPct - center.leftPct, name.topPct - center.topPct)
+      const stackDist = Math.hypot(stack.leftPct - center.leftPct, stack.topPct - center.topPct)
+      expect(stackDist).toBeLessThan(nameDist)
     }
-    expect(broadcastRimClusterLayout(0, w, h).stackFirst).toBe(false)
-    expect(broadcastRimClusterLayout(4, w, h).stackFirst).toBe(true)
-    expect(broadcastRimClusterLayout(2, w, h).stackFirst).toBe(true)
-    expect(broadcastRimClusterLayout(6, w, h).stackFirst).toBe(false)
   })
 })

@@ -31,7 +31,7 @@ import {
   mosaicSeatHoleInwardFrac,
   venueMosaicFeltCenterPct,
   broadcastBlindMarkerPct,
-  broadcastRimClusterLayout,
+  broadcastRimStackPct,
   MOSAIC_HOLE_CARD_FAN_DEG,
 } from './venueMosaicSeatGeometry'
 import {
@@ -1522,9 +1522,13 @@ function SeatRingWithLabels({
         const broadcastChipLayout =
           isBroadcast && rimW > 0 && filled ? broadcastChipStackLayoutPx(rimW) : null
         const broadcastRimStack = isBroadcast && filled
-        const broadcastRimLayout =
-          broadcastRimStack && rimW > 0 && rimH > 0
-            ? broadcastRimClusterLayout(i, rimW, rimH)
+        const broadcastRimStackInwardPx =
+          broadcastRimStack && broadcastChipLayout
+            ? Math.round(broadcastChipLayout.fontPx * 1.05)
+            : 0
+        const broadcastStackPos =
+          broadcastRimStack && broadcastRimStackInwardPx > 0 && rimW > 0 && rimH > 0
+            ? broadcastRimStackPct(labelPos, rimW, rimH, broadcastRimStackInwardPx)
             : null
         const rimDisplayName = isBroadcast ? formatVenueDisplayPlayerName(raw) : raw
         const labelVy = isBroadcast ? 0 : seatNameLabelVerticalNudgePx(i, size)
@@ -1802,6 +1806,7 @@ function SeatRingWithLabels({
               </div>
             ) : null}
             {!isMosaic && raw ? (
+              <>
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} text-center font-semibold leading-tight shadow-black/80 drop-shadow ${
                   isBroadcast
@@ -1816,62 +1821,47 @@ function SeatRingWithLabels({
                   left: `${labelPos.leftPct}%`,
                   top: `${labelPos.topPct}%`,
                   transform: `translate(-50%, calc(-50% + ${labelVy}px))`,
-                  ...(broadcastRimLayout
-                    ? {
-                        display: 'flex',
-                        flexDirection: broadcastRimLayout.flexDirection,
-                        alignItems: 'center',
-                        gap: `${broadcastRimLayout.gapRem}rem`,
-                      }
-                    : {}),
                 }}
               >
-                {(() => {
-                  const nameEl = (
-                    <span
-                      className={`block max-w-full shrink-0 truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
-                    >
-                      {rimDisplayName}
-                    </span>
-                  )
-                  const stackEl = broadcastRimStack ? (
-                    <span
-                      className={`vfd-broadcast-rim-stack max-w-full shrink-0 truncate font-mono font-extrabold tabular-nums tracking-tight text-amber-50 [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
-                        isFolded ? 'text-white/45' : ''
-                      }`}
-                      style={
-                        broadcastChipLayout
-                          ? { fontSize: `${broadcastChipLayout.fontPx}px` }
-                          : undefined
-                      }
-                    >
-                      {formatVenueBankroll(chips)}
-                    </span>
-                  ) : !(feltSeatStacks && size === 'lg') ? (
-                    <span
-                      className={`mt-0.5 block max-w-full truncate font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
-                        isFolded ? 'text-white/40' : 'text-casino-emerald'
-                      }`}
-                    >
-                      {formatVenueBankroll(chips)}
-                    </span>
-                  ) : null
-                  if (broadcastRimLayout?.stackFirst) {
-                    return (
-                      <>
-                        {stackEl}
-                        {nameEl}
-                      </>
-                    )
-                  }
-                  return (
-                    <>
-                      {nameEl}
-                      {stackEl}
-                    </>
-                  )
-                })()}
+                <span
+                  className={`block max-w-full truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
+                >
+                  {rimDisplayName}
+                </span>
+                {!broadcastRimStack && !(feltSeatStacks && size === 'lg') ? (
+                  <span
+                    className={`mt-0.5 block max-w-full truncate font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
+                      isFolded ? 'text-white/40' : 'text-casino-emerald'
+                    }`}
+                  >
+                    {formatVenueBankroll(chips)}
+                  </span>
+                ) : null}
               </div>
+              {broadcastRimStack && broadcastStackPos ? (
+                <div
+                  className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} text-center`}
+                  style={{
+                    left: `${broadcastStackPos.leftPct}%`,
+                    top: `${broadcastStackPos.topPct}%`,
+                    transform: `translate(-50%, calc(-50% + ${labelVy}px))`,
+                  }}
+                >
+                  <span
+                    className={`vfd-broadcast-rim-stack max-w-full truncate font-mono font-extrabold tabular-nums tracking-tight text-amber-50 [text-shadow:0_1px_3px_rgba(0,0,0,0.95),0_2px_10px_rgba(0,0,0,0.85)] ${
+                      isFolded ? 'text-white/45' : ''
+                    }`}
+                    style={
+                      broadcastChipLayout
+                        ? { fontSize: `${broadcastChipLayout.fontPx}px` }
+                        : undefined
+                    }
+                  >
+                    {formatVenueBankroll(chips)}
+                  </span>
+                </div>
+              ) : null}
+              </>
             ) : null}
             {!isMosaic && raw && showActionPanel ? (
               <div

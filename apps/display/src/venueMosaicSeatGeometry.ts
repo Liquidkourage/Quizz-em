@@ -252,7 +252,8 @@ export type BroadcastSeatSideNudge = {
 
 /** Per-seat broadcast puck tweaks (seat index 0 = 12 o'clock). */
 export const BROADCAST_BLIND_SEAT_NUDGES: Partial<Record<number, BroadcastSeatSideNudge>> = {
-  0: { dx: 14 }, // user seat 1 — BTN slightly right
+  0: { alongPx: 10, dy: -6 },
+  2: { alongPx: 14 },
 }
 
 export type BroadcastRimClusterLayout = {
@@ -262,7 +263,31 @@ export type BroadcastRimClusterLayout = {
   stackFirst: boolean
 }
 
-/** Name on the outer rim edge; bankroll inward (under name toward felt). */
+/** Bankroll label — inward from the rim name toward felt center. */
+export function broadcastRimStackPct(
+  namePos: { leftPct: number; topPct: number },
+  w: number,
+  h: number,
+  inwardFromNamePx: number
+): { leftPct: number; topPct: number } {
+  if (!(w > 0 && h > 0) || inwardFromNamePx <= 0) return namePos
+  const center = venueMosaicFeltCenterPct(w, h)
+  const nameX = (namePos.leftPct / 100) * w
+  const nameY = (namePos.topPct / 100) * h
+  const cx = (center.leftPct / 100) * w
+  const cy = (center.topPct / 100) * h
+  let ix = cx - nameX
+  let iy = cy - nameY
+  const len = Math.hypot(ix, iy) || 1
+  ix /= len
+  iy /= len
+  return {
+    leftPct: ((nameX + ix * inwardFromNamePx) / w) * 100,
+    topPct: ((nameY + iy * inwardFromNamePx) / h) * 100,
+  }
+}
+
+/** @deprecated Flex cluster — prefer {@link broadcastRimStackPct} with separate anchors. */
 export function broadcastRimClusterLayout(
   seatIndex: number,
   w: number,

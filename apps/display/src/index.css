@@ -2212,6 +2212,22 @@
 
   .vfd-broadcast-action-amount .vfd-mosaic-dollar-digits {
     font-size: var(--vfd-broadcast-action-digits-px);
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+  }
+
+  .vfd-broadcast-action-amount--hero.vfd-mosaic-dollar--live .vfd-mosaic-dollar-sign,
+  .vfd-broadcast-action-amount--hero.vfd-mosaic-dollar--live .vfd-mosaic-dollar-digits {
+    color: rgb(255 248 220);
+    text-shadow:
+      0 0 14px rgb(251 191 36 / 0.5),
+      0 0 28px rgb(251 191 36 / 0.25),
+      0 3px 10px rgb(0 0 0 / 0.9),
+      0 1px 0 rgb(255 255 255 / 0.3);
+  }
+
+  .vfd-broadcast-action-amount--hero {
+    filter: drop-shadow(0 3px 12px rgb(0 0 0 / 0.65));
   }
 
   .vfd-broadcast-action-message {

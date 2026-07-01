@@ -296,8 +296,8 @@ function broadcastCenterTypographyPx(rimW: number): {
     potDigitsPx: Math.round(118 * scale),
     actionNamePx: Math.round(32 * scale),
     actionLabelPx: Math.round(24 * scale),
-    actionSignPx: Math.round(28 * scale),
-    actionDigitsPx: Math.round(40 * scale),
+    actionSignPx: Math.round(50 * scale),
+    actionDigitsPx: Math.round(82 * scale),
     messagePx: Math.round(24 * scale),
     gapPx: Math.round(8 * scale),
     lineGapPx: Math.round(5 * scale),
@@ -345,6 +345,12 @@ function clampPointAwayFromFeltCenter(
   }
 }
 
+/** Seats 0 and 4 (12 / 6 o'clock) — keep-out clamp fights their natural inward chip path. */
+function isBroadcastPoleSeat(seatIndex: number): boolean {
+  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
+  return i === 0 || i === 4
+}
+
 function broadcastCenterKeepoutRadiusPx(
   rimW: number,
   hasBoard: boolean,
@@ -355,7 +361,7 @@ function broadcastCenterKeepoutRadiusPx(
 ): number {
   const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
-  const potBandPx = centerTypo.potLabelPx + centerTypo.potDigitsPx * 0.98
+  const potBandPx = centerTypo.potDigitsPx * 0.98
   const actionBandPx = hasActionLine
     ? centerTypo.lineGapPx + Math.max(centerTypo.actionNamePx, centerTypo.messagePx) + 6
     : 0
@@ -450,10 +456,12 @@ function VenueBroadcastCenterStack({
     ...centerAnchorStyle,
     transform: hasCommunityBoard
       ? `translate(-50%, ${actionBelowBoardPx}px)`
-      : `translate(-50%, calc(-50% + ${Math.round(centerTypo.potLabelPx + centerTypo.potDigitsPx * 0.55 + centerTypo.lineGapPx)}px))`,
+      : `translate(-50%, calc(-50% + ${Math.round(centerTypo.potDigitsPx * 0.55 + centerTypo.lineGapPx)}px))`,
     display: 'flex' as const,
     flexDirection: 'column' as const,
     alignItems: 'center' as const,
+    ['--vfd-broadcast-action-sign-px' as string]: `${centerTypo.actionSignPx}px`,
+    ['--vfd-broadcast-action-digits-px' as string]: `${centerTypo.actionDigitsPx}px`,
   }
   const hasActionLine =
     actionKind === 'to-call' ||
@@ -486,15 +494,12 @@ function VenueBroadcastCenterStack({
         </div>
       ) : null}
       <div className="vfd-broadcast-pot-stack" style={potStackStyle}>
-        <div className="vfd-broadcast-center-line vfd-broadcast-center-line--pot">
-          <span className="vfd-broadcast-pot-label">Pot</span>
-          <VenuePotAmount
-            amount={pot}
-            prefersReducedMotion={prefersReducedMotion}
-            potMuted={potMuted}
-            className="vfd-broadcast-pot vfd-broadcast-pot--hero inline-flex max-w-full shrink truncate"
-          />
-        </div>
+        <VenuePotAmount
+          amount={pot}
+          prefersReducedMotion={prefersReducedMotion}
+          potMuted={potMuted}
+          className="vfd-broadcast-pot vfd-broadcast-pot--hero inline-flex max-w-full shrink truncate"
+        />
       </div>
       {hasActionLine ? (
         <div className="vfd-broadcast-action-stack" style={actionStackStyle}>
@@ -516,7 +521,7 @@ function VenueBroadcastCenterStack({
             </span>
             <MosaicBungeeDollarAmount
               amount={callAmount}
-              className="vfd-broadcast-action-amount vfd-mosaic-dollar--live"
+              className="vfd-broadcast-action-amount vfd-broadcast-action-amount--hero vfd-mosaic-dollar--live"
               prefersReducedMotion={prefersReducedMotion}
               pulseOnChange
             />
@@ -1414,7 +1419,7 @@ function SeatRingWithLabels({
             : stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
         const chipPosRaw = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
         const chipPos =
-          broadcastKeepoutPx > 0
+          broadcastKeepoutPx > 0 && !isBroadcastPoleSeat(i)
             ? clampPointAwayFromFeltCenter(
                 chipPosRaw.leftPct,
                 chipPosRaw.topPct,
@@ -1447,7 +1452,7 @@ function SeatRingWithLabels({
                 }
               })()
         const holeLayout =
-          broadcastKeepoutPx > 0
+          broadcastKeepoutPx > 0 && !isBroadcastPoleSeat(i)
             ? {
                 ...holeLayoutRaw,
                 ...clampPointAwayFromFeltCenter(
@@ -1633,7 +1638,7 @@ function SeatRingWithLabels({
                     STADIUM_BLIND_BADGE_RADIAL
                   )
               const blindPt =
-                broadcastKeepoutPx > 0
+                broadcastKeepoutPx > 0 && !isBroadcastPoleSeat(i)
                   ? clampPointAwayFromFeltCenter(
                       blindPtRaw.leftPct,
                       blindPtRaw.topPct,

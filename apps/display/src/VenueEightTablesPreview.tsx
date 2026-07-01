@@ -271,7 +271,7 @@ function broadcastChipStackLayoutPx(rimW: number): {
 function venueBlindMarkerSizePx(rimW: number, mode: 'broadcast' | 'lg' | 'md'): number {
   const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
-  const base = mode === 'broadcast' ? 58 : mode === 'lg' ? 38 : 30
+  const base = mode === 'broadcast' ? 44 : mode === 'lg' ? 38 : 30
   return Math.round(base * scale)
 }
 
@@ -317,6 +317,39 @@ function broadcastCommunityCardLayoutPx(
     heightPx,
     boardGapPx: Math.round(24 * scale),
     gapPx: Math.max(6, Math.round(widthPx * 0.12)),
+  }
+}
+
+/** Rail-tight blind / BTN anchor — tangential offset so pucks don't cover chip stacks. */
+function broadcastBlindMarkerPct(
+  seatIndex: number,
+  seatCount: number,
+  w: number,
+  h: number,
+  markerSizePx: number
+): { leftPct: number; topPct: number } {
+  const railTight = mosaicSeatHoleLayout(seatIndex, seatCount, w, h, 0.035)
+  if (!(w > 0 && h > 0)) return { leftPct: railTight.leftPct, topPct: railTight.topPct }
+
+  const cup = mosaicSeatDotPct(seatIndex, seatCount, w, h)
+  const center = venueMosaicFeltCenterPct(w, h)
+  const cupX = (cup.leftPct / 100) * w
+  const cupY = (cup.topPct / 100) * h
+  const centerX = (center.leftPct / 100) * w
+  const centerY = (center.topPct / 100) * h
+  const dx = cupX - centerX
+  const dy = cupY - centerY
+  const len = Math.hypot(dx, dy) || 1
+  const tx = -dy / len
+  const ty = dx / len
+  const sign = seatIndex % 2 === 0 ? 1 : -1
+  const tangentSepPx = Math.max(26, Math.round(markerSizePx * 0.62))
+
+  const baseX = (railTight.leftPct / 100) * w
+  const baseY = (railTight.topPct / 100) * h
+  return {
+    leftPct: ((baseX + tx * tangentSepPx * sign) / w) * 100,
+    topPct: ((baseY + ty * tangentSepPx * sign) / h) * 100,
   }
 }
 
@@ -1659,7 +1692,7 @@ function SeatRingWithLabels({
               const markers = heroSeatBlindMarkerPills(i, blindSeats, 'onFelt', markerSizePx)
               if (markers.length === 0) return null
               const blindPtRaw = isBroadcast
-                ? mosaicSeatHoleLayout(i, seatCountForLayout, rimW, rimH, chipInwardFrac)
+                ? broadcastBlindMarkerPct(i, seatCountForLayout, rimW, rimH, markerSizePx)
                 : stadiumSeatPointPx(
                     i,
                     seatCountForLayout,
@@ -1668,7 +1701,7 @@ function SeatRingWithLabels({
                     STADIUM_BLIND_BADGE_RADIAL
                   )
               const blindPt =
-                broadcastKeepoutPx > 0 && !isBroadcastPoleSeat(i)
+                broadcastKeepoutPx > 0 && !isBroadcastPoleSeat(i) && !isBroadcast
                   ? clampPointAwayFromFeltCenter(
                       blindPtRaw.leftPct,
                       blindPtRaw.topPct,
@@ -1679,11 +1712,13 @@ function SeatRingWithLabels({
                   : blindPtRaw
               return (
                 <div
-                  className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center`}
+                  className={`pointer-events-none absolute ${isBroadcast ? 'z-[114]' : SEAT_LAYER_BLIND_OUT} flex flex-col items-center`}
                   style={{
                     left: `${blindPt.leftPct}%`,
                     top: `${blindPt.topPct}%`,
-                    transform: 'translate(-50%, -50%)',
+                    transform: isBroadcast
+                      ? broadcastPoleChipTransform(i, rimH)
+                      : 'translate(-50%, -50%)',
                     gap: Math.max(2, Math.round(markerSizePx * 0.1)),
                   }}
                 >

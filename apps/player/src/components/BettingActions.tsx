@@ -63,23 +63,23 @@ export default function BettingActions({
         <PlayerGameButton variant="gold" size={btnSize} className="player-game-btn--block" onClick={onCall} disabled={!ctx.canCall}>
           {ctx.toCall > 0 ? `Call $${ctx.toCall}` : 'Call'}
         </PlayerGameButton>
-        <div className="player-game-raise-row">
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <label className="player-game-field-label">
-              Raise <span>(min ${ctx.minRaise})</span>
-            </label>
+        <div className="player-game-raise-block">
+          <label className="player-game-field-label">
+            Raise <span>(min ${ctx.minRaise})</span>
+          </label>
+          <div className="player-game-raise-row">
             <input
               type="number"
               value={raiseAmount}
               onChange={(e) => onRaiseAmountChange(Number(e.target.value))}
               min={ctx.minRaise}
               max={Math.max(0, currentPlayer.bankroll - ctx.toCall)}
-              className="player-game-input"
+              className="player-game-input player-game-input--raise"
             />
+            <PlayerGameButton variant="dark" size={btnSize} className="player-game-btn--block" onClick={onRaise} disabled={!ctx.canRaise}>
+              Raise
+            </PlayerGameButton>
           </div>
-          <PlayerGameButton variant="dark" size={btnSize} className="player-game-btn--block" style={{ alignSelf: 'flex-end' }} onClick={onRaise} disabled={!ctx.canRaise}>
-            Raise
-          </PlayerGameButton>
         </div>
         <PlayerGameButton variant="fold" size={btnSize} className="player-game-btn--block" onClick={onFold} disabled={!ctx.canFold}>
           Fold

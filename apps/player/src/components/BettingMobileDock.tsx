@@ -41,18 +41,23 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
             {ctx.toCall > 0 ? `Call $${ctx.toCall}` : 'Call'}
           </PlayerGameButton>
         </div>
-        <div className="player-game-raise-row" style={{ marginTop: '0.45rem' }}>
-          <input
-            type="number"
-            value={raiseAmount}
-            onChange={(e) => onRaiseAmountChange(Number(e.target.value))}
-            min={ctx.minRaise}
-            max={Math.max(0, currentPlayer.bankroll - ctx.toCall)}
-            className="player-game-input"
-          />
-          <PlayerGameButton variant="dark" onClick={onRaise} disabled={!ctx.canRaise}>
-            Raise
-          </PlayerGameButton>
+        <div className="player-game-raise-block" style={{ marginTop: '0.45rem' }}>
+          <label className="player-game-field-label">
+            Raise <span>(min ${ctx.minRaise})</span>
+          </label>
+          <div className="player-game-raise-row">
+            <input
+              type="number"
+              value={raiseAmount}
+              onChange={(e) => onRaiseAmountChange(Number(e.target.value))}
+              min={ctx.minRaise}
+              max={Math.max(0, currentPlayer.bankroll - ctx.toCall)}
+              className="player-game-input player-game-input--raise"
+            />
+            <PlayerGameButton variant="dark" onClick={onRaise} disabled={!ctx.canRaise}>
+              Raise
+            </PlayerGameButton>
+          </div>
         </div>
         <div className="player-game-actions" style={{ marginTop: '0.45rem' }}>
           <PlayerGameButton variant="fold" onClick={onFold} disabled={!ctx.canFold}>

@@ -1156,15 +1156,19 @@
   color: rgb(255 255 255 / 0.4);
 }
 
-.player-game-raise-row {
-  display: flex;
-  gap: 0.45rem;
+.player-game-raise-block {
   grid-column: 1 / -1;
+}
+
+.player-game-raise-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
 }
 
 .player-game-input {
   min-height: 2.75rem;
-  flex: 1 1 0%;
+  width: 100%;
   min-width: 0;
   border: 1px solid rgb(251 191 36 / 0.35);
   border-radius: 3px;
@@ -1174,6 +1178,10 @@
   font-size: 1rem;
   font-weight: 600;
   color: rgb(255 255 255 / 0.95);
+}
+
+.player-game-input--raise {
+  box-sizing: border-box;
 }
 
 .player-game-input:focus {

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { clsx } from 'clsx'
 import { FeltHoleCardPair } from './feltHoleCards'
+import { PlayerFeltHoleCards } from './playerFeltHoleCards'
 import {
   STADIUM_CUPHOLDER_RADIAL,
   STADIUM_HOLE_CARDS_RADIAL,
@@ -9,7 +10,6 @@ import {
   STADIUM_PLAYER_HOLE_CARDS_RADIAL,
   STADIUM_PLAYER_NAME_LABEL_RADIAL,
   stadiumCupholderSizePx,
-  stadiumPlayerHoleCardGapPx,
   stadiumHoleCardScale,
   stadiumPlayerCommunityCardSizePx,
   stadiumPlayerCupholderSizePx,
@@ -175,14 +175,22 @@ export function StadiumTableSeats({
                   )}
                   style={{ left: `${holePt.leftPct}%`, top: `${holePt.topPct}%` }}
                 >
-                  <FeltHoleCardPair
-                    rotateDeg={holePt.rotateDeg}
-                    scale={holeScale}
-                    gapPx={isPlayerLayout ? stadiumPlayerHoleCardGapPx(holeScale) : undefined}
-                    faceDown={seat!.faceDown ?? true}
-                    digits={seat!.holeDigits}
-                    variant={seat!.holeVariant ?? 'cyan'}
-                  />
+                  {isPlayerLayout ? (
+                    <PlayerFeltHoleCards
+                      rotateDeg={holePt.rotateDeg}
+                      scale={holeScale}
+                      faceDown={seat!.faceDown ?? true}
+                      digits={seat!.holeDigits}
+                    />
+                  ) : (
+                    <FeltHoleCardPair
+                      rotateDeg={holePt.rotateDeg}
+                      scale={holeScale}
+                      faceDown={seat!.faceDown ?? true}
+                      digits={seat!.holeDigits}
+                      variant={seat!.holeVariant ?? 'cyan'}
+                    />
+                  )}
                 </div>
               ) : null}
 

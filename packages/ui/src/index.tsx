@@ -267,6 +267,12 @@ export {
   type SeatCupholderState,
 } from './tableGraphics';
 export { FeltHoleCardPair, type FeltHoleCardPairProps } from './feltHoleCards';
+export {
+  PLAYER_FELT_HOLE_CARD_GAP_PX,
+  PlayerFeltHoleCards,
+  playerFeltHolePairWidthPx,
+  type PlayerFeltHoleCardsProps,
+} from './playerFeltHoleCards';
 export { StadiumTableSeats, type StadiumTableSeat, type StadiumTableSeatsProps } from './StadiumTableSeats';
 export {
   capsuleBoundaryHitPx,
@@ -307,7 +313,6 @@ export {
   STADIUM_PLAYER_HOLE_CARDS_RADIAL,
   STADIUM_PLAYER_NAME_LABEL_RADIAL,
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
-  stadiumPlayerHoleCardGapPx,
   type StadiumMosaicDensity,
   type StadiumFeltLayout,
   type StadiumSeatPoint,

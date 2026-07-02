@@ -220,11 +220,6 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
   )
 }
 
-/** Player phone — gap between hole cards (explicit pixel widths; zero overlap). */
-export function stadiumPlayerHoleCardGapPx(_scale: number): number {
-  return 12
-}
-
 /** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
 export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360

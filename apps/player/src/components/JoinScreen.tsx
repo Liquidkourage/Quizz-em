@@ -28,6 +28,8 @@ export default function JoinScreen({
   isConnecting = false,
 }: JoinScreenProps) {
   const firstNameInputRef = useRef<HTMLInputElement>(null)
+  const lastInitialInputRef = useRef<HTMLInputElement>(null)
+  const venueCodeInputRef = useRef<HTMLInputElement>(null)
 
   const canJoin =
     !isConnecting &&
@@ -54,6 +56,14 @@ export default function JoinScreen({
     if (canJoin) onJoin()
   }
 
+  function handleLastInitialChange(raw: string) {
+    const next = sanitizeLastInitialInput(raw)
+    patch({ lastInitial: next })
+    if (next.length === 1 && !roomLocked) {
+      window.requestAnimationFrame(() => venueCodeInputRef.current?.focus())
+    }
+  }
+
   return (
     <div className="player-join-screen">
       <div className="player-join-bg" aria-hidden>
@@ -63,14 +73,9 @@ export default function JoinScreen({
       </div>
 
       <div className="player-join-layout">
-        <div className="player-join-logo">
-          <div className="player-join-logo-glow" aria-hidden />
-          <QuizzEmWordmark layout="fill" depth="hero" />
-        </div>
-
         <motion.div
-          className="player-join-card"
-          initial={{ opacity: 0, y: 16 }}
+          className="player-join-shell"
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
         >
@@ -79,82 +84,107 @@ export default function JoinScreen({
           <JoinCorner position="bl" />
           <JoinCorner position="br" />
 
-          <h1 className="player-join-title">Join the game</h1>
-          <div className="player-join-divider" aria-hidden />
-
-          {roomLocked ? (
-            <p className="player-join-room">
-              Room <span className="player-join-room-code">{prefs.roomCode.trim()}</span>
-            </p>
-          ) : null}
-
-          <form className="player-join-form" onSubmit={handleSubmit}>
-            <div className="player-join-name-row">
-              <div className="player-join-field">
-                <label htmlFor="player-first-name" className="player-join-label">
-                  First name
-                </label>
-                <input
-                  id="player-first-name"
-                  ref={firstNameInputRef}
-                  type="text"
-                  placeholder="Jay"
-                  value={prefs.firstName}
-                  onChange={(e) => patch({ firstName: e.target.value })}
-                  autoComplete="given-name"
-                  className="player-join-input"
-                />
-              </div>
-              <div className="player-join-field player-join-field--initial">
-                <label htmlFor="player-last-initial" className="player-join-label">
-                  Initial
-                </label>
-                <input
-                  id="player-last-initial"
-                  type="text"
-                  placeholder="L"
-                  value={prefs.lastInitial}
-                  onChange={(e) => patch({ lastInitial: sanitizeLastInitialInput(e.target.value) })}
-                  autoComplete="off"
-                  inputMode="text"
-                  maxLength={1}
-                  aria-label="Last initial"
-                  className="player-join-input player-join-input--initial"
-                />
-              </div>
+          <header className="player-join-header">
+            <div className="player-join-logo-glow" aria-hidden />
+            <div className="player-join-logo">
+              <QuizzEmWordmark layout="fill" depth="hero" />
             </div>
+          </header>
 
-            {!roomLocked ? (
-              <div className="player-join-field">
-                <label htmlFor="player-venue-code" className="player-join-label">
-                  Venue code
-                </label>
-                <input
-                  id="player-venue-code"
-                  type="text"
-                  placeholder="HOST01"
-                  value={prefs.roomCode}
-                  onChange={(e) => patch({ roomCode: e.target.value.toUpperCase() })}
-                  autoComplete="off"
-                  className="player-join-input player-join-input--code"
-                />
-              </div>
+          <div className="player-join-header-rule" aria-hidden />
+
+          <div className="player-join-body">
+            <h1 className="player-join-title">Join the game</h1>
+            <div className="player-join-divider" aria-hidden />
+
+            {roomLocked ? (
+              <p className="player-join-room">
+                Room <span className="player-join-room-code">{prefs.roomCode.trim()}</span>
+              </p>
             ) : null}
 
-            {joinError ? <p className="player-join-error">{joinError}</p> : null}
+            <form className="player-join-form" onSubmit={handleSubmit}>
+              <div className="player-join-fields">
+                <div className="player-join-name-row">
+                  <div className="player-join-field">
+                    <label htmlFor="player-first-name" className="player-join-label">
+                      First name
+                    </label>
+                    <input
+                      id="player-first-name"
+                      ref={firstNameInputRef}
+                      type="text"
+                      placeholder="Jay"
+                      value={prefs.firstName}
+                      onChange={(e) => patch({ firstName: e.target.value })}
+                      autoComplete="given-name"
+                      autoCapitalize="words"
+                      autoCorrect="off"
+                      enterKeyHint="next"
+                      className="player-join-input"
+                    />
+                  </div>
+                  <div className="player-join-field player-join-field--initial">
+                    <label htmlFor="player-last-initial" className="player-join-label">
+                      Initial
+                    </label>
+                    <input
+                      id="player-last-initial"
+                      ref={lastInitialInputRef}
+                      type="text"
+                      placeholder="L"
+                      value={prefs.lastInitial}
+                      onChange={(e) => handleLastInitialChange(e.target.value)}
+                      autoComplete="off"
+                      inputMode="text"
+                      maxLength={1}
+                      aria-label="Last initial"
+                      enterKeyHint={roomLocked ? 'go' : 'next'}
+                      className="player-join-input player-join-input--initial"
+                    />
+                  </div>
+                </div>
 
-            <div className="player-join-btn-row">
-              <JoinDiamond />
-              <button type="submit" className="player-join-btn" disabled={!canJoin}>
-                {isConnecting ? 'Connecting…' : 'Join game'}
-              </button>
-              <JoinDiamond />
-            </div>
+                {!roomLocked ? (
+                  <div className="player-join-field">
+                    <label htmlFor="player-venue-code" className="player-join-label">
+                      Venue code
+                    </label>
+                    <input
+                      id="player-venue-code"
+                      ref={venueCodeInputRef}
+                      type="text"
+                      placeholder="HOST01"
+                      value={prefs.roomCode}
+                      onChange={(e) => patch({ roomCode: e.target.value.toUpperCase() })}
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      enterKeyHint="go"
+                      className="player-join-input player-join-input--code"
+                    />
+                  </div>
+                ) : null}
 
-            <p className="player-join-footnote">
-              You&apos;ll be assigned a table when the host starts.
-            </p>
-          </form>
+                {joinError ? <p className="player-join-error">{joinError}</p> : null}
+              </div>
+
+              <div className="player-join-actions">
+                <div className="player-join-btn-row">
+                  <JoinDiamond />
+                  <button type="submit" className="player-join-btn" disabled={!canJoin}>
+                    {isConnecting ? 'Connecting…' : 'Join game'}
+                  </button>
+                  <JoinDiamond />
+                </div>
+
+                <p className="player-join-footnote">
+                  You&apos;ll be assigned a table when the host starts.
+                </p>
+              </div>
+            </form>
+          </div>
         </motion.div>
       </div>
     </div>

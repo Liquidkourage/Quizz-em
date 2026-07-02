@@ -261,31 +261,78 @@
   min-height: 100dvh;
   flex-direction: column;
   align-items: stretch;
-  justify-content: flex-start;
-  gap: clamp(0.85rem, 2.8vh, 1.5rem);
+  justify-content: stretch;
   padding:
-    max(0.75rem, env(safe-area-inset-top, 0px))
-    max(0.85rem, env(safe-area-inset-right, 0px))
-    max(0.85rem, env(safe-area-inset-bottom, 0px))
-    max(0.85rem, env(safe-area-inset-left, 0px));
+    max(0.65rem, env(safe-area-inset-top, 0px))
+    max(0.65rem, env(safe-area-inset-right, 0px))
+    max(0.65rem, env(safe-area-inset-bottom, 0px))
+    max(0.65rem, env(safe-area-inset-left, 0px));
+}
+
+/** Single gold-framed shell — logo + form share one panel (no dead gap). */
+.player-join-shell {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(195deg, rgb(8 10 14 / 0.96) 0%, rgb(5 9 11 / 0.94) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(253 246 178 / 0.2),
+    inset 0 -2px 0 rgb(0 0 0 / 0.55),
+    inset 0 0 48px rgb(0 0 0 / 0.55),
+    0 16px 40px rgb(0 0 0 / 0.55),
+    0 0 28px rgb(234 179 8 / 0.08);
+}
+
+.player-join-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgb(251 191 36 / 0.55),
+    inset 0 2px 0 rgb(253 230 138 / 0.22),
+    inset 0 -3px 10px rgb(0 0 0 / 0.5);
+}
+
+.player-join-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 0 0 clamp(10.5rem, 28vh, 16.5rem);
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.85rem, 2.5vh, 1.35rem) clamp(1rem, 4vw, 1.75rem) 0.35rem;
+}
+
+.player-join-header-rule {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  height: 1px;
+  margin: 0 clamp(1.25rem, 5vw, 2rem);
+  background: linear-gradient(90deg, transparent 0%, rgb(251 191 36 / 0.45) 50%, transparent 100%);
 }
 
 .player-join-logo {
   position: relative;
-  flex: 0 0 auto;
-  align-self: center;
-  width: min(94vw, 35rem);
-  height: clamp(8.25rem, min(24.5vw, 22vh), 11.375rem);
+  z-index: 1;
+  width: min(92%, 26rem);
+  height: 100%;
+  max-height: 100%;
 }
 
 .player-join-logo-glow {
   position: absolute;
-  inset: 8% -4% -12%;
+  inset: 12% 8% 0;
   border-radius: 9999px;
   background: radial-gradient(
     ellipse 88% 72% at 50% 50%,
-    rgb(251 191 36 / 0.24) 0%,
-    rgb(234 179 8 / 0.08) 42%,
+    rgb(251 191 36 / 0.22) 0%,
+    rgb(234 179 8 / 0.07) 42%,
     transparent 72%
   );
   filter: blur(14px);
@@ -300,38 +347,20 @@
 .player-join-logo .welcome-wordmark-lift {
   height: 100%;
   width: 100%;
-  transform: rotateX(4deg);
+  transform: rotateX(3deg);
   transform-origin: 50% 62%;
   transform-style: preserve-3d;
 }
 
-.player-join-card {
+.player-join-body {
   position: relative;
+  z-index: 1;
   display: flex;
   flex: 1 1 0;
   min-height: 0;
-  width: 100%;
   flex-direction: column;
-  justify-content: center;
-  padding: clamp(1.35rem, 4.5vw, 2.25rem) clamp(1.15rem, 4vw, 2rem);
-  background: linear-gradient(195deg, rgb(8 10 14 / 0.94) 0%, rgb(5 9 11 / 0.92) 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(253 246 178 / 0.2),
-    inset 0 -2px 0 rgb(0 0 0 / 0.55),
-    inset 0 0 48px rgb(0 0 0 / 0.55),
-    0 16px 40px rgb(0 0 0 / 0.55),
-    0 0 28px rgb(234 179 8 / 0.08);
-}
-
-.player-join-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  box-shadow:
-    inset 0 0 0 1px rgb(251 191 36 / 0.55),
-    inset 0 2px 0 rgb(253 230 138 / 0.22),
-    inset 0 -3px 10px rgb(0 0 0 / 0.5);
+  padding: clamp(0.65rem, 2vh, 1rem) clamp(1.15rem, 4.5vw, 2rem)
+    clamp(1.15rem, 3vh, 1.65rem);
 }
 
 .player-join-corner {
@@ -384,9 +413,10 @@
 .player-join-divider {
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
   height: 2px;
-  width: min(58%, 9.5rem);
-  margin: 0.75rem auto 1rem;
+  width: min(52%, 9rem);
+  margin: 0.55rem auto 0.85rem;
   border-radius: 9999px;
   background: linear-gradient(90deg, transparent 0%, rgb(253 230 138 / 0.95) 50%, transparent 100%);
   box-shadow: 0 0 12px rgb(251 191 36 / 0.55);
@@ -407,9 +437,9 @@
 .player-join-room {
   position: relative;
   z-index: 1;
-  margin: 0 0 1rem;
+  margin: 0 0 0.85rem;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: clamp(0.9rem, 3.2vw, 1.05rem);
   font-weight: 500;
   letter-spacing: 0.05em;
   color: rgb(255 255 255 / 0.72);
@@ -427,13 +457,29 @@
   position: relative;
   z-index: 1;
   display: flex;
+  flex: 1 1 0;
+  min-height: 0;
   flex-direction: column;
-  gap: clamp(0.85rem, 2.8vh, 1.25rem);
+  gap: clamp(0.75rem, 2.5vh, 1.15rem);
+}
+
+.player-join-fields {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.85rem, 2.8vh, 1.15rem);
+}
+
+.player-join-actions {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.65rem, 2vh, 0.85rem);
+  margin-top: auto;
+  padding-top: clamp(0.5rem, 2vh, 1rem);
 }
 
 .player-join-name-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(4.5rem, 14vw, 5.75rem);
+  grid-template-columns: minmax(0, 1fr) clamp(4.25rem, 13vw, 5.5rem);
   gap: clamp(0.65rem, 2vw, 0.85rem);
 }
 
@@ -453,16 +499,18 @@
 
 .player-join-input {
   width: 100%;
+  min-height: clamp(2.75rem, 7.5vh, 3.35rem);
   border: 1px solid rgb(251 191 36 / 0.5);
   border-radius: 2px;
   background: rgb(0 0 0 / 0.42);
   padding: clamp(0.68rem, 2.4vw, 0.9rem) clamp(0.75rem, 2.5vw, 1rem);
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(1.1rem, 4.2vw, 1.45rem);
+  font-size: clamp(1.1rem, 4.2vw, 1.4rem);
   font-weight: 600;
   color: rgb(255 255 255 / 0.96);
   outline: none;
   box-shadow: inset 0 2px 8px rgb(0 0 0 / 0.5);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .player-join-input::placeholder {
@@ -504,8 +552,7 @@
 .player-join-btn-row {
   display: flex;
   align-items: stretch;
-  gap: 0.4rem;
-  margin-top: 0.15rem;
+  gap: 0.45rem;
 }
 
 .player-join-diamond {
@@ -556,4 +603,23 @@
   line-height: 1.45;
   letter-spacing: 0.02em;
   color: rgb(255 255 255 / 0.48);
+}
+
+/* Wide viewports — cap width so the panel stays phone-proportioned on desktop dev tools. */
+@media (min-width: 540px) {
+  .player-join-layout {
+    align-items: center;
+    justify-content: center;
+    padding:
+      max(1rem, env(safe-area-inset-top, 0px))
+      max(1rem, env(safe-area-inset-right, 0px))
+      max(1rem, env(safe-area-inset-bottom, 0px))
+      max(1rem, env(safe-area-inset-left, 0px));
+  }
+
+  .player-join-shell {
+    flex: 0 1 auto;
+    width: min(100%, 24rem);
+    max-height: min(92dvh, 42rem);
+  }
 }

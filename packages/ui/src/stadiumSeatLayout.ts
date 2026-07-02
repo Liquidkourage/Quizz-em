@@ -210,3 +210,22 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
     HOLE_CARD_OVERLAP_AT_REFERENCE_PX * (scale / HOLE_CARD_SCALE_AT_REFERENCE)
   )
 }
+
+/** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
+export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
+  const w = tableWidthPx > 0 ? tableWidthPx : 360
+  return Math.max(26, Math.round(w * 0.082))
+}
+
+export function stadiumPlayerHoleCardScale(tableWidthPx: number): number {
+  const w = tableWidthPx > 0 ? tableWidthPx : 360
+  return Math.max(0.5, stadiumHoleCardScale(w) * 2.35)
+}
+
+export function stadiumPlayerCommunityCardSizePx(tableWidthPx: number): { w: number; h: number } {
+  const w = tableWidthPx > 0 ? tableWidthPx : 360
+  const cardW = Math.max(38, Math.round(w * 0.102))
+  return { w: cardW, h: Math.max(52, Math.round((cardW * 7) / 5)) }
+}
+
+export type StadiumFeltLayout = 'default' | 'player'

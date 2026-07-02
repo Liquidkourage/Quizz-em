@@ -56,12 +56,12 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
       const holeDigits: readonly [number, number] | null =
         hasHand && !player.hasFolded ? [player.hand[0]!.digit, player.hand[1]!.digit] : null
 
-      const tagText = 'text-[0.65rem] sm:text-xs leading-tight'
+      const tagText = 'text-sm sm:text-base leading-tight'
 
       return {
         index,
         label: showSeat ? index + 1 : seatInitials(player.name),
-        labelClassName: 'font-mono text-[9px] tabular-nums sm:text-[10px]',
+        labelClassName: 'font-mono text-xs tabular-nums sm:text-sm font-bold',
         state: player.hasFolded ? 'folded' : isActing ? 'acting' : 'default',
         holeDigits,
         faceDown: !showFaceUp,
@@ -91,10 +91,11 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
   return (
     <PlayerGoldPanel title="Table">
       <StadiumTableSeats
+        feltLayout="player"
         seatCount={players.length}
         seats={seats}
         communityDigits={communityDigits}
-        aspectClassName="aspect-[8/5] w-full max-w-2xl mx-auto"
+        aspectClassName="player-game-felt aspect-[8/5] w-full"
         centerContent={
           pot > 0 ? (
             <span className="player-game-table-pot">Pot ${pot.toLocaleString()}</span>

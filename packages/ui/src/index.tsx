@@ -286,6 +286,9 @@ export {
   stadiumCupholderSizePx,
   stadiumHoleCardScale,
   stadiumHoleCardOverlapPx,
+  stadiumPlayerCupholderSizePx,
+  stadiumPlayerHoleCardScale,
+  stadiumPlayerCommunityCardSizePx,
   stadiumMosaicCupholderSizePx,
   stadiumMosaicHoleCardScale,
   stadiumMosaicHoleCardWidthPx,
@@ -302,6 +305,7 @@ export {
   STADIUM_NAME_LABEL_RADIAL,
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumMosaicDensity,
+  type StadiumFeltLayout,
   type StadiumSeatPoint,
 } from './stadiumSeatLayout';
 export default {};

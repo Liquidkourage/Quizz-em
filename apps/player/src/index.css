@@ -1540,20 +1540,27 @@
 }
 
 .player-game-table-pot {
-  border-radius: 0.35rem;
-  border: 1px solid rgb(251 191 36 / 0.35);
-  background: rgb(0 0 0 / 0.55);
-  padding: 0.15rem 0.45rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.4);
+  background: rgb(0 0 0 / 0.62);
+  padding: 0.35rem 0.75rem;
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: clamp(0.95rem, 3.4vw, 1.15rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
   color: rgb(253 224 71);
+  text-shadow: 0 0 10px rgb(251 191 36 / 0.25);
 }
 
-@media (min-width: 640px) {
-  .player-game-table-pot {
-    font-size: 0.82rem;
+.player-game-felt {
+  width: 100%;
+  min-height: clamp(15rem, 58vw, 24rem);
+}
+
+@media (min-width: 768px) {
+  .player-game-felt {
+    min-height: clamp(18rem, 42vh, 26rem);
   }
 }
 

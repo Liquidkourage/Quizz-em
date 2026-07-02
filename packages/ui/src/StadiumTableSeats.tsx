@@ -7,7 +7,11 @@ import {
   STADIUM_NAME_LABEL_RADIAL,
   stadiumCupholderSizePx,
   stadiumHoleCardScale,
+  stadiumPlayerCommunityCardSizePx,
+  stadiumPlayerCupholderSizePx,
+  stadiumPlayerHoleCardScale,
   stadiumSeatPointPx,
+  type StadiumFeltLayout,
 } from './stadiumSeatLayout'
 import { CardFaceGraphic } from './CardFaceGraphic'
 import { PokerTableGraphic, SeatCupholderMarker, type SeatCupholderState } from './tableGraphics'
@@ -38,6 +42,8 @@ export type StadiumTableSeatsProps = {
   className?: string
   style?: CSSProperties
   aspectClassName?: string
+  /** `player` — larger cards and seat chrome for phone / solo-table views. */
+  feltLayout?: StadiumFeltLayout
 }
 
 function seatByIndex(seats: StadiumTableSeat[]): Map<number, StadiumTableSeat> {
@@ -56,6 +62,7 @@ export function StadiumTableSeats({
   className,
   style,
   aspectClassName = 'aspect-[8/5]',
+  feltLayout = 'default',
 }: StadiumTableSeatsProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [ringPx, setRingPx] = useState({ w: 0, h: 0 })
@@ -80,8 +87,11 @@ export function StadiumTableSeats({
   }, [])
 
   const { w: rimW, h: rimH } = ringPx
-  const cupSizePx = stadiumCupholderSizePx(rimW)
-  const holeScale = stadiumHoleCardScale(rimW)
+  const isPlayerLayout = feltLayout === 'player'
+  const cupSizePx = isPlayerLayout ? stadiumPlayerCupholderSizePx(rimW) : stadiumCupholderSizePx(rimW)
+  const holeScale = isPlayerLayout ? stadiumPlayerHoleCardScale(rimW) : stadiumHoleCardScale(rimW)
+  const cupLabelFontPx = isPlayerLayout ? Math.max(11, Math.round(cupSizePx * 0.38)) : undefined
+  const communityCardSize = isPlayerLayout ? stadiumPlayerCommunityCardSizePx(rimW) : null
   const showCenter =
     centerContent != null || (communityDigits != null && communityDigits.length > 0)
 
@@ -95,20 +105,23 @@ export function StadiumTableSeats({
 
       {showCenter && rimW > 0 ? (
         <div
-          className="pointer-events-none absolute left-1/2 top-1/2 z-[12] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5"
+          className={clsx(
+            'pointer-events-none absolute left-1/2 top-1/2 z-[12] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center',
+            isPlayerLayout ? 'gap-1.5' : 'gap-0.5'
+          )}
           aria-hidden={centerContent == null ? undefined : true}
         >
           {centerContent}
           {communityDigits != null && communityDigits.length > 0 ? (
-            <div className="flex items-center gap-0.5">
+            <div className={clsx('flex items-center', isPlayerLayout ? 'gap-1' : 'gap-0.5')}>
               {communityDigits.slice(0, 5).map((digit, i) => {
-                const cardW = Math.max(14, cupSizePx * 0.55)
-                const cardH = Math.max(20, cupSizePx * 0.77)
+                const cardW = communityCardSize?.w ?? Math.max(14, cupSizePx * 0.55)
+                const cardH = communityCardSize?.h ?? Math.max(20, cupSizePx * 0.77)
                 return (
                   <div key={i} className="shrink-0" style={{ width: cardW, height: cardH }}>
                     <CardFaceGraphic
                       digit={digit}
-                      className="block h-full w-full rounded-[3px] shadow-sm"
+                      className={clsx('block h-full w-full shadow-sm', isPlayerLayout ? 'rounded-[4px]' : 'rounded-[3px]')}
                       alt=""
                     />
                   </div>
@@ -140,6 +153,7 @@ export function StadiumTableSeats({
                   sizePx={cupSizePx}
                   label={seat?.label}
                   labelClassName={seat?.labelClassName}
+                  labelFontSizePx={cupLabelFontPx}
                   state={state}
                   aria-label={seat?.['aria-label'] ?? (seat?.label != null ? String(seat.label) : `Seat ${i + 1}`)}
                 />
@@ -163,7 +177,8 @@ export function StadiumTableSeats({
               {seat?.nameTag != null ? (
                 <div
                   className={clsx(
-                    'pointer-events-none absolute z-[22] flex max-w-[42%] -translate-x-1/2 flex-col items-center text-center leading-tight',
+                    'pointer-events-none absolute z-[22] flex -translate-x-1/2 flex-col items-center text-center leading-tight',
+                    isPlayerLayout ? 'max-w-[52%] gap-0.5' : 'max-w-[42%]',
                     seat.nameTagClassName
                   )}
                   style={{ left: `${labelPt.leftPct}%`, top: `${labelPt.topPct}%` }}

@@ -115,22 +115,23 @@ export function BroadcastShowdownPanel({
             className="vfd-broadcast-showdown-reveal__crown"
           />
 
-          <img
-            src={laurelLeftArt}
-            alt=""
-            aria-hidden
-            draggable={false}
-            className="vfd-broadcast-showdown-reveal__laurel vfd-broadcast-showdown-reveal__laurel--left"
-          />
-          <img
-            src={laurelRightArt}
-            alt=""
-            aria-hidden
-            draggable={false}
-            className="vfd-broadcast-showdown-reveal__laurel vfd-broadcast-showdown-reveal__laurel--right"
-          />
+          <div className="vfd-broadcast-showdown-reveal__frame">
+            <img
+              src={laurelLeftArt}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="vfd-broadcast-showdown-reveal__laurel vfd-broadcast-showdown-reveal__laurel--left"
+            />
+            <img
+              src={laurelRightArt}
+              alt=""
+              aria-hidden
+              draggable={false}
+              className="vfd-broadcast-showdown-reveal__laurel vfd-broadcast-showdown-reveal__laurel--right"
+            />
 
-          <div className="vfd-broadcast-showdown-reveal__content">
+            <div className="vfd-broadcast-showdown-reveal__content">
             {variant === 'split' || variant === 'side' ? (
               <BroadcastFlourishBanner variant={variant} />
             ) : null}
@@ -178,6 +179,7 @@ export function BroadcastShowdownPanel({
                 </div>
               </section>
             ) : null}
+            </div>
           </div>
         </div>
       </div>

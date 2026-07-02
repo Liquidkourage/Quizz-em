@@ -25,7 +25,7 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
   broadcast:
     'h-[clamp(2.65rem,7.2vmin,4.25rem)] w-[clamp(1.75rem,4.9vmin,2.95rem)] shrink-0',
   'broadcast-hero':
-    'h-[clamp(4rem,12vmin,7.5rem)] w-[clamp(2.65rem,8.2vmin,5rem)] shrink-0',
+    'h-[clamp(4.5rem,13.5vmin,8.25rem)] w-[clamp(2.95rem,9vmin,5.5rem)] shrink-0',
   stage: 'vfd-showdown-stage-card-shell',
   lg: 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]',
   md: 'h-7 w-[1.35rem] shrink-0',
@@ -37,7 +37,7 @@ const decimalShellClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'h-[max(2.75rem,min(4.25rem,32cqw))]',
   'floor-compact': 'h-[max(2.15rem,min(3.25rem,26cqw))]',
   broadcast: 'h-[clamp(2.65rem,7.2vmin,4.25rem)]',
-  'broadcast-hero': 'h-[clamp(4rem,12vmin,7.5rem)]',
+  'broadcast-hero': 'h-[clamp(4.5rem,13.5vmin,8.25rem)]',
   stage: 'vfd-showdown-stage-card-shell',
   lg: 'h-9 sm:h-10',
   md: 'h-7',
@@ -49,7 +49,7 @@ const decimalMarkClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'text-[max(0.55rem,min(0.82rem,4.2cqw))]',
   'floor-compact': 'text-[max(0.48rem,min(0.72rem,3.6cqw))]',
   broadcast: 'text-[clamp(0.65rem,1.85vmin,1rem)]',
-  'broadcast-hero': 'text-[clamp(1.05rem,3vmin,1.85rem)]',
+  'broadcast-hero': 'text-[clamp(1.15rem,3.35vmin,2rem)]',
   stage: 'text-[min(9.5cqw,16cqh)]',
   lg: 'text-base sm:text-lg',
   md: 'text-sm',

@@ -178,6 +178,69 @@ function mosaicBungeeDollarColorClass(muted: 'dim' | 'faint' | 'live' | undefine
   return 'vfd-mosaic-dollar--live'
 }
 
+/** Broadcast felt pot — DSEG7 scoreboard readout (not mosaic Bungee). */
+function BroadcastPotAmount({
+  amount,
+  potMuted = 'live',
+  prefersReducedMotion,
+  signPx,
+  digitsPx,
+}: {
+  amount: number
+  potMuted?: 'dim' | 'faint' | 'live'
+  prefersReducedMotion: boolean
+  signPx: number
+  digitsPx: number
+}) {
+  const label = formatVenueBankroll(amount)
+  const digits = formatVenueBankrollDigits(amount)
+  const toneClass =
+    potMuted === 'faint'
+      ? 'vfd-broadcast-pot-scoreboard--faint'
+      : potMuted === 'dim'
+        ? 'vfd-broadcast-pot-scoreboard--dim'
+        : 'vfd-broadcast-pot-scoreboard--live'
+  const body = (
+    <span
+      className={`vfd-broadcast-pot-scoreboard ${toneClass}`}
+      style={
+        {
+          ['--vfd-broadcast-pot-sign-px' as string]: `${signPx}px`,
+          ['--vfd-broadcast-pot-digits-px' as string]: `${digitsPx}px`,
+        } as CSSProperties
+      }
+    >
+      <span className="vfd-broadcast-pot-scoreboard__plate">
+        <span className="vfd-broadcast-pot-scoreboard__sign" aria-hidden>
+          $
+        </span>
+        <span className="vfd-broadcast-pot-scoreboard__digits">{digits}</span>
+      </span>
+    </span>
+  )
+
+  if (!prefersReducedMotion) {
+    return (
+      <motion.span
+        key={label}
+        className="vfd-broadcast-pot-scoreboard-wrap inline-flex max-w-full shrink"
+        aria-label={label}
+        initial={{ scale: 1.08, opacity: 0.82 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {body}
+      </motion.span>
+    )
+  }
+
+  return (
+    <span className="vfd-broadcast-pot-scoreboard-wrap inline-flex max-w-full shrink" aria-label={label}>
+      {body}
+    </span>
+  )
+}
+
 /** Pot dollars — pulses when the venue snapshot posts a new amount. */
 function VenuePotAmount({
   amount,
@@ -303,8 +366,8 @@ function broadcastCenterTypographyPx(rimW: number): {
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
   return {
     potLabelPx: Math.round(26 * scale),
-    potSignPx: Math.round(52 * scale),
-    potDigitsPx: Math.round(118 * scale),
+    potSignPx: Math.round(46 * scale),
+    potDigitsPx: Math.round(136 * scale),
     actionNamePx: Math.round(32 * scale),
     actionLabelPx: Math.round(24 * scale),
     actionSignPx: Math.round(50 * scale),
@@ -391,7 +454,7 @@ function broadcastCenterKeepoutRadiusPx(
 ): number {
   const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
-  const potBandPx = centerTypo.potDigitsPx * 0.98
+  const potBandPx = centerTypo.potDigitsPx * 1.12 + Math.round(28 * scale)
   const actionBandPx = hasActionLine
     ? centerTypo.lineGapPx + Math.max(centerTypo.actionNamePx, centerTypo.messagePx) + 6
     : 0
@@ -476,11 +539,6 @@ function VenueBroadcastCenterStack({
     display: 'flex' as const,
     flexDirection: 'column' as const,
     alignItems: 'center' as const,
-    ['--vfd-broadcast-pot-label-px' as string]: `${centerTypo.potLabelPx}px`,
-    ['--vfd-broadcast-pot-sign-px' as string]: `${centerTypo.potSignPx}px`,
-    ['--vfd-broadcast-pot-digits-px' as string]: `${centerTypo.potDigitsPx}px`,
-    ['--vfd-broadcast-action-sign-px' as string]: `${centerTypo.actionSignPx}px`,
-    ['--vfd-broadcast-action-digits-px' as string]: `${centerTypo.actionDigitsPx}px`,
   }
   const actionStackStyle = {
     ...centerAnchorStyle,
@@ -524,11 +582,12 @@ function VenueBroadcastCenterStack({
         </div>
       ) : null}
       <div className="vfd-broadcast-pot-stack" style={potStackStyle}>
-        <VenuePotAmount
+        <BroadcastPotAmount
           amount={pot}
           prefersReducedMotion={prefersReducedMotion}
           potMuted={potMuted}
-          className="vfd-broadcast-pot vfd-broadcast-pot--hero inline-flex max-w-full shrink truncate"
+          signPx={centerTypo.potSignPx}
+          digitsPx={centerTypo.potDigitsPx}
         />
       </div>
       {hasActionLine ? (

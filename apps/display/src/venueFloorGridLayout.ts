@@ -2,6 +2,7 @@ import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { stadiumMosaicScaleForWidth, type StadiumMosaicDensity } from '@qhe/ui'
 import type { CSSProperties } from 'react'
 import { MOSAIC_20UP_TABLE_NUM_PX } from './showdownStageDenseRubric'
+import { venueFloorMosaicTypographyTierForSizingCount } from './venueFloorSpecCounts'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   selectVenueFloorLayout,
@@ -158,10 +159,7 @@ export const VENUE_FLOOR_MOSAIC_HEADER_TYPE = {
 export type VenueFloorPublicTypographyTier = 'spacious' | 'standard' | 'compact'
 
 export function venueFloorPublicTypographyTier(tableCount: number): VenueFloorPublicTypographyTier {
-  const n = Math.max(1, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
-  if (n <= 8) return 'spacious'
-  if (n <= 15) return 'standard'
-  return 'compact'
+  return venueFloorMosaicTypographyTierForSizingCount(tableCount)
 }
 
 export type VenueFloorMosaicTypography = {

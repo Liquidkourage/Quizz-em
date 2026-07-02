@@ -2392,6 +2392,10 @@
     --vfd-felt-max-height: 92%;
   }
 
+  /** Broadcast venue shell — mosaic typography tokens are not applied at the root. */
+  .venue-floor-typography-broadcast {
+  }
+
   /** Mosaic card typography — sizes via CSS vars; Bungee dollars, Montserrat Italic labels. */
   .vfd-mosaic-player-name {
     font-size: var(--vfd-player-name-size);

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
-import type { VenueFloorFormFactor } from './venueFloorFormFactor'
-import { venueFloorFormFactorBodyKey } from './venueFloorFormFactor'
+import type { VenueFloorSpec } from './venueFloorSpec'
+import { venueFloorSpecBodyKey } from './venueFloorSpec'
 import {
   VenueAerialFloorGrid,
   VenueDualTableBroadcast,
@@ -10,13 +10,13 @@ import {
 } from './VenueEightTablesPreview'
 
 export type VenueFloorBodyProps = {
-  formFactor: VenueFloorFormFactor | null
+  floorSpec: VenueFloorSpec | null
   floorTiles: readonly DisplayVenueTileSnapshot[]
   showHeroSpotlight: boolean
   hostFocusTable: number | null
   featuredTile: DisplayVenueTileSnapshot | null
   companionTiles: readonly DisplayVenueTileSnapshot[]
-  floorLayoutTableCount: number
+  sizingTableCount: number
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
@@ -24,12 +24,10 @@ export type VenueFloorBodyProps = {
 }
 
 export function resolveVenueFloorBodyKey(
-  formFactor: VenueFloorFormFactor | null,
+  floorSpec: VenueFloorSpec | null,
   opts: { showHeroSpotlight: boolean; hostFocusTable: number | null }
 ): string {
-  return formFactor != null
-    ? venueFloorFormFactorBodyKey(formFactor, opts)
-    : 'floor-empty'
+  return floorSpec != null ? venueFloorSpecBodyKey(floorSpec, opts) : 'floor-empty'
 }
 
 /**
@@ -37,12 +35,12 @@ export function resolveVenueFloorBodyKey(
  * Renderers live in VenueEightTablesPreview until seat-ring extraction lands.
  */
 export function VenueFloorBody({
-  formFactor,
+  floorSpec,
   floorTiles,
   showHeroSpotlight,
   featuredTile,
   companionTiles,
-  floorLayoutTableCount,
+  sizingTableCount,
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
@@ -56,17 +54,17 @@ export function VenueFloorBody({
       exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
       transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
     >
-      {formFactor?.id === 'broadcast-1' ? (
+      {floorSpec?.renderer === 'broadcast' && floorSpec.id === 'broadcast-1' ? (
         <VenueSingleTableBroadcast
           tile={floorTiles[0]!}
-          formFactor={formFactor}
+          floorSpec={floorSpec}
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
         />
-      ) : formFactor?.id === 'broadcast-2' ? (
+      ) : floorSpec?.renderer === 'broadcast' && floorSpec.id === 'broadcast-2' ? (
         <VenueDualTableBroadcast
           tiles={[...floorTiles]}
-          formFactor={formFactor}
+          floorSpec={floorSpec}
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
         />
@@ -74,7 +72,7 @@ export function VenueFloorBody({
         <VenueHeroSpotlightLayout
           featured={featuredTile}
           companions={[...companionTiles]}
-          layoutTableCount={floorLayoutTableCount}
+          layoutTableCount={sizingTableCount}
           skipMountIntro={skipMountIntro}
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
@@ -83,12 +81,12 @@ export function VenueFloorBody({
         <div className="flex h-full min-h-0 flex-1 flex-col">
           <VenueAerialFloorGrid
             tiles={[...floorTiles]}
-            layoutTableCount={floorLayoutTableCount}
+            layoutTableCount={sizingTableCount}
             showHeadline={showHeadline}
             skipMountIntro={skipMountIntro}
             prefersReducedMotion={prefersReducedMotion}
             sharedShowdownAnswer={sharedShowdownAnswer}
-            formFactor={formFactor ?? undefined}
+            floorSpec={floorSpec ?? undefined}
           />
         </div>
       )}

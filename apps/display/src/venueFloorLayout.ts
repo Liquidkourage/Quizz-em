@@ -1,5 +1,6 @@
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import type { VenueFloorTableSize } from './venueFloorGridLayout'
+import { venueFloorFeltDensityForSizingCount } from './venueFloorSpecCounts'
 
 /** Max tables on the venue floor grid. */
 const VENUE_FLOOR_GRID_MAX_TABLES = VENUE_NUMBERED_TABLE_MAX
@@ -72,13 +73,7 @@ export type VenueFloorLayoutPlan = {
 }
 
 export function venueFloorDensityForCount(tableCount: number): VenueFloorTableSize {
-  const n = Math.max(0, Math.min(VENUE_FLOOR_GRID_MAX_TABLES, Math.floor(tableCount)))
-  if (n <= 2) return 'hero'
-  if (n <= 4) return 'large'
-  if (n <= 8) return 'large'
-  if (n <= 12) return 'medium'
-  if (n <= 15) return 'compact'
-  return 'micro'
+  return venueFloorFeltDensityForSizingCount(tableCount)
 }
 
 /** Count-only column preference when viewport is unknown (SSR/tests). */

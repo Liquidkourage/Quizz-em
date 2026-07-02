@@ -1,6 +1,7 @@
 import type { PlayerState } from '@qhe/core'
 import type { BettingContext } from '../playerModel/bettingModel'
-import { PlayerGameButton, PlayerGoldPanel } from './PlayerGoldChrome'
+import { PlayerGoldPanel } from './PlayerGoldChrome'
+import WageringActionButtons from './WageringActionButtons'
 
 type BettingActionsProps = {
   currentPlayer: PlayerState
@@ -56,37 +57,20 @@ export default function BettingActions({
           </div>
         </div>
       ) : null}
-      <div className="player-game-actions">
-        <PlayerGameButton variant="gold" size={btnSize} className="player-game-btn--block" onClick={onCheck} disabled={!ctx.canCheck}>
-          Check
-        </PlayerGameButton>
-        <PlayerGameButton variant="gold" size={btnSize} className="player-game-btn--block" onClick={onCall} disabled={!ctx.canCall}>
-          {ctx.toCall > 0 ? `Call $${ctx.toCall}` : 'Call'}
-        </PlayerGameButton>
-        <div className="player-game-raise-block">
-          <label className="player-game-field-label">
-            Raise <span>(min ${ctx.minRaise})</span>
-          </label>
-          <div className="player-game-raise-row">
-            <input
-              type="number"
-              value={raiseAmount}
-              onChange={(e) => onRaiseAmountChange(Number(e.target.value))}
-              min={ctx.minRaise}
-              max={Math.max(0, currentPlayer.bankroll - ctx.toCall)}
-              className="player-game-input player-game-input--raise"
-            />
-            <PlayerGameButton variant="dark" size={btnSize} className="player-game-btn--block" onClick={onRaise} disabled={!ctx.canRaise}>
-              Raise
-            </PlayerGameButton>
-          </div>
-        </div>
-        <PlayerGameButton variant="fold" size={btnSize} className="player-game-btn--block" onClick={onFold} disabled={!ctx.canFold}>
-          Fold
-        </PlayerGameButton>
-        <PlayerGameButton variant="allin" size={btnSize} className="player-game-btn--block" onClick={onAllIn} disabled={!ctx.canAllIn}>
-          All-in
-        </PlayerGameButton>
+
+      <div className="player-game-wager-actions">
+        <WageringActionButtons
+          currentPlayer={currentPlayer}
+          ctx={ctx}
+          raiseAmount={raiseAmount}
+          btnSize={btnSize}
+          onRaiseAmountChange={onRaiseAmountChange}
+          onCheck={onCheck}
+          onCall={onCall}
+          onRaise={onRaise}
+          onFold={onFold}
+          onAllIn={onAllIn}
+        />
       </div>
     </PlayerGoldPanel>
   )

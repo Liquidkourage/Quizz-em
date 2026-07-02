@@ -1,6 +1,6 @@
 import type { PlayerState } from '@qhe/core'
 import type { BettingContext } from '../playerModel/bettingModel'
-import { PlayerGameButton } from './PlayerGoldChrome'
+import WageringActionButtons from './WageringActionButtons'
 
 type BettingMobileDockProps = {
   currentPlayer: PlayerState
@@ -22,7 +22,7 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
       <div className="player-game-dock-inner">
         <div className="player-game-stat-grid" style={{ marginBottom: '0.55rem', fontSize: '0.72rem' }}>
           <div>
-            Call <strong>${ctx.toCall}</strong>
+            To call <strong>${ctx.toCall}</strong>
           </div>
           <div>
             <strong className={ctx.isMyTurn ? 'player-game-stat-turn' : ''}>
@@ -33,39 +33,19 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
             Stack <strong>${currentPlayer.bankroll}</strong>
           </div>
         </div>
-        <div className="player-game-actions">
-          <PlayerGameButton variant="gold" onClick={onCheck} disabled={!ctx.canCheck}>
-            Check
-          </PlayerGameButton>
-          <PlayerGameButton variant="gold" onClick={onCall} disabled={!ctx.canCall}>
-            {ctx.toCall > 0 ? `Call $${ctx.toCall}` : 'Call'}
-          </PlayerGameButton>
-        </div>
-        <div className="player-game-raise-block" style={{ marginTop: '0.45rem' }}>
-          <label className="player-game-field-label">
-            Raise <span>(min ${ctx.minRaise})</span>
-          </label>
-          <div className="player-game-raise-row">
-            <input
-              type="number"
-              value={raiseAmount}
-              onChange={(e) => onRaiseAmountChange(Number(e.target.value))}
-              min={ctx.minRaise}
-              max={Math.max(0, currentPlayer.bankroll - ctx.toCall)}
-              className="player-game-input player-game-input--raise"
-            />
-            <PlayerGameButton variant="dark" onClick={onRaise} disabled={!ctx.canRaise}>
-              Raise
-            </PlayerGameButton>
-          </div>
-        </div>
-        <div className="player-game-actions" style={{ marginTop: '0.45rem' }}>
-          <PlayerGameButton variant="fold" onClick={onFold} disabled={!ctx.canFold}>
-            Fold
-          </PlayerGameButton>
-          <PlayerGameButton variant="allin" onClick={onAllIn} disabled={!ctx.canAllIn}>
-            All-in
-          </PlayerGameButton>
+        <div className="player-game-wager-actions">
+          <WageringActionButtons
+            currentPlayer={currentPlayer}
+            ctx={ctx}
+            raiseAmount={raiseAmount}
+            btnSize="normal"
+            onRaiseAmountChange={onRaiseAmountChange}
+            onCheck={onCheck}
+            onCall={onCall}
+            onRaise={onRaise}
+            onFold={onFold}
+            onAllIn={onAllIn}
+          />
         </div>
       </div>
     </div>

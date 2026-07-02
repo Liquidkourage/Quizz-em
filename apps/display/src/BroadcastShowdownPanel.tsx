@@ -3,6 +3,7 @@ import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankroll } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
+import { ShowdownStageChrome } from './ShowdownStageChrome'
 
 type BroadcastShowdownVariant = 'winner' | 'split' | 'side'
 
@@ -57,7 +58,7 @@ export function BroadcastShowdownPanel({
   pot,
   correctAnswer,
   sidePotLines,
-  label,
+  label: _label,
 }: {
   variant: BroadcastShowdownVariant
   winners: readonly ShowdownResultRow[]
@@ -71,43 +72,47 @@ export function BroadcastShowdownPanel({
   const difference = formatDifference(chipRow, correctAnswer)
   const submittedLabel =
     chipRow?.submitted != null ? formatTriviaNumber(chipRow.submitted) : null
+  const sideLedgerRows = sidePotLines?.length ?? 0
+  const splitRows = variant === 'split' ? Math.min(names.length, 4) : 0
 
   return (
     <div className="vfd-broadcast-showdown">
-      <div className="vfd-broadcast-showdown-panel">
-        <p className="vfd-broadcast-showdown-eyebrow">{label}</p>
-
-        {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
-          <BroadcastSidePotLedger lines={sidePotLines} />
-        ) : variant === 'split' ? (
-          <BroadcastSplitWinners names={names} amountPerWinner={pot} />
-        ) : names.length > 0 ? (
-          <>
-            <p className="vfd-broadcast-showdown-name">{names[0]}</p>
-            {pot > 0 ? (
-              <p className="vfd-broadcast-showdown-payout">{formatVenueBankroll(pot)}</p>
+      <div className="vfd-broadcast-showdown-stage">
+        <ShowdownStageChrome
+          variant={variant}
+          densityTier="hero"
+          tableCount={1}
+          sideLedgerRows={sideLedgerRows}
+          splitRows={splitRows}
+          difference={difference}
+        >
+          <div className="vfd-broadcast-showdown-body">
+            {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
+              <BroadcastSidePotLedger lines={sidePotLines} />
+            ) : variant === 'split' ? (
+              <BroadcastSplitWinners names={names} amountPerWinner={pot} />
+            ) : names.length > 0 ? (
+              <>
+                <p className="vfd-broadcast-showdown-name">{names[0]}</p>
+                {pot > 0 ? (
+                  <p className="vfd-broadcast-showdown-payout">{formatVenueBankroll(pot)}</p>
+                ) : null}
+              </>
             ) : null}
-          </>
-        ) : null}
 
-        {chipRow != null ? (
-          <div className="vfd-broadcast-showdown-cards">
-            <ShowdownFiveCardsUsed row={chipRow} size="broadcast" />
-          </div>
-        ) : null}
+            {chipRow != null ? (
+              <div className="vfd-broadcast-showdown-cards">
+                <ShowdownFiveCardsUsed row={chipRow} size="broadcast" />
+              </div>
+            ) : null}
 
-        {submittedLabel != null || difference != null ? (
-          <div className="vfd-broadcast-showdown-footer">
             {submittedLabel != null ? (
-              <span className="vfd-broadcast-showdown-submitted">
+              <p className="vfd-broadcast-showdown-submitted-line">
                 Answer {submittedLabel}
-              </span>
-            ) : null}
-            {difference != null ? (
-              <span className="vfd-broadcast-showdown-diff">{difference} off</span>
+              </p>
             ) : null}
           </div>
-        ) : null}
+        </ShowdownStageChrome>
       </div>
     </div>
   )

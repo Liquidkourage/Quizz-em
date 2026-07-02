@@ -118,41 +118,86 @@
     width: 100%;
     align-items: center;
     justify-content: center;
-    padding: clamp(0.65rem, 2vmin, 1.35rem);
+    padding: clamp(0.5rem, 1.75vmin, 1.1rem);
   }
 
-  .vfd-broadcast-showdown-panel {
+  .vfd-broadcast-showdown-stage {
+    position: relative;
+    width: min(94%, 34rem);
+    height: min(80%, 26rem);
+    max-height: 88%;
+    min-height: min(68%, 18rem);
+    flex-shrink: 1;
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage {
+    height: 100%;
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-frame--composed {
+    border-radius: 0.65rem;
+    background: linear-gradient(
+      180deg,
+      rgb(16 14 12 / 0.94) 0%,
+      rgb(6 6 10 / 0.96) 52%,
+      rgb(2 2 6 / 0.97) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      0 18px 48px rgb(0 0 0 / 0.55),
+      0 0 36px rgb(251 191 36 / 0.1);
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-laurel {
+    width: 36%;
+    max-height: 90%;
+    top: 3%;
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-column {
+    width: 70%;
+    justify-content: center;
+    gap: clamp(0.18rem, 0.75vmin, 0.42rem);
+    padding: clamp(0.35rem, 1.1vmin, 0.65rem) 2% clamp(0.25rem, 0.8vmin, 0.5rem);
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-crown {
+    height: clamp(2rem, 6vmin, 3.15rem);
+    width: auto;
+    margin-bottom: 0;
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-crown-stack .vfd-showdown-stage-crown {
+    height: clamp(1.75rem, 5.2vmin, 2.65rem);
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-crown-stack .vfd-showdown-stage-flourish-art {
+    max-height: clamp(1.35rem, 4vmin, 2.1rem);
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-content {
+    flex: 0 1 auto;
+    min-height: 0;
+    padding-inline: 0;
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-nameplate-wrap {
+    width: min(78%, 13.5rem);
+    margin-top: clamp(0.05rem, 0.35vmin, 0.2rem);
+  }
+
+  .vfd-broadcast-showdown .vfd-showdown-stage-diff-value {
+    font-size: clamp(1rem, 2.65vmin, 1.55rem);
+  }
+
+  .vfd-broadcast-showdown-body {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: clamp(0.4rem, 1.35vmin, 0.8rem);
-    width: min(90%, 27rem);
-    max-height: min(92%, 100%);
-    border-radius: 1rem;
-    border: 1px solid rgb(251 191 36 / 0.4);
-    background: linear-gradient(
-      180deg,
-      rgb(16 20 30 / 0.96) 0%,
-      rgb(6 8 14 / 0.98) 100%
-    );
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.09),
-      0 16px 44px rgb(0 0 0 / 0.58),
-      0 0 40px rgb(251 191 36 / 0.1);
-    padding: clamp(1rem, 2.8vmin, 1.6rem) clamp(1rem, 3.2vmin, 1.85rem);
+    gap: clamp(0.28rem, 0.95vmin, 0.55rem);
+    width: 100%;
     text-align: center;
-  }
-
-  .vfd-broadcast-showdown-eyebrow {
-    margin: 0;
-    font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.72rem, 1.65vmin, 0.92rem);
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    line-height: 1;
-    text-transform: uppercase;
-    color: rgb(251 191 36 / 0.9);
   }
 
   .vfd-broadcast-showdown-name {
@@ -161,7 +206,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: clamp(1.75rem, 4.6vmin, 2.65rem);
+    font-size: clamp(1.55rem, 4.1vmin, 2.35rem);
     font-weight: 800;
     line-height: 1.05;
     letter-spacing: -0.02em;
@@ -177,7 +222,7 @@
   .vfd-broadcast-showdown-payout {
     margin: 0;
     font-family: ui-monospace, monospace;
-    font-size: clamp(1.9rem, 5.2vmin, 3rem);
+    font-size: clamp(1.65rem, 4.6vmin, 2.65rem);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
@@ -190,14 +235,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(0.25rem, 0.8vmin, 0.45rem);
+    gap: clamp(0.2rem, 0.65vmin, 0.38rem);
     width: 100%;
   }
 
   .vfd-broadcast-showdown-side-pot {
     display: flex;
     flex-direction: column;
-    gap: clamp(0.28rem, 0.75vmin, 0.45rem);
+    gap: clamp(0.22rem, 0.65vmin, 0.38rem);
     width: 100%;
     margin: 0;
     padding: 0;
@@ -208,9 +253,9 @@
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: baseline;
-    gap: 0.45em 0.65em;
+    gap: 0.4em 0.55em;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.95rem, 2.2vmin, 1.25rem);
+    font-size: clamp(0.85rem, 2vmin, 1.1rem);
     line-height: 1.15;
     color: rgb(255 251 235 / 0.92);
   }
@@ -239,31 +284,16 @@
 
   .vfd-broadcast-showdown-cards {
     width: 100%;
-    margin-top: clamp(0.05rem, 0.35vmin, 0.2rem);
   }
 
-  .vfd-broadcast-showdown-footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35em 0.9em;
-    margin-top: clamp(0.05rem, 0.35vmin, 0.2rem);
+  .vfd-broadcast-showdown-submitted-line {
+    margin: 0;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.95rem, 2.25vmin, 1.3rem);
+    font-size: clamp(0.88rem, 2.05vmin, 1.15rem);
     font-weight: 600;
-    line-height: 1.2;
-    color: rgb(255 251 235 / 0.84);
-  }
-
-  .vfd-broadcast-showdown-submitted {
     font-variant-numeric: tabular-nums;
-  }
-
-  .vfd-broadcast-showdown-diff {
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    color: rgb(110 231 183 / 0.96);
+    line-height: 1.15;
+    color: rgb(255 251 235 / 0.78);
   }
 
   [data-showdown-winner-cards='broadcast'] {
@@ -541,7 +571,7 @@
 
   /** n=1 hero / broadcast — cap cqw scaling so winner stage does not blow up on large felts. */
   .vfd-showdown-stage[data-stage-table-count='1'] .vfd-showdown-stage-frame,
-  .vfd-showdown-winner-comp[data-stage-viewport='broadcast'] .vfd-showdown-stage-frame {
+  .vfd-broadcast-showdown .vfd-showdown-stage-frame {
     --vfd-stage-name-size: min(7.4cqw, 11cqh, 2.85rem);
     --vfd-stage-pot-size: min(9cqw, 13cqh, 3.35rem);
     --vfd-stage-diff-size: min(6.8cqw, 9.5cqh, 2.55rem);
@@ -553,13 +583,9 @@
   }
 
   .vfd-showdown-stage[data-stage-table-count='1'] .vfd-showdown-stage-cards-row,
-  .vfd-showdown-winner-comp[data-stage-viewport='broadcast'] .vfd-showdown-stage-cards-row {
+  .vfd-broadcast-showdown .vfd-showdown-stage-cards-row {
     width: min(72%, 92%);
     margin-inline: auto;
-  }
-
-  .vfd-showdown-winner-comp[data-stage-viewport='broadcast'] .vfd-showdown-stage-column {
-    width: min(78%, 36rem);
   }
 
   .vfd-showdown-stage[data-stage-density='spacious'] .vfd-showdown-stage-frame {

@@ -51,7 +51,14 @@ import {
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
-import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineCondenseCaptionParts, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import {
+  buildVenueBroadcastMetaLine,
+  isVenueBroadcastFloor,
+  isVenueDualTableBroadcast,
+  isVenueSingleTableBroadcast,
+} from './venueBroadcastLayout'
+import { ShowdownTableBadge } from './venueFloorSidePotDisplay'
 import {
   formatVenueBankroll,
   formatVenueBankrollDigits,
@@ -2647,15 +2654,19 @@ function VenueBroadcastHeadlineStrip({
   )
 }
 
-/** n=1 broadcast hero — full-viewport felt, names + stacks, pot/action on felt center. */
+/** n=1 or n=2 broadcast hero — full-viewport felt, names + stacks, pot/action on felt center. */
 function VenueSingleTableBroadcast({
   tile,
   prefersReducedMotion: _prefersReducedMotion,
   sharedShowdownAnswer,
+  broadcastDensity = 'solo',
+  showTableBadge = false,
 }: {
   tile: DisplayVenueTileSnapshot
   prefersReducedMotion: boolean
   sharedShowdownAnswer?: number
+  broadcastDensity?: 'solo' | 'dual'
+  showTableBadge?: boolean
 }) {
   const seats = tile.seated
   const pot = Math.max(0, Math.floor(Number.isFinite(tile.pot) ? tile.pot : 0))
@@ -2720,25 +2731,38 @@ function VenueSingleTableBroadcast({
         ? 'ring-2 ring-amber-500/55 shadow-[0_0_32px_rgba(251,191,36,0.22)]'
         : ''
 
+  const tableNum = tile.tableNum
+  const isDualDensity = broadcastDensity === 'dual'
+
   return (
     <div
-      className="venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-stretch justify-center px-0 pb-0 pt-0"
+      className={`venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-stretch justify-center px-0 pb-0 pt-0${
+        isDualDensity ? ' venue-single-table-broadcast--dual relative min-w-0' : ''
+      }`}
       aria-label={
         showFloorShowdownOverlay
           ? floorShowdownPresentation?.ariaLabel ?? 'Showdown winner reveal'
-          : `Final table, pot ${formatVenueBankroll(pot)}`
+          : isDualDensity
+            ? `Table ${tableNum}, pot ${formatVenueBankroll(pot)}`
+            : `Final table, pot ${formatVenueBankroll(pot)}`
       }
     >
       {showFloorShowdownOverlay ? (
         <VenueFloorShowdownByVariant
+          tableNum={showTableBadge ? tableNum : undefined}
           pot={floorShowdownPot}
           rows={floorShowdownRows}
           correctAnswer={floorShowdownAnswer}
-          layoutTableCount={1}
+          layoutTableCount={isDualDensity ? 2 : 1}
           stageViewport="broadcast"
         />
       ) : (
         <>
+          {showTableBadge ? (
+            <div className="pointer-events-none absolute left-2 top-2 z-20">
+              <ShowdownTableBadge tableNum={tableNum} />
+            </div>
+          ) : null}
           <div
             className={`relative flex min-h-0 flex-1 w-full flex-col items-center justify-center ${phaseShell}`}
           >
@@ -2773,6 +2797,31 @@ function VenueSingleTableBroadcast({
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+function VenueDualTableBroadcast({
+  tiles,
+  prefersReducedMotion,
+  sharedShowdownAnswer,
+}: {
+  tiles: readonly DisplayVenueTileSnapshot[]
+  prefersReducedMotion: boolean
+  sharedShowdownAnswer?: number
+}) {
+  return (
+    <div className="venue-dual-table-broadcast grid min-h-0 min-w-0 flex-1 grid-cols-2 gap-x-2 px-0.5">
+      {tiles.map((tile) => (
+        <VenueSingleTableBroadcast
+          key={tile.tableNum}
+          tile={tile}
+          prefersReducedMotion={prefersReducedMotion}
+          sharedShowdownAnswer={sharedShowdownAnswer}
+          broadcastDensity="dual"
+          showTableBadge
+        />
+      ))}
     </div>
   )
 }
@@ -2993,20 +3042,13 @@ export default function VenueEightTablesPreview({
   }, [floorTiles, hostFocusTable])
 
   const showHeroSpotlight = hostFocusTable != null && featuredTile != null
-  const isSingleTableBroadcast = floorTiles.length === 1
-  const broadcastMetaLine = useMemo(() => {
-    if (!isSingleTableBroadcast) return null
-    const parts: string[] = ['Final table']
-    const seated = floorTiles[0]?.seated
-    if (typeof seated === 'number' && seated > 0) parts.push(`${seated} players`)
-    if (condenseProgress != null) {
-      const survivorPart = venueHeadlineCondenseCaptionParts(condenseProgress).find((p) =>
-        /remaining/i.test(p)
-      )
-      if (survivorPart) parts.push(survivorPart.replace(/\s*remaining/i, ' left'))
-    }
-    return parts.join(' · ')
-  }, [condenseProgress, floorTiles, isSingleTableBroadcast])
+  const isVenueBroadcast = isVenueBroadcastFloor(floorTiles.length, hostFocusTable)
+  const isSingleTableBroadcast = isVenueSingleTableBroadcast(floorTiles.length, hostFocusTable)
+  const isDualTableBroadcast = isVenueDualTableBroadcast(floorTiles.length, hostFocusTable)
+  const broadcastMetaLine = useMemo(
+    () => (isVenueBroadcast ? buildVenueBroadcastMetaLine(floorTiles, condenseProgress) : null),
+    [condenseProgress, floorTiles, isVenueBroadcast]
+  )
   const sharedShowdownAnswer = inVenueShowdown ? venueShowdownAnswer : undefined
 
   return (
@@ -3014,14 +3056,14 @@ export default function VenueEightTablesPreview({
       <DisplayWelcomeBackdrop />
       <div
         className={`relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
-        style={venueWallUiScaleFrameStyle({ broadcast: isSingleTableBroadcast })}
+        style={venueWallUiScaleFrameStyle({ broadcast: isVenueBroadcast })}
       >
 
       <main
         className={`relative z-10 flex min-h-0 flex-1 flex-col ${
-          isSingleTableBroadcast ? 'px-1 pb-0' : 'px-3 sm:px-4'
+          isVenueBroadcast ? 'px-1 pb-0' : 'px-3 sm:px-4'
         } ${
-          compactVenueHeadline ? 'pb-0.5 sm:pb-1' : isSingleTableBroadcast ? 'pb-0' : 'pb-3 sm:pb-4'
+          compactVenueHeadline ? 'pb-0.5 sm:pb-1' : isVenueBroadcast ? 'pb-0' : 'pb-3 sm:pb-4'
         } ${showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'}`}
       >
         {floorTiles.length > 0 ? (
@@ -3034,7 +3076,7 @@ export default function VenueEightTablesPreview({
             </p>
 
             {showHeadline ? (
-              isSingleTableBroadcast ? (
+              isVenueBroadcast ? (
                 <VenueBroadcastHeadlineStrip
                   skipMountIntro={skipMountIntro}
                   showSetlistCue={showSetlistCue}
@@ -3237,8 +3279,10 @@ export default function VenueEightTablesPreview({
               <AnimatePresence mode="wait">
                 <motion.div
                   key={
-                    isSingleTableBroadcast
-                      ? 'broadcast'
+                    isVenueBroadcast
+                      ? isDualTableBroadcast
+                        ? 'broadcast-dual'
+                        : 'broadcast'
                       : showHeroSpotlight
                         ? `spotlight-${hostFocusTable}`
                         : 'floor'
@@ -3252,6 +3296,12 @@ export default function VenueEightTablesPreview({
                   {isSingleTableBroadcast ? (
                     <VenueSingleTableBroadcast
                       tile={floorTiles[0]!}
+                      prefersReducedMotion={prefersReducedMotion}
+                      sharedShowdownAnswer={sharedShowdownAnswer}
+                    />
+                  ) : isDualTableBroadcast ? (
+                    <VenueDualTableBroadcast
+                      tiles={floorTiles}
                       prefersReducedMotion={prefersReducedMotion}
                       sharedShowdownAnswer={sharedShowdownAnswer}
                     />

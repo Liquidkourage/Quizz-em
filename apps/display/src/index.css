@@ -494,6 +494,50 @@
     gap: clamp(0.22rem, 0.75vmin, 0.62rem);
   }
 
+  /** n=2 broadcast — side-by-side felts with compact winner reveals per column. */
+  .venue-dual-table-broadcast {
+    width: 100%;
+    height: 100%;
+  }
+
+  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__plaque {
+    max-width: min(98%, 36rem);
+    max-height: min(86vh, 32rem);
+  }
+
+  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__frame {
+    padding-inline: clamp(2.75rem, 8.5vmin, 4.75rem);
+  }
+
+  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__content {
+    width: min(100%, 28rem);
+    gap: clamp(0.55rem, 1.85vmin, 1rem);
+  }
+
+  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__name {
+    font-size: clamp(1.75rem, 5.8vmin, 3.5rem);
+  }
+
+  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__payout {
+    font-size: clamp(2.65rem, 9.5vmin, 6.25rem);
+  }
+
+  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__crown {
+    height: clamp(2.65rem, 7.5vmin, 4.75rem);
+  }
+
+  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__laurel {
+    max-width: clamp(3.5rem, 14vmin, 6.25rem);
+  }
+
+  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__diff-value {
+    font-size: clamp(1.25rem, 3.5vmin, 2.15rem);
+  }
+
+  .venue-dual-table-broadcast [data-showdown-winner-cards='broadcast-hero'] {
+    gap: clamp(0.14rem, 0.55vmin, 0.42rem);
+  }
+
   .vfd-showdown-stage-frame {
     position: absolute;
     inset: 0;

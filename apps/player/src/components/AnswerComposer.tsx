@@ -15,7 +15,6 @@ type AnswerComposerProps = {
   composed: ComposedAnswer
   selectedCards: SelectedCardRef[]
   remainingSec: number | null
-  hideActions?: boolean
   onSelectCard: (type: 'hand' | 'community', index: number) => void
   onToggleDecimal: () => void
   onClear: () => void
@@ -28,7 +27,6 @@ export default function AnswerComposer({
   composed,
   selectedCards,
   remainingSec,
-  hideActions,
   onSelectCard,
   onToggleDecimal,
   onClear,
@@ -36,21 +34,12 @@ export default function AnswerComposer({
 }: AnswerComposerProps) {
   const boardDealt = communityBoardDealt(gameState)
   const canSubmit =
-    gameState.phase === 'answering' &&
-    selectedCards.length === ANSWER_CARD_COUNT &&
-    composed.display.trim().length > 0
+    selectedCards.length === ANSWER_CARD_COUNT && composed.display.trim().length > 0
 
   return (
     <PlayerGoldPanel title="Compose your answer">
-      {gameState.phase === 'betting' ? (
-        <p className="player-game-hint">
-          {boardDealt
-            ? 'Tap cards to rehearse — submit unlocks when answering opens.'
-            : 'Hole cards only for now — community cards come after the flop.'}
-        </p>
-      ) : null}
-      {gameState.phase === 'answering' && remainingSec != null ? (
-        <p className={`player-game-timer${hideActions ? ' max-lg:hidden' : ''}`}>
+      {remainingSec != null ? (
+        <p className="player-game-timer">
           Time left: <strong>{remainingSec}s</strong>
         </p>
       ) : null}
@@ -116,8 +105,8 @@ export default function AnswerComposer({
             </div>
           ) : (
             <div className="player-game-board-pending" aria-label="Community cards not dealt yet">
-              <p className="player-game-board-pending-title">Not dealt yet</p>
-              <p className="player-game-board-pending-detail">Flop comes after this wagering round</p>
+              <p className="player-game-board-pending-title">Board not ready</p>
+              <p className="player-game-board-pending-detail">Community cards should be dealt before answering.</p>
             </div>
           )}
         </div>
@@ -135,16 +124,14 @@ export default function AnswerComposer({
         </div>
       </div>
 
-      {!hideActions ? (
-        <div className="player-game-actions player-game-actions--stack" style={{ marginTop: '0.85rem' }}>
-          <PlayerGameButton variant="fold" size="large" onClick={onClear}>
-            Clear
-          </PlayerGameButton>
-          <PlayerGameButton variant="gold" size="large" onClick={onSubmit} disabled={!canSubmit}>
-            Submit answer
-          </PlayerGameButton>
-        </div>
-      ) : null}
+      <div className="player-game-actions player-game-actions--stack" style={{ marginTop: '0.85rem' }}>
+        <PlayerGameButton variant="fold" size="large" onClick={onClear}>
+          Clear
+        </PlayerGameButton>
+        <PlayerGameButton variant="gold" size="large" onClick={onSubmit} disabled={!canSubmit}>
+          Submit answer
+        </PlayerGameButton>
+      </div>
     </PlayerGoldPanel>
   )
 }

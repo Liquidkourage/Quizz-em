@@ -1478,6 +1478,51 @@
     max(0.75rem, env(safe-area-inset-left, 0px));
 }
 
+.player-game-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(0.65rem, env(safe-area-inset-top, 0px))
+    max(0.65rem, env(safe-area-inset-right, 0px))
+    max(0.65rem, env(safe-area-inset-bottom, 0px))
+    max(0.65rem, env(safe-area-inset-left, 0px));
+}
+
+.player-game-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.player-game-modal-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 0 1 auto;
+  width: min(100%, var(--player-game-shell-max));
+  max-width: var(--player-game-shell-max);
+  max-height: min(96dvh, 100%);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.player-game-modal-body {
+  overflow-y: auto;
+  padding: clamp(0.65rem, 2vh, 1rem) clamp(1rem, 4vw, 1.5rem) clamp(1rem, 3vh, 1.35rem);
+}
+
+.player-game-modal-body .player-game-panel {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
 .player-game-toast {
   position: fixed;
   z-index: 50;

@@ -1,4 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import {
   connect,
   disconnect,
@@ -46,10 +47,9 @@ import PhaseBanner from './components/PhaseBanner'
 import GameInfoCard from './components/GameInfoCard'
 import PostHandSummaryCard from './components/PostHandSummaryCard'
 import RevealShowdownPanel from './components/RevealShowdownPanel'
-import AnswerComposer from './components/AnswerComposer'
+import AnswerComposerModal from './components/AnswerComposerModal'
 import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
-import AnswerMobileDock from './components/AnswerMobileDock'
 import TableFeltView from './components/TableFeltView'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule, PlayerGoldPanel } from './components/PlayerGoldChrome'
 
@@ -234,27 +234,13 @@ function PlayerApp() {
     )
   }
 
-  const showAnswerComposer =
-    !!currentPlayer &&
-    !currentPlayer.hasFolded &&
-    ((gameState.phase === 'betting' && inChipContest(currentPlayer)) || gameState.phase === 'answering')
+  const showAnswerModal =
+    gameState.phase === 'answering' && !!currentPlayer && !currentPlayer.hasFolded
 
   const needsMobileBetDock =
     gameState.phase === 'betting' && !!currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded
 
-  const needsMobileAnswerDock = gameState.phase === 'answering' && !!currentPlayer && !currentPlayer.hasFolded
-
-  const mainPadding = [
-    needsMobileBetDock ? 'player-game-layout--bet-dock' : '',
-    needsMobileAnswerDock && !needsMobileBetDock ? 'player-game-layout--answer-dock' : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
-
-  const canSubmitAnswer =
-    gameState.phase === 'answering' &&
-    selectedCards.length === 5 &&
-    composedAnswer.display.trim().length > 0
+  const mainPadding = needsMobileBetDock ? 'player-game-layout--bet-dock' : ''
 
   return (
     <PlayerGameScreen>
@@ -289,24 +275,6 @@ function PlayerApp() {
             <GameInfoCard gameState={gameState} />
 
             {currentPlayer ? <RevealShowdownPanel gameState={gameState} currentPlayer={currentPlayer} /> : null}
-
-            {showAnswerComposer && currentPlayer ? (
-              <AnswerComposer
-                gameState={gameState}
-                currentPlayer={currentPlayer}
-                composed={composedAnswer}
-                selectedCards={selectedCards}
-                remainingSec={remainingSec}
-                hideActions={needsMobileAnswerDock}
-                onSelectCard={handleCardSelect}
-                onToggleDecimal={() => setComposedAnswer((c) => toggleDecimal(c))}
-                onClear={() => {
-                  setComposedAnswer(EMPTY_COMPOSED_ANSWER)
-                  setSelectedCards([])
-                }}
-                onSubmit={handleSubmitAnswer}
-              />
-            ) : null}
 
             {bettingCtx && currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded ? (
               <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>
@@ -349,17 +317,25 @@ function PlayerApp() {
         />
       ) : null}
 
-      {needsMobileAnswerDock ? (
-        <AnswerMobileDock
-          remainingSec={remainingSec}
-          canSubmit={canSubmitAnswer}
-          onClear={() => {
-            setComposedAnswer(EMPTY_COMPOSED_ANSWER)
-            setSelectedCards([])
-          }}
-          onSubmit={handleSubmitAnswer}
-        />
-      ) : null}
+      <AnimatePresence>
+        {showAnswerModal && currentPlayer ? (
+          <AnswerComposerModal
+            key={`answer-${gameState.round.roundId}`}
+            gameState={gameState}
+            currentPlayer={currentPlayer}
+            composed={composedAnswer}
+            selectedCards={selectedCards}
+            remainingSec={remainingSec}
+            onSelectCard={handleCardSelect}
+            onToggleDecimal={() => setComposedAnswer((c) => toggleDecimal(c))}
+            onClear={() => {
+              setComposedAnswer(EMPTY_COMPOSED_ANSWER)
+              setSelectedCards([])
+            }}
+            onSubmit={handleSubmitAnswer}
+          />
+        ) : null}
+      </AnimatePresence>
     </PlayerGameScreen>
   )
 }

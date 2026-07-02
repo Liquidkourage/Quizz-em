@@ -1,4 +1,6 @@
-/** Shared gold casino backdrop + panel chrome for player pre-game screens. */
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
+
+/** Shared gold casino backdrop + panel chrome for player screens. */
 
 export function PlayerGoldBackdrop() {
   return (
@@ -30,5 +32,62 @@ export function PlayerGoldShellCorners() {
       <PlayerGoldCorner position="bl" />
       <PlayerGoldCorner position="br" />
     </>
+  )
+}
+
+export function PlayerGameScreen({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`player-join-screen player-game-screen${className ? ` ${className}` : ''}`}>
+      <PlayerGoldBackdrop />
+      {children}
+    </div>
+  )
+}
+
+export function PlayerGameShell({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`player-join-shell player-game-shell${className ? ` ${className}` : ''}`}>
+      <PlayerGoldShellCorners />
+      {children}
+    </div>
+  )
+}
+
+type PlayerGoldPanelProps = {
+  title?: string
+  className?: string
+  children: ReactNode
+}
+
+export function PlayerGoldPanel({ title, className, children }: PlayerGoldPanelProps) {
+  return (
+    <section className={`player-game-panel${className ? ` ${className}` : ''}`}>
+      {title ? <h2 className="player-game-panel-title">{title}</h2> : null}
+      {children}
+    </section>
+  )
+}
+
+type PlayerGameButtonVariant = 'gold' | 'dark' | 'fold' | 'allin'
+
+type PlayerGameButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: PlayerGameButtonVariant
+  size?: 'normal' | 'large'
+}
+
+export function PlayerGameButton({
+  variant = 'gold',
+  size = 'normal',
+  className,
+  type = 'button',
+  ...props
+}: PlayerGameButtonProps) {
+  const sizeClass = size === 'large' ? 'player-game-btn--lg' : ''
+  return (
+    <button
+      type={type}
+      className={`player-game-btn player-game-btn--${variant} ${sizeClass}${className ? ` ${className}` : ''}`}
+      {...props}
+    />
   )
 }

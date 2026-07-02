@@ -791,3 +791,714 @@
     padding-bottom: 2rem;
   }
 }
+
+/* ===== Player in-game — gold casino shell (matches join/lobby) ===== */
+:root {
+  --player-game-shell-max: 36rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --player-game-shell-max: 44rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --player-game-shell-max: 52rem;
+  }
+}
+
+.player-game-screen {
+  color: #fff;
+}
+
+.player-game-layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: stretch;
+  padding:
+    max(0.5rem, env(safe-area-inset-top, 0px))
+    max(0.5rem, env(safe-area-inset-right, 0px))
+    max(0.5rem, env(safe-area-inset-bottom, 0px))
+    max(0.5rem, env(safe-area-inset-left, 0px));
+}
+
+.player-game-shell {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .player-game-layout {
+    justify-content: flex-start;
+    align-items: center;
+    padding:
+      max(0.75rem, env(safe-area-inset-top, 0px))
+      max(0.75rem, env(safe-area-inset-right, 0px))
+      max(0.75rem, env(safe-area-inset-bottom, 0px))
+      max(0.75rem, env(safe-area-inset-left, 0px));
+  }
+
+  .player-game-shell {
+    flex: 0 1 auto;
+    width: min(100%, var(--player-game-shell-max));
+    max-width: var(--player-game-shell-max);
+  }
+}
+
+.player-game-header {
+  height: clamp(7rem, 18vh, 10rem);
+  padding-bottom: 0.15rem;
+  position: relative;
+}
+
+.player-game-header .player-game-reconnect {
+  position: absolute;
+  bottom: 0.1rem;
+  left: 0;
+  right: 0;
+  margin: 0;
+}
+
+.player-game-layout--bet-dock {
+  padding-bottom: calc(17.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.player-game-layout--answer-dock {
+  padding-bottom: calc(8.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .player-game-layout--bet-dock,
+  .player-game-layout--answer-dock {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.player-game-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.85rem;
+  overflow-y: auto;
+  padding-bottom: clamp(1rem, 3vh, 1.5rem);
+}
+
+.player-game-meta {
+  margin: 0;
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.78rem, 2.8vw, 0.95rem);
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: rgb(255 255 255 / 0.58);
+}
+
+.player-game-meta strong,
+.player-game-meta .player-game-meta-em {
+  font-weight: 700;
+  color: rgb(253 224 71);
+  text-shadow: 0 0 10px rgb(251 191 36 / 0.35);
+}
+
+.player-game-meta .player-game-meta-code {
+  letter-spacing: 0.1em;
+}
+
+.player-game-meta .player-game-meta-name {
+  display: block;
+  margin-top: 0.2rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.88);
+}
+
+.player-game-reconnect {
+  margin: 0 0 0.35rem;
+  text-align: center;
+  font-size: clamp(0.82rem, 2.8vw, 0.92rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(251 191 36 / 0.9);
+}
+
+.player-game-phase {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.75rem;
+  margin: 0.35rem auto 0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.35);
+  background: rgb(8 12 10 / 0.75);
+  max-width: 100%;
+}
+
+.player-game-phase-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.player-game-phase-value {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.95rem, 3.2vw, 1.1rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: capitalize;
+  color: rgb(253 224 71);
+}
+
+.player-game-phase-detail {
+  flex: 1 1 100%;
+  margin-top: 0.15rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgb(251 191 36 / 0.15);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 0.55);
+  text-align: center;
+}
+
+.player-game-strip {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.28);
+  background: rgb(8 12 10 / 0.72);
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.68rem, 2.4vw, 0.78rem);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgb(253 230 138 / 0.88);
+}
+
+.player-game-banner {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.25);
+  background: rgb(8 12 10 / 0.78);
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.78rem, 2.8vw, 0.92rem);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.player-game-panel {
+  position: relative;
+  padding: clamp(0.85rem, 3vw, 1.15rem) clamp(0.9rem, 3.5vw, 1.25rem);
+  border-radius: 0.55rem;
+  border: 1px solid rgb(251 191 36 / 0.32);
+  background:
+    linear-gradient(180deg, rgb(8 12 10 / 0.92) 0%, rgb(5 8 6 / 0.88) 100%),
+    radial-gradient(ellipse 80% 55% at 50% 0%, rgb(251 191 36 / 0.07) 0%, transparent 70%);
+  box-shadow:
+    inset 0 1px 0 rgb(253 230 138 / 0.1),
+    0 6px 18px rgb(0 0 0 / 0.28);
+}
+
+.player-game-panel-title {
+  margin: 0 0 0.75rem;
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.05rem, 3.6vw, 1.25rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(253 224 71);
+}
+
+.player-game-pot-label {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(0.78rem, 2.6vw, 0.88rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.player-game-pot-value {
+  margin: 0.15rem 0 0;
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.85rem, 6vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgb(253 224 71);
+  text-shadow: 0 0 14px rgb(251 191 36 / 0.35);
+}
+
+.player-game-question {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.2);
+  background: rgb(0 0 0 / 0.35);
+}
+
+.player-game-question-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.player-game-question-text {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.95rem, 3.2vw, 1.1rem);
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgb(255 255 255 / 0.92);
+}
+
+.player-game-question-answer {
+  margin: 0.55rem 0 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1rem, 3.4vw, 1.15rem);
+  font-weight: 700;
+  color: rgb(253 224 71);
+}
+
+.player-game-stack-panel {
+  text-align: center;
+}
+
+.player-game-stack-label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.player-game-stack-value {
+  margin: 0.2rem 0 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.65rem, 5.5vw, 2rem);
+  font-weight: 700;
+  color: rgb(253 224 71);
+}
+
+.player-game-folded {
+  margin: 0.45rem 0 0;
+  font-size: clamp(0.95rem, 3.2vw, 1.05rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(248 113 113);
+}
+
+.player-game-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+
+@media (min-width: 1024px) {
+  .player-game-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.player-game-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.78rem, 2.6vw, 0.88rem);
+  color: rgb(255 255 255 / 0.65);
+}
+
+.player-game-stat-grid strong {
+  color: rgb(255 255 255 / 0.92);
+}
+
+.player-game-stat-grid .player-game-stat-turn {
+  color: rgb(253 224 71);
+}
+
+.player-game-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.player-game-actions--stack {
+  grid-template-columns: 1fr;
+}
+
+.player-game-field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  color: rgb(255 255 255 / 0.6);
+}
+
+.player-game-field-label span {
+  color: rgb(255 255 255 / 0.4);
+}
+
+.player-game-raise-row {
+  display: flex;
+  gap: 0.45rem;
+  grid-column: 1 / -1;
+}
+
+.player-game-input {
+  min-height: 2.75rem;
+  flex: 1 1 0%;
+  min-width: 0;
+  border: 1px solid rgb(251 191 36 / 0.35);
+  border-radius: 3px;
+  background: rgb(5 8 6 / 0.85);
+  padding: 0.5rem 0.65rem;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.95);
+}
+
+.player-game-input:focus {
+  outline: none;
+  border-color: rgb(253 224 71 / 0.75);
+  box-shadow: 0 0 0 2px rgb(251 191 36 / 0.15);
+}
+
+.player-game-btn {
+  min-height: 2.75rem;
+  border-radius: 3px;
+  padding: 0.55rem 0.75rem;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.82rem, 2.8vw, 0.95rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.player-game-btn--lg {
+  min-height: 3rem;
+  font-size: clamp(0.9rem, 3vw, 1.05rem);
+  letter-spacing: 0.12em;
+}
+
+.player-game-btn--gold {
+  border: 1px solid rgb(253 230 138 / 0.75);
+  background: linear-gradient(180deg, #fde68a 0%, #facc15 38%, #eab308 68%, #ca8a04 100%);
+  color: rgb(28 18 4 / 0.92);
+  box-shadow:
+    inset 0 1px 0 rgb(255 251 235 / 0.65),
+    inset 0 -2px 0 rgb(180 83 9 / 0.35),
+    0 0 16px rgb(251 191 36 / 0.3);
+}
+
+.player-game-btn--dark {
+  border: 1px solid rgb(251 191 36 / 0.4);
+  background: linear-gradient(180deg, rgb(18 22 20 / 0.95) 0%, rgb(8 12 10 / 0.95) 100%);
+  color: rgb(253 224 71);
+  box-shadow: inset 0 1px 0 rgb(253 230 138 / 0.12);
+}
+
+.player-game-btn--fold {
+  border: 1px solid rgb(248 113 113 / 0.55);
+  background: linear-gradient(180deg, rgb(127 29 29 / 0.85) 0%, rgb(69 10 10 / 0.95) 100%);
+  color: rgb(254 202 202);
+  box-shadow: inset 0 1px 0 rgb(254 202 202 / 0.15);
+}
+
+.player-game-btn--allin {
+  border: 1px solid rgb(96 165 250 / 0.55);
+  background: linear-gradient(180deg, rgb(30 58 138 / 0.9) 0%, rgb(15 23 42 / 0.95) 100%);
+  color: rgb(191 219 254);
+  box-shadow: inset 0 1px 0 rgb(191 219 254 / 0.15);
+}
+
+.player-game-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.player-game-btn:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.player-game-btn--block {
+  width: 100%;
+}
+
+.player-game-hint {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgb(251 191 36 / 0.18);
+  background: rgb(0 0 0 / 0.35);
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.player-game-answer-display {
+  display: flex;
+  min-height: clamp(4.5rem, 14vw, 5.5rem);
+  align-items: center;
+  justify-content: center;
+  margin: 0.35rem 0 0;
+  padding: 0.65rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.28);
+  background: rgb(0 0 0 / 0.4);
+  word-break: break-all;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.75rem, 7vw, 2.75rem);
+  font-weight: 700;
+  color: rgb(253 224 71);
+}
+
+.player-game-card-section-label {
+  margin: 0 0 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(253 224 71 / 0.85);
+}
+
+.player-game-card-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.85rem;
+}
+
+.player-game-card-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.player-game-card-pair {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.player-game-card-selected {
+  border-radius: 0.75rem;
+  box-shadow: 0 0 0 3px rgb(253 224 71 / 0.85);
+}
+
+.player-game-decimal-btn {
+  display: flex;
+  height: 6rem;
+  width: 4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.55rem;
+  border: 2px solid rgb(251 191 36 / 0.45);
+  background: rgb(8 12 10 / 0.85);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(253 224 71);
+}
+
+.player-game-decimal-btn--active {
+  border-color: rgb(253 224 71);
+  background: rgb(251 191 36 / 0.12);
+  box-shadow: 0 0 0 3px rgb(251 191 36 / 0.25);
+}
+
+.player-game-timer {
+  text-align: center;
+  font-size: clamp(0.85rem, 2.8vw, 0.95rem);
+  color: rgb(255 255 255 / 0.65);
+}
+
+.player-game-timer strong {
+  font-size: clamp(1.35rem, 4.5vw, 1.65rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: rgb(253 224 71);
+}
+
+.player-game-result {
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.88rem, 3vw, 1rem);
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.75);
+}
+
+.player-game-result-mono {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(253 224 71);
+}
+
+.player-game-result-correct {
+  color: rgb(253 224 71);
+}
+
+.player-game-delta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.player-game-delta-cell {
+  padding: 0.65rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgb(251 191 36 / 0.15);
+  background: rgb(0 0 0 / 0.3);
+  text-align: center;
+}
+
+.player-game-delta-label {
+  font-size: 0.72rem;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.player-game-delta-value {
+  margin-top: 0.2rem;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-game-delta-value--up {
+  color: rgb(253 224 71);
+}
+
+.player-game-delta-value--down {
+  color: rgb(248 113 113);
+}
+
+.player-game-dock {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  border-top: 1px solid rgb(251 191 36 / 0.35);
+  background: linear-gradient(180deg, rgb(8 10 14 / 0.97) 0%, rgb(5 8 6 / 0.98) 100%);
+  box-shadow: 0 -8px 24px rgb(0 0 0 / 0.45);
+}
+
+.player-game-dock-inner {
+  margin-inline: auto;
+  max-width: 32rem;
+  padding:
+    0.55rem max(0.75rem, env(safe-area-inset-right, 0px))
+    max(0.75rem, env(safe-area-inset-bottom, 0px))
+    max(0.75rem, env(safe-area-inset-left, 0px));
+}
+
+.player-game-toast {
+  position: fixed;
+  z-index: 50;
+  max-width: min(92vw, 22rem);
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.4);
+  background: linear-gradient(180deg, rgb(12 16 14 / 0.97) 0%, rgb(8 10 8 / 0.98) 100%);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.85rem, 2.8vw, 0.95rem);
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 0.92);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+}
+
+.player-game-table-pot {
+  border-radius: 0.35rem;
+  border: 1px solid rgb(251 191 36 / 0.35);
+  background: rgb(0 0 0 / 0.55);
+  padding: 0.15rem 0.45rem;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(253 224 71);
+}
+
+@media (min-width: 640px) {
+  .player-game-table-pot {
+    font-size: 0.82rem;
+  }
+}
+
+.player-game-connecting,
+.player-game-eliminated-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.player-game-connecting-title {
+  margin: 0 0 0.75rem;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.75rem, 6vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(253 224 71);
+}
+
+.player-game-connecting-text {
+  margin: 0;
+  font-size: clamp(0.95rem, 3.2vw, 1.1rem);
+  color: rgb(255 255 255 / 0.65);
+}
+
+.player-game-eliminated-title {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(2rem, 7vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(248 113 113);
+}
+
+.player-game-eliminated-text {
+  margin: 0.85rem 0 0;
+  font-size: clamp(0.95rem, 3.2vw, 1.1rem);
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.player-game-eliminated-foot {
+  margin: 0.55rem 0 0;
+  font-size: 0.85rem;
+  color: rgb(255 255 255 / 0.48);
+}

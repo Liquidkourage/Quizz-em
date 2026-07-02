@@ -39,9 +39,5 @@ export default function VenueStatusStrip({ brief, tableBlinds }: VenueStatusStri
 
   if (parts.length === 0) return null
 
-  return (
-    <div className="mx-auto mb-4 max-w-2xl rounded-lg border border-amber-500/30 bg-amber-950/25 px-3 py-2 text-center text-[11px] leading-snug text-amber-100/90 sm:text-xs">
-      {parts.join(' · ')}
-    </div>
-  )
+  return <p className="player-game-strip">{parts.join(' · ')}</p>
 }

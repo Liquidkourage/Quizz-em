@@ -1,7 +1,7 @@
-import { Card } from '@qhe/ui'
 import type { GameState, PlayerState } from '@qhe/core'
 import { formatTriviaNumber } from '@qhe/core'
 import { triviaPointsForAnswer } from '../playerModel/handSummary'
+import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type RevealShowdownPanelProps = {
   gameState: GameState
@@ -20,27 +20,25 @@ export default function RevealShowdownPanel({ gameState, currentPlayer }: Reveal
   const pts = triviaPointsForAnswer(submitted, correct, folded)
 
   return (
-    <Card variant="glass" className="mb-4 border border-purple-500/25 p-4 sm:mb-6 sm:p-6">
-      <h2 className="mb-3 text-center text-xl font-bold text-purple-300 sm:text-2xl">Your result</h2>
+    <PlayerGoldPanel title="Your result">
       {folded ? (
-        <p className="text-center text-white/70">You folded — no trivia score this hand.</p>
+        <p className="player-game-result">You folded — no trivia score this hand.</p>
       ) : submitted == null ? (
-        <p className="text-center text-white/70">No answer submitted this hand.</p>
+        <p className="player-game-result">No answer submitted this hand.</p>
       ) : (
-        <div className="space-y-2 text-center text-sm sm:text-base">
+        <div className="player-game-result">
           <p>
             Your answer:{' '}
-            <span className="font-mono text-xl font-bold text-casino-gold">{formatTriviaNumber(submitted)}</span>
+            <span className="player-game-result-mono">{formatTriviaNumber(submitted)}</span>
           </p>
           <p>
-            Correct:{' '}
-            <span className="font-mono text-xl font-bold text-emerald-300">{formatTriviaNumber(correct)}</span>
+            Correct: <span className="player-game-result-correct">{formatTriviaNumber(correct)}</span>
           </p>
-          <p className="text-white/75">
-            Trivia score this hand: <span className="font-bold text-casino-emerald">{pts}</span>
+          <p>
+            Trivia score this hand: <strong className="player-game-result-mono">{pts}</strong>
           </p>
         </div>
       )}
-    </Card>
+    </PlayerGoldPanel>
   )
 }

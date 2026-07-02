@@ -40,7 +40,7 @@ import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
 import EliminatedScreen from './components/EliminatedScreen'
 import PlayerToast from './components/PlayerToast'
-import PlayerTableHeader from './components/PlayerTableHeader'
+import { PlayerTableHeader, PlayerGameStatusBar } from './components/PlayerTableHeader'
 import VenueStatusStrip from './components/VenueStatusStrip'
 import PhaseBanner from './components/PhaseBanner'
 import GameInfoCard from './components/GameInfoCard'
@@ -51,6 +51,7 @@ import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
 import AnswerMobileDock from './components/AnswerMobileDock'
 import TableFeltView from './components/TableFeltView'
+import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule, PlayerGoldPanel } from './components/PlayerGoldChrome'
 
 type JoinPhase = 'form' | 'connecting' | 'in_venue'
 
@@ -244,11 +245,8 @@ function PlayerApp() {
   const needsMobileAnswerDock = gameState.phase === 'answering' && !!currentPlayer && !currentPlayer.hasFolded
 
   const mainPadding = [
-    'relative z-10 px-3 pt-3 pb-6 sm:px-5 sm:pt-4 sm:pb-8 md:p-8',
-    needsMobileBetDock ? 'max-lg:pb-[calc(17.5rem+env(safe-area-inset-bottom,0px))]' : '',
-    needsMobileAnswerDock && !needsMobileBetDock
-      ? 'max-lg:pb-[calc(8.5rem+env(safe-area-inset-bottom,0px))]'
-      : '',
+    needsMobileBetDock ? 'player-game-layout--bet-dock' : '',
+    needsMobileAnswerDock && !needsMobileBetDock ? 'player-game-layout--answer-dock' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -259,87 +257,86 @@ function PlayerApp() {
     composedAnswer.display.trim().length > 0
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-casino-gradient">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 animate-pulse-slow bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900" />
-        <div className="absolute inset-0 animate-float bg-gradient-to-tr from-emerald-500/10 via-transparent to-blue-500/10" />
-      </div>
-
+    <PlayerGameScreen>
       <PlayerToast message={toastMessage} />
 
-      <div className={`${mainPadding} mx-auto w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl`}>
-        <PlayerTableHeader
-          gameState={gameState}
-          playerName={playerName}
-          myIndex={myIndex}
-          answerPoints={currentPlayer?.answerPoints ?? 0}
-          disconnected={disconnected}
-        />
+      <div className={`player-game-layout player-join-layout ${mainPadding}`}>
+        <PlayerGameShell>
+          <PlayerTableHeader disconnected={disconnected} />
+          <PlayerGoldHeaderRule />
 
-        <VenueStatusStrip
-          brief={venueBrief}
-          tableBlinds={
-            currentPlayer && inChipContest(currentPlayer) && gameState.phase !== 'lobby'
-              ? { small: gameState.smallBlind, big: gameState.bigBlind }
-              : undefined
-          }
-        />
+          <div className="player-join-body player-game-body">
+            <PlayerGameStatusBar
+              gameState={gameState}
+              playerName={playerName}
+              myIndex={myIndex}
+              answerPoints={currentPlayer?.answerPoints ?? 0}
+            />
 
-        <PhaseBanner gameState={gameState} />
+            <VenueStatusStrip
+              brief={venueBrief}
+              tableBlinds={
+                currentPlayer && inChipContest(currentPlayer) && gameState.phase !== 'lobby'
+                  ? { small: gameState.smallBlind, big: gameState.bigBlind }
+                  : undefined
+              }
+            />
 
-        {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
+            <PhaseBanner gameState={gameState} />
 
-        <GameInfoCard gameState={gameState} />
+            {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
 
-        {currentPlayer ? <RevealShowdownPanel gameState={gameState} currentPlayer={currentPlayer} /> : null}
+            <GameInfoCard gameState={gameState} />
 
-        {showAnswerComposer && currentPlayer ? (
-          <AnswerComposer
-            gameState={gameState}
-            currentPlayer={currentPlayer}
-            composed={composedAnswer}
-            selectedCards={selectedCards}
-            remainingSec={remainingSec}
-            hideActions={needsMobileAnswerDock}
-            onSelectCard={handleCardSelect}
-            onToggleDecimal={() => setComposedAnswer((c) => toggleDecimal(c))}
-            onClear={() => {
-              setComposedAnswer(EMPTY_COMPOSED_ANSWER)
-              setSelectedCards([])
-            }}
-            onSubmit={handleSubmitAnswer}
-          />
-        ) : null}
+            {currentPlayer ? <RevealShowdownPanel gameState={gameState} currentPlayer={currentPlayer} /> : null}
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {currentPlayer ? (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-center backdrop-blur-md sm:p-5">
-              <div className="text-sm text-white/70">Your stack</div>
-              <div className="text-3xl font-bold text-casino-gold">${currentPlayer.bankroll}</div>
-              {currentPlayer.hasFolded ? (
-                <div className="mt-2 text-lg font-bold text-red-400">Folded this hand</div>
+            {showAnswerComposer && currentPlayer ? (
+              <AnswerComposer
+                gameState={gameState}
+                currentPlayer={currentPlayer}
+                composed={composedAnswer}
+                selectedCards={selectedCards}
+                remainingSec={remainingSec}
+                hideActions={needsMobileAnswerDock}
+                onSelectCard={handleCardSelect}
+                onToggleDecimal={() => setComposedAnswer((c) => toggleDecimal(c))}
+                onClear={() => {
+                  setComposedAnswer(EMPTY_COMPOSED_ANSWER)
+                  setSelectedCards([])
+                }}
+                onSubmit={handleSubmitAnswer}
+              />
+            ) : null}
+
+            <div className="player-game-grid">
+              {currentPlayer ? (
+                <PlayerGoldPanel className="player-game-stack-panel">
+                  <p className="player-game-stack-label">Your stack</p>
+                  <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
+                  {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
+                </PlayerGoldPanel>
+              ) : null}
+
+              {bettingCtx && currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded ? (
+                <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>
+                  <BettingActions
+                    currentPlayer={currentPlayer}
+                    ctx={bettingCtx}
+                    raiseAmount={raiseAmount}
+                    onRaiseAmountChange={setRaiseAmount}
+                    onCheck={() => checkAction()}
+                    onCall={() => callAction()}
+                    onRaise={() => raiseAmount > 0 && raiseAction(raiseAmount)}
+                    onFold={() => fold()}
+                    onAllIn={() => allInAction()}
+                  />
+                </div>
               ) : null}
             </div>
-          ) : null}
 
-          {bettingCtx && currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded ? (
-            <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>
-              <BettingActions
-                currentPlayer={currentPlayer}
-                ctx={bettingCtx}
-                raiseAmount={raiseAmount}
-                onRaiseAmountChange={setRaiseAmount}
-                onCheck={() => checkAction()}
-                onCall={() => callAction()}
-                onRaise={() => raiseAmount > 0 && raiseAction(raiseAmount)}
-                onFold={() => fold()}
-                onAllIn={() => allInAction()}
-              />
-            </div>
-          ) : null}
-        </div>
-
-        <TableFeltView gameState={gameState} playerName={playerName} />
+            <TableFeltView gameState={gameState} playerName={playerName} />
+          </div>
+        </PlayerGameShell>
       </div>
 
       {needsMobileBetDock && bettingCtx && currentPlayer ? (
@@ -367,7 +364,7 @@ function PlayerApp() {
           onSubmit={handleSubmitAnswer}
         />
       ) : null}
-    </div>
+    </PlayerGameScreen>
   )
 }
 

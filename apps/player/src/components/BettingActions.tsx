@@ -1,6 +1,6 @@
-import { Card, NeonButton } from '@qhe/ui'
 import type { PlayerState } from '@qhe/core'
 import type { BettingContext } from '../playerModel/bettingModel'
+import { PlayerGameButton, PlayerGoldPanel } from './PlayerGoldChrome'
 
 type BettingActionsProps = {
   currentPlayer: PlayerState
@@ -28,62 +28,60 @@ export default function BettingActions({
   compact,
 }: BettingActionsProps) {
   const btnSize = compact ? 'normal' : 'large'
-  const btnClass = compact ? 'min-h-[2.75rem] w-full !px-3 !py-2.5 !text-sm' : 'w-full'
 
   return (
-    <Card variant="glass" className="p-4 sm:p-6">
-      <h2 className="mb-4 text-center text-xl font-bold text-casino-emerald sm:text-2xl">Wagering</h2>
+    <PlayerGoldPanel title="Wagering">
       {ctx.isBettingPhase ? (
-        <div className="mb-4 grid grid-cols-2 gap-2 text-xs text-white sm:text-sm">
+        <div className="player-game-stat-grid">
           <div>
-            Round <span className="font-bold">{ctx.isBettingOpen ? 'open' : 'closed'}</span>
+            Round <strong>{ctx.isBettingOpen ? 'open' : 'closed'}</strong>
           </div>
           <div>
-            Stack <span className="font-bold">${currentPlayer.bankroll}</span>
+            Stack <strong>${currentPlayer.bankroll}</strong>
           </div>
           <div>
-            To call <span className="font-bold">${ctx.toCall}</span>
+            To call <strong>${ctx.toCall}</strong>
           </div>
           <div>
             Turn{' '}
-            <span className={`font-bold ${ctx.isMyTurn ? 'text-casino-gold' : ''}`}>
+            <strong className={ctx.isMyTurn ? 'player-game-stat-turn' : ''}>
               {ctx.isMyTurn ? 'Yours' : 'Waiting'}
-            </span>
+            </strong>
           </div>
         </div>
       ) : null}
-      <div className={`grid grid-cols-1 gap-3 md:grid-cols-2 ${compact ? '' : ''}`}>
-        <NeonButton variant="emerald" size={btnSize} className={btnClass} onClick={onCheck} disabled={!ctx.canCheck}>
+      <div className="player-game-actions">
+        <PlayerGameButton variant="gold" size={btnSize} className="player-game-btn--block" onClick={onCheck} disabled={!ctx.canCheck}>
           Check
-        </NeonButton>
-        <NeonButton variant="gold" size={btnSize} className={btnClass} onClick={onCall} disabled={!ctx.canCall}>
+        </PlayerGameButton>
+        <PlayerGameButton variant="gold" size={btnSize} className="player-game-btn--block" onClick={onCall} disabled={!ctx.canCall}>
           {ctx.toCall > 0 ? `Call $${ctx.toCall}` : 'Call'}
-        </NeonButton>
-        <div className="space-y-2 md:col-span-2">
-          <label className="text-xs text-white/80 sm:text-sm">
-            Raise <span className="text-white/50">(min ${ctx.minRaise})</span>
-          </label>
-          <div className="flex gap-2">
+        </PlayerGameButton>
+        <div className="player-game-raise-row">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <label className="player-game-field-label">
+              Raise <span>(min ${ctx.minRaise})</span>
+            </label>
             <input
               type="number"
               value={raiseAmount}
               onChange={(e) => onRaiseAmountChange(Number(e.target.value))}
               min={ctx.minRaise}
               max={Math.max(0, currentPlayer.bankroll - ctx.toCall)}
-              className="min-h-[2.75rem] w-full rounded-lg border border-white/20 bg-white/10 p-2 text-white backdrop-blur-md focus:border-casino-emerald focus:outline-none"
+              className="player-game-input"
             />
-            <NeonButton variant="purple" size={btnSize} className="shrink-0" onClick={onRaise} disabled={!ctx.canRaise}>
-              Raise
-            </NeonButton>
           </div>
+          <PlayerGameButton variant="dark" size={btnSize} className="player-game-btn--block" style={{ alignSelf: 'flex-end' }} onClick={onRaise} disabled={!ctx.canRaise}>
+            Raise
+          </PlayerGameButton>
         </div>
-        <NeonButton variant="red" size={btnSize} className={btnClass} onClick={onFold} disabled={!ctx.canFold}>
+        <PlayerGameButton variant="fold" size={btnSize} className="player-game-btn--block" onClick={onFold} disabled={!ctx.canFold}>
           Fold
-        </NeonButton>
-        <NeonButton variant="blue" size={btnSize} className={btnClass} onClick={onAllIn} disabled={!ctx.canAllIn}>
+        </PlayerGameButton>
+        <PlayerGameButton variant="allin" size={btnSize} className="player-game-btn--block" onClick={onAllIn} disabled={!ctx.canAllIn}>
           All-in
-        </NeonButton>
+        </PlayerGameButton>
       </div>
-    </Card>
+    </PlayerGoldPanel>
   )
 }

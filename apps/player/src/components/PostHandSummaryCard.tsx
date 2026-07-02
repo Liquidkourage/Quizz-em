@@ -1,5 +1,5 @@
 import type { HandSummary } from '../playerModel/handSummary'
-import { Card } from '@qhe/ui'
+import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type PostHandSummaryCardProps = {
   summary: HandSummary
@@ -13,37 +13,36 @@ function formatDelta(n: number, prefix: string): string {
 
 export default function PostHandSummaryCard({ summary }: PostHandSummaryCardProps) {
   return (
-    <Card variant="glass" className="mb-4 border border-emerald-500/30 p-4 sm:mb-6 sm:p-6">
-      <h2 className="mb-3 text-center text-xl font-bold text-casino-emerald sm:text-2xl">Last hand</h2>
-      <div className="grid grid-cols-2 gap-3 text-center text-sm sm:text-base">
-        <div className="rounded-lg bg-white/5 p-3">
-          <div className="text-white/60">Stack</div>
+    <PlayerGoldPanel title="Last hand">
+      <div className="player-game-delta-grid">
+        <div className="player-game-delta-cell">
+          <div className="player-game-delta-label">Stack</div>
           <div
-            className={`text-2xl font-bold tabular-nums ${summary.stackDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}
+            className={`player-game-delta-value ${summary.stackDelta >= 0 ? 'player-game-delta-value--up' : 'player-game-delta-value--down'}`}
           >
             {formatDelta(summary.stackDelta, '$')}
           </div>
         </div>
-        <div className="rounded-lg bg-white/5 p-3">
-          <div className="text-white/60">Trivia pts</div>
-          <div className="text-2xl font-bold tabular-nums text-casino-emerald">
+        <div className="player-game-delta-cell">
+          <div className="player-game-delta-label">Trivia pts</div>
+          <div className="player-game-delta-value player-game-delta-value--up">
             {formatDelta(summary.pointsGained, '')}
           </div>
         </div>
       </div>
       {summary.formattedSubmitted != null ? (
-        <p className="mt-4 text-center text-sm text-white/75">
-          Your answer: <span className="font-mono font-bold text-casino-gold">{summary.formattedSubmitted}</span>
+        <p className="player-game-result" style={{ marginTop: '0.85rem' }}>
+          Your answer: <span className="player-game-result-mono">{summary.formattedSubmitted}</span>
           {summary.formattedCorrect != null ? (
             <>
               {' '}
-              · Correct: <span className="font-mono font-bold text-emerald-300">{summary.formattedCorrect}</span>
+              · Correct: <span className="player-game-result-correct">{summary.formattedCorrect}</span>
             </>
           ) : null}
           {' '}
-          · This hand: <span className="font-bold text-casino-emerald">{summary.triviaPointsThisHand}</span> pts
+          · This hand: <strong className="player-game-result-mono">{summary.triviaPointsThisHand}</strong> pts
         </p>
       ) : null}
-    </Card>
+    </PlayerGoldPanel>
   )
 }

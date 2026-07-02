@@ -9,7 +9,7 @@ export default function PlayerToast({ message }: PlayerToastProps) {
     <AnimatePresence>
       {message ? (
         <motion.div
-          className="fixed z-50 max-w-[min(92vw,22rem)] rounded-xl border border-white/20 bg-glass-gradient p-3 text-sm text-white shadow-lg backdrop-blur-md sm:p-4 sm:text-base"
+          className="player-game-toast"
           style={{
             top: 'max(0.75rem, env(safe-area-inset-top, 0px))',
             right: 'max(0.75rem, env(safe-area-inset-right, 0px))',

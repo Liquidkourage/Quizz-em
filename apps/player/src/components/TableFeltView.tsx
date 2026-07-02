@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
-import { Card, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
+import { StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState } from '@qhe/core'
 import { LOBBY_TABLE_ID } from '@qhe/core'
+import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type TableFeltViewProps = {
   gameState: GameState
@@ -43,7 +44,7 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
       gameState.round.communityCards.length > 0
         ? gameState.round.communityCards.map((c) => c.digit)
         : undefined,
-    [gameState.round.communityCards]
+    [gameState.round.communityCards],
   )
 
   const seats = useMemo((): StadiumTableSeat[] => {
@@ -69,11 +70,11 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
         nameTag: (
           <>
             <span
-              className={`max-w-full truncate font-bold ${isMe ? 'text-casino-gold' : 'text-casino-emerald'} ${tagText}`}
+              className={`max-w-full truncate font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'} ${tagText}`}
             >
               {isMe ? 'You' : firstName(player.name)}
             </span>
-            <span className={`font-bold tabular-nums text-casino-gold ${tagText}`}>
+            <span className={`font-bold tabular-nums text-amber-300 ${tagText}`}>
               ${player.bankroll.toLocaleString()}
             </span>
             {player.hasFolded ? (
@@ -88,21 +89,18 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
   const pot = gameState.round.pot
 
   return (
-    <Card variant="glass" className="mt-4 p-3 sm:mt-6 sm:p-4">
-      <h2 className="mb-3 text-center text-lg font-bold text-casino-emerald sm:text-xl">Table</h2>
+    <PlayerGoldPanel title="Table">
       <StadiumTableSeats
         seatCount={players.length}
         seats={seats}
         communityDigits={communityDigits}
-        aspectClassName="aspect-[8/5] w-full max-w-2xl"
+        aspectClassName="aspect-[8/5] w-full max-w-2xl mx-auto"
         centerContent={
           pot > 0 ? (
-            <span className="rounded border border-emerald-500/35 bg-black/50 px-2 py-0.5 text-xs font-bold tabular-nums text-emerald-200 sm:text-sm">
-              Pot ${pot.toLocaleString()}
-            </span>
+            <span className="player-game-table-pot">Pot ${pot.toLocaleString()}</span>
           ) : null
         }
       />
-    </Card>
+    </PlayerGoldPanel>
   )
 }

@@ -127,10 +127,9 @@ export function VenueFloorShowdownByVariant({
   if (stageViewport === 'broadcast') {
     return (
       <div
-        className="vfd-showdown-winner-comp pointer-events-none absolute inset-0 z-[135] overflow-hidden rounded-[inherit]"
+        className="vfd-broadcast-showdown-reveal-shell flex min-h-0 min-w-0 flex-1 flex-col"
         role="group"
         aria-label={ariaLabel}
-        data-stage-viewport="broadcast"
       >
         <BroadcastShowdownPanel
           variant={ctx.variant}

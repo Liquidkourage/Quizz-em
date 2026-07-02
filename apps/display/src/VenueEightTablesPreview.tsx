@@ -2681,9 +2681,6 @@ function VenueSingleTableBroadcast({
     if (!showFloorShowdownOverlay) return 0
     return resolveShowdownDisplayPot(tile, floorShowdownRows, floorShowdownAnswer)
   }, [showFloorShowdownOverlay, tile, floorShowdownRows, floorShowdownAnswer])
-  const winnerSeatIndexes = showFloorShowdownOverlay
-    ? floorShowdownPresentation?.winnerSeatIndexes ?? null
-    : null
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(tile, false)
   const actingPlayerName =
     wageringLive && !showFloorShowdownOverlay
@@ -2726,55 +2723,56 @@ function VenueSingleTableBroadcast({
   return (
     <div
       className="venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-stretch justify-center px-0 pb-0 pt-0"
-      aria-label={`Final table, pot ${formatVenueBankroll(pot)}`}
+      aria-label={
+        showFloorShowdownOverlay
+          ? floorShowdownPresentation?.ariaLabel ?? 'Showdown winner reveal'
+          : `Final table, pot ${formatVenueBankroll(pot)}`
+      }
     >
-      <div
-        className={`relative flex min-h-0 flex-1 w-full flex-col items-center justify-center ${phaseShell}`}
-      >
-        <div className="flex h-full min-h-0 w-full items-center justify-center">
-          <SeatRingWithLabels
-            ringMode="broadcast"
-            size="lg"
-            feltSeatStacks
-            seatedCount={seats}
-            seatNames={seatNames}
-            seatBankrolls={seatBankrolls}
-            blindSeats={blindSeatSnapshot}
-            seatFolded={seatFolded}
-            actingSeatIndex={actingSeat}
-            seatLastBettingAction={seatLastBettingAction}
-            actingCallAmount={tile.actingCallAmount}
-            mosaicCenterPot={showFloorShowdownOverlay ? null : pot}
-            mosaicCenterPotMuted={potMuted}
-            broadcastActionKind={broadcastActionKind}
-            broadcastActingPlayerName={actingPlayerName}
-            broadcastCallAmount={actingCallAmount}
-            winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
-            suppressFeltCenter={showFloorShowdownOverlay}
-            suppressSeatChrome={showFloorShowdownOverlay}
-            feltOverlay={
-              showFloorShowdownOverlay ? (
-                <VenueFloorShowdownByVariant
-                  tableNum={tile.tableNum}
-                  pot={floorShowdownPot}
-                  rows={floorShowdownRows}
-                  correctAnswer={floorShowdownAnswer}
-                  layoutTableCount={1}
-                  stageViewport="broadcast"
-                />
-              ) : null
-            }
-            seatHoleDigits={tile.seatHoleDigits}
-            communityDigits={tile.communityDigits}
-            betsInPaused={showNoMoreBets}
-            seatSubmittedAnswers={tile.seatSubmittedAnswers}
-            answeringPhase={ph === 'answering'}
-          />
-        </div>
-        {showNoMoreBets && seats >= 2 && !showFloorShowdownOverlay && broadcastActionKind !== 'no-more-bets' ? (
-          <VenueMosaicNoMoreBetsWatermark offsetClass="translate-y-[8%] text-[clamp(1.75rem,6vw,3.5rem)]" />
-        ) : null}
-      </div>
+      {showFloorShowdownOverlay ? (
+        <VenueFloorShowdownByVariant
+          pot={floorShowdownPot}
+          rows={floorShowdownRows}
+          correctAnswer={floorShowdownAnswer}
+          layoutTableCount={1}
+          stageViewport="broadcast"
+        />
+      ) : (
+        <>
+          <div
+            className={`relative flex min-h-0 flex-1 w-full flex-col items-center justify-center ${phaseShell}`}
+          >
+            <div className="flex h-full min-h-0 w-full items-center justify-center">
+              <SeatRingWithLabels
+                ringMode="broadcast"
+                size="lg"
+                feltSeatStacks
+                seatedCount={seats}
+                seatNames={seatNames}
+                seatBankrolls={seatBankrolls}
+                blindSeats={blindSeatSnapshot}
+                seatFolded={seatFolded}
+                actingSeatIndex={actingSeat}
+                seatLastBettingAction={seatLastBettingAction}
+                actingCallAmount={tile.actingCallAmount}
+                mosaicCenterPot={pot}
+                mosaicCenterPotMuted={potMuted}
+                broadcastActionKind={broadcastActionKind}
+                broadcastActingPlayerName={actingPlayerName}
+                broadcastCallAmount={actingCallAmount}
+                seatHoleDigits={tile.seatHoleDigits}
+                communityDigits={tile.communityDigits}
+                betsInPaused={showNoMoreBets}
+                seatSubmittedAnswers={tile.seatSubmittedAnswers}
+                answeringPhase={ph === 'answering'}
+              />
+            </div>
+            {showNoMoreBets && seats >= 2 && broadcastActionKind !== 'no-more-bets' ? (
+              <VenueMosaicNoMoreBetsWatermark offsetClass="translate-y-[8%] text-[clamp(1.75rem,6vw,3.5rem)]" />
+            ) : null}
+          </div>
+        </>
+      )}
     </div>
   )
 }

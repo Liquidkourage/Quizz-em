@@ -3,7 +3,16 @@ import { clsx } from 'clsx'
 import { CardFaceGraphic } from '@qhe/ui'
 import type { ShowdownResultRow } from './showdownDisplay'
 
-export type ShowdownChipSize = 'xs' | 'sm' | 'md' | 'lg' | 'floor' | 'floor-compact' | 'stage' | 'broadcast'
+export type ShowdownChipSize =
+  | 'xs'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'floor'
+  | 'floor-compact'
+  | 'stage'
+  | 'broadcast'
+  | 'broadcast-hero'
 
 type DigitChipVariant = 'hole' | 'board' | 'inactive'
 
@@ -15,6 +24,8 @@ const shellClassBySize: Record<ShowdownChipSize, string> = {
     'h-[max(2.15rem,min(3.25rem,26cqw))] w-[max(1.42rem,min(2.15rem,17.5cqw))] shrink-0',
   broadcast:
     'h-[clamp(2.65rem,7.2vmin,4.25rem)] w-[clamp(1.75rem,4.9vmin,2.95rem)] shrink-0',
+  'broadcast-hero':
+    'h-[clamp(3.75rem,11vmin,7rem)] w-[clamp(2.5rem,7.4vmin,4.65rem)] shrink-0',
   stage: 'vfd-showdown-stage-card-shell',
   lg: 'h-9 w-[1.65rem] shrink-0 sm:h-10 sm:w-[1.85rem]',
   md: 'h-7 w-[1.35rem] shrink-0',
@@ -26,6 +37,7 @@ const decimalShellClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'h-[max(2.75rem,min(4.25rem,32cqw))]',
   'floor-compact': 'h-[max(2.15rem,min(3.25rem,26cqw))]',
   broadcast: 'h-[clamp(2.65rem,7.2vmin,4.25rem)]',
+  'broadcast-hero': 'h-[clamp(3.75rem,11vmin,7rem)]',
   stage: 'vfd-showdown-stage-card-shell',
   lg: 'h-9 sm:h-10',
   md: 'h-7',
@@ -37,6 +49,7 @@ const decimalMarkClassBySize: Record<ShowdownChipSize, string> = {
   floor: 'text-[max(0.55rem,min(0.82rem,4.2cqw))]',
   'floor-compact': 'text-[max(0.48rem,min(0.72rem,3.6cqw))]',
   broadcast: 'text-[clamp(0.65rem,1.85vmin,1rem)]',
+  'broadcast-hero': 'text-[clamp(0.95rem,2.75vmin,1.65rem)]',
   stage: 'text-[min(9.5cqw,16cqh)]',
   lg: 'text-base sm:text-lg',
   md: 'text-sm',
@@ -144,6 +157,8 @@ export function ShowdownFiveCardsUsed({
           ? 'flex w-full max-w-full flex-nowrap items-end justify-center'
           : size === 'broadcast'
             ? 'flex w-full max-w-full flex-nowrap items-end justify-center gap-[clamp(0.12rem,0.45vmin,0.35rem)]'
+            : size === 'broadcast-hero'
+              ? 'flex w-full max-w-full flex-nowrap items-end justify-center gap-[clamp(0.18rem,0.65vmin,0.55rem)]'
         : size === 'lg'
           ? 'flex flex-nowrap items-end justify-center gap-1'
           : 'flex flex-wrap items-end justify-center gap-0.5'

@@ -7,6 +7,10 @@ export type FeltHoleCardPairProps = {
   rotateDeg?: number
   /** Scale applied to {@link NumericPlayingCard} `small` (1 = card native size). */
   scale: number
+  /** Horizontal offset of the second card; negative overlaps, positive spreads apart. */
+  overlapPx?: number
+  /** Fan angle (deg) applied ± to each card for readable side-by-side pairs. */
+  fanDeg?: number
   faceDown?: boolean
   digits?: readonly [number, number] | null
   /** Ref callbacks per card slot — for deal-flight anchors in display hero. */
@@ -24,6 +28,8 @@ export type FeltHoleCardPairProps = {
 export function FeltHoleCardPair({
   rotateDeg = 0,
   scale,
+  overlapPx: overlapPxProp,
+  fanDeg = 0,
   faceDown = true,
   digits,
   cardRefs,
@@ -32,7 +38,7 @@ export function FeltHoleCardPair({
   variant = 'cyan',
   animated = false,
 }: FeltHoleCardPairProps) {
-  const overlapPx = stadiumHoleCardOverlapPx(scale)
+  const overlapPx = overlapPxProp ?? stadiumHoleCardOverlapPx(scale)
 
   return (
     <div
@@ -50,7 +56,7 @@ export function FeltHoleCardPair({
           className="origin-bottom"
           style={{
             marginLeft: cardIndex === 0 ? 0 : overlapPx,
-            transform: `scale(${scale})`,
+            transform: `scale(${scale}) rotate(${cardIndex === 0 ? -fanDeg : fanDeg}deg)`,
           }}
         >
           <NumericPlayingCard

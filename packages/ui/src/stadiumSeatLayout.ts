@@ -220,6 +220,13 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
   )
 }
 
+/** Player phone — side-by-side hole cards with a clear gap so both ranks read independently. */
+export function stadiumPlayerHoleCardOverlapPx(scale: number): number {
+  const cardW = 64 * scale
+  const gap = Math.max(6, Math.round(cardW * 0.12))
+  return Math.round(cardW + gap)
+}
+
 /** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
 export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360

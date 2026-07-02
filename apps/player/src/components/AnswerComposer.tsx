@@ -3,7 +3,7 @@ import { NumericPlayingCard } from '@qhe/ui'
 import type { GameState, PlayerState } from '@qhe/core'
 import {
   ANSWER_CARD_COUNT,
-  boardHiddenDuringBetting,
+  communityBoardDealt,
   type ComposedAnswer,
   type SelectedCardRef,
 } from '../playerModel/answerComposition'
@@ -34,7 +34,7 @@ export default function AnswerComposer({
   onClear,
   onSubmit,
 }: AnswerComposerProps) {
-  const boardHidden = boardHiddenDuringBetting(gameState)
+  const boardDealt = communityBoardDealt(gameState)
   const canSubmit =
     gameState.phase === 'answering' &&
     selectedCards.length === ANSWER_CARD_COUNT &&
@@ -43,7 +43,11 @@ export default function AnswerComposer({
   return (
     <PlayerGoldPanel title="Compose your answer">
       {gameState.phase === 'betting' ? (
-        <p className="player-game-hint">Tap cards to rehearse — submit unlocks when answering opens.</p>
+        <p className="player-game-hint">
+          {boardDealt
+            ? 'Tap cards to rehearse — submit unlocks when answering opens.'
+            : 'Hole cards only for now — community cards come after the flop.'}
+        </p>
       ) : null}
       {gameState.phase === 'answering' && remainingSec != null ? (
         <p className={`player-game-timer${hideActions ? ' max-lg:hidden' : ''}`}>
@@ -88,39 +92,34 @@ export default function AnswerComposer({
 
         <div className="player-game-card-group">
           <p className="player-game-card-section-label">Board</p>
-          <div className="player-game-card-pair">
-            {boardHidden
-              ? Array.from({ length: 5 }).map((_, i) => (
-                  <NumericPlayingCard
-                    key={`hidden-${i}`}
-                    digit={0}
-                    variant="gold"
-                    style="neon"
-                    size="large"
-                    faceDown
-                    backDesign="star"
-                  />
-                ))
-              : gameState.round.communityCards.map((card, i) => {
-                  const isSelected = selectedCards.some((sc) => sc.type === 'community' && sc.index === i)
-                  return (
-                    <motion.div
-                      key={`c-${i}`}
-                      className={`cursor-pointer ${isSelected ? 'player-game-card-selected' : ''}`}
-                      onClick={() => onSelectCard('community', i)}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <NumericPlayingCard
-                        digit={card.digit}
-                        variant="gold"
-                        style="neon"
-                        neonVariant={isSelected ? 'pulse' : 'matrix'}
-                        size="large"
-                      />
-                    </motion.div>
-                  )
-                })}
-          </div>
+          {boardDealt ? (
+            <div className="player-game-card-pair">
+              {gameState.round.communityCards.map((card, i) => {
+                const isSelected = selectedCards.some((sc) => sc.type === 'community' && sc.index === i)
+                return (
+                  <motion.div
+                    key={`c-${i}`}
+                    className={`cursor-pointer ${isSelected ? 'player-game-card-selected' : ''}`}
+                    onClick={() => onSelectCard('community', i)}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <NumericPlayingCard
+                      digit={card.digit}
+                      variant="gold"
+                      style="neon"
+                      neonVariant={isSelected ? 'pulse' : 'matrix'}
+                      size="large"
+                    />
+                  </motion.div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="player-game-board-pending" aria-label="Community cards not dealt yet">
+              <p className="player-game-board-pending-title">Not dealt yet</p>
+              <p className="player-game-board-pending-detail">Flop comes after this wagering round</p>
+            </div>
+          )}
         </div>
 
         <div className="player-game-card-group">

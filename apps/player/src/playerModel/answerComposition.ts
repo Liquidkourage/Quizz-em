@@ -124,3 +124,7 @@ export function boardHiddenDuringBetting(gameState: GameState): boolean {
     gameState.round.communityCards.length === 0
   )
 }
+
+export function communityBoardDealt(gameState: GameState): boolean {
+  return gameState.round.communityCards.length > 0
+}

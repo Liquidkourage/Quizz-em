@@ -1362,6 +1362,37 @@
   box-shadow: 0 0 0 3px rgb(251 191 36 / 0.25);
 }
 
+.player-game-board-pending {
+  display: flex;
+  min-height: 6rem;
+  width: min(100%, 11rem);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.55rem;
+  border: 1px dashed rgb(251 191 36 / 0.28);
+  background: rgb(0 0 0 / 0.28);
+  text-align: center;
+}
+
+.player-game-board-pending-title {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.88rem, 3vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.player-game-board-pending-detail {
+  margin: 0.35rem 0 0;
+  font-size: clamp(0.72rem, 2.4vw, 0.82rem);
+  line-height: 1.35;
+  color: rgb(255 255 255 / 0.38);
+}
+
 .player-game-timer {
   text-align: center;
   font-size: clamp(0.85rem, 2.8vw, 0.95rem);

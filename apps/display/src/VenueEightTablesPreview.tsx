@@ -178,56 +178,47 @@ function mosaicBungeeDollarColorClass(muted: 'dim' | 'faint' | 'live' | undefine
   return 'vfd-mosaic-dollar--live'
 }
 
-/** Broadcast felt pot — DSEG7 scoreboard readout (not mosaic Bungee). */
-function BroadcastPotAmount({
+/** Broadcast center dollars — same mono readout as rim stacks (not Bungee / LED). */
+function BroadcastCenterAmount({
   amount,
-  potMuted = 'live',
-  prefersReducedMotion,
-  signPx,
-  digitsPx,
+  fontSizePx,
+  tone = 'live',
+  className = '',
+  prefersReducedMotion = false,
+  pulseOnChange = false,
 }: {
   amount: number
-  potMuted?: 'dim' | 'faint' | 'live'
-  prefersReducedMotion: boolean
-  signPx: number
-  digitsPx: number
+  fontSizePx: number
+  tone?: 'dim' | 'faint' | 'live'
+  className?: string
+  prefersReducedMotion?: boolean
+  pulseOnChange?: boolean
 }) {
   const label = formatVenueBankroll(amount)
-  const digits = formatVenueBankrollDigits(amount)
   const toneClass =
-    potMuted === 'faint'
-      ? 'vfd-broadcast-pot-scoreboard--faint'
-      : potMuted === 'dim'
-        ? 'vfd-broadcast-pot-scoreboard--dim'
-        : 'vfd-broadcast-pot-scoreboard--live'
+    tone === 'faint'
+      ? 'vfd-broadcast-center-amount--faint'
+      : tone === 'dim'
+        ? 'vfd-broadcast-center-amount--dim'
+        : 'vfd-broadcast-center-amount--live'
   const body = (
     <span
-      className={`vfd-broadcast-pot-scoreboard ${toneClass}`}
-      style={
-        {
-          ['--vfd-broadcast-pot-sign-px' as string]: `${signPx}px`,
-          ['--vfd-broadcast-pot-digits-px' as string]: `${digitsPx}px`,
-        } as CSSProperties
-      }
+      className={`vfd-broadcast-center-amount ${toneClass} ${className}`.trim()}
+      style={{ fontSize: `${fontSizePx}px` }}
     >
-      <span className="vfd-broadcast-pot-scoreboard__plate">
-        <span className="vfd-broadcast-pot-scoreboard__sign" aria-hidden>
-          $
-        </span>
-        <span className="vfd-broadcast-pot-scoreboard__digits">{digits}</span>
-      </span>
+      {label}
     </span>
   )
 
-  if (!prefersReducedMotion) {
+  if (pulseOnChange && !prefersReducedMotion) {
     return (
       <motion.span
         key={label}
-        className="vfd-broadcast-pot-scoreboard-wrap inline-flex max-w-full shrink"
+        className="inline-flex max-w-full shrink"
         aria-label={label}
-        initial={{ scale: 1.08, opacity: 0.82 }}
+        initial={{ scale: 1.06, opacity: 0.84 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       >
         {body}
       </motion.span>
@@ -235,7 +226,7 @@ function BroadcastPotAmount({
   }
 
   return (
-    <span className="vfd-broadcast-pot-scoreboard-wrap inline-flex max-w-full shrink" aria-label={label}>
+    <span className="inline-flex max-w-full shrink" aria-label={label}>
       {body}
     </span>
   )
@@ -351,13 +342,10 @@ function venueBlindMarkerSizePx(rimW: number, mode: 'broadcast' | 'lg' | 'md'): 
 
 /** Felt center HUD on n=1 broadcast — scales with measured table width. */
 function broadcastCenterTypographyPx(rimW: number): {
-  potLabelPx: number
-  potSignPx: number
-  potDigitsPx: number
+  potAmountPx: number
   actionNamePx: number
   actionLabelPx: number
-  actionSignPx: number
-  actionDigitsPx: number
+  actionAmountPx: number
   messagePx: number
   gapPx: number
   lineGapPx: number
@@ -365,13 +353,10 @@ function broadcastCenterTypographyPx(rimW: number): {
   const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
   return {
-    potLabelPx: Math.round(26 * scale),
-    potSignPx: Math.round(46 * scale),
-    potDigitsPx: Math.round(136 * scale),
+    potAmountPx: Math.round(80 * scale),
     actionNamePx: Math.round(32 * scale),
     actionLabelPx: Math.round(24 * scale),
-    actionSignPx: Math.round(50 * scale),
-    actionDigitsPx: Math.round(82 * scale),
+    actionAmountPx: Math.round(40 * scale),
     messagePx: Math.round(24 * scale),
     gapPx: Math.round(8 * scale),
     lineGapPx: Math.round(5 * scale),
@@ -454,7 +439,7 @@ function broadcastCenterKeepoutRadiusPx(
 ): number {
   const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
   const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
-  const potBandPx = centerTypo.potDigitsPx * 1.12 + Math.round(28 * scale)
+  const potBandPx = centerTypo.potAmountPx * 1.02
   const actionBandPx = hasActionLine
     ? centerTypo.lineGapPx + Math.max(centerTypo.actionNamePx, centerTypo.messagePx) + 6
     : 0
@@ -544,12 +529,10 @@ function VenueBroadcastCenterStack({
     ...centerAnchorStyle,
     transform: hasCommunityBoard
       ? `translate(-50%, ${actionBelowBoardPx}px)`
-      : `translate(-50%, calc(-50% + ${Math.round(centerTypo.potDigitsPx * 0.55 + centerTypo.lineGapPx)}px))`,
+      : `translate(-50%, calc(-50% + ${Math.round(centerTypo.potAmountPx * 0.55 + centerTypo.lineGapPx)}px))`,
     display: 'flex' as const,
     flexDirection: 'column' as const,
     alignItems: 'center' as const,
-    ['--vfd-broadcast-action-sign-px' as string]: `${centerTypo.actionSignPx}px`,
-    ['--vfd-broadcast-action-digits-px' as string]: `${centerTypo.actionDigitsPx}px`,
   }
   const hasActionLine =
     actionKind === 'to-call' ||
@@ -582,12 +565,13 @@ function VenueBroadcastCenterStack({
         </div>
       ) : null}
       <div className="vfd-broadcast-pot-stack" style={potStackStyle}>
-        <BroadcastPotAmount
+        <BroadcastCenterAmount
           amount={pot}
+          fontSizePx={centerTypo.potAmountPx}
+          tone={potMuted}
+          className="vfd-broadcast-center-amount--pot"
           prefersReducedMotion={prefersReducedMotion}
-          potMuted={potMuted}
-          signPx={centerTypo.potSignPx}
-          digitsPx={centerTypo.potDigitsPx}
+          pulseOnChange
         />
       </div>
       {hasActionLine ? (
@@ -608,9 +592,9 @@ function VenueBroadcastCenterStack({
             <span className="vfd-broadcast-action-label" style={{ fontSize: centerTypo.actionLabelPx }}>
               to call
             </span>
-            <MosaicBungeeDollarAmount
+            <BroadcastCenterAmount
               amount={callAmount}
-              className="vfd-broadcast-action-amount vfd-broadcast-action-amount--hero vfd-mosaic-dollar--live"
+              fontSizePx={centerTypo.actionAmountPx}
               prefersReducedMotion={prefersReducedMotion}
               pulseOnChange
             />

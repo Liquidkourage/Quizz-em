@@ -4,16 +4,16 @@ import { Card, QuizzEmWordmark } from '@qhe/ui'
 type LobbyWaitingScreenProps = {
   playerName: string
   venueCode: string
-  poolCount: number
-  poolPosition: number | null
+  waitingCount: number
+  waitingPosition: number | null
   disconnected?: boolean
 }
 
 export default function LobbyWaitingScreen({
   playerName,
   venueCode,
-  poolCount,
-  poolPosition,
+  waitingCount,
+  waitingPosition,
   disconnected,
 }: LobbyWaitingScreenProps) {
   return (
@@ -50,10 +50,10 @@ export default function LobbyWaitingScreen({
                 <span className="font-mono font-bold tracking-wide text-casino-gold">{venueCode}</span>
               </p>
               <p className="text-lg font-bold tabular-nums text-emerald-200">
-                {poolCount} in the waiting pool
-                {poolPosition != null ? (
+                {waitingCount} {waitingCount === 1 ? 'player' : 'players'} waiting to be seated
+                {waitingPosition != null ? (
                   <span className="mt-1 block text-sm font-semibold text-white/65">
-                    You&apos;re #{poolPosition}
+                    You&apos;re #{waitingPosition}
                   </span>
                 ) : null}
               </p>

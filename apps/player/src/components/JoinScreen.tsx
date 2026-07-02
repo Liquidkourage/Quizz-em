@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Card, NeonButton, PokerChip } from '@qhe/ui'
 import type { PlayerJoinBootstrap } from '../playerUrlParams'
@@ -18,14 +18,10 @@ export default function JoinScreen({
   joinError = null,
   isConnecting = false,
 }: JoinScreenProps) {
-  const [showAdvanced, setShowAdvanced] = useState(!prefs.autoSeat)
   const nameInputRef = useRef<HTMLInputElement>(null)
 
   const canJoin =
-    !isConnecting &&
-    prefs.playerName.trim().length > 0 &&
-    prefs.roomCode.trim().length > 0 &&
-    (prefs.autoSeat || prefs.tableId.trim().length > 0)
+    !isConnecting && prefs.playerName.trim().length > 0 && prefs.roomCode.trim().length > 0
 
   const focusName = prefs.roomFromUrl && !prefs.nameFromUrl && prefs.playerName.trim().length === 0
 
@@ -57,7 +53,9 @@ export default function JoinScreen({
               <PokerChip size="lg" />
             </div>
             <h1 className="mb-2 text-3xl font-black text-casino-emerald">Join Quizz&apos;em</h1>
-            <p className="mb-6 text-sm text-white/60">Join the waiting pool. Host seats you before the first hand.</p>
+            <p className="mb-6 text-sm text-white/60">
+              Enter your name and venue code to join the game. The host seats you before the first hand.
+            </p>
 
             <form className="space-y-4 text-left" onSubmit={handleSubmit}>
               <input
@@ -78,37 +76,6 @@ export default function JoinScreen({
                 className="w-full rounded-lg border border-white/20 bg-white/10 p-3 text-white placeholder-white/60 backdrop-blur-md focus:border-casino-emerald focus:outline-none"
               />
 
-              <button
-                type="button"
-                onClick={() => setShowAdvanced((open) => !open)}
-                className="text-xs font-semibold uppercase tracking-wide text-white/45 underline-offset-2 hover:text-white/70 hover:underline"
-              >
-                {showAdvanced ? 'Hide advanced' : 'Advanced'}
-              </button>
-
-              {showAdvanced ? (
-                <div className="space-y-3 rounded-lg border border-white/10 bg-black/25 p-3">
-                  <label className="flex cursor-pointer items-start gap-3 text-sm text-white/90">
-                    <input
-                      type="checkbox"
-                      checked={prefs.autoSeat}
-                      onChange={(e) => patch({ autoSeat: e.target.checked })}
-                      className="mt-1 rounded border-white/30"
-                    />
-                    <span>Join the waiting pool (recommended)</span>
-                  </label>
-                  {!prefs.autoSeat ? (
-                    <input
-                      type="text"
-                      placeholder="Table number (e.g. 1)"
-                      value={prefs.tableId}
-                      onChange={(e) => patch({ tableId: e.target.value })}
-                      className="w-full rounded-lg border border-white/20 bg-white/10 p-3 text-white placeholder-white/60 backdrop-blur-md focus:border-casino-emerald focus:outline-none"
-                    />
-                  ) : null}
-                </div>
-              ) : null}
-
               {joinError ? (
                 <p className="rounded-lg border border-red-500/40 bg-red-950/35 px-3 py-2 text-sm leading-snug text-red-200">
                   {joinError}
@@ -116,11 +83,7 @@ export default function JoinScreen({
               ) : null}
 
               <NeonButton variant="emerald" size="large" className="w-full" type="submit" disabled={!canJoin}>
-                {isConnecting
-                  ? 'Connecting…'
-                  : prefs.autoSeat
-                    ? 'Join the waiting pool'
-                    : 'Join game'}
+                {isConnecting ? 'Connecting…' : 'Join game'}
               </NeonButton>
             </form>
           </motion.div>

@@ -68,9 +68,7 @@ function PlayerApp() {
   const socket = useSocket()
 
   const playerName = joinPrefs.playerName.trim()
-  const joinTableId = joinPrefs.autoSeat
-    ? LOBBY_TABLE_ID
-    : String(joinPrefs.tableId || '').trim() || LOBBY_TABLE_ID
+  const joinTableId = LOBBY_TABLE_ID
 
   const showToast = useCallback((message: string, ms = 3500) => {
     setToastMessage(message)
@@ -84,8 +82,7 @@ function PlayerApp() {
 
   const handleJoin = () => {
     if (!playerName || !joinPrefs.roomCode.trim()) return
-    if (!joinPrefs.autoSeat && !String(joinPrefs.tableId || '').trim()) return
-    persistPlayerJoinPrefs(joinPrefs)
+    persistPlayerJoinPrefs({ ...joinPrefs, autoSeat: true, tableId: LOBBY_TABLE_ID })
     setJoinError(null)
     setJoinPhase('connecting')
     setJoinNonce((n) => n + 1)
@@ -213,21 +210,21 @@ function PlayerApp() {
     return <EliminatedScreen playerName={playerName} />
   }
 
-  const inLobbyPool =
+  const inLobbyWaiting =
     (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
     gameState.phase === 'lobby' &&
     currentPlayer != null
 
-  if (inLobbyPool) {
-    const poolPosition = myIndex >= 0 ? myIndex + 1 : null
+  if (inLobbyWaiting) {
+    const waitingPosition = myIndex >= 0 ? myIndex + 1 : null
     return (
       <>
         <PlayerToast message={toastMessage} />
         <LobbyWaitingScreen
           playerName={playerName}
           venueCode={gameState.code}
-          poolCount={gameState.players.length}
-          poolPosition={poolPosition}
+          waitingCount={gameState.players.length}
+          waitingPosition={waitingPosition}
           disconnected={disconnected}
         />
       </>

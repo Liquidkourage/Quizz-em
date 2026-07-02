@@ -3,6 +3,12 @@ import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import { sanitizeLastInitialInput } from '../playerJoinName'
 import type { PlayerJoinBootstrap } from '../playerUrlParams'
+import {
+  PlayerGoldBackdrop,
+  PlayerGoldDivider,
+  PlayerGoldHeaderRule,
+  PlayerGoldShellCorners,
+} from './PlayerGoldChrome'
 
 type JoinScreenProps = {
   prefs: PlayerJoinBootstrap
@@ -10,10 +16,6 @@ type JoinScreenProps = {
   onJoin: () => void
   joinError?: string | null
   isConnecting?: boolean
-}
-
-function JoinCorner({ position }: { position: 'tl' | 'tr' | 'bl' | 'br' }) {
-  return <span aria-hidden className={`player-join-corner player-join-corner--${position}`} />
 }
 
 function JoinDiamond() {
@@ -66,11 +68,7 @@ export default function JoinScreen({
 
   return (
     <div className="player-join-screen">
-      <div className="player-join-bg" aria-hidden>
-        <span className="player-join-suit player-join-suit--club">♣</span>
-        <span className="player-join-suit player-join-suit--diamond">♦</span>
-        <div className="player-join-floor-glow" />
-      </div>
+      <PlayerGoldBackdrop />
 
       <div className="player-join-layout">
         <motion.div
@@ -79,10 +77,7 @@ export default function JoinScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
         >
-          <JoinCorner position="tl" />
-          <JoinCorner position="tr" />
-          <JoinCorner position="bl" />
-          <JoinCorner position="br" />
+          <PlayerGoldShellCorners />
 
           <header className="player-join-header">
             <div className="player-join-logo-glow" aria-hidden />
@@ -91,11 +86,11 @@ export default function JoinScreen({
             </div>
           </header>
 
-          <div className="player-join-header-rule" aria-hidden />
+          <PlayerGoldHeaderRule />
 
           <div className="player-join-body">
             <h1 className="player-join-title">Join the game</h1>
-            <div className="player-join-divider" aria-hidden />
+            <PlayerGoldDivider />
 
             {roomLocked ? (
               <p className="player-join-room">

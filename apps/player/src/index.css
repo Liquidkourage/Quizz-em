@@ -674,3 +674,120 @@
     width: min(88%, 28rem);
   }
 }
+
+/* Lobby waiting — same gold shell, status well instead of form */
+.player-lobby-body {
+  gap: 0;
+}
+
+.player-lobby-title {
+  line-height: 1.25;
+}
+
+.player-lobby-lead {
+  margin: 0 0 1.15rem;
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.92rem, 3.2vw, 1.05rem);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.04em;
+  color: rgb(255 255 255 / 0.62);
+}
+
+.player-lobby-reconnect {
+  margin: 0 0 0.85rem;
+  text-align: center;
+  font-size: clamp(0.85rem, 3vw, 0.95rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(251 191 36 / 0.9);
+  animation: player-lobby-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes player-lobby-pulse {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.player-lobby-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: clamp(1rem, 3.5vw, 1.35rem) clamp(1rem, 4vw, 1.5rem);
+  border-radius: 0.65rem;
+  border: 1px solid rgb(251 191 36 / 0.35);
+  background:
+    linear-gradient(180deg, rgb(8 12 10 / 0.92) 0%, rgb(5 8 6 / 0.88) 100%),
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgb(251 191 36 / 0.08) 0%, transparent 70%);
+  box-shadow:
+    inset 0 1px 0 rgb(253 230 138 / 0.12),
+    0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+.player-lobby-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1rem, 3.6vw, 1.15rem);
+  line-height: 1.35;
+}
+
+.player-lobby-status-label {
+  color: rgb(255 255 255 / 0.58);
+  letter-spacing: 0.04em;
+}
+
+.player-lobby-status-value {
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.96);
+}
+
+.player-lobby-status-code {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgb(253 224 71);
+  text-shadow: 0 0 12px rgb(251 191 36 / 0.45);
+}
+
+.player-lobby-status-queue {
+  margin-top: 0.25rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgb(251 191 36 / 0.2);
+  text-align: center;
+}
+
+.player-lobby-status-count {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.05rem, 3.8vw, 1.2rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgb(253 224 71);
+  text-shadow: 0 0 10px rgb(251 191 36 / 0.35);
+}
+
+.player-lobby-status-position {
+  margin: 0.45rem 0 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.88rem, 3vw, 0.98rem);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: rgb(255 255 255 / 0.55);
+}
+
+@media (min-width: 768px) {
+  .player-lobby-body {
+    padding-bottom: 2rem;
+  }
+}

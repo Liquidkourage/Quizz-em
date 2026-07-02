@@ -1,5 +1,11 @@
 import { motion } from 'framer-motion'
-import { Card, QuizzEmWordmark } from '@qhe/ui'
+import { QuizzEmWordmark } from '@qhe/ui'
+import {
+  PlayerGoldBackdrop,
+  PlayerGoldDivider,
+  PlayerGoldHeaderRule,
+  PlayerGoldShellCorners,
+} from './PlayerGoldChrome'
 
 type LobbyWaitingScreenProps = {
   playerName: string
@@ -16,50 +22,60 @@ export default function LobbyWaitingScreen({
   waitingPosition,
   disconnected,
 }: LobbyWaitingScreenProps) {
+  const queueLabel =
+    waitingCount === 1 ? '1 player waiting to be seated' : `${waitingCount} players waiting to be seated`
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-casino-gradient">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 animate-pulse-slow bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900" />
-        <div className="absolute inset-0 animate-float bg-gradient-to-tr from-emerald-500/10 via-transparent to-blue-500/10" />
-      </div>
+    <div className="player-join-screen">
+      <PlayerGoldBackdrop />
 
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6 w-[clamp(5rem,28vw,7rem)] lg:mb-8 lg:w-[clamp(7rem,18vw,10rem)]">
-          <QuizzEmWordmark layout="fill" />
-        </div>
+      <div className="player-join-layout">
+        <motion.div
+          className="player-join-shell"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <PlayerGoldShellCorners />
 
-        <Card variant="glass" className="player-shell w-full p-6 text-center sm:p-8 lg:p-10">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-            {disconnected ? (
-              <p className="mb-3 text-sm font-semibold text-red-400">Reconnecting…</p>
-            ) : null}
-            <h1 className="text-2xl font-black leading-tight text-casino-emerald sm:text-3xl">
-              You&apos;re in — waiting to be seated
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-white/70 sm:text-base">
-              Host seats you before the first hand.
-            </p>
-
-            <div className="mt-6 space-y-3 rounded-xl border border-emerald-500/30 bg-emerald-950/25 px-4 py-4">
-              <p className="text-sm text-white/80">
-                <span className="text-white/55">Playing as </span>
-                <span className="font-bold text-white">{playerName}</span>
-              </p>
-              <p className="text-sm text-white/80">
-                <span className="text-white/55">Venue </span>
-                <span className="font-mono font-bold tracking-wide text-casino-gold">{venueCode}</span>
-              </p>
-              <p className="text-lg font-bold tabular-nums text-emerald-200">
-                {waitingCount} {waitingCount === 1 ? 'player' : 'players'} waiting to be seated
-                {waitingPosition != null ? (
-                  <span className="mt-1 block text-sm font-semibold text-white/65">
-                    You&apos;re #{waitingPosition}
-                  </span>
-                ) : null}
-              </p>
+          <header className="player-join-header">
+            <div className="player-join-logo-glow" aria-hidden />
+            <div className="player-join-logo">
+              <QuizzEmWordmark layout="fill" depth="hero" />
             </div>
-          </motion.div>
-        </Card>
+          </header>
+
+          <PlayerGoldHeaderRule />
+
+          <div className="player-join-body player-lobby-body">
+            {disconnected ? (
+              <p className="player-lobby-reconnect" role="status">
+                Reconnecting…
+              </p>
+            ) : null}
+
+            <h1 className="player-join-title player-lobby-title">You&apos;re in — waiting to be seated</h1>
+            <p className="player-lobby-lead">Host seats you before the first hand.</p>
+            <PlayerGoldDivider />
+
+            <div className="player-lobby-status" aria-live="polite">
+              <div className="player-lobby-status-row">
+                <span className="player-lobby-status-label">Playing as</span>
+                <span className="player-lobby-status-value">{playerName}</span>
+              </div>
+              <div className="player-lobby-status-row">
+                <span className="player-lobby-status-label">Venue</span>
+                <span className="player-lobby-status-code">{venueCode}</span>
+              </div>
+              <div className="player-lobby-status-queue">
+                <p className="player-lobby-status-count">{queueLabel}</p>
+                {waitingPosition != null ? (
+                  <p className="player-lobby-status-position">You&apos;re #{waitingPosition}</p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   )

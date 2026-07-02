@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Card, NeonButton, PokerChip } from '@qhe/ui'
+import { sanitizeLastInitialInput } from '../playerJoinName'
 import type { PlayerJoinBootstrap } from '../playerUrlParams'
 
 type JoinScreenProps = {
@@ -11,6 +12,9 @@ type JoinScreenProps = {
   isConnecting?: boolean
 }
 
+const fieldClass =
+  'w-full rounded-lg border border-white/20 bg-white/10 p-3 text-white placeholder-white/60 backdrop-blur-md focus:border-casino-emerald focus:outline-none'
+
 export default function JoinScreen({
   prefs,
   onChange,
@@ -18,16 +22,20 @@ export default function JoinScreen({
   joinError = null,
   isConnecting = false,
 }: JoinScreenProps) {
-  const nameInputRef = useRef<HTMLInputElement>(null)
+  const firstNameInputRef = useRef<HTMLInputElement>(null)
 
   const canJoin =
-    !isConnecting && prefs.playerName.trim().length > 0 && prefs.roomCode.trim().length > 0
+    !isConnecting &&
+    prefs.firstName.trim().length > 0 &&
+    prefs.lastInitial.trim().length > 0 &&
+    prefs.roomCode.trim().length > 0
 
-  const focusName = prefs.roomFromUrl && !prefs.nameFromUrl && prefs.playerName.trim().length === 0
+  const focusName =
+    prefs.roomFromUrl && !prefs.nameFromUrl && prefs.firstName.trim().length === 0
 
   useEffect(() => {
     if (!focusName) return
-    nameInputRef.current?.focus()
+    firstNameInputRef.current?.focus()
   }, [focusName])
 
   function patch(next: Partial<PlayerJoinBootstrap>) {
@@ -58,22 +66,35 @@ export default function JoinScreen({
             </p>
 
             <form className="space-y-4 text-left" onSubmit={handleSubmit}>
-              <input
-                ref={nameInputRef}
-                type="text"
-                placeholder="Your name"
-                value={prefs.playerName}
-                onChange={(e) => patch({ playerName: e.target.value })}
-                autoComplete="nickname"
-                className="w-full rounded-lg border border-white/20 bg-white/10 p-3 text-white placeholder-white/60 backdrop-blur-md focus:border-casino-emerald focus:outline-none"
-              />
+              <div className="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-3">
+                <input
+                  ref={firstNameInputRef}
+                  type="text"
+                  placeholder="First name"
+                  value={prefs.firstName}
+                  onChange={(e) => patch({ firstName: e.target.value })}
+                  autoComplete="given-name"
+                  className={fieldClass}
+                />
+                <input
+                  type="text"
+                  placeholder="Initial"
+                  value={prefs.lastInitial}
+                  onChange={(e) => patch({ lastInitial: sanitizeLastInitialInput(e.target.value) })}
+                  autoComplete="off"
+                  inputMode="text"
+                  maxLength={1}
+                  aria-label="Last initial"
+                  className={`${fieldClass} text-center uppercase tracking-wide`}
+                />
+              </div>
               <input
                 type="text"
                 placeholder="Venue code"
                 value={prefs.roomCode}
                 onChange={(e) => patch({ roomCode: e.target.value.toUpperCase() })}
                 autoComplete="off"
-                className="w-full rounded-lg border border-white/20 bg-white/10 p-3 text-white placeholder-white/60 backdrop-blur-md focus:border-casino-emerald focus:outline-none"
+                className={fieldClass}
               />
 
               {joinError ? (

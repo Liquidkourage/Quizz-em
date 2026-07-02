@@ -20,6 +20,7 @@ import { recordServerClockSample } from './serverClock'
 import {
   readPlayerJoinPrefs,
   persistPlayerJoinPrefs,
+  playerDisplayNameFromPrefs,
   type PlayerJoinBootstrap,
 } from './playerUrlParams'
 import { useAnswerCountdown } from './hooks/useAnswerCountdown'
@@ -67,7 +68,7 @@ function PlayerApp() {
   const [selectedCards, setSelectedCards] = useState<SelectedCardRef[]>([])
   const socket = useSocket()
 
-  const playerName = joinPrefs.playerName.trim()
+  const playerName = playerDisplayNameFromPrefs(joinPrefs)
   const joinTableId = LOBBY_TABLE_ID
 
   const showToast = useCallback((message: string, ms = 3500) => {
@@ -82,6 +83,7 @@ function PlayerApp() {
 
   const handleJoin = () => {
     if (!playerName || !joinPrefs.roomCode.trim()) return
+    if (!joinPrefs.firstName.trim() || !joinPrefs.lastInitial.trim()) return
     persistPlayerJoinPrefs({ ...joinPrefs, autoSeat: true, tableId: LOBBY_TABLE_ID })
     setJoinError(null)
     setJoinPhase('connecting')

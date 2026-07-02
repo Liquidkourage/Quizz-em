@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CardFaceGraphic,
@@ -1225,6 +1225,10 @@ function SeatRingWithLabels({
   seatHoleDigits: seatHoleDigitsIn,
   /** Mosaic: community board digits (0–5 cards). */
   communityDigits: communityDigitsIn,
+  /** Hide pot / community board while a felt showdown overlay covers the table. */
+  suppressFeltCenter = false,
+  /** Rendered inside the felt ring bounds (e.g. broadcast showdown). */
+  feltOverlay = null,
   /** Mosaic: wagering street complete on this felt. */
   betsInPaused = false,
   /** Mosaic: per-seat locked trivia answers during answering. */
@@ -1269,6 +1273,8 @@ function SeatRingWithLabels({
   winnerSeatIndexes?: ReadonlySet<number> | null
   seatHoleDigits?: (readonly [number, number] | null)[]
   communityDigits?: number[]
+  suppressFeltCenter?: boolean
+  feltOverlay?: ReactNode
   betsInPaused?: boolean
   seatSubmittedAnswers?: (number | null)[]
   answeringPhase?: boolean
@@ -1407,11 +1413,12 @@ function SeatRingWithLabels({
       : 0
 
   const showFeltBoardCenter =
-    (isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)) ||
-    (isBroadcast &&
-      (communityDigits.length > 0 ||
-        broadcastActionKind != null ||
-        potFromBroadcast != null))
+    !suppressFeltCenter &&
+    ((isMosaic && (communityDigits.length > 0 || mosaicCenterPot != null)) ||
+      (isBroadcast &&
+        (communityDigits.length > 0 ||
+          broadcastActionKind != null ||
+          potFromBroadcast != null)))
 
   const layoutReady = rimW > 0 && rimH > 0
 
@@ -1943,6 +1950,7 @@ function SeatRingWithLabels({
           </div>
         )
       })}
+      {feltOverlay}
     </div>
   )
 }
@@ -2278,6 +2286,7 @@ function VenueMosaicTableCard({
             seatLastBettingAction={seatLastBettingAction}
             actingCallAmount={row.actingCallAmount}
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
+            suppressFeltCenter={showFloorShowdownOverlay}
             seatHoleDigits={row.seatHoleDigits}
             communityDigits={row.communityDigits}
             betsInPaused={showNoMoreBets}
@@ -2737,6 +2746,19 @@ function VenueSingleTableBroadcast({
             broadcastActingPlayerName={actingPlayerName}
             broadcastCallAmount={actingCallAmount}
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
+            suppressFeltCenter={showFloorShowdownOverlay}
+            feltOverlay={
+              showFloorShowdownOverlay ? (
+                <VenueFloorShowdownByVariant
+                  tableNum={tile.tableNum}
+                  pot={floorShowdownPot}
+                  rows={floorShowdownRows}
+                  correctAnswer={floorShowdownAnswer}
+                  layoutTableCount={1}
+                  stageViewport="broadcast"
+                />
+              ) : null
+            }
             seatHoleDigits={tile.seatHoleDigits}
             communityDigits={tile.communityDigits}
             betsInPaused={showNoMoreBets}
@@ -2744,15 +2766,6 @@ function VenueSingleTableBroadcast({
             answeringPhase={ph === 'answering'}
           />
         </div>
-        {showFloorShowdownOverlay ? (
-          <VenueFloorShowdownByVariant
-            tableNum={tile.tableNum}
-            pot={floorShowdownPot}
-            rows={floorShowdownRows}
-            correctAnswer={floorShowdownAnswer}
-            layoutTableCount={1}
-          />
-        ) : null}
         {showNoMoreBets && seats >= 2 && !showFloorShowdownOverlay && broadcastActionKind !== 'no-more-bets' ? (
           <VenueMosaicNoMoreBetsWatermark offsetClass="translate-y-[8%] text-[clamp(1.75rem,6vw,3.5rem)]" />
         ) : null}

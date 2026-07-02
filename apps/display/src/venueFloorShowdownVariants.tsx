@@ -95,12 +95,15 @@ export function VenueFloorShowdownByVariant({
   rows,
   correctAnswer,
   layoutTableCount,
+  stageViewport = 'mosaic',
+  labMode: _labMode,
 }: {
   tableNum?: number
   pot: number
   rows: ShowdownResultRow[]
   correctAnswer: number | undefined
   layoutTableCount: number
+  stageViewport?: 'mosaic' | 'broadcast'
   labMode?: boolean
 }) {
   const ctx = buildCtx(pot, rows, correctAnswer)
@@ -122,10 +125,11 @@ export function VenueFloorShowdownByVariant({
 
   return (
     <div
-      className="@container vfd-showdown-winner-comp pointer-events-none absolute inset-0 z-[125] overflow-hidden rounded-[inherit]"
+      className="@container vfd-showdown-winner-comp pointer-events-none absolute inset-0 z-[135] overflow-hidden rounded-[inherit]"
       role="group"
       aria-label={ariaLabel}
       data-showdown-dense={denseLayout ? '' : undefined}
+      data-stage-viewport={stageViewport}
       style={denseLayout ? showdownDenseOverlayStyle() : undefined}
     >
       {tableNum != null ? (

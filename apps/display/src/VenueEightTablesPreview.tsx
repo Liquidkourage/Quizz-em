@@ -35,11 +35,9 @@ import {
   broadcastRimStackOffsetPx,
   broadcastRimLabelMaxWidthPx,
   broadcastRimLabelTransform,
-  broadcastSeatPodPct,
   type BroadcastDensity,
   MOSAIC_HOLE_CARD_FAN_DEG,
 } from './venueMosaicSeatGeometry'
-import { BroadcastSeatPod, type BroadcastSeatPodState } from './BroadcastSeatPod'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -63,6 +61,7 @@ import {
   isVenueDualTableBroadcast,
   isVenueSingleTableBroadcast,
 } from './venueBroadcastLayout'
+import { ShowdownTableBadge } from './venueFloorSidePotDisplay'
 import {
   formatVenueBankroll,
   formatVenueBankrollDigits,
@@ -440,19 +439,6 @@ function broadcastPoleChipTransform(seatIndex: number, rimH: number): string {
     : `translate(-50%, calc(-50% + ${nudge}px))`
 }
 
-function resolveBroadcastSeatPodState(args: {
-  isFolded: boolean
-  showFoldOut: boolean
-  isActing: boolean
-  lastBetAct: SeatBettingAction | null
-}): BroadcastSeatPodState {
-  if (args.isFolded && args.showFoldOut) return 'out'
-  if (args.isFolded) return 'folded'
-  if (args.lastBetAct === 'allIn') return 'all-in'
-  if (args.isActing) return 'acting'
-  return 'active'
-}
-
 function broadcastCenterKeepoutRadiusPx(
   rimW: number,
   hasBoard: boolean,
@@ -589,9 +575,6 @@ function VenueBroadcastCenterStack({
         </div>
       ) : null}
       <div className="vfd-broadcast-pot-stack" style={potStackStyle}>
-        <span className="vfd-broadcast-center-kicker" style={{ fontSize: centerTypo.actionLabelPx }}>
-          Pot
-        </span>
         <BroadcastCenterAmount
           amount={pot}
           fontSizePx={centerTypo.potAmountPx}
@@ -605,7 +588,7 @@ function VenueBroadcastCenterStack({
         <div className="vfd-broadcast-action-stack" style={actionStackStyle}>
         {actionKind === 'to-call' && actingPlayerName && callAmount != null ? (
           <div
-            className="vfd-broadcast-center-line vfd-broadcast-center-line--action vfd-broadcast-center-line--to-call"
+            className="vfd-broadcast-center-line vfd-broadcast-center-line--action"
             aria-live="polite"
             aria-label={`${actingPlayerName} to call ${formatVenueBankroll(callAmount)}`}
           >
@@ -616,16 +599,15 @@ function VenueBroadcastCenterStack({
             >
               {actingPlayerName}
             </span>
-            <span className="vfd-broadcast-action-detail" style={{ fontSize: centerTypo.actionLabelPx }}>
-              To call{' '}
-              <BroadcastCenterAmount
-                amount={callAmount}
-                fontSizePx={centerTypo.actionAmountPx}
-                prefersReducedMotion={prefersReducedMotion}
-                pulseOnChange
-                className="vfd-broadcast-center-amount--inline-call"
-              />
+            <span className="vfd-broadcast-action-label" style={{ fontSize: centerTypo.actionLabelPx }}>
+              to call
             </span>
+            <BroadcastCenterAmount
+              amount={callAmount}
+              fontSizePx={centerTypo.actionAmountPx}
+              prefersReducedMotion={prefersReducedMotion}
+              pulseOnChange
+            />
           </div>
         ) : actionKind === 'no-more-bets' ? (
           <p
@@ -1626,10 +1608,6 @@ function SeatRingWithLabels({
           isBroadcast && rimW > 0 && rimH > 0
             ? broadcastRimLabelTransform(labelPos, rimW, rimH, broadcastDensity, labelVy)
             : `translate(-50%, calc(-50% + ${labelVy}px))`
-        const broadcastPodPos =
-          isBroadcast && rimW > 0 && rimH > 0 && raw
-            ? broadcastSeatPodPct(i, rimW, rimH, broadcastDensity)
-            : null
         const lastBetAct =
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
         const showFoldOut = isFolded && !(showSeatBettingActions && lastBetAct === 'fold')
@@ -1734,25 +1712,7 @@ function SeatRingWithLabels({
                 }
               />
             </div>
-            {isBroadcast && broadcastPodPos && raw ? (
-              <BroadcastSeatPod
-                name={rimDisplayName}
-                bankroll={chips}
-                state={resolveBroadcastSeatPodState({
-                  isFolded,
-                  showFoldOut,
-                  isActing,
-                  lastBetAct,
-                })}
-                holeDigits={seatHoleDigits[i]}
-                rimW={rimW}
-                density={broadcastDensity}
-                leftPct={broadcastPodPos.leftPct}
-                topPct={broadcastPodPos.topPct}
-                prefersReducedMotion={prefersReducedMotion}
-              />
-            ) : null}
-            {filled && !isFolded && seatHoleDigits[i] != null && !isBroadcast ? (
+            {filled && !isFolded && seatHoleDigits[i] != null ? (
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
                 style={{
@@ -1820,7 +1780,7 @@ function SeatRingWithLabels({
                 </div>
               )
             })()}
-            {!isMosaic && showFoldOut && raw && !isBroadcast ? (
+            {!isMosaic && showFoldOut && raw ? (
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center`}
                 style={
@@ -1869,7 +1829,7 @@ function SeatRingWithLabels({
                 </span>
               </div>
             ) : null}
-            {!isMosaic && showFeltStack && !isBroadcast ? (
+            {!isMosaic && showFeltStack ? (
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_FELT_CHIP_PILE} flex flex-col items-center gap-0.5 px-0.5 ${
                   isFolded ? 'opacity-45' : 'opacity-95'
@@ -1921,7 +1881,7 @@ function SeatRingWithLabels({
                 ) : null}
               </div>
             ) : null}
-            {!isMosaic && raw && !isBroadcast ? (
+            {!isMosaic && raw ? (
               <>
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} text-center font-semibold leading-tight shadow-black/80 drop-shadow ${
@@ -2818,15 +2778,15 @@ function VenueSingleTableBroadcast({
         />
       ) : (
         <>
+          {showTableBadge ? (
+            <div className="pointer-events-none absolute left-2 top-2 z-20">
+              <ShowdownTableBadge tableNum={tableNum} />
+            </div>
+          ) : null}
           <div
-            className={`relative flex min-h-0 flex-1 w-full flex-col items-center justify-end pb-[1.5%] pt-1 ${phaseShell}`}
+            className={`relative flex min-h-0 flex-1 w-full flex-col items-center justify-center ${phaseShell}`}
           >
-            {showTableBadge ? (
-              <h2 className="vfd-broadcast-table-header shrink-0">Table {tableNum}</h2>
-            ) : null}
-            <div
-              className={`venue-broadcast-felt-shrink venue-broadcast-felt-shrink--${broadcastDensity} flex min-h-0 w-full flex-1 items-end justify-center`}
-            >
+            <div className="flex h-full min-h-0 w-full items-center justify-center">
               <SeatRingWithLabels
                 ringMode="broadcast"
                 size="lg"
@@ -2839,7 +2799,6 @@ function VenueSingleTableBroadcast({
                 seatFolded={seatFolded}
                 actingSeatIndex={actingSeat}
                 seatLastBettingAction={seatLastBettingAction}
-                showSeatBettingActions={wageringLive && !showFloorShowdownOverlay}
                 actingCallAmount={tile.actingCallAmount}
                 mosaicCenterPot={pot}
                 mosaicCenterPotMuted={potMuted}

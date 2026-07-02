@@ -16,7 +16,6 @@ import {
   broadcastRimStackOffsetPx,
   broadcastRimLabelMaxWidthPx,
   broadcastRimLabelTransform,
-  broadcastSeatPodPct,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
 
@@ -231,19 +230,5 @@ describe('broadcastRimLabel dual density', () => {
   it('keeps solo labels centered', () => {
     const name = mosaicSeatLabelPct(2, w, h, 28)
     expect(broadcastRimLabelTransform(name, w, h, 'solo')).toBe('translate(-50%, -50%)')
-  })
-})
-
-describe('broadcastSeatPod layout', () => {
-  const w = 640
-  const h = 360
-
-  it('places pods farther outside the rail than rim labels', () => {
-    const label = mosaicSeatLabelPct(2, w, h, 28)
-    const pod = broadcastSeatPodPct(2, w, h, 'dual')
-    const center = venueMosaicFeltCenterPct(w, h)
-    const labelDist = Math.hypot(label.leftPct - center.leftPct, label.topPct - center.topPct)
-    const podDist = Math.hypot(pod.leftPct - center.leftPct, pod.topPct - center.topPct)
-    expect(podDist).toBeGreaterThan(labelDist)
   })
 })

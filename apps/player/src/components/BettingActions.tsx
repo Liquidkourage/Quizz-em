@@ -31,16 +31,22 @@ export default function BettingActions({
 
   return (
     <PlayerGoldPanel title="Wagering">
+      <div className="player-game-wager-stack">
+        <p className="player-game-stack-label">Your stack</p>
+        <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
+        {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
+      </div>
+
       {ctx.isBettingPhase ? (
         <div className="player-game-stat-grid">
           <div>
             Round <strong>{ctx.isBettingOpen ? 'open' : 'closed'}</strong>
           </div>
           <div>
-            Stack <strong>${currentPlayer.bankroll}</strong>
+            To call <strong>${ctx.toCall}</strong>
           </div>
           <div>
-            To call <strong>${ctx.toCall}</strong>
+            Min raise <strong>${ctx.minRaise}</strong>
           </div>
           <div>
             Turn{' '}

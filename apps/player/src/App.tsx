@@ -308,31 +308,27 @@ function PlayerApp() {
               />
             ) : null}
 
-            <div className="player-game-grid">
-              {currentPlayer ? (
-                <PlayerGoldPanel className="player-game-stack-panel">
-                  <p className="player-game-stack-label">Your stack</p>
-                  <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
-                  {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
-                </PlayerGoldPanel>
-              ) : null}
-
-              {bettingCtx && currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded ? (
-                <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>
-                  <BettingActions
-                    currentPlayer={currentPlayer}
-                    ctx={bettingCtx}
-                    raiseAmount={raiseAmount}
-                    onRaiseAmountChange={setRaiseAmount}
-                    onCheck={() => checkAction()}
-                    onCall={() => callAction()}
-                    onRaise={() => raiseAmount > 0 && raiseAction(raiseAmount)}
-                    onFold={() => fold()}
-                    onAllIn={() => allInAction()}
-                  />
-                </div>
-              ) : null}
-            </div>
+            {bettingCtx && currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded ? (
+              <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>
+                <BettingActions
+                  currentPlayer={currentPlayer}
+                  ctx={bettingCtx}
+                  raiseAmount={raiseAmount}
+                  onRaiseAmountChange={setRaiseAmount}
+                  onCheck={() => checkAction()}
+                  onCall={() => callAction()}
+                  onRaise={() => raiseAmount > 0 && raiseAction(raiseAmount)}
+                  onFold={() => fold()}
+                  onAllIn={() => allInAction()}
+                />
+              </div>
+            ) : currentPlayer ? (
+              <PlayerGoldPanel className="player-game-stack-panel">
+                <p className="player-game-stack-label">Your stack</p>
+                <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
+                {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
+              </PlayerGoldPanel>
+            ) : null}
 
             <TableFeltView gameState={gameState} playerName={playerName} />
           </div>

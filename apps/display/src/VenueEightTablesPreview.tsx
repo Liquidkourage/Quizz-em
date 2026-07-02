@@ -33,6 +33,9 @@ import {
   broadcastBlindMarkerPct,
   broadcastRimStackPct,
   broadcastRimStackOffsetPx,
+  broadcastRimLabelMaxWidthPx,
+  broadcastRimLabelTransform,
+  type BroadcastDensity,
   MOSAIC_HOLE_CARD_FAN_DEG,
 } from './venueMosaicSeatGeometry'
 import {
@@ -1243,6 +1246,8 @@ function SeatRingWithLabels({
   /** Mosaic: per-seat locked trivia answers during answering. */
   seatSubmittedAnswers: seatSubmittedAnswersIn,
   answeringPhase = false,
+  /** Side-by-side broadcast columns use tighter rim label geometry. */
+  broadcastDensity = 'solo' as BroadcastDensity,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -1288,6 +1293,7 @@ function SeatRingWithLabels({
   betsInPaused?: boolean
   seatSubmittedAnswers?: (number | null)[]
   answeringPhase?: boolean
+  broadcastDensity?: BroadcastDensity
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
@@ -1298,6 +1304,7 @@ function SeatRingWithLabels({
   const prefersReducedMotion = usePrefersReducedMotion()
   const isMosaic = ringMode === 'mosaic'
   const isBroadcast = ringMode === 'broadcast'
+  const isDualBroadcast = isBroadcast && broadcastDensity === 'dual'
   /** Spotlight / broadcast hero — wide capsule; mosaic tiles use smaller md ring below. */
   const lgRing = isBroadcast
     ? 'venue-broadcast-felt relative mx-auto aspect-[14/8] h-full max-h-full w-auto max-w-full min-h-0 shrink-0'
@@ -1360,10 +1367,11 @@ function SeatRingWithLabels({
       if (!(w > 0 && h > 0)) return empty
       const cupPx = Math.round(stadiumCupholderSizePx(w) * 1.2)
       const labelOutwardPx = cupPx * 0.72 + (feltSeatStacks ? 32 : 22)
+      const outwardScale = broadcastDensity === 'dual' ? 0.78 : 1
       return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         if (!(seatNames[i]?.trim() ?? '')) return null
         const rimClusterExtra = feltSeatStacks ? Math.round(cupPx * 0.26) : 0
-        return mosaicSeatLabelPct(i, w, h, labelOutwardPx + rimClusterExtra)
+        return mosaicSeatLabelPct(i, w, h, (labelOutwardPx + rimClusterExtra) * outwardScale)
       })
     }
     return computeSeatLabelAnchorsPct({
@@ -1373,7 +1381,7 @@ function SeatRingWithLabels({
       feltSeatStacks,
       seatNames,
     })
-  }, [feltSeatStacks, isBroadcast, isMosaic, ringPx.h, ringPx.w, seatNames, size])
+  }, [broadcastDensity, feltSeatStacks, isBroadcast, isMosaic, ringPx.h, ringPx.w, seatNames, size])
 
   const rimW = ringPx.w
   const rimH = ringPx.h
@@ -1435,7 +1443,7 @@ function SeatRingWithLabels({
   return (
     <div
       ref={ringElRef}
-      className={`${isMosaic ? '@container' : ''} relative ${isMosaic ? 'overflow-hidden' : 'overflow-visible'} ${wrap}`}
+      className={`${isMosaic ? '@container' : ''} relative ${isMosaic || isDualBroadcast ? 'overflow-hidden' : 'overflow-visible'} ${wrap}`}
       style={ringWrapStyle}
     >
       <div className="absolute inset-0" aria-hidden>
@@ -1594,6 +1602,12 @@ function SeatRingWithLabels({
             : null
         const rimDisplayName = isBroadcast ? formatVenueDisplayPlayerName(raw) : raw
         const labelVy = isBroadcast ? 0 : seatNameLabelVerticalNudgePx(i, size)
+        const broadcastLabelMaxWidthPx =
+          isBroadcast && rimW > 0 ? broadcastRimLabelMaxWidthPx(rimW, broadcastDensity) : null
+        const broadcastLabelTransform =
+          isBroadcast && rimW > 0 && rimH > 0
+            ? broadcastRimLabelTransform(labelPos, rimW, rimH, broadcastDensity, labelVy)
+            : `translate(-50%, calc(-50% + ${labelVy}px))`
         const lastBetAct =
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
         const showFoldOut = isFolded && !(showSeatBettingActions && lastBetAct === 'fold')
@@ -1872,8 +1886,8 @@ function SeatRingWithLabels({
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} text-center font-semibold leading-tight shadow-black/80 drop-shadow ${
                   isBroadcast
-                    ? `vfd-broadcast-rim-name max-w-[min(13rem,34vw)] ${
-                        isActing ? 'vfd-broadcast-rim-name--acting font-black text-amber-100' : ''
+                    ? `vfd-broadcast-rim-name${
+                        isActing ? ' vfd-broadcast-rim-name--acting font-black text-amber-100' : ''
                       }`
                     : labelClass
                 } ${
@@ -1882,7 +1896,10 @@ function SeatRingWithLabels({
                 style={{
                   left: `${labelPos.leftPct}%`,
                   top: `${labelPos.topPct}%`,
-                  transform: `translate(-50%, calc(-50% + ${labelVy}px))`,
+                  transform: broadcastLabelTransform,
+                  ...(broadcastLabelMaxWidthPx != null
+                    ? { maxWidth: `${broadcastLabelMaxWidthPx}px` }
+                    : {}),
                 }}
               >
                 <span
@@ -1906,7 +1923,10 @@ function SeatRingWithLabels({
                   style={{
                     left: `${broadcastStackPos.leftPct}%`,
                     top: `${broadcastStackPos.topPct}%`,
-                    transform: `translate(-50%, calc(-50% + ${labelVy}px))`,
+                    transform: broadcastLabelTransform,
+                    ...(broadcastLabelMaxWidthPx != null
+                      ? { maxWidth: `${broadcastLabelMaxWidthPx}px` }
+                      : {}),
                   }}
                 >
                   <span
@@ -2736,7 +2756,7 @@ function VenueSingleTableBroadcast({
 
   return (
     <div
-      className={`venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-stretch justify-center px-0 pb-0 pt-0${
+      className={`venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-stretch justify-center overflow-hidden px-0 pb-0 pt-0${
         isDualDensity ? ' venue-single-table-broadcast--dual relative min-w-0' : ''
       }`}
       aria-label={
@@ -2771,6 +2791,7 @@ function VenueSingleTableBroadcast({
                 ringMode="broadcast"
                 size="lg"
                 feltSeatStacks
+                broadcastDensity={broadcastDensity}
                 seatedCount={seats}
                 seatNames={seatNames}
                 seatBankrolls={seatBankrolls}
@@ -2811,16 +2832,20 @@ function VenueDualTableBroadcast({
   sharedShowdownAnswer?: number
 }) {
   return (
-    <div className="venue-dual-table-broadcast grid min-h-0 min-w-0 flex-1 grid-cols-2 gap-x-2 px-0.5">
+    <div className="venue-dual-table-broadcast grid min-h-0 min-w-0 flex-1 grid-cols-2 gap-x-2 overflow-hidden px-0.5">
       {tiles.map((tile) => (
-        <VenueSingleTableBroadcast
+        <div
           key={tile.tableNum}
+          className="venue-dual-table-broadcast__cell flex min-h-0 min-w-0 flex-col overflow-hidden"
+        >
+        <VenueSingleTableBroadcast
           tile={tile}
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
           broadcastDensity="dual"
           showTableBadge
         />
+        </div>
       ))}
     </div>
   )

@@ -498,6 +498,12 @@
   .venue-dual-table-broadcast {
     width: 100%;
     height: 100%;
+    overflow: hidden;
+  }
+
+  .venue-dual-table-broadcast__cell {
+    min-width: 0;
+    overflow: hidden;
   }
 
   .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__plaque {

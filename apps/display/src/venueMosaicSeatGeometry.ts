@@ -414,3 +414,49 @@ export function mosaicSeatLabelPct(
   const ly = cupY + (dy / len) * outwardPx
   return { leftPct: (lx / w) * 100, topPct: (ly / h) * 100 }
 }
+
+export type BroadcastDensity = 'solo' | 'dual'
+
+/** Max rim-name width — dual uses felt width, not viewport, so labels stay in-column. */
+export function broadcastRimLabelMaxWidthPx(rimW: number, density: BroadcastDensity = 'solo'): number {
+  if (!(rimW > 0)) return density === 'dual' ? 180 : 208
+  if (density === 'dual') return Math.round(Math.min(rimW * 0.34, 180))
+  return Math.round(Math.min(rimW * 0.38, 208))
+}
+
+/** Dual-table broadcast: anchor rim labels toward felt center so they never spill past the column. */
+export function broadcastRimLabelTransform(
+  namePos: { leftPct: number; topPct: number },
+  rimW: number,
+  rimH: number,
+  density: BroadcastDensity = 'solo',
+  verticalNudgePx = 0
+): string {
+  const ySolo = verticalNudgePx !== 0 ? `calc(-50% + ${verticalNudgePx}px)` : '-50%'
+  if (density !== 'dual' || !(rimW > 0 && rimH > 0)) {
+    return `translate(-50%, ${ySolo})`
+  }
+
+  const y = (base: string) =>
+    verticalNudgePx !== 0 ? `calc(${base} + ${verticalNudgePx}px)` : base
+
+  const center = venueMosaicFeltCenterPct(rimW, rimH)
+  const dx = namePos.leftPct - center.leftPct
+  const dy = namePos.topPct - center.topPct
+  const absDx = Math.abs(dx)
+  const absDy = Math.abs(dy)
+
+  if (absDx > absDy * 0.72) {
+    if (dx > 0) return `translate(-100%, ${y('-50%')})`
+    return `translate(0%, ${y('-50%')})`
+  }
+
+  if (absDy > absDx * 1.15) {
+    if (dy > 0) return `translate(-50%, ${y('-100%')})`
+    return `translate(-50%, ${y('0%')})`
+  }
+
+  const x = dx > 0 ? '-92%' : '-8%'
+  const yCorner = dy > 0 ? y('-92%') : y('-8%')
+  return `translate(${x}, ${yCorner})`
+}

@@ -14,6 +14,8 @@ import {
   broadcastBlindMarkerPct,
   broadcastRimStackPct,
   broadcastRimStackOffsetPx,
+  broadcastRimLabelMaxWidthPx,
+  broadcastRimLabelTransform,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
 
@@ -203,5 +205,30 @@ describe('venueMosaicSeatGeometry', () => {
       expect(Math.abs(stack.topPct - name.topPct)).toBeGreaterThan(0.35)
       expect(Math.abs(stack.leftPct - name.leftPct)).toBeLessThan(1.5)
     }
+  })
+})
+
+describe('broadcastRimLabel dual density', () => {
+  const w = 640
+  const h = 360
+
+  it('caps dual max width to felt fraction, not viewport', () => {
+    expect(broadcastRimLabelMaxWidthPx(w, 'dual')).toBe(Math.round(w * 0.34))
+    expect(broadcastRimLabelMaxWidthPx(w, 'solo')).toBe(Math.round(w * 0.38))
+  })
+
+  it('anchors right-side dual labels inward with translate(-100%)', () => {
+    const name = mosaicSeatLabelPct(2, w, h, 22)
+    expect(broadcastRimLabelTransform(name, w, h, 'dual')).toBe('translate(-100%, -50%)')
+  })
+
+  it('anchors left-side dual labels inward with translate(0%)', () => {
+    const name = mosaicSeatLabelPct(6, w, h, 22)
+    expect(broadcastRimLabelTransform(name, w, h, 'dual')).toBe('translate(0%, -50%)')
+  })
+
+  it('keeps solo labels centered', () => {
+    const name = mosaicSeatLabelPct(2, w, h, 28)
+    expect(broadcastRimLabelTransform(name, w, h, 'solo')).toBe('translate(-50%, -50%)')
   })
 })

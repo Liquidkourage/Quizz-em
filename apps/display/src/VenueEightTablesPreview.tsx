@@ -58,13 +58,19 @@ import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlin
 import {
   buildVenueBroadcastMetaLine,
 } from './venueBroadcastLayout'
+import type { VenueFloorFormFactor } from './venueFloorFormFactor'
+import { resolveVenueFloorFormFactor } from './venueFloorFormFactor'
 import {
-  isBroadcastVenueFloorFormFactor,
-  isDualTableVenueFloorFormFactor,
-  isSingleTableVenueFloorFormFactor,
-  resolveVenueFloorFormFactor,
-  venueFloorFormFactorBodyKey,
-} from './venueFloorFormFactor'
+  showdownLayoutTableCountFromFormFactor,
+  showdownStageViewportFromFormFactor,
+  venueFloorFormFactorCompactHeadline,
+  venueFloorFormFactorMainPaddingClass,
+  venueFloorFormFactorMainPbClass,
+  venueFloorFormFactorUltraCompactHeadline,
+  venueFloorFormFactorUsesBroadcastHeadline,
+  venueFloorFormFactorUsesBroadcastUiScale,
+} from './venueFloorFormFactorUi'
+import { VenueFloorBody, resolveVenueFloorBodyKey } from './VenueFloorBody'
 import { ShowdownTableBadge } from './venueFloorSidePotDisplay'
 import {
   formatVenueBankroll,
@@ -2378,13 +2384,14 @@ function venueShowdownQuestionFromTiles(
   return null
 }
 
-function VenueAerialFloorGrid({
+export function VenueAerialFloorGrid({
   tiles,
   layoutTableCount,
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
   sharedShowdownAnswer,
+  formFactor,
 }: {
   tiles: DisplayVenueTileSnapshot[]
   /** Size felts for the live table count even when empty felts are hidden from the grid. */
@@ -2393,6 +2400,7 @@ function VenueAerialFloorGrid({
   skipMountIntro: boolean
   prefersReducedMotion: boolean
   sharedShowdownAnswer?: number
+  formFactor?: VenueFloorFormFactor
 }) {
   const n = tiles.length
   const layoutCount = n > 0 ? n : layoutTableCount
@@ -2464,6 +2472,7 @@ function VenueAerialFloorGrid({
     <motion.section
       aria-label={`Venue floor — ${n} table${n === 1 ? '' : 's'}, staggered row grid`}
       className="flex h-full min-h-0 flex-1 flex-col overflow-hidden"
+      data-form-factor-mosaic={formFactor?.id}
       initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
     >
@@ -2679,14 +2688,16 @@ function VenueBroadcastHeadlineStrip({
 }
 
 /** n=1 or n=2 broadcast hero — full-viewport felt, names + stacks, pot/action on felt center. */
-function VenueSingleTableBroadcast({
+export function VenueSingleTableBroadcast({
   tile,
+  formFactor,
   prefersReducedMotion: _prefersReducedMotion,
   sharedShowdownAnswer,
-  broadcastDensity = 'solo',
+  broadcastDensity,
   showTableBadge = false,
 }: {
   tile: DisplayVenueTileSnapshot
+  formFactor?: VenueFloorFormFactor
   prefersReducedMotion: boolean
   sharedShowdownAnswer?: number
   broadcastDensity?: 'solo' | 'dual'
@@ -2756,7 +2767,12 @@ function VenueSingleTableBroadcast({
         : ''
 
   const tableNum = tile.tableNum
-  const isDualDensity = broadcastDensity === 'dual'
+  const density = broadcastDensity ?? formFactor?.broadcastDensity ?? 'solo'
+  const isDualDensity = density === 'dual'
+  const showdownViewport = showdownStageViewportFromFormFactor(formFactor ?? null)
+  const showdownLayoutCount = showdownLayoutTableCountFromFormFactor(formFactor ?? null, {
+    broadcastColumnCount: isDualDensity ? 2 : 1,
+  })
 
   return (
     <div
@@ -2777,8 +2793,8 @@ function VenueSingleTableBroadcast({
           pot={floorShowdownPot}
           rows={floorShowdownRows}
           correctAnswer={floorShowdownAnswer}
-          layoutTableCount={isDualDensity ? 2 : 1}
-          stageViewport="broadcast"
+          layoutTableCount={showdownLayoutCount}
+          stageViewport={showdownViewport}
         />
       ) : (
         <>
@@ -2792,10 +2808,10 @@ function VenueSingleTableBroadcast({
           >
             <div className="flex h-full min-h-0 w-full items-center justify-center">
               <SeatRingWithLabels
-                ringMode="broadcast"
+                ringMode={formFactor?.ringMode ?? 'broadcast'}
                 size="lg"
                 feltSeatStacks
-                broadcastDensity={broadcastDensity}
+                broadcastDensity={density}
                 seatedCount={seats}
                 seatNames={seatNames}
                 seatBankrolls={seatBankrolls}
@@ -2826,24 +2842,27 @@ function VenueSingleTableBroadcast({
   )
 }
 
-function VenueDualTableBroadcast({
+export function VenueDualTableBroadcast({
   tiles,
+  formFactor,
   prefersReducedMotion,
   sharedShowdownAnswer,
 }: {
-  tiles: readonly DisplayVenueTileSnapshot[]
+  tiles: DisplayVenueTileSnapshot[]
+  formFactor?: VenueFloorFormFactor
   prefersReducedMotion: boolean
   sharedShowdownAnswer?: number
 }) {
   return (
-    <div className="venue-dual-table-broadcast grid min-h-0 min-w-0 flex-1 grid-cols-2 gap-x-2 overflow-hidden px-0.5">
+    <div className="venue-floor-dual-broadcast grid min-h-0 min-w-0 flex-1 grid-cols-2 gap-x-2 overflow-hidden px-0.5">
       {tiles.map((tile) => (
         <div
           key={tile.tableNum}
-          className="venue-dual-table-broadcast__cell flex min-h-0 min-w-0 flex-col overflow-hidden"
+          className="venue-floor-dual-broadcast__cell flex min-h-0 min-w-0 flex-col overflow-hidden"
         >
         <VenueSingleTableBroadcast
           tile={tile}
+          formFactor={formFactor}
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
           broadcastDensity="dual"
@@ -2855,7 +2874,7 @@ function VenueDualTableBroadcast({
   )
 }
 
-function VenueHeroSpotlightLayout({
+export function VenueHeroSpotlightLayout({
   featured,
   companions,
   layoutTableCount,
@@ -3029,8 +3048,34 @@ export default function VenueEightTablesPreview({
   const showVenueBlindsHeadline =
     venueBlindsHeadline != null && !(inVenueShowdown && venueShowdownAnswer != null)
 
-  const compactVenueHeadline = floorLayoutTableCount >= 14
-  const ultraCompactVenueHeadline = floorLayoutTableCount >= 17
+  const featuredTile = useMemo(() => {
+    if (hostFocusTable == null) return null
+    return floorTiles.find((t) => t.tableNum === hostFocusTable) ?? null
+  }, [floorTiles, hostFocusTable])
+
+  const companionTiles = useMemo(() => {
+    if (hostFocusTable == null) return floorTiles
+    return floorTiles.filter((t) => t.tableNum !== hostFocusTable)
+  }, [floorTiles, hostFocusTable])
+
+  const showHeroSpotlight = hostFocusTable != null && featuredTile != null
+  const floorFormFactor = useMemo(
+    () =>
+      floorTiles.length > 0
+        ? resolveVenueFloorFormFactor({
+            populatedTableCount: floorTiles.length,
+            hostFocusTable,
+            withHeadline: showHeadline,
+          })
+        : null,
+    [floorTiles.length, hostFocusTable, showHeadline]
+  )
+
+  const compactVenueHeadline = venueFloorFormFactorCompactHeadline(floorFormFactor, floorLayoutTableCount)
+  const ultraCompactVenueHeadline = venueFloorFormFactorUltraCompactHeadline(
+    floorFormFactor,
+    floorLayoutTableCount
+  )
   const publicTypographyTier = useMemo(
     () => venueFloorPublicTypographyTier(floorLayoutTableCount),
     [floorLayoutTableCount],
@@ -3060,35 +3105,16 @@ export default function VenueEightTablesPreview({
     [floorLayoutTableCount],
   )
 
-  const featuredTile = useMemo(() => {
-    if (hostFocusTable == null) return null
-    return floorTiles.find((t) => t.tableNum === hostFocusTable) ?? null
-  }, [floorTiles, hostFocusTable])
-
-  const companionTiles = useMemo(() => {
-    if (hostFocusTable == null) return floorTiles
-    return floorTiles.filter((t) => t.tableNum !== hostFocusTable)
-  }, [floorTiles, hostFocusTable])
-
-  const showHeroSpotlight = hostFocusTable != null && featuredTile != null
-  const floorFormFactor = useMemo(
-    () =>
-      floorTiles.length > 0
-        ? resolveVenueFloorFormFactor({
-            populatedTableCount: floorTiles.length,
-            hostFocusTable,
-            withHeadline: showHeadline,
-          })
-        : null,
-    [floorTiles.length, hostFocusTable, showHeadline]
-  )
-  const isVenueBroadcast = isBroadcastVenueFloorFormFactor(floorFormFactor)
-  const isSingleTableBroadcast = isSingleTableVenueFloorFormFactor(floorFormFactor)
-  const isDualTableBroadcast = isDualTableVenueFloorFormFactor(floorFormFactor)
+  const isVenueBroadcast = venueFloorFormFactorUsesBroadcastUiScale(floorFormFactor)
+  const usesBroadcastHeadline = venueFloorFormFactorUsesBroadcastHeadline(floorFormFactor)
   const broadcastMetaLine = useMemo(
     () => (isVenueBroadcast ? buildVenueBroadcastMetaLine(floorTiles, condenseProgress) : null),
     [condenseProgress, floorTiles, isVenueBroadcast]
   )
+  const floorBodyKey = resolveVenueFloorBodyKey(floorFormFactor, {
+    showHeroSpotlight,
+    hostFocusTable,
+  })
   const sharedShowdownAnswer = inVenueShowdown ? venueShowdownAnswer : undefined
 
   return (
@@ -3098,13 +3124,12 @@ export default function VenueEightTablesPreview({
         className={`relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
         style={venueWallUiScaleFrameStyle({ broadcast: isVenueBroadcast })}
         data-form-factor={floorFormFactor?.id}
+        data-form-factor-renderer={floorFormFactor?.renderer}
       >
 
       <main
-        className={`relative z-10 flex min-h-0 flex-1 flex-col ${
-          isVenueBroadcast ? 'px-1 pb-0' : 'px-3 sm:px-4'
-        } ${
-          compactVenueHeadline ? 'pb-0.5 sm:pb-1' : isVenueBroadcast ? 'pb-0' : 'pb-3 sm:pb-4'
+        className={`relative z-10 flex min-h-0 flex-1 flex-col ${venueFloorFormFactorMainPaddingClass(floorFormFactor)} ${
+          venueFloorFormFactorMainPbClass(floorFormFactor, compactVenueHeadline)
         } ${showHeadline ? 'pt-0' : 'pt-[max(0.5rem,env(safe-area-inset-top,0px))]'}`}
       >
         {floorTiles.length > 0 ? (
@@ -3117,7 +3142,7 @@ export default function VenueEightTablesPreview({
             </p>
 
             {showHeadline ? (
-              isVenueBroadcast ? (
+              usesBroadcastHeadline ? (
                 <VenueBroadcastHeadlineStrip
                   skipMountIntro={skipMountIntro}
                   showSetlistCue={showSetlistCue}
@@ -3318,57 +3343,20 @@ export default function VenueEightTablesPreview({
 
             <div className="relative flex min-h-0 flex-1 flex-col">
               <AnimatePresence mode="wait">
-                <motion.div
-                  key={
-                    floorFormFactor != null
-                      ? venueFloorFormFactorBodyKey(floorFormFactor, {
-                          showHeroSpotlight,
-                          hostFocusTable,
-                        })
-                      : 'floor-empty'
-                  }
-                  className="flex h-full min-h-0 flex-1 flex-col"
-                  initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4 }}
-                  transition={{ duration: prefersReducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  {isSingleTableBroadcast ? (
-                    <VenueSingleTableBroadcast
-                      tile={floorTiles[0]!}
-                      prefersReducedMotion={prefersReducedMotion}
-                      sharedShowdownAnswer={sharedShowdownAnswer}
-                    />
-                  ) : isDualTableBroadcast ? (
-                    <VenueDualTableBroadcast
-                      tiles={floorTiles}
-                      prefersReducedMotion={prefersReducedMotion}
-                      sharedShowdownAnswer={sharedShowdownAnswer}
-                    />
-                  ) : showHeroSpotlight ? (
-                    <VenueHeroSpotlightLayout
-                      featured={featuredTile!}
-                      companions={companionTiles}
-                      layoutTableCount={floorLayoutTableCount}
-                      skipMountIntro={skipMountIntro}
-                      prefersReducedMotion={prefersReducedMotion}
-                      sharedShowdownAnswer={sharedShowdownAnswer}
-                    />
-                  ) : (
-                    <>
-                      <div className="flex h-full min-h-0 flex-1 flex-col">
-                        <VenueAerialFloorGrid
-                          tiles={floorTiles}
-                          layoutTableCount={floorLayoutTableCount}
-                          showHeadline={showHeadline}
-                          skipMountIntro={skipMountIntro}
-                          prefersReducedMotion={prefersReducedMotion}
-                          sharedShowdownAnswer={sharedShowdownAnswer}
-                        />
-                      </div>
-                    </>
-                  )}
-                </motion.div>
+                <VenueFloorBody
+                  key={floorBodyKey}
+                  formFactor={floorFormFactor}
+                  floorTiles={floorTiles}
+                  showHeroSpotlight={showHeroSpotlight}
+                  hostFocusTable={hostFocusTable}
+                  featuredTile={featuredTile}
+                  companionTiles={companionTiles}
+                  floorLayoutTableCount={floorLayoutTableCount}
+                  showHeadline={showHeadline}
+                  skipMountIntro={skipMountIntro}
+                  prefersReducedMotion={prefersReducedMotion}
+                  sharedShowdownAnswer={sharedShowdownAnswer}
+                />
               </AnimatePresence>
             </div>
           </section>

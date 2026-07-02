@@ -495,53 +495,75 @@
   }
 
   /** n=2 broadcast — side-by-side felts with compact winner reveals per column. */
-  .venue-dual-table-broadcast {
+  [data-form-factor='broadcast-2'] .venue-floor-dual-broadcast {
     width: 100%;
     height: 100%;
     overflow: hidden;
   }
 
-  .venue-dual-table-broadcast__cell {
+  [data-form-factor='broadcast-2'] .venue-floor-dual-broadcast__cell {
     min-width: 0;
     overflow: hidden;
   }
 
-  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__plaque {
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__plaque {
     max-width: min(98%, 36rem);
     max-height: min(86vh, 32rem);
   }
 
-  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__frame {
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__frame {
     padding-inline: clamp(2.75rem, 8.5vmin, 4.75rem);
   }
 
-  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__content {
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__content {
     width: min(100%, 28rem);
     gap: clamp(0.55rem, 1.85vmin, 1rem);
   }
 
-  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__name {
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__name {
     font-size: clamp(1.75rem, 5.8vmin, 3.5rem);
   }
 
-  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__payout {
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__payout {
     font-size: clamp(2.65rem, 9.5vmin, 6.25rem);
   }
 
-  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__crown {
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__crown {
     height: clamp(2.65rem, 7.5vmin, 4.75rem);
   }
 
-  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__laurel {
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__laurel {
     max-width: clamp(3.5rem, 14vmin, 6.25rem);
   }
 
-  .venue-dual-table-broadcast .vfd-broadcast-showdown-reveal__diff-value {
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__diff-value {
     font-size: clamp(1.25rem, 3.5vmin, 2.15rem);
   }
 
-  .venue-dual-table-broadcast [data-showdown-winner-cards='broadcast-hero'] {
+  [data-form-factor='broadcast-2'] [data-showdown-winner-cards='broadcast-hero'] {
     gap: clamp(0.14rem, 0.55vmin, 0.42rem);
+  }
+
+  /** Mosaic tier hooks — extend per form factor without new class names. */
+  [data-form-factor='hero-3-4'] {
+    --venue-floor-mosaic-density: hero;
+  }
+
+  [data-form-factor='banquet-5-8'] {
+    --venue-floor-mosaic-density: large;
+  }
+
+  [data-form-factor='wall-9-12'] {
+    --venue-floor-mosaic-density: medium;
+  }
+
+  [data-form-factor='wall-13-16'] {
+    --venue-floor-mosaic-density: compact;
+  }
+
+  [data-form-factor='wall-17-20'],
+  [data-form-factor='wall-21-plus'] {
+    --venue-floor-mosaic-density: micro;
   }
 
   .vfd-showdown-stage-frame {

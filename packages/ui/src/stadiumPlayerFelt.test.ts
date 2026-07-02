@@ -5,7 +5,7 @@ import {
   STADIUM_PLAYER_HOLE_CARDS_RADIAL,
   STADIUM_PLAYER_NAME_LABEL_RADIAL,
   stadiumCupholderSizePx,
-  stadiumPlayerHoleCardOverlapPx,
+  stadiumPlayerHoleCardGapPx,
   stadiumHoleCardScale,
   stadiumPlayerCommunityCardSizePx,
   stadiumPlayerCupholderSizePx,
@@ -25,8 +25,8 @@ describe('stadium player felt sizing', () => {
     expect(STADIUM_PLAYER_NAME_LABEL_RADIAL).toBeGreaterThan(STADIUM_NAME_LABEL_RADIAL)
   })
 
-  it('spreads player hole cards side-by-side instead of overlapping', () => {
+  it('uses a flex gap for player hole cards so they never overlap', () => {
     const scale = stadiumPlayerHoleCardScale(360)
-    expect(stadiumPlayerHoleCardOverlapPx(scale)).toBeGreaterThan(64 * scale)
+    expect(stadiumPlayerHoleCardGapPx(scale)).toBeGreaterThanOrEqual(8)
   })
 })

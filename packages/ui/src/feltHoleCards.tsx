@@ -7,9 +7,11 @@ export type FeltHoleCardPairProps = {
   rotateDeg?: number
   /** Scale applied to {@link NumericPlayingCard} `small` (1 = card native size). */
   scale: number
-  /** Horizontal offset of the second card; negative overlaps, positive spreads apart. */
+  /** Horizontal offset of the second card; negative overlaps (legacy fan). Ignored when {@link gapPx} is set. */
   overlapPx?: number
-  /** Fan angle (deg) applied ± to each card for readable side-by-side pairs. */
+  /** Flex gap between cards — no overlap; each card keeps full layout width. */
+  gapPx?: number
+  /** Fan angle (deg) applied ± to each card (legacy overlap layout only). */
   fanDeg?: number
   faceDown?: boolean
   digits?: readonly [number, number] | null
@@ -24,11 +26,14 @@ export type FeltHoleCardPairProps = {
   animated?: boolean
 }
 
-/** Two fanned hole cards on the felt — rotated to face the rail at each seat. */
+const CARD_SMALL_LAYOUT_WIDTH_PX = 64
+
+/** Two hole cards on the felt — rotated to face the rail at each seat. */
 export function FeltHoleCardPair({
   rotateDeg = 0,
   scale,
   overlapPx: overlapPxProp,
+  gapPx,
   fanDeg = 0,
   faceDown = true,
   digits,
@@ -39,6 +44,7 @@ export function FeltHoleCardPair({
   animated = false,
 }: FeltHoleCardPairProps) {
   const overlapPx = overlapPxProp ?? stadiumHoleCardOverlapPx(scale)
+  const separate = gapPx != null
 
   return (
     <div
@@ -46,6 +52,7 @@ export function FeltHoleCardPair({
       style={{
         transform: `rotate(${rotateDeg}deg)`,
         opacity: hidden ? 0 : undefined,
+        gap: separate ? gapPx : undefined,
       }}
       aria-hidden={hidden || undefined}
     >
@@ -53,10 +60,13 @@ export function FeltHoleCardPair({
         <div
           key={cardIndex}
           ref={cardRefs?.[cardIndex] as Ref<HTMLDivElement> | undefined}
-          className="origin-bottom"
+          className="shrink-0 origin-bottom"
           style={{
-            marginLeft: cardIndex === 0 ? 0 : overlapPx,
-            transform: `scale(${scale}) rotate(${cardIndex === 0 ? -fanDeg : fanDeg}deg)`,
+            width: CARD_SMALL_LAYOUT_WIDTH_PX,
+            marginLeft: !separate && cardIndex === 1 ? overlapPx : undefined,
+            transform: separate
+              ? `scale(${scale})`
+              : `scale(${scale}) rotate(${cardIndex === 0 ? -fanDeg : fanDeg}deg)`,
           }}
         >
           <NumericPlayingCard

@@ -9,7 +9,7 @@ import {
   STADIUM_PLAYER_HOLE_CARDS_RADIAL,
   STADIUM_PLAYER_NAME_LABEL_RADIAL,
   stadiumCupholderSizePx,
-  stadiumPlayerHoleCardOverlapPx,
+  stadiumPlayerHoleCardGapPx,
   stadiumHoleCardScale,
   stadiumPlayerCommunityCardSizePx,
   stadiumPlayerCupholderSizePx,
@@ -178,10 +178,7 @@ export function StadiumTableSeats({
                   <FeltHoleCardPair
                     rotateDeg={holePt.rotateDeg}
                     scale={holeScale}
-                    overlapPx={
-                      isPlayerLayout ? stadiumPlayerHoleCardOverlapPx(holeScale) : undefined
-                    }
-                    fanDeg={isPlayerLayout ? 4 : 0}
+                    gapPx={isPlayerLayout ? stadiumPlayerHoleCardGapPx(holeScale) : undefined}
                     faceDown={seat!.faceDown ?? true}
                     digits={seat!.holeDigits}
                     variant={seat!.holeVariant ?? 'cyan'}

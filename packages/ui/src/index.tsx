@@ -307,7 +307,7 @@ export {
   STADIUM_PLAYER_HOLE_CARDS_RADIAL,
   STADIUM_PLAYER_NAME_LABEL_RADIAL,
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
-  stadiumPlayerHoleCardOverlapPx,
+  stadiumPlayerHoleCardGapPx,
   type StadiumMosaicDensity,
   type StadiumFeltLayout,
   type StadiumSeatPoint,

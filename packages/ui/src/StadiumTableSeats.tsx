@@ -5,6 +5,9 @@ import {
   STADIUM_CUPHOLDER_RADIAL,
   STADIUM_HOLE_CARDS_RADIAL,
   STADIUM_NAME_LABEL_RADIAL,
+  STADIUM_PLAYER_CUPHOLDER_RADIAL,
+  STADIUM_PLAYER_HOLE_CARDS_RADIAL,
+  STADIUM_PLAYER_NAME_LABEL_RADIAL,
   stadiumCupholderSizePx,
   stadiumHoleCardScale,
   stadiumPlayerCommunityCardSizePx,
@@ -137,11 +140,15 @@ export function StadiumTableSeats({
           const seat = seatMap.get(i)
           if (hideEmptySeats && seat == null) return null
 
-          const cupPt = stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_CUPHOLDER_RADIAL)
-          const holePt = stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_HOLE_CARDS_RADIAL)
-          const labelPt = stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_NAME_LABEL_RADIAL)
+          const cupRadial = isPlayerLayout ? STADIUM_PLAYER_CUPHOLDER_RADIAL : STADIUM_CUPHOLDER_RADIAL
+          const holeRadial = isPlayerLayout ? STADIUM_PLAYER_HOLE_CARDS_RADIAL : STADIUM_HOLE_CARDS_RADIAL
+          const labelRadial = isPlayerLayout ? STADIUM_PLAYER_NAME_LABEL_RADIAL : STADIUM_NAME_LABEL_RADIAL
+          const cupPt = stadiumSeatPointPx(i, count, rimW, rimH, cupRadial)
+          const holePt = stadiumSeatPointPx(i, count, rimW, rimH, holeRadial)
+          const labelPt = stadiumSeatPointPx(i, count, rimW, rimH, labelRadial)
           const state = seat?.state ?? (seat == null ? 'empty' : 'default')
           const showHoles = seat != null && seat.holeDigits != null && state !== 'folded'
+          const holesFaceUp = showHoles && !(seat!.faceDown ?? true)
 
           return (
             <div key={i}>
@@ -161,7 +168,10 @@ export function StadiumTableSeats({
 
               {showHoles ? (
                 <div
-                  className="pointer-events-none absolute z-[18] -translate-x-1/2 -translate-y-1/2"
+                  className={clsx(
+                    'pointer-events-none absolute -translate-x-1/2 -translate-y-1/2',
+                    holesFaceUp ? 'z-[30]' : 'z-[18]'
+                  )}
                   style={{ left: `${holePt.leftPct}%`, top: `${holePt.topPct}%` }}
                 >
                   <FeltHoleCardPair

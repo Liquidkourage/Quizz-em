@@ -60,28 +60,29 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
 
       return {
         index,
-        label: showSeat ? index + 1 : seatInitials(player.name),
+        label: isMe ? undefined : showSeat ? index + 1 : seatInitials(player.name),
         labelClassName: 'font-mono text-xs tabular-nums sm:text-sm font-bold',
         state: player.hasFolded ? 'folded' : isActing ? 'acting' : 'default',
         holeDigits,
         faceDown: !showFaceUp,
         holeVariant: isMe ? 'gold' : 'purple',
         'aria-label': `${player.name}${isMe ? ', you' : ''}${player.hasFolded ? ', folded' : ''}`,
-        nameTag: (
-          <>
-            <span
-              className={`max-w-full truncate font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'} ${tagText}`}
-            >
-              {isMe ? 'You' : firstName(player.name)}
-            </span>
-            <span className={`font-bold tabular-nums text-amber-300 ${tagText}`}>
-              ${player.bankroll.toLocaleString()}
-            </span>
-            {player.hasFolded ? (
-              <span className={`font-bold uppercase text-red-400 ${tagText}`}>Folded</span>
-            ) : null}
-          </>
-        ),
+        nameTag:
+          isMe && !player.hasFolded ? undefined : (
+            <>
+              <span
+                className={`max-w-full truncate font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'} ${tagText}`}
+              >
+                {isMe ? 'You' : firstName(player.name)}
+              </span>
+              <span className={`font-bold tabular-nums text-amber-300 ${tagText}`}>
+                ${player.bankroll.toLocaleString()}
+              </span>
+              {player.hasFolded ? (
+                <span className={`font-bold uppercase text-red-400 ${tagText}`}>Folded</span>
+              ) : null}
+            </>
+          ),
       }
     })
   }, [players, playerName, actingIndex, revealCards, showSeat])

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  STADIUM_HOLE_CARDS_RADIAL,
+  STADIUM_NAME_LABEL_RADIAL,
+  STADIUM_PLAYER_HOLE_CARDS_RADIAL,
+  STADIUM_PLAYER_NAME_LABEL_RADIAL,
   stadiumCupholderSizePx,
   stadiumHoleCardScale,
   stadiumPlayerCommunityCardSizePx,
@@ -13,5 +17,10 @@ describe('stadium player felt sizing', () => {
     expect(stadiumPlayerCupholderSizePx(w)).toBeGreaterThan(stadiumCupholderSizePx(w) * 2)
     expect(stadiumPlayerHoleCardScale(w)).toBeGreaterThan(stadiumHoleCardScale(w) * 2)
     expect(stadiumPlayerCommunityCardSizePx(w).w).toBeGreaterThanOrEqual(38)
+  })
+
+  it('pulls hole cards inward and name tags outward on player felt', () => {
+    expect(STADIUM_PLAYER_HOLE_CARDS_RADIAL).toBeLessThan(STADIUM_HOLE_CARDS_RADIAL)
+    expect(STADIUM_PLAYER_NAME_LABEL_RADIAL).toBeGreaterThan(STADIUM_NAME_LABEL_RADIAL)
   })
 })

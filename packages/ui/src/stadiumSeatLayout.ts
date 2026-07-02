@@ -86,6 +86,15 @@ export const STADIUM_CHIP_STACK_RADIAL = 0.58
 /** Player name / bankroll tags just outside the rail. */
 export const STADIUM_NAME_LABEL_RADIAL = 1.06
 
+/** Player phone — name tags pushed past the rail so they never cover hole cards. */
+export const STADIUM_PLAYER_NAME_LABEL_RADIAL = 1.14
+
+/** Player phone — hole cards closer to the pot, away from cupholders and labels. */
+export const STADIUM_PLAYER_HOLE_CARDS_RADIAL = 0.72
+
+/** Player phone — cupholders slightly inset from the rail. */
+export const STADIUM_PLAYER_CUPHOLDER_RADIAL = 0.98
+
 const CUPHOLDER_WIDTH_FRAC = 32 / STADIUM_REFERENCE_TABLE_WIDTH_PX
 const HOLE_CARD_SCALE_AT_REFERENCE = 0.58
 const HOLE_CARD_OVERLAP_AT_REFERENCE_PX = -30

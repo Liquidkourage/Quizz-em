@@ -4,6 +4,12 @@ import {
   venueHeadlineCondenseCaptionParts,
   type VenueCondenseProgressModel,
 } from './venueWallModel'
+import {
+  isBroadcastVenueFloorFormFactor,
+  isDualTableVenueFloorFormFactor,
+  isSingleTableVenueFloorFormFactor,
+  resolveVenueFloorFormFactor,
+} from './venueFloorFormFactor'
 
 /** Populated felts that use sports-bar broadcast (not mosaic floor). */
 export const VENUE_BROADCAST_TABLE_MAX = 2
@@ -12,22 +18,27 @@ export function isVenueBroadcastFloor(
   populatedTableCount: number,
   hostFocusTable: number | null
 ): boolean {
-  if (hostFocusTable != null) return false
-  return populatedTableCount >= 1 && populatedTableCount <= VENUE_BROADCAST_TABLE_MAX
+  return isBroadcastVenueFloorFormFactor(
+    resolveVenueFloorFormFactor({ populatedTableCount, hostFocusTable })
+  )
 }
 
 export function isVenueSingleTableBroadcast(
   populatedTableCount: number,
   hostFocusTable: number | null
 ): boolean {
-  return isVenueBroadcastFloor(populatedTableCount, hostFocusTable) && populatedTableCount === 1
+  return isSingleTableVenueFloorFormFactor(
+    resolveVenueFloorFormFactor({ populatedTableCount, hostFocusTable })
+  )
 }
 
 export function isVenueDualTableBroadcast(
   populatedTableCount: number,
   hostFocusTable: number | null
 ): boolean {
-  return isVenueBroadcastFloor(populatedTableCount, hostFocusTable) && populatedTableCount === 2
+  return isDualTableVenueFloorFormFactor(
+    resolveVenueFloorFormFactor({ populatedTableCount, hostFocusTable })
+  )
 }
 
 export function buildVenueBroadcastMetaLine(

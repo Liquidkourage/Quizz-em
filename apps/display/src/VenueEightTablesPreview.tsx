@@ -57,10 +57,14 @@ import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   buildVenueBroadcastMetaLine,
-  isVenueBroadcastFloor,
-  isVenueDualTableBroadcast,
-  isVenueSingleTableBroadcast,
 } from './venueBroadcastLayout'
+import {
+  isBroadcastVenueFloorFormFactor,
+  isDualTableVenueFloorFormFactor,
+  isSingleTableVenueFloorFormFactor,
+  resolveVenueFloorFormFactor,
+  venueFloorFormFactorBodyKey,
+} from './venueFloorFormFactor'
 import { ShowdownTableBadge } from './venueFloorSidePotDisplay'
 import {
   formatVenueBankroll,
@@ -3067,9 +3071,20 @@ export default function VenueEightTablesPreview({
   }, [floorTiles, hostFocusTable])
 
   const showHeroSpotlight = hostFocusTable != null && featuredTile != null
-  const isVenueBroadcast = isVenueBroadcastFloor(floorTiles.length, hostFocusTable)
-  const isSingleTableBroadcast = isVenueSingleTableBroadcast(floorTiles.length, hostFocusTable)
-  const isDualTableBroadcast = isVenueDualTableBroadcast(floorTiles.length, hostFocusTable)
+  const floorFormFactor = useMemo(
+    () =>
+      floorTiles.length > 0
+        ? resolveVenueFloorFormFactor({
+            populatedTableCount: floorTiles.length,
+            hostFocusTable,
+            withHeadline: showHeadline,
+          })
+        : null,
+    [floorTiles.length, hostFocusTable, showHeadline]
+  )
+  const isVenueBroadcast = isBroadcastVenueFloorFormFactor(floorFormFactor)
+  const isSingleTableBroadcast = isSingleTableVenueFloorFormFactor(floorFormFactor)
+  const isDualTableBroadcast = isDualTableVenueFloorFormFactor(floorFormFactor)
   const broadcastMetaLine = useMemo(
     () => (isVenueBroadcast ? buildVenueBroadcastMetaLine(floorTiles, condenseProgress) : null),
     [condenseProgress, floorTiles, isVenueBroadcast]
@@ -3082,6 +3097,7 @@ export default function VenueEightTablesPreview({
       <div
         className={`relative z-10 flex h-full min-h-0 flex-col overflow-hidden text-white ${venueTypographyRootClass}`}
         style={venueWallUiScaleFrameStyle({ broadcast: isVenueBroadcast })}
+        data-form-factor={floorFormFactor?.id}
       >
 
       <main
@@ -3304,13 +3320,12 @@ export default function VenueEightTablesPreview({
               <AnimatePresence mode="wait">
                 <motion.div
                   key={
-                    isVenueBroadcast
-                      ? isDualTableBroadcast
-                        ? 'broadcast-dual'
-                        : 'broadcast'
-                      : showHeroSpotlight
-                        ? `spotlight-${hostFocusTable}`
-                        : 'floor'
+                    floorFormFactor != null
+                      ? venueFloorFormFactorBodyKey(floorFormFactor, {
+                          showHeroSpotlight,
+                          hostFocusTable,
+                        })
+                      : 'floor-empty'
                   }
                   className="flex h-full min-h-0 flex-1 flex-col"
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}

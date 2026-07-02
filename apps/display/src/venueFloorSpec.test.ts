@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   buildVenueFloorHeadlineMeta,
   resolveVenueFloorSpec,
+  resolveVenueFloorSpecForCompanionGrid,
+  resolveVenueFloorSpecForHeroFeatured,
   venueFloorSpecIdForCount,
   venueFloorSpecUsesBroadcastUiScale,
 } from './venueFloorSpec'
@@ -86,5 +88,32 @@ describe('venueFloorSpecCounts', () => {
     expect(venueFloorMosaicTypographyTierForSizingCount(16)).toBe('compact')
     expect(venueFloorShowdownStageDensityForSizingCount(1)).toBe('hero')
     expect(venueFloorShowdownStageDensityForSizingCount(20)).toBe('dense')
+  })
+})
+
+describe('venueFloorSpec helpers', () => {
+  it('derives spacious tile chrome from felt density and populated count', () => {
+    const parent = resolveVenueFloorSpec({ populatedTableCount: 20 })!
+    expect(parent.spaciousTileChrome).toBe(false)
+
+    const banquet = resolveVenueFloorSpec({ populatedTableCount: 6 })!
+    expect(banquet.spaciousTileChrome).toBe(true)
+  })
+
+  it('companion grid inherits parent sizing with companion layout count', () => {
+    const parent = resolveVenueFloorSpec({ populatedTableCount: 5, venueLiveTableCount: 18 })!
+    const companion = resolveVenueFloorSpecForCompanionGrid(parent, 3)
+    expect(companion.populatedTableCount).toBe(3)
+    expect(companion.sizingTableCount).toBe(18)
+    expect(companion.mosaicTypographyTier).toBe('compact')
+    expect(companion.id).toBe('hero-3-4')
+  })
+
+  it('hero featured tile uses hero felt with parent typography sizing', () => {
+    const parent = resolveVenueFloorSpec({ populatedTableCount: 14 })!
+    const hero = resolveVenueFloorSpecForHeroFeatured(parent)
+    expect(hero.feltDensity).toBe('hero')
+    expect(hero.spaciousTileChrome).toBe(true)
+    expect(hero.mosaicTypographyTier).toBe(parent.mosaicTypographyTier)
   })
 })

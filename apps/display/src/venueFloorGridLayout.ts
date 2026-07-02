@@ -204,13 +204,18 @@ const NO_MORE_BETS_OFFSET_BY_TIER: Record<VenueFloorPublicTypographyTier, string
 }
 
 /** Table-count-aware mosaic card typography — recomputed when active table count changes. */
-export function venueFloorMosaicTypography(tableCount: number): VenueFloorMosaicTypography {
-  const tier = venueFloorPublicTypographyTier(tableCount)
+export function venueFloorMosaicTypographyForTier(
+  tier: VenueFloorPublicTypographyTier
+): VenueFloorMosaicTypography {
   return {
     rootClass: `venue-floor-typography-${tier}`,
     ...MOSAIC_TYPOGRAPHY_CLASSES,
     noMoreBetsOffsetClass: NO_MORE_BETS_OFFSET_BY_TIER[tier],
   }
+}
+
+export function venueFloorMosaicTypography(tableCount: number): VenueFloorMosaicTypography {
+  return venueFloorMosaicTypographyForTier(venueFloorPublicTypographyTier(tableCount))
 }
 
 /** Reference px at {@link STADIUM_MOSAIC_REFERENCE_WIDTH_PX} before per-tile scale. */
@@ -346,20 +351,32 @@ function headlineMultiRowSpacingOverrides(
 }
 
 /**
- * Spacing spec for the aerial floor — merges count-based density with headline multi-row tuning.
- * Single entry point for {@link VenueAerialFloorGrid}.
+ * Spacing spec for the aerial floor — merges spec felt density with headline multi-row tuning.
  */
-export function venueFloorSpacingSpec(
-  tableCount: number,
+export function venueFloorSpacingSpecForSpec(
+  spec: { feltDensity: VenueFloorTableSize },
   layout: Pick<VenueBanquetLayout, 'rowCount'>,
   opts?: { withHeadline?: boolean }
 ): VenueFloorSizeSpec {
-  const base = venueFloorSizeSpec(tableCount)
+  const base = venueFloorSizeSpecForDensity(spec.feltDensity)
   const overrides = headlineMultiRowSpacingOverrides(layout, opts?.withHeadline === true)
   if (overrides == null) return base
   const { paddingTopRem: _pt, paddingBottomRem: _pb, gridInsetClass: _gi, ...specOverrides } =
     overrides
   return { ...base, ...specOverrides }
+}
+
+/** @deprecated Use {@link venueFloorSpacingSpecForSpec} with a resolved {@link VenueFloorSpec}. */
+export function venueFloorSpacingSpec(
+  tableCount: number,
+  layout: Pick<VenueBanquetLayout, 'rowCount'>,
+  opts?: { withHeadline?: boolean }
+): VenueFloorSizeSpec {
+  return venueFloorSpacingSpecForSpec(
+    { feltDensity: venueFloorTableSize(tableCount) },
+    layout,
+    opts
+  )
 }
 
 /** Grid padding for the floor host — uses headline overrides when present. */
@@ -450,7 +467,10 @@ export function venueFloorTableSize(tableCount: number): VenueFloorTableSize {
 }
 
 export function venueFloorSizeSpec(tableCount: number): VenueFloorSizeSpec {
-  const size = venueFloorTableSize(tableCount)
+  return venueFloorSizeSpecForDensity(venueFloorTableSize(tableCount))
+}
+
+export function venueFloorSizeSpecForDensity(size: VenueFloorTableSize): VenueFloorSizeSpec {
   switch (size) {
     case 'hero':
       return {

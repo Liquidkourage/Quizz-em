@@ -58,8 +58,11 @@ import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlin
 import {
   buildVenueFloorHeadlineMeta,
   resolveVenueFloorSpec,
-  showdownLayoutTableCountFromSpec,
+  resolveVenueFloorSpecForCompanionGrid,
+  resolveVenueFloorSpecForHeroFeatured,
   showdownStageViewportFromSpec,
+  venueFloorLayoutPlanForSpec,
+  venueFloorMosaicTypographyFromSpec,
   venueFloorSpecMainPaddingClass,
   venueFloorSpecMainPbClass,
   venueFloorSpecUsesBroadcastHeadline,
@@ -96,17 +99,14 @@ import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import {
   chunkTilesIntoRowGroups,
   populatedVenueTiles,
-  venueBanquetLayout,
   venueFloorCardSlotWidthCss,
   venueFloorGridPaddingForLayout,
   venueFloorGridInsetClass,
   venueFloorGridPerspectiveStyle,
   venueFloorRowTrackSpec,
-  venueFloorSizeSpec,
-  venueFloorSpacingSpec,
+  venueFloorSizeSpecForDensity,
+  venueFloorSpacingSpecForSpec,
   VENUE_FLOOR_GRID_BOTTOM_SAFE_REM,
-  venueFloorMosaicTypography,
-  venueFloorPublicTypographyTier,
   venueMosaicTileTypographyStyle,
   type VenueFloorLayoutViewport,
   type VenueFloorMosaicTypography,
@@ -2028,10 +2028,10 @@ type VenueMosaicTableCardProps = {
   dimAnsweringEarly?: boolean
   /** Venue-wide authoritative answer — overrides per-tile `showdownAnswer` when set. */
   sharedShowdownAnswer?: number
-  /** Table-count-aware mosaic typography from {@link venueFloorMosaicTypography}. */
+  /** Mosaic typography from resolved floor spec. */
   mosaicTypography: VenueFloorMosaicTypography
-  /** Active table count — drives per-tile typography tier. */
-  layoutTableCount: number
+  /** Authoritative floor spec — typography tier, showdown density, tile chrome. */
+  floorSpec: VenueFloorSpec
 }
 
 function VenueMosaicTableCard({
@@ -2045,7 +2045,7 @@ function VenueMosaicTableCard({
   dimAnsweringEarly = false,
   sharedShowdownAnswer,
   mosaicTypography,
-  layoutTableCount,
+  floorSpec,
 }: VenueMosaicTableCardProps) {
   const tileRef = useRef<HTMLElement>(null)
   const [tilePx, setTilePx] = useState({ w: 0, h: 0 })
@@ -2071,11 +2071,11 @@ function VenueMosaicTableCard({
   const tileTypographyStyle = useMemo(
     () =>
       venueMosaicTileTypographyStyle(
-        venueFloorPublicTypographyTier(layoutTableCount),
+        floorSpec.mosaicTypographyTier,
         tilePx.w,
         floorSize.size
       ),
-    [layoutTableCount, tilePx.w, floorSize.size]
+    [floorSpec.mosaicTypographyTier, tilePx.w, floorSize.size]
   )
   const tn = row.tableNum
   const seats = row.seated
@@ -2112,9 +2112,7 @@ function VenueMosaicTableCard({
     : null
   const { showNoMoreBets, wageringLive } = mosaicWagerStyleFlags(row, dimAnsweringEarly)
   /** Unified mosaic card chrome (badge, acting name, pot-on-felt) for dense grids only. */
-  const spaciousTileChrome =
-    floorSize.size === 'hero' ||
-    (layoutTableCount <= 8 && floorSize.size === 'large')
+  const spaciousTileChrome = floorSpec.spaciousTileChrome
   const denseMosaicChrome = !spaciousTileChrome
   const feltFillsCell =
     floorFillHeight || (floorHoneycomb && floorSize.honeycombFillHeight && !shrinkWrapRowHeight)
@@ -2355,7 +2353,7 @@ function VenueMosaicTableCard({
             pot={floorShowdownPot}
             rows={floorShowdownRows}
             correctAnswer={floorShowdownAnswer}
-            layoutTableCount={layoutTableCount}
+            floorSpec={floorSpec}
           />
         ) : null}
 
@@ -2382,7 +2380,6 @@ function venueShowdownQuestionFromTiles(
 
 export function VenueAerialFloorGrid({
   tiles,
-  layoutTableCount,
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
@@ -2390,16 +2387,13 @@ export function VenueAerialFloorGrid({
   floorSpec,
 }: {
   tiles: DisplayVenueTileSnapshot[]
-  /** Size felts for the live table count even when empty felts are hidden from the grid. */
-  layoutTableCount: number
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
   sharedShowdownAnswer?: number
-  floorSpec?: VenueFloorSpec
+  floorSpec: VenueFloorSpec
 }) {
   const n = tiles.length
-  const layoutCount = n > 0 ? n : layoutTableCount
   const floorHostRef = useRef<HTMLDivElement>(null)
   const [floorViewport, setFloorViewport] = useState<VenueFloorLayoutViewport | undefined>()
 
@@ -2426,16 +2420,17 @@ export function VenueAerialFloorGrid({
 
   const floorLayout = useMemo(
     () =>
-      venueBanquetLayout(layoutCount, {
+      venueFloorLayoutPlanForSpec(floorSpec, {
         viewport: floorViewport,
         withHeadline: showHeadline,
+        populatedTableCount: n > 0 ? n : floorSpec.populatedTableCount,
       }),
-    [layoutCount, floorViewport, showHeadline]
+    [floorSpec, n, floorViewport, showHeadline]
   )
   const { rowCount, rowSizes, columns: floorColumns } = floorLayout
   const floorSize = useMemo(
-    () => venueFloorSpacingSpec(layoutCount, floorLayout, { withHeadline: showHeadline }),
-    [layoutCount, floorLayout, showHeadline]
+    () => venueFloorSpacingSpecForSpec(floorSpec, floorLayout, { withHeadline: showHeadline }),
+    [floorSpec, floorLayout, showHeadline]
   )
   const { fillRowHeight, shrinkWrapRowHeight } = venueFloorRowTrackSpec(rowCount, {
     withHeadline: showHeadline,
@@ -2453,7 +2448,10 @@ export function VenueAerialFloorGrid({
     [rowCount, inVenueShowdown]
   )
   const floorRows = useMemo(() => chunkTilesIntoRowGroups(tiles, rowSizes), [tiles, rowSizes])
-  const mosaicTypography = useMemo(() => venueFloorMosaicTypography(layoutCount), [layoutCount])
+  const mosaicTypography = useMemo(
+    () => venueFloorMosaicTypographyFromSpec(floorSpec),
+    [floorSpec.mosaicTypographyTier]
+  )
   const cardSlotWidthForRow = useCallback(
     () => venueFloorCardSlotWidthCss(floorColumns, floorSize.cellGapRem),
     [floorColumns, floorSize.cellGapRem]
@@ -2524,7 +2522,7 @@ export function VenueAerialFloorGrid({
                     dimAnsweringEarly={row.phase === 'answering' && othersStillWagering}
                     sharedShowdownAnswer={sharedShowdownAnswer}
                     mosaicTypography={mosaicTypography}
-                    layoutTableCount={layoutCount}
+                    floorSpec={floorSpec}
                   />
                 </div>
               )})}
@@ -2766,9 +2764,6 @@ export function VenueSingleTableBroadcast({
   const density = broadcastDensity ?? floorSpec?.broadcastDensity ?? 'solo'
   const isDualDensity = density === 'dual'
   const showdownViewport = showdownStageViewportFromSpec(floorSpec ?? null)
-  const showdownLayoutCount = showdownLayoutTableCountFromSpec(floorSpec ?? null, {
-    mosaicLayoutTableCount: floorSpec?.sizingTableCount,
-  })
 
   return (
     <div
@@ -2783,13 +2778,13 @@ export function VenueSingleTableBroadcast({
             : `Final table, pot ${formatVenueBankroll(pot)}`
       }
     >
-      {showFloorShowdownOverlay ? (
+      {showFloorShowdownOverlay && floorSpec != null ? (
         <VenueFloorShowdownByVariant
           tableNum={showTableBadge ? tableNum : undefined}
           pot={floorShowdownPot}
           rows={floorShowdownRows}
           correctAnswer={floorShowdownAnswer}
-          layoutTableCount={showdownLayoutCount}
+          floorSpec={floorSpec}
           stageViewport={showdownViewport}
         />
       ) : (
@@ -2873,20 +2868,28 @@ export function VenueDualTableBroadcast({
 export function VenueHeroSpotlightLayout({
   featured,
   companions,
-  layoutTableCount,
+  floorSpec,
   skipMountIntro,
   prefersReducedMotion,
   sharedShowdownAnswer,
 }: {
   featured: DisplayVenueTileSnapshot
   companions: DisplayVenueTileSnapshot[]
-  layoutTableCount: number
+  floorSpec: VenueFloorSpec
   skipMountIntro: boolean
   prefersReducedMotion: boolean
   sharedShowdownAnswer?: number
 }) {
-  const heroSize = useMemo(() => venueFloorSizeSpec(1), [])
-  const heroTypography = useMemo(() => venueFloorMosaicTypography(1), [])
+  const heroSpec = useMemo(() => resolveVenueFloorSpecForHeroFeatured(floorSpec), [floorSpec])
+  const heroSize = useMemo(() => venueFloorSizeSpecForDensity(heroSpec.feltDensity), [heroSpec.feltDensity])
+  const heroTypography = useMemo(
+    () => venueFloorMosaicTypographyFromSpec(heroSpec),
+    [heroSpec.mosaicTypographyTier]
+  )
+  const companionSpec = useMemo(
+    () => resolveVenueFloorSpecForCompanionGrid(floorSpec, companions.length),
+    [floorSpec, companions.length]
+  )
   const othersStillWagering = useMemo(() => venueHasOpenWagering(companions), [companions])
 
   return (
@@ -2902,17 +2905,17 @@ export function VenueHeroSpotlightLayout({
           dimAnsweringEarly={featured.phase === 'answering' && othersStillWagering}
           sharedShowdownAnswer={sharedShowdownAnswer}
           mosaicTypography={heroTypography}
-          layoutTableCount={layoutTableCount}
+          floorSpec={heroSpec}
         />
       </div>
       {companions.length > 0 ? (
         <VenueAerialFloorGrid
           tiles={companions}
-          layoutTableCount={Math.max(companions.length, layoutTableCount - 1)}
           showHeadline={false}
           skipMountIntro={skipMountIntro}
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
+          floorSpec={companionSpec}
         />
       ) : null}
     </div>
@@ -3065,7 +3068,6 @@ export default function VenueEightTablesPreview({
     [floorTiles.length, hostFocusTable, venueLiveTableCount, showHeadline]
   )
 
-  const sizingTableCount = floorSpec?.sizingTableCount ?? floorTiles.length
   const compactVenueHeadline = floorSpec?.compactHeadline ?? false
   const ultraCompactVenueHeadline = floorSpec?.ultraCompactHeadline ?? false
   const publicTypographyTier = floorSpec?.mosaicTypographyTier ?? 'spacious'
@@ -3340,7 +3342,6 @@ export default function VenueEightTablesPreview({
                   hostFocusTable={hostFocusTable}
                   featuredTile={featuredTile}
                   companionTiles={companionTiles}
-                  sizingTableCount={sizingTableCount}
                   showHeadline={showHeadline}
                   skipMountIntro={skipMountIntro}
                   prefersReducedMotion={prefersReducedMotion}

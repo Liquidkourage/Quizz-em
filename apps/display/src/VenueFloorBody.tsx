@@ -16,7 +16,6 @@ export type VenueFloorBodyProps = {
   hostFocusTable: number | null
   featuredTile: DisplayVenueTileSnapshot | null
   companionTiles: readonly DisplayVenueTileSnapshot[]
-  sizingTableCount: number
   showHeadline: boolean
   skipMountIntro: boolean
   prefersReducedMotion: boolean
@@ -40,7 +39,6 @@ export function VenueFloorBody({
   showHeroSpotlight,
   featuredTile,
   companionTiles,
-  sizingTableCount,
   showHeadline,
   skipMountIntro,
   prefersReducedMotion,
@@ -68,28 +66,27 @@ export function VenueFloorBody({
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
         />
-      ) : showHeroSpotlight && featuredTile != null ? (
+      ) : showHeroSpotlight && featuredTile != null && floorSpec != null ? (
         <VenueHeroSpotlightLayout
           featured={featuredTile}
           companions={[...companionTiles]}
-          layoutTableCount={sizingTableCount}
+          floorSpec={floorSpec}
           skipMountIntro={skipMountIntro}
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
         />
-      ) : (
+      ) : floorSpec != null ? (
         <div className="flex h-full min-h-0 flex-1 flex-col">
           <VenueAerialFloorGrid
             tiles={[...floorTiles]}
-            layoutTableCount={sizingTableCount}
             showHeadline={showHeadline}
             skipMountIntro={skipMountIntro}
             prefersReducedMotion={prefersReducedMotion}
             sharedShowdownAnswer={sharedShowdownAnswer}
-            floorSpec={floorSpec ?? undefined}
+            floorSpec={floorSpec}
           />
         </div>
-      )}
+      ) : null}
     </motion.div>
   )
 }

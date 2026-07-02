@@ -12,6 +12,10 @@ import {
 import type { ShowdownStageDensityTier } from './showdownStageArtLayout'
 import type { VenueFloorPublicTypographyTier, VenueFloorTableSize } from './venueFloorGridLayout'
 import {
+  venueFloorMosaicTypographyForTier,
+  type VenueFloorMosaicTypography,
+} from './venueFloorGridLayout'
+import {
   venueFloorFeltDensityForSizingCount,
   venueFloorMosaicTypographyTierForSizingCount,
   venueFloorShowdownDenseLayout,
@@ -170,6 +174,8 @@ export type VenueFloorSpec = {
   showdown: VenueFloorShowdownMode
   showdownStageDensity: ShowdownStageDensityTier
   showdownDenseLayout: boolean
+  /** Hero / banquet tiers — expanded mosaic tile chrome instead of dense header band. */
+  spaciousTileChrome: boolean
   broadcastMetaTemplate?: VenueFloorBroadcastMetaTemplate
 }
 
@@ -197,6 +203,68 @@ export function venueFloorSpecIdForCount(populatedTableCount: number): VenueFloo
 export function venueFloorTypographyRootClass(profile: VenueFloorTypographyProfile): string {
   if (profile === 'broadcast') return 'venue-floor-typography-broadcast'
   return `venue-floor-typography-${profile}`
+}
+
+/** Expanded mosaic tile chrome (hero felts and large felts on floors up to 8 tables). */
+export function venueFloorSpaciousTileChrome(
+  feltDensity: VenueFloorTableSize,
+  populatedTableCount: number
+): boolean {
+  return feltDensity === 'hero' || (feltDensity === 'large' && populatedTableCount <= 8)
+}
+
+/** Mosaic typography bundle from a resolved spec — no table-count re-lookup. */
+export function venueFloorMosaicTypographyFromSpec(
+  spec: Pick<VenueFloorSpec, 'mosaicTypographyTier'>
+): VenueFloorMosaicTypography {
+  return venueFloorMosaicTypographyForTier(spec.mosaicTypographyTier)
+}
+
+/**
+ * Layout plan from spec — refreshes row/column geometry for viewport or companion count
+ * while keeping felt density from the resolved spec.
+ */
+export function venueFloorLayoutPlanForSpec(
+  spec: VenueFloorSpec,
+  opts?: {
+    viewport?: VenueFloorLayoutViewport
+    withHeadline?: boolean
+    populatedTableCount?: number
+  }
+): VenueFloorLayoutPlan {
+  const tableCount = opts?.populatedTableCount ?? spec.populatedTableCount
+  const layout = selectVenueFloorLayout({
+    tableCount,
+    viewport: opts?.viewport,
+    withHeadline: opts?.withHeadline,
+  })
+  return { ...layout, density: spec.feltDensity }
+}
+
+/** Host spotlight hero tile — hero felt chrome, parent sizing for typography/showdown. */
+export function resolveVenueFloorSpecForHeroFeatured(parentSpec: VenueFloorSpec): VenueFloorSpec {
+  return {
+    ...parentSpec,
+    populatedTableCount: 1,
+    feltDensity: 'hero',
+    spaciousTileChrome: true,
+  }
+}
+
+/** Companion grid beside host spotlight — companion layout, parent venue sizing. */
+export function resolveVenueFloorSpecForCompanionGrid(
+  parentSpec: VenueFloorSpec,
+  companionCount: number,
+  opts?: Pick<ResolveVenueFloorSpecInput, 'viewport' | 'withHeadline'>
+): VenueFloorSpec {
+  const populatedTableCount = Math.max(1, Math.floor(companionCount))
+  return resolveVenueFloorSpec({
+    populatedTableCount,
+    venueLiveTableCount: parentSpec.sizingTableCount,
+    hostFocusTable: null,
+    viewport: opts?.viewport,
+    withHeadline: opts?.withHeadline ?? false,
+  })!
 }
 
 function resolveSizingTableCount(
@@ -280,6 +348,7 @@ export function resolveVenueFloorSpec(input: ResolveVenueFloorSpecInput): VenueF
     showdownStageDensity:
       venueFloorShowdownStageDensityForSizingCount(sizingTableCount) as ShowdownStageDensityTier,
     showdownDenseLayout: venueFloorShowdownDenseLayout(sizingTableCount),
+    spaciousTileChrome: venueFloorSpaciousTileChrome(feltDensity, populatedTableCount),
     broadcastMetaTemplate: tier.broadcastMetaTemplate,
   }
 }

@@ -7,9 +7,9 @@ import { resolveShowdownSidePotLines, ShowdownTableBadge, type ShowdownSidePotLi
 import { ShowdownWinnerCompPanel } from './ShowdownWinnerCompPanel'
 import { BroadcastShowdownPanel } from './BroadcastShowdownPanel'
 import {
-  isShowdownDenseLayout,
   showdownDenseOverlayStyle,
 } from './showdownStageDenseRubric'
+import type { VenueFloorSpec } from './venueFloorSpec'
 
 /** Locked layout id (only floor stack ships). */
 export type VenueFloorShowdownVariantId = 8
@@ -95,7 +95,7 @@ export function VenueFloorShowdownByVariant({
   pot,
   rows,
   correctAnswer,
-  layoutTableCount,
+  floorSpec,
   stageViewport = 'mosaic',
   labMode: _labMode,
 }: {
@@ -103,7 +103,7 @@ export function VenueFloorShowdownByVariant({
   pot: number
   rows: ShowdownResultRow[]
   correctAnswer: number | undefined
-  layoutTableCount: number
+  floorSpec: VenueFloorSpec
   stageViewport?: 'mosaic' | 'broadcast'
   labMode?: boolean
 }) {
@@ -119,7 +119,7 @@ export function VenueFloorShowdownByVariant({
   )
 
   const compWinners = ctx.variant === 'split' ? allWinners : ctx.winners
-  const denseLayout = isShowdownDenseLayout(layoutTableCount)
+  const denseLayout = floorSpec.showdownDenseLayout
 
   const ariaLabel =
     tableNum != null ? `Table ${tableNum}. ${ctx.ariaLabel}` : ctx.ariaLabel
@@ -165,7 +165,8 @@ export function VenueFloorShowdownByVariant({
         pot={ctx.pot}
         correctAnswer={correctAnswer}
         sidePotLines={ctx.sidePotLines}
-        layoutTableCount={layoutTableCount}
+        showdownStageDensity={floorSpec.showdownStageDensity}
+        sizingTableCount={floorSpec.sizingTableCount}
       />
     </div>
   )

@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { ShowdownStageChrome } from './ShowdownStageChrome'
-import { showdownStageDensityTier } from './showdownStageArtLayout'
+import type { ShowdownStageDensityTier } from './showdownStageArtLayout'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -189,7 +189,8 @@ function ShowdownStageTemplate({
   correctAnswer,
   sidePotLines,
   variant,
-  layoutTableCount,
+  showdownStageDensity,
+  sizingTableCount,
 }: {
   names: readonly string[]
   pot: number
@@ -197,12 +198,12 @@ function ShowdownStageTemplate({
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
   variant: 'winner' | 'split' | 'side'
-  layoutTableCount: number
+  showdownStageDensity: ShowdownStageDensityTier
+  sizingTableCount: number
 }) {
   const difference = formatWinnerDifference(chipRow, correctAnswer)
   const sideLedgerRows = sidePotLines?.length ?? 0
   const splitRows = variant === 'split' ? Math.min(names.length, 4) : 0
-  const densityTier = showdownStageDensityTier(layoutTableCount)
 
   const upperBlock =
     variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
@@ -229,8 +230,8 @@ function ShowdownStageTemplate({
   return (
     <ShowdownStageChrome
       variant={variant}
-      densityTier={densityTier}
-      tableCount={layoutTableCount}
+      densityTier={showdownStageDensity}
+      tableCount={sizingTableCount}
       sideLedgerRows={sideLedgerRows}
       splitRows={splitRows}
       difference={difference}
@@ -256,7 +257,8 @@ export function ShowdownWinnerCompPanel({
   pot,
   correctAnswer,
   sidePotLines,
-  layoutTableCount,
+  showdownStageDensity,
+  sizingTableCount,
 }: {
   variant: 'winner' | 'split' | 'side'
   winners: readonly ShowdownResultRow[]
@@ -264,7 +266,8 @@ export function ShowdownWinnerCompPanel({
   pot: number
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
-  layoutTableCount: number
+  showdownStageDensity: ShowdownStageDensityTier
+  sizingTableCount: number
 }) {
   const names = winners.map((w) => w.name).filter(Boolean)
 
@@ -277,7 +280,8 @@ export function ShowdownWinnerCompPanel({
         correctAnswer={correctAnswer}
         sidePotLines={sidePotLines}
         variant={variant}
-        layoutTableCount={layoutTableCount}
+        showdownStageDensity={showdownStageDensity}
+        sizingTableCount={sizingTableCount}
       />
     </div>
   )

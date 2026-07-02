@@ -6,6 +6,11 @@
 
 /* ===== BASE STYLES ===== */
 @layer base {
+  #root {
+    min-height: 100dvh;
+    width: 100%;
+  }
+
   body {
     @apply bg-casino-gradient text-white;
     font-family: 'Rajdhani', system-ui, sans-serif;
@@ -121,6 +126,13 @@
   .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  /** Shared content width — phone full-bleed, desktop stream-friendly card. */
+  .player-shell {
+    width: 100%;
+    max-width: min(100%, var(--player-shell-max, 32rem));
+    margin-inline: auto;
+  }
 }
 
 /* ===== ANIMATIONS ===== */
@@ -190,6 +202,16 @@
 }
 
 /* ===== Player join screen — mobile-first gold casino panel ===== */
+:root {
+  --player-shell-max: 32rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --player-shell-max: 40rem;
+  }
+}
+
 .player-join-screen {
   position: relative;
   min-height: 100vh;
@@ -268,13 +290,12 @@
     max(0.65rem, env(safe-area-inset-left, 0px));
 }
 
-/** Single gold-framed shell — logo + form, fills the phone viewport. */
+/** Single gold-framed shell — logo + form. */
 .player-join-shell {
   position: relative;
   display: flex;
   flex: 1 1 auto;
   width: 100%;
-  min-height: calc(100dvh - 1.3rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   flex-direction: column;
   background: linear-gradient(195deg, rgb(8 10 14 / 0.96) 0%, rgb(5 9 11 / 0.94) 100%);
   box-shadow:
@@ -283,6 +304,12 @@
     inset 0 0 48px rgb(0 0 0 / 0.55),
     0 16px 40px rgb(0 0 0 / 0.55),
     0 0 28px rgb(234 179 8 / 0.08);
+}
+
+@media (max-width: 767px) {
+  .player-join-shell {
+    min-height: calc(100dvh - 1.3rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .player-join-shell::before {
@@ -470,8 +497,13 @@
   display: flex;
   flex-direction: column;
   gap: clamp(0.65rem, 2vh, 0.85rem);
-  margin-top: auto;
   padding-top: clamp(0.5rem, 2vh, 1rem);
+}
+
+@media (max-width: 767px) {
+  .player-join-actions {
+    margin-top: auto;
+  }
 }
 
 .player-join-name-row {
@@ -602,10 +634,43 @@
   color: rgb(255 255 255 / 0.48);
 }
 
-/* Wide desktop — keep full phone width cap only; never shrink/clamp panel height. */
-@media (min-width: 640px) {
+/* Tablet + desktop — centered card, content height, wider for PC stream viewers. */
+@media (min-width: 768px) {
   .player-join-layout {
-    max-width: 26rem;
-    margin-inline: auto;
+    justify-content: center;
+    align-items: center;
+    padding:
+      max(1.5rem, env(safe-area-inset-top, 0px))
+      max(1.5rem, env(safe-area-inset-right, 0px))
+      max(1.5rem, env(safe-area-inset-bottom, 0px))
+      max(1.5rem, env(safe-area-inset-left, 0px));
+  }
+
+  .player-join-shell {
+    flex: 0 1 auto;
+    width: min(100%, var(--player-shell-max));
+    max-width: var(--player-shell-max);
+  }
+
+  .player-join-header {
+    height: clamp(9rem, 14vh, 11.5rem);
+  }
+
+  .player-join-body {
+    padding: 1.15rem 2rem 1.75rem;
+  }
+
+  .player-join-name-row {
+    grid-template-columns: minmax(0, 1fr) 5.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .player-join-header {
+    height: clamp(10rem, 12vh, 12.5rem);
+  }
+
+  .player-join-logo {
+    width: min(88%, 28rem);
   }
 }

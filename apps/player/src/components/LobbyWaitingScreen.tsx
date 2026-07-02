@@ -23,12 +23,12 @@ export default function LobbyWaitingScreen({
         <div className="absolute inset-0 animate-float bg-gradient-to-tr from-emerald-500/10 via-transparent to-blue-500/10" />
       </div>
 
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-8 sm:px-6">
-        <div className="mb-6 w-[clamp(5rem,28vw,7rem)]">
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 w-[clamp(5rem,28vw,7rem)] lg:mb-8 lg:w-[clamp(7rem,18vw,10rem)]">
           <QuizzEmWordmark layout="fill" />
         </div>
 
-        <Card variant="glass" className="w-full max-w-md p-6 text-center sm:p-8">
+        <Card variant="glass" className="player-shell w-full p-6 text-center sm:p-8 lg:p-10">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
             {disconnected ? (
               <p className="mb-3 text-sm font-semibold text-red-400">Reconnecting…</p>

@@ -3,8 +3,8 @@ import { PokerChip } from '@qhe/ui'
 
 export default function ConnectingScreen() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-casino-gradient">
-      <div className="text-center">
+    <div className="flex min-h-screen items-center justify-center bg-casino-gradient px-4">
+      <div className="player-shell text-center">
         <motion.h1
           className="mb-8 flex items-center justify-center gap-2 text-4xl font-black text-casino-emerald sm:text-6xl"
           initial={{ opacity: 0, y: -50 }}

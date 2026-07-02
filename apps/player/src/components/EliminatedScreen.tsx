@@ -8,7 +8,7 @@ type EliminatedScreenProps = {
 export default function EliminatedScreen({ playerName }: EliminatedScreenProps) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-casino-gradient px-4">
-      <Card variant="glass" className="max-w-lg p-8 text-center sm:p-10">
+      <Card variant="glass" className="player-shell p-8 text-center sm:p-10">
         <motion.h1
           className="text-4xl font-black text-red-400 sm:text-5xl"
           initial={{ opacity: 0, y: -12 }}

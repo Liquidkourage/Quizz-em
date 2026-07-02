@@ -95,7 +95,9 @@
   .vfd-showdown-winner-comp {
     width: 100%;
     height: 100%;
-    background: transparent;
+    /* Dim felt/chips under the stage so winner readout stays legible. */
+    background: rgb(0 0 0 / 0.62);
+    backdrop-filter: blur(5px);
   }
 
   .vfd-showdown-stage-frame {
@@ -135,7 +137,12 @@
   }
 
   .vfd-showdown-stage-frame--composed {
-    background: transparent;
+    background: linear-gradient(
+      180deg,
+      rgb(18 14 10 / 0.97) 0%,
+      rgb(0 0 0 / 0.98) 38%,
+      rgb(0 0 0 / 0.99) 100%
+    );
   }
 
   .vfd-showdown-stage-laurel {

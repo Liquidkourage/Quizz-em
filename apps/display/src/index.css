@@ -2575,6 +2575,173 @@
   .vfd-broadcast-action-stack {
     pointer-events: none;
     isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(0.15rem, 0.45vh, 0.35rem);
+  }
+
+  .vfd-broadcast-center-kicker {
+    font-family: Rajdhani, system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: rgb(251 191 36 / 0.82);
+  }
+
+  .vfd-broadcast-center-line--to-call {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2em;
+  }
+
+  .vfd-broadcast-action-detail {
+    font-family: Rajdhani, system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    text-transform: uppercase;
+    color: rgb(254 243 199 / 0.92);
+  }
+
+  .vfd-broadcast-center-amount--inline-call {
+    display: inline;
+  }
+
+  .vfd-broadcast-table-header {
+    margin: 0 0 clamp(0.35rem, 1vh, 0.65rem);
+    font-family: Rajdhani, system-ui, sans-serif;
+    font-size: clamp(1.05rem, 2.4vh, 1.65rem);
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: rgb(251 191 36 / 0.94);
+    text-shadow: 0 2px 12px rgb(0 0 0 / 0.75);
+  }
+
+  .venue-broadcast-felt-shrink {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .venue-broadcast-felt-shrink--solo {
+    transform: scale(0.94);
+    transform-origin: center 88%;
+  }
+
+  .venue-broadcast-felt-shrink--dual {
+    transform: scale(0.91);
+    transform-origin: center 90%;
+  }
+
+  .vfd-broadcast-seat-pod {
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .vfd-broadcast-seat-pod__shell {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.18rem, 0.45vh, 0.32rem);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    border-radius: 0.45rem;
+    background: rgb(2 6 12 / 0.78);
+    padding: clamp(0.28rem, 0.65vh, 0.45rem) clamp(0.38rem, 0.85vh, 0.55rem);
+    box-shadow:
+      0 4px 14px rgb(0 0 0 / 0.55),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+    backdrop-filter: blur(4px);
+  }
+
+  .vfd-broadcast-seat-pod--acting .vfd-broadcast-seat-pod__shell {
+    border-color: rgb(251 191 36 / 0.72);
+    box-shadow:
+      0 0 0 1px rgb(251 191 36 / 0.35),
+      0 0 18px rgb(251 191 36 / 0.22),
+      0 4px 14px rgb(0 0 0 / 0.55);
+  }
+
+  .vfd-broadcast-seat-pod--folded .vfd-broadcast-seat-pod__shell,
+  .vfd-broadcast-seat-pod--out .vfd-broadcast-seat-pod__shell {
+    opacity: 0.62;
+  }
+
+  .vfd-broadcast-seat-pod__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem;
+  }
+
+  .vfd-broadcast-seat-pod__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: Rajdhani, system-ui, sans-serif;
+    font-size: clamp(0.82rem, 1.65vh, 1.12rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: rgb(255 251 235 / 0.96);
+  }
+
+  .vfd-broadcast-seat-pod__bankroll {
+    flex-shrink: 0;
+    font-family: ui-monospace, monospace;
+    font-size: clamp(0.72rem, 1.45vh, 0.98rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: rgb(254 243 199 / 0.94);
+  }
+
+  .vfd-broadcast-seat-pod__bankroll--muted {
+    text-decoration: line-through;
+    color: rgb(255 255 255 / 0.42);
+  }
+
+  .vfd-broadcast-seat-pod__status-row {
+    display: flex;
+    justify-content: center;
+  }
+
+  .vfd-broadcast-seat-pod__cards {
+    display: flex;
+    justify-content: center;
+    opacity: 0.95;
+  }
+
+  .vfd-broadcast-seat-pod__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.25rem;
+    padding: 0.12rem 0.42rem;
+    font-family: Rajdhani, system-ui, sans-serif;
+    font-size: clamp(0.62rem, 1.2vh, 0.78rem);
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .vfd-broadcast-seat-pod__badge--out {
+    border: 1px solid rgb(251 113 133 / 0.75);
+    background: rgb(127 29 29 / 0.88);
+    color: rgb(255 228 230 / 0.96);
+  }
+
+  .vfd-broadcast-seat-pod__badge--folded {
+    border: 1px solid rgb(255 255 255 / 0.18);
+    color: rgb(255 255 255 / 0.62);
+  }
+
+  .vfd-broadcast-seat-pod__badge--all-in {
+    border: 1px solid rgb(167 139 250 / 0.65);
+    background: rgb(46 16 101 / 0.82);
+    color: rgb(237 233 254 / 0.96);
   }
 
   .vfd-broadcast-center-amount {

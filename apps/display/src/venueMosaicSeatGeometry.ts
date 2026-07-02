@@ -1,4 +1,4 @@
-import { imageNormToWrapperPct, POKER_TABLE_GRAPHIC_ASPECT } from '@qhe/ui'
+import { imageNormToWrapperPct, POKER_TABLE_GRAPHIC_ASPECT, STADIUM_REFERENCE_TABLE_WIDTH_PX } from '@qhe/ui'
 import { VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 
 /** Authoring size for mosaic seat layout before ResizeObserver (16.5rem × 8.75rem @ 16px). */
@@ -459,4 +459,36 @@ export function broadcastRimLabelTransform(
   const x = dx > 0 ? '-92%' : '-8%'
   const yCorner = dy > 0 ? y('-92%') : y('-8%')
   return `translate(${x}, ${yCorner})`
+}
+
+/** Outward offset for seat pods — farther outside the rail than rim name labels. */
+export function broadcastSeatPodOutwardPx(w: number, h: number, density: BroadcastDensity = 'solo'): number {
+  const base = Math.max(w, h)
+  return base * (density === 'dual' ? 0.152 : 0.136)
+}
+
+export function broadcastSeatPodPct(
+  seatIndex: number,
+  w: number,
+  h: number,
+  density: BroadcastDensity = 'solo'
+): { leftPct: number; topPct: number } {
+  return mosaicSeatLabelPct(seatIndex, w, h, broadcastSeatPodOutwardPx(w, h, density))
+}
+
+/** Anchor pods toward felt center so they stay outside the rail in both solo and dual layouts. */
+export function broadcastSeatPodTransform(
+  podPos: { leftPct: number; topPct: number },
+  rimW: number,
+  rimH: number
+): string {
+  return broadcastRimLabelTransform(podPos, rimW, rimH, 'dual')
+}
+
+export function broadcastSeatPodWidthPx(rimW: number, density: BroadcastDensity = 'solo'): number {
+  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  const scale = Math.max(0.72, Math.min(1.85, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  const base = density === 'dual' ? 126 : 142
+  const cap = density === 'dual' ? 150 : 168
+  return Math.round(Math.min(base * scale, cap))
 }

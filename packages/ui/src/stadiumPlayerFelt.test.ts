@@ -25,8 +25,7 @@ describe('stadium player felt sizing', () => {
     expect(STADIUM_PLAYER_NAME_LABEL_RADIAL).toBeGreaterThan(STADIUM_NAME_LABEL_RADIAL)
   })
 
-  it('uses a flex gap for player hole cards so they never overlap', () => {
-    const scale = stadiumPlayerHoleCardScale(360)
-    expect(stadiumPlayerHoleCardGapPx(scale)).toBeGreaterThanOrEqual(8)
+  it('uses a fixed flex gap for player hole cards so they never overlap', () => {
+    expect(stadiumPlayerHoleCardGapPx(stadiumPlayerHoleCardScale(360))).toBe(12)
   })
 })

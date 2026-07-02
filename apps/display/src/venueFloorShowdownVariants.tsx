@@ -5,6 +5,7 @@ import {
 } from './showdownDisplay'
 import { resolveShowdownSidePotLines, ShowdownTableBadge, type ShowdownSidePotLine } from './venueFloorSidePotDisplay'
 import { ShowdownWinnerCompPanel } from './ShowdownWinnerCompPanel'
+import { BroadcastShowdownPanel } from './BroadcastShowdownPanel'
 import {
   isShowdownDenseLayout,
   showdownDenseOverlayStyle,
@@ -122,6 +123,27 @@ export function VenueFloorShowdownByVariant({
 
   const ariaLabel =
     tableNum != null ? `Table ${tableNum}. ${ctx.ariaLabel}` : ctx.ariaLabel
+
+  if (stageViewport === 'broadcast') {
+    return (
+      <div
+        className="vfd-showdown-winner-comp pointer-events-none absolute inset-0 z-[135] overflow-hidden rounded-[inherit]"
+        role="group"
+        aria-label={ariaLabel}
+        data-stage-viewport="broadcast"
+      >
+        <BroadcastShowdownPanel
+          variant={ctx.variant}
+          winners={compWinners}
+          chipRow={ctx.chipRow}
+          pot={ctx.pot}
+          correctAnswer={correctAnswer}
+          sidePotLines={ctx.sidePotLines}
+          label={ctx.label}
+        />
+      </div>
+    )
+  }
 
   return (
     <div

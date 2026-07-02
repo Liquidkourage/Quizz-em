@@ -1227,6 +1227,8 @@ function SeatRingWithLabels({
   communityDigits: communityDigitsIn,
   /** Hide pot / community board while a felt showdown overlay covers the table. */
   suppressFeltCenter = false,
+  /** Hide seat chips, names, and hole cards (broadcast showdown). */
+  suppressSeatChrome = false,
   /** Rendered inside the felt ring bounds (e.g. broadcast showdown). */
   feltOverlay = null,
   /** Mosaic: wagering street complete on this felt. */
@@ -1274,6 +1276,7 @@ function SeatRingWithLabels({
   seatHoleDigits?: (readonly [number, number] | null)[]
   communityDigits?: number[]
   suppressFeltCenter?: boolean
+  suppressSeatChrome?: boolean
   feltOverlay?: ReactNode
   betsInPaused?: boolean
   seatSubmittedAnswers?: (number | null)[]
@@ -1474,6 +1477,7 @@ function SeatRingWithLabels({
         const raw = seatNames[i]?.trim() ?? ''
         const filled = raw.length > 0
         if ((isMosaic || isBroadcast) && !filled) return null
+        if (suppressSeatChrome && isBroadcast) return null
 
         const seatRimPt =
           isMosaic || isBroadcast
@@ -2747,6 +2751,7 @@ function VenueSingleTableBroadcast({
             broadcastCallAmount={actingCallAmount}
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
             suppressFeltCenter={showFloorShowdownOverlay}
+            suppressSeatChrome={showFloorShowdownOverlay}
             feltOverlay={
               showFloorShowdownOverlay ? (
                 <VenueFloorShowdownByVariant

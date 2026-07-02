@@ -895,7 +895,11 @@ function isBettingComplete(state: GameState): boolean {
     if (!inChipContest(p)) continue;
     activeCount++;
     const contributed = bets[p.id] || 0;
-    if (contributed !== cur) return false;
+    if (contributed < cur) return false;
+    if (contributed > cur) {
+      // One seat posting both blinds can exceed currentBet until that player acts.
+      if (activeCount !== 1 || lastActions[i] == null) return false;
+    }
     if (lastActions[i] != null) actedCount++;
   }
   if (activeCount === 0) return true;

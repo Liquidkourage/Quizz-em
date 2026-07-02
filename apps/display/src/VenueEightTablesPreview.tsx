@@ -1022,12 +1022,12 @@ function mosaicWagerStyleFlags(
 ): { showNoMoreBets: boolean; wageringLive: boolean } {
   const ph = String(row.phase ?? '').trim().toLowerCase()
   const showNoMoreBets =
-    row.seated >= 2 &&
+    row.seated >= 1 &&
     ((ph === 'betting' && isVenueTileWageringPaused(row)) ||
       (ph === 'answering' && waitingOnOthersToAnswer))
   const wageringLive =
     ph === 'betting' &&
-    row.seated >= 2 &&
+    row.seated >= 1 &&
     row.isBettingOpen === true &&
     !isVenueTileWageringPaused(row)
   return { showNoMoreBets, wageringLive }
@@ -1043,14 +1043,14 @@ function mosaicPhaseLabel(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean
     if (ph === 'showdown') return 'Showdown'
     if (ph === 'intermission') return 'Break'
   }
-  if (ph === 'betting' && row.seated >= 2 && row.isBettingOpen === true) {
+  if (ph === 'betting' && row.seated >= 1 && row.isBettingOpen === true) {
     return 'Wagering'
   }
   return phaseLabel(row.phase)
 }
 
 function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean, wageringLive: boolean): string {
-  if (showNoMoreBets && row.seated >= 2) {
+  if (showNoMoreBets && row.seated >= 1) {
     return 'bg-emerald-400 font-black text-black shadow-[0_0_10px_rgba(52,211,153,0.45)] ring-0'
   }
   if (wageringLive) {
@@ -1074,7 +1074,7 @@ function mosaicPhaseCornerTypography(
   showNoMoreBets: boolean,
   wageringLive: boolean
 ): string {
-  if (showNoMoreBets && row.seated >= 2) {
+  if (showNoMoreBets && row.seated >= 1) {
     return 'whitespace-nowrap font-black uppercase leading-none tracking-tight'
   }
   if (wageringLive) {

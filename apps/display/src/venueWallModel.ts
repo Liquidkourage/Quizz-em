@@ -112,7 +112,7 @@ export function venueWallPhaseLabel(ph: string): string {
 /** Phase label for a specific felt — respects closed wagering / all-in runout. */
 export function venueWallTilePhaseLabel(row: DisplayVenueTileSnapshot): string {
   const ph = String(row.phase ?? '').trim().toLowerCase()
-  if (ph === 'betting' && row.seated >= 2) {
+  if (ph === 'betting' && row.seated >= 1) {
     if (isVenueTileWageringPaused(row)) return 'All bets are in!'
     if (row.isBettingOpen === true) return 'Wagering'
   }
@@ -130,7 +130,7 @@ export function venueHeadlinePhaseBadge(
   const ph = phase.toLowerCase()
   if (ph === 'answering') return 'Answering'
   if (ph === 'betting') {
-    const open = tileRows.filter((t) => t.seated >= 2 && t.phase === 'betting')
+    const open = tileRows.filter((t) => t.seated >= 1 && t.phase === 'betting')
     const round2 = open.filter((t) => t.bettingRound === 2).length
     const round1 = open.filter((t) => t.bettingRound === 1).length
     const roundLabel = round2 > round1 ? 'Round 2' : round1 > 0 ? 'Round 1' : null
@@ -168,7 +168,7 @@ export function resolveVenueHeadlineSource(
 }
 
 export function venueHasOpenWagering(tileRows: DisplayVenueTileSnapshot[]): boolean {
-  return tileRows.some((t) => t.seated >= 2 && t.phase === 'betting' && t.isBettingOpen === true)
+  return tileRows.some((t) => t.seated >= 1 && t.phase === 'betting' && t.isBettingOpen === true)
 }
 
 /** True when every populated table is in the answering phase. */

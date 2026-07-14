@@ -6,9 +6,6 @@ import {
   STADIUM_CUPHOLDER_RADIAL,
   STADIUM_HOLE_CARDS_RADIAL,
   STADIUM_NAME_LABEL_RADIAL,
-  STADIUM_PLAYER_CUPHOLDER_RADIAL,
-  STADIUM_PLAYER_HOLE_CARDS_RADIAL,
-  STADIUM_PLAYER_NAME_LABEL_RADIAL,
   stadiumCupholderSizePx,
   stadiumHoleCardScale,
   stadiumPlayerCommunityCardSizePx,
@@ -17,6 +14,13 @@ import {
   stadiumSeatPointPx,
   type StadiumFeltLayout,
 } from './stadiumSeatLayout'
+import {
+  MOSAIC_SEAT_COUNT,
+  mosaicSeatDotPct,
+  mosaicSeatHoleInwardFrac,
+  mosaicSeatHoleLayout,
+  mosaicSeatLabelPct,
+} from './mosaicSeatGeometry'
 import { CardFaceGraphic } from './CardFaceGraphic'
 import { PokerTableGraphic, SeatCupholderMarker, type SeatCupholderState } from './tableGraphics'
 
@@ -46,7 +50,7 @@ export type StadiumTableSeatsProps = {
   className?: string
   style?: CSSProperties
   aspectClassName?: string
-  /** `player` — larger cards and seat chrome for phone / solo-table views. */
+  /** `player` — display-table mosaic seat anchors + phone-readable sizes. */
   feltLayout?: StadiumFeltLayout
 }
 
@@ -71,7 +75,6 @@ export function StadiumTableSeats({
   const wrapRef = useRef<HTMLDivElement>(null)
   const [ringPx, setRingPx] = useState({ w: 0, h: 0 })
   const seatMap = seatByIndex(seats)
-  const count = Math.max(1, seatCount)
 
   useLayoutEffect(() => {
     const el = wrapRef.current
@@ -92,6 +95,8 @@ export function StadiumTableSeats({
 
   const { w: rimW, h: rimH } = ringPx
   const isPlayerLayout = feltLayout === 'player'
+  /** Player felt always uses the same 8 physical chairs as the venue display tables. */
+  const count = isPlayerLayout ? MOSAIC_SEAT_COUNT : Math.max(1, seatCount)
   const cupSizePx = isPlayerLayout ? stadiumPlayerCupholderSizePx(rimW) : stadiumCupholderSizePx(rimW)
   const holeScale = isPlayerLayout
     ? stadiumPlayerHoleCardScale(rimW, count)
@@ -102,6 +107,7 @@ export function StadiumTableSeats({
     : null
   const showCenter =
     centerContent != null || (communityDigits != null && communityDigits.length > 0)
+  const labelOutwardPx = isPlayerLayout ? Math.max(14, Math.round(cupSizePx * 0.55)) : 0
 
   return (
     <div
@@ -145,12 +151,15 @@ export function StadiumTableSeats({
           const seat = seatMap.get(i)
           if (hideEmptySeats && seat == null) return null
 
-          const cupRadial = isPlayerLayout ? STADIUM_PLAYER_CUPHOLDER_RADIAL : STADIUM_CUPHOLDER_RADIAL
-          const holeRadial = isPlayerLayout ? STADIUM_PLAYER_HOLE_CARDS_RADIAL : STADIUM_HOLE_CARDS_RADIAL
-          const labelRadial = isPlayerLayout ? STADIUM_PLAYER_NAME_LABEL_RADIAL : STADIUM_NAME_LABEL_RADIAL
-          const cupPt = stadiumSeatPointPx(i, count, rimW, rimH, cupRadial)
-          const holePt = stadiumSeatPointPx(i, count, rimW, rimH, holeRadial)
-          const labelPt = stadiumSeatPointPx(i, count, rimW, rimH, labelRadial)
+          const cupPt = isPlayerLayout
+            ? mosaicSeatDotPct(i, count, rimW, rimH)
+            : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_CUPHOLDER_RADIAL)
+          const holePt = isPlayerLayout
+            ? mosaicSeatHoleLayout(i, count, rimW, rimH, mosaicSeatHoleInwardFrac(i))
+            : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_HOLE_CARDS_RADIAL)
+          const labelPt = isPlayerLayout
+            ? mosaicSeatLabelPct(i, rimW, rimH, labelOutwardPx)
+            : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_NAME_LABEL_RADIAL)
           const state = seat?.state ?? (seat == null ? 'empty' : 'default')
           const showHoles = seat != null && seat.holeDigits != null && state !== 'folded'
           const holesFaceUp = showHoles && !(seat!.faceDown ?? true)

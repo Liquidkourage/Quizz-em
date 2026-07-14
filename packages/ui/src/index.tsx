@@ -266,6 +266,25 @@ export {
   CARD_BACK_IMAGE_SRC,
   type SeatCupholderState,
 } from './tableGraphics';
+export {
+  MOSAIC_SEAT_COUNT,
+  MOSAIC_RING_FALLBACK_W_PX,
+  MOSAIC_RING_FALLBACK_H_PX,
+  MOSAIC_FELT_CENTER_UV,
+  MOSAIC_HOLE_INWARD_FRAC,
+  MOSAIC_CORNER_ARC_DEG,
+  MOSAIC_CUP_ANCHORS_UV,
+  MOSAIC_HOLE_ANCHORS_UV,
+  mosaicSeatIndex,
+  mosaicSeatChipInwardFrac,
+  mosaicSeatHoleInwardFrac,
+  mosaicStadiumCupUV,
+  mosaicStadiumHoleUV,
+  mosaicFeltCenterPct,
+  mosaicSeatDotPct,
+  mosaicSeatHoleLayout,
+  mosaicSeatLabelPct,
+} from './mosaicSeatGeometry';
 export { FeltHoleCardPair, type FeltHoleCardPairProps } from './feltHoleCards';
 export {
   PLAYER_FELT_HOLE_CARD_GAP_PX,

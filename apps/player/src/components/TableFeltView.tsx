@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
+import { MOSAIC_SEAT_COUNT, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState } from '@qhe/core'
 import { LOBBY_TABLE_ID } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
@@ -93,7 +93,8 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
     <PlayerGoldPanel title="Table">
       <StadiumTableSeats
         feltLayout="player"
-        seatCount={players.length}
+        seatCount={MOSAIC_SEAT_COUNT}
+        hideEmptySeats
         seats={seats}
         communityDigits={communityDigits}
         aspectClassName="player-game-felt aspect-[8/5] w-full"

@@ -89,8 +89,11 @@ export const STADIUM_NAME_LABEL_RADIAL = 1.06
 /** Player phone — name tags pushed past the rail so they never cover hole cards. */
 export const STADIUM_PLAYER_NAME_LABEL_RADIAL = 1.14
 
-/** Player phone — hole cards closer to the pot, away from cupholders and labels. */
-export const STADIUM_PLAYER_HOLE_CARDS_RADIAL = 0.72
+/**
+ * Player phone — hole cards just inside the rail at each seat.
+ * Keep this high enough that multi-seat tables never form a card ring over the board.
+ */
+export const STADIUM_PLAYER_HOLE_CARDS_RADIAL = 0.9
 
 /** Player phone — cupholders slightly inset from the rail. */
 export const STADIUM_PLAYER_CUPHOLDER_RADIAL = 0.98
@@ -223,18 +226,31 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
 /** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
 export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
-  return Math.max(26, Math.round(w * 0.082))
+  return Math.max(22, Math.round(w * 0.065))
 }
 
-export function stadiumPlayerHoleCardScale(tableWidthPx: number): number {
+/**
+ * Hole-card scale for the player felt (`NumericPlayingCard` `small` = 64px).
+ * Shrinks as seat count rises so pairs stay at their seats and leave the board clear.
+ */
+export function stadiumPlayerHoleCardScale(tableWidthPx: number, seatCount = 6): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
-  return Math.max(0.5, stadiumHoleCardScale(w) * 2.35)
+  const n = Math.max(1, Math.floor(seatCount))
+  const cardWFrac = n <= 2 ? 0.088 : n <= 4 ? 0.07 : n <= 6 ? 0.056 : 0.048
+  const targetW = w * cardWFrac
+  return Math.max(0.28, Math.min(0.62, targetW / 64))
 }
 
-export function stadiumPlayerCommunityCardSizePx(tableWidthPx: number): { w: number; h: number } {
+/** Community board card size — five cards must fit inside the seat ring. */
+export function stadiumPlayerCommunityCardSizePx(
+  tableWidthPx: number,
+  seatCount = 6
+): { w: number; h: number } {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
-  const cardW = Math.max(38, Math.round(w * 0.102))
-  return { w: cardW, h: Math.max(52, Math.round((cardW * 7) / 5)) }
+  const n = Math.max(1, Math.floor(seatCount))
+  const boardFrac = n <= 2 ? 0.09 : n <= 4 ? 0.078 : 0.066
+  const cardW = Math.max(22, Math.round(w * boardFrac))
+  return { w: cardW, h: Math.max(30, Math.round((cardW * 7) / 5)) }
 }
 
 export type StadiumFeltLayout = 'default' | 'player'

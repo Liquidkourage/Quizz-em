@@ -7,9 +7,14 @@ import { stadiumPlayerHoleCardScale } from './stadiumSeatLayout'
 
 describe('PlayerFeltHoleCards layout', () => {
   it('reserves independent columns with a fixed gap', () => {
-    const scale = stadiumPlayerHoleCardScale(360)
+    const scale = stadiumPlayerHoleCardScale(360, 5)
     const cardW = Math.round(64 * scale)
     expect(playerFeltHolePairWidthPx(scale)).toBe(cardW * 2 + PLAYER_FELT_HOLE_CARD_GAP_PX)
     expect(PLAYER_FELT_HOLE_CARD_GAP_PX).toBeGreaterThan(0)
+  })
+
+  it('keeps a five-seat pair narrow enough to sit at the rail', () => {
+    const scale = stadiumPlayerHoleCardScale(360, 5)
+    expect(playerFeltHolePairWidthPx(scale)).toBeLessThan(360 * 0.28)
   })
 })

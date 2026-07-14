@@ -3,7 +3,7 @@ import { CardBackSvg } from './CardBackSvg'
 import { CardFaceGraphic } from './CardFaceGraphic'
 
 /** Gap between the two player hole cards — never overlap. */
-export const PLAYER_FELT_HOLE_CARD_GAP_PX = 14
+export const PLAYER_FELT_HOLE_CARD_GAP_PX = 6
 
 const CARD_SMALL_WIDTH_PX = 64
 const CARD_SMALL_HEIGHT_PX = 96
@@ -35,6 +35,7 @@ export function PlayerFeltHoleCards({
 }: PlayerFeltHoleCardsProps) {
   const { w, h } = playerHoleCardSizePx(scale)
   const pairWidth = w * 2 + PLAYER_FELT_HOLE_CARD_GAP_PX
+  const radius = Math.max(4, Math.round(Math.min(w, h) * 0.12))
 
   const shellStyle: CSSProperties = {
     display: 'grid',
@@ -58,9 +59,9 @@ export function PlayerFeltHoleCards({
           style={{
             width: w,
             height: h,
-            borderRadius: 12,
+            borderRadius: radius,
             overflow: 'hidden',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.45)',
+            boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
           }}
         >
           {faceDown ? (

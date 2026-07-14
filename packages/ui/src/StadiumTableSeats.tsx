@@ -93,9 +93,13 @@ export function StadiumTableSeats({
   const { w: rimW, h: rimH } = ringPx
   const isPlayerLayout = feltLayout === 'player'
   const cupSizePx = isPlayerLayout ? stadiumPlayerCupholderSizePx(rimW) : stadiumCupholderSizePx(rimW)
-  const holeScale = isPlayerLayout ? stadiumPlayerHoleCardScale(rimW) : stadiumHoleCardScale(rimW)
-  const cupLabelFontPx = isPlayerLayout ? Math.max(11, Math.round(cupSizePx * 0.38)) : undefined
-  const communityCardSize = isPlayerLayout ? stadiumPlayerCommunityCardSizePx(rimW) : null
+  const holeScale = isPlayerLayout
+    ? stadiumPlayerHoleCardScale(rimW, count)
+    : stadiumHoleCardScale(rimW)
+  const cupLabelFontPx = isPlayerLayout ? Math.max(10, Math.round(cupSizePx * 0.38)) : undefined
+  const communityCardSize = isPlayerLayout
+    ? stadiumPlayerCommunityCardSizePx(rimW, count)
+    : null
   const showCenter =
     centerContent != null || (communityDigits != null && communityDigits.length > 0)
 
@@ -110,8 +114,8 @@ export function StadiumTableSeats({
       {showCenter && rimW > 0 ? (
         <div
           className={clsx(
-            'pointer-events-none absolute left-1/2 top-1/2 z-[12] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center',
-            isPlayerLayout ? 'gap-1.5' : 'gap-0.5'
+            'pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center',
+            isPlayerLayout ? 'z-[24] gap-1.5' : 'z-[12] gap-0.5'
           )}
           aria-hidden={centerContent == null ? undefined : true}
         >
@@ -150,6 +154,8 @@ export function StadiumTableSeats({
           const state = seat?.state ?? (seat == null ? 'empty' : 'default')
           const showHoles = seat != null && seat.holeDigits != null && state !== 'folded'
           const holesFaceUp = showHoles && !(seat!.faceDown ?? true)
+          const seatHoleScale =
+            isPlayerLayout && holesFaceUp ? Math.min(0.62, holeScale * 1.35) : holeScale
 
           return (
             <div key={i}>
@@ -171,21 +177,22 @@ export function StadiumTableSeats({
                 <div
                   className={clsx(
                     'pointer-events-none absolute -translate-x-1/2 -translate-y-1/2',
-                    holesFaceUp ? 'z-[30]' : 'z-[18]'
+                    // Face-up (hero) above board; face-down opponents stay under the community cards.
+                    holesFaceUp ? 'z-[30]' : isPlayerLayout ? 'z-[16]' : 'z-[18]'
                   )}
                   style={{ left: `${holePt.leftPct}%`, top: `${holePt.topPct}%` }}
                 >
                   {isPlayerLayout ? (
                     <PlayerFeltHoleCards
                       rotateDeg={holePt.rotateDeg}
-                      scale={holeScale}
+                      scale={seatHoleScale}
                       faceDown={seat!.faceDown ?? true}
                       digits={seat!.holeDigits}
                     />
                   ) : (
                     <FeltHoleCardPair
                       rotateDeg={holePt.rotateDeg}
-                      scale={holeScale}
+                      scale={seatHoleScale}
                       faceDown={seat!.faceDown ?? true}
                       digits={seat!.holeDigits}
                       variant={seat!.holeVariant ?? 'cyan'}

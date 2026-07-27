@@ -44,16 +44,16 @@ export default function AnswerComposer({
         </p>
       ) : null}
 
-      <div style={{ textAlign: 'center' }}>
+      <div className="player-game-answer-block">
         <p className="player-game-question-label">Your answer</p>
-        <p className="player-game-hint" style={{ marginTop: '0.35rem' }}>
+        <p className="player-game-hint player-game-hint--composer">
           Tap exactly {ANSWER_CARD_COUNT} cards; add a decimal if needed. Selected: {selectedCards.length}/
           {ANSWER_CARD_COUNT}
         </p>
         <div className="player-game-answer-display">{composed.display || '—'}</div>
       </div>
 
-      <div className="player-game-card-row" style={{ marginTop: '0.85rem' }}>
+      <div className="player-game-card-row player-game-card-row--composer">
         <div className="player-game-card-group">
           <p className="player-game-card-section-label">Hole cards</p>
           <div className="player-game-card-pair">
@@ -126,7 +126,7 @@ export default function AnswerComposer({
         </div>
       </div>
 
-      <div className="player-game-actions player-game-actions--stack" style={{ marginTop: '0.85rem' }}>
+      <div className="player-game-actions player-game-actions--stack player-game-actions--composer">
         <PlayerGameButton variant="fold" size="large" onClick={onClear}>
           Clear
         </PlayerGameButton>

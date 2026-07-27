@@ -173,9 +173,6 @@ export function stadiumMosaicCommunityCardWidthPx(
   const w = tableWidthPx > 0 ? tableWidthPx : STADIUM_MOSAIC_REFERENCE_WIDTH_PX
   const scale = stadiumMosaicScaleForWidth(w, density)
   const fromLegacy = MOSAIC_COMMUNITY_CARD_WIDTH_AT_REFERENCE * scale
-  if (density === 'hero') {
-    return Math.max(14, Math.round(fromLegacy))
-  }
   const fromHole =
     stadiumMosaicHoleCardWidthPx(w, density) * MOSAIC_COMMUNITY_TO_HOLE_WIDTH_RATIO
   return Math.max(14, Math.round(Math.max(fromLegacy, fromHole)))

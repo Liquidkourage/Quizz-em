@@ -116,7 +116,7 @@
     width: 100%;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .vfd-broadcast-showdown-reveal__backdrop {
@@ -175,7 +175,8 @@
     height: 100%;
     align-items: center;
     justify-content: center;
-    padding: clamp(0.75rem, 2.5vmin, 1.75rem);
+    padding: clamp(2.75rem, 7vmin, 4.5rem) clamp(0.75rem, 2.5vmin, 1.75rem)
+      clamp(0.75rem, 2.5vmin, 1.75rem);
   }
 
   .vfd-broadcast-showdown-reveal__plaque {
@@ -258,12 +259,14 @@
     position: relative;
     z-index: 2;
     display: flex;
+    width: min(100%, 34rem);
+    max-height: min(78vh, 34rem);
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: clamp(0.75rem, 2.35vmin, 1.35rem);
-    width: min(100%, 34rem);
-    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
     text-align: center;
   }
 
@@ -2497,10 +2500,10 @@
     min-width: 0;
     align-items: baseline;
     justify-content: center;
-    gap: clamp(5px, 0.65vw, 9px);
+    gap: clamp(4px, 1.6cqw, 9px);
     border-radius: 6px;
-    padding: clamp(7px, 0.95vmin, 11px) clamp(10px, 1.25vw, 16px);
-    margin-bottom: clamp(2px, 0.35vmin, 4px);
+    padding: clamp(5px, 1.8cqh, 11px) clamp(8px, 2.8cqw, 16px);
+    margin-bottom: clamp(2px, 0.8cqh, 4px);
   }
 
   .vfd-mosaic-status-band--call {
@@ -2535,7 +2538,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(1.05rem, 2.25vmin, 1.55rem);
+    font-size: clamp(0.72rem, 5.2cqw, 1.55rem);
     font-weight: 700;
     line-height: 1.1;
     color: rgb(255 251 235 / 0.98);
@@ -2544,7 +2547,7 @@
   .vfd-mosaic-status-band-label {
     flex-shrink: 0;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.88rem, 1.65vmin, 1.15rem);
+    font-size: clamp(0.62rem, 3.8cqw, 1.15rem);
     font-weight: 600;
     letter-spacing: 0.05em;
     line-height: 1.1;
@@ -2554,13 +2557,13 @@
 
   .vfd-mosaic-status-band-amount.vfd-mosaic-dollar {
     flex-shrink: 0;
-    font-size: clamp(1.2rem, 2.55vmin, 1.85rem);
+    font-size: clamp(0.85rem, 6cqw, 1.85rem);
     line-height: 1;
   }
 
   .vfd-mosaic-status-band-message {
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(1rem, 2vmin, 1.45rem);
+    font-size: clamp(0.7rem, 4.6cqw, 1.45rem);
     font-weight: 800;
     letter-spacing: 0.08em;
     line-height: 1.1;
@@ -2582,6 +2585,7 @@
 
   .vfd-mosaic-seat-initial {
     line-height: 1;
+    font-style: normal;
   }
 
   .vfd-mosaic-watermark {

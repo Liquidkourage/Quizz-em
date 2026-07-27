@@ -287,7 +287,7 @@ export function venueMosaicTileTypographyStyle(
 }
 
 /** Slightly taller mosaic felt — room for under-table call caption without shrinking type. */
-export const VENUE_FLOOR_MOSAIC_TILE_INSET = 'mx-auto w-[90%] max-w-full'
+export const VENUE_FLOOR_MOSAIC_TILE_INSET = 'mx-auto w-[94%] max-w-full'
 export const VENUE_FLOOR_MOSAIC_FELT_ASPECT = '17/10' as const
 /** Narrower felt within the tile — frees vertical chrome for name + to-call type. */
 export const VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS = 'mx-auto w-[93%] max-w-full'

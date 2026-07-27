@@ -665,7 +665,7 @@ function VenueMosaicFeltCenterStack({
       aria-hidden={communityDigits.length === 0 && !showPot}
     >
       <div
-        className="flex max-w-[88%] flex-col items-center justify-center gap-0.5 text-center"
+        className="flex max-w-[92%] flex-col items-center justify-center gap-1 text-center"
         style={{
           position: 'absolute',
           left: `${feltBounds.cx * 100}%`,
@@ -693,7 +693,7 @@ function VenueMosaicFeltCenterStack({
             amount={pot}
             prefersReducedMotion={prefersReducedMotion}
             potMuted={potMuted}
-            className={`block truncate ${potClass}`}
+            className={`block max-w-full ${potClass}`}
           />
         ) : null}
       </div>
@@ -1066,7 +1066,7 @@ function mosaicSeatInitialsClass(_density: VenueFloorTableSize | undefined): str
 
 /** Initials font size tracks cupholder diameter on mosaic felts. */
 function mosaicSeatInitialFontPx(cupSizePx: number): number {
-  return Math.max(8, Math.round(cupSizePx * 0.45))
+  return Math.max(10, Math.round(cupSizePx * 0.54))
 }
 
 function mosaicPhaseCornerTypography(
@@ -1449,7 +1449,9 @@ function SeatRingWithLabels({
   return (
     <div
       ref={ringElRef}
-      className={`${isMosaic ? '@container' : ''} relative ${isMosaic || isDualBroadcast ? 'overflow-hidden' : 'overflow-visible'} ${wrap}`}
+      className={`${isMosaic ? '@container' : ''} relative ${
+        isDualBroadcast ? 'overflow-hidden' : 'overflow-visible'
+      } ${wrap}`}
       style={ringWrapStyle}
     >
       <div className="absolute inset-0" aria-hidden>
@@ -2849,7 +2851,7 @@ export function VenueDualTableBroadcast({
       {tiles.map((tile) => (
         <div
           key={tile.tableNum}
-          className="venue-floor-dual-broadcast__cell flex min-h-0 min-w-0 flex-col overflow-hidden"
+          className="venue-floor-dual-broadcast__cell flex min-h-0 min-w-0 flex-col overflow-visible"
         >
         <VenueSingleTableBroadcast
           tile={tile}

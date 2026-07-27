@@ -1127,6 +1127,15 @@
   color: rgb(255 255 255 / 0.65);
 }
 
+.player-game-stat-grid--dock {
+  margin-bottom: 0.55rem;
+  font-size: 0.72rem;
+}
+
+.player-game-stat-grid-full {
+  grid-column: 1 / -1;
+}
+
 .player-game-stat-grid strong {
   color: rgb(255 255 255 / 0.92);
 }
@@ -1292,6 +1301,19 @@
   color: rgb(255 255 255 / 0.55);
 }
 
+.player-game-hint--composer {
+  margin-top: 0.35rem;
+}
+
+.player-game-answer-block {
+  text-align: center;
+}
+
+.player-game-card-row--composer,
+.player-game-actions--composer {
+  margin-top: 0.85rem;
+}
+
 .player-game-answer-display {
   display: flex;
   min-height: clamp(4.5rem, 14vw, 5.5rem);
@@ -1410,6 +1432,7 @@
 }
 
 .player-game-result {
+  margin-top: 0.85rem;
   text-align: center;
   font-family: 'Rajdhani', system-ui, sans-serif;
   font-size: clamp(0.88rem, 3vw, 1rem);

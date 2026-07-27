@@ -63,8 +63,8 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
 
         <div className="mt-6 flex flex-col items-center gap-4 sm:mt-8">
           {answerRow != null && answerRow.answerCards.length > 0 ? (
-            <div className="scale-[1.35] sm:scale-[1.55] md:scale-[1.75]">
-              <ShowdownFiveCardsUsed row={answerRow} size="lg" />
+            <div className="w-full max-w-3xl px-2">
+              <ShowdownFiveCardsUsed row={answerRow} size="broadcast-hero" />
             </div>
           ) : (
             <p className="font-mono text-[clamp(2.75rem,8vmin,5.5rem)] font-black tabular-nums leading-none tracking-tight text-amber-100">

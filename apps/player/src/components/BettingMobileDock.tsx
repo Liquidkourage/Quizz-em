@@ -20,7 +20,7 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
   return (
     <div className="player-game-dock max-lg:block lg:hidden">
       <div className="player-game-dock-inner">
-        <div className="player-game-stat-grid" style={{ marginBottom: '0.55rem', fontSize: '0.72rem' }}>
+        <div className="player-game-stat-grid player-game-stat-grid--dock">
           <div>
             To call <strong>${ctx.toCall}</strong>
           </div>
@@ -29,7 +29,7 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
               {ctx.isMyTurn ? 'Your turn' : 'Waiting'}
             </strong>
           </div>
-          <div style={{ gridColumn: '1 / -1' }}>
+          <div className="player-game-stat-grid-full">
             Stack <strong>${currentPlayer.bankroll}</strong>
           </div>
         </div>

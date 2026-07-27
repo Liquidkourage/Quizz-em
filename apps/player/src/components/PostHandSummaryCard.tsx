@@ -31,7 +31,7 @@ export default function PostHandSummaryCard({ summary }: PostHandSummaryCardProp
         </div>
       </div>
       {summary.formattedSubmitted != null ? (
-        <p className="player-game-result" style={{ marginTop: '0.85rem' }}>
+        <p className="player-game-result">
           Your answer: <span className="player-game-result-mono">{summary.formattedSubmitted}</span>
           {summary.formattedCorrect != null ? (
             <>

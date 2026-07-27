@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueSeatingAnnouncement } from '@qhe/net'
+import { computeVenueBustGridLayout } from './venueBustGridLayout'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 function displayPlayerName(raw: string): string {
@@ -44,6 +45,18 @@ export default function VenueSeatingAnnouncement({
 }) {
   const reducedMotion = useReducedMotion()
   const title = seatingTitle(seating)
+  const [viewport, setViewport] = useState(() =>
+    typeof window !== 'undefined'
+      ? { w: window.innerWidth, h: window.innerHeight }
+      : { w: 1920, h: 1080 },
+  )
+
+  useEffect(() => {
+    const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const rows = useMemo(() => {
     const out: { key: string; label: string; detail: string }[] = []
     for (const m of seating.moves) {
@@ -63,7 +76,11 @@ export default function VenueSeatingAnnouncement({
     return out
   }, [seating])
 
-  const compact = rows.length > 4
+  const grid = useMemo(
+    () => computeVenueBustGridLayout(Math.max(1, rows.length), viewport.w, viewport.h),
+    [rows.length, viewport.h, viewport.w],
+  )
+  const compact = grid.compact || rows.length > 4
 
   return (
     <motion.div
@@ -86,7 +103,7 @@ export default function VenueSeatingAnnouncement({
         className={`venue-bust-overlay-panel relative z-10 flex w-full flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
           compact ? 'venue-bust-overlay-panel--compact' : ''
         }`}
-        style={{ maxWidth: compact ? 'min(92vw, 52rem)' : 'min(92vw, 44rem)' }}
+        style={{ maxWidth: grid.cardMaxWidth }}
         initial={reducedMotion ? false : { opacity: 0, y: 18, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={reducedMotion ? undefined : { opacity: 0, y: 10, scale: 0.98 }}
@@ -113,16 +130,20 @@ export default function VenueSeatingAnnouncement({
               </p>
             ) : null}
           </div>
-          <QuizzEmWordmark
+          <div
             className={`venue-bust-overlay-wordmark hidden shrink-0 sm:block ${
               compact ? 'venue-bust-overlay-wordmark--compact' : ''
             }`}
-          />
+            style={{ aspectRatio: '958 / 592' }}
+          >
+            <QuizzEmWordmark layout="fill" />
+          </div>
         </div>
 
         {rows.length > 0 ? (
           <div
             className={`venue-bust-overlay-grid ${compact ? 'venue-bust-overlay-grid--compact' : ''}`}
+            style={{ gridTemplateColumns: `repeat(${grid.columns}, minmax(0, 1fr))` }}
           >
             {rows.map((row) => (
               <div

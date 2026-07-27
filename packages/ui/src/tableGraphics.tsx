@@ -100,7 +100,7 @@ export function SeatCupholderMarker({
   return (
     <div
       className={clsx(
-        'relative shrink-0 overflow-hidden rounded-full',
+        'relative shrink-0 overflow-visible rounded-full',
         sizeClassName,
         seatCupholderStateRing[state],
         className
@@ -112,11 +112,11 @@ export function SeatCupholderMarker({
       aria-label={ariaLabel}
       aria-current={state === 'acting' ? true : undefined}
     >
-      <CupholderGraphic dimmed={dimmed} className="absolute inset-0 h-full w-full" />
+      <CupholderGraphic dimmed={dimmed} className="absolute inset-0 h-full w-full overflow-hidden rounded-full" />
       {label != null && String(label).length > 0 ? (
         <span
           className={clsx(
-            'absolute inset-0 flex items-center justify-center truncate px-0.5 text-center font-black leading-none tracking-tight text-amber-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95),0_0_6px_rgba(0,0,0,0.85)]',
+            'absolute inset-0 flex items-center justify-center px-0.5 text-center font-black leading-none tracking-tight text-amber-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95),0_0_6px_rgba(0,0,0,0.85)]',
             labelClassName
           )}
           style={labelFontSizePx != null ? { fontSize: labelFontSizePx } : undefined}

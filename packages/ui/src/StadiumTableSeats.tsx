@@ -97,13 +97,15 @@ export function StadiumTableSeats({
   const isPlayerLayout = feltLayout === 'player'
   /** Player felt always uses the same 8 physical chairs as the venue display tables. */
   const count = isPlayerLayout ? MOSAIC_SEAT_COUNT : Math.max(1, seatCount)
+  /** Size chrome by how many seats are occupied — not always 8 empty chairs. */
+  const occupiedForSizing = Math.max(1, Math.min(count, seats.length || seatCount || 1))
   const cupSizePx = isPlayerLayout ? stadiumPlayerCupholderSizePx(rimW) : stadiumCupholderSizePx(rimW)
   const holeScale = isPlayerLayout
-    ? stadiumPlayerHoleCardScale(rimW, count)
+    ? stadiumPlayerHoleCardScale(rimW, occupiedForSizing)
     : stadiumHoleCardScale(rimW)
   const cupLabelFontPx = isPlayerLayout ? Math.max(10, Math.round(cupSizePx * 0.38)) : undefined
   const communityCardSize = isPlayerLayout
-    ? stadiumPlayerCommunityCardSizePx(rimW, count)
+    ? stadiumPlayerCommunityCardSizePx(rimW, occupiedForSizing)
     : null
   const showCenter =
     centerContent != null || (communityDigits != null && communityDigits.length > 0)
@@ -164,7 +166,10 @@ export function StadiumTableSeats({
           const showHoles = seat != null && seat.holeDigits != null && state !== 'folded'
           const holesFaceUp = showHoles && !(seat!.faceDown ?? true)
           const seatHoleScale =
-            isPlayerLayout && holesFaceUp ? Math.min(0.62, holeScale * 1.35) : holeScale
+            isPlayerLayout && holesFaceUp
+              ? // Hero face-up cards must stay independently readable on a phone.
+                Math.min(0.72, Math.max(holeScale * 1.55, 0.45))
+              : holeScale
 
           return (
             <div key={i}>

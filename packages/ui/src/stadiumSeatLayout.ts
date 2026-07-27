@@ -231,14 +231,14 @@ export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
 
 /**
  * Hole-card scale for the player felt (`NumericPlayingCard` `small` = 64px).
- * Shrinks as seat count rises so pairs stay at their seats and leave the board clear.
+ * `seatCount` should be occupied seats (not always 8 chairs) so small tables stay readable.
  */
 export function stadiumPlayerHoleCardScale(tableWidthPx: number, seatCount = 6): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
   const n = Math.max(1, Math.floor(seatCount))
-  const cardWFrac = n <= 2 ? 0.088 : n <= 4 ? 0.07 : n <= 6 ? 0.056 : 0.048
+  const cardWFrac = n <= 2 ? 0.1 : n <= 4 ? 0.078 : n <= 6 ? 0.062 : 0.052
   const targetW = w * cardWFrac
-  return Math.max(0.28, Math.min(0.62, targetW / 64))
+  return Math.max(0.32, Math.min(0.68, targetW / 64))
 }
 
 /** Community board card size — five cards must fit inside the seat ring. */
@@ -248,9 +248,9 @@ export function stadiumPlayerCommunityCardSizePx(
 ): { w: number; h: number } {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
   const n = Math.max(1, Math.floor(seatCount))
-  const boardFrac = n <= 2 ? 0.09 : n <= 4 ? 0.078 : 0.066
-  const cardW = Math.max(22, Math.round(w * boardFrac))
-  return { w: cardW, h: Math.max(30, Math.round((cardW * 7) / 5)) }
+  const boardFrac = n <= 2 ? 0.095 : n <= 4 ? 0.082 : n <= 6 ? 0.072 : 0.064
+  const cardW = Math.max(24, Math.round(w * boardFrac))
+  return { w: cardW, h: Math.max(34, Math.round((cardW * 7) / 5)) }
 }
 
 export type StadiumFeltLayout = 'default' | 'player'

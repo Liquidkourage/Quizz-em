@@ -71,7 +71,8 @@ export default function AnswerComposer({
                     variant="gold"
                     style="neon"
                     neonVariant={isSelected ? 'pulse' : 'matrix'}
-                    size="large"
+                    size="normal"
+                    compact
                   />
                 </motion.div>
               )
@@ -97,7 +98,8 @@ export default function AnswerComposer({
                       variant="gold"
                       style="neon"
                       neonVariant={isSelected ? 'pulse' : 'matrix'}
-                      size="large"
+                      size="normal"
+                      compact
                     />
                   </motion.div>
                 )

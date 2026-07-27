@@ -25,10 +25,10 @@ describe('stadium player felt sizing', () => {
     expect(STADIUM_PLAYER_NAME_LABEL_RADIAL).toBeGreaterThan(STADIUM_NAME_LABEL_RADIAL)
   })
 
-  it('shrinks hole cards as more seats share the rail', () => {
-    expect(stadiumPlayerHoleCardScale(360, 6)).toBeLessThan(stadiumPlayerHoleCardScale(360, 2))
-    expect(stadiumPlayerCommunityCardSizePx(360, 6).w).toBeLessThanOrEqual(
-      stadiumPlayerCommunityCardSizePx(360, 2).w
-    )
+  it('sizes by occupied seats so sparse tables stay readable', () => {
+    const five = stadiumPlayerHoleCardScale(360, 5)
+    const eight = stadiumPlayerHoleCardScale(360, 8)
+    expect(five).toBeGreaterThan(eight)
+    expect(five).toBeGreaterThanOrEqual(0.32)
   })
 })

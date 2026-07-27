@@ -1333,7 +1333,10 @@
 
 .player-game-card-pair {
   display: flex;
-  gap: 0.45rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: min(100%, 22rem);
 }
 
 .player-game-card-selected {

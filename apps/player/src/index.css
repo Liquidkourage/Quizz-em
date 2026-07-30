@@ -1035,6 +1035,21 @@
   color: rgb(255 255 255 / 0.55);
 }
 
+.player-game-info-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem 1rem;
+  text-align: center;
+}
+
+.player-game-info-stats:has(.player-game-info-stat:only-child) {
+  grid-template-columns: 1fr;
+}
+
+.player-game-info-stat {
+  min-width: 0;
+}
+
 .player-game-pot-value {
   margin: 0.15rem 0 0;
   text-align: center;
@@ -1044,6 +1059,57 @@
   letter-spacing: 0.04em;
   color: rgb(253 224 71);
   text-shadow: 0 0 14px rgb(251 191 36 / 0.35);
+}
+
+.player-game-pot-value--stack {
+  font-size: clamp(1.45rem, 5vw, 1.95rem);
+  color: rgb(254 243 199);
+  text-shadow: 0 0 10px rgb(251 191 36 / 0.2);
+}
+
+.player-game-info-cards {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.75rem 1.1rem;
+  margin-top: 0.85rem;
+  padding: 0.55rem 0.45rem 0.65rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.2);
+  background: rgb(0 0 0 / 0.35);
+}
+
+.player-game-info-card-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.player-game-info-card-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+}
+
+/* Compact strip: small NumericPlayingCard is 64×96 — slot shrinks layout box. */
+.player-game-info-card-slot {
+  display: block;
+  width: 37px;
+  height: 56px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.player-game-info-card-slot > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: scale(0.58);
+  transform-origin: top left;
 }
 
 .player-game-question {

@@ -272,7 +272,7 @@ function PlayerApp() {
 
             {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
 
-            <GameInfoCard gameState={gameState} />
+            <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} />
 
             {currentPlayer ? <RevealShowdownPanel gameState={gameState} currentPlayer={currentPlayer} /> : null}
 

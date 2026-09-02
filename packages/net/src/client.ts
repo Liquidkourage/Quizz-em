@@ -18,6 +18,15 @@ import type {
 import { normalizeDisplayLayoutPayload } from './index'
 
 let socket: Socket | null = null
+let activePlayerId: string | null = null
+
+export function getActivePlayerId(): string | null {
+  return activePlayerId
+}
+
+export function setActivePlayerId(playerId: string | null): void {
+  activePlayerId = playerId
+}
 
 /** Same-origin demo bridge (e.g. host tab → display tab) when socket/server is unavailable. */
 const DISPLAY_LAYOUT_LOCAL_BROADCAST_CHANNEL = 'qhe-display-layout-demo'
@@ -70,6 +79,8 @@ export type ConnectOptions = {
   displayAwaitPairing?: boolean
   /** First `ack` after `hello` (player join failures stay on the join form). */
   onHelloAck?: (ack: ServerAck) => void
+  /** Stable roster id for player reconnect (persisted on device). */
+  playerId?: string
 }
 
 export function connect(
@@ -83,7 +94,11 @@ export function connect(
     socket.disconnect()
   }
 
-  socket = io(socketOrigin())
+  if (role === 'player' && options?.playerId?.trim()) {
+    activePlayerId = options.playerId.trim()
+  }
+
+  socket = io(socketOrigin(), { reconnection: true, reconnectionAttempts: Infinity })
 
   socket.on('connect', () => {
     console.log('Connected to server')
@@ -107,6 +122,7 @@ export function connect(
             ...(options?.displayAwaitPairing === true ? { displayAwaitPairing: true } : {}),
           }
         : {}),
+      ...(role === 'player' && activePlayerId ? { playerId: activePlayerId } : {}),
     }
 
     if (options?.onHelloAck) {
@@ -498,10 +514,10 @@ export function setVenueBlindStructure(
 
 // Player actions
 export function bet(amount: number, callback?: (ack: ServerAck) => void) {
-  if (!socket) return
+  if (!socket || !activePlayerId) return
   socket.emit('action', { 
     type: 'bet', 
-    payload: { playerId: socket.id, amount } 
+    payload: { playerId: activePlayerId, amount } 
   })
   if (callback) {
     socket.once('ack', callback)
@@ -509,10 +525,10 @@ export function bet(amount: number, callback?: (ack: ServerAck) => void) {
 }
 
 export function fold(callback?: (ack: ServerAck) => void) {
-  if (!socket) return
+  if (!socket || !activePlayerId) return
   socket.emit('action', { 
     type: 'fold', 
-    payload: { playerId: socket.id } 
+    payload: { playerId: activePlayerId } 
   })
   if (callback) {
     socket.once('ack', callback)
@@ -520,37 +536,37 @@ export function fold(callback?: (ack: ServerAck) => void) {
 }
 
 export function check(callback?: (ack: ServerAck) => void) {
-  if (!socket) return
+  if (!socket || !activePlayerId) return
   socket.emit('action', {
     type: 'check',
-    payload: { playerId: socket.id }
+    payload: { playerId: activePlayerId }
   })
   if (callback) socket.once('ack', callback)
 }
 
 export function callBet(callback?: (ack: ServerAck) => void) {
-  if (!socket) return
+  if (!socket || !activePlayerId) return
   socket.emit('action', {
     type: 'call',
-    payload: { playerId: socket.id }
+    payload: { playerId: activePlayerId }
   })
   if (callback) socket.once('ack', callback)
 }
 
 export function raiseBet(amount: number, callback?: (ack: ServerAck) => void) {
-  if (!socket) return
+  if (!socket || !activePlayerId) return
   socket.emit('action', {
     type: 'raise',
-    payload: { playerId: socket.id, amount }
+    payload: { playerId: activePlayerId, amount }
   })
   if (callback) socket.once('ack', callback)
 }
 
 export function allIn(callback?: (ack: ServerAck) => void) {
-  if (!socket) return
+  if (!socket || !activePlayerId) return
   socket.emit('action', {
     type: 'allIn',
-    payload: { playerId: socket.id }
+    payload: { playerId: activePlayerId }
   })
   if (callback) socket.once('ack', callback)
 }
@@ -560,13 +576,13 @@ export function submitAnswer(
   composition?: Array<{ source: 'hole' | 'community'; index: number }>,
   callback?: (ack: ServerAck) => void
 ) {
-  if (!socket) return
+  if (!socket || !activePlayerId) return
   const cb = typeof composition === 'function' ? composition : callback
   const picks = typeof composition === 'function' ? undefined : composition
   socket.emit('action', {
     type: 'submitAnswer',
     payload: {
-      playerId: socket.id,
+      playerId: activePlayerId,
       answer,
       ...(picks != null && picks.length === 5 ? { composition: picks } : {}),
     },
@@ -592,7 +608,7 @@ export function adminCloseBetting(callback?: (ack: ServerAck) => void) {
 
 export function adminAdvanceTurn(callback?: (ack: ServerAck) => void) {
   if (!socket) return
-  socket.emit('action', { type: 'adminAdvanceTurn' })
+  socket.emit('action', { type: 'adminAdvanceTurnVenue' })
   if (callback) socket.once('ack', callback)
 }
 

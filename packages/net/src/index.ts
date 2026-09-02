@@ -206,6 +206,8 @@ export type DisplayVenueWallSnapshot = {
    * mosaic tile phases, or local mosaic force.
    */
   showAudienceWelcome: boolean
+  /** Server epoch ms — keep seating chart visible until this time after assign (even if play started). */
+  seatingChartPinnedUntilMs?: number | null
   /** Players eliminated on the most recent paid hand (cleared when the next hand opens). */
   lastHandBusts?: DisplayVenueBustEntry[]
   /** Server epoch ms when that hand ended; pairs with {@link lastHandBusts} / {@link lastHandSeating}. */
@@ -318,12 +320,16 @@ export const ClientHello = z.object({
   displayFocusTable: z.number().int().min(1).max(VENUE_NUMBERED_TABLE_MAX).nullable().optional(),
   /** Display: pairing mode — no venue yet; server shows a short code for the host */
   displayAwaitPairing: z.boolean().optional(),
+  /** Stable roster id from the player device — survives socket reconnect. */
+  playerId: z.string().optional(),
 })
 export type ClientHello = z.infer<typeof ClientHello>
 
 export const ServerAck = z.object({
   ok: z.boolean(),
-  message: z.string()
+  message: z.string(),
+  playerId: z.string().optional(),
+  restoredTableId: z.string().optional(),
 })
 export type ServerAck = z.infer<typeof ServerAck>
 
@@ -446,6 +452,9 @@ export type AdminCloseBettingAction = z.infer<typeof AdminCloseBettingAction>
 
 export const AdminAdvanceTurnAction = z.object({ type: z.literal('adminAdvanceTurn') })
 export type AdminAdvanceTurnAction = z.infer<typeof AdminAdvanceTurnAction>
+
+export const AdminAdvanceTurnVenueAction = z.object({ type: z.literal('adminAdvanceTurnVenue') })
+export type AdminAdvanceTurnVenueAction = z.infer<typeof AdminAdvanceTurnVenueAction>
 
 export const AdminSetBlindsAction = z.object({
   type: z.literal('adminSetBlinds'),

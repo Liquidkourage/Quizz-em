@@ -8,6 +8,8 @@ import {
   createEmptyGame,
   addPlayer,
   removePlayer,
+  isDisplayNameTaken,
+  inChipContest,
   startGame,
   setQuestion,
   dealHoleCards,
@@ -145,6 +147,13 @@ import {
   setVenueBlindStructurePersist,
   setVenueBlindsPersist,
 } from './venue-blind-settings'
+import {
+  clearPlayerSocketRegistry,
+  getSocketForPlayer,
+  initPlayerSocketRegistry,
+  registerPlayerSocket,
+  unregisterPlayerSocket,
+} from './player-socket-registry'
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
@@ -874,6 +883,7 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"]
   }
 })
+initPlayerSocketRegistry(io)
 
 function normalizeVenueCode(roomCode: string): string {
   return roomCode.trim().toUpperCase()
@@ -1461,6 +1471,14 @@ function welcomeWallSeatCount(gs: GameState): number {
 /** Hidden on displays after venue-wide Start Game until New Game resets the venue. */
 const venueAudienceWelcomeExpired = new Set<string>()
 
+/** Keep seating chart on TVs for at least this long after assign (ms). */
+const SEATING_CHART_MIN_VISIBLE_MS = 60_000
+const venueSeatingChartPinnedUntilMs = new Map<string, number>()
+
+/** Auto check/fold when a human's turn exceeds this during wagering. */
+const HUMAN_TURN_TIMEOUT_MS = 75_000
+const humanTurnTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
 function markVenueShowStarted(code: string): void {
   const vn = normalizeVenueCode(code)
   if (!venueAudienceWelcomeExpired.has(vn)) {
@@ -1490,7 +1508,7 @@ function tableNumFromSessionKey(venueCode: string, sessionKey: string): number |
 }
 
 function moveHumanToTableSession(playerId: string, toSessionKey: string, tableId: string): void {
-  const sock = io.sockets.sockets.get(playerId)
+  const sock = getSocketForPlayer(playerId)
   if (!sock) return
   for (const r of [...sock.rooms]) {
     if (r === sock.id) continue
@@ -1501,6 +1519,61 @@ function moveHumanToTableSession(playerId: string, toSessionKey: string, tableId
   sock.join(toSessionKey)
   ;(sock.data as { sessionKey?: string }).sessionKey = toSessionKey
   sock.emit('seated', { tableId })
+}
+
+function findPlayerSessionInVenue(
+  venueCode: string,
+  playerId: string,
+): { sessionKey: string; tableId: string; gameState: GameState } | null {
+  const vn = normalizeVenueCode(venueCode)
+  for (const tk of allVenueSessionKeys(vn)) {
+    const gs = rooms.get(tk) as GameState | undefined
+    if (!gs) continue
+    if (gs.players.some((p) => p.id === playerId)) {
+      return { sessionKey: tk, tableId: gs.tableId ?? LOBBY_TABLE_ID, gameState: gs }
+    }
+  }
+  return null
+}
+
+function clearHumanTurnTimer(sessionKey: string): void {
+  const timer = humanTurnTimers.get(sessionKey)
+  if (timer) {
+    clearTimeout(timer)
+    humanTurnTimers.delete(sessionKey)
+  }
+}
+
+function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
+  clearHumanTurnTimer(sessionKey)
+  if (gs.phase !== 'betting' || !gs.round.isBettingOpen) return
+  const idx = gs.round.currentPlayerIndex
+  if (typeof idx !== 'number' || idx < 0) return
+  const player = gs.players[idx]
+  if (!player || player.id.startsWith('vp:') || player.hasFolded || !inChipContest(player)) return
+
+  const seatIndex = idx
+  const playerId = player.id
+  const playerName = player.name
+  const timer = setTimeout(() => {
+    humanTurnTimers.delete(sessionKey)
+    let cur = rooms.get(sessionKey) as GameState | undefined
+    if (!cur || cur.phase !== 'betting' || !cur.round.isBettingOpen) return
+    if (cur.round.currentPlayerIndex !== seatIndex) return
+    const acting = cur.players[seatIndex]
+    if (!acting || acting.id !== playerId) return
+    const contrib = cur.round.playerBets?.[acting.id] ?? 0
+    const toCall = Math.max(0, (cur.round.currentBet ?? 0) - contrib)
+    cur = toCall === 0 ? playerCheck(cur, acting.id) : foldPlayer(cur, acting.id)
+    cur = runVirtualPlayerSimulation(cur)
+    rooms.set(sessionKey, cur)
+    emitVenueTableState(sessionKey, cur)
+    io.to(sessionKey).emit(
+      'toast',
+      `${playerName} timed out — ${toCall === 0 ? 'checked' : 'folded'}.`,
+    )
+  }, HUMAN_TURN_TIMEOUT_MS)
+  humanTurnTimers.set(sessionKey, timer)
 }
 
 function runVenueCondenseAfterRound(
@@ -2162,6 +2235,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     lobbyPlayerCount,
     totalSeatedAtTables,
     showAudienceWelcome: !venueAudienceWelcomeExpired.has(vn),
+    seatingChartPinnedUntilMs: venueSeatingChartPinnedUntilMs.get(vn) ?? null,
     venueLiveTableCount: condenseCounts.liveTableCount,
     venueChipSurvivorCount: condenseCounts.chipSurvivorCount,
     venueHandsUntilShuffle: shuffleDisplay.handsUntilShuffle,
@@ -2218,6 +2292,7 @@ function emitVenueTableState(
   opts?: { skipOrchestration?: boolean }
 ) {
   io.to(sessionKey).emit('state', { ...gs, serverNowMs: Date.now() })
+  scheduleHumanTurnTimeout(sessionKey, gs)
   afterTableStateBroadcast(gs, sessionKey)
   if (!opts?.skipOrchestration) {
     applyVenueWageringOrchestration(gs.code)
@@ -2416,7 +2491,15 @@ io.on('connection', (socket) => {
 
     const venueCode = normalizeVenueCode(roomCode)
     const tableId = normalizeTableId(data.tableId)
+    const playerIdRaw =
+      role === 'player' && typeof data.playerId === 'string' ? data.playerId.trim() : ''
+    const rosterPlayerId = role === 'player' ? playerIdRaw || `human:${socket.id}` : ''
+    const playerReconnect =
+      role === 'player' && playerIdRaw
+        ? findPlayerSessionInVenue(venueCode, playerIdRaw)
+        : null
     const helloSessionKey = tableSessionKey(venueCode, tableId)
+    const activeSessionKey = playerReconnect?.sessionKey ?? helloSessionKey
 
     if (role !== 'display') {
       if (role === 'player' && !venueHasHost(venueCode)) {
@@ -2429,6 +2512,7 @@ io.on('connection', (socket) => {
 
       const candidateExists = !!rooms.get(helloSessionKey)
       if (
+        !playerReconnect &&
         tableId !== LOBBY_TABLE_ID &&
         role === 'player' &&
         !candidateExists
@@ -2467,17 +2551,17 @@ io.on('connection', (socket) => {
       return
     }
 
-    socket.join(helloSessionKey)
-    sockData.sessionKey = helloSessionKey
+    socket.join(activeSessionKey)
+    sockData.sessionKey = activeSessionKey
 
-    let gameState = rooms.get(helloSessionKey)
+    let gameState = rooms.get(activeSessionKey)
     if (!gameState) {
       gameState = applyEffectiveBlindsToGameState(
-        createEmptyGame(venueCode, '', tableId),
+        createEmptyGame(venueCode, '', playerReconnect?.tableId ?? tableId),
         venueCode,
-        helloSessionKey,
+        activeSessionKey,
       )
-      rooms.set(helloSessionKey, gameState)
+      rooms.set(activeSessionKey, gameState)
     }
 
     if (role === 'host') {
@@ -2489,18 +2573,45 @@ io.on('connection', (socket) => {
       }
     }
 
+    let restoredTableId: string | undefined
     if (role === 'player') {
       socket.join(playerVenueRoom(venueCode))
-      gameState = addPlayer(gameState, socket.id, name)
+      if (playerReconnect) {
+        registerPlayerSocket(rosterPlayerId, socket.id)
+        restoredTableId = playerReconnect.tableId
+        if (restoredTableId !== LOBBY_TABLE_ID) {
+          socket.emit('seated', { tableId: restoredTableId })
+        }
+      } else {
+        if (isDisplayNameTaken(gameState, name)) {
+          socket.emit('ack', {
+            ok: false,
+            message:
+              'That name is already in the lobby. Use a unique name or reopen the join link on the same phone to reconnect.',
+          })
+          return
+        }
+        gameState = addPlayer(gameState, rosterPlayerId, name)
+        registerPlayerSocket(rosterPlayerId, socket.id)
+      }
     }
 
     gameState = runVirtualPlayerSimulation(gameState)
-    rooms.set(helloSessionKey, gameState)
+    rooms.set(activeSessionKey, gameState)
 
-    const ack: ServerAck = { ok: true, message: 'Connected successfully' }
+    const ack: ServerAck = {
+      ok: true,
+      message: playerReconnect
+        ? restoredTableId && restoredTableId !== LOBBY_TABLE_ID
+          ? `Reconnected at table ${restoredTableId}`
+          : 'Reconnected to the venue'
+        : 'Connected successfully',
+      ...(role === 'player' ? { playerId: rosterPlayerId } : {}),
+      ...(restoredTableId ? { restoredTableId } : {}),
+    }
     socket.emit('ack', ack)
 
-    emitVenueTableState(helloSessionKey, gameState)
+    emitVenueTableState(activeSessionKey, gameState)
     if (role === 'player') {
       emitPlayerVenueBriefNow(venueCode)
     }
@@ -3028,10 +3139,28 @@ io.on('connection', (socket) => {
           break
         }
         case 'adminAdvanceTurn':
+        case 'adminAdvanceTurnVenue': {
           if (!assertVenueHost(socket, gameState)) break
-          gameState = adminAdvanceTurn(gameState)
-          io.to(sessionKey).emit('toast', `Advanced to next player`)
+          const vnAdv = normalizeVenueCode(gameState.code)
+          const rowsAdv = venuePlayableSnapshots(vnAdv)
+          let advanced = 0
+          for (const { tk, gs } of rowsAdv) {
+            if (gs.phase !== 'betting' || !gs.round.isBettingOpen) continue
+            let next = adminAdvanceTurn(gs)
+            next = runVirtualPlayerSimulation(next)
+            rooms.set(tk, next)
+            emitVenueTableState(tk, next)
+            advanced++
+          }
+          socket.emit(
+            'toast',
+            advanced > 0
+              ? `Advanced wagering turn on ${advanced} table(s).`
+              : 'No open wagering to advance on any table.',
+          )
+          gameState = rooms.get(sessionKey)!
           break
+        }
         case 'adminSetBlinds': {
           if (!assertVenueHost(socket, gameState)) break
           const { smallBlind, bigBlind } = payload as { smallBlind?: unknown; bigBlind?: unknown }
@@ -3323,7 +3452,9 @@ io.on('connection', (socket) => {
           emitVenueTableState(lobbyKey, freshLobby)
           socket.emit('toast', 'New game — numbered tables cleared; lobby reset.')
           venueAudienceWelcomeExpired.delete(vn)
+          venueSeatingChartPinnedUntilMs.delete(vn)
           clearVenueHostLog(vn)
+          clearPlayerSocketRegistry()
           resetVenueShuffleCounter(vn)
           emitDisplayVenueSnapshotNow(gameState.code)
           gameState = rooms.get(lobbyKey)!
@@ -3383,7 +3514,7 @@ io.on('connection', (socket) => {
             rooms.set(tk, gsNew)
             for (const p of slice) {
               if (p.id.startsWith('vp:')) continue
-              const sock = io.sockets.sockets.get(p.id)
+              const sock = getSocketForPlayer(p.id)
               if (sock) {
                 sock.leave(lobbyKey)
                 sock.join(tk)
@@ -3419,6 +3550,11 @@ io.on('connection', (socket) => {
             `Seated ${N} players randomly across ${tableCount} tables (${sizes.join(', ')}). You are now on table 1.`
           )
           markVenueShowStarted(lobbyGs.code)
+          venueSeatingChartPinnedUntilMs.set(
+            normalizeVenueCode(lobbyGs.code),
+            Date.now() + SEATING_CHART_MIN_VISIBLE_MS,
+          )
+          emitDisplayVenueSnapshotNow(lobbyGs.code)
           gameState = rooms.get(t1Key)!
           break
         }
@@ -3701,20 +3837,7 @@ io.on('connection', (socket) => {
     console.log('Client disconnected:', socket.id)
 
     clearDisplayPairingForSocket(socket.id)
-    
-    // Remove player from all rooms they were in
-    socket.rooms.forEach(joinedRoom => {
-      if (joinedRoom !== socket.id) {
-        const gameState = rooms.get(joinedRoom)
-        if (gameState) {
-          // Find and remove the player
-          let updatedState = removePlayer(gameState, socket.id)
-          updatedState = runVirtualPlayerSimulation(updatedState)
-          rooms.set(joinedRoom, updatedState)
-          emitVenueTableState(joinedRoom, updatedState)
-        }
-      }
-    })
+    unregisterPlayerSocket(socket.id)
   })
 })
 

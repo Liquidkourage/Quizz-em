@@ -48,6 +48,14 @@ describe('venueWallShowSeatingChart', () => {
     })
     expect(venueWallShowSeatingChart(w, w.tiles)).toBe(false)
   })
+
+  it('stays visible while seating chart pin is active even after play starts', () => {
+    const w = wall({
+      seatingChartPinnedUntilMs: Date.now() + 60_000,
+      tiles: [tile({ tableNum: 1, phase: 'question' }), tile({ tableNum: 2 })],
+    })
+    expect(venueWallShowSeatingChart(w, w.tiles, Date.now())).toBe(true)
+  })
 })
 
 describe('seatingChartTablesFromTiles', () => {

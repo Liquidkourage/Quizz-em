@@ -1,5 +1,6 @@
 import type { GameState, PlayerState } from '@qhe/core'
 import { inChipContest } from '@qhe/core'
+import { getActivePlayerId } from '@qhe/net'
 
 export type BettingContext = {
   isBettingPhase: boolean
@@ -22,8 +23,9 @@ export function resolveMyPlayerIndex(
   playerName: string,
   socketId: string | undefined
 ): number {
-  if (socketId) {
-    const byId = gameState.players.findIndex((p) => p.id === socketId)
+  const playerId = getActivePlayerId() ?? socketId
+  if (playerId) {
+    const byId = gameState.players.findIndex((p) => p.id === playerId)
     if (byId >= 0) return byId
   }
   return gameState.players.findIndex((p) => p.name === playerName)

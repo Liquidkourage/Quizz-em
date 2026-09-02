@@ -42,6 +42,7 @@ import {
 import type { GameState, Question } from '@qhe/core'
 import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress, isSetlistTargetLength } from '@qhe/core'
+import { readHostVenueCode } from './hostVenueCode'
 import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
 import {
   HostAdvancedPanel,
@@ -109,7 +110,7 @@ function HostApp() {
   const [toastVenueAlert, setToastVenueAlert] = useState<HostVenueAutoAlert | null>(null)
   const [virtualAddCount, setVirtualAddCount] = useState(2)
   const [rehearsalTableCount, setRehearsalTableCount] = useState(VENUE_NUMBERED_TABLE_MAX)
-  const [hostVenueCode] = useState('HOST01')
+  const [hostVenueCode] = useState(readHostVenueCode)
   const [hostTableId, setHostTableId] = useState(() =>
     typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get('table') ?? LOBBY_TABLE_ID
@@ -153,7 +154,7 @@ function HostApp() {
   const effectiveHostSecret = viteHostSecret || hostSecretApplied.trim() || undefined
 
   useEffect(() => {
-    const cleanup = connect('host', 'HOST01', hostVenueCode, hostTableId, {
+    const cleanup = connect('host', 'HOST', hostVenueCode, hostTableId, {
       hostSecret: effectiveHostSecret,
     })
     return cleanup

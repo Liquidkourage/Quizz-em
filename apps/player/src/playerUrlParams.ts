@@ -3,12 +3,20 @@ import { composePlayerDisplayName, parsePlayerDisplayName } from './playerJoinNa
 
 const STORAGE_KEY = 'qhe-player-join'
 
+function createPlayerId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `human:${crypto.randomUUID()}`
+  }
+  return `human:${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
+}
+
 export type PlayerJoinPrefs = {
   firstName: string
   lastInitial: string
   roomCode: string
   autoSeat: boolean
   tableId: string
+  playerId: string
 }
 
 export type PlayerJoinBootstrap = PlayerJoinPrefs & {
@@ -61,6 +69,8 @@ export function readPlayerJoinPrefs(): PlayerJoinBootstrap {
   const manual = params?.get('manual') === 'true'
   const tableFromUrl = params?.get('table')?.trim() ?? ''
   const { firstName, lastInitial } = resolveNameFields(stored, nameFromUrlValue)
+  const playerId =
+    (typeof stored.playerId === 'string' && stored.playerId.trim()) || createPlayerId()
 
   return {
     firstName,
@@ -68,6 +78,7 @@ export function readPlayerJoinPrefs(): PlayerJoinBootstrap {
     roomCode: roomFromUrlValue || stored.roomCode || '',
     autoSeat: manual ? false : stored.autoSeat !== false,
     tableId: tableFromUrl || stored.tableId || LOBBY_TABLE_ID,
+    playerId,
     roomFromUrl,
     nameFromUrl,
   }
@@ -84,6 +95,7 @@ export function persistPlayerJoinPrefs(prefs: PlayerJoinPrefs): void {
         roomCode: prefs.roomCode,
         autoSeat: prefs.autoSeat,
         tableId: prefs.tableId,
+        playerId: prefs.playerId,
       }),
     )
   } catch {

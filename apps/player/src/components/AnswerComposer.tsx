@@ -35,9 +35,17 @@ export default function AnswerComposer({
   const boardDealt = communityBoardDealt(gameState)
   const canSubmit =
     selectedCards.length === ANSWER_CARD_COUNT && composed.display.trim().length > 0
+  const questionText = gameState.round.question?.text
 
   return (
     <PlayerGoldPanel title="Compose your answer">
+      {questionText ? (
+        <div className="player-game-answer-question">
+          <p className="player-game-question-label">Question</p>
+          <p className="player-game-question-text">{questionText}</p>
+        </div>
+      ) : null}
+
       {remainingSec != null ? (
         <p className="player-game-timer">
           Time left: <strong>{remainingSec}s</strong>

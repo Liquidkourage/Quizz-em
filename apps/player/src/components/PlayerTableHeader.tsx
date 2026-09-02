@@ -1,22 +1,27 @@
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { GameState } from '@qhe/core'
 import { LOBBY_TABLE_ID, displayBettingPhaseLabel, isWageringPaused } from '@qhe/core'
+import { PlayerReconnectBanner } from './PlayerReconnectBanner'
 
 type PlayerTableHeaderProps = {
   disconnected?: boolean
+  lastTableId?: string
+  onReconnect?: () => void
 }
 
-export function PlayerTableHeader({ disconnected }: PlayerTableHeaderProps) {
+export function PlayerTableHeader({ disconnected, lastTableId, onReconnect }: PlayerTableHeaderProps) {
   return (
     <header className="player-join-header player-game-header">
       <div className="player-join-logo-glow" aria-hidden />
       <div className="player-join-logo">
         <QuizzEmWordmark layout="fill" depth="hero" />
       </div>
-      {disconnected ? (
-        <p className="player-game-reconnect" role="status">
-          Reconnecting…
-        </p>
+      {disconnected && onReconnect ? (
+        <PlayerReconnectBanner
+          disconnected={disconnected}
+          lastTableId={lastTableId}
+          onReconnect={onReconnect}
+        />
       ) : null}
     </header>
   )

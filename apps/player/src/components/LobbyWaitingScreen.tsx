@@ -6,6 +6,7 @@ import {
   PlayerGoldHeaderRule,
   PlayerGoldShellCorners,
 } from './PlayerGoldChrome'
+import { PlayerReconnectBanner } from './PlayerReconnectBanner'
 
 type LobbyWaitingScreenProps = {
   playerName: string
@@ -13,6 +14,8 @@ type LobbyWaitingScreenProps = {
   waitingCount: number
   waitingPosition: number | null
   disconnected?: boolean
+  lastTableId?: string | null
+  onReconnect?: () => void
 }
 
 export default function LobbyWaitingScreen({
@@ -21,6 +24,8 @@ export default function LobbyWaitingScreen({
   waitingCount,
   waitingPosition,
   disconnected,
+  lastTableId,
+  onReconnect,
 }: LobbyWaitingScreenProps) {
   const queueLabel =
     waitingCount === 1 ? '1 player waiting to be seated' : `${waitingCount} players waiting to be seated`
@@ -48,14 +53,20 @@ export default function LobbyWaitingScreen({
           <PlayerGoldHeaderRule />
 
           <div className="player-join-body player-lobby-body">
-            {disconnected ? (
-              <p className="player-lobby-reconnect" role="status">
-                Reconnecting…
-              </p>
+            {disconnected && onReconnect ? (
+              <PlayerReconnectBanner
+                disconnected={disconnected}
+                lastTableId={lastTableId ?? undefined}
+                onReconnect={onReconnect}
+              />
             ) : null}
 
             <h1 className="player-join-title player-lobby-title">You&apos;re in — waiting to be seated</h1>
-            <p className="player-lobby-lead">Host seats you before the first hand.</p>
+            <p className="player-lobby-lead">
+              {lastTableId
+                ? `You were seated at table ${lastTableId}. Rejoin if you got disconnected during seating.`
+                : 'Host seats you before the first hand.'}
+            </p>
             <PlayerGoldDivider />
 
             <div className="player-lobby-status" aria-live="polite">

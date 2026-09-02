@@ -418,11 +418,20 @@ export function seatingChartTablesFromTiles(
  */
 export function venueWallShowSeatingChart(
   wall: DisplayVenueWallSnapshot | null,
-  tileRows: DisplayVenueTileSnapshot[]
+  tileRows: DisplayVenueTileSnapshot[],
+  nowMs: number = Date.now(),
 ): boolean {
   if (!venueWallHasLiveTiles(wall)) return false
   if (wall!.showAudienceWelcome !== false) return false
   if (tileRows.length === 0) return false
+  const tables = seatingChartTablesFromTiles(tileRows)
+  if (tables.length === 0) return false
+  if (
+    wall!.seatingChartPinnedUntilMs != null &&
+    nowMs < wall!.seatingChartPinnedUntilMs
+  ) {
+    return true
+  }
   if (!tileRows.every((t) => t.phase === 'lobby')) return false
-  return seatingChartTablesFromTiles(tileRows).length > 0
+  return true
 }

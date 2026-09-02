@@ -14,6 +14,7 @@ import {
   raiseBet as raiseAction,
   allIn as allInAction,
   useSocket,
+  setActivePlayerId,
 } from '@qhe/net'
 import type { PlayerGameStateWire, PlayerVenueBrief } from '@qhe/net'
 import { LOBBY_TABLE_ID, inChipContest } from '@qhe/core'
@@ -64,10 +65,15 @@ function PlayerApp() {
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [disconnected, setDisconnected] = useState(false)
+  const [lastTableId, setLastTableId] = useState<string | null>(null)
   const [raiseAmount, setRaiseAmount] = useState(0)
   const [composedAnswer, setComposedAnswer] = useState<ComposedAnswer>(EMPTY_COMPOSED_ANSWER)
   const [selectedCards, setSelectedCards] = useState<SelectedCardRef[]>([])
   const socket = useSocket()
+
+  useEffect(() => {
+    setActivePlayerId(joinPrefs.playerId)
+  }, [joinPrefs.playerId])
 
   const playerName = playerDisplayNameFromPrefs(joinPrefs)
   const joinTableId = LOBBY_TABLE_ID
@@ -97,6 +103,7 @@ function PlayerApp() {
     let cancelled = false
 
     connect('player', playerName, joinPrefs.roomCode.trim(), joinTableId, {
+      playerId: joinPrefs.playerId,
       onHelloAck: (ack) => {
         if (cancelled) return
         if (!ack.ok) {
@@ -104,6 +111,18 @@ function PlayerApp() {
           setJoinPhase('form')
           disconnect()
           return
+        }
+        if (ack.playerId) {
+          setActivePlayerId(ack.playerId)
+          setJoinPrefs((prev) => {
+            const next = { ...prev, playerId: ack.playerId! }
+            persistPlayerJoinPrefs(next)
+            return next
+          })
+        }
+        if (ack.restoredTableId && ack.restoredTableId !== LOBBY_TABLE_ID) {
+          setLastTableId(ack.restoredTableId)
+          showToast(`You're back at table ${ack.restoredTableId}`, 4500)
         }
         setJoinPhase('in_venue')
       },
@@ -116,7 +135,10 @@ function PlayerApp() {
       setDisconnected(false)
     })
     const offToast = onToast((message) => showToast(message))
-    const offSeated = onSeated(({ tableId }) => showToast(`You're at table ${tableId}`, 4500))
+    const offSeated = onSeated(({ tableId }) => {
+      setLastTableId(tableId)
+      showToast(`You're at table ${tableId}`, 4500)
+    })
     const offBrief = onPlayerVenueBrief(setVenueBrief)
 
     return () => {
@@ -126,7 +148,15 @@ function PlayerApp() {
       offSeated()
       offBrief()
     }
-  }, [joinNonce, playerName, joinPrefs.roomCode, joinTableId, showToast])
+  }, [joinNonce, playerName, joinPrefs.roomCode, joinPrefs.playerId, joinTableId, showToast])
+
+  const handleForceReconnect = useCallback(() => {
+    if (socket?.disconnected) {
+      socket.connect()
+      return
+    }
+    setJoinNonce((n) => n + 1)
+  }, [socket])
 
   useEffect(() => {
     if (!socket) return undefined
@@ -159,6 +189,17 @@ function PlayerApp() {
         : null,
     [gameState, currentPlayer, myIndex, raiseAmount],
   )
+
+  useEffect(() => {
+    if (!bettingCtx?.isMyTurn) return
+    setRaiseAmount(bettingCtx.minRaise)
+  }, [
+    bettingCtx?.isMyTurn,
+    bettingCtx?.minRaise,
+    gameState?.round.roundId,
+    gameState?.round.bettingRound,
+    gameState?.round.currentPlayerIndex,
+  ])
 
   const handleCardSelect = (type: 'hand' | 'community', index: number) => {
     if (!gameState || !currentPlayer) return
@@ -229,6 +270,8 @@ function PlayerApp() {
           waitingCount={gameState.players.length}
           waitingPosition={waitingPosition}
           disconnected={disconnected}
+          lastTableId={lastTableId}
+          onReconnect={handleForceReconnect}
         />
       </>
     )
@@ -248,7 +291,11 @@ function PlayerApp() {
 
       <div className={`player-game-layout player-join-layout ${mainPadding}`}>
         <PlayerGameShell>
-          <PlayerTableHeader disconnected={disconnected} />
+          <PlayerTableHeader
+            disconnected={disconnected}
+            lastTableId={lastTableId ?? gameState.tableId ?? undefined}
+            onReconnect={handleForceReconnect}
+          />
           <PlayerGoldHeaderRule />
 
           <div className="player-join-body player-game-body">

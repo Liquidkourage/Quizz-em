@@ -8,7 +8,7 @@ export const SEATING_CHART_PAGE_TABLES_NARROW = 2
 export const SEATING_CHART_WIDE_VIEWPORT_PX = 1600
 
 /** Dwell time on each page (ms) — long enough to scan a page from the back of the room. */
-export const SEATING_CHART_PAGE_MS = 10_000
+export const SEATING_CHART_PAGE_MS = 18_000
 
 export function seatingChartPageSizeForViewport(viewportWidth: number): number {
   return viewportWidth >= SEATING_CHART_WIDE_VIEWPORT_PX

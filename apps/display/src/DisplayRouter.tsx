@@ -160,7 +160,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     !mosaicForcedByHost &&
     wallViewBeforeBust !== 'leaderboard' &&
     wallViewBeforeBust !== 'rules' &&
-    venueWallShowSeatingChart(venueWall, tileRows)
+    venueWallShowSeatingChart(venueWall, tileRows, venueWall?.serverNowMs ?? Date.now())
   const leaderboardRequested =
     onVenueWallLayout &&
     !audienceBriefing &&
@@ -304,6 +304,10 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
             : null,
         /** Older servers never sent this — keep briefing until reconnect to a newer build. */
         showAudienceWelcome: p.showAudienceWelcome !== false,
+        seatingChartPinnedUntilMs:
+          typeof p.seatingChartPinnedUntilMs === 'number' && Number.isFinite(p.seatingChartPinnedUntilMs)
+            ? Math.floor(p.seatingChartPinnedUntilMs)
+            : null,
         lastHandBusts: Array.isArray(p.lastHandBusts) ? p.lastHandBusts : undefined,
         lastHandEndMs:
           typeof p.lastHandEndMs === 'number' && Number.isFinite(p.lastHandEndMs)

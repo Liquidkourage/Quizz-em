@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import type { PlayerState } from '@qhe/core'
 import type { BettingContext } from '../playerModel/bettingModel'
 import { PlayerGameButton } from './PlayerGoldChrome'
@@ -27,6 +28,12 @@ export default function WageringActionButtons({
   onFold,
   onAllIn,
 }: WageringActionButtonsProps) {
+  const [foldConfirmPending, setFoldConfirmPending] = useState(false)
+
+  useEffect(() => {
+    setFoldConfirmPending(false)
+  }, [ctx.isMyTurn, ctx.canFold])
+
   const showCheck = ctx.canCheck
   const showCall = ctx.canCall
   const showRaise = ctx.isMyTurn && currentPlayer.bankroll > ctx.toCall
@@ -90,8 +97,20 @@ export default function WageringActionButtons({
       {hasSecondary ? (
         <div className={`player-game-actions${showFold && showAllIn ? '' : ' player-game-actions--solo'}`}>
           {showFold ? (
-            <PlayerGameButton variant="fold" size={btnSize} className={soloBtnClass} onClick={onFold}>
-              Fold
+            <PlayerGameButton
+              variant="fold"
+              size={btnSize}
+              className={soloBtnClass}
+              onClick={() => {
+                if (!foldConfirmPending) {
+                  setFoldConfirmPending(true)
+                  return
+                }
+                setFoldConfirmPending(false)
+                onFold()
+              }}
+            >
+              {foldConfirmPending ? 'Confirm fold' : 'Fold'}
             </PlayerGameButton>
           ) : null}
           {showAllIn ? (

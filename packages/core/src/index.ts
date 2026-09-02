@@ -352,6 +352,19 @@ export function createEmptyGame(code: string, hostId: string = '', tableId: stri
   };
 }
 
+/** Case-insensitive display-name check within one felt / lobby roster. */
+export function isDisplayNameTaken(
+  state: GameState,
+  name: string,
+  exceptPlayerId?: string,
+): boolean {
+  const norm = name.trim().toLowerCase()
+  if (!norm) return false
+  return state.players.some(
+    (p) => p.id !== exceptPlayerId && p.name.trim().toLowerCase() === norm,
+  )
+}
+
 export function addPlayer(state: GameState, id: string, name: string, startingBankroll = 1000): GameState {
   if (state.players.find(p => p.id === id)) return state;
   return {

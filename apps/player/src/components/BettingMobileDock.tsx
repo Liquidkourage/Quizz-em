@@ -6,6 +6,7 @@ type BettingMobileDockProps = {
   currentPlayer: PlayerState
   ctx: BettingContext
   raiseAmount: number
+  pot?: number
   onRaiseAmountChange: (n: number) => void
   onCheck: () => void
   onCall: () => void
@@ -15,7 +16,18 @@ type BettingMobileDockProps = {
 }
 
 export default function BettingMobileDock(props: BettingMobileDockProps) {
-  const { currentPlayer, ctx, raiseAmount, onRaiseAmountChange, onCheck, onCall, onRaise, onFold, onAllIn } = props
+  const {
+    currentPlayer,
+    ctx,
+    raiseAmount,
+    pot,
+    onRaiseAmountChange,
+    onCheck,
+    onCall,
+    onRaise,
+    onFold,
+    onAllIn,
+  } = props
 
   return (
     <div className="player-game-dock max-lg:block lg:hidden">
@@ -38,6 +50,7 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
             currentPlayer={currentPlayer}
             ctx={ctx}
             raiseAmount={raiseAmount}
+            pot={pot}
             btnSize="normal"
             onRaiseAmountChange={onRaiseAmountChange}
             onCheck={onCheck}

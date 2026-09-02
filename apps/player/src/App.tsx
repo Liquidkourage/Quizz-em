@@ -52,6 +52,7 @@ import AnswerComposerModal from './components/AnswerComposerModal'
 import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
+import StickyQuestionBar from './components/StickyQuestionBar'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule, PlayerGoldPanel } from './components/PlayerGoldChrome'
 
 type JoinPhase = 'form' | 'connecting' | 'in_venue'
@@ -69,6 +70,7 @@ function PlayerApp() {
   const [raiseAmount, setRaiseAmount] = useState(0)
   const [composedAnswer, setComposedAnswer] = useState<ComposedAnswer>(EMPTY_COMPOSED_ANSWER)
   const [selectedCards, setSelectedCards] = useState<SelectedCardRef[]>([])
+  const [submittedAnswerDisplay, setSubmittedAnswerDisplay] = useState<string | null>(null)
   const socket = useSocket()
 
   useEffect(() => {
@@ -174,7 +176,13 @@ function PlayerApp() {
     if (gameState?.phase === 'lobby') {
       setComposedAnswer(EMPTY_COMPOSED_ANSWER)
       setSelectedCards([])
+      setSubmittedAnswerDisplay(null)
     }
+  }, [gameState?.phase, gameState?.round.roundId])
+
+  useEffect(() => {
+    if (gameState?.phase === 'answering') return
+    setSubmittedAnswerDisplay(null)
   }, [gameState?.phase, gameState?.round.roundId])
 
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
@@ -202,7 +210,7 @@ function PlayerApp() {
   ])
 
   const handleCardSelect = (type: 'hand' | 'community', index: number) => {
-    if (!gameState || !currentPlayer) return
+    if (!gameState || !currentPlayer || submittedAnswerDisplay) return
     const next = toggleCardInSelection({
       gameState,
       currentPlayer,
@@ -217,15 +225,18 @@ function PlayerApp() {
   }
 
   const handleSubmitAnswer = () => {
-    if (!gameState) return
+    if (!gameState || submittedAnswerDisplay) return
     const err = validateAnswerSubmit(gameState.phase, selectedCards, composedAnswer)
     if (err) {
       showToast(err, 4000)
       return
     }
+    const display = composedAnswer.display
     submitAnswer(composedAnswer.value, selectionToComposition(selectedCards), (ack) => {
-      if (ack.ok) showToast(`Answer submitted: ${composedAnswer.display}`)
-      else showToast(`Error: ${ack.message}`, 5000)
+      if (ack.ok) {
+        setSubmittedAnswerDisplay(display)
+        showToast(`Answer submitted: ${display}`)
+      } else showToast(`Error: ${ack.message}`, 5000)
     })
   }
 
@@ -283,6 +294,11 @@ function PlayerApp() {
   const needsMobileBetDock =
     gameState.phase === 'betting' && !!currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded
 
+  const questionText = gameState.round.question?.text ?? ''
+  const showStickyQuestion =
+    Boolean(questionText) &&
+    (gameState.phase === 'betting' || gameState.phase === 'answering' || gameState.phase === 'question')
+
   const mainPadding = needsMobileBetDock ? 'player-game-layout--bet-dock' : ''
 
   return (
@@ -315,6 +331,10 @@ function PlayerApp() {
               }
             />
 
+            {showStickyQuestion ? (
+              <StickyQuestionBar questionText={questionText} pot={gameState.round.pot} />
+            ) : null}
+
             <PhaseBanner gameState={gameState} />
 
             {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
@@ -329,6 +349,7 @@ function PlayerApp() {
                   currentPlayer={currentPlayer}
                   ctx={bettingCtx}
                   raiseAmount={raiseAmount}
+                  pot={gameState.round.pot}
                   onRaiseAmountChange={setRaiseAmount}
                   onCheck={() => checkAction()}
                   onCall={() => callAction()}
@@ -342,6 +363,11 @@ function PlayerApp() {
                 <p className="player-game-stack-label">Your stack</p>
                 <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
                 {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
+                {currentPlayer.pointsOnly ? (
+                  <p className="player-game-points-only">
+                    Out of chips — keep answering for trivia points.
+                  </p>
+                ) : null}
               </PlayerGoldPanel>
             ) : null}
 
@@ -355,6 +381,7 @@ function PlayerApp() {
           currentPlayer={currentPlayer}
           ctx={bettingCtx}
           raiseAmount={raiseAmount}
+          pot={gameState.round.pot}
           onRaiseAmountChange={setRaiseAmount}
           onCheck={() => checkAction()}
           onCall={() => callAction()}
@@ -373,13 +400,19 @@ function PlayerApp() {
             composed={composedAnswer}
             selectedCards={selectedCards}
             remainingSec={remainingSec}
+            submittedDisplay={submittedAnswerDisplay}
             onSelectCard={handleCardSelect}
-            onToggleDecimal={() => setComposedAnswer((c) => toggleDecimal(c))}
+            onToggleDecimal={() => {
+              if (submittedAnswerDisplay) return
+              setComposedAnswer((c) => toggleDecimal(c))
+            }}
             onClear={() => {
+              if (submittedAnswerDisplay) return
               setComposedAnswer(EMPTY_COMPOSED_ANSWER)
               setSelectedCards([])
             }}
             onSubmit={handleSubmitAnswer}
+            onEditSubmitted={() => setSubmittedAnswerDisplay(null)}
           />
         ) : null}
       </AnimatePresence>

@@ -10,10 +10,12 @@ type AnswerComposerModalProps = {
   composed: ComposedAnswer
   selectedCards: SelectedCardRef[]
   remainingSec: number | null
+  submittedDisplay?: string | null
   onSelectCard: (type: 'hand' | 'community', index: number) => void
   onToggleDecimal: () => void
   onClear: () => void
   onSubmit: () => void
+  onEditSubmitted?: () => void
 }
 
 export default function AnswerComposerModal(props: AnswerComposerModalProps) {

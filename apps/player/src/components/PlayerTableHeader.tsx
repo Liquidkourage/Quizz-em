@@ -11,9 +11,13 @@ type PlayerTableHeaderProps = {
 
 export function PlayerTableHeader({ disconnected, lastTableId, onReconnect }: PlayerTableHeaderProps) {
   return (
-    <header className="player-join-header player-game-header">
+    <header
+      className={`player-join-header player-game-header player-game-header--compact${
+        disconnected ? ' player-game-header--reconnect' : ''
+      }`}
+    >
       <div className="player-join-logo-glow" aria-hidden />
-      <div className="player-join-logo">
+      <div className="player-join-logo player-join-logo--compact">
         <QuizzEmWordmark layout="fill" depth="hero" />
       </div>
       {disconnected && onReconnect ? (

@@ -858,6 +858,25 @@
   position: relative;
 }
 
+.player-game-header--compact {
+  height: clamp(3.25rem, 9vh, 4.25rem);
+  padding-top: 0.35rem;
+  padding-bottom: 0.2rem;
+}
+
+.player-game-header--compact.player-game-header--reconnect {
+  height: auto;
+  min-height: clamp(3.25rem, 9vh, 4.25rem);
+}
+
+.player-join-logo--compact {
+  max-height: 100%;
+}
+
+.player-game-header--compact .player-join-logo .welcome-wordmark-root-hero {
+  max-height: clamp(2.6rem, 7vh, 3.5rem);
+}
+
 .player-game-header .player-game-reconnect {
   position: absolute;
   bottom: 0.1rem;
@@ -867,7 +886,7 @@
 }
 
 .player-game-layout--bet-dock {
-  padding-bottom: calc(17.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(20.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 .player-game-layout--answer-dock {
@@ -1284,10 +1303,101 @@
   grid-column: 1 / -1;
 }
 
+.player-game-raise-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.45rem;
+}
+
+.player-game-raise-chip {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgb(251 191 36 / 0.35);
+  background: rgb(8 12 10 / 0.85);
+  color: rgb(254 243 199);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.player-game-raise-chip:disabled {
+  opacity: 0.4;
+}
+
+.player-game-raise-to {
+  margin: 0 0 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgb(253 224 71);
+}
+
+.player-game-raise-to span {
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.5);
+}
+
 .player-game-raise-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.55rem;
+}
+
+.player-sticky-question {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.28);
+  background: rgb(8 12 10 / 0.94);
+  backdrop-filter: blur(8px);
+}
+
+.player-sticky-question-label {
+  margin: 0 0 0.2rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.player-sticky-question-pot {
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: rgb(253 224 71 / 0.85);
+}
+
+.player-sticky-question-text {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.95rem, 3.2vw, 1.08rem);
+  font-weight: 650;
+  line-height: 1.3;
+  color: rgb(255 255 255 / 0.95);
+}
+
+.player-game-points-only {
+  margin: 0.5rem 0 0;
+  font-size: clamp(0.92rem, 3vw, 1.05rem);
+  font-weight: 700;
+  line-height: 1.3;
+  color: rgb(253 224 71);
+}
+
+.player-game-answer-submitted {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.player-game-answer-display--locked {
+  border-color: rgb(74 222 128 / 0.45);
+  color: rgb(187 247 208);
 }
 
 .player-game-raise-row--solo {

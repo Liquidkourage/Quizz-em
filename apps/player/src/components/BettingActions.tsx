@@ -7,6 +7,7 @@ type BettingActionsProps = {
   currentPlayer: PlayerState
   ctx: BettingContext
   raiseAmount: number
+  pot?: number
   onRaiseAmountChange: (n: number) => void
   onCheck: () => void
   onCall: () => void
@@ -20,6 +21,7 @@ export default function BettingActions({
   currentPlayer,
   ctx,
   raiseAmount,
+  pot,
   onRaiseAmountChange,
   onCheck,
   onCall,
@@ -63,6 +65,7 @@ export default function BettingActions({
           currentPlayer={currentPlayer}
           ctx={ctx}
           raiseAmount={raiseAmount}
+          pot={pot}
           btnSize={btnSize}
           onRaiseAmountChange={onRaiseAmountChange}
           onCheck={onCheck}

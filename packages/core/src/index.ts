@@ -494,14 +494,19 @@ export function openBettingRound1(state: GameState): GameState {
   if (!playersHaveHoleCards(state)) return state;
 
   const playersWithHands = state.players;
-  const smallBlindIndex =
-    playersWithHands.length > 0
-      ? (state.round.dealerIndex + 1) % Math.max(1, playersWithHands.length)
-      : -1;
+  const chipSeatCount = playersWithHands.filter((p) => inChipContest(p)).length;
+  const nextChipSeat = (fromExclusive: number): number => {
+    if (playersWithHands.length === 0 || chipSeatCount === 0) return -1;
+    for (let step = 1; step <= playersWithHands.length; step++) {
+      const idx = (fromExclusive + step) % playersWithHands.length;
+      if (inChipContest(playersWithHands[idx]!)) return idx;
+    }
+    return -1;
+  };
+
+  const smallBlindIndex = nextChipSeat(state.round.dealerIndex);
   const bigBlindIndex =
-    playersWithHands.length > 0
-      ? (state.round.dealerIndex + 2) % Math.max(1, playersWithHands.length)
-      : -1;
+    chipSeatCount <= 1 ? smallBlindIndex : nextChipSeat(smallBlindIndex);
 
   let playersAfterBlinds = playersWithHands;
   let pot = state.round.pot;
@@ -818,22 +823,27 @@ export function dealCommunityCards(state: GameState): GameState {
 
 export function placeBet(state: GameState, playerId: string, amount: number): GameState {
   if (amount <= 0) return state;
+  const seat = getSeatIndexByPlayerId(state, playerId);
+  if (seat < 0) return state;
+  const bankroll = state.players[seat]!.bankroll;
+  const capped = Math.min(Math.floor(amount), Math.max(0, bankroll));
+  if (capped <= 0) return state;
   const updatedPlayers = state.players.map(player => {
     if (player.id === playerId) {
-      const newBankroll = Math.max(0, player.bankroll - amount);
+      const newBankroll = Math.max(0, player.bankroll - capped);
       return { ...player, bankroll: newBankroll, isAllIn: newBankroll === 0 };
     }
     return player;
   });
   const handContributions = { ...(state.round.handContributions || {}) };
-  handContributions[playerId] = (handContributions[playerId] || 0) + amount;
+  handContributions[playerId] = (handContributions[playerId] || 0) + capped;
 
   return {
     ...state,
     round: {
       ...state.round,
-      pot: state.round.pot + amount,
-      playerBets: { ...(state.round.playerBets || {}), [playerId]: ((state.round.playerBets || {})[playerId] || 0) + amount },
+      pot: state.round.pot + capped,
+      playerBets: { ...(state.round.playerBets || {}), [playerId]: ((state.round.playerBets || {})[playerId] || 0) + capped },
       handContributions,
     },
     players: updatedPlayers,
@@ -925,11 +935,10 @@ function isBettingComplete(state: GameState): boolean {
     }
     return true;
   }
-  if (activeCount === 1) return true;
-  // Matched bets with a live wager on the street — no further calls needed.
-  if (cur > 0) return true;
-  // currentBet === 0: require a full check-around, not merely “everyone at $0”
-  // (fresh post-board streets reset playerBets and would otherwise auto-close).
+  // Lone actor who already matched (or posted) a live bet — street can close after they act
+  // (handled above when contributed > cur without an action). Once acted, done.
+  if (activeCount === 1) return actedCount >= 1;
+  // Multi-way: every live seat must act this street (BB option after limps; check-around when cur === 0).
   return actedCount >= activeCount;
 }
 
@@ -1342,22 +1351,27 @@ export function endRound(state: GameState): GameState {
   const snapById = new Map(state.players.map((p) => [p.id, p]));
 
   const q = state.round.question;
-  const clearedPlayers: PlayerState[] = afterPayout.players
-    .filter((p) => p.bankroll > 0)
-    .map((p) => {
-      const snap = snapById.get(p.id)
-      const gained = q != null && snap != null ? answerRoundPointsGained(snap, q.answer) : 0
-      const answerPoints = (p.answerPoints ?? 0) + gained
-      return {
-        ...p,
-        answerPoints,
-        hand: [],
-        hasFolded: false,
-        isAllIn: false,
-        submittedAnswer: undefined,
-        answerComposition: undefined,
-      }
-    })
+  const clearedPlayers: PlayerState[] = afterPayout.players.map((p) => {
+    const snap = snapById.get(p.id);
+    const gained = q != null && snap != null ? answerRoundPointsGained(snap, q.answer) : 0;
+    const answerPoints = (p.answerPoints ?? 0) + gained;
+    const busted = p.bankroll <= 0;
+    return {
+      ...p,
+      bankroll: busted ? 0 : p.bankroll,
+      /** Stay seated for trivia; excluded from blinds / wagering / pot share. */
+      pointsOnly: busted || p.pointsOnly === true,
+      answerPoints,
+      hand: [],
+      hasFolded: false,
+      isAllIn: false,
+      submittedAnswer: undefined,
+      answerComposition: undefined,
+    };
+  });
+
+  const rosterLen = Math.max(1, clearedPlayers.length);
+  const nextDealer = (afterPayout.round.dealerIndex + 1) % rosterLen;
 
   return {
     ...afterPayout,
@@ -1367,7 +1381,7 @@ export function endRound(state: GameState): GameState {
       question: null,
       communityCards: [],
       pot: 0,
-      dealerIndex: (afterPayout.round.dealerIndex + 1) % Math.max(1, afterPayout.players.length),
+      dealerIndex: nextDealer,
       bettingRound: 1,
       currentBet: 0,
       currentPlayerIndex: -1,

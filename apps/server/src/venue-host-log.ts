@@ -149,9 +149,12 @@ export function recordVenueHostHandResults(
       }
     }
 
-    const afterIds = new Set(after.players.map((p) => p.id))
+    const afterById = new Map(after.players.map((p) => [p.id, p]))
     for (const p of before.players) {
-      if (afterIds.has(p.id)) continue
+      const next = afterById.get(p.id)
+      const newlyPointsOnly = next != null && next.pointsOnly === true && p.pointsOnly !== true
+      const removed = next == null
+      if (!newlyPointsOnly && !removed) continue
       const name = p.name.trim()
       if (!name) continue
       const entry = { name, tableNum, atMs: now }

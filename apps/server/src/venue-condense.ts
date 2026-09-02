@@ -44,12 +44,30 @@ function collectRosters(deps: VenueCondenseApplyDeps): VenueTableRoster[] {
     if (!gs || gs.players.length === 0) continue
     const n = deps.tableNumFromSessionKey(vn, tk)
     if (n == null) continue
-    /** After endRound busts are removed; chip filter skips empty felts at apply time. */
+    /** Chip survivors drive seating math; points-only riders come along in shuffle apply. */
     const survivors = gs.players.filter((p) => p.bankroll > 0)
     if (survivors.length === 0) continue
     out.push({ tableNum: n, players: survivors })
   }
   out.sort((a, b) => a.tableNum - b.tableNum)
+  return out
+}
+
+/** Points-only (busted) seats — stay for trivia, never count toward table sizing. */
+function collectPointsOnlyPlayers(deps: VenueCondenseApplyDeps): { tableNum: number; player: GameState['players'][number] }[] {
+  const vn = deps.venueCode
+  const out: { tableNum: number; player: GameState['players'][number] }[] = []
+  for (const tk of deps.allTableSessionKeys(vn)) {
+    const gs = deps.getState(tk)
+    if (!gs) continue
+    const n = deps.tableNumFromSessionKey(vn, tk)
+    if (n == null) continue
+    for (const p of gs.players) {
+      if (p.pointsOnly || p.bankroll <= 0) {
+        out.push({ tableNum: n, player: p })
+      }
+    }
+  }
   return out
 }
 
@@ -71,8 +89,10 @@ export function venueCondenseSnapshotFromRooms(deps: {
     if (!gs || gs.players.length === 0) continue
     const n = deps.tableNumFromSessionKey(vn, tk)
     if (n == null) continue
+    const chips = gs.players.filter((p) => p.bankroll > 0).length
+    if (chips === 0) continue
     liveTableCount++
-    chipSurvivorCount += gs.players.length
+    chipSurvivorCount += chips
   }
   return { chipSurvivorCount, liveTableCount }
 }
@@ -113,6 +133,7 @@ function applyPlayerMoveToRooms(
 function applyScheduledMerge(
   deps: VenueCondenseApplyDeps,
   merge: VenueCondenseScheduledMerge,
+  pointsOnlyRiders: { tableNum: number; player: GameState['players'][number] }[],
 ): void {
   const vn = deps.venueCode
   const sampleKey = deps.tableSessionKey(vn, '1')
@@ -120,6 +141,19 @@ function applyScheduledMerge(
   const hostId = sampleGs?.hostId ?? deps.hostId
   const smallBlind = sampleGs?.smallBlind ?? 10
   const bigBlind = sampleGs?.bigBlind ?? 20
+
+  /** Distribute points-only passengers onto live tables without changing chip seating math. */
+  const riders = pointsOnlyRiders.map((r) => r.player)
+  const liveTableNums = [...merge.assignments.keys()].sort((a, b) => a - b)
+  if (liveTableNums.length > 0 && riders.length > 0) {
+    riders.forEach((player, i) => {
+      const tableNum = liveTableNums[i % liveTableNums.length]!
+      const list = merge.assignments.get(tableNum) ?? []
+      if (!list.some((p) => p.id === player.id)) {
+        merge.assignments.set(tableNum, list.concat(player))
+      }
+    })
+  }
 
   for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
     const tk = deps.tableSessionKey(vn, String(n))
@@ -169,6 +203,7 @@ export function applyVenueCondenseAfterRound(
   const plan = planVenueCondense(rosters, { shuffle: options.shuffle })
   let soloRescues = 0
   const seatingMoves: VenueCondenseApplyResult['seatingMoves'] = []
+  const pointsOnlyRiders = collectPointsOnlyPlayers(deps)
 
   for (const move of plan.playerMoves) {
     const applied = applyPlayerMoveToRooms(deps, move)
@@ -182,6 +217,19 @@ export function applyVenueCondenseAfterRound(
     hostToasts.push(
       `Table ${move.fromTableNum} closed — player rescued to Table ${move.toTableNum}.`,
     )
+    /** Bring points-only spectators along when a felt loses its last chip player. */
+    const fromKey = deps.tableSessionKey(deps.venueCode, String(move.fromTableNum))
+    const fromGs = deps.getState(fromKey)
+    if (fromGs && fromGs.players.every((p) => p.bankroll <= 0 || p.pointsOnly)) {
+      for (const rider of [...fromGs.players]) {
+        applyPlayerMoveToRooms(deps, {
+          playerId: rider.id,
+          fromTableNum: move.fromTableNum,
+          toTableNum: move.toTableNum,
+          reason: 'solo',
+        })
+      }
+    }
     rosters = collectRosters(deps)
   }
 
@@ -189,7 +237,7 @@ export function applyVenueCondenseAfterRound(
   if (plan.scheduledMerge) {
     const from = rosters.length
     const to = plan.scheduledMerge.targetTableCount
-    applyScheduledMerge(deps, plan.scheduledMerge)
+    applyScheduledMerge(deps, plan.scheduledMerge, pointsOnlyRiders)
     shuffled = true
     hostToasts.push(`Tables shuffled — ${from} → ${to} (${survivorsBefore} players remaining).`)
   }

@@ -24,6 +24,7 @@
     "format": "prettier --write .",
     "trim-logo": "node scripts/trim-quizzem-logo.mjs",
     "sim:lobby": "node scripts/sim-venue-lobby-joiners.mjs",
+    "sim:dry-run": "node scripts/venue-convention-dry-run.mjs",
     "build:question-packs": "node scripts/build-question-packs.mjs"
   },
   "devDependencies": {

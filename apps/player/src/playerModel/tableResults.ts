@@ -17,7 +17,10 @@ export type TableResultRow = {
   formattedAnswer: string
   /** Stack after this hand’s pot share (bankroll + chipPayout while previewing). */
   stack: number
+  /** Chips returned from the pot this hand (gross). */
   chipPayout: number
+  /** Net chip gain/loss for the hand: payout − contribution. */
+  chipChange: number
   isPotWinner: boolean
 }
 
@@ -45,6 +48,7 @@ export function buildTableResults(
   if (gameState.players.length === 0) return null
 
   const payoutById = previewChipPayoutByPlayerId(stateForPayoutPreview(gameState))
+  const contributions = gameState.round.handContributions ?? {}
   const potWinners = determineChipPotTriviaWinners(gameState)
   const winnerIds = potWinners?.winnerIds ?? []
   const winnerIdSet = new Set(winnerIds)
@@ -62,6 +66,8 @@ export function buildTableResults(
     else if (submitted != null) formattedAnswer = formatTriviaNumber(submitted)
 
     const chipPayout = Math.max(0, Math.round(payoutById[p.id] ?? 0))
+    const contributed = Math.max(0, Math.round(contributions[p.id] ?? 0))
+    const chipChange = pointsOnly ? 0 : chipPayout - contributed
     const bankroll = Math.max(0, Math.round(p.bankroll))
     return {
       playerId: p.id,
@@ -73,6 +79,7 @@ export function buildTableResults(
       formattedAnswer,
       stack: bankroll + chipPayout,
       chipPayout,
+      chipChange,
       isPotWinner: winnerIdSet.has(p.id) && chipPayout > 0,
     }
   })
@@ -99,9 +106,17 @@ export function shouldClearTableResults(prevPhase: GamePhase | null, nextPhase: 
   return false
 }
 
+/** @deprecated Prefer {@link formatChipChange}. */
 export function formatPotWin(amount: number): string {
   if (amount <= 0) return '—'
   return `+$${amount.toLocaleString()}`
+}
+
+export function formatChipChange(amount: number): string {
+  const n = Math.round(amount)
+  if (n === 0) return '—'
+  const abs = Math.abs(n).toLocaleString()
+  return n > 0 ? `+$${abs}` : `-$${abs}`
 }
 
 export function formatStack(amount: number): string {

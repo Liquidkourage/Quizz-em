@@ -27,6 +27,7 @@ import {
 } from './playerUrlParams'
 import { useAnswerCountdown } from './hooks/useAnswerCountdown'
 import { useHandSummary } from './hooks/useHandSummary'
+import { useTableResults } from './hooks/useTableResults'
 import {
   EMPTY_COMPOSED_ANSWER,
   selectionToComposition,
@@ -48,6 +49,7 @@ import PhaseBanner from './components/PhaseBanner'
 import GameInfoCard from './components/GameInfoCard'
 import PostHandSummaryCard from './components/PostHandSummaryCard'
 import RevealShowdownPanel from './components/RevealShowdownPanel'
+import TableResultsPanel from './components/TableResultsPanel'
 import AnswerComposerModal from './components/AnswerComposerModal'
 import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
@@ -188,6 +190,7 @@ function PlayerApp() {
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
   const currentPlayer = gameState && myIndex >= 0 ? gameState.players[myIndex] : undefined
   const handSummary = useHandSummary(gameState, currentPlayer)
+  const tableResults = useTableResults(gameState, currentPlayer?.id ?? joinPrefs.playerId)
   const remainingSec = useAnswerCountdown(gameState?.round.answerDeadline)
 
   const bettingCtx = useMemo(
@@ -338,10 +341,17 @@ function PlayerApp() {
             <PhaseBanner gameState={gameState} />
 
             {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
+            {tableResults && gameState.phase === 'lobby' ? <TableResultsPanel results={tableResults} /> : null}
 
             <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} />
 
             {currentPlayer ? <RevealShowdownPanel gameState={gameState} currentPlayer={currentPlayer} /> : null}
+            {tableResults &&
+            (gameState.phase === 'reveal' ||
+              gameState.phase === 'showdown' ||
+              gameState.phase === 'payout') ? (
+              <TableResultsPanel results={tableResults} />
+            ) : null}
 
             {bettingCtx && currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded ? (
               <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>

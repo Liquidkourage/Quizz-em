@@ -1,5 +1,5 @@
 import type { TableResults } from '../playerModel/tableResults'
-import { formatPotWin, formatWinnerLine } from '../playerModel/tableResults'
+import { formatPotWin, formatStack, formatWinnerLine } from '../playerModel/tableResults'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type TableResultsPanelProps = {
@@ -21,6 +21,7 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
         <div className="player-table-results-row player-table-results-row--head" role="row">
           <span role="columnheader">Name</span>
           <span role="columnheader">Answer</span>
+          <span role="columnheader">Stack</span>
           <span role="columnheader">Pot</span>
         </div>
         {results.rows.map((row) => (
@@ -44,6 +45,9 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
               role="cell"
             >
               {row.formattedAnswer}
+            </span>
+            <span className="player-table-results-stack" role="cell">
+              {formatStack(row.stack)}
             </span>
             <span
               className={`player-table-results-pot${row.chipPayout > 0 ? ' player-table-results-pot--win' : ''}`}

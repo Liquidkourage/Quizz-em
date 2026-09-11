@@ -15,6 +15,8 @@ export type TableResultRow = {
   pointsOnly: boolean
   submitted: number | null
   formattedAnswer: string
+  /** Stack after this hand’s pot share (bankroll + chipPayout while previewing). */
+  stack: number
   chipPayout: number
   isPotWinner: boolean
 }
@@ -60,6 +62,7 @@ export function buildTableResults(
     else if (submitted != null) formattedAnswer = formatTriviaNumber(submitted)
 
     const chipPayout = Math.max(0, Math.round(payoutById[p.id] ?? 0))
+    const bankroll = Math.max(0, Math.round(p.bankroll))
     return {
       playerId: p.id,
       name: p.name.trim() || p.id,
@@ -68,6 +71,7 @@ export function buildTableResults(
       pointsOnly,
       submitted,
       formattedAnswer,
+      stack: bankroll + chipPayout,
       chipPayout,
       isPotWinner: winnerIdSet.has(p.id) && chipPayout > 0,
     }
@@ -98,6 +102,10 @@ export function shouldClearTableResults(prevPhase: GamePhase | null, nextPhase: 
 export function formatPotWin(amount: number): string {
   if (amount <= 0) return '—'
   return `+$${amount.toLocaleString()}`
+}
+
+export function formatStack(amount: number): string {
+  return `$${Math.max(0, Math.round(amount)).toLocaleString()}`
 }
 
 export function formatWinnerLine(results: TableResults): string {

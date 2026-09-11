@@ -1680,12 +1680,12 @@
 
 .player-table-results-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.75fr);
-  gap: 0.35rem;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr) minmax(0, 0.85fr) minmax(0, 0.7fr);
+  gap: 0.3rem;
   align-items: center;
-  padding: 0.4rem 0.55rem;
+  padding: 0.4rem 0.5rem;
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.25;
   border-bottom: 1px solid rgb(255 255 255 / 0.06);
 }
@@ -1747,6 +1747,13 @@
 .player-table-results-answer--muted {
   font-weight: 500;
   color: rgb(255 255 255 / 0.42);
+}
+
+.player-table-results-stack {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.78);
 }
 
 .player-table-results-pot {

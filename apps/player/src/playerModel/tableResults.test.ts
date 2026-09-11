@@ -77,8 +77,26 @@ describe('buildTableResults', () => {
     expect(bob.isPotWinner).toBe(true)
     expect(bob.chipPayout).toBeGreaterThan(0)
     expect(formatPotWin(bob.chipPayout)).toMatch(/^\+\$/)
+    expect(bob.stack).toBe(1000 + bob.chipPayout)
     expect(cara.chipPayout).toBe(0)
+    expect(cara.stack).toBe(1000)
     expect(formatPotWin(0)).toBe('—')
+  })
+
+  it('includes post-hand stack amounts per seat', () => {
+    const gs = showdownState({
+      pot: 60,
+      players: [
+        { id: 'a', name: 'Alice', submittedAnswer: 50, bankroll: 800 },
+        { id: 'b', name: 'Bob', submittedAnswer: 99, bankroll: 400 },
+      ],
+    })
+    const results = buildTableResults(gs, 'a')!
+    const alice = results.rows.find((r) => r.playerId === 'a')!
+    const bob = results.rows.find((r) => r.playerId === 'b')!
+    expect(alice.stack).toBe(800 + alice.chipPayout)
+    expect(bob.stack).toBe(400)
+    expect(bob.chipPayout).toBe(0)
   })
 
   it('shows Folded and em dash for missing answers', () => {

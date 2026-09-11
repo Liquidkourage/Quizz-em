@@ -25,7 +25,7 @@ function showdownState(overrides?: {
     id: p.id,
     name: p.name,
     bankroll: p.bankroll ?? 1000,
-    hand: [] as { digit: number }[],
+    hand: [] as [],
     hasFolded: p.hasFolded ?? false,
     isAllIn: false,
     ...(p.submittedAnswer !== undefined ? { submittedAnswer: p.submittedAnswer } : {}),

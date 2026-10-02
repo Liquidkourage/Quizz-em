@@ -6,32 +6,49 @@ import { PlayerGoldPanel } from './PlayerGoldChrome'
 type GameInfoCardProps = {
   gameState: GameState
   currentPlayer?: PlayerState
+  /** Sticky question bar already shows the prompt. */
+  hideQuestion?: boolean
+  /** Bet dock / sticky already show pot + stack. */
+  hidePotStack?: boolean
 }
 
-export default function GameInfoCard({ gameState, currentPlayer }: GameInfoCardProps) {
+export default function GameInfoCard({
+  gameState,
+  currentPlayer,
+  hideQuestion = false,
+  hidePotStack = false,
+}: GameInfoCardProps) {
   const q = gameState.round.question
   const hole = currentPlayer?.hand ?? []
   const board = gameState.round.communityCards
   const showHole = hole.length >= 2
   const showBoard = board.length > 0
   const showCards = showHole || showBoard
+  const showStats = !hidePotStack
+  const showQuestionBlock = Boolean(q) && !hideQuestion
+
+  if (!showStats && !showCards && !showQuestionBlock) return null
 
   return (
-    <PlayerGoldPanel>
-      <div className="player-game-info-stats">
-        <div className="player-game-info-stat">
-          <p className="player-game-pot-label">Pot</p>
-          <p className="player-game-pot-value">${gameState.round.pot.toLocaleString()}</p>
-        </div>
-        {currentPlayer ? (
+    <PlayerGoldPanel
+      className={hidePotStack && hideQuestion ? 'player-game-info--cards-only' : undefined}
+    >
+      {showStats ? (
+        <div className="player-game-info-stats">
           <div className="player-game-info-stat">
-            <p className="player-game-pot-label">Your stack</p>
-            <p className="player-game-pot-value player-game-pot-value--stack">
-              ${currentPlayer.bankroll.toLocaleString()}
-            </p>
+            <p className="player-game-pot-label">Pot</p>
+            <p className="player-game-pot-value">${gameState.round.pot.toLocaleString()}</p>
           </div>
-        ) : null}
-      </div>
+          {currentPlayer ? (
+            <div className="player-game-info-stat">
+              <p className="player-game-pot-label">Your stack</p>
+              <p className="player-game-pot-value player-game-pot-value--stack">
+                ${currentPlayer.bankroll.toLocaleString()}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {showCards ? (
         <div className="player-game-info-cards" aria-label="Your cards and community board">
@@ -74,7 +91,7 @@ export default function GameInfoCard({ gameState, currentPlayer }: GameInfoCardP
         </div>
       ) : null}
 
-      {q ? (
+      {showQuestionBlock && q ? (
         <div className="player-game-question">
           <p className="player-game-question-label">Question</p>
           <p className="player-game-question-text">{q.text}</p>

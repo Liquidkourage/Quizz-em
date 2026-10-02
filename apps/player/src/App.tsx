@@ -302,13 +302,32 @@ function PlayerApp() {
     Boolean(questionText) &&
     (gameState.phase === 'betting' || gameState.phase === 'answering' || gameState.phase === 'question')
 
-  const mainPadding = needsMobileBetDock ? 'player-game-layout--bet-dock' : ''
+  /** Phone-first: felt is the primary surface during the live hand. */
+  const feltFirstPhases =
+    gameState.phase === 'question' ||
+    gameState.phase === 'betting' ||
+    gameState.phase === 'answering'
+  const dockPadClass = needsMobileBetDock
+    ? bettingCtx?.isMyTurn
+      ? 'player-game-layout--bet-dock player-game-layout--bet-dock-turn'
+      : 'player-game-layout--bet-dock player-game-layout--bet-dock-wait'
+    : ''
+
+  const feltView = <TableFeltView gameState={gameState} playerName={playerName} />
+  const infoCard = (
+    <GameInfoCard
+      gameState={gameState}
+      currentPlayer={currentPlayer}
+      hideQuestion={showStickyQuestion}
+      hidePotStack={needsMobileBetDock}
+    />
+  )
 
   return (
     <PlayerGameScreen>
       <PlayerToast message={toastMessage} />
 
-      <div className={`player-game-layout player-join-layout ${mainPadding}`}>
+      <div className={`player-game-layout player-join-layout ${dockPadClass}`}>
         <PlayerGameShell>
           <PlayerTableHeader
             disconnected={disconnected}
@@ -343,7 +362,10 @@ function PlayerApp() {
             {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
             {tableResults && gameState.phase === 'lobby' ? <TableResultsPanel results={tableResults} /> : null}
 
-            <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} />
+            {feltFirstPhases ? feltView : null}
+            {feltFirstPhases ? infoCard : null}
+
+            {!feltFirstPhases ? infoCard : null}
 
             {currentPlayer ? <RevealShowdownPanel gameState={gameState} currentPlayer={currentPlayer} /> : null}
             {tableResults &&
@@ -368,7 +390,7 @@ function PlayerApp() {
                   onAllIn={() => allInAction()}
                 />
               </div>
-            ) : currentPlayer ? (
+            ) : currentPlayer && !needsMobileBetDock ? (
               <PlayerGoldPanel className="player-game-stack-panel">
                 <p className="player-game-stack-label">Your stack</p>
                 <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
@@ -381,7 +403,7 @@ function PlayerApp() {
               </PlayerGoldPanel>
             ) : null}
 
-            <TableFeltView gameState={gameState} playerName={playerName} />
+            {!feltFirstPhases ? feltView : null}
           </div>
         </PlayerGameShell>
       </div>

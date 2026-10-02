@@ -223,7 +223,8 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
 /** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
 export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
-  return Math.max(22, Math.round(w * 0.065))
+  const frac = w < 420 ? 0.052 : 0.065
+  return Math.max(18, Math.round(w * frac))
 }
 
 /**
@@ -271,9 +272,25 @@ export function stadiumPlayerCommunityCardSizePx(
 ): { w: number; h: number } {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
   const n = Math.max(1, Math.floor(seatCount))
-  const boardFrac = n <= 2 ? 0.095 : n <= 4 ? 0.082 : n <= 6 ? 0.072 : 0.064
-  const cardW = Math.max(24, Math.round(w * boardFrac))
-  return { w: cardW, h: Math.max(34, Math.round((cardW * 7) / 5)) }
+  const boardFrac =
+    w < 420
+      ? n <= 2
+        ? 0.072
+        : n <= 4
+          ? 0.064
+          : n <= 6
+            ? 0.056
+            : 0.05
+      : n <= 2
+        ? 0.095
+        : n <= 4
+          ? 0.082
+          : n <= 6
+            ? 0.072
+            : 0.064
+  const minW = w < 420 ? 18 : 24
+  const cardW = Math.max(minW, Math.round(w * boardFrac))
+  return { w: cardW, h: Math.max(Math.round(minW * 1.4), Math.round((cardW * 7) / 5)) }
 }
 
 export type StadiumFeltLayout = 'default' | 'player'

@@ -56,12 +56,13 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
       const holeDigits: readonly [number, number] | null =
         hasHand && !player.hasFolded ? [player.hand[0]!.digit, player.hand[1]!.digit] : null
 
-      const tagText = 'text-sm sm:text-base leading-tight'
+      // Phone-first type; bump only on wider screens.
+      const tagText = 'text-[0.7rem] leading-tight sm:text-sm md:text-base'
 
       return {
         index,
         label: isMe ? undefined : showSeat ? index + 1 : seatInitials(player.name),
-        labelClassName: 'font-mono text-xs tabular-nums sm:text-sm font-bold',
+        labelClassName: 'font-mono text-[0.65rem] tabular-nums sm:text-xs md:text-sm font-bold',
         state: player.hasFolded ? 'folded' : isActing ? 'acting' : 'default',
         holeDigits,
         faceDown: !showFaceUp,

@@ -104,13 +104,17 @@ export function StadiumTableSeats({
   const holeScale = isPlayerLayout
     ? stadiumPlayerHoleCardScale(rimW, occupiedForSizing)
     : stadiumHoleCardScale(rimW)
-  const cupLabelFontPx = isPlayerLayout ? Math.max(10, Math.round(cupSizePx * 0.38)) : undefined
+  const cupLabelFontPx = isPlayerLayout
+    ? Math.max(9, Math.round(cupSizePx * (rimW > 0 && rimW < 420 ? 0.34 : 0.38)))
+    : undefined
   const communityCardSize = isPlayerLayout
     ? stadiumPlayerCommunityCardSizePx(rimW, occupiedForSizing)
     : null
   const showCenter =
     centerContent != null || (communityDigits != null && communityDigits.length > 0)
-  const labelOutwardPx = isPlayerLayout ? Math.max(14, Math.round(cupSizePx * 0.55)) : 0
+  const labelOutwardPx = isPlayerLayout
+    ? Math.max(rimW > 0 && rimW < 420 ? 8 : 14, Math.round(cupSizePx * (rimW < 420 ? 0.42 : 0.55)))
+    : 0
 
   return (
     <div
@@ -218,7 +222,7 @@ export function StadiumTableSeats({
                 <div
                   className={clsx(
                     'pointer-events-none absolute z-[22] flex -translate-x-1/2 flex-col items-center text-center leading-tight',
-                    isPlayerLayout ? 'max-w-[52%] gap-0.5' : 'max-w-[42%]',
+                    isPlayerLayout ? 'max-w-[44%] gap-0 sm:max-w-[52%] sm:gap-0.5' : 'max-w-[42%]',
                     seat.nameTagClassName
                   )}
                   style={{ left: `${labelPt.leftPct}%`, top: `${labelPt.topPct}%` }}

@@ -18,7 +18,8 @@ describe('stadium player felt sizing', () => {
     const w = 360
     expect(stadiumPlayerCupholderSizePx(w)).toBeGreaterThan(stadiumCupholderSizePx(w))
     expect(stadiumPlayerHoleCardScale(w, 5)).toBeGreaterThan(stadiumHoleCardScale(w))
-    expect(stadiumPlayerCommunityCardSizePx(w, 5).w).toBeGreaterThanOrEqual(22)
+    expect(stadiumPlayerCommunityCardSizePx(w, 5).w).toBeGreaterThanOrEqual(18)
+    expect(stadiumPlayerCommunityCardSizePx(w, 5).w).toBeLessThanOrEqual(28)
   })
 
   it('keeps hole cards near the rail outside the community board', () => {

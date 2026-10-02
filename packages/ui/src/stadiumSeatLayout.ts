@@ -229,13 +229,39 @@ export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
 /**
  * Hole-card scale for the player felt (`NumericPlayingCard` `small` = 64px).
  * `seatCount` should be occupied seats (not always 8 chairs) so small tables stay readable.
+ * Narrow phone felts cap lower so pairs stay inside the bumper (desktop stays larger).
  */
 export function stadiumPlayerHoleCardScale(tableWidthPx: number, seatCount = 6): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
   const n = Math.max(1, Math.floor(seatCount))
-  const cardWFrac = n <= 2 ? 0.1 : n <= 4 ? 0.078 : n <= 6 ? 0.062 : 0.052
+  // Phone-first fracs — 2-seat hands used to claim ~10% width each and overflow corners.
+  const cardWFrac = n <= 2 ? 0.068 : n <= 4 ? 0.058 : n <= 6 ? 0.05 : 0.044
   const targetW = w * cardWFrac
-  return Math.max(0.32, Math.min(0.68, targetW / 64))
+  const maxScale = w < 420 ? 0.42 : w < 560 ? 0.55 : 0.68
+  const minScale = w < 420 ? 0.26 : 0.3
+  return Math.max(minScale, Math.min(maxScale, targetW / 64))
+}
+
+/**
+ * Per-seat hole scale on the player felt. Face-up (hero) gets a mild boost on wide
+ * layouts only — phones already show digits in “Your holes”, so felt cards stay compact.
+ */
+export function stadiumPlayerSeatHoleCardScale(
+  tableWidthPx: number,
+  seatCount: number,
+  faceUp: boolean
+): number {
+  const base = stadiumPlayerHoleCardScale(tableWidthPx, seatCount)
+  if (!faceUp) return base
+  const w = tableWidthPx > 0 ? tableWidthPx : 360
+  if (w < 420) {
+    // Phone: keep hero nearly the same size as opponents so cards fit the rail.
+    return Math.min(0.46, base * 1.08)
+  }
+  if (w < 560) {
+    return Math.min(0.58, Math.max(base * 1.2, base))
+  }
+  return Math.min(0.68, Math.max(base * 1.28, base))
 }
 
 /** Community board card size — five cards must fit inside the seat ring. */

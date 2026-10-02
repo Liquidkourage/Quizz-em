@@ -11,6 +11,7 @@ import {
   stadiumPlayerCommunityCardSizePx,
   stadiumPlayerCupholderSizePx,
   stadiumPlayerHoleCardScale,
+  stadiumPlayerSeatHoleCardScale,
   stadiumSeatPointPx,
   type StadiumFeltLayout,
 } from './stadiumSeatLayout'
@@ -165,11 +166,9 @@ export function StadiumTableSeats({
           const state = seat?.state ?? (seat == null ? 'empty' : 'default')
           const showHoles = seat != null && seat.holeDigits != null && state !== 'folded'
           const holesFaceUp = showHoles && !(seat!.faceDown ?? true)
-          const seatHoleScale =
-            isPlayerLayout && holesFaceUp
-              ? // Hero face-up cards must stay independently readable on a phone.
-                Math.min(0.72, Math.max(holeScale * 1.55, 0.45))
-              : holeScale
+          const seatHoleScale = isPlayerLayout
+            ? stadiumPlayerSeatHoleCardScale(rimW, occupiedForSizing, holesFaceUp)
+            : holeScale
 
           return (
             <div key={i}>

@@ -313,6 +313,7 @@ export {
   stadiumHoleCardOverlapPx,
   stadiumPlayerCupholderSizePx,
   stadiumPlayerHoleCardScale,
+  stadiumPlayerSeatHoleCardScale,
   stadiumPlayerCommunityCardSizePx,
   stadiumMosaicCupholderSizePx,
   stadiumMosaicHoleCardScale,

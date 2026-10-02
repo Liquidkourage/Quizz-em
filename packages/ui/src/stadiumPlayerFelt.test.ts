@@ -9,7 +9,9 @@ import {
   stadiumPlayerCommunityCardSizePx,
   stadiumPlayerCupholderSizePx,
   stadiumPlayerHoleCardScale,
+  stadiumPlayerSeatHoleCardScale,
 } from './stadiumSeatLayout'
+import { playerFeltHolePairWidthPx } from './playerFeltHoleCards'
 
 describe('stadium player felt sizing', () => {
   it('keeps seat chrome readable without drowning a phone felt', () => {
@@ -29,6 +31,22 @@ describe('stadium player felt sizing', () => {
     const five = stadiumPlayerHoleCardScale(360, 5)
     const eight = stadiumPlayerHoleCardScale(360, 8)
     expect(five).toBeGreaterThan(eight)
-    expect(five).toBeGreaterThanOrEqual(0.32)
+    expect(five).toBeGreaterThanOrEqual(0.26)
+  })
+
+  it('keeps two-seat phone hole pairs inside the felt', () => {
+    const w = 360
+    const faceDown = stadiumPlayerSeatHoleCardScale(w, 2, false)
+    const faceUp = stadiumPlayerSeatHoleCardScale(w, 2, true)
+    expect(faceUp).toBeLessThanOrEqual(0.46)
+    expect(faceUp).toBeGreaterThanOrEqual(faceDown)
+    expect(playerFeltHolePairWidthPx(faceUp)).toBeLessThan(w * 0.22)
+    expect(playerFeltHolePairWidthPx(faceDown)).toBeLessThan(w * 0.2)
+  })
+
+  it('allows larger hole cards on wide player felts', () => {
+    const phone = stadiumPlayerSeatHoleCardScale(360, 2, true)
+    const desktop = stadiumPlayerSeatHoleCardScale(720, 2, true)
+    expect(desktop).toBeGreaterThan(phone)
   })
 })

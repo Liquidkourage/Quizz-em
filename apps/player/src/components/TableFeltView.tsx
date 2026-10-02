@@ -7,6 +7,8 @@ import { PlayerGoldPanel } from './PlayerGoldChrome'
 type TableFeltViewProps = {
   gameState: GameState
   playerName: string
+  /** When false, pot is shown elsewhere (e.g. sticky question bar). */
+  showCenterPot?: boolean
 }
 
 function seatInitials(name: string): string {
@@ -25,7 +27,11 @@ function firstName(name: string): string {
   return space > 0 ? trimmed.slice(0, space) : trimmed
 }
 
-export default function TableFeltView({ gameState, playerName }: TableFeltViewProps) {
+export default function TableFeltView({
+  gameState,
+  playerName,
+  showCenterPot = true,
+}: TableFeltViewProps) {
   const players = gameState.players
   if (players.length === 0) return null
 
@@ -100,7 +106,7 @@ export default function TableFeltView({ gameState, playerName }: TableFeltViewPr
         communityDigits={communityDigits}
         aspectClassName="player-game-felt aspect-[8/5] w-full"
         centerContent={
-          pot > 0 ? (
+          showCenterPot && pot > 0 ? (
             <span className="player-game-table-pot">Pot ${pot.toLocaleString()}</span>
           ) : null
         }

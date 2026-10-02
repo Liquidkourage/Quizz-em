@@ -10,6 +10,8 @@ type GameInfoCardProps = {
   hideQuestion?: boolean
   /** Bet dock / sticky already show pot + stack. */
   hidePotStack?: boolean
+  /** Hole digits are face-up on the felt — don’t duplicate the strip. */
+  hideHoleStrip?: boolean
 }
 
 export default function GameInfoCard({
@@ -17,11 +19,12 @@ export default function GameInfoCard({
   currentPlayer,
   hideQuestion = false,
   hidePotStack = false,
+  hideHoleStrip = false,
 }: GameInfoCardProps) {
   const q = gameState.round.question
   const hole = currentPlayer?.hand ?? []
   const board = gameState.round.communityCards
-  const showHole = hole.length >= 2
+  const showHole = hole.length >= 2 && !hideHoleStrip
   const showBoard = board.length > 0
   const showCards = showHole || showBoard
   const showStats = !hidePotStack
@@ -31,7 +34,9 @@ export default function GameInfoCard({
 
   return (
     <PlayerGoldPanel
-      className={hidePotStack && hideQuestion ? 'player-game-info--cards-only' : undefined}
+      className={
+        hidePotStack && hideQuestion && !showQuestionBlock ? 'player-game-info--cards-only' : undefined
+      }
     >
       {showStats ? (
         <div className="player-game-info-stats">

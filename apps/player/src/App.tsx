@@ -48,7 +48,6 @@ import VenueStatusStrip from './components/VenueStatusStrip'
 import PhaseBanner from './components/PhaseBanner'
 import GameInfoCard from './components/GameInfoCard'
 import PostHandSummaryCard from './components/PostHandSummaryCard'
-import RevealShowdownPanel from './components/RevealShowdownPanel'
 import TableResultsPanel from './components/TableResultsPanel'
 import AnswerComposerModal from './components/AnswerComposerModal'
 import BettingActions from './components/BettingActions'
@@ -307,19 +306,32 @@ function PlayerApp() {
     gameState.phase === 'question' ||
     gameState.phase === 'betting' ||
     gameState.phase === 'answering'
+  /** Drop host/venue chrome while the hand is live — sticky Q + dock carry the state. */
+  const hideLiveChrome = feltFirstPhases
+  const holesOnFelt =
+    Boolean(currentPlayer) &&
+    (currentPlayer?.hand.length ?? 0) >= 2 &&
+    !currentPlayer!.hasFolded
   const dockPadClass = needsMobileBetDock
     ? bettingCtx?.isMyTurn
       ? 'player-game-layout--bet-dock player-game-layout--bet-dock-turn'
       : 'player-game-layout--bet-dock player-game-layout--bet-dock-wait'
     : ''
 
-  const feltView = <TableFeltView gameState={gameState} playerName={playerName} />
+  const feltView = (
+    <TableFeltView
+      gameState={gameState}
+      playerName={playerName}
+      showCenterPot={!showStickyQuestion}
+    />
+  )
   const infoCard = (
     <GameInfoCard
       gameState={gameState}
       currentPlayer={currentPlayer}
-      hideQuestion={showStickyQuestion}
+      hideQuestion={showStickyQuestion || Boolean(tableResults)}
       hidePotStack={needsMobileBetDock}
+      hideHoleStrip={holesOnFelt}
     />
   )
 
@@ -337,27 +349,31 @@ function PlayerApp() {
           <PlayerGoldHeaderRule />
 
           <div className="player-join-body player-game-body">
-            <PlayerGameStatusBar
-              gameState={gameState}
-              playerName={playerName}
-              myIndex={myIndex}
-              answerPoints={currentPlayer?.answerPoints ?? 0}
-            />
+            {!hideLiveChrome ? (
+              <PlayerGameStatusBar
+                gameState={gameState}
+                playerName={playerName}
+                myIndex={myIndex}
+                answerPoints={currentPlayer?.answerPoints ?? 0}
+              />
+            ) : null}
 
-            <VenueStatusStrip
-              brief={venueBrief}
-              tableBlinds={
-                currentPlayer && inChipContest(currentPlayer) && gameState.phase !== 'lobby'
-                  ? { small: gameState.smallBlind, big: gameState.bigBlind }
-                  : undefined
-              }
-            />
+            {!hideLiveChrome ? (
+              <VenueStatusStrip
+                brief={venueBrief}
+                tableBlinds={
+                  currentPlayer && inChipContest(currentPlayer) && gameState.phase !== 'lobby'
+                    ? { small: gameState.smallBlind, big: gameState.bigBlind }
+                    : undefined
+                }
+              />
+            ) : null}
 
             {showStickyQuestion ? (
               <StickyQuestionBar questionText={questionText} pot={gameState.round.pot} />
             ) : null}
 
-            <PhaseBanner gameState={gameState} />
+            {!hideLiveChrome ? <PhaseBanner gameState={gameState} /> : null}
 
             {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
             {tableResults && gameState.phase === 'lobby' ? <TableResultsPanel results={tableResults} /> : null}
@@ -367,7 +383,6 @@ function PlayerApp() {
 
             {!feltFirstPhases ? infoCard : null}
 
-            {currentPlayer ? <RevealShowdownPanel gameState={gameState} currentPlayer={currentPlayer} /> : null}
             {tableResults &&
             (gameState.phase === 'reveal' ||
               gameState.phase === 'showdown' ||

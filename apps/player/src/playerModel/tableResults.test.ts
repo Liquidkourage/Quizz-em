@@ -77,6 +77,7 @@ describe('buildTableResults', () => {
     const cara = results!.rows.find((r) => r.playerId === 'c')!
 
     expect(alice.isYou).toBe(true)
+    expect(results!.yourTriviaPoints).toBe(alice.triviaPoints)
     expect(bob.isPotWinner).toBe(true)
     expect(bob.chipPayout).toBe(90)
     expect(bob.chipChange).toBe(60)

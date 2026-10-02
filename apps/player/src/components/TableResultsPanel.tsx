@@ -7,6 +7,8 @@ type TableResultsPanelProps = {
 }
 
 export default function TableResultsPanel({ results }: TableResultsPanelProps) {
+  const you = results.rows.find((r) => r.isYou)
+
   return (
     <PlayerGoldPanel title="Table results">
       <div className="player-table-results-header">
@@ -15,6 +17,22 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
           <span className="player-game-result-correct">{results.formattedCorrect}</span>
         </p>
         <p className="player-table-results-winners">{formatWinnerLine(results)}</p>
+        {you ? (
+          <p className="player-table-results-you-line">
+            {you.folded ? (
+              'You folded — no trivia score'
+            ) : you.submitted == null ? (
+              'No answer submitted'
+            ) : (
+              <>
+                Your answer{' '}
+                <span className="player-game-result-mono">{you.formattedAnswer}</span>
+                {' · '}
+                <strong className="player-game-result-mono">{you.triviaPoints}</strong> pts
+              </>
+            )}
+          </p>
+        ) : null}
       </div>
 
       <div className="player-table-results-scroll" role="table" aria-label="Table hand results">

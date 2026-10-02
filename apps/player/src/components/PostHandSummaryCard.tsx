@@ -11,6 +11,7 @@ function formatDelta(n: number, prefix: string): string {
   return `${sign}${prefix}${Math.abs(n).toLocaleString()}`
 }
 
+/** Personal stack/pts deltas only — answers live on Table results. */
 export default function PostHandSummaryCard({ summary }: PostHandSummaryCardProps) {
   return (
     <PlayerGoldPanel title="Last hand">
@@ -30,19 +31,6 @@ export default function PostHandSummaryCard({ summary }: PostHandSummaryCardProp
           </div>
         </div>
       </div>
-      {summary.formattedSubmitted != null ? (
-        <p className="player-game-result">
-          Your answer: <span className="player-game-result-mono">{summary.formattedSubmitted}</span>
-          {summary.formattedCorrect != null ? (
-            <>
-              {' '}
-              · Correct: <span className="player-game-result-correct">{summary.formattedCorrect}</span>
-            </>
-          ) : null}
-          {' '}
-          · This hand: <strong className="player-game-result-mono">{summary.triviaPointsThisHand}</strong> pts
-        </p>
-      ) : null}
     </PlayerGoldPanel>
   )
 }

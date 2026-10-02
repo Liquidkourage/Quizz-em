@@ -5,7 +5,7 @@ import {
   type GamePhase,
   type GameState,
 } from '@qhe/core'
-import { isHandStartingPhase, isPostHandPhase } from './handSummary'
+import { isHandStartingPhase, isPostHandPhase, triviaPointsForAnswer } from './handSummary'
 
 export type TableResultRow = {
   playerId: string
@@ -22,6 +22,8 @@ export type TableResultRow = {
   /** Net chip gain/loss for the hand: payout − contribution. */
   chipChange: number
   isPotWinner: boolean
+  /** Trivia points this hand (0 if folded / no answer). */
+  triviaPoints: number
 }
 
 export type TableResults = {
@@ -29,6 +31,8 @@ export type TableResults = {
   formattedCorrect: string
   winnerIds: string[]
   winnerNames: string[]
+  /** Your trivia points this hand when `myPlayerId` is known. */
+  yourTriviaPoints: number | null
   rows: TableResultRow[]
 }
 
@@ -69,6 +73,11 @@ export function buildTableResults(
     const contributed = Math.max(0, Math.round(contributions[p.id] ?? 0))
     const chipChange = pointsOnly ? 0 : chipPayout - contributed
     const bankroll = Math.max(0, Math.round(p.bankroll))
+    const triviaPoints = triviaPointsForAnswer(
+      submitted ?? undefined,
+      q.answer,
+      folded,
+    )
     return {
       playerId: p.id,
       name: p.name.trim() || p.id,
@@ -81,6 +90,7 @@ export function buildTableResults(
       chipPayout,
       chipChange,
       isPotWinner: winnerIdSet.has(p.id) && chipPayout > 0,
+      triviaPoints,
     }
   })
 
@@ -91,11 +101,14 @@ export function buildTableResults(
     }
   }
 
+  const you = rows.find((r) => r.isYou)
+
   return {
     correctAnswer: q.answer,
     formattedCorrect: formatTriviaNumber(q.answer),
     winnerIds,
     winnerNames,
+    yourTriviaPoints: you ? you.triviaPoints : null,
     rows,
   }
 }

@@ -1682,6 +1682,14 @@
   color: rgb(255 255 255 / 0.55);
 }
 
+.player-table-results-you-line {
+  margin: 0.35rem 0 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.78);
+}
+
 .player-table-results-scroll {
   max-height: 14.5rem;
   overflow-y: auto;

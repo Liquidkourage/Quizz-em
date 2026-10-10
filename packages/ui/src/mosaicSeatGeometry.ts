@@ -100,6 +100,11 @@ export function mosaicSeatHoleInwardFrac(seatIndex: number): number {
   return MOSAIC_HOLE_INWARD_FRAC
 }
 
+/** Player phone — deeper hole inset so outward name tags never cover the pair. */
+export function mosaicSeatPlayerHoleInwardFrac(seatIndex: number): number {
+  return Math.min(0.22, mosaicSeatHoleInwardFrac(seatIndex) + 0.05)
+}
+
 /**
  * Cupholder on the stadium rail — each of the eight authored points from the
  * semicircle + rectangle model, then normalized to artwork u/v.

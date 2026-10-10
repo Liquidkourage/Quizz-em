@@ -18,9 +18,9 @@ import {
 import {
   MOSAIC_SEAT_COUNT,
   mosaicSeatDotPct,
-  mosaicSeatHoleInwardFrac,
   mosaicSeatHoleLayout,
   mosaicSeatLabelPct,
+  mosaicSeatPlayerHoleInwardFrac,
 } from './mosaicSeatGeometry'
 import { CardFaceGraphic } from './CardFaceGraphic'
 import { PokerTableGraphic, SeatCupholderMarker, type SeatCupholderState } from './tableGraphics'
@@ -112,8 +112,9 @@ export function StadiumTableSeats({
     : null
   const showCenter =
     centerContent != null || (communityDigits != null && communityDigits.length > 0)
+  // Name/stack sit fully outside the rail — must clear hole-card height, not just the cup.
   const labelOutwardPx = isPlayerLayout
-    ? Math.max(rimW > 0 && rimW < 420 ? 14 : 18, Math.round(cupSizePx * (rimW < 420 ? 0.55 : 0.62)))
+    ? Math.max(rimW > 0 && rimW < 420 ? 42 : 52, Math.round(cupSizePx * (rimW < 420 ? 1.25 : 1.35)))
     : 0
 
   return (
@@ -162,7 +163,7 @@ export function StadiumTableSeats({
             ? mosaicSeatDotPct(i, count, rimW, rimH)
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_CUPHOLDER_RADIAL)
           const holePt = isPlayerLayout
-            ? mosaicSeatHoleLayout(i, count, rimW, rimH, mosaicSeatHoleInwardFrac(i))
+            ? mosaicSeatHoleLayout(i, count, rimW, rimH, mosaicSeatPlayerHoleInwardFrac(i))
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_HOLE_CARDS_RADIAL)
           const labelPt = isPlayerLayout
             ? mosaicSeatLabelPct(i, rimW, rimH, labelOutwardPx)
@@ -222,7 +223,8 @@ export function StadiumTableSeats({
                 <div
                   className={clsx(
                     'pointer-events-none absolute z-[22] flex -translate-x-1/2 flex-col items-center text-center leading-tight',
-                    isPlayerLayout ? 'max-w-[56%] gap-0.5 sm:max-w-[62%]' : 'max-w-[42%]',
+                    // Center on the outward anchor so multi-line tags don't grow into hole cards.
+                    isPlayerLayout ? '-translate-y-1/2 max-w-[56%] gap-0.5 sm:max-w-[62%]' : 'max-w-[42%]',
                     seat.nameTagClassName
                   )}
                   style={{ left: `${labelPt.leftPct}%`, top: `${labelPt.topPct}%` }}

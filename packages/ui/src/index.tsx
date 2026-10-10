@@ -278,6 +278,7 @@ export {
   mosaicSeatIndex,
   mosaicSeatChipInwardFrac,
   mosaicSeatHoleInwardFrac,
+  mosaicSeatPlayerHoleInwardFrac,
   mosaicStadiumCupUV,
   mosaicStadiumHoleUV,
   mosaicFeltCenterPct,

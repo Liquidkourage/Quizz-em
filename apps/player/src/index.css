@@ -948,38 +948,47 @@
 }
 
 .player-game-layout--live-fit .player-game-header--compact {
-  height: clamp(3.6rem, 9.5vh, 4.5rem);
-  padding-top: 0.4rem;
+  height: clamp(4.25rem, 11vh, 5.25rem);
+  padding-top: 0.45rem;
   padding-bottom: 0.2rem;
   flex-shrink: 0;
 }
 
+.player-game-layout--live-fit .player-game-header--compact .player-join-logo {
+  width: min(96%, 30rem);
+}
+
 .player-game-layout--live-fit .player-game-header--compact .player-join-logo .welcome-wordmark-root-hero {
-  max-height: clamp(3rem, 8vh, 3.85rem);
+  max-height: clamp(3.6rem, 9.5vh, 4.75rem);
 }
 
 .player-game-layout--live-fit .player-game-body {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  gap: 0.65rem;
-  padding: 0.15rem 0.15rem 0.35rem;
-  /* Banner → table immediately under it (no vertical centering void). */
+  gap: 0.4rem;
+  padding: 0.1rem 0.15rem 0.2rem;
+  /* Question → felt claims leftover height; dock sits below shell. */
   justify-content: flex-start;
 }
 
 .player-game-layout--live-fit .player-sticky-question {
   flex-shrink: 0;
   position: static;
-  padding: 0.55rem 0.75rem;
+  padding: 0.4rem 0.65rem;
+}
+
+.player-game-layout--live-fit .player-sticky-question-label {
+  font-size: 0.72rem;
+  margin-bottom: 0.12rem;
 }
 
 .player-game-layout--live-fit .player-sticky-question-text {
-  font-size: clamp(1.05rem, 3.6vw, 1.2rem);
-  line-height: 1.3;
+  font-size: clamp(0.95rem, 3.2vw, 1.1rem);
+  line-height: 1.25;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   overflow: hidden;
 }
 
@@ -991,35 +1000,88 @@
 }
 
 /*
- * Felt panel claims leftover body height so the table grows into the
- * former black void. Felt itself is the largest 8:5 box that fits,
- * pinned under the banner (not vertically centered).
+ * Felt panel claims leftover body height. Felt is the largest 8:5 box that
+ * fits — pinned under the question (not vertically centered in void).
+ * Overflow visible so outward name tags can sit in the rail gutter.
  */
 .player-game-layout--live-fit .player-game-felt-panel--fill {
   flex: 1 1 auto;
   width: 100%;
   max-width: min(100%, 44rem);
   min-height: 0;
-  margin: 0.1rem auto 0;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 0.1rem 0.2rem 0.25rem;
+  padding: 0.55rem 0.35rem 0.35rem;
   border: none;
   background: transparent;
   box-shadow: none;
+  overflow: visible;
+  container-type: size;
 }
 
 .player-game-layout--live-fit .player-game-felt--fill {
-  flex: 0 1 auto;
-  width: 100%;
+  flex: 0 0 auto;
+  /* Largest 8:5 box that fits the panel — shrinks width when height is tight. */
+  width: min(100%, calc(100cqh * 8 / 5));
+  height: min(100cqh, calc(100cqw * 5 / 8));
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 8 / 5;
-  height: auto;
   min-height: 0;
   margin-inline: auto;
+  overflow: visible;
+}
+
+/* Betting: shell + inflow dock share one column; felt shrinks first. */
+.player-game-layout--live-fit.player-game-layout--with-dock {
+  gap: 0;
+}
+
+.player-game-layout--live-fit.player-game-layout--with-dock .player-game-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.player-game-layout--live-fit .player-game-dock--inflow {
+  flex: 0 0 auto;
+  max-height: min(42%, 16.5rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.player-game-layout--live-fit .player-game-dock--wait {
+  max-height: none;
+}
+
+.player-game-layout--live-fit .player-game-dock--wait .player-game-dock-inner {
+  padding-top: 0.35rem;
+  padding-bottom: max(0.4rem, env(safe-area-inset-bottom, 0px));
+}
+
+.player-game-layout--live-fit .player-game-dock--inflow .player-game-dock-inner {
+  padding-top: 0.3rem;
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px));
+}
+
+.player-game-layout--live-fit .player-game-dock-status {
+  margin-bottom: 0.25rem;
+  font-size: 0.78rem;
+}
+
+.player-game-layout--live-fit .player-game-wager-dense {
+  gap: 0.28rem;
+}
+
+.player-game-layout--live-fit .player-game-raise-block--dense .player-game-raise-chip {
+  min-height: 1.85rem;
+  padding: 0.2rem 0.15rem;
+  font-size: 0.72rem;
 }
 
 @media (min-width: 1024px) {
@@ -1434,19 +1496,35 @@
 }
 
 .player-game-layout--live-fit .player-game-wager-actions {
-  gap: 0.35rem;
+  gap: 0.28rem;
 }
 
 .player-game-layout--live-fit .player-game-btn {
-  min-height: 2.35rem;
-  padding: 0.4rem 0.45rem;
-  font-size: 0.8rem;
+  min-height: 2.15rem;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.78rem;
   letter-spacing: 0.06em;
 }
 
 .player-game-layout--live-fit .player-game-wager-wait {
-  padding: 0.45rem 0.55rem;
-  font-size: 0.82rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+.player-game-wager-wait-stack {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.player-game-wager-wait-stack strong {
+  color: rgb(253 224 71 / 0.95);
 }
 
 .player-game-stat-grid-full {

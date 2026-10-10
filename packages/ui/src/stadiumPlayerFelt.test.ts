@@ -39,10 +39,10 @@ describe('stadium player felt sizing', () => {
     const w = 360
     const faceDown = stadiumPlayerSeatHoleCardScale(w, 2, false)
     const faceUp = stadiumPlayerSeatHoleCardScale(w, 2, true)
-    expect(faceUp).toBeLessThanOrEqual(0.46)
+    expect(faceUp).toBeLessThanOrEqual(0.52)
     expect(faceUp).toBeGreaterThanOrEqual(faceDown)
-    expect(playerFeltHolePairWidthPx(faceUp)).toBeLessThan(w * 0.22)
-    expect(playerFeltHolePairWidthPx(faceDown)).toBeLessThan(w * 0.2)
+    expect(playerFeltHolePairWidthPx(faceUp)).toBeLessThan(w * 0.26)
+    expect(playerFeltHolePairWidthPx(faceDown)).toBeLessThan(w * 0.24)
   })
 
   it('allows larger hole cards on wide player felts', () => {

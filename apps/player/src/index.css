@@ -1540,7 +1540,18 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Phone: narrow amount + Raise button share one row. */
+/*
+ * Phone 2×2-ish dock:
+ *   [ Call/Check ] [ $amt | Raise ]
+ *   [ Fold       ] [ All-in      ]
+ */
+.player-game-dense-top {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  align-items: end;
+  gap: 0.4rem;
+}
+
 .player-game-raise-compact-row {
   display: grid;
   grid-template-columns: minmax(4.75rem, 6.5rem) 1fr;
@@ -1551,13 +1562,20 @@
 .player-game-raise-compact-field {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.15rem;
   min-width: 0;
+}
+
+.player-game-raise-compact-pair {
+  display: grid;
+  grid-template-columns: minmax(3.75rem, 4.75rem) 1fr;
+  align-items: stretch;
+  gap: 0.3rem;
 }
 
 .player-game-raise-compact-label {
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 650;
   letter-spacing: 0.03em;
   color: rgb(255 255 255 / 0.55);
@@ -1569,8 +1587,8 @@
 .player-game-input--raise-dense {
   width: 100%;
   min-height: 2.75rem;
-  padding: 0.35rem 0.4rem;
-  font-size: 1.15rem;
+  padding: 0.3rem 0.25rem;
+  font-size: 1.05rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -1578,7 +1596,7 @@
 
 .player-game-layout--live-fit .player-game-input--raise-dense {
   min-height: 2.75rem;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .player-game-input--raise-dense:disabled {
@@ -1587,6 +1605,10 @@
 
 .player-game-raise-compact-go {
   min-width: 0;
+}
+
+.player-game-dense-top .player-game-btn {
+  min-height: 2.75rem;
 }
 
 .player-game-actions--dense-tri {

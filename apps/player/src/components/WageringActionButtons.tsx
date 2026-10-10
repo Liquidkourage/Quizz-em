@@ -130,26 +130,45 @@ export default function WageringActionButtons({
     ) : null
 
   if (dense) {
-    const raiseInput = showRaise ? (
-      <input
-        type="number"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        value={raiseToTotal}
-        onChange={(e) => {
-          const typedTo = Number(e.target.value)
-          if (!Number.isFinite(typedTo)) {
-            clampRaiseBy(ctx.minRaise)
+    const primaryBtn = showCheck ? (
+      <PlayerGameButton
+        variant="gold"
+        size={btnSize}
+        className={soloBtnClass}
+        disabled={!live}
+        onClick={onCheck}
+      >
+        Check
+      </PlayerGameButton>
+    ) : showCall ? (
+      <PlayerGameButton
+        variant="gold"
+        size={btnSize}
+        className={soloBtnClass}
+        disabled={!live}
+        onClick={onCall}
+      >
+        Call ${ctx.toCall}
+      </PlayerGameButton>
+    ) : shortAllInCall ? (
+      <PlayerGameButton
+        variant="allin"
+        size={btnSize}
+        className={soloBtnClass}
+        disabled={!live}
+        onClick={() => {
+          if (!live) return
+          if (!allInConfirmPending) {
+            setAllInConfirmPending(true)
+            setFoldConfirmPending(false)
             return
           }
-          clampRaiseBy(typedTo - ctx.toCall)
+          setAllInConfirmPending(false)
+          onAllIn()
         }}
-        min={minRaiseTo}
-        max={ctx.toCall + maxRaiseBy}
-        disabled={!live}
-        className="player-game-input player-game-input--raise player-game-input--raise-dense"
-        aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
-      />
+      >
+        {allInConfirmPending ? 'Confirm all-in' : `All-in $${currentPlayer.bankroll}`}
+      </PlayerGameButton>
     ) : null
 
     return (
@@ -157,81 +176,98 @@ export default function WageringActionButtons({
         className={`player-game-wager-dense${live ? '' : ' player-game-wager-dense--inactive'}`}
         aria-disabled={!live}
       >
-        {hasPrimary ? (
+        {/* Row 1: Call/Check | [$amount] Raise — or primary alone if no raise. */}
+        {hasPrimary || showRaise ? (
           <div
-            className={`player-game-actions${
-              [showCheck, showCall, shortAllInCall].filter(Boolean).length > 1
-                ? ''
-                : ' player-game-actions--solo'
-            }`}
+            className={
+              hasPrimary && showRaise
+                ? 'player-game-dense-top'
+                : `player-game-actions${hasPrimary || showRaise ? ' player-game-actions--solo' : ''}`
+            }
           >
-            {showCheck ? (
-              <PlayerGameButton
-                variant="gold"
-                size={btnSize}
-                className={soloBtnClass}
-                disabled={!live}
-                onClick={onCheck}
-              >
-                Check
-              </PlayerGameButton>
-            ) : null}
-            {showCall ? (
-              <PlayerGameButton
-                variant="gold"
-                size={btnSize}
-                className={soloBtnClass}
-                disabled={!live}
-                onClick={onCall}
-              >
-                Call ${ctx.toCall}
-              </PlayerGameButton>
-            ) : null}
-            {shortAllInCall ? (
-              <PlayerGameButton
-                variant="allin"
-                size={btnSize}
-                className={soloBtnClass}
-                disabled={!live}
-                onClick={() => {
-                  if (!live) return
-                  if (!allInConfirmPending) {
-                    setAllInConfirmPending(true)
-                    setFoldConfirmPending(false)
-                    return
-                  }
-                  setAllInConfirmPending(false)
-                  onAllIn()
-                }}
-              >
-                {allInConfirmPending ? 'Confirm all-in' : `All-in $${currentPlayer.bankroll}`}
-              </PlayerGameButton>
-            ) : null}
+            {hasPrimary && showRaise ? (
+              <>
+                {primaryBtn}
+                <div className="player-game-raise-compact-field">
+                  <span className="player-game-raise-compact-label">min ${minRaiseTo}</span>
+                  <div className="player-game-raise-compact-pair">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={raiseToTotal}
+                      onChange={(e) => {
+                        const typedTo = Number(e.target.value)
+                        if (!Number.isFinite(typedTo)) {
+                          clampRaiseBy(ctx.minRaise)
+                          return
+                        }
+                        clampRaiseBy(typedTo - ctx.toCall)
+                      }}
+                      min={minRaiseTo}
+                      max={ctx.toCall + maxRaiseBy}
+                      disabled={!live}
+                      className="player-game-input player-game-input--raise player-game-input--raise-dense"
+                      aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+                    />
+                    <PlayerGameButton
+                      variant="dark"
+                      size={btnSize}
+                      className={`${soloBtnClass} player-game-raise-compact-go`}
+                      disabled={!live || !ctx.canRaise}
+                      onClick={onRaise}
+                    >
+                      {wagerVerb}
+                    </PlayerGameButton>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {primaryBtn}
+                {showRaise ? (
+                  <div className="player-game-raise-compact-row">
+                    <div className="player-game-raise-compact-field">
+                      <span className="player-game-raise-compact-label">
+                        {wagerVerb} to · min ${minRaiseTo}
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={raiseToTotal}
+                        onChange={(e) => {
+                          const typedTo = Number(e.target.value)
+                          if (!Number.isFinite(typedTo)) {
+                            clampRaiseBy(ctx.minRaise)
+                            return
+                          }
+                          clampRaiseBy(typedTo - ctx.toCall)
+                        }}
+                        min={minRaiseTo}
+                        max={ctx.toCall + maxRaiseBy}
+                        disabled={!live}
+                        className="player-game-input player-game-input--raise player-game-input--raise-dense"
+                        aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+                      />
+                    </div>
+                    <PlayerGameButton
+                      variant="dark"
+                      size={btnSize}
+                      className={`${soloBtnClass} player-game-raise-compact-go`}
+                      disabled={!live || !ctx.canRaise}
+                      onClick={onRaise}
+                    >
+                      {wagerVerb} ${raiseToTotal}
+                    </PlayerGameButton>
+                  </div>
+                ) : null}
+              </>
+            )}
           </div>
         ) : null}
 
-        {showRaise ? (
-          <div className="player-game-raise-compact">
-            <div className="player-game-raise-compact-row">
-              <div className="player-game-raise-compact-field">
-                <span className="player-game-raise-compact-label">
-                  {wagerVerb} to · min ${minRaiseTo}
-                </span>
-                {raiseInput}
-              </div>
-              <PlayerGameButton
-                variant="dark"
-                size={btnSize}
-                className={`${soloBtnClass} player-game-raise-compact-go`}
-                disabled={!live || !ctx.canRaise}
-                onClick={onRaise}
-              >
-                {wagerVerb} ${raiseToTotal}
-              </PlayerGameButton>
-            </div>
-          </div>
-        ) : null}
-
+        {/* Row 2: Fold | All-in */}
         {hasSecondary ? (
           <div
             className={`player-game-actions${

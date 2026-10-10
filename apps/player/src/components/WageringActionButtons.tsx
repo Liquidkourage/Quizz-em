@@ -188,18 +188,21 @@ export default function WageringActionButtons({
             {hasPrimary && showRaise ? (
               <>
                 {primaryBtn}
-                <div className="player-game-raise-compact-field">
-                  <span className="player-game-raise-compact-label">min ${minRaiseTo}</span>
-                  <div className="player-game-raise-compact-pair">
-                    <PlayerGameButton
-                      variant="dark"
-                      size={btnSize}
-                      className={`${soloBtnClass} player-game-raise-compact-go`}
-                      disabled={!live || !ctx.canRaise}
-                      onClick={onRaise}
-                    >
-                      {wagerVerb}
-                    </PlayerGameButton>
+                <div className="player-game-raise-compact-pair">
+                  <PlayerGameButton
+                    variant="dark"
+                    size={btnSize}
+                    className={`${soloBtnClass} player-game-raise-compact-go`}
+                    disabled={!live || !ctx.canRaise}
+                    onClick={onRaise}
+                  >
+                    {wagerVerb} ${raiseToTotal}
+                  </PlayerGameButton>
+                  <div className="player-game-raise-amount-col">
+                    <span className="player-game-raise-compact-label">
+                      {wagerVerb} to
+                      <span className="player-game-raise-compact-min"> min ${minRaiseTo}</span>
+                    </span>
                     <input
                       type="number"
                       inputMode="numeric"

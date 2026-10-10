@@ -1568,20 +1568,37 @@
 
 .player-game-raise-compact-pair {
   display: grid;
-  grid-template-columns: 1fr minmax(3.75rem, 4.75rem);
-  align-items: stretch;
+  grid-template-columns: 1fr minmax(4rem, 5.25rem);
+  align-items: end;
   gap: 0.3rem;
 }
 
+.player-game-raise-amount-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
 .player-game-raise-compact-label {
+  display: block;
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.65rem;
-  font-weight: 650;
-  letter-spacing: 0.03em;
-  color: rgb(255 255 255 / 0.55);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: rgb(255 255 255 / 0.62);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
+}
+
+.player-game-raise-compact-min {
+  display: block;
+  font-weight: 650;
+  color: rgb(253 224 71 / 0.85);
+  font-variant-numeric: tabular-nums;
 }
 
 .player-game-input--raise-dense {

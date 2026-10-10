@@ -397,7 +397,7 @@ function PlayerApp() {
             {showSeatedLobbyWait ? (
               <p className="player-game-banner player-game-banner--compact">
                 {waitingForFirstStart
-                  ? 'Seated — waiting for the host to start…'
+                  ? `Seated with ${gameState.players.length} — waiting for the host to start…`
                   : 'Waiting for the next question…'}
               </p>
             ) : null}

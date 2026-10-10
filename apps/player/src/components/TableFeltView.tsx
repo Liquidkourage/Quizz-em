@@ -65,13 +65,13 @@ export default function TableFeltView({
       const holeDigits: readonly [number, number] | null =
         hasHand && !player.hasFolded ? [player.hand[0]!.digit, player.hand[1]!.digit] : null
 
-      // Readable on phone; table is capped so these can stay larger.
-      const tagText = 'text-sm leading-tight sm:text-base md:text-lg'
+      // Seat identity is primary chrome on phone — keep larger than the rail art.
+      const tagText = 'text-base leading-tight sm:text-lg md:text-xl'
 
       return {
         index,
         label: showSeat ? index + 1 : isMe ? 'You' : seatInitials(player.name),
-        labelClassName: 'font-mono text-xs tabular-nums sm:text-sm md:text-base font-bold',
+        labelClassName: 'font-mono text-sm tabular-nums sm:text-base md:text-lg font-bold',
         state: player.hasFolded ? 'folded' : isActing ? 'acting' : 'default',
         holeDigits,
         faceDown: !showFaceUp,

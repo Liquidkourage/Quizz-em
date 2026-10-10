@@ -223,9 +223,9 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
 /** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
 export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
-  // Slightly larger cups/labels — table itself is capped in the player layout.
-  const frac = w < 420 ? 0.078 : 0.085
-  return Math.max(26, Math.round(w * frac))
+  // Seat markers must read across a phone — table is layout-capped.
+  const frac = w < 420 ? 0.095 : 0.1
+  return Math.max(30, Math.round(w * frac))
 }
 
 /**

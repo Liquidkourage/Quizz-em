@@ -38,6 +38,9 @@ export default function WageringActionButtons({
   const [foldConfirmPending, setFoldConfirmPending] = useState(false)
   const [allInConfirmPending, setAllInConfirmPending] = useState(false)
 
+  /** Controls stay visible for everyone; only the acting seat can press them. */
+  const live = ctx.isMyTurn
+
   useEffect(() => {
     setFoldConfirmPending(false)
     setAllInConfirmPending(false)
@@ -56,19 +59,17 @@ export default function WageringActionButtons({
   }, [allInConfirmPending])
 
   const maxRaiseBy = Math.max(0, currentPlayer.bankroll - ctx.toCall)
-  const showCheck = ctx.canCheck
-  const shortAllInCall = ctx.toCall > 0 && currentPlayer.bankroll > 0 && currentPlayer.bankroll <= ctx.toCall
-  const showCall = ctx.canCall && !shortAllInCall
-  const showRaise = ctx.isMyTurn && maxRaiseBy >= ctx.minRaise
-  const showFold = ctx.canFold
-  const showAllIn = ctx.canAllIn
+  const shortAllInCall =
+    ctx.toCall > 0 && currentPlayer.bankroll > 0 && currentPlayer.bankroll <= ctx.toCall
+  // Preview affordances from stack/to-call — not gated on whose turn it is.
+  const showCheck = ctx.toCall === 0
+  const showCall = ctx.toCall > 0 && !shortAllInCall && currentPlayer.bankroll > 0
+  const showRaise = maxRaiseBy >= ctx.minRaise
+  const showFold = true
+  const showAllIn = currentPlayer.bankroll > 0
   const hasPrimary = showCheck || showCall || shortAllInCall
   const hasSecondary = showFold || showAllIn
   const raiseToTotal = ctx.toCall + raiseAmount
-
-  if (!ctx.isMyTurn) {
-    return <p className="player-game-wager-wait">Waiting for other players…</p>
-  }
 
   if (!hasPrimary && !showRaise && !hasSecondary) {
     return null
@@ -77,6 +78,7 @@ export default function WageringActionButtons({
   const soloBtnClass = 'player-game-btn--block player-game-btn--solo'
 
   const clampRaiseBy = (n: number) => {
+    if (!live) return
     const stepped = Math.max(ctx.minRaise, Math.min(maxRaiseBy, Math.floor(n)))
     onRaiseAmountChange(stepped)
   }
@@ -89,7 +91,9 @@ export default function WageringActionButtons({
       variant="fold"
       size={btnSize}
       className={soloBtnClass}
+      disabled={!live}
       onClick={() => {
+        if (!live) return
         if (!foldConfirmPending) {
           setFoldConfirmPending(true)
           setAllInConfirmPending(false)
@@ -109,7 +113,9 @@ export default function WageringActionButtons({
         variant="allin"
         size={btnSize}
         className={soloBtnClass}
+        disabled={!live}
         onClick={() => {
+          if (!live) return
           if (!allInConfirmPending) {
             setAllInConfirmPending(true)
             setFoldConfirmPending(false)
@@ -123,9 +129,14 @@ export default function WageringActionButtons({
       </PlayerGameButton>
     ) : null
 
+  const raiseChipDisabled = !live
+
   if (dense) {
     return (
-      <div className="player-game-wager-dense">
+      <div
+        className={`player-game-wager-dense${live ? '' : ' player-game-wager-dense--inactive'}`}
+        aria-disabled={!live}
+      >
         {hasPrimary ? (
           <div
             className={`player-game-actions${
@@ -135,12 +146,24 @@ export default function WageringActionButtons({
             }`}
           >
             {showCheck ? (
-              <PlayerGameButton variant="gold" size={btnSize} className={soloBtnClass} onClick={onCheck}>
+              <PlayerGameButton
+                variant="gold"
+                size={btnSize}
+                className={soloBtnClass}
+                disabled={!live}
+                onClick={onCheck}
+              >
                 Check
               </PlayerGameButton>
             ) : null}
             {showCall ? (
-              <PlayerGameButton variant="gold" size={btnSize} className={soloBtnClass} onClick={onCall}>
+              <PlayerGameButton
+                variant="gold"
+                size={btnSize}
+                className={soloBtnClass}
+                disabled={!live}
+                onClick={onCall}
+              >
                 Call ${ctx.toCall}
               </PlayerGameButton>
             ) : null}
@@ -149,7 +172,9 @@ export default function WageringActionButtons({
                 variant="allin"
                 size={btnSize}
                 className={soloBtnClass}
+                disabled={!live}
                 onClick={() => {
+                  if (!live) return
                   if (!allInConfirmPending) {
                     setAllInConfirmPending(true)
                     setFoldConfirmPending(false)
@@ -172,11 +197,16 @@ export default function WageringActionButtons({
                 type="button"
                 className="player-game-raise-chip"
                 onClick={() => clampRaiseBy(raiseAmount - ctx.minRaise)}
-                disabled={raiseAmount <= ctx.minRaise}
+                disabled={raiseChipDisabled || raiseAmount <= ctx.minRaise}
               >
                 −${ctx.minRaise}
               </button>
-              <button type="button" className="player-game-raise-chip" onClick={() => clampRaiseBy(ctx.minRaise)}>
+              <button
+                type="button"
+                className="player-game-raise-chip"
+                onClick={() => clampRaiseBy(ctx.minRaise)}
+                disabled={raiseChipDisabled}
+              >
                 Min
               </button>
               {pot > 0 ? (
@@ -185,10 +215,16 @@ export default function WageringActionButtons({
                     type="button"
                     className="player-game-raise-chip"
                     onClick={() => clampRaiseBy(halfPotRaiseBy)}
+                    disabled={raiseChipDisabled}
                   >
                     ½ pot
                   </button>
-                  <button type="button" className="player-game-raise-chip" onClick={() => clampRaiseBy(potRaiseBy)}>
+                  <button
+                    type="button"
+                    className="player-game-raise-chip"
+                    onClick={() => clampRaiseBy(potRaiseBy)}
+                    disabled={raiseChipDisabled}
+                  >
                     Pot
                   </button>
                 </>
@@ -197,7 +233,7 @@ export default function WageringActionButtons({
                 type="button"
                 className="player-game-raise-chip"
                 onClick={() => clampRaiseBy(raiseAmount + ctx.minRaise)}
-                disabled={raiseAmount >= maxRaiseBy}
+                disabled={raiseChipDisabled || raiseAmount >= maxRaiseBy}
               >
                 +${ctx.minRaise}
               </button>
@@ -208,14 +244,20 @@ export default function WageringActionButtons({
         {showRaise || hasSecondary ? (
           <div
             className={`player-game-actions player-game-actions--dense-tri${
-              [showFold, showRaise && ctx.canRaise, showAllIn && !shortAllInCall].filter(Boolean).length === 1
+              [showFold, showRaise, showAllIn && !shortAllInCall].filter(Boolean).length === 1
                 ? ' player-game-actions--solo'
                 : ''
             }`}
           >
             {foldBtn}
-            {showRaise && ctx.canRaise ? (
-              <PlayerGameButton variant="dark" size={btnSize} className={soloBtnClass} onClick={onRaise}>
+            {showRaise ? (
+              <PlayerGameButton
+                variant="dark"
+                size={btnSize}
+                className={soloBtnClass}
+                disabled={!live || !ctx.canRaise}
+                onClick={onRaise}
+              >
                 Raise ${raiseToTotal}
               </PlayerGameButton>
             ) : null}
@@ -227,7 +269,10 @@ export default function WageringActionButtons({
   }
 
   return (
-    <>
+    <div
+      className={`player-game-wager-full${live ? '' : ' player-game-wager-full--inactive'}`}
+      aria-disabled={!live}
+    >
       {hasPrimary ? (
         <div
           className={`player-game-actions${
@@ -235,12 +280,24 @@ export default function WageringActionButtons({
           }`}
         >
           {showCheck ? (
-            <PlayerGameButton variant="gold" size={btnSize} className={soloBtnClass} onClick={onCheck}>
+            <PlayerGameButton
+              variant="gold"
+              size={btnSize}
+              className={soloBtnClass}
+              disabled={!live}
+              onClick={onCheck}
+            >
               Check
             </PlayerGameButton>
           ) : null}
           {showCall ? (
-            <PlayerGameButton variant="gold" size={btnSize} className={soloBtnClass} onClick={onCall}>
+            <PlayerGameButton
+              variant="gold"
+              size={btnSize}
+              className={soloBtnClass}
+              disabled={!live}
+              onClick={onCall}
+            >
               Call ${ctx.toCall}
             </PlayerGameButton>
           ) : null}
@@ -249,7 +306,9 @@ export default function WageringActionButtons({
               variant="allin"
               size={btnSize}
               className={soloBtnClass}
+              disabled={!live}
               onClick={() => {
+                if (!live) return
                 if (!allInConfirmPending) {
                   setAllInConfirmPending(true)
                   setFoldConfirmPending(false)
@@ -275,11 +334,16 @@ export default function WageringActionButtons({
               type="button"
               className="player-game-raise-chip"
               onClick={() => clampRaiseBy(raiseAmount - ctx.minRaise)}
-              disabled={raiseAmount <= ctx.minRaise}
+              disabled={raiseChipDisabled || raiseAmount <= ctx.minRaise}
             >
               −${ctx.minRaise}
             </button>
-            <button type="button" className="player-game-raise-chip" onClick={() => clampRaiseBy(ctx.minRaise)}>
+            <button
+              type="button"
+              className="player-game-raise-chip"
+              onClick={() => clampRaiseBy(ctx.minRaise)}
+              disabled={raiseChipDisabled}
+            >
               Min
             </button>
             {pot > 0 ? (
@@ -288,10 +352,16 @@ export default function WageringActionButtons({
                   type="button"
                   className="player-game-raise-chip"
                   onClick={() => clampRaiseBy(halfPotRaiseBy)}
+                  disabled={raiseChipDisabled}
                 >
                   ½ pot
                 </button>
-                <button type="button" className="player-game-raise-chip" onClick={() => clampRaiseBy(potRaiseBy)}>
+                <button
+                  type="button"
+                  className="player-game-raise-chip"
+                  onClick={() => clampRaiseBy(potRaiseBy)}
+                  disabled={raiseChipDisabled}
+                >
                   Pot
                 </button>
               </>
@@ -300,7 +370,7 @@ export default function WageringActionButtons({
               type="button"
               className="player-game-raise-chip"
               onClick={() => clampRaiseBy(raiseAmount + ctx.minRaise)}
-              disabled={raiseAmount >= maxRaiseBy}
+              disabled={raiseChipDisabled || raiseAmount >= maxRaiseBy}
             >
               +${ctx.minRaise}
             </button>
@@ -309,7 +379,7 @@ export default function WageringActionButtons({
             Raise to <strong>${raiseToTotal}</strong>
             <span> (call ${ctx.toCall} + raise ${raiseAmount})</span>
           </p>
-          <div className={`player-game-raise-row${ctx.canRaise ? '' : ' player-game-raise-row--solo'}`}>
+          <div className={`player-game-raise-row${showRaise ? '' : ' player-game-raise-row--solo'}`}>
             <input
               type="number"
               inputMode="numeric"
@@ -317,25 +387,32 @@ export default function WageringActionButtons({
               onChange={(e) => clampRaiseBy(Number(e.target.value) || 0)}
               min={ctx.minRaise}
               max={maxRaiseBy}
+              disabled={!live}
               className="player-game-input player-game-input--raise"
               aria-label="Raise by amount"
             />
-            {ctx.canRaise ? (
-              <PlayerGameButton variant="dark" size={btnSize} className="player-game-btn--block" onClick={onRaise}>
-                Raise to ${raiseToTotal}
-              </PlayerGameButton>
-            ) : null}
+            <PlayerGameButton
+              variant="dark"
+              size={btnSize}
+              className="player-game-btn--block"
+              disabled={!live || !ctx.canRaise}
+              onClick={onRaise}
+            >
+              Raise to ${raiseToTotal}
+            </PlayerGameButton>
           </div>
         </div>
       ) : null}
 
       {hasSecondary ? (
-        <div className={`player-game-actions${showFold && showAllIn && !shortAllInCall ? '' : ' player-game-actions--solo'}`}>
+        <div
+          className={`player-game-actions${showFold && showAllIn && !shortAllInCall ? '' : ' player-game-actions--solo'}`}
+        >
           {foldBtn}
           {allInBtn}
         </div>
       ) : null}
-    </>
+    </div>
   )
 }
 

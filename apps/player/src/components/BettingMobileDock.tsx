@@ -29,27 +29,19 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
     onAllIn,
   } = props
 
-  // Not your turn: one compact status strip — no Call $0 / duplicate wait chrome.
-  if (!ctx.isMyTurn) {
-    return (
-      <div className="player-game-dock player-game-dock--inflow player-game-dock--wait max-lg:block lg:hidden">
-        <div className="player-game-dock-inner">
-          <p className="player-game-wager-wait" aria-live="polite">
-            Waiting for other players…
-            <span className="player-game-wager-wait-stack">
-              Stack <strong>${currentPlayer.bankroll.toLocaleString()}</strong>
-            </span>
-          </p>
-        </div>
-      </div>
-    )
-  }
+  const live = ctx.isMyTurn
 
   return (
-    <div className="player-game-dock player-game-dock--inflow max-lg:block lg:hidden">
+    <div
+      className={`player-game-dock player-game-dock--inflow max-lg:block lg:hidden${
+        live ? '' : ' player-game-dock--inactive'
+      }`}
+    >
       <div className="player-game-dock-inner">
         <div className="player-game-dock-status" aria-live="polite">
-          <span className="player-game-stat-turn">Your turn</span>
+          <span className={live ? 'player-game-stat-turn' : undefined}>
+            {live ? 'Your turn' : 'Waiting'}
+          </span>
           <span>
             Stack <strong>${currentPlayer.bankroll.toLocaleString()}</strong>
           </span>

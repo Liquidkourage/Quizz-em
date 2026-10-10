@@ -1073,13 +1073,17 @@
   background: linear-gradient(180deg, rgb(8 10 14 / 0.97) 0%, rgb(5 8 6 / 0.98) 100%);
 }
 
-.player-game-layout--live-fit .player-game-dock--wait {
-  max-height: none;
+.player-game-dock--inactive {
+  opacity: 0.78;
 }
 
-.player-game-layout--live-fit .player-game-dock--wait .player-game-dock-inner {
-  padding-top: 0.45rem;
-  padding-bottom: max(0.45rem, env(safe-area-inset-bottom, 0px));
+.player-game-dock--inactive .player-game-dock-status {
+  color: rgb(255 255 255 / 0.55);
+}
+
+.player-game-wager-dense--inactive,
+.player-game-wager-full--inactive {
+  pointer-events: none;
 }
 
 /* Match felt panel width so actions span the same band as the table. */

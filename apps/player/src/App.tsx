@@ -355,7 +355,7 @@ function PlayerApp() {
     ) : null
 
   return (
-    <PlayerGameScreen>
+    <PlayerGameScreen className={liveFit ? 'player-game-screen--fit' : undefined}>
       <PlayerToast message={toastMessage} />
 
       <div className={layoutClass}>

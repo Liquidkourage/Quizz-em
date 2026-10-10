@@ -890,13 +890,44 @@
 }
 
 /*
- * Seated at a felt: lock to one viewport. Felt flexes; dock sits in-flow.
- * Applies at all widths — side-by-side desktop windows were still scrolling.
+ * Seated at a felt: lock document + shell to the *visible* viewport.
+ * Prior bug: min-height:100dvh on screen/layout + overflow-y:auto on
+ * .player-join-screen still allowed a few px of document scroll (scrollbar
+ * thumb ~full track). Use a % height chain from html/body instead of stacking
+ * 100dvh mins on top of padding.
  */
-.player-game-layout--live-fit {
-  height: 100dvh;
-  max-height: 100dvh;
+html:has(.player-game-screen--fit),
+html:has(.player-game-screen--fit) body {
+  height: 100%;
+  max-height: 100%;
   overflow: hidden;
+}
+
+html:has(.player-game-screen--fit) #root {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.player-game-screen--fit {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.player-game-layout--live-fit {
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+  /* Keep side safe-area; kill vertical padding that was blowing past 100%. */
+  padding-top: 0;
   padding-bottom: 0;
 }
 
@@ -945,7 +976,7 @@
 
 .player-game-layout--live-fit .player-game-felt-panel--fill {
   flex: 1 1 auto;
-  min-height: min(40%, 12rem);
+  min-height: 0;
   display: flex;
   flex-direction: column;
   padding: 0.3rem 0.4rem 0.35rem;

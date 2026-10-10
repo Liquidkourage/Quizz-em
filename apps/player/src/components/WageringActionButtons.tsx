@@ -69,8 +69,14 @@ export default function WageringActionButtons({
   const showAllIn = currentPlayer.bankroll > 0
   const hasPrimary = showCheck || showCall || shortAllInCall
   const hasSecondary = showFold || showAllIn
-  const raiseToTotal = ctx.toCall + raiseAmount
+  // Never display a sub-minimum raise (avoids Raise $0 while state catches up).
+  const effectiveRaiseBy =
+    maxRaiseBy <= 0
+      ? 0
+      : Math.max(ctx.minRaise, Math.min(maxRaiseBy, raiseAmount > 0 ? raiseAmount : ctx.minRaise))
+  const raiseToTotal = ctx.toCall + effectiveRaiseBy
   const wagerVerb = ctx.isOpeningBet ? 'Bet' : 'Raise'
+  const minRaiseTo = ctx.toCall + ctx.minRaise
 
   if (!hasPrimary && !showRaise && !hasSecondary) {
     return null
@@ -83,8 +89,6 @@ export default function WageringActionButtons({
     const stepped = Math.max(ctx.minRaise, Math.min(maxRaiseBy, Math.floor(n)))
     onRaiseAmountChange(stepped)
   }
-
-  const minRaiseTo = ctx.toCall + ctx.minRaise
 
   const foldBtn = showFold ? (
     <PlayerGameButton
@@ -199,10 +203,8 @@ export default function WageringActionButtons({
                     {wagerVerb} ${raiseToTotal}
                   </PlayerGameButton>
                   <div className="player-game-raise-amount-col">
-                    <span className="player-game-raise-compact-label">
-                      {wagerVerb} to
-                      <span className="player-game-raise-compact-min"> min ${minRaiseTo}</span>
-                    </span>
+                    <span className="player-game-raise-compact-label">{wagerVerb} to</span>
+                    <span className="player-game-raise-compact-min">min ${minRaiseTo}</span>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -229,11 +231,19 @@ export default function WageringActionButtons({
               <>
                 {primaryBtn}
                 {showRaise ? (
-                  <div className="player-game-raise-compact-row">
-                    <div className="player-game-raise-compact-field">
-                      <span className="player-game-raise-compact-label">
-                        {wagerVerb} to · min ${minRaiseTo}
-                      </span>
+                  <div className="player-game-raise-compact-pair player-game-raise-compact-pair--solo">
+                    <PlayerGameButton
+                      variant="dark"
+                      size={btnSize}
+                      className={`${soloBtnClass} player-game-raise-compact-go`}
+                      disabled={!live || !ctx.canRaise}
+                      onClick={onRaise}
+                    >
+                      {wagerVerb} ${raiseToTotal}
+                    </PlayerGameButton>
+                    <div className="player-game-raise-amount-col">
+                      <span className="player-game-raise-compact-label">{wagerVerb} to</span>
+                      <span className="player-game-raise-compact-min">min ${minRaiseTo}</span>
                       <input
                         type="number"
                         inputMode="numeric"
@@ -254,15 +264,6 @@ export default function WageringActionButtons({
                         aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
                       />
                     </div>
-                    <PlayerGameButton
-                      variant="dark"
-                      size={btnSize}
-                      className={`${soloBtnClass} player-game-raise-compact-go`}
-                      disabled={!live || !ctx.canRaise}
-                      onClick={onRaise}
-                    >
-                      {wagerVerb} ${raiseToTotal}
-                    </PlayerGameButton>
                   </div>
                 ) : null}
               </>

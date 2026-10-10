@@ -202,10 +202,13 @@ function PlayerApp() {
     [gameState, currentPlayer, myIndex, raiseAmount],
   )
 
+  // Keep raise sized to the legal minimum whenever the street / turn / min changes
+  // (including while Waiting, so the dock never shows Raise $0).
   useEffect(() => {
-    if (!bettingCtx?.isMyTurn) return
+    if (!bettingCtx?.isBettingPhase || bettingCtx.minRaise <= 0) return
     setRaiseAmount(bettingCtx.minRaise)
   }, [
+    bettingCtx?.isBettingPhase,
     bettingCtx?.isMyTurn,
     bettingCtx?.minRaise,
     gameState?.round.roundId,

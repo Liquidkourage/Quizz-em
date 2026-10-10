@@ -1064,7 +1064,7 @@
   align-self: stretch;
   width: 100%;
   max-width: none;
-  max-height: min(48%, 17.5rem);
+  max-height: min(42%, 15.5rem);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1526,24 +1526,8 @@
   gap: 0.35rem;
 }
 
-.player-game-raise-custom {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.player-game-raise-custom-label {
-  font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgb(255 255 255 / 0.72);
-  white-space: nowrap;
-}
-
 .player-game-raise-min-hint {
-  margin: 0.3rem 0 0;
+  margin: 0.3rem 0 0.45rem;
   font-family: 'Rajdhani', system-ui, sans-serif;
   font-size: 0.78rem;
   font-weight: 600;
@@ -1556,21 +1540,53 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Phone: narrow amount + Raise button share one row. */
+.player-game-raise-compact-row {
+  display: grid;
+  grid-template-columns: minmax(4.75rem, 6.5rem) 1fr;
+  align-items: end;
+  gap: 0.45rem;
+}
+
+.player-game-raise-compact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.player-game-raise-compact-label {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  color: rgb(255 255 255 / 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .player-game-input--raise-dense {
-  min-height: 2.5rem;
-  padding: 0.4rem 0.6rem;
-  font-size: 1.1rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.4rem;
+  font-size: 1.15rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
 .player-game-layout--live-fit .player-game-input--raise-dense {
-  min-height: 2.65rem;
-  font-size: 1.15rem;
+  min-height: 2.75rem;
+  font-size: 1.2rem;
 }
 
 .player-game-input--raise-dense:disabled {
   opacity: 0.45;
+}
+
+.player-game-raise-compact-go {
+  min-width: 0;
 }
 
 .player-game-actions--dense-tri {

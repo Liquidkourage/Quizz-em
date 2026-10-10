@@ -130,6 +130,28 @@ export default function WageringActionButtons({
     ) : null
 
   if (dense) {
+    const raiseInput = showRaise ? (
+      <input
+        type="number"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={raiseToTotal}
+        onChange={(e) => {
+          const typedTo = Number(e.target.value)
+          if (!Number.isFinite(typedTo)) {
+            clampRaiseBy(ctx.minRaise)
+            return
+          }
+          clampRaiseBy(typedTo - ctx.toCall)
+        }}
+        min={minRaiseTo}
+        max={ctx.toCall + maxRaiseBy}
+        disabled={!live}
+        className="player-game-input player-game-input--raise player-game-input--raise-dense"
+        aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+      />
+    ) : null
+
     return (
       <div
         className={`player-game-wager-dense${live ? '' : ' player-game-wager-dense--inactive'}`}
@@ -189,58 +211,34 @@ export default function WageringActionButtons({
         ) : null}
 
         {showRaise ? (
-          <div className="player-game-raise-block player-game-raise-block--dense">
-            <label className="player-game-raise-custom">
-              <span className="player-game-raise-custom-label">{wagerVerb} to</span>
-              <input
-                type="number"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={raiseToTotal}
-                onChange={(e) => {
-                  const typedTo = Number(e.target.value)
-                  if (!Number.isFinite(typedTo)) {
-                    clampRaiseBy(ctx.minRaise)
-                    return
-                  }
-                  clampRaiseBy(typedTo - ctx.toCall)
-                }}
-                min={minRaiseTo}
-                max={ctx.toCall + maxRaiseBy}
-                disabled={!live}
-                className="player-game-input player-game-input--raise player-game-input--raise-dense"
-                aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
-              />
-            </label>
-            <p className="player-game-raise-min-hint">
-              Min {wagerVerb.toLowerCase()} <strong>${minRaiseTo}</strong>
-              {!ctx.isOpeningBet && ctx.toCall > 0 ? (
-                <span> · includes call ${ctx.toCall}</span>
-              ) : null}
-            </p>
-          </div>
-        ) : null}
-
-        {showRaise || hasSecondary ? (
-          <div
-            className={`player-game-actions player-game-actions--dense-tri${
-              [showFold, showRaise, showAllIn && !shortAllInCall].filter(Boolean).length === 1
-                ? ' player-game-actions--solo'
-                : ''
-            }`}
-          >
-            {foldBtn}
-            {showRaise ? (
+          <div className="player-game-raise-compact">
+            <div className="player-game-raise-compact-row">
+              <div className="player-game-raise-compact-field">
+                <span className="player-game-raise-compact-label">
+                  {wagerVerb} to · min ${minRaiseTo}
+                </span>
+                {raiseInput}
+              </div>
               <PlayerGameButton
                 variant="dark"
                 size={btnSize}
-                className={soloBtnClass}
+                className={`${soloBtnClass} player-game-raise-compact-go`}
                 disabled={!live || !ctx.canRaise}
                 onClick={onRaise}
               >
                 {wagerVerb} ${raiseToTotal}
               </PlayerGameButton>
-            ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {hasSecondary ? (
+          <div
+            className={`player-game-actions${
+              showFold && showAllIn && !shortAllInCall ? '' : ' player-game-actions--solo'
+            }`}
+          >
+            {foldBtn}
             {allInBtn}
           </div>
         ) : null}

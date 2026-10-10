@@ -818,8 +818,8 @@
 /* ===== Player in-game — gold casino shell (matches join/lobby) ===== */
 :root {
   --player-game-shell-max: 36rem;
-  /* Seated play is phone-first — never stretch the felt/dock across a wide monitor. */
-  --player-live-column-max: 26.5rem;
+  /* Phone portrait: compact column. Landscape/desktop: wide enough for 8 seat tags. */
+  --player-live-column-max: 28rem;
 }
 
 @media (min-width: 768px) {
@@ -828,9 +828,21 @@
   }
 }
 
+@media (min-width: 768px) and (orientation: landscape) {
+  :root {
+    --player-live-column-max: 38rem;
+  }
+}
+
 @media (min-width: 1024px) {
   :root {
     --player-game-shell-max: 42rem;
+  }
+}
+
+@media (min-width: 1024px) and (min-aspect-ratio: 4 / 3) {
+  :root {
+    --player-live-column-max: 40rem;
   }
 }
 
@@ -1020,12 +1032,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.65rem 0.35rem 1.35rem;
+  /* Side/top/bottom gutter so outward seat tags (all 8 chairs) have room. */
+  padding: 1.75rem 1.1rem 1.5rem;
   border: none;
   background: transparent;
   box-shadow: none;
   overflow: visible;
   container-type: size;
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+  .player-game-layout--live-fit .player-game-felt-panel--fill {
+    padding: 2rem 1.75rem 1.75rem;
+  }
 }
 
 .player-game-layout--live-fit .player-game-felt--fill {
@@ -1054,11 +1073,15 @@
   overflow: hidden;
 }
 
-/* Sit the felt toward the dock so table and actions read as one unit. */
+/*
+ * With a dock, still center the felt in leftover height — flex-end glued the
+ * table to the footer and left a black void under the question (and crushed
+ * bottom-seat name space).
+ */
 .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
-  justify-content: flex-end;
-  padding-top: 1.1rem;
-  padding-bottom: 0.35rem;
+  justify-content: center;
+  padding-top: 1.75rem;
+  padding-bottom: 1.25rem;
 }
 
 .player-game-layout--live-fit .player-game-dock--inflow {

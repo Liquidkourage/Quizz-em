@@ -85,6 +85,10 @@ export default function WageringActionButtons({
 
   const halfPotRaiseBy = Math.max(ctx.minRaise, Math.floor(pot / 2) - ctx.toCall)
   const potRaiseBy = Math.max(ctx.minRaise, pot - ctx.toCall)
+  const previewRaiseBy = (n: number) => Math.max(ctx.minRaise, Math.min(maxRaiseBy, Math.floor(n)))
+  const minRaiseTo = ctx.toCall + previewRaiseBy(ctx.minRaise)
+  const halfPotRaiseTo = ctx.toCall + previewRaiseBy(halfPotRaiseBy)
+  const potRaiseTo = ctx.toCall + previewRaiseBy(potRaiseBy)
 
   const foldBtn = showFold ? (
     <PlayerGameButton
@@ -207,7 +211,7 @@ export default function WageringActionButtons({
                 onClick={() => clampRaiseBy(ctx.minRaise)}
                 disabled={raiseChipDisabled}
               >
-                Min
+                Min ${minRaiseTo}
               </button>
               {pot > 0 ? (
                 <>
@@ -217,7 +221,7 @@ export default function WageringActionButtons({
                     onClick={() => clampRaiseBy(halfPotRaiseBy)}
                     disabled={raiseChipDisabled}
                   >
-                    ½ pot
+                    ½ ${halfPotRaiseTo}
                   </button>
                   <button
                     type="button"
@@ -225,7 +229,7 @@ export default function WageringActionButtons({
                     onClick={() => clampRaiseBy(potRaiseBy)}
                     disabled={raiseChipDisabled}
                   >
-                    Pot
+                    Pot ${potRaiseTo}
                   </button>
                 </>
               ) : null}
@@ -366,7 +370,7 @@ export default function WageringActionButtons({
               onClick={() => clampRaiseBy(ctx.minRaise)}
               disabled={raiseChipDisabled}
             >
-              Min
+              Min ${minRaiseTo}
             </button>
             {pot > 0 ? (
               <>
@@ -376,7 +380,7 @@ export default function WageringActionButtons({
                   onClick={() => clampRaiseBy(halfPotRaiseBy)}
                   disabled={raiseChipDisabled}
                 >
-                  ½ pot
+                  ½ ${halfPotRaiseTo}
                 </button>
                 <button
                   type="button"
@@ -384,7 +388,7 @@ export default function WageringActionButtons({
                   onClick={() => clampRaiseBy(potRaiseBy)}
                   disabled={raiseChipDisabled}
                 >
-                  Pot
+                  Pot ${potRaiseTo}
                 </button>
               </>
             ) : null}

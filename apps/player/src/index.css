@@ -1515,8 +1515,15 @@
   flex: 1 1 0;
   min-width: 0;
   min-height: 2rem;
-  padding: 0.25rem 0.2rem;
-  font-size: 0.78rem;
+  padding: 0.25rem 0.15rem;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.player-game-layout--live-fit .player-game-raise-block--dense .player-game-raise-chip {
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
 }
 
 .player-game-raise-custom {

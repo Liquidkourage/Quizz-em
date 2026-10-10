@@ -1001,8 +1001,9 @@
 
 /*
  * Felt panel claims leftover body height. Felt is the largest 8:5 box that
- * fits — pinned under the question (not vertically centered in void).
- * Overflow visible so outward name tags can sit in the rail gutter.
+ * fits, vertically centered in that leftover so the table/seat tags sit in
+ * the middle of the phone — not glued under the banner with a black void below.
+ * Padding reserves gutter for outward name tags above/below the rail.
  */
 .player-game-layout--live-fit .player-game-felt-panel--fill {
   flex: 1 1 auto;
@@ -1013,8 +1014,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 0.55rem 0.35rem 0.35rem;
+  justify-content: center;
+  padding: 1.65rem 0.35rem 1.35rem;
   border: none;
   background: transparent;
   box-shadow: none;

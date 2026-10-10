@@ -30,20 +30,18 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
   } = props
 
   return (
-    <div className="player-game-dock max-lg:block lg:hidden">
+    <div className="player-game-dock player-game-dock--inflow max-lg:block lg:hidden">
       <div className="player-game-dock-inner">
-        <div className="player-game-stat-grid player-game-stat-grid--dock">
-          <div>
-            To call <strong>${ctx.toCall}</strong>
-          </div>
-          <div>
-            <strong className={ctx.isMyTurn ? 'player-game-stat-turn' : ''}>
-              {ctx.isMyTurn ? 'Your turn' : 'Waiting'}
-            </strong>
-          </div>
-          <div className="player-game-stat-grid-full">
+        <div className="player-game-dock-status" aria-live="polite">
+          <span>
+            Call <strong>${ctx.toCall}</strong>
+          </span>
+          <span className={ctx.isMyTurn ? 'player-game-stat-turn' : undefined}>
+            {ctx.isMyTurn ? 'Your turn' : 'Waiting'}
+          </span>
+          <span>
             Stack <strong>${currentPlayer.bankroll}</strong>
-          </div>
+          </span>
         </div>
         <div className="player-game-wager-actions">
           <WageringActionButtons
@@ -52,6 +50,7 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
             raiseAmount={raiseAmount}
             pot={pot}
             btnSize="normal"
+            dense
             onRaiseAmountChange={onRaiseAmountChange}
             onCheck={onCheck}
             onCall={onCall}

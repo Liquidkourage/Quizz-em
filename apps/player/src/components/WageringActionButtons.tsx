@@ -11,6 +11,8 @@ type WageringActionButtonsProps = {
   raiseAmount: number
   pot?: number
   btnSize?: 'normal' | 'large'
+  /** Phone dock — fewer rows, no custom amount field. */
+  dense?: boolean
   onRaiseAmountChange: (n: number) => void
   onCheck: () => void
   onCall: () => void
@@ -25,6 +27,7 @@ export default function WageringActionButtons({
   raiseAmount,
   pot = 0,
   btnSize = 'large',
+  dense = false,
   onRaiseAmountChange,
   onCheck,
   onCall,
@@ -81,6 +84,148 @@ export default function WageringActionButtons({
   const halfPotRaiseBy = Math.max(ctx.minRaise, Math.floor(pot / 2) - ctx.toCall)
   const potRaiseBy = Math.max(ctx.minRaise, pot - ctx.toCall)
 
+  const foldBtn = showFold ? (
+    <PlayerGameButton
+      variant="fold"
+      size={btnSize}
+      className={soloBtnClass}
+      onClick={() => {
+        if (!foldConfirmPending) {
+          setFoldConfirmPending(true)
+          setAllInConfirmPending(false)
+          return
+        }
+        setFoldConfirmPending(false)
+        onFold()
+      }}
+    >
+      {foldConfirmPending ? 'Confirm fold' : 'Fold'}
+    </PlayerGameButton>
+  ) : null
+
+  const allInBtn =
+    showAllIn && !shortAllInCall ? (
+      <PlayerGameButton
+        variant="allin"
+        size={btnSize}
+        className={soloBtnClass}
+        onClick={() => {
+          if (!allInConfirmPending) {
+            setAllInConfirmPending(true)
+            setFoldConfirmPending(false)
+            return
+          }
+          setAllInConfirmPending(false)
+          onAllIn()
+        }}
+      >
+        {allInConfirmPending ? 'Confirm all-in' : dense ? 'All-in' : `All-in $${currentPlayer.bankroll}`}
+      </PlayerGameButton>
+    ) : null
+
+  if (dense) {
+    return (
+      <div className="player-game-wager-dense">
+        {hasPrimary ? (
+          <div
+            className={`player-game-actions${
+              [showCheck, showCall, shortAllInCall].filter(Boolean).length > 1
+                ? ''
+                : ' player-game-actions--solo'
+            }`}
+          >
+            {showCheck ? (
+              <PlayerGameButton variant="gold" size={btnSize} className={soloBtnClass} onClick={onCheck}>
+                Check
+              </PlayerGameButton>
+            ) : null}
+            {showCall ? (
+              <PlayerGameButton variant="gold" size={btnSize} className={soloBtnClass} onClick={onCall}>
+                Call ${ctx.toCall}
+              </PlayerGameButton>
+            ) : null}
+            {shortAllInCall ? (
+              <PlayerGameButton
+                variant="allin"
+                size={btnSize}
+                className={soloBtnClass}
+                onClick={() => {
+                  if (!allInConfirmPending) {
+                    setAllInConfirmPending(true)
+                    setFoldConfirmPending(false)
+                    return
+                  }
+                  setAllInConfirmPending(false)
+                  onAllIn()
+                }}
+              >
+                {allInConfirmPending ? 'Confirm all-in' : `All-in $${currentPlayer.bankroll}`}
+              </PlayerGameButton>
+            ) : null}
+          </div>
+        ) : null}
+
+        {showRaise ? (
+          <div className="player-game-raise-block player-game-raise-block--dense">
+            <div className="player-game-raise-chips" role="group" aria-label="Raise presets">
+              <button
+                type="button"
+                className="player-game-raise-chip"
+                onClick={() => clampRaiseBy(raiseAmount - ctx.minRaise)}
+                disabled={raiseAmount <= ctx.minRaise}
+              >
+                −${ctx.minRaise}
+              </button>
+              <button type="button" className="player-game-raise-chip" onClick={() => clampRaiseBy(ctx.minRaise)}>
+                Min
+              </button>
+              {pot > 0 ? (
+                <>
+                  <button
+                    type="button"
+                    className="player-game-raise-chip"
+                    onClick={() => clampRaiseBy(halfPotRaiseBy)}
+                  >
+                    ½ pot
+                  </button>
+                  <button type="button" className="player-game-raise-chip" onClick={() => clampRaiseBy(potRaiseBy)}>
+                    Pot
+                  </button>
+                </>
+              ) : null}
+              <button
+                type="button"
+                className="player-game-raise-chip"
+                onClick={() => clampRaiseBy(raiseAmount + ctx.minRaise)}
+                disabled={raiseAmount >= maxRaiseBy}
+              >
+                +${ctx.minRaise}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {showRaise || hasSecondary ? (
+          <div
+            className={`player-game-actions player-game-actions--dense-tri${
+              [showFold, showRaise && ctx.canRaise, showAllIn && !shortAllInCall].filter(Boolean).length === 1
+                ? ' player-game-actions--solo'
+                : ''
+            }`}
+          >
+            {foldBtn}
+            {showRaise && ctx.canRaise ? (
+              <PlayerGameButton variant="dark" size={btnSize} className={soloBtnClass} onClick={onRaise}>
+                Raise ${raiseToTotal}
+              </PlayerGameButton>
+            ) : null}
+            {allInBtn}
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
   return (
     <>
       {hasPrimary ? (
@@ -134,11 +279,7 @@ export default function WageringActionButtons({
             >
               −${ctx.minRaise}
             </button>
-            <button
-              type="button"
-              className="player-game-raise-chip"
-              onClick={() => clampRaiseBy(ctx.minRaise)}
-            >
+            <button type="button" className="player-game-raise-chip" onClick={() => clampRaiseBy(ctx.minRaise)}>
               Min
             </button>
             {pot > 0 ? (
@@ -190,42 +331,8 @@ export default function WageringActionButtons({
 
       {hasSecondary ? (
         <div className={`player-game-actions${showFold && showAllIn && !shortAllInCall ? '' : ' player-game-actions--solo'}`}>
-          {showFold ? (
-            <PlayerGameButton
-              variant="fold"
-              size={btnSize}
-              className={soloBtnClass}
-              onClick={() => {
-                if (!foldConfirmPending) {
-                  setFoldConfirmPending(true)
-                  setAllInConfirmPending(false)
-                  return
-                }
-                setFoldConfirmPending(false)
-                onFold()
-              }}
-            >
-              {foldConfirmPending ? 'Confirm fold' : 'Fold'}
-            </PlayerGameButton>
-          ) : null}
-          {showAllIn && !shortAllInCall ? (
-            <PlayerGameButton
-              variant="allin"
-              size={btnSize}
-              className={soloBtnClass}
-              onClick={() => {
-                if (!allInConfirmPending) {
-                  setAllInConfirmPending(true)
-                  setFoldConfirmPending(false)
-                  return
-                }
-                setAllInConfirmPending(false)
-                onAllIn()
-              }}
-            >
-              {allInConfirmPending ? 'Confirm all-in' : `All-in $${currentPlayer.bankroll}`}
-            </PlayerGameButton>
-          ) : null}
+          {foldBtn}
+          {allInBtn}
         </div>
       ) : null}
     </>

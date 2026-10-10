@@ -312,17 +312,23 @@ function PlayerApp() {
     Boolean(currentPlayer) &&
     (currentPlayer?.hand.length ?? 0) >= 2 &&
     !currentPlayer!.hasFolded
-  const dockPadClass = needsMobileBetDock
-    ? bettingCtx?.isMyTurn
-      ? 'player-game-layout--bet-dock player-game-layout--bet-dock-turn'
-      : 'player-game-layout--bet-dock player-game-layout--bet-dock-wait'
-    : ''
+  /** Single phone viewport — no page scroll during the live hand. */
+  const liveFit = feltFirstPhases
+  const layoutClass = [
+    'player-game-layout',
+    'player-join-layout',
+    liveFit ? 'player-game-layout--live-fit' : '',
+    needsMobileBetDock ? 'player-game-layout--with-dock' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   const feltView = (
     <TableFeltView
       gameState={gameState}
       playerName={playerName}
       showCenterPot={!showStickyQuestion}
+      fillViewport={liveFit}
     />
   )
   const infoCard = (
@@ -334,19 +340,37 @@ function PlayerApp() {
       hideHoleStrip={holesOnFelt}
     />
   )
+  /** Board/holes already on felt during wagering — drop the extra card strip. */
+  const showInfoDuringLive = feltFirstPhases && !needsMobileBetDock
+
+  const mobileDock =
+    needsMobileBetDock && bettingCtx && currentPlayer ? (
+      <BettingMobileDock
+        currentPlayer={currentPlayer}
+        ctx={bettingCtx}
+        raiseAmount={raiseAmount}
+        pot={gameState.round.pot}
+        onRaiseAmountChange={setRaiseAmount}
+        onCheck={() => checkAction()}
+        onCall={() => callAction()}
+        onRaise={() => raiseAmount > 0 && raiseAction(raiseAmount)}
+        onFold={() => fold()}
+        onAllIn={() => allInAction()}
+      />
+    ) : null
 
   return (
     <PlayerGameScreen>
       <PlayerToast message={toastMessage} />
 
-      <div className={`player-game-layout player-join-layout ${dockPadClass}`}>
+      <div className={layoutClass}>
         <PlayerGameShell>
           <PlayerTableHeader
             disconnected={disconnected}
             lastTableId={lastTableId ?? gameState.tableId ?? undefined}
             onReconnect={handleForceReconnect}
           />
-          <PlayerGoldHeaderRule />
+          {!liveFit ? <PlayerGoldHeaderRule /> : null}
 
           <div className="player-join-body player-game-body">
             {!hideLiveChrome ? (
@@ -379,7 +403,7 @@ function PlayerApp() {
             {tableResults && gameState.phase === 'lobby' ? <TableResultsPanel results={tableResults} /> : null}
 
             {feltFirstPhases ? feltView : null}
-            {feltFirstPhases ? infoCard : null}
+            {showInfoDuringLive ? infoCard : null}
 
             {!feltFirstPhases ? infoCard : null}
 
@@ -405,7 +429,7 @@ function PlayerApp() {
                   onAllIn={() => allInAction()}
                 />
               </div>
-            ) : currentPlayer && !needsMobileBetDock ? (
+            ) : currentPlayer && !needsMobileBetDock && !feltFirstPhases ? (
               <PlayerGoldPanel className="player-game-stack-panel">
                 <p className="player-game-stack-label">Your stack</p>
                 <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
@@ -421,22 +445,9 @@ function PlayerApp() {
             {!feltFirstPhases ? feltView : null}
           </div>
         </PlayerGameShell>
-      </div>
 
-      {needsMobileBetDock && bettingCtx && currentPlayer ? (
-        <BettingMobileDock
-          currentPlayer={currentPlayer}
-          ctx={bettingCtx}
-          raiseAmount={raiseAmount}
-          pot={gameState.round.pot}
-          onRaiseAmountChange={setRaiseAmount}
-          onCheck={() => checkAction()}
-          onCall={() => callAction()}
-          onRaise={() => raiseAmount > 0 && raiseAction(raiseAmount)}
-          onFold={() => fold()}
-          onAllIn={() => allInAction()}
-        />
-      ) : null}
+        {mobileDock}
+      </div>
 
       <AnimatePresence>
         {showAnswerModal && currentPlayer ? (

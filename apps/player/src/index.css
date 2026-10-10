@@ -885,24 +885,82 @@
   margin: 0;
 }
 
-/* Phone dock clearance — waiting is short; your-turn needs raise row room. */
-.player-game-layout--bet-dock,
-.player-game-layout--bet-dock-wait {
-  padding-bottom: calc(9.5rem + env(safe-area-inset-bottom, 0px));
-}
-
-.player-game-layout--bet-dock-turn {
-  padding-bottom: calc(17.5rem + env(safe-area-inset-bottom, 0px));
-}
-
 .player-game-layout--answer-dock {
   padding-bottom: calc(8.5rem + env(safe-area-inset-bottom, 0px));
 }
 
+/*
+ * Live hand on phone: lock to one viewport. Felt flexes; dock sits in-flow
+ * (not fixed), so turn controls never force page scroll.
+ */
+@media (max-width: 1023px) {
+  .player-game-layout--live-fit {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  .player-game-layout--live-fit .player-game-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .player-game-layout--live-fit .player-game-header--compact {
+    height: 2.35rem;
+    padding-top: 0.15rem;
+    padding-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .player-game-layout--live-fit .player-game-header--compact .player-join-logo .welcome-wordmark-root-hero {
+    max-height: 1.85rem;
+  }
+
+  .player-game-layout--live-fit .player-game-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    gap: 0.35rem;
+    padding-bottom: 0;
+  }
+
+  .player-game-layout--live-fit .player-sticky-question {
+    flex-shrink: 0;
+    position: static;
+    padding: 0.35rem 0.55rem;
+  }
+
+  .player-game-layout--live-fit .player-sticky-question-text {
+    font-size: clamp(0.82rem, 2.8vw, 0.95rem);
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0.3rem 0.4rem 0.35rem;
+  }
+
+  .player-game-layout--live-fit .player-game-felt--fill {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+    aspect-ratio: auto;
+  }
+}
+
 @media (min-width: 1024px) {
-  .player-game-layout--bet-dock,
-  .player-game-layout--bet-dock-wait,
-  .player-game-layout--bet-dock-turn,
   .player-game-layout--answer-dock {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
@@ -1252,6 +1310,64 @@
 .player-game-stat-grid--dock {
   margin-bottom: 0.55rem;
   font-size: 0.72rem;
+}
+
+.player-game-dock-status {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.62);
+}
+
+.player-game-dock-status strong {
+  color: rgb(255 255 255 / 0.92);
+}
+
+.player-game-wager-dense {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.player-game-raise-block--dense .player-game-raise-chips {
+  margin: 0;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.player-game-raise-block--dense .player-game-raise-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0.25rem 0.2rem;
+  font-size: 0.78rem;
+}
+
+.player-game-actions--dense-tri {
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 0.35rem;
+}
+
+.player-game-layout--live-fit .player-game-wager-actions {
+  gap: 0.35rem;
+}
+
+.player-game-layout--live-fit .player-game-btn {
+  min-height: 2.35rem;
+  padding: 0.4rem 0.45rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.player-game-layout--live-fit .player-game-wager-wait {
+  padding: 0.45rem 0.55rem;
+  font-size: 0.82rem;
 }
 
 .player-game-stat-grid-full {
@@ -1836,6 +1952,14 @@
   box-shadow: 0 -8px 24px rgb(0 0 0 / 0.45);
 }
 
+.player-game-dock--inflow {
+  position: relative;
+  inset: auto;
+  flex-shrink: 0;
+  z-index: 5;
+  box-shadow: none;
+}
+
 .player-game-dock-inner {
   margin-inline: auto;
   max-width: 32rem;
@@ -1843,6 +1967,11 @@
     0.55rem max(0.75rem, env(safe-area-inset-right, 0px))
     max(0.75rem, env(safe-area-inset-bottom, 0px))
     max(0.75rem, env(safe-area-inset-left, 0px));
+}
+
+.player-game-dock--inflow .player-game-dock-inner {
+  padding-top: 0.4rem;
+  padding-bottom: max(0.45rem, env(safe-area-inset-bottom, 0px));
 }
 
 .player-game-modal-overlay {
@@ -1920,16 +2049,31 @@
   text-shadow: 0 0 10px rgb(251 191 36 / 0.25);
 }
 
-/* Aspect ratio owns height on phones — avoid forcing a tall felt that pushes actions away. */
+.player-game-felt-panel {
+  min-width: 0;
+}
+
 .player-game-felt {
   width: 100%;
   max-height: min(42vh, 18rem);
 }
 
 @media (min-width: 768px) {
-  .player-game-felt {
+  .player-game-felt:not(.player-game-felt--fill) {
     max-height: none;
     min-height: clamp(16rem, 38vh, 24rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .player-game-layout--live-fit {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .player-game-dock--inflow {
+    display: none;
   }
 }
 

@@ -9,6 +9,8 @@ type TableFeltViewProps = {
   playerName: string
   /** When false, pot is shown elsewhere (e.g. sticky question bar). */
   showCenterPot?: boolean
+  /** Drop panel title; felt fills remaining viewport height. */
+  fillViewport?: boolean
 }
 
 function seatInitials(name: string): string {
@@ -31,6 +33,7 @@ export default function TableFeltView({
   gameState,
   playerName,
   showCenterPot = true,
+  fillViewport = false,
 }: TableFeltViewProps) {
   const players = gameState.players
   if (players.length === 0) return null
@@ -97,14 +100,21 @@ export default function TableFeltView({
   const pot = gameState.round.pot
 
   return (
-    <PlayerGoldPanel title="Table">
+    <PlayerGoldPanel
+      title={fillViewport ? undefined : 'Table'}
+      className={fillViewport ? 'player-game-felt-panel player-game-felt-panel--fill' : 'player-game-felt-panel'}
+    >
       <StadiumTableSeats
         feltLayout="player"
         seatCount={MOSAIC_SEAT_COUNT}
         hideEmptySeats
         seats={seats}
         communityDigits={communityDigits}
-        aspectClassName="player-game-felt aspect-[8/5] w-full"
+        aspectClassName={
+          fillViewport
+            ? 'player-game-felt player-game-felt--fill w-full'
+            : 'player-game-felt aspect-[8/5] w-full'
+        }
         centerContent={
           showCenterPot && pot > 0 ? (
             <span className="player-game-table-pot">Pot ${pot.toLocaleString()}</span>

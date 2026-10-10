@@ -1073,17 +1073,44 @@
   background: linear-gradient(180deg, rgb(8 10 14 / 0.97) 0%, rgb(5 8 6 / 0.98) 100%);
 }
 
-.player-game-dock--inactive {
-  opacity: 0.78;
-}
-
-.player-game-dock--inactive .player-game-dock-status {
-  color: rgb(255 255 255 / 0.55);
+.player-game-wager-actions--preact-dim {
+  opacity: 0.72;
 }
 
 .player-game-wager-dense--inactive,
 .player-game-wager-full--inactive {
   pointer-events: none;
+}
+
+.player-game-preact {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}
+
+.player-game-preact-chip {
+  min-height: 2.35rem;
+  border-radius: 3px;
+  border: 1px solid rgb(251 191 36 / 0.4);
+  background: rgb(8 12 10 / 0.95);
+  color: rgb(255 255 255 / 0.88);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.3rem 0.25rem;
+}
+
+.player-game-preact-chip.is-active {
+  border-color: rgb(253 224 71 / 0.85);
+  background: linear-gradient(180deg, rgb(251 191 36 / 0.28) 0%, rgb(234 179 8 / 0.16) 100%);
+  color: rgb(254 243 199);
+  box-shadow: 0 0 0 1px rgb(251 191 36 / 0.25);
+}
+
+.player-game-preact-chip:active {
+  transform: translateY(1px);
 }
 
 /* Match felt panel width so actions span the same band as the table. */

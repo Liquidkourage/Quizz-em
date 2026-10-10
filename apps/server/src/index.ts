@@ -1477,7 +1477,15 @@ const venueSeatingChartPinnedUntilMs = new Map<string, number>()
 
 /** Auto check/fold when a human's turn exceeds this during wagering. */
 const HUMAN_TURN_TIMEOUT_MS = 75_000
+/** Extra seconds applied once when the shot clock expires (per turn). */
+const HUMAN_TIMEBANK_MS = 30_000
+/** One-time extension if the acting player is disconnected when the clock fires. */
+const HUMAN_DISCONNECT_GRACE_MS = 30_000
 const humanTurnTimers = new Map<string, ReturnType<typeof setTimeout>>()
+/** `${sessionKey}:${playerId}:${seatIndex}` → extensions already used this turn. */
+const humanTurnExtensions = new Map<string, { timebank: boolean; disconnectGrace: boolean }>()
+/** sessionKey → `${playerId}:${seatIndex}` currently on the clock. */
+const humanTurnActorKey = new Map<string, string>()
 
 function markVenueShowStarted(code: string): void {
   const vn = normalizeVenueCode(code)
@@ -1544,6 +1552,10 @@ function clearHumanTurnTimer(sessionKey: string): void {
   }
 }
 
+function humanTurnExtKey(sessionKey: string, playerId: string, seatIndex: number): string {
+  return `${sessionKey}:${playerId}:${seatIndex}`
+}
+
 function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
   clearHumanTurnTimer(sessionKey)
   if (gs.phase !== 'betting' || !gs.round.isBettingOpen) return
@@ -1555,25 +1567,71 @@ function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
   const seatIndex = idx
   const playerId = player.id
   const playerName = player.name
-  const timer = setTimeout(() => {
-    humanTurnTimers.delete(sessionKey)
-    let cur = rooms.get(sessionKey) as GameState | undefined
-    if (!cur || cur.phase !== 'betting' || !cur.round.isBettingOpen) return
-    if (cur.round.currentPlayerIndex !== seatIndex) return
-    const acting = cur.players[seatIndex]
-    if (!acting || acting.id !== playerId) return
-    const contrib = cur.round.playerBets?.[acting.id] ?? 0
-    const toCall = Math.max(0, (cur.round.currentBet ?? 0) - contrib)
-    cur = toCall === 0 ? playerCheck(cur, acting.id) : foldPlayer(cur, acting.id)
-    cur = runVirtualPlayerSimulation(cur)
-    rooms.set(sessionKey, cur)
-    emitVenueTableState(sessionKey, cur)
-    io.to(sessionKey).emit(
-      'toast',
-      `${playerName} timed out — ${toCall === 0 ? 'checked' : 'folded'}.`,
-    )
-  }, HUMAN_TURN_TIMEOUT_MS)
-  humanTurnTimers.set(sessionKey, timer)
+  const extKey = humanTurnExtKey(sessionKey, playerId, seatIndex)
+  const actorKey = `${playerId}:${seatIndex}`
+  const prevActor = humanTurnActorKey.get(sessionKey)
+  if (prevActor !== actorKey) {
+    for (const k of [...humanTurnExtensions.keys()]) {
+      if (k.startsWith(`${sessionKey}:`)) humanTurnExtensions.delete(k)
+    }
+    humanTurnActorKey.set(sessionKey, actorKey)
+    humanTurnExtensions.set(extKey, { timebank: false, disconnectGrace: false })
+  } else if (!humanTurnExtensions.has(extKey)) {
+    humanTurnExtensions.set(extKey, { timebank: false, disconnectGrace: false })
+  }
+
+  const arm = (delayMs: number) => {
+    clearHumanTurnTimer(sessionKey)
+    const timer = setTimeout(() => {
+      humanTurnTimers.delete(sessionKey)
+      let cur = rooms.get(sessionKey) as GameState | undefined
+      if (!cur || cur.phase !== 'betting' || !cur.round.isBettingOpen) return
+      if (cur.round.currentPlayerIndex !== seatIndex) return
+      const acting = cur.players[seatIndex]
+      if (!acting || acting.id !== playerId) return
+
+      const ext = humanTurnExtensions.get(extKey) ?? { timebank: false, disconnectGrace: false }
+      const sock = getSocketForPlayer(playerId)
+      const disconnected = !sock || sock.connected !== true
+
+      if (disconnected && !ext.disconnectGrace) {
+        ext.disconnectGrace = true
+        humanTurnExtensions.set(extKey, ext)
+        io.to(sessionKey).emit(
+          'toast',
+          `${playerName} disconnected — +${Math.round(HUMAN_DISCONNECT_GRACE_MS / 1000)}s grace.`,
+        )
+        arm(HUMAN_DISCONNECT_GRACE_MS)
+        return
+      }
+
+      if (!ext.timebank) {
+        ext.timebank = true
+        humanTurnExtensions.set(extKey, ext)
+        io.to(sessionKey).emit(
+          'toast',
+          `${playerName} is using their ${Math.round(HUMAN_TIMEBANK_MS / 1000)}s timebank.`,
+        )
+        arm(HUMAN_TIMEBANK_MS)
+        return
+      }
+
+      const contrib = cur.round.playerBets?.[acting.id] ?? 0
+      const toCall = Math.max(0, (cur.round.currentBet ?? 0) - contrib)
+      cur = toCall === 0 ? playerCheck(cur, acting.id) : foldPlayer(cur, acting.id)
+      cur = runVirtualPlayerSimulation(cur)
+      rooms.set(sessionKey, cur)
+      humanTurnExtensions.delete(extKey)
+      emitVenueTableState(sessionKey, cur)
+      io.to(sessionKey).emit(
+        'toast',
+        `${playerName} timed out — ${toCall === 0 ? 'checked' : 'folded'}.`,
+      )
+    }, delayMs)
+    humanTurnTimers.set(sessionKey, timer)
+  }
+
+  arm(HUMAN_TURN_TIMEOUT_MS)
 }
 
 function runVenueCondenseAfterRound(

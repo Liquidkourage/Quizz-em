@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import {
   connect,
@@ -38,6 +38,7 @@ import {
   type SelectedCardRef,
 } from './playerModel/answerComposition'
 import { buildBettingContext, resolveMyPlayerIndex } from './playerModel/bettingModel'
+import { resolvePreAction, type PreAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
@@ -69,6 +70,7 @@ function PlayerApp() {
   const [disconnected, setDisconnected] = useState(false)
   const [lastTableId, setLastTableId] = useState<string | null>(null)
   const [raiseAmount, setRaiseAmount] = useState(0)
+  const [preAction, setPreAction] = useState<PreAction | null>(null)
   const [composedAnswer, setComposedAnswer] = useState<ComposedAnswer>(EMPTY_COMPOSED_ANSWER)
   const [selectedCards, setSelectedCards] = useState<SelectedCardRef[]>([])
   const [submittedAnswerDisplay, setSubmittedAnswerDisplay] = useState<string | null>(null)
@@ -211,6 +213,23 @@ function PlayerApp() {
     gameState?.round.currentPlayerIndex,
   ])
 
+  useEffect(() => {
+    setPreAction(null)
+  }, [gameState?.round.roundId, gameState?.round.bettingRound])
+
+  const preActTurnKeyRef = useRef('')
+  useEffect(() => {
+    if (!bettingCtx?.isMyTurn || !preAction || !gameState) return
+    const turnKey = `${gameState.round.roundId}:${gameState.round.bettingRound}:${gameState.round.currentPlayerIndex}`
+    if (preActTurnKeyRef.current === turnKey) return
+    preActTurnKeyRef.current = turnKey
+    const action = resolvePreAction(preAction, bettingCtx)
+    setPreAction(null)
+    if (action === 'check') checkAction()
+    else if (action === 'call') callAction()
+    else fold()
+  }, [bettingCtx, preAction, gameState])
+
   const handleCardSelect = (type: 'hand' | 'community', index: number) => {
     if (!gameState || !currentPlayer || submittedAnswerDisplay) return
     const next = toggleCardInSelection({
@@ -345,6 +364,8 @@ function PlayerApp() {
         ctx={bettingCtx}
         raiseAmount={raiseAmount}
         pot={gameState.round.pot}
+        preAction={preAction}
+        onPreActionChange={setPreAction}
         onRaiseAmountChange={setRaiseAmount}
         onCheck={() => checkAction()}
         onCall={() => callAction()}

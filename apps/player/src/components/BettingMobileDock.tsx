@@ -1,5 +1,7 @@
 import type { PlayerState } from '@qhe/core'
 import type { BettingContext } from '../playerModel/bettingModel'
+import type { PreAction } from '../playerModel/preAction'
+import { preActionLabel } from '../playerModel/preAction'
 import WageringActionButtons from './WageringActionButtons'
 
 type BettingMobileDockProps = {
@@ -7,6 +9,8 @@ type BettingMobileDockProps = {
   ctx: BettingContext
   raiseAmount: number
   pot?: number
+  preAction: PreAction | null
+  onPreActionChange: (next: PreAction | null) => void
   onRaiseAmountChange: (n: number) => void
   onCheck: () => void
   onCall: () => void
@@ -21,6 +25,8 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
     ctx,
     raiseAmount,
     pot,
+    preAction,
+    onPreActionChange,
     onRaiseAmountChange,
     onCheck,
     onCall,
@@ -31,22 +37,55 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
 
   const live = ctx.isMyTurn
 
+  const togglePre = (next: PreAction) => {
+    if (live) return
+    if (preAction?.kind === next.kind) {
+      onPreActionChange(null)
+      return
+    }
+    onPreActionChange(next)
+  }
+
   return (
-    <div
-      className={`player-game-dock player-game-dock--inflow max-lg:block lg:hidden${
-        live ? '' : ' player-game-dock--inactive'
-      }`}
-    >
+    <div className="player-game-dock player-game-dock--inflow max-lg:block lg:hidden">
       <div className="player-game-dock-inner">
         <div className="player-game-dock-status" aria-live="polite">
           <span className={live ? 'player-game-stat-turn' : undefined}>
-            {live ? 'Your turn' : 'Waiting'}
+            {live ? 'Your turn' : preAction ? `Pre-act: ${preActionLabel(preAction)}` : 'Waiting'}
           </span>
           <span>
             Stack <strong>${currentPlayer.bankroll.toLocaleString()}</strong>
           </span>
         </div>
-        <div className="player-game-wager-actions">
+
+        {!live ? (
+          <div className="player-game-preact" role="group" aria-label="Pre-action">
+            <button
+              type="button"
+              className={`player-game-preact-chip${preAction?.kind === 'checkFold' ? ' is-active' : ''}`}
+              onClick={() => togglePre({ kind: 'checkFold' })}
+            >
+              Check/Fold
+            </button>
+            <button
+              type="button"
+              className={`player-game-preact-chip${preAction?.kind === 'callAny' ? ' is-active' : ''}`}
+              onClick={() => togglePre({ kind: 'callAny' })}
+            >
+              Call Any
+            </button>
+            <button
+              type="button"
+              className={`player-game-preact-chip${preAction?.kind === 'callFold' ? ' is-active' : ''}`}
+              onClick={() => togglePre({ kind: 'callFold', maxBet: ctx.currentBet })}
+            >
+              Call/Fold
+              {ctx.toCall > 0 ? ` $${ctx.toCall}` : ''}
+            </button>
+          </div>
+        ) : null}
+
+        <div className={`player-game-wager-actions${live ? '' : ' player-game-wager-actions--preact-dim'}`}>
           <WageringActionButtons
             currentPlayer={currentPlayer}
             ctx={ctx}

@@ -66,6 +66,11 @@ export interface RoundState {
   lastSeatBettingAction?: (SeatBettingAction | null)[];
   /** Total chips committed this hand (both wagering rounds); drives side-pot eligibility at payout. */
   handContributions?: Record<string, number>;
+  /**
+   * NLHE-style minimum raise-by for the next full raise (size of the last full raise).
+   * Opens at the big blind each street; incomplete all-in raises do not update this.
+   */
+  lastFullRaiseAmount?: number;
 }
 
 /** Contestable pot layer — only `eligiblePlayerIds` may win it (trivia-closest at showdown). */
@@ -558,6 +563,7 @@ export function openBettingRound1(state: GameState): GameState {
       playerBets,
       handContributions,
       pot,
+      lastFullRaiseAmount: Math.max(state.bigBlind, 0),
       lastSeatBettingAction: Array.from({ length: playersAfterBlinds.length }, () => null),
     },
   };
@@ -816,9 +822,19 @@ export function dealCommunityCards(state: GameState): GameState {
       currentPlayerIndex: isBettingOpen ? currentPlayerIndex : -1,
       isBettingOpen,
       playerBets: {},
+      lastFullRaiseAmount: Math.max(state.bigBlind, 0),
       lastSeatBettingAction: Array.from({ length: state.players.length }, () => null),
     },
   };
+}
+
+/** Minimum legal raise-by (chips above the call) for a full raise. */
+export function minRaiseByAmount(state: GameState): number {
+  const fromStreet = state.round.lastFullRaiseAmount
+  if (typeof fromStreet === 'number' && Number.isFinite(fromStreet) && fromStreet > 0) {
+    return Math.floor(fromStreet)
+  }
+  return Math.max(0, Math.floor(state.bigBlind || 0))
 }
 
 export function placeBet(state: GameState, playerId: string, amount: number): GameState {
@@ -1038,16 +1054,28 @@ export function playerRaise(state: GameState, playerId: string, raiseAmount: num
   if (seat < 0 || state.players[seat]?.pointsOnly) return state;
   if (seat !== state.round.currentPlayerIndex) return state;
   const toCall = amountToCall(state, playerId);
-  // Enforce min raise equal to big blind
-  const minRaise = Math.max(0, state.bigBlind);
+  const minRaise = minRaiseByAmount(state);
   if (raiseAmount < minRaise) return state;
+  const prevBet = state.round.currentBet || 0;
   // Total contribution needed this action = toCall + raiseAmount
   const totalNeeded = toCall + raiseAmount;
   const contribution = Math.min(totalNeeded, state.players[seat].bankroll);
   let after = placeBet(state, playerId, contribution);
   // Update current bet to the player's total contributed if it exceeds current
   const contributedNow = (after.round.playerBets || {})[playerId] || 0;
-  after = { ...after, round: { ...after.round, currentBet: Math.max(after.round.currentBet || 0, contributedNow) } };
+  const newBet = Math.max(prevBet, contributedNow);
+  const raiseSize = newBet - prevBet;
+  // Full raise updates the street min; short all-in via raise path should not shrink it.
+  const nextLastFull =
+    raiseSize >= minRaise ? raiseSize : (after.round.lastFullRaiseAmount ?? minRaise);
+  after = {
+    ...after,
+    round: {
+      ...after.round,
+      currentBet: newBet,
+      lastFullRaiseAmount: nextLastFull,
+    },
+  };
   const nextIndex = advanceToNextPlayer(after);
   after = {
     ...after,
@@ -1069,10 +1097,23 @@ export function playerAllIn(state: GameState, playerId: string): GameState {
   if (seat !== state.round.currentPlayerIndex) return state;
   const bankroll = state.players[seat].bankroll;
   if (bankroll <= 0) return state;
+  const prevBet = state.round.currentBet || 0;
+  const minRaise = minRaiseByAmount(state);
   let after = placeBet(state, playerId, bankroll);
   // If this increased the player's contribution beyond current bet, update current bet
   const contributedNow = (after.round.playerBets || {})[playerId] || 0;
-  after = { ...after, round: { ...after.round, currentBet: Math.max(after.round.currentBet || 0, contributedNow) } };
+  const newBet = Math.max(prevBet, contributedNow);
+  const raiseSize = newBet - prevBet;
+  const nextLastFull =
+    raiseSize >= minRaise ? raiseSize : (after.round.lastFullRaiseAmount ?? minRaise);
+  after = {
+    ...after,
+    round: {
+      ...after.round,
+      currentBet: newBet,
+      lastFullRaiseAmount: nextLastFull,
+    },
+  };
   const nextIndex = advanceToNextPlayer(after);
   after = {
     ...after,

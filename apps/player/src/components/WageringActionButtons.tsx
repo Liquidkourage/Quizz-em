@@ -70,6 +70,7 @@ export default function WageringActionButtons({
   const hasPrimary = showCheck || showCall || shortAllInCall
   const hasSecondary = showFold || showAllIn
   const raiseToTotal = ctx.toCall + raiseAmount
+  const wagerVerb = ctx.isOpeningBet ? 'Bet' : 'Raise'
 
   if (!hasPrimary && !showRaise && !hasSecondary) {
     return null
@@ -243,7 +244,7 @@ export default function WageringActionButtons({
               </button>
             </div>
             <label className="player-game-raise-custom">
-              <span className="player-game-raise-custom-label">Raise to</span>
+              <span className="player-game-raise-custom-label">{wagerVerb} to</span>
               <input
                 type="number"
                 inputMode="numeric"
@@ -261,7 +262,7 @@ export default function WageringActionButtons({
                 max={ctx.toCall + maxRaiseBy}
                 disabled={!live}
                 className="player-game-input player-game-input--raise player-game-input--raise-dense"
-                aria-label="Custom raise-to amount"
+                aria-label={`Custom ${wagerVerb.toLowerCase()}-to amount`}
               />
             </label>
           </div>
@@ -284,7 +285,7 @@ export default function WageringActionButtons({
                 disabled={!live || !ctx.canRaise}
                 onClick={onRaise}
               >
-                Raise ${raiseToTotal}
+                {wagerVerb} ${raiseToTotal}
               </PlayerGameButton>
             ) : null}
             {allInBtn}
@@ -353,7 +354,7 @@ export default function WageringActionButtons({
       {showRaise ? (
         <div className="player-game-raise-block">
           <label className="player-game-field-label">
-            Raise by <span>(min ${ctx.minRaise})</span>
+            {wagerVerb} by <span>(min ${ctx.minRaise})</span>
           </label>
           <div className="player-game-raise-chips" role="group" aria-label="Raise presets">
             <button
@@ -402,8 +403,11 @@ export default function WageringActionButtons({
             </button>
           </div>
           <p className="player-game-raise-to">
-            Raise to <strong>${raiseToTotal}</strong>
-            <span> (call ${ctx.toCall} + raise ${raiseAmount})</span>
+            {wagerVerb} to <strong>${raiseToTotal}</strong>
+            <span>
+              {' '}
+              ({ctx.isOpeningBet ? `bet $${raiseAmount}` : `call $${ctx.toCall} + raise $${raiseAmount}`})
+            </span>
           </p>
           <div className={`player-game-raise-row${showRaise ? '' : ' player-game-raise-row--solo'}`}>
             <input
@@ -415,7 +419,7 @@ export default function WageringActionButtons({
               max={maxRaiseBy}
               disabled={!live}
               className="player-game-input player-game-input--raise"
-              aria-label="Raise by amount"
+              aria-label={`${wagerVerb} by amount`}
             />
             <PlayerGameButton
               variant="dark"
@@ -424,7 +428,7 @@ export default function WageringActionButtons({
               disabled={!live || !ctx.canRaise}
               onClick={onRaise}
             >
-              Raise to ${raiseToTotal}
+              {wagerVerb} to ${raiseToTotal}
             </PlayerGameButton>
           </div>
         </div>

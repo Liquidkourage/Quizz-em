@@ -1,5 +1,5 @@
 import type { GameState, PlayerState } from '@qhe/core'
-import { inChipContest } from '@qhe/core'
+import { inChipContest, minRaiseByAmount } from '@qhe/core'
 import { getActivePlayerId } from '@qhe/net'
 
 export type BettingContext = {
@@ -10,6 +10,8 @@ export type BettingContext = {
   currentBet: number
   toCall: number
   minRaise: number
+  /** True when opening a street with no bet yet (post-board) — UI says Bet, not Raise. */
+  isOpeningBet: boolean
   canBet: boolean
   canCheck: boolean
   canCall: boolean
@@ -44,8 +46,9 @@ export function buildBettingContext(args: {
   const myContribution = currentPlayer ? (playerBets?.[currentPlayer.id] ?? 0) : 0
   const currentBet = gameState.round.currentBet ?? 0
   const toCall = Math.max(0, currentBet - myContribution)
-  const minRaise = gameState.bigBlind || 0
+  const minRaise = minRaiseByAmount(gameState)
   const bankroll = currentPlayer?.bankroll ?? 0
+  const isOpeningBet = toCall === 0 && currentBet === 0
 
   const isMyTurn =
     isBettingPhase &&
@@ -67,6 +70,7 @@ export function buildBettingContext(args: {
     currentBet,
     toCall,
     minRaise,
+    isOpeningBet,
     canBet,
     canCheck: isMyTurn && toCall === 0,
     canCall: isMyTurn && toCall > 0 && bankroll > 0,

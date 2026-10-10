@@ -238,6 +238,28 @@ export default function WageringActionButtons({
                 +${ctx.minRaise}
               </button>
             </div>
+            <label className="player-game-raise-custom">
+              <span className="player-game-raise-custom-label">Raise to</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={raiseToTotal}
+                onChange={(e) => {
+                  const typedTo = Number(e.target.value)
+                  if (!Number.isFinite(typedTo)) {
+                    clampRaiseBy(ctx.minRaise)
+                    return
+                  }
+                  clampRaiseBy(typedTo - ctx.toCall)
+                }}
+                min={ctx.toCall + ctx.minRaise}
+                max={ctx.toCall + maxRaiseBy}
+                disabled={!live}
+                className="player-game-input player-game-input--raise player-game-input--raise-dense"
+                aria-label="Custom raise-to amount"
+              />
+            </label>
           </div>
         ) : null}
 

@@ -1064,7 +1064,7 @@
   align-self: stretch;
   width: 100%;
   max-width: none;
-  max-height: min(46%, 18rem);
+  max-height: min(52%, 20.5rem);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1517,6 +1517,40 @@
   min-height: 2rem;
   padding: 0.25rem 0.2rem;
   font-size: 0.78rem;
+}
+
+.player-game-raise-custom {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.player-game-raise-custom-label {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: rgb(255 255 255 / 0.62);
+  white-space: nowrap;
+}
+
+.player-game-input--raise-dense {
+  min-height: 2.35rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-game-layout--live-fit .player-game-input--raise-dense {
+  min-height: 2.5rem;
+  font-size: 1.05rem;
+}
+
+.player-game-input--raise-dense:disabled {
+  opacity: 0.45;
 }
 
 .player-game-actions--dense-tri {

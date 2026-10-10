@@ -24,7 +24,7 @@ export function resolvePreAction(pre: PreAction, ctx: BettingContext): ResolvedP
 
 export function preActionLabel(pre: PreAction | null): string {
   if (!pre) return ''
-  if (pre.kind === 'checkFold') return 'Check/Fold'
-  if (pre.kind === 'callAny') return 'Call Any'
-  return 'Call/Fold'
+  if (pre.kind === 'checkFold') return 'Check if free, else fold'
+  if (pre.kind === 'callAny') return 'Call any amount'
+  return 'Call this bet, fold to a raise'
 }

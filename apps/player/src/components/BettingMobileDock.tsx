@@ -60,31 +60,38 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
 
         {!live ? (
           <>
+            <p className="player-game-preact-heading">When it’s your turn, auto…</p>
             <div className="player-game-preact" role="group" aria-label="Pre-action">
               <button
                 type="button"
                 className={`player-game-preact-chip${preAction?.kind === 'checkFold' ? ' is-active' : ''}`}
                 onClick={() => togglePre({ kind: 'checkFold' })}
               >
-                Check/Fold
+                <span className="player-game-preact-title">Check / fold</span>
+                <span className="player-game-preact-sub">Check if free, else fold</span>
               </button>
               <button
                 type="button"
                 className={`player-game-preact-chip${preAction?.kind === 'callAny' ? ' is-active' : ''}`}
                 onClick={() => togglePre({ kind: 'callAny' })}
               >
-                Call Any
+                <span className="player-game-preact-title">Call any</span>
+                <span className="player-game-preact-sub">Call whatever it costs</span>
               </button>
               <button
                 type="button"
                 className={`player-game-preact-chip${preAction?.kind === 'callFold' ? ' is-active' : ''}`}
                 onClick={() => togglePre({ kind: 'callFold', maxBet: ctx.currentBet })}
               >
-                Call/Fold
-                {ctx.toCall > 0 ? ` $${ctx.toCall}` : ''}
+                <span className="player-game-preact-title">
+                  Call / fold{ctx.toCall > 0 ? ` $${ctx.toCall}` : ''}
+                </span>
+                <span className="player-game-preact-sub">
+                  {ctx.toCall > 0 ? `Call $${ctx.toCall}, fold if raised` : 'Call this bet, fold to a raise'}
+                </span>
               </button>
             </div>
-            <p className="player-game-preact-hint">Full controls appear on your turn</p>
+            <p className="player-game-preact-hint">Tap again to clear · full controls on your turn</p>
           </>
         ) : (
           <div className="player-game-wager-actions">

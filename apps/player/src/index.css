@@ -1082,24 +1082,51 @@
   pointer-events: none;
 }
 
+.player-game-preact-heading {
+  margin: 0 0 0.35rem;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: rgb(255 255 255 / 0.58);
+}
+
 .player-game-preact {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 0.35rem;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.35rem;
 }
 
 .player-game-preact-chip {
-  min-height: 2.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.15rem;
+  min-height: 3.35rem;
   border-radius: 3px;
   border: 1px solid rgb(251 191 36 / 0.4);
   background: rgb(8 12 10 / 0.95);
   color: rgb(255 255 255 / 0.88);
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.78rem;
+  padding: 0.4rem 0.3rem;
+  text-align: center;
+}
+
+.player-game-preact-title {
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.03em;
-  padding: 0.3rem 0.25rem;
+  line-height: 1.15;
+}
+
+.player-game-preact-sub {
+  font-size: 0.62rem;
+  font-weight: 550;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: rgb(255 255 255 / 0.55);
 }
 
 .player-game-preact-chip.is-active {
@@ -1107,6 +1134,10 @@
   background: linear-gradient(180deg, rgb(251 191 36 / 0.28) 0%, rgb(234 179 8 / 0.16) 100%);
   color: rgb(254 243 199);
   box-shadow: 0 0 0 1px rgb(251 191 36 / 0.25);
+}
+
+.player-game-preact-chip.is-active .player-game-preact-sub {
+  color: rgb(254 243 199 / 0.75);
 }
 
 .player-game-preact-chip:active {

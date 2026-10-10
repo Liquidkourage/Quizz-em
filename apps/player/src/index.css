@@ -1023,6 +1023,7 @@
  * Padding reserves gutter for outward name tags above/below the rail.
  */
 .player-game-layout--live-fit .player-game-felt-panel--fill {
+  position: relative;
   flex: 1 1 auto;
   width: 100%;
   max-width: 100%;
@@ -2388,6 +2389,99 @@
 
 .player-game-felt-panel {
   min-width: 0;
+}
+
+.player-game-table-status {
+  margin: 0 0 0.45rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgb(251 191 36 / 0.32);
+  background: rgb(8 12 10 / 0.82);
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.78rem, 2.8vw, 0.95rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.03em;
+  color: rgb(254 243 199);
+}
+
+/* Live-fit: keep status out of the 8:5 cqh math — overlay at panel top. */
+.player-game-layout--live-fit .player-game-felt-panel--fill .player-game-table-status {
+  position: absolute;
+  top: 0.25rem;
+  left: 50%;
+  z-index: 6;
+  width: min(94%, 22rem);
+  margin: 0;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.player-game-seat-street-in {
+  max-width: 100%;
+  font-size: 0.65em;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: rgb(253 230 138 / 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.player-game-seat-pill {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.1rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.3rem;
+  border: 1.5px solid transparent;
+  font-size: 0.62em;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+}
+
+.player-game-seat-pill--acting {
+  border-color: rgb(251 191 36 / 0.55);
+  background: rgb(23 18 8 / 0.95);
+  color: rgb(254 243 199);
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
+.player-game-seat-pill--check {
+  border-color: rgb(148 163 184 / 0.45);
+  background: rgb(15 23 42 / 0.92);
+  color: rgb(241 245 249);
+}
+
+.player-game-seat-pill--call {
+  border-color: rgb(14 165 233 / 0.45);
+  background: rgb(8 47 73 / 0.92);
+  color: rgb(224 242 254);
+}
+
+.player-game-seat-pill--raise {
+  border-color: rgb(245 158 11 / 0.5);
+  background: rgb(69 26 3 / 0.92);
+  color: rgb(254 243 199);
+}
+
+.player-game-seat-pill--fold {
+  border-color: rgb(251 113 133 / 0.5);
+  background: rgb(76 5 25 / 0.92);
+  color: rgb(255 228 230);
+}
+
+.player-game-seat-pill--allIn {
+  border-color: rgb(168 85 247 / 0.5);
+  background: rgb(46 16 101 / 0.92);
+  color: rgb(237 233 254);
 }
 
 .player-game-felt {

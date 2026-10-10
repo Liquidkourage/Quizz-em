@@ -223,8 +223,9 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
 /** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
 export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
-  const frac = w < 420 ? 0.052 : 0.065
-  return Math.max(18, Math.round(w * frac))
+  // Slightly larger cups/labels — table itself is capped in the player layout.
+  const frac = w < 420 ? 0.078 : 0.085
+  return Math.max(26, Math.round(w * frac))
 }
 
 /**
@@ -235,11 +236,11 @@ export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
 export function stadiumPlayerHoleCardScale(tableWidthPx: number, seatCount = 6): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
   const n = Math.max(1, Math.floor(seatCount))
-  // Phone-first fracs — 2-seat hands used to claim ~10% width each and overflow corners.
-  const cardWFrac = n <= 2 ? 0.068 : n <= 4 ? 0.058 : n <= 6 ? 0.05 : 0.044
+  // Table is layout-capped on phones — keep hole cards readable without rail overflow.
+  const cardWFrac = n <= 2 ? 0.084 : n <= 4 ? 0.07 : n <= 6 ? 0.06 : 0.052
   const targetW = w * cardWFrac
-  const maxScale = w < 420 ? 0.42 : w < 560 ? 0.55 : 0.68
-  const minScale = w < 420 ? 0.26 : 0.3
+  const maxScale = w < 420 ? 0.5 : w < 560 ? 0.58 : 0.68
+  const minScale = w < 420 ? 0.3 : 0.32
   return Math.max(minScale, Math.min(maxScale, targetW / 64))
 }
 
@@ -256,8 +257,8 @@ export function stadiumPlayerSeatHoleCardScale(
   if (!faceUp) return base
   const w = tableWidthPx > 0 ? tableWidthPx : 360
   if (w < 420) {
-    // Phone: keep hero nearly the same size as opponents so cards fit the rail.
-    return Math.min(0.46, base * 1.08)
+    // Phone: slight hero bump; layout caps the felt so this stays inside the rail.
+    return Math.min(0.52, base * 1.12)
   }
   if (w < 560) {
     return Math.min(0.58, Math.max(base * 1.2, base))

@@ -65,34 +65,33 @@ export default function TableFeltView({
       const holeDigits: readonly [number, number] | null =
         hasHand && !player.hasFolded ? [player.hand[0]!.digit, player.hand[1]!.digit] : null
 
-      // Phone-first type; bump only on wider screens.
-      const tagText = 'text-[0.7rem] leading-tight sm:text-sm md:text-base'
+      // Readable on phone; table is capped so these can stay larger.
+      const tagText = 'text-sm leading-tight sm:text-base md:text-lg'
 
       return {
         index,
-        label: isMe ? undefined : showSeat ? index + 1 : seatInitials(player.name),
-        labelClassName: 'font-mono text-[0.65rem] tabular-nums sm:text-xs md:text-sm font-bold',
+        label: showSeat ? index + 1 : isMe ? 'You' : seatInitials(player.name),
+        labelClassName: 'font-mono text-xs tabular-nums sm:text-sm md:text-base font-bold',
         state: player.hasFolded ? 'folded' : isActing ? 'acting' : 'default',
         holeDigits,
         faceDown: !showFaceUp,
         holeVariant: isMe ? 'gold' : 'purple',
         'aria-label': `${player.name}${isMe ? ', you' : ''}${player.hasFolded ? ', folded' : ''}`,
-        nameTag:
-          isMe && !player.hasFolded ? undefined : (
-            <>
-              <span
-                className={`max-w-full truncate font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'} ${tagText}`}
-              >
-                {isMe ? 'You' : firstName(player.name)}
-              </span>
-              <span className={`font-bold tabular-nums text-amber-300 ${tagText}`}>
-                ${player.bankroll.toLocaleString()}
-              </span>
-              {player.hasFolded ? (
-                <span className={`font-bold uppercase text-red-400 ${tagText}`}>Folded</span>
-              ) : null}
-            </>
-          ),
+        nameTag: (
+          <>
+            <span
+              className={`max-w-full truncate font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'} ${tagText}`}
+            >
+              {isMe ? 'You' : firstName(player.name)}
+            </span>
+            <span className={`font-bold tabular-nums text-amber-300 ${tagText}`}>
+              ${player.bankroll.toLocaleString()}
+            </span>
+            {player.hasFolded ? (
+              <span className={`font-bold uppercase text-red-400 ${tagText}`}>Folded</span>
+            ) : null}
+          </>
+        ),
       }
     })
   }, [players, playerName, actingIndex, revealCards, showSeat])
@@ -112,7 +111,7 @@ export default function TableFeltView({
         communityDigits={communityDigits}
         aspectClassName={
           fillViewport
-            ? 'player-game-felt player-game-felt--fill w-full'
+            ? 'player-game-felt player-game-felt--fill aspect-[8/5] w-full'
             : 'player-game-felt aspect-[8/5] w-full'
         }
         centerContent={

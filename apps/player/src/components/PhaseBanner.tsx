@@ -14,7 +14,7 @@ export default function PhaseBanner({ gameState }: PhaseBannerProps) {
 
   if (phase === 'lobby' && tableId !== LOBBY_TABLE_ID) {
     return (
-      <p className="player-game-banner">Hand complete — waiting for the host to reveal the next question.</p>
+      <p className="player-game-banner">Seated — waiting for the host to start the round.</p>
     )
   }
 

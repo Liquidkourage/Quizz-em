@@ -327,7 +327,9 @@ function PlayerApp() {
     />
   )
 
-  const showBetweenHandsWait = seatedAtTable && gameState.phase === 'lobby'
+  const showSeatedLobbyWait = seatedAtTable && gameState.phase === 'lobby'
+  /** Latched results mean a hand already finished; otherwise this is seat → start. */
+  const waitingForFirstStart = showSeatedLobbyWait && !handSummary && !tableResults
   const showLastHand = Boolean(handSummary) && gameState.phase === 'lobby'
   const showTableResults =
     Boolean(tableResults) &&
@@ -392,9 +394,11 @@ function PlayerApp() {
 
             {!hideLiveChrome ? <PhaseBanner gameState={gameState} /> : null}
 
-            {showBetweenHandsWait ? (
+            {showSeatedLobbyWait ? (
               <p className="player-game-banner player-game-banner--compact">
-                Waiting for the next question…
+                {waitingForFirstStart
+                  ? 'Seated — waiting for the host to start…'
+                  : 'Waiting for the next question…'}
               </p>
             ) : null}
 

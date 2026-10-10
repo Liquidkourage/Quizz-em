@@ -54,7 +54,7 @@ import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
 import StickyQuestionBar from './components/StickyQuestionBar'
-import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule, PlayerGoldPanel } from './components/PlayerGoldChrome'
+import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './components/PlayerGoldChrome'
 
 type JoinPhase = 'form' | 'connecting' | 'in_venue'
 
@@ -293,27 +293,22 @@ function PlayerApp() {
   const showAnswerModal =
     gameState.phase === 'answering' && !!currentPlayer && !currentPlayer.hasFolded
 
+  const seatedAtTable = (gameState.tableId ?? '') !== LOBBY_TABLE_ID
+  const isBettingPhase = gameState.phase === 'betting'
   const needsMobileBetDock =
-    gameState.phase === 'betting' && !!currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded
+    isBettingPhase && !!currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded
 
   const questionText = gameState.round.question?.text ?? ''
   const showStickyQuestion =
     Boolean(questionText) &&
     (gameState.phase === 'betting' || gameState.phase === 'answering' || gameState.phase === 'question')
 
-  /** Phone-first: felt is the primary surface during the live hand. */
-  const feltFirstPhases =
-    gameState.phase === 'question' ||
-    gameState.phase === 'betting' ||
-    gameState.phase === 'answering'
-  /** Drop host/venue chrome while the hand is live — sticky Q + dock carry the state. */
-  const hideLiveChrome = feltFirstPhases
-  const holesOnFelt =
-    Boolean(currentPlayer) &&
-    (currentPlayer?.hand.length ?? 0) >= 2 &&
-    !currentPlayer!.hasFolded
-  /** Single phone viewport — no page scroll during the live hand. */
-  const liveFit = feltFirstPhases
+  /**
+   * Once seated at a felt: one viewport, no page scroll.
+   * Meta / venue strip / phase essays / pot dashboards stay off-screen.
+   */
+  const liveFit = seatedAtTable
+  const hideLiveChrome = seatedAtTable
   const layoutClass = [
     'player-game-layout',
     'player-join-layout',
@@ -331,17 +326,15 @@ function PlayerApp() {
       fillViewport={liveFit}
     />
   )
-  const infoCard = (
-    <GameInfoCard
-      gameState={gameState}
-      currentPlayer={currentPlayer}
-      hideQuestion={showStickyQuestion || Boolean(tableResults)}
-      hidePotStack={needsMobileBetDock}
-      hideHoleStrip={holesOnFelt}
-    />
-  )
-  /** Board/holes already on felt during wagering — drop the extra card strip. */
-  const showInfoDuringLive = feltFirstPhases && !needsMobileBetDock
+
+  const showBetweenHandsWait = seatedAtTable && gameState.phase === 'lobby'
+  const showLastHand = Boolean(handSummary) && gameState.phase === 'lobby'
+  const showTableResults =
+    Boolean(tableResults) &&
+    (gameState.phase === 'lobby' ||
+      gameState.phase === 'reveal' ||
+      gameState.phase === 'showdown' ||
+      gameState.phase === 'payout')
 
   const mobileDock =
     needsMobileBetDock && bettingCtx && currentPlayer ? (
@@ -399,22 +392,34 @@ function PlayerApp() {
 
             {!hideLiveChrome ? <PhaseBanner gameState={gameState} /> : null}
 
-            {handSummary && gameState.phase === 'lobby' ? <PostHandSummaryCard summary={handSummary} /> : null}
-            {tableResults && gameState.phase === 'lobby' ? <TableResultsPanel results={tableResults} /> : null}
-
-            {feltFirstPhases ? feltView : null}
-            {showInfoDuringLive ? infoCard : null}
-
-            {!feltFirstPhases ? infoCard : null}
-
-            {tableResults &&
-            (gameState.phase === 'reveal' ||
-              gameState.phase === 'showdown' ||
-              gameState.phase === 'payout') ? (
-              <TableResultsPanel results={tableResults} />
+            {showBetweenHandsWait ? (
+              <p className="player-game-banner player-game-banner--compact">
+                Waiting for the next question…
+              </p>
             ) : null}
 
-            {bettingCtx && currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded ? (
+            {showLastHand ? (
+              <div className="player-game-fit-scroll">
+                <PostHandSummaryCard summary={handSummary!} />
+              </div>
+            ) : null}
+            {showTableResults ? (
+              <div className="player-game-fit-scroll">
+                <TableResultsPanel results={tableResults!} />
+              </div>
+            ) : null}
+
+            {seatedAtTable ? feltView : null}
+
+            {!seatedAtTable ? (
+              <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} />
+            ) : null}
+
+            {isBettingPhase &&
+            bettingCtx &&
+            currentPlayer &&
+            inChipContest(currentPlayer) &&
+            !currentPlayer.hasFolded ? (
               <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>
                 <BettingActions
                   currentPlayer={currentPlayer}
@@ -429,20 +434,9 @@ function PlayerApp() {
                   onAllIn={() => allInAction()}
                 />
               </div>
-            ) : currentPlayer && !needsMobileBetDock && !feltFirstPhases ? (
-              <PlayerGoldPanel className="player-game-stack-panel">
-                <p className="player-game-stack-label">Your stack</p>
-                <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
-                {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
-                {currentPlayer.pointsOnly ? (
-                  <p className="player-game-points-only">
-                    Out of chips — keep answering for trivia points.
-                  </p>
-                ) : null}
-              </PlayerGoldPanel>
             ) : null}
 
-            {!feltFirstPhases ? feltView : null}
+            {!seatedAtTable ? feltView : null}
           </div>
         </PlayerGameShell>
 

@@ -890,74 +890,74 @@
 }
 
 /*
- * Live hand on phone: lock to one viewport. Felt flexes; dock sits in-flow
- * (not fixed), so turn controls never force page scroll.
+ * Seated at a felt: lock to one viewport. Felt flexes; dock sits in-flow.
+ * Applies at all widths — side-by-side desktop windows were still scrolling.
  */
-@media (max-width: 1023px) {
-  .player-game-layout--live-fit {
-    height: 100dvh;
-    max-height: 100dvh;
-    overflow: hidden;
-    padding-bottom: 0;
-  }
+.player-game-layout--live-fit {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  padding-bottom: 0;
+}
 
-  .player-game-layout--live-fit .player-game-shell {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
+.player-game-layout--live-fit .player-game-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+}
 
-  .player-game-layout--live-fit .player-game-header--compact {
-    height: 2.35rem;
-    padding-top: 0.15rem;
-    padding-bottom: 0;
-    flex-shrink: 0;
-  }
+.player-game-layout--live-fit .player-game-header--compact {
+  height: 2.35rem;
+  padding-top: 0.15rem;
+  padding-bottom: 0;
+  flex-shrink: 0;
+}
 
-  .player-game-layout--live-fit .player-game-header--compact .player-join-logo .welcome-wordmark-root-hero {
-    max-height: 1.85rem;
-  }
+.player-game-layout--live-fit .player-game-header--compact .player-join-logo .welcome-wordmark-root-hero {
+  max-height: 1.85rem;
+}
 
-  .player-game-layout--live-fit .player-game-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    gap: 0.35rem;
-    padding-bottom: 0;
-  }
+.player-game-layout--live-fit .player-game-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  gap: 0.35rem;
+  padding-bottom: 0;
+}
 
-  .player-game-layout--live-fit .player-sticky-question {
-    flex-shrink: 0;
-    position: static;
-    padding: 0.35rem 0.55rem;
-  }
+.player-game-layout--live-fit .player-sticky-question {
+  flex-shrink: 0;
+  position: static;
+  padding: 0.35rem 0.55rem;
+}
 
-  .player-game-layout--live-fit .player-sticky-question-text {
-    font-size: clamp(0.82rem, 2.8vw, 0.95rem);
-    line-height: 1.25;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-  }
+.player-game-layout--live-fit .player-sticky-question-text {
+  font-size: clamp(0.82rem, 2.8vw, 0.95rem);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 
-  .player-game-layout--live-fit .player-game-felt-panel--fill {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 0.3rem 0.4rem 0.35rem;
-  }
+.player-game-layout--live-fit .player-game-felt-panel--fill {
+  flex: 1 1 auto;
+  min-height: min(40%, 12rem);
+  display: flex;
+  flex-direction: column;
+  padding: 0.3rem 0.4rem 0.35rem;
+}
 
-  .player-game-layout--live-fit .player-game-felt--fill {
-    flex: 1 1 auto;
-    width: 100%;
-    min-height: 0;
-    height: 100%;
-    max-height: 100%;
-    aspect-ratio: auto;
-  }
+.player-game-layout--live-fit .player-game-felt--fill {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: auto;
 }
 
 @media (min-width: 1024px) {
@@ -1109,6 +1109,21 @@
   line-height: 1.45;
   letter-spacing: 0.03em;
   color: rgb(255 255 255 / 0.72);
+}
+
+.player-game-banner--compact {
+  flex-shrink: 0;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.player-game-fit-scroll {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 38%;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .player-game-panel {
@@ -2066,12 +2081,7 @@
 }
 
 @media (min-width: 1024px) {
-  .player-game-layout--live-fit {
-    height: auto;
-    max-height: none;
-    overflow: visible;
-  }
-
+  /* Wide desktop uses inline BettingActions; hide the phone dock. */
   .player-game-dock--inflow {
     display: none;
   }

@@ -1568,7 +1568,7 @@
 
 .player-game-raise-compact-pair {
   display: grid;
-  grid-template-columns: minmax(3.75rem, 4.75rem) 1fr;
+  grid-template-columns: 1fr minmax(3.75rem, 4.75rem);
   align-items: stretch;
   gap: 0.3rem;
 }

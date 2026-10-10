@@ -25,7 +25,7 @@ export default function WageringActionButtons({
   currentPlayer,
   ctx,
   raiseAmount,
-  pot = 0,
+  pot: _pot = 0,
   btnSize = 'large',
   dense = false,
   onRaiseAmountChange,
@@ -84,12 +84,7 @@ export default function WageringActionButtons({
     onRaiseAmountChange(stepped)
   }
 
-  const halfPotRaiseBy = Math.max(ctx.minRaise, Math.floor(pot / 2) - ctx.toCall)
-  const potRaiseBy = Math.max(ctx.minRaise, pot - ctx.toCall)
-  const previewRaiseBy = (n: number) => Math.max(ctx.minRaise, Math.min(maxRaiseBy, Math.floor(n)))
-  const minRaiseTo = ctx.toCall + previewRaiseBy(ctx.minRaise)
-  const halfPotRaiseTo = ctx.toCall + previewRaiseBy(halfPotRaiseBy)
-  const potRaiseTo = ctx.toCall + previewRaiseBy(potRaiseBy)
+  const minRaiseTo = ctx.toCall + ctx.minRaise
 
   const foldBtn = showFold ? (
     <PlayerGameButton
@@ -133,8 +128,6 @@ export default function WageringActionButtons({
         {allInConfirmPending ? 'Confirm all-in' : dense ? 'All-in' : `All-in $${currentPlayer.bankroll}`}
       </PlayerGameButton>
     ) : null
-
-  const raiseChipDisabled = !live
 
   if (dense) {
     return (
@@ -197,52 +190,6 @@ export default function WageringActionButtons({
 
         {showRaise ? (
           <div className="player-game-raise-block player-game-raise-block--dense">
-            <div className="player-game-raise-chips" role="group" aria-label="Raise presets">
-              <button
-                type="button"
-                className="player-game-raise-chip"
-                onClick={() => clampRaiseBy(raiseAmount - ctx.minRaise)}
-                disabled={raiseChipDisabled || raiseAmount <= ctx.minRaise}
-              >
-                −${ctx.minRaise}
-              </button>
-              <button
-                type="button"
-                className="player-game-raise-chip"
-                onClick={() => clampRaiseBy(ctx.minRaise)}
-                disabled={raiseChipDisabled}
-              >
-                Min ${minRaiseTo}
-              </button>
-              {pot > 0 ? (
-                <>
-                  <button
-                    type="button"
-                    className="player-game-raise-chip"
-                    onClick={() => clampRaiseBy(halfPotRaiseBy)}
-                    disabled={raiseChipDisabled}
-                  >
-                    ½ ${halfPotRaiseTo}
-                  </button>
-                  <button
-                    type="button"
-                    className="player-game-raise-chip"
-                    onClick={() => clampRaiseBy(potRaiseBy)}
-                    disabled={raiseChipDisabled}
-                  >
-                    Pot ${potRaiseTo}
-                  </button>
-                </>
-              ) : null}
-              <button
-                type="button"
-                className="player-game-raise-chip"
-                onClick={() => clampRaiseBy(raiseAmount + ctx.minRaise)}
-                disabled={raiseChipDisabled || raiseAmount >= maxRaiseBy}
-              >
-                +${ctx.minRaise}
-              </button>
-            </div>
             <label className="player-game-raise-custom">
               <span className="player-game-raise-custom-label">{wagerVerb} to</span>
               <input
@@ -258,13 +205,19 @@ export default function WageringActionButtons({
                   }
                   clampRaiseBy(typedTo - ctx.toCall)
                 }}
-                min={ctx.toCall + ctx.minRaise}
+                min={minRaiseTo}
                 max={ctx.toCall + maxRaiseBy}
                 disabled={!live}
                 className="player-game-input player-game-input--raise player-game-input--raise-dense"
-                aria-label={`Custom ${wagerVerb.toLowerCase()}-to amount`}
+                aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
               />
             </label>
+            <p className="player-game-raise-min-hint">
+              Min {wagerVerb.toLowerCase()} <strong>${minRaiseTo}</strong>
+              {!ctx.isOpeningBet && ctx.toCall > 0 ? (
+                <span> · includes call ${ctx.toCall}</span>
+              ) : null}
+            </p>
           </div>
         ) : null}
 
@@ -353,73 +306,33 @@ export default function WageringActionButtons({
 
       {showRaise ? (
         <div className="player-game-raise-block">
-          <label className="player-game-field-label">
-            {wagerVerb} by <span>(min ${ctx.minRaise})</span>
+          <label className="player-game-field-label" htmlFor="player-raise-to-input">
+            {wagerVerb} to <span>(min ${minRaiseTo})</span>
           </label>
-          <div className="player-game-raise-chips" role="group" aria-label="Raise presets">
-            <button
-              type="button"
-              className="player-game-raise-chip"
-              onClick={() => clampRaiseBy(raiseAmount - ctx.minRaise)}
-              disabled={raiseChipDisabled || raiseAmount <= ctx.minRaise}
-            >
-              −${ctx.minRaise}
-            </button>
-            <button
-              type="button"
-              className="player-game-raise-chip"
-              onClick={() => clampRaiseBy(ctx.minRaise)}
-              disabled={raiseChipDisabled}
-            >
-              Min ${minRaiseTo}
-            </button>
-            {pot > 0 ? (
-              <>
-                <button
-                  type="button"
-                  className="player-game-raise-chip"
-                  onClick={() => clampRaiseBy(halfPotRaiseBy)}
-                  disabled={raiseChipDisabled}
-                >
-                  ½ ${halfPotRaiseTo}
-                </button>
-                <button
-                  type="button"
-                  className="player-game-raise-chip"
-                  onClick={() => clampRaiseBy(potRaiseBy)}
-                  disabled={raiseChipDisabled}
-                >
-                  Pot ${potRaiseTo}
-                </button>
-              </>
-            ) : null}
-            <button
-              type="button"
-              className="player-game-raise-chip"
-              onClick={() => clampRaiseBy(raiseAmount + ctx.minRaise)}
-              disabled={raiseChipDisabled || raiseAmount >= maxRaiseBy}
-            >
-              +${ctx.minRaise}
-            </button>
-          </div>
-          <p className="player-game-raise-to">
-            {wagerVerb} to <strong>${raiseToTotal}</strong>
-            <span>
-              {' '}
-              ({ctx.isOpeningBet ? `bet $${raiseAmount}` : `call $${ctx.toCall} + raise $${raiseAmount}`})
-            </span>
+          <p className="player-game-raise-min-hint">
+            {!ctx.isOpeningBet && ctx.toCall > 0
+              ? `Total includes the $${ctx.toCall} call`
+              : `Opening ${wagerVerb.toLowerCase()} must be at least $${minRaiseTo}`}
           </p>
-          <div className={`player-game-raise-row${showRaise ? '' : ' player-game-raise-row--solo'}`}>
+          <div className="player-game-raise-row">
             <input
+              id="player-raise-to-input"
               type="number"
               inputMode="numeric"
-              value={raiseAmount}
-              onChange={(e) => clampRaiseBy(Number(e.target.value) || 0)}
-              min={ctx.minRaise}
-              max={maxRaiseBy}
+              value={raiseToTotal}
+              onChange={(e) => {
+                const typedTo = Number(e.target.value)
+                if (!Number.isFinite(typedTo)) {
+                  clampRaiseBy(ctx.minRaise)
+                  return
+                }
+                clampRaiseBy(typedTo - ctx.toCall)
+              }}
+              min={minRaiseTo}
+              max={ctx.toCall + maxRaiseBy}
               disabled={!live}
               className="player-game-input player-game-input--raise"
-              aria-label={`${wagerVerb} by amount`}
+              aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
             />
             <PlayerGameButton
               variant="dark"
@@ -428,7 +341,7 @@ export default function WageringActionButtons({
               disabled={!live || !ctx.canRaise}
               onClick={onRaise}
             >
-              {wagerVerb} to ${raiseToTotal}
+              {wagerVerb} ${raiseToTotal}
             </PlayerGameButton>
           </div>
         </div>

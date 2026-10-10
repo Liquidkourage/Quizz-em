@@ -1064,7 +1064,7 @@
   align-self: stretch;
   width: 100%;
   max-width: none;
-  max-height: min(52%, 20.5rem);
+  max-height: min(48%, 17.5rem);
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1134,11 +1134,6 @@
   gap: 0.4rem;
 }
 
-.player-game-layout--live-fit .player-game-raise-block--dense .player-game-raise-chip {
-  min-height: 2.35rem;
-  padding: 0.35rem 0.25rem;
-  font-size: 0.85rem;
-}
 
 @media (min-width: 1024px) {
   .player-game-layout--answer-dock {
@@ -1531,56 +1526,47 @@
   gap: 0.35rem;
 }
 
-.player-game-raise-block--dense .player-game-raise-chips {
-  margin: 0;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  gap: 0.25rem;
-}
-
-.player-game-raise-block--dense .player-game-raise-chip {
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: 2rem;
-  padding: 0.25rem 0.15rem;
-  font-size: 0.7rem;
-  line-height: 1.15;
-  white-space: nowrap;
-}
-
-.player-game-layout--live-fit .player-game-raise-block--dense .player-game-raise-chip {
-  font-size: 0.72rem;
-  letter-spacing: 0.01em;
-}
-
 .player-game-raise-custom {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.35rem;
 }
 
 .player-game-raise-custom-label {
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 650;
+  font-size: 0.85rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  color: rgb(255 255 255 / 0.62);
+  color: rgb(255 255 255 / 0.72);
   white-space: nowrap;
 }
 
+.player-game-raise-min-hint {
+  margin: 0.3rem 0 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.player-game-raise-min-hint strong {
+  color: rgb(253 224 71 / 0.92);
+  font-variant-numeric: tabular-nums;
+}
+
 .player-game-input--raise-dense {
-  min-height: 2.35rem;
-  padding: 0.35rem 0.55rem;
-  font-size: 1rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 1.1rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .player-game-layout--live-fit .player-game-input--raise-dense {
-  min-height: 2.5rem;
-  font-size: 1.05rem;
+  min-height: 2.65rem;
+  font-size: 1.15rem;
 }
 
 .player-game-input--raise-dense:disabled {
@@ -1687,42 +1673,6 @@
 
 .player-game-raise-block {
   grid-column: 1 / -1;
-}
-
-.player-game-raise-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0.35rem 0 0.45rem;
-}
-
-.player-game-raise-chip {
-  min-height: 2.25rem;
-  padding: 0.35rem 0.65rem;
-  border-radius: 0.35rem;
-  border: 1px solid rgb(251 191 36 / 0.35);
-  background: rgb(8 12 10 / 0.85);
-  color: rgb(254 243 199);
-  font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.player-game-raise-chip:disabled {
-  opacity: 0.4;
-}
-
-.player-game-raise-to {
-  margin: 0 0 0.45rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: rgb(253 224 71);
-}
-
-.player-game-raise-to span {
-  font-weight: 500;
-  color: rgb(255 255 255 / 0.5);
 }
 
 .player-game-raise-row {

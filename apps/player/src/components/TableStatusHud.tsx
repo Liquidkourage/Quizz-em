@@ -4,7 +4,6 @@ import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
 import {
   buildPlayerTableStatusLine,
   firstName,
-  heroRelativeSeatOrder,
   resolveSeatStatusPill,
   seatStreetContribution,
   seatToCallAmount,
@@ -62,7 +61,7 @@ function StatusPillView({
 type SeatRowProps = {
   player: PlayerState
   seatIndex: number
-  isHero: boolean
+  isYou: boolean
   isActing: boolean
   lastAction: SeatBettingAction | null | undefined
   toCall: number
@@ -74,7 +73,7 @@ type SeatRowProps = {
 function SeatRow({
   player,
   seatIndex,
-  isHero,
+  isYou,
   isActing,
   lastAction,
   toCall,
@@ -83,7 +82,7 @@ function SeatRow({
   phase,
 }: SeatRowProps) {
   const hasHand = player.hand.length >= 2
-  const showFaceUp = (isHero || revealCards) && hasHand && !player.hasFolded
+  const showFaceUp = (isYou || revealCards) && hasHand && !player.hasFolded
   const holeDigits: readonly [number, number] | null =
     hasHand && !player.hasFolded ? [player.hand[0]!.digit, player.hand[1]!.digit] : null
 
@@ -92,10 +91,10 @@ function SeatRow({
   const statusPill = quizStatus?.pill ?? bettingPill
   const statusLocked = quizStatus?.locked === true
 
-  const label = isHero ? 'You' : firstName(player.name)
   const rowClass = [
     'player-hud-seat',
-    isHero ? 'player-hud-seat--hero' : 'player-hud-seat--opp',
+    'player-hud-seat--roster',
+    isYou ? 'player-hud-seat--you' : '',
     isActing ? 'player-hud-seat--acting' : '',
     player.hasFolded ? 'player-hud-seat--folded' : '',
   ]
@@ -107,7 +106,8 @@ function SeatRow({
       className={rowClass}
       aria-label={[
         player.name,
-        isHero ? 'you' : null,
+        isYou ? 'you' : null,
+        `seat ${seatIndex + 1}`,
         player.hasFolded ? 'folded' : null,
         isActing ? 'has the wagering turn' : null,
         statusPill?.label ?? null,
@@ -116,44 +116,29 @@ function SeatRow({
         .join(', ')}
       data-seat={seatIndex + 1}
     >
-      {isHero ? (
-        <>
-          <div className="player-hud-seat-meta">
-            <span className="player-hud-seat-name">{label}</span>
-            <span className="player-hud-seat-stack">${player.bankroll.toLocaleString()}</span>
-            {statusPill ? <StatusPillView pill={statusPill} locked={statusLocked} /> : null}
-          </div>
-          {hasHand && !player.hasFolded ? (
-            <div className="player-hud-seat-holes">
-              <PlayerFeltHoleCards
-                scale={0.68}
-                faceDown={!showFaceUp}
-                digits={holeDigits}
-              />
-            </div>
-          ) : null}
-        </>
+      <span className="player-hud-seat-pos" aria-hidden>
+        {seatIndex + 1}
+      </span>
+      <span className="player-hud-seat-name">
+        {firstName(player.name)}
+        {isYou ? <span className="player-hud-you-badge">You</span> : null}
+      </span>
+      <span className="player-hud-seat-stack">${player.bankroll.toLocaleString()}</span>
+      {streetIn > 0 && !player.hasFolded && !isActing ? (
+        <span className="player-game-seat-street-in">${streetIn.toLocaleString()} in</span>
       ) : (
-        <>
-          <span className="player-hud-seat-name">{label}</span>
-          <span className="player-hud-seat-stack">${player.bankroll.toLocaleString()}</span>
-          {streetIn > 0 && !player.hasFolded && !isActing ? (
-            <span className="player-game-seat-street-in">${streetIn.toLocaleString()} in</span>
-          ) : (
-            <span className="player-hud-seat-spacer" aria-hidden />
-          )}
-          {statusPill ? (
-            <StatusPillView pill={statusPill} locked={statusLocked} />
-          ) : (
-            <span className="player-hud-seat-spacer" aria-hidden />
-          )}
-          {revealCards && hasHand && !player.hasFolded ? (
-            <div className="player-hud-seat-holes player-hud-seat-holes--mini">
-              <PlayerFeltHoleCards scale={0.28} faceDown={false} digits={holeDigits} />
-            </div>
-          ) : null}
-        </>
+        <span className="player-hud-seat-spacer" aria-hidden />
       )}
+      {statusPill ? (
+        <StatusPillView pill={statusPill} locked={statusLocked} />
+      ) : (
+        <span className="player-hud-seat-spacer" aria-hidden />
+      )}
+      {revealCards && hasHand && !player.hasFolded && !isYou ? (
+        <div className="player-hud-seat-holes player-hud-seat-holes--mini">
+          <PlayerFeltHoleCards scale={0.28} faceDown={!showFaceUp} digits={holeDigits} />
+        </div>
+      ) : null}
     </article>
   )
 }
@@ -167,10 +152,7 @@ export default function TableStatusHud({
   const players = gameState.players
   if (players.length === 0) return null
 
-  const heroIndex = Math.max(
-    0,
-    players.findIndex((p) => p.name === playerName),
-  )
+  const heroIndex = players.findIndex((p) => p.name === playerName)
   const revealCards = gameState.phase === 'showdown' || gameState.phase === 'reveal'
   const actingIndex =
     gameState.phase === 'betting' &&
@@ -185,15 +167,15 @@ export default function TableStatusHud({
   const currentBet = gameState.round.currentBet
   const pot = gameState.round.pot
   const community = gameState.round.communityCards
+  const hero = heroIndex >= 0 ? players[heroIndex] : undefined
+  const heroHoles =
+    hero && hero.hand.length >= 2 && !hero.hasFolded
+      ? ([hero.hand[0]!.digit, hero.hand[1]!.digit] as const)
+      : null
 
   const statusLine = useMemo(
     () => buildPlayerTableStatusLine(gameState, playerName),
     [gameState, playerName],
-  )
-
-  const { opponentIndices } = useMemo(
-    () => heroRelativeSeatOrder(players.length, heroIndex),
-    [players.length, heroIndex],
   )
 
   const shellClass = [
@@ -202,25 +184,6 @@ export default function TableStatusHud({
   ]
     .filter(Boolean)
     .join(' ')
-
-  const renderSeat = (index: number, isHero: boolean) => {
-    const player = players[index]
-    if (!player) return null
-    return (
-      <SeatRow
-        key={player.id}
-        player={player}
-        seatIndex={index}
-        isHero={isHero}
-        isActing={actingIndex === index && !player.hasFolded}
-        lastAction={lastActions?.[index]}
-        toCall={seatToCallAmount(player, currentBet, playerBets)}
-        streetIn={seatStreetContribution(player, playerBets)}
-        revealCards={revealCards}
-        phase={gameState.phase}
-      />
-    )
-  }
 
   return (
     <section
@@ -233,10 +196,20 @@ export default function TableStatusHud({
         </p>
       ) : null}
 
-      <div className="player-hud-opponents" role="list" aria-label="Table mates">
-        {opponentIndices.map((index) => (
-          <div key={players[index]?.id ?? index} className="player-hud-opp-item" role="listitem">
-            {renderSeat(index, false)}
+      <div className="player-hud-roster" role="list" aria-label="Table seats">
+        {players.map((player, index) => (
+          <div key={player.id} className="player-hud-opp-item" role="listitem">
+            <SeatRow
+              player={player}
+              seatIndex={index}
+              isYou={index === heroIndex}
+              isActing={actingIndex === index && !player.hasFolded}
+              lastAction={lastActions?.[index]}
+              toCall={seatToCallAmount(player, currentBet, playerBets)}
+              streetIn={seatStreetContribution(player, playerBets)}
+              revealCards={revealCards}
+              phase={gameState.phase}
+            />
           </div>
         ))}
       </div>
@@ -266,7 +239,12 @@ export default function TableStatusHud({
         )}
       </div>
 
-      <div className="player-hud-hero">{renderSeat(heroIndex, true)}</div>
+      {heroHoles ? (
+        <div className="player-hud-hero-holes" aria-label="Your hole cards">
+          <span className="player-hud-hero-holes-label">Your holes</span>
+          <PlayerFeltHoleCards scale={0.72} faceDown={false} digits={heroHoles} />
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -2461,6 +2461,7 @@
   container-type: normal;
 }
 
+.player-hud-roster,
 .player-hud-opponents {
   display: flex;
   flex: 1 1 auto;
@@ -2476,6 +2477,52 @@
   flex: 0 1 auto;
   min-width: 0;
   min-height: 0;
+}
+
+.player-hud-you-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgb(251 191 36 / 0.55);
+  background: rgb(69 26 3 / 0.55);
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: rgb(254 243 199);
+}
+
+.player-hud-seat-pos {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(255 255 255 / 0.35);
+  text-align: center;
+}
+
+.player-hud-hero-holes {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.4);
+  background:
+    linear-gradient(90deg, rgb(69 26 3 / 0.35) 0%, rgb(8 12 10 / 0.88) 55%),
+    rgb(8 12 10 / 0.9);
+}
+
+.player-hud-hero-holes-label {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.9rem, 3vw, 1.05rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgb(253 224 71);
 }
 
 .player-hud-center {
@@ -2516,15 +2563,17 @@
   color: rgb(255 255 255 / 0.4);
 }
 
-.player-hud-hero {
+.player-hud-hero,
+.player-hud-hero-holes {
   flex: 0 0 auto;
 }
 
 .player-hud-seat {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(3.5rem, 0.7fr) minmax(2.5rem, 0.55fr) auto;
+  grid-template-columns:
+    1.1rem minmax(0, 1.15fr) minmax(3.4rem, 0.65fr) minmax(2.4rem, 0.5fr) auto;
   align-items: center;
-  gap: 0.25rem 0.35rem;
+  gap: 0.2rem 0.3rem;
   padding: 0.28rem 0.4rem;
   border-radius: 0.4rem;
   border: 1px solid rgb(251 191 36 / 0.2);
@@ -2532,23 +2581,21 @@
   text-align: left;
 }
 
-.player-hud-seat--opp .player-hud-seat-holes--mini {
-  grid-column: 1 / -1;
+.player-hud-seat--roster .player-hud-seat-holes--mini {
+  grid-column: 2 / -1;
   justify-content: flex-start;
 }
 
-.player-hud-seat--hero {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.45rem 0.55rem;
-  border-color: rgb(251 191 36 / 0.45);
+.player-hud-seat--you {
+  border-color: rgb(251 191 36 / 0.55);
   background:
-    linear-gradient(90deg, rgb(69 26 3 / 0.35) 0%, rgb(8 12 10 / 0.88) 55%),
+    linear-gradient(90deg, rgb(69 26 3 / 0.28) 0%, rgb(8 12 10 / 0.88) 60%),
     rgb(8 12 10 / 0.9);
   box-shadow: inset 0 0 0 1px rgb(251 191 36 / 0.12);
+}
+
+.player-hud-seat--you .player-hud-seat-name {
+  color: rgb(253 224 71);
 }
 
 .player-hud-seat--acting {
@@ -2560,16 +2607,6 @@
 
 .player-hud-seat--folded {
   opacity: 0.58;
-}
-
-.player-hud-seat-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.1rem;
-  min-width: 0;
-  flex: 1 1 auto;
-  text-align: left;
 }
 
 .player-hud-seat-name {
@@ -2584,11 +2621,6 @@
   color: rgb(167 243 208);
 }
 
-.player-hud-seat--hero .player-hud-seat-name {
-  color: rgb(253 224 71);
-  font-size: clamp(1.05rem, 3.6vw, 1.28rem);
-}
-
 .player-hud-seat-stack {
   font-family: 'Rajdhani', system-ui, sans-serif;
   font-size: clamp(0.78rem, 2.4vw, 0.95rem);
@@ -2598,24 +2630,19 @@
   text-align: right;
 }
 
-.player-hud-seat--hero .player-hud-seat-stack {
-  font-size: clamp(0.95rem, 3vw, 1.1rem);
-  text-align: left;
-}
-
 .player-hud-seat-spacer {
   display: block;
   min-width: 0;
 }
 
-.player-hud-seat--opp .player-game-seat-pill {
+.player-hud-seat--roster .player-game-seat-pill {
   justify-self: end;
   margin-top: 0;
   font-size: 0.58rem;
   padding: 0.1rem 0.32rem;
 }
 
-.player-hud-seat--opp .player-game-seat-street-in {
+.player-hud-seat--roster .player-game-seat-street-in {
   font-size: 0.68rem;
   text-align: right;
 }
@@ -2630,13 +2657,13 @@
   padding-top: 0.1rem;
 }
 
-/* Pack up to ~8 mate rows into leftover height without scrolling. */
-.player-game-layout--live-fit .player-hud-opponents {
+/* Pack up to ~8 roster rows into leftover height without scrolling. */
+.player-game-layout--live-fit .player-hud-roster {
   container-type: size;
 }
 
-.player-game-layout--live-fit .player-hud-seat--opp {
-  padding-block: clamp(0.12rem, 1.4cqh, 0.28rem);
+.player-game-layout--live-fit .player-hud-seat--roster {
+  padding-block: clamp(0.12rem, 1.2cqh, 0.28rem);
 }
 
 .player-game-layout--live-fit .player-hud-center {

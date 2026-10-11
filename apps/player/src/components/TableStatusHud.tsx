@@ -258,13 +258,10 @@ export default function TableStatusHud({
       ) : null}
 
       {heroHoles ? (
-        <div className="player-hud-hero-cards" aria-label="Your private cards">
-          <div className="player-hud-hero-cards-copy">
-            <span className="player-hud-hero-cards-label">Your cards</span>
-            <span className="player-hud-hero-cards-hint">Only you see these</span>
-          </div>
+        <div className="player-hud-hero-cards" aria-label="Your cards">
+          <span className="player-hud-hero-cards-label">Your cards</span>
           <div className="player-hud-hero-cards-pair">
-            <PlayerFeltHoleCards scale={1} faceDown={false} digits={heroHoles} />
+            <PlayerFeltHoleCards scale={0.92} faceDown={false} digits={heroHoles} />
           </div>
         </div>
       ) : null}

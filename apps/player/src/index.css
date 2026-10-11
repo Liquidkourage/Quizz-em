@@ -2492,11 +2492,12 @@
   align-items: stretch;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.25rem 0.2rem 0.35rem;
+  padding: 0.25rem 0.2rem 0.45rem;
   border: none;
   background: transparent;
   box-shadow: none;
-  overflow: hidden;
+  /* Visible so Your-cards shadows aren’t clipped; roster still clips itself. */
+  overflow: visible;
   container-type: normal;
 }
 
@@ -2547,8 +2548,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.55rem 0.65rem 0.65rem;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  overflow: visible;
   border-radius: 0.55rem;
   border: 2px solid rgb(251 191 36 / 0.55);
   background:
@@ -2559,15 +2561,8 @@
     0 0 22px rgb(251 191 36 / 0.12);
 }
 
-.player-hud-hero-cards-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.05rem;
-  text-align: center;
-}
-
 .player-hud-hero-cards-label {
+  flex: 0 0 auto;
   font-family: 'Rajdhani', system-ui, sans-serif;
   font-size: clamp(1.05rem, 3.8vw, 1.28rem);
   font-weight: 800;
@@ -2577,19 +2572,18 @@
   text-shadow: 0 0 12px rgb(251 191 36 / 0.35);
 }
 
-.player-hud-hero-cards-hint {
-  font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(0.68rem, 2.2vw, 0.78rem);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: rgb(253 230 138 / 0.7);
-}
-
 .player-hud-hero-cards-pair {
   display: flex;
   justify-content: center;
-  transform: scale(1.08);
-  transform-origin: center center;
+  align-items: center;
+  flex: 0 0 auto;
+  /* Card shadow sits inside padding — avoid clipping from ancestors. */
+  padding: 0.2rem 0.15rem 0.35rem;
+  overflow: visible;
+}
+
+.player-game-layout--live-fit .player-hud-hero-cards {
+  overflow: visible;
 }
 
 .player-hud-center {

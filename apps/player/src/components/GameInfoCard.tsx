@@ -59,7 +59,7 @@ export default function GameInfoCard({
         <div className="player-game-info-cards" aria-label="Your cards and community board">
           {showHole ? (
             <div className="player-game-info-card-group">
-              <p className="player-game-card-section-label">Your holes</p>
+              <p className="player-game-card-section-label">Your cards</p>
               <div className="player-game-info-card-row">
                 {hole.slice(0, 2).map((card, i) => (
                   <span key={`hole-${i}-${card.digit}`} className="player-game-info-card-slot">

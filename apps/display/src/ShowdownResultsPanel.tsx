@@ -187,8 +187,7 @@ function PlayerShowdownRow({
   index: number
   compact: boolean
 }) {
-  const hasGuess =
-    !row.hasFolded && row.submitted != null && typeof correctAnswer === 'number'
+  const hasGuess = row.submitted != null && typeof correctAnswer === 'number'
   const distance =
     hasGuess && typeof correctAnswer === 'number'
       ? Math.abs(row.submitted! - correctAnswer)
@@ -233,7 +232,7 @@ function PlayerShowdownRow({
         </span>
         <motion.div className="flex flex-wrap items-center gap-1">
           <HoleChipPair holes={row.holes} folded={row.hasFolded} size={chipSize} />
-          {!row.hasFolded && row.answerCommunityIndices.length > 0 ? (
+          {row.answerCommunityIndices.length > 0 ? (
             <span className="mx-0.5 text-white/25" aria-hidden>
               ·
             </span>
@@ -261,7 +260,7 @@ function PlayerShowdownRow({
               isWinner ? 'text-emerald-300' : 'text-white/70'
             }`}
           >
-            {!row.hasFolded && distance != null ? formatTriviaNumber(distance) : '—'}
+            {distance != null ? formatTriviaNumber(distance) : '—'}
           </p>
         </motion.div>
       ) : null}

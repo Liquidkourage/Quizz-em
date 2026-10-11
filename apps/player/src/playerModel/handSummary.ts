@@ -38,9 +38,10 @@ export function captureHandBaseline(player: PlayerState | undefined): HandBaseli
 export function triviaPointsForAnswer(
   submitted: number | undefined,
   correct: number,
-  folded: boolean
+  /** @deprecated Fold no longer zeros trivia — chip eligibility only. */
+  _folded?: boolean
 ): number {
-  if (folded || submitted === undefined) return 0
+  if (submitted === undefined) return 0
   return triviaAnswerPoints(submitted, correct)
 }
 

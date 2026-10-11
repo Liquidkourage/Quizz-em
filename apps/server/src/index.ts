@@ -2135,7 +2135,14 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     const blindEff = effectiveBlindsForSessionKey(vn, key)
     const seatHoleDigits = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
       const p = gs.players[i]
-      if (p == null || p.hasFolded || p.hand.length < 2) return null
+      // Hide folded holes until showdown so mucked cards stay private during betting.
+      if (
+        p == null ||
+        p.hand.length < 2 ||
+        (p.hasFolded && gs.phase !== 'showdown' && gs.phase !== 'reveal')
+      ) {
+        return null
+      }
       const d0 = p.hand[0]?.digit
       const d1 = p.hand[1]?.digit
       if (
@@ -2167,7 +2174,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     if (gs.phase === 'answering' || gs.phase === 'showdown' || gs.phase === 'reveal') {
       seatSubmittedAnswers = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
         const p = gs.players[i]
-        if (p == null || p.hasFolded) return null
+        if (p == null) return null
         const sa = p.submittedAnswer
         return typeof sa === 'number' && Number.isFinite(sa) ? sa : null
       })
@@ -2181,7 +2188,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       }
       seatAnswerCommunityIndices = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
         const p = gs.players[i]
-        if (p == null || p.hasFolded || typeof p.submittedAnswer !== 'number') return null
+        if (p == null || typeof p.submittedAnswer !== 'number') return null
         const comp = answerCompositionForPlayer(p, gs.round.communityCards)
         if (comp == null) return null
         const idx = communityIndicesFromAnswerComposition(comp)
@@ -2189,7 +2196,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       })
       seatAnswerCompositions = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
         const p = gs.players[i]
-        if (p == null || p.hasFolded || typeof p.submittedAnswer !== 'number') return null
+        if (p == null || typeof p.submittedAnswer !== 'number') return null
         const comp = answerCompositionForPlayer(p, gs.round.communityCards)
         return comp != null && comp.length === PLAYER_ANSWER_DIGIT_CARD_COUNT ? comp : null
       })

@@ -120,6 +120,22 @@ describe('buildTableResults', () => {
     expect(results.winnerIds).toEqual(['a'])
   })
 
+  it('shows a folded seat answer when they still submitted for trivia', () => {
+    const gs = showdownState({
+      answer: 50,
+      players: [
+        { id: 'a', name: 'Alice', submittedAnswer: 50 },
+        { id: 'b', name: 'Bob', hasFolded: true, submittedAnswer: 48 },
+      ],
+    })
+    const results = buildTableResults(gs, 'b')!
+    const bob = results.rows.find((r) => r.playerId === 'b')!
+    expect(bob.formattedAnswer).toBe('48')
+    expect(bob.triviaPoints).toBeGreaterThan(0)
+    expect(bob.folded).toBe(true)
+    expect(results.winnerIds).toEqual(['a'])
+  })
+
   it('excludes pointsOnly from pot winners and labels unanswered points-only seats', () => {
     const gs = showdownState({
       answer: 10,

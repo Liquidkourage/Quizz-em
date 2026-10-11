@@ -1155,8 +1155,9 @@ export function adminSetBlinds(state: GameState, smallBlind: number, bigBlind: n
 export function foldPlayer(state: GameState, playerId: string): GameState {
   const seat = getSeatIndexByPlayerId(state, playerId);
   if (seat >= 0 && state.players[seat]?.pointsOnly) return state;
+  // Keep hole cards: fold exits the chip contest only; trivia answering still uses them.
   const updatedPlayers = state.players.map((player) =>
-    player.id === playerId ? { ...player, hasFolded: true, hand: [] } : player,
+    player.id === playerId ? { ...player, hasFolded: true } : player,
   );
   // Advance turn if the folder was the one to act
   let nextIndex = state.round.currentPlayerIndex ?? -1;
@@ -1211,7 +1212,7 @@ export function determineTriviaWinners(state: GameState): { winnerIds: string[];
   if (!q) return null;
   let bestDistance = Infinity;
   for (const player of state.players) {
-    if (player.hasFolded || player.submittedAnswer === undefined) continue;
+    if (player.submittedAnswer === undefined) continue;
     const distance = Math.abs(player.submittedAnswer - q.answer);
     if (distance < bestDistance) bestDistance = distance;
   }
@@ -1219,7 +1220,6 @@ export function determineTriviaWinners(state: GameState): { winnerIds: string[];
   const winnerIds = state.players
     .filter(
       (p) =>
-        !p.hasFolded &&
         p.submittedAnswer !== undefined &&
         Math.abs(p.submittedAnswer - q.answer) === bestDistance
     )
@@ -1397,8 +1397,8 @@ export function triviaAnswerPoints(submitted: number, correct: number): number {
   return Math.max(0, 100 * (1 - relativeError));
 }
 
-function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAnswer' | 'hasFolded'>, correct: number): number {
-  if (snapshotPlayer.hasFolded || snapshotPlayer.submittedAnswer === undefined) return 0;
+function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAnswer'>, correct: number): number {
+  if (snapshotPlayer.submittedAnswer === undefined) return 0;
   return triviaAnswerPoints(snapshotPlayer.submittedAnswer, correct);
 }
 

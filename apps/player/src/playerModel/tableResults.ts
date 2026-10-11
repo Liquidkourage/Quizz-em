@@ -65,19 +65,15 @@ export function buildTableResults(
     const pointsOnly = p.pointsOnly === true
     const submitted = typeof p.submittedAnswer === 'number' ? p.submittedAnswer : null
     let formattedAnswer = '—'
-    if (folded) formattedAnswer = 'Folded'
-    else if (pointsOnly && submitted == null) formattedAnswer = 'Points only'
-    else if (submitted != null) formattedAnswer = formatTriviaNumber(submitted)
+    if (submitted != null) formattedAnswer = formatTriviaNumber(submitted)
+    else if (folded) formattedAnswer = 'Folded'
+    else if (pointsOnly) formattedAnswer = 'Points only'
 
     const chipPayout = Math.max(0, Math.round(payoutById[p.id] ?? 0))
     const contributed = Math.max(0, Math.round(contributions[p.id] ?? 0))
     const chipChange = pointsOnly ? 0 : chipPayout - contributed
     const bankroll = Math.max(0, Math.round(p.bankroll))
-    const triviaPoints = triviaPointsForAnswer(
-      submitted ?? undefined,
-      q.answer,
-      folded,
-    )
+    const triviaPoints = triviaPointsForAnswer(submitted ?? undefined, q.answer)
     return {
       playerId: p.id,
       name: p.name.trim() || p.id,

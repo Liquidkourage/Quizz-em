@@ -112,6 +112,40 @@ describe('endRound', () => {
     expect(out.phase).toBe('answering')
   })
 
+  it('awards trivia points to a folded seat that still submitted', () => {
+    let gs = createEmptyGame('V', 'h')
+    gs = addPlayer(gs, 'a', 'A', 500)
+    gs = addPlayer(gs, 'b', 'B', 500)
+    gs = {
+      ...gs,
+      phase: 'showdown',
+      round: {
+        ...gs.round,
+        pot: 40,
+        question: { id: 'q', text: '?', answer: 100 },
+        handContributions: { a: 40, b: 0 },
+      },
+      players: [
+        {
+          ...gs.players[0]!,
+          submittedAnswer: 100,
+          hasFolded: false,
+          answerPoints: 0,
+        },
+        {
+          ...gs.players[1]!,
+          submittedAnswer: 90,
+          hasFolded: true,
+          answerPoints: 0,
+        },
+      ],
+    }
+    gs = endRound(gs)
+    expect(gs.players.find((p) => p.id === 'a')!.answerPoints).toBe(100)
+    expect(gs.players.find((p) => p.id === 'b')!.answerPoints).toBe(90)
+    expect(gs.players.find((p) => p.id === 'a')!.bankroll).toBeGreaterThan(500)
+  })
+
   it('splits the pot across tied trivia winners with whole-dollar conservation', () => {
     let gs = createEmptyGame('V', 'h')
     gs = addPlayer(gs, 'a', 'A')
@@ -212,7 +246,7 @@ describe('endRound', () => {
 })
 
 describe('foldPlayer', () => {
-  it('mucks hole cards when a player folds', () => {
+  it('keeps hole cards so folded seats can still answer for trivia points', () => {
     let gs = createEmptyGame('T', 'h1')
     gs = addPlayer(gs, 'p1', 'Alice')
     gs = {
@@ -227,6 +261,6 @@ describe('foldPlayer', () => {
     }
     gs = foldPlayer(gs, 'p1')
     expect(gs.players[0]!.hasFolded).toBe(true)
-    expect(gs.players[0]!.hand).toEqual([])
+    expect(gs.players[0]!.hand).toEqual([{ digit: 3 }, { digit: 7 }])
   })
 })

@@ -149,10 +149,10 @@ function stepVirtualSimulation(state: GameState): GameState {
   const virtualFirstNeedingAnswer = state.players.find(
     p =>
       isVirtualPlayerId(p.id) &&
-      !p.hasFolded &&
       p.submittedAnswer === undefined &&
       state.phase === 'answering' &&
-      state.round.question
+      state.round.question &&
+      p.hand.length === 2
   )
 
   if (virtualFirstNeedingAnswer && state.phase === 'answering' && state.round.question) {

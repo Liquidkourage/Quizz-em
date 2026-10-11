@@ -24,16 +24,15 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
         <p className="player-table-results-winners">{formatWinnerLine(results)}</p>
         {you ? (
           <p className="player-table-results-you-line">
-            {you.folded ? (
-              'You folded — no trivia score'
-            ) : you.submitted == null ? (
-              'No answer submitted'
+            {you.submitted == null ? (
+              you.folded ? 'Folded chips — no answer submitted' : 'No answer submitted'
             ) : (
               <>
                 Your answer{' '}
                 <span className="player-game-result-mono">{you.formattedAnswer}</span>
                 {' · '}
                 <strong className="player-game-result-mono">{you.triviaPoints}</strong> pts
+                {you.folded ? ' · folded chips' : null}
               </>
             )}
           </p>

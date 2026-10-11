@@ -263,26 +263,18 @@ export function showdownRowsFromTile(tile: DisplayVenueTileSnapshot): ShowdownRe
     const hasFolded = folded[i] === true
     let holePair: readonly [number, number] | null = null
     const h = holes?.[i]
-    if (
-      !hasFolded &&
-      h != null &&
-      h.length >= 2 &&
-      typeof h[0] === 'number' &&
-      typeof h[1] === 'number'
-    ) {
+    if (h != null && h.length >= 2 && typeof h[0] === 'number' && typeof h[1] === 'number') {
       holePair = [h[0], h[1]]
     }
     let submitted: number | null = null
-    if (!hasFolded) {
-      const g = guesses?.[i]
-      if (typeof g === 'number' && Number.isFinite(g)) submitted = g
-    }
+    const g = guesses?.[i]
+    if (typeof g === 'number' && Number.isFinite(g)) submitted = g
     const composition =
-      !hasFolded && submitted != null
+      submitted != null
         ? compositionForTileSeat(tile, i, holePair, communityBoard, submitted)
         : null
     const answerCommunityIndices =
-      !hasFolded && submitted != null
+      submitted != null
         ? communityIndicesForPlayer(composition, communityPicks?.[i] ?? null)
         : []
     const answerCards = cardsUsedFromComposition(composition, holePair, communityBoard)
@@ -314,11 +306,8 @@ export function showdownRowsFromGameState(gs: GameState): ShowdownResultRow[] {
   const payoutById = previewChipPayoutByPlayerId(gs)
   return gs.players.map((p, i) => {
     const holes: readonly [number, number] | null =
-      !p.hasFolded && p.hand.length >= 2
-        ? [p.hand[0]!.digit, p.hand[1]!.digit]
-        : null
-    const submitted =
-      !p.hasFolded && typeof p.submittedAnswer === 'number' ? p.submittedAnswer : null
+      p.hand.length >= 2 ? [p.hand[0]!.digit, p.hand[1]!.digit] : null
+    const submitted = typeof p.submittedAnswer === 'number' ? p.submittedAnswer : null
     let composition =
       submitted != null ? answerCompositionForPlayer(p, gs.round.communityCards) : null
     if (composition == null && submitted != null) {
@@ -370,8 +359,7 @@ export function sortShowdownRowsByDistance(
   winnerKeys: ReadonlySet<string>
 } {
   const ranked = rows.map((r) => {
-    const has =
-      !r.hasFolded && r.submitted != null && typeof correct === 'number'
+    const has = r.submitted != null && typeof correct === 'number'
     const distance = has ? Math.abs(r.submitted! - correct) : Infinity
     return { ...r, distance, has }
   })
@@ -384,10 +372,13 @@ export function sortShowdownRowsByDistance(
   )
   if (paidRows.length > 0) {
     for (const r of paidRows) winners.add(rowKey(r))
-  } else if (ranked.length > 0 && ranked[0]!.distance !== Infinity) {
-    const best = ranked[0]!.distance
-    for (const r of ranked) {
-      if (r.distance === best) winners.add(rowKey(r))
+  } else {
+    const chipContenders = ranked.filter((r) => !r.hasFolded && r.distance !== Infinity)
+    if (chipContenders.length > 0) {
+      const best = chipContenders[0]!.distance
+      for (const r of chipContenders) {
+        if (r.distance === best) winners.add(rowKey(r))
+      }
     }
   }
 

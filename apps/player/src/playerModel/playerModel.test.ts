@@ -125,8 +125,8 @@ describe('handSummary', () => {
     expect(summary.triviaPointsThisHand).toBe(95)
   })
 
-  it('scores zero trivia when folded', () => {
-    expect(triviaPointsForAnswer(5, 5, true)).toBe(0)
+  it('still scores trivia when folded (fold is chip-only)', () => {
+    expect(triviaPointsForAnswer(5, 5, true)).toBe(100)
   })
 })
 

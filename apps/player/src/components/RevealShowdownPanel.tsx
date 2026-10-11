@@ -17,19 +17,22 @@ export default function RevealShowdownPanel({ gameState, currentPlayer }: Reveal
   const submitted = currentPlayer.submittedAnswer
   const correct = q.answer
   const folded = currentPlayer.hasFolded
-  const pts = triviaPointsForAnswer(submitted, correct, folded)
+  const pts = triviaPointsForAnswer(submitted, correct)
 
   return (
     <PlayerGoldPanel title="Your result">
-      {folded ? (
-        <p className="player-game-result">You folded — no trivia score this hand.</p>
-      ) : submitted == null ? (
-        <p className="player-game-result">No answer submitted this hand.</p>
+      {submitted == null ? (
+        <p className="player-game-result">
+          {folded
+            ? 'Folded chips — no answer submitted this hand.'
+            : 'No answer submitted this hand.'}
+        </p>
       ) : (
         <div className="player-game-result">
           <p>
             Your answer:{' '}
             <span className="player-game-result-mono">{formatTriviaNumber(submitted)}</span>
+            {folded ? <span className="text-white/50"> · folded chips</span> : null}
           </p>
           <p>
             Correct: <span className="player-game-result-correct">{formatTriviaNumber(correct)}</span>

@@ -43,8 +43,7 @@ function rowsToStadiumSeats(
   return rows.map((row) => {
     const key = `${row.seat}:${row.name}`
     const isWinner = winnerKeys.has(key)
-    const hasGuess =
-      !row.hasFolded && row.submitted != null && typeof correctAnswer === 'number'
+    const hasGuess = row.submitted != null && typeof correctAnswer === 'number'
     const distance =
       hasGuess && typeof correctAnswer === 'number'
         ? Math.abs(row.submitted! - correctAnswer)

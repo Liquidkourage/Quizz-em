@@ -334,8 +334,7 @@ function PlayerApp() {
     )
   }
 
-  const showAnswerModal =
-    gameState.phase === 'answering' && !!currentPlayer && !currentPlayer.hasFolded
+  const showAnswerModal = gameState.phase === 'answering' && !!currentPlayer
 
   const seatedAtTable = (gameState.tableId ?? '') !== LOBBY_TABLE_ID
   const isBettingPhase = gameState.phase === 'betting'

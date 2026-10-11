@@ -77,12 +77,15 @@ export default function WageringActionButtons({
   const raiseToTotal = ctx.toCall + effectiveRaiseBy
   const wagerVerb = ctx.isOpeningBet ? 'Bet' : 'Raise'
   const minRaiseTo = ctx.toCall + ctx.minRaise
+  const soloBtnClass = 'player-game-btn--block player-game-btn--solo'
+  const raiseDisabled = !live || !ctx.canRaise
+  const raiseBtnClass = `${soloBtnClass} player-game-raise-compact-go${
+    raiseDisabled ? ' player-game-btn--muted' : ''
+  }`
 
   if (!hasPrimary && !showRaise && !hasSecondary) {
     return null
   }
-
-  const soloBtnClass = 'player-game-btn--block player-game-btn--solo'
 
   const clampRaiseBy = (n: number) => {
     if (!live) return
@@ -129,7 +132,11 @@ export default function WageringActionButtons({
           onAllIn()
         }}
       >
-        {allInConfirmPending ? 'Confirm all-in' : dense ? 'All-in' : `All-in $${currentPlayer.bankroll}`}
+        {allInConfirmPending
+          ? 'Tap again to all-in'
+          : dense
+            ? 'All-in'
+            : `All-in $${currentPlayer.bankroll}`}
       </PlayerGameButton>
     ) : null
 
@@ -152,7 +159,7 @@ export default function WageringActionButtons({
         disabled={!live}
         onClick={onCall}
       >
-        Call ${ctx.toCall}
+        {'Call $' + String(ctx.toCall)}
       </PlayerGameButton>
     ) : shortAllInCall ? (
       <PlayerGameButton
@@ -171,7 +178,7 @@ export default function WageringActionButtons({
           onAllIn()
         }}
       >
-        {allInConfirmPending ? 'Confirm all-in' : `All-in $${currentPlayer.bankroll}`}
+        {allInConfirmPending ? 'Tap again to all-in' : `All-in $${currentPlayer.bankroll}`}
       </PlayerGameButton>
     ) : null
 
@@ -196,11 +203,11 @@ export default function WageringActionButtons({
                   <PlayerGameButton
                     variant="dark"
                     size={btnSize}
-                    className={`${soloBtnClass} player-game-raise-compact-go`}
-                    disabled={!live || !ctx.canRaise}
+                    className={raiseBtnClass}
+                    disabled={raiseDisabled}
                     onClick={onRaise}
                   >
-                    {wagerVerb} ${raiseToTotal}
+                    {wagerVerb + ' $' + String(raiseToTotal)}
                   </PlayerGameButton>
                   <div className="player-game-raise-amount-col">
                     <span className="player-game-raise-compact-label">{wagerVerb} to</span>
@@ -232,15 +239,15 @@ export default function WageringActionButtons({
                 {primaryBtn}
                 {showRaise ? (
                   <div className="player-game-raise-compact-pair player-game-raise-compact-pair--solo">
-                    <PlayerGameButton
-                      variant="dark"
-                      size={btnSize}
-                      className={`${soloBtnClass} player-game-raise-compact-go`}
-                      disabled={!live || !ctx.canRaise}
-                      onClick={onRaise}
-                    >
-                      {wagerVerb} ${raiseToTotal}
-                    </PlayerGameButton>
+                  <PlayerGameButton
+                    variant="dark"
+                    size={btnSize}
+                    className={raiseBtnClass}
+                    disabled={raiseDisabled}
+                    onClick={onRaise}
+                  >
+                    {wagerVerb + ' $' + String(raiseToTotal)}
+                  </PlayerGameButton>
                     <div className="player-game-raise-amount-col">
                       <span className="player-game-raise-compact-label">{wagerVerb} to</span>
                       <span className="player-game-raise-compact-min">min ${minRaiseTo}</span>
@@ -316,7 +323,7 @@ export default function WageringActionButtons({
               disabled={!live}
               onClick={onCall}
             >
-              Call ${ctx.toCall}
+              {'Call $' + String(ctx.toCall)}
             </PlayerGameButton>
           ) : null}
           {shortAllInCall ? (
@@ -336,7 +343,7 @@ export default function WageringActionButtons({
                 onAllIn()
               }}
             >
-              {allInConfirmPending ? 'Confirm all-in' : `All-in $${currentPlayer.bankroll}`}
+              {allInConfirmPending ? 'Tap again to all-in' : `All-in $${currentPlayer.bankroll}`}
             </PlayerGameButton>
           ) : null}
         </div>
@@ -379,7 +386,7 @@ export default function WageringActionButtons({
               disabled={!live || !ctx.canRaise}
               onClick={onRaise}
             >
-              {wagerVerb} ${raiseToTotal}
+              {wagerVerb + ' $' + String(raiseToTotal)}
             </PlayerGameButton>
           </div>
         </div>

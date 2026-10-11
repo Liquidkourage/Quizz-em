@@ -7,14 +7,21 @@ type PlayerTableHeaderProps = {
   disconnected?: boolean
   lastTableId?: string
   onReconnect?: () => void
+  /** Seated live play — shrink brand chrome so roster/dock own the screen. */
+  compactLive?: boolean
 }
 
-export function PlayerTableHeader({ disconnected, lastTableId, onReconnect }: PlayerTableHeaderProps) {
+export function PlayerTableHeader({
+  disconnected,
+  lastTableId,
+  onReconnect,
+  compactLive = false,
+}: PlayerTableHeaderProps) {
   return (
     <header
       className={`player-join-header player-game-header player-game-header--compact${
-        disconnected ? ' player-game-header--reconnect' : ''
-      }`}
+        compactLive ? ' player-game-header--live-min' : ''
+      }${disconnected ? ' player-game-header--reconnect' : ''}`}
     >
       <div className="player-join-logo-glow" aria-hidden />
       <div className="player-join-logo player-join-logo--compact">

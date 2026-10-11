@@ -1482,6 +1482,8 @@ const HUMAN_TIMEBANK_MS = 30_000
 /** One-time extension if the acting player is disconnected when the clock fires. */
 const HUMAN_DISCONNECT_GRACE_MS = 30_000
 const humanTurnTimers = new Map<string, ReturnType<typeof setTimeout>>()
+/** sessionKey → epoch ms when the current human shot clock expires. */
+const humanTurnDeadlineMs = new Map<string, number>()
 /** `${sessionKey}:${playerId}:${seatIndex}` → extensions already used this turn. */
 const humanTurnExtensions = new Map<string, { timebank: boolean; disconnectGrace: boolean }>()
 /** sessionKey → `${playerId}:${seatIndex}` currently on the clock. */
@@ -1550,38 +1552,83 @@ function clearHumanTurnTimer(sessionKey: string): void {
     clearTimeout(timer)
     humanTurnTimers.delete(sessionKey)
   }
+  humanTurnDeadlineMs.delete(sessionKey)
 }
 
 function humanTurnExtKey(sessionKey: string, playerId: string, seatIndex: number): string {
   return `${sessionKey}:${playerId}:${seatIndex}`
 }
 
-function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
-  clearHumanTurnTimer(sessionKey)
-  if (gs.phase !== 'betting' || !gs.round.isBettingOpen) return
-  const idx = gs.round.currentPlayerIndex
-  if (typeof idx !== 'number' || idx < 0) return
-  const player = gs.players[idx]
-  if (!player || player.id.startsWith('vp:') || player.hasFolded || !inChipContest(player)) return
+function buildPlayerOnlineMap(gs: GameState): Record<string, boolean> {
+  const out: Record<string, boolean> = {}
+  for (const p of gs.players) {
+    if (p.id.startsWith('vp:')) {
+      out[p.id] = true
+      continue
+    }
+    const sock = getSocketForPlayer(p.id)
+    out[p.id] = Boolean(sock?.connected)
+  }
+  return out
+}
 
-  const seatIndex = idx
-  const playerId = player.id
-  const playerName = player.name
-  const extKey = humanTurnExtKey(sessionKey, playerId, seatIndex)
-  const actorKey = `${playerId}:${seatIndex}`
+function resolveHumanTurnActor(
+  gs: GameState,
+): { seatIndex: number; playerId: string; playerName: string } | null {
+  if (gs.phase !== 'betting' || !gs.round.isBettingOpen) return null
+  const idx = gs.round.currentPlayerIndex
+  if (typeof idx !== 'number' || idx < 0) return null
+  const player = gs.players[idx]
+  if (!player || player.id.startsWith('vp:') || player.hasFolded || !inChipContest(player)) return null
+  return { seatIndex: idx, playerId: player.id, playerName: player.name }
+}
+
+/**
+ * Keep shot-clock deadline in sync with the acting human. Returns deadline for the wire
+ * payload (undefined when no human is on the clock).
+ */
+function syncHumanTurnDeadline(sessionKey: string, gs: GameState): number | undefined {
+  const actor = resolveHumanTurnActor(gs)
+  if (!actor) {
+    humanTurnDeadlineMs.delete(sessionKey)
+    humanTurnActorKey.delete(sessionKey)
+    return undefined
+  }
+  const actorKey = `${actor.playerId}:${actor.seatIndex}`
   const prevActor = humanTurnActorKey.get(sessionKey)
   if (prevActor !== actorKey) {
     for (const k of [...humanTurnExtensions.keys()]) {
       if (k.startsWith(`${sessionKey}:`)) humanTurnExtensions.delete(k)
     }
     humanTurnActorKey.set(sessionKey, actorKey)
-    humanTurnExtensions.set(extKey, { timebank: false, disconnectGrace: false })
-  } else if (!humanTurnExtensions.has(extKey)) {
-    humanTurnExtensions.set(extKey, { timebank: false, disconnectGrace: false })
+    humanTurnExtensions.set(humanTurnExtKey(sessionKey, actor.playerId, actor.seatIndex), {
+      timebank: false,
+      disconnectGrace: false,
+    })
+    humanTurnDeadlineMs.set(sessionKey, Date.now() + HUMAN_TURN_TIMEOUT_MS)
+  } else if (!humanTurnDeadlineMs.has(sessionKey)) {
+    humanTurnDeadlineMs.set(sessionKey, Date.now() + HUMAN_TURN_TIMEOUT_MS)
+  }
+  return humanTurnDeadlineMs.get(sessionKey)
+}
+
+function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
+  const actor = resolveHumanTurnActor(gs)
+  if (!actor) {
+    clearHumanTurnTimer(sessionKey)
+    return
   }
 
-  const arm = (delayMs: number) => {
-    clearHumanTurnTimer(sessionKey)
+  const { seatIndex, playerId, playerName } = actor
+  const extKey = humanTurnExtKey(sessionKey, playerId, seatIndex)
+  const deadline = humanTurnDeadlineMs.get(sessionKey) ?? Date.now() + HUMAN_TURN_TIMEOUT_MS
+  humanTurnDeadlineMs.set(sessionKey, deadline)
+  const delayMs = Math.max(0, deadline - Date.now())
+
+  const arm = (nextDelayMs: number, nextDeadlineMs: number) => {
+    clearTimeout(humanTurnTimers.get(sessionKey))
+    humanTurnTimers.delete(sessionKey)
+    humanTurnDeadlineMs.set(sessionKey, nextDeadlineMs)
     const timer = setTimeout(() => {
       humanTurnTimers.delete(sessionKey)
       let cur = rooms.get(sessionKey) as GameState | undefined
@@ -1601,7 +1648,9 @@ function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
           'toast',
           `${playerName} disconnected — +${Math.round(HUMAN_DISCONNECT_GRACE_MS / 1000)}s grace.`,
         )
-        arm(HUMAN_DISCONNECT_GRACE_MS)
+        const graceDeadline = Date.now() + HUMAN_DISCONNECT_GRACE_MS
+        arm(HUMAN_DISCONNECT_GRACE_MS, graceDeadline)
+        emitVenueTableState(sessionKey, cur, { skipOrchestration: true })
         return
       }
 
@@ -1612,7 +1661,9 @@ function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
           'toast',
           `${playerName} is using their ${Math.round(HUMAN_TIMEBANK_MS / 1000)}s timebank.`,
         )
-        arm(HUMAN_TIMEBANK_MS)
+        const bankDeadline = Date.now() + HUMAN_TIMEBANK_MS
+        arm(HUMAN_TIMEBANK_MS, bankDeadline)
+        emitVenueTableState(sessionKey, cur, { skipOrchestration: true })
         return
       }
 
@@ -1622,16 +1673,21 @@ function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
       cur = runVirtualPlayerSimulation(cur)
       rooms.set(sessionKey, cur)
       humanTurnExtensions.delete(extKey)
+      humanTurnDeadlineMs.delete(sessionKey)
       emitVenueTableState(sessionKey, cur)
       io.to(sessionKey).emit(
         'toast',
         `${playerName} timed out — ${toCall === 0 ? 'checked' : 'folded'}.`,
       )
-    }, delayMs)
+    }, nextDelayMs)
     humanTurnTimers.set(sessionKey, timer)
   }
 
-  arm(HUMAN_TURN_TIMEOUT_MS)
+  // Don't clear deadline when re-arming the same turn — only replace the timer handle.
+  const prev = humanTurnTimers.get(sessionKey)
+  if (prev) clearTimeout(prev)
+  humanTurnTimers.delete(sessionKey)
+  arm(delayMs, deadline)
 }
 
 function runVenueCondenseAfterRound(
@@ -2349,12 +2405,25 @@ function emitVenueTableState(
   gs: GameState,
   opts?: { skipOrchestration?: boolean }
 ) {
-  io.to(sessionKey).emit('state', { ...gs, serverNowMs: Date.now() })
+  const turnDeadlineMs = syncHumanTurnDeadline(sessionKey, gs)
+  io.to(sessionKey).emit('state', {
+    ...gs,
+    serverNowMs: Date.now(),
+    playerOnline: buildPlayerOnlineMap(gs),
+    round: { ...gs.round, turnDeadlineMs },
+  })
   scheduleHumanTurnTimeout(sessionKey, gs)
   afterTableStateBroadcast(gs, sessionKey)
   if (!opts?.skipOrchestration) {
     applyVenueWageringOrchestration(gs.code)
   }
+}
+
+/** Presence-only refresh after connect/disconnect (no wagering orchestration). */
+function emitTablePresence(sessionKey: string): void {
+  const gs = rooms.get(sessionKey) as GameState | undefined
+  if (!gs) return
+  emitVenueTableState(sessionKey, gs, { skipOrchestration: true })
 }
 
 /**
@@ -3895,7 +3964,25 @@ io.on('connection', (socket) => {
     console.log('Client disconnected:', socket.id)
 
     clearDisplayPairingForSocket(socket.id)
-    unregisterPlayerSocket(socket.id)
+    const playerId = unregisterPlayerSocket(socket.id)
+    if (playerId) {
+      const venueCode =
+        typeof (socket.data as { venueCode?: string }).venueCode === 'string'
+          ? (socket.data as { venueCode: string }).venueCode
+          : null
+      const hit = venueCode
+        ? findPlayerSessionInVenue(venueCode, playerId)
+        : null
+      if (hit) emitTablePresence(hit.sessionKey)
+      else {
+        for (const [tk, gs] of rooms) {
+          if ((gs as GameState).players?.some((p) => p.id === playerId)) {
+            emitTablePresence(tk)
+            break
+          }
+        }
+      }
+    }
   })
 })
 

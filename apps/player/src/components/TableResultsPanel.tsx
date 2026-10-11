@@ -8,6 +8,11 @@ type TableResultsPanelProps = {
 
 export default function TableResultsPanel({ results }: TableResultsPanelProps) {
   const you = results.rows.find((r) => r.isYou)
+  const orderedRows = [
+    ...results.rows.filter((r) => r.isYou),
+    ...results.rows.filter((r) => !r.isYou && r.isPotWinner),
+    ...results.rows.filter((r) => !r.isYou && !r.isPotWinner),
+  ]
 
   return (
     <PlayerGoldPanel title="Table results">
@@ -42,7 +47,7 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
           <span role="columnheader">Stack</span>
           <span role="columnheader">Change</span>
         </div>
-        {results.rows.map((row) => (
+        {orderedRows.map((row) => (
           <div
             key={row.playerId}
             role="row"

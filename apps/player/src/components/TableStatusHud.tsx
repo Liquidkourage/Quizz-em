@@ -16,11 +16,17 @@ type TableStatusHudProps = {
   /** When false, pot is shown elsewhere (e.g. sticky question bar). */
   showCenterPot?: boolean
   fillViewport?: boolean
+  /** Seconds left on the acting human’s shot clock. */
+  turnRemainingSec?: number | null
+  /** Wire map of playerId → online. */
+  playerOnline?: Record<string, boolean>
 }
 
 function seatStatusPillClass(pill: SeatStatusPill): string {
   if (pill.kind === 'acting') return 'player-game-seat-pill player-game-seat-pill--acting'
   if (pill.kind === 'allIn') return 'player-game-seat-pill player-game-seat-pill--allIn'
+  if (pill.kind === 'away') return 'player-game-seat-pill player-game-seat-pill--away'
+  if (pill.kind === 'street') return 'player-game-seat-pill player-game-seat-pill--street'
   return `player-game-seat-pill player-game-seat-pill--${pill.action}`
 }
 
@@ -63,6 +69,7 @@ type SeatRowProps = {
   seatIndex: number
   isYou: boolean
   isActing: boolean
+  isAway: boolean
   lastAction: SeatBettingAction | null | undefined
   toCall: number
   streetIn: number
@@ -75,6 +82,7 @@ function SeatRow({
   seatIndex,
   isYou,
   isActing,
+  isAway,
   lastAction,
   toCall,
   streetIn,
@@ -86,7 +94,14 @@ function SeatRow({
   const holeDigits: readonly [number, number] | null =
     hasHand && !player.hasFolded ? [player.hand[0]!.digit, player.hand[1]!.digit] : null
 
-  const bettingPill = resolveSeatStatusPill({ player, isActing, lastAction, toCall })
+  const bettingPill = resolveSeatStatusPill({
+    player,
+    isActing,
+    lastAction,
+    toCall,
+    streetIn,
+    isAway,
+  })
   const quizStatus = answeringStatus(player, phase)
   const statusPill = quizStatus?.pill ?? bettingPill
   const statusLocked = quizStatus?.locked === true
@@ -97,6 +112,7 @@ function SeatRow({
     isYou ? 'player-hud-seat--you' : '',
     isActing ? 'player-hud-seat--acting' : '',
     player.hasFolded ? 'player-hud-seat--folded' : '',
+    isAway && !player.hasFolded ? 'player-hud-seat--away' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -109,6 +125,7 @@ function SeatRow({
         isYou ? 'you' : null,
         `seat ${seatIndex + 1}`,
         player.hasFolded ? 'folded' : null,
+        isAway ? 'away' : null,
         isActing ? 'has the wagering turn' : null,
         statusPill?.label ?? null,
       ]
@@ -124,11 +141,6 @@ function SeatRow({
         {isYou ? <span className="player-hud-you-badge">You</span> : null}
       </span>
       <span className="player-hud-seat-stack">${player.bankroll.toLocaleString()}</span>
-      {streetIn > 0 && !player.hasFolded && !isActing ? (
-        <span className="player-game-seat-street-in">${streetIn.toLocaleString()} in</span>
-      ) : (
-        <span className="player-hud-seat-spacer" aria-hidden />
-      )}
       {statusPill ? (
         <StatusPillView pill={statusPill} locked={statusLocked} />
       ) : (
@@ -148,6 +160,8 @@ export default function TableStatusHud({
   playerName,
   showCenterPot = true,
   fillViewport = false,
+  turnRemainingSec = null,
+  playerOnline,
 }: TableStatusHudProps) {
   const players = gameState.players
   if (players.length === 0) return null
@@ -174,8 +188,8 @@ export default function TableStatusHud({
       : null
 
   const statusLine = useMemo(
-    () => buildPlayerTableStatusLine(gameState, playerName),
-    [gameState, playerName],
+    () => buildPlayerTableStatusLine(gameState, playerName, turnRemainingSec),
+    [gameState, playerName, turnRemainingSec],
   )
 
   const shellClass = [
@@ -184,6 +198,9 @@ export default function TableStatusHud({
   ]
     .filter(Boolean)
     .join(' ')
+
+  const showBoard = community.length > 0
+  const showPotBlock = showCenterPot && pot > 0
 
   return (
     <section
@@ -197,47 +214,48 @@ export default function TableStatusHud({
       ) : null}
 
       <div className="player-hud-roster" role="list" aria-label="Table seats">
-        {players.map((player, index) => (
-          <div key={player.id} className="player-hud-opp-item" role="listitem">
-            <SeatRow
-              player={player}
-              seatIndex={index}
-              isYou={index === heroIndex}
-              isActing={actingIndex === index && !player.hasFolded}
-              lastAction={lastActions?.[index]}
-              toCall={seatToCallAmount(player, currentBet, playerBets)}
-              streetIn={seatStreetContribution(player, playerBets)}
-              revealCards={revealCards}
-              phase={gameState.phase}
-            />
-          </div>
-        ))}
+        {players.map((player, index) => {
+          const online = playerOnline?.[player.id]
+          const isAway = online === false
+          return (
+            <div key={player.id} className="player-hud-opp-item" role="listitem">
+              <SeatRow
+                player={player}
+                seatIndex={index}
+                isYou={index === heroIndex}
+                isActing={actingIndex === index && !player.hasFolded}
+                isAway={isAway}
+                lastAction={lastActions?.[index]}
+                toCall={seatToCallAmount(player, currentBet, playerBets)}
+                streetIn={seatStreetContribution(player, playerBets)}
+                revealCards={revealCards}
+                phase={gameState.phase}
+              />
+            </div>
+          )
+        })}
       </div>
 
-      <div className="player-hud-center">
-        {showCenterPot && pot > 0 ? (
-          <span className="player-game-table-pot">Pot ${pot.toLocaleString()}</span>
-        ) : pot > 0 ? (
-          <span className="player-hud-center-pot-quiet">Pot ${pot.toLocaleString()}</span>
-        ) : (
-          <span className="player-hud-center-pot-quiet">Pot —</span>
-        )}
-        {community.length > 0 ? (
-          <div className="player-hud-board" aria-label="Community cards">
-            {community.slice(0, 5).map((card, i) => (
-              <NumericPlayingCard
-                key={`${card.digit}-${i}`}
-                digit={card.digit}
-                size="small"
-                compact
-                animated={false}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="player-hud-board-empty">Board deals after this street</p>
-        )}
-      </div>
+      {showPotBlock || showBoard ? (
+        <div className="player-hud-center">
+          {showPotBlock ? (
+            <span className="player-game-table-pot">Pot ${pot.toLocaleString()}</span>
+          ) : null}
+          {showBoard ? (
+            <div className="player-hud-board" aria-label="Community cards">
+              {community.slice(0, 5).map((card, i) => (
+                <NumericPlayingCard
+                  key={`${card.digit}-${i}`}
+                  digit={card.digit}
+                  size="small"
+                  compact
+                  animated={false}
+                />
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {heroHoles ? (
         <div className="player-hud-hero-holes" aria-label="Your hole cards">

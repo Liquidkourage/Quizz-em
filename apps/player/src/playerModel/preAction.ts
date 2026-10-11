@@ -28,3 +28,11 @@ export function preActionLabel(pre: PreAction | null): string {
   if (pre.kind === 'callAny') return 'Call any amount'
   return 'Call this bet, fold to a raise'
 }
+
+/** Short dock status when a pre-act is armed. */
+export function preActionArmedLabel(pre: PreAction | null): string {
+  if (!pre) return ''
+  if (pre.kind === 'checkFold') return 'Armed: Check / fold'
+  if (pre.kind === 'callAny') return 'Armed: Call any'
+  return 'Armed: Call / fold'
+}

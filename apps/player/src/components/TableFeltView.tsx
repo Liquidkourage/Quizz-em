@@ -8,6 +8,8 @@ type TableFeltViewProps = {
   showCenterPot?: boolean
   /** Drop panel title; HUD fills remaining viewport height. */
   fillViewport?: boolean
+  turnRemainingSec?: number | null
+  playerOnline?: Record<string, boolean>
 }
 
 /** Seated table view — compact status HUD (not a mini TV stadium). */

@@ -193,6 +193,7 @@ function PlayerApp() {
   const handSummary = useHandSummary(gameState, currentPlayer)
   const tableResults = useTableResults(gameState, currentPlayer?.id ?? joinPrefs.playerId)
   const remainingSec = useAnswerCountdown(gameState?.round.answerDeadline)
+  const turnRemainingSec = useAnswerCountdown(gameState?.round.turnDeadlineMs)
 
   const bettingCtx = useMemo(
     () =>
@@ -219,6 +220,27 @@ function PlayerApp() {
   useEffect(() => {
     setPreAction(null)
   }, [gameState?.round.roundId, gameState?.round.bettingRound])
+
+  const wasMyTurnRef = useRef(false)
+  const [turnFlash, setTurnFlash] = useState(false)
+  useEffect(() => {
+    const live = Boolean(bettingCtx?.isMyTurn)
+    if (live && !wasMyTurnRef.current) {
+      setTurnFlash(true)
+      try {
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          navigator.vibrate([40, 30, 40])
+        }
+      } catch {
+        /* ignore */
+      }
+      const t = window.setTimeout(() => setTurnFlash(false), 900)
+      wasMyTurnRef.current = live
+      return () => window.clearTimeout(t)
+    }
+    wasMyTurnRef.current = live
+    return undefined
+  }, [bettingCtx?.isMyTurn])
 
   const preActTurnKeyRef = useRef('')
   useEffect(() => {
@@ -346,6 +368,8 @@ function PlayerApp() {
       playerName={playerName}
       showCenterPot={!showStickyQuestion}
       fillViewport={liveFit}
+      turnRemainingSec={turnRemainingSec}
+      playerOnline={gameState.playerOnline}
     />
   )
 
@@ -379,7 +403,14 @@ function PlayerApp() {
     ) : null
 
   return (
-    <PlayerGameScreen className={liveFit ? 'player-game-screen--fit' : undefined}>
+    <PlayerGameScreen
+      className={[
+        liveFit ? 'player-game-screen--fit' : '',
+        turnFlash ? 'player-game-screen--turn-flash' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <PlayerToast message={toastMessage} />
 
       <div className={layoutClass}>
@@ -388,6 +419,7 @@ function PlayerApp() {
             disconnected={disconnected}
             lastTableId={lastTableId ?? gameState.tableId ?? undefined}
             onReconnect={handleForceReconnect}
+            compactLive={liveFit}
           />
           {!liveFit ? <PlayerGoldHeaderRule /> : null}
 

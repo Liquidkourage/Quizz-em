@@ -3,6 +3,7 @@ import type { GameState, PlayerState } from '@qhe/core'
 import {
   buildPlayerTableStatusLine,
   formatActingCallHint,
+  formatMergedSeatStatus,
   pickHighlightSeatAction,
   resolveSeatStatusPill,
   seatToCallAmount,
@@ -57,6 +58,16 @@ describe('seatBettingStatus', () => {
     expect(formatActingCallHint(40)).toBe('Call $40')
   })
 
+  it('merges street-in into status labels', () => {
+    expect(formatMergedSeatStatus({ action: 'call', streetIn: 20, isAllIn: false })).toBe(
+      'CALL · $20',
+    )
+    expect(formatMergedSeatStatus({ action: 'raise', streetIn: 40, isAllIn: false })).toBe(
+      'RAISE · $40',
+    )
+    expect(formatMergedSeatStatus({ action: null, streetIn: 10, isAllIn: false })).toBe('$10 in')
+  })
+
   it('computes to-call from street bets', () => {
     const p = player({ id: 'c', name: 'Jay' })
     expect(seatToCallAmount(p, 40, { c: 0 })).toBe(40)
@@ -69,8 +80,21 @@ describe('seatBettingStatus', () => {
       isActing: true,
       lastAction: 'call',
       toCall: 40,
+      streetIn: 0,
     })
     expect(pill).toEqual({ kind: 'acting', label: 'Call $40' })
+  })
+
+  it('shows away when offline with no action', () => {
+    const pill = resolveSeatStatusPill({
+      player: player({ id: 'a', name: 'Alex' }),
+      isActing: false,
+      lastAction: null,
+      toCall: 0,
+      streetIn: 0,
+      isAway: true,
+    })
+    expect(pill).toEqual({ kind: 'away', label: 'AWAY' })
   })
 
   it('shows fold pill when folded without last action', () => {
@@ -79,6 +103,7 @@ describe('seatBettingStatus', () => {
       isActing: false,
       lastAction: null,
       toCall: 0,
+      streetIn: 0,
     })
     expect(pill).toEqual({ kind: 'action', action: 'fold', label: 'FOLD' })
   })
@@ -89,9 +114,9 @@ describe('seatBettingStatus', () => {
     expect(hit).toEqual({ seatIndex: 1, action: 'raise' })
   })
 
-  it('builds status line with highlight and to-call', () => {
-    const line = buildPlayerTableStatusLine(baseState(), 'Alex')
-    expect(line).toBe('Maya raised · Jay to call $40')
+  it('builds status line with highlight, to-call, and clock', () => {
+    const line = buildPlayerTableStatusLine(baseState(), 'Alex', 18)
+    expect(line).toBe('Maya raised · Jay to call $40 · 18s')
   })
 
   it('uses You for the viewer when acting', () => {

@@ -979,6 +979,53 @@
   max-height: clamp(3.6rem, 9.5vh, 4.75rem);
 }
 
+/* Live hand — brand is secondary to table status + dock. */
+.player-game-layout--live-fit .player-game-header--live-min {
+  height: clamp(2.1rem, 5.5vh, 2.75rem);
+  padding-top: 0.15rem;
+  padding-bottom: 0.05rem;
+}
+
+.player-game-layout--live-fit .player-game-header--live-min .player-join-logo {
+  width: min(55%, 14rem);
+  opacity: 0.72;
+}
+
+.player-game-layout--live-fit .player-game-header--live-min .player-join-logo .welcome-wordmark-root-hero {
+  max-height: clamp(1.7rem, 4.2vh, 2.25rem);
+}
+
+.player-game-layout--live-fit .player-game-header--live-min .player-join-logo-glow {
+  opacity: 0.35;
+}
+
+.player-game-screen--turn-flash::after {
+  content: '';
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: radial-gradient(
+    ellipse 70% 50% at 50% 85%,
+    rgb(251 191 36 / 0.28) 0%,
+    transparent 65%
+  );
+  animation: player-turn-flash 0.9s ease-out forwards;
+}
+
+@keyframes player-turn-flash {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.player-game-btn--muted {
+  opacity: 0.42;
+}
+
 .player-game-layout--live-fit .player-game-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -2195,14 +2242,6 @@
   color: rgb(255 255 255 / 0.45);
 }
 
-.player-table-results-row--you {
-  background: rgb(251 191 36 / 0.08);
-}
-
-.player-table-results-row--winner {
-  box-shadow: inset 3px 0 0 rgb(253 224 71);
-}
-
 .player-table-results-name {
   display: flex;
   align-items: center;
@@ -2570,8 +2609,8 @@
 
 .player-hud-seat {
   display: grid;
-  /* Fixed trailing columns so stacks/$ in/pills share one vertical alignment. */
-  grid-template-columns: 1.25rem minmax(0, 1fr) 4.75rem 3.4rem 5.5rem;
+  /* # · name · stack · status (street-in merged into status). */
+  grid-template-columns: 1.25rem minmax(0, 1fr) 4.75rem 6.25rem;
   align-items: center;
   column-gap: 0.35rem;
   row-gap: 0.15rem;
@@ -2755,6 +2794,41 @@
   border-color: rgb(168 85 247 / 0.5);
   background: rgb(46 16 101 / 0.92);
   color: rgb(237 233 254);
+}
+
+.player-game-seat-pill--away {
+  border-color: rgb(148 163 184 / 0.4);
+  background: rgb(30 41 59 / 0.9);
+  color: rgb(203 213 225);
+}
+
+.player-game-seat-pill--street {
+  border-color: rgb(251 191 36 / 0.28);
+  background: rgb(23 18 8 / 0.9);
+  color: rgb(253 230 138 / 0.9);
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
+.player-hud-seat--away {
+  opacity: 0.72;
+}
+
+.player-table-results-row--you {
+  background: rgb(69 26 3 / 0.35);
+  box-shadow: inset 3px 0 0 rgb(251 191 36 / 0.85);
+}
+
+.player-table-results-row--winner {
+  background: rgb(6 40 28 / 0.45);
+  box-shadow: inset 3px 0 0 rgb(52 211 153 / 0.75);
+}
+
+.player-table-results-row--you.player-table-results-row--winner {
+  background: rgb(69 26 3 / 0.4);
+  box-shadow:
+    inset 3px 0 0 rgb(251 191 36 / 0.9),
+    inset 0 0 0 1px rgb(52 211 153 / 0.25);
 }
 
 .player-game-felt {

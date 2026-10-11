@@ -60,57 +60,73 @@ export function formatActingCallHint(amount: number): string {
 }
 
 /**
- * Seat indices for a hero-bottom HUD: opponents in table order starting
- * after the viewer, then the hero last.
+ * Single status cell: action + optional street amount (keeps stack column aligned).
+ * e.g. `CALL · $20`, `RAISE · $40`, `$20 in`, `FOLD`.
  */
-export function heroRelativeSeatOrder(
-  playerCount: number,
-  heroIndex: number
-): { opponentIndices: number[]; heroIndex: number } {
-  if (playerCount <= 0 || heroIndex < 0 || heroIndex >= playerCount) {
-    return {
-      opponentIndices: Array.from({ length: Math.max(0, playerCount) }, (_, i) => i),
-      heroIndex: Math.max(0, heroIndex),
-    }
+export function formatMergedSeatStatus(args: {
+  action: SeatBettingAction | null | undefined
+  streetIn: number
+  isAllIn: boolean
+}): string | null {
+  const { action, streetIn, isAllIn } = args
+  const inPart = streetIn > 0 ? `$${streetIn.toLocaleString()}` : null
+
+  if (action === 'fold') return 'FOLD'
+  if (action === 'allIn' || isAllIn) {
+    return inPart ? `ALL-IN · ${inPart}` : 'ALL-IN'
   }
-  const opponentIndices: number[] = []
-  for (let step = 1; step < playerCount; step++) {
-    opponentIndices.push((heroIndex + step) % playerCount)
-  }
-  return { opponentIndices, heroIndex }
+  if (action === 'check') return 'CHECK'
+  if (action === 'call') return inPart ? `CALL · ${inPart}` : 'CALL'
+  if (action === 'raise') return inPart ? `RAISE · ${inPart}` : 'RAISE'
+  if (inPart) return `${inPart} in`
+  return null
 }
 
 export type SeatStatusPill =
   | { kind: 'acting'; label: string }
   | { kind: 'action'; action: SeatBettingAction; label: string }
-  | { kind: 'allIn'; label: 'ALL-IN' }
+  | { kind: 'allIn'; label: string }
+  | { kind: 'away'; label: 'AWAY' }
+  | { kind: 'street'; label: string }
 
 /**
- * What to show under a seat name tag. Acting takes priority over last action.
- * Folded seats prefer FOLD pill over raw "Folded" text.
+ * What to show in the roster status cell. Acting takes priority over last action.
  */
 export function resolveSeatStatusPill(args: {
   player: PlayerState
   isActing: boolean
   lastAction: SeatBettingAction | null | undefined
   toCall: number
+  streetIn: number
+  isAway?: boolean
 }): SeatStatusPill | null {
-  const { player, isActing, lastAction, toCall } = args
+  const { player, isActing, lastAction, toCall, streetIn, isAway } = args
 
   if (isActing && !player.hasFolded) {
     return { kind: 'acting', label: formatActingCallHint(toCall) }
   }
 
-  if (lastAction != null) {
-    return { kind: 'action', action: lastAction, label: seatBettingActionLabel(lastAction) }
-  }
-
-  if (player.isAllIn && !player.hasFolded) {
-    return { kind: 'allIn', label: 'ALL-IN' }
-  }
-
-  if (player.hasFolded) {
+  if (player.hasFolded || lastAction === 'fold') {
     return { kind: 'action', action: 'fold', label: 'FOLD' }
+  }
+
+  const merged = formatMergedSeatStatus({
+    action: lastAction,
+    streetIn,
+    isAllIn: player.isAllIn,
+  })
+  if (merged) {
+    if (lastAction === 'allIn' || player.isAllIn) {
+      return { kind: 'allIn', label: merged }
+    }
+    if (lastAction != null) {
+      return { kind: 'action', action: lastAction, label: merged }
+    }
+    return { kind: 'street', label: merged }
+  }
+
+  if (isAway && !player.id.startsWith('vp:')) {
+    return { kind: 'away', label: 'AWAY' }
   }
 
   return null
@@ -137,11 +153,12 @@ export function pickHighlightSeatAction(
 }
 
 /**
- * One-line table HUD: “Maya raised · Jay to act”, “Jay to call $40”, “No more bets”, etc.
+ * One-line table HUD: “Maya raised · Jay to act · 18s”, etc.
  */
 export function buildPlayerTableStatusLine(
   gameState: GameState,
-  viewerName: string
+  viewerName: string,
+  turnRemainingSec?: number | null
 ): string | null {
   const phase = gameState.phase
   if (phase === 'answering') return 'Answer on your phone'
@@ -175,14 +192,18 @@ export function buildPlayerTableStatusLine(
   )
 
   const actPart = toCall > 0 ? `${actorLabel} to call $${toCall.toLocaleString()}` : `${actorLabel} to act`
+  const clock =
+    typeof turnRemainingSec === 'number' && turnRemainingSec >= 0
+      ? ` · ${turnRemainingSec}s`
+      : ''
 
   if (highlight) {
     const who =
       gameState.players[highlight.seatIndex]?.name === viewerName
         ? 'You'
         : firstName(gameState.players[highlight.seatIndex]?.name ?? 'Player')
-    return `${who} ${SEAT_BETTING_ACTION_VERBS[highlight.action]} · ${actPart}`
+    return `${who} ${SEAT_BETTING_ACTION_VERBS[highlight.action]} · ${actPart}${clock}`
   }
 
-  return actPart
+  return `${actPart}${clock}`
 }

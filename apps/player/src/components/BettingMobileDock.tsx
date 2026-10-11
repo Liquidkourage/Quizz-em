@@ -1,7 +1,7 @@
 import type { PlayerState } from '@qhe/core'
 import type { BettingContext } from '../playerModel/bettingModel'
 import type { PreAction } from '../playerModel/preAction'
-import { preActionLabel } from '../playerModel/preAction'
+import { preActionArmedLabel } from '../playerModel/preAction'
 import WageringActionButtons from './WageringActionButtons'
 
 type BettingMobileDockProps = {
@@ -51,7 +51,7 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
       <div className="player-game-dock-inner">
         <div className="player-game-dock-status" aria-live="polite">
           <span className={live ? 'player-game-stat-turn' : undefined}>
-            {live ? 'Your turn' : preAction ? `Pre-act: ${preActionLabel(preAction)}` : 'Waiting'}
+            {live ? 'Your turn' : preAction ? preActionArmedLabel(preAction) : 'Waiting'}
           </span>
           <span>
             Stack <strong>${currentPlayer.bankroll.toLocaleString()}</strong>

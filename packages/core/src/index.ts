@@ -56,6 +56,11 @@ export interface RoundState {
   pot: number;
   dealerIndex: number;
   answerDeadline?: number;
+  /**
+   * Epoch ms when the acting human’s shot clock expires (server-authoritative).
+   * Cleared when wagering is closed or no human is on the clock.
+   */
+  turnDeadlineMs?: number;
   // Betting state
   bettingRound?: 1 | 2; // 1: pre-community, 2: post-community
   currentBet?: number; // highest bet to be matched in current betting round

@@ -77,6 +77,8 @@ export type PlayerVenueBrief = {
 /** Server `state` payload may include wire-only timing metadata. */
 export type PlayerGameStateWire = GameState & {
   serverNowMs?: number
+  /** Human roster seats currently connected (virtual players omitted / treated as online). */
+  playerOnline?: Record<string, boolean>
 }
 
 /** Mosaic row for `/display` venue wall — derived live from numbered table sessions (1…N). */

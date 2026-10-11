@@ -2570,10 +2570,11 @@
 
 .player-hud-seat {
   display: grid;
-  grid-template-columns:
-    1.1rem minmax(0, 1.15fr) minmax(3.4rem, 0.65fr) minmax(2.4rem, 0.5fr) auto;
+  /* Fixed trailing columns so stacks/$ in/pills share one vertical alignment. */
+  grid-template-columns: 1.25rem minmax(0, 1fr) 4.75rem 3.4rem 5.5rem;
   align-items: center;
-  gap: 0.2rem 0.3rem;
+  column-gap: 0.35rem;
+  row-gap: 0.15rem;
   padding: 0.28rem 0.4rem;
   border-radius: 0.4rem;
   border: 1px solid rgb(251 191 36 / 0.2);
@@ -2622,29 +2623,37 @@
 }
 
 .player-hud-seat-stack {
+  width: 100%;
   font-family: 'Rajdhani', system-ui, sans-serif;
   font-size: clamp(0.78rem, 2.4vw, 0.95rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: rgb(253 230 138);
   text-align: right;
+  justify-self: stretch;
 }
 
 .player-hud-seat-spacer {
   display: block;
+  width: 100%;
   min-width: 0;
 }
 
 .player-hud-seat--roster .player-game-seat-pill {
-  justify-self: end;
+  justify-self: stretch;
+  width: 100%;
   margin-top: 0;
   font-size: 0.58rem;
-  padding: 0.1rem 0.32rem;
+  padding: 0.1rem 0.28rem;
+  box-sizing: border-box;
 }
 
 .player-hud-seat--roster .player-game-seat-street-in {
+  width: 100%;
   font-size: 0.68rem;
   text-align: right;
+  justify-self: stretch;
+  white-space: nowrap;
 }
 
 .player-hud-seat-holes {

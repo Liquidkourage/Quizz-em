@@ -37,7 +37,7 @@ function answeringStatus(
   player: PlayerState,
   phase: GameState['phase'],
 ): { pill: SeatStatusPill; locked: boolean } | null {
-  if (phase !== 'answering' || player.hasFolded) return null
+  if (phase !== 'answering') return null
   if (player.submittedAnswer != null) {
     return {
       pill: { kind: 'action', action: 'check', label: 'LOCKED' },
@@ -93,9 +93,12 @@ function SeatRow({
   phase,
 }: SeatRowProps) {
   const hasHand = player.hand.length >= 2
-  const showFaceUp = (isYou || revealCards) && hasHand && !player.hasFolded
-  const holeDigits: readonly [number, number] | null =
-    hasHand && !player.hasFolded ? [player.hand[0]!.digit, player.hand[1]!.digit] : null
+  // You always see your holes (even after fold — still needed for trivia).
+  // Opponents' holes only face-up at reveal/showdown.
+  const showFaceUp = (isYou || revealCards) && hasHand
+  const holeDigits: readonly [number, number] | null = hasHand
+    ? ([player.hand[0]!.digit, player.hand[1]!.digit] as const)
+    : null
 
   const bettingPill = resolveSeatStatusPill({
     player,
@@ -105,6 +108,7 @@ function SeatRow({
     streetIn,
     isAway,
   })
+  // During answering, quiz status wins — including folded seats still composing for pts.
   const quizStatus = answeringStatus(player, phase)
   const statusPill = quizStatus?.pill ?? bettingPill
   const statusLocked = quizStatus?.locked === true
@@ -149,7 +153,7 @@ function SeatRow({
       ) : (
         <span className="player-hud-seat-spacer" aria-hidden />
       )}
-      {revealCards && hasHand && !player.hasFolded && !isYou ? (
+      {revealCards && hasHand && !isYou ? (
         <div className="player-hud-seat-holes player-hud-seat-holes--mini">
           <PlayerFeltHoleCards scale={0.28} faceDown={!showFaceUp} digits={holeDigits} />
         </div>
@@ -197,9 +201,10 @@ export default function TableStatusHud({
   const community = gameState.round.communityCards
   const hero = heroIndex >= 0 ? players[heroIndex] : undefined
   const heroHoles =
-    hero && hero.hand.length >= 2 && !hero.hasFolded
+    hero && hero.hand.length >= 2
       ? ([hero.hand[0]!.digit, hero.hand[1]!.digit] as const)
       : null
+  const heroFolded = hero?.hasFolded === true
 
   const statusLine = useMemo(
     () => buildPlayerTableStatusLine(gameState, playerName, turnRemainingSec),
@@ -272,8 +277,13 @@ export default function TableStatusHud({
       ) : null}
 
       {heroHoles ? (
-        <div className="player-hud-hero-cards" aria-label="Your cards">
-          <span className="player-hud-hero-cards-label">Your cards</span>
+        <div
+          className={`player-hud-hero-cards${heroFolded ? ' player-hud-hero-cards--folded' : ''}`}
+          aria-label={heroFolded ? 'Your cards (folded chips)' : 'Your cards'}
+        >
+          <span className="player-hud-hero-cards-label">
+            Your cards{heroFolded ? ' · folded' : ''}
+          </span>
           <div className="player-hud-hero-cards-pair">
             <NumericPlayingCard
               digit={heroHoles[0]}

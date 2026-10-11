@@ -53,9 +53,31 @@ export function seatToCallAmount(
   return Math.max(0, Math.floor((currentBet ?? 0) - contribution))
 }
 
+/** Acting-seat pill: never “Check” (reads as already acted). */
 export function formatActingCallHint(amount: number): string {
-  if (amount <= 0) return 'Check'
+  if (amount <= 0) return 'Acting'
   return `Call $${amount.toLocaleString()}`
+}
+
+/**
+ * Seat indices for a hero-bottom HUD: opponents in table order starting
+ * after the viewer, then the hero last.
+ */
+export function heroRelativeSeatOrder(
+  playerCount: number,
+  heroIndex: number
+): { opponentIndices: number[]; heroIndex: number } {
+  if (playerCount <= 0 || heroIndex < 0 || heroIndex >= playerCount) {
+    return {
+      opponentIndices: Array.from({ length: Math.max(0, playerCount) }, (_, i) => i),
+      heroIndex: Math.max(0, heroIndex),
+    }
+  }
+  const opponentIndices: number[] = []
+  for (let step = 1; step < playerCount; step++) {
+    opponentIndices.push((heroIndex + step) % playerCount)
+  }
+  return { opponentIndices, heroIndex }
 }
 
 export type SeatStatusPill =

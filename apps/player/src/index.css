@@ -2392,6 +2392,7 @@
 }
 
 .player-game-table-status {
+  flex: 0 0 auto;
   margin: 0 0 0.45rem;
   padding: 0.35rem 0.55rem;
   border-radius: 0.4rem;
@@ -2406,16 +2407,201 @@
   color: rgb(254 243 199);
 }
 
-/* Live-fit: keep status out of the 8:5 cqh math — overlay at panel top. */
-.player-game-layout--live-fit .player-game-felt-panel--fill .player-game-table-status {
-  position: absolute;
-  top: 0.25rem;
-  left: 50%;
-  z-index: 6;
-  width: min(94%, 22rem);
+/* —— Compact table status HUD (hero-bottom controller) —— */
+.player-table-hud {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.player-table-hud--fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  justify-content: space-between;
+}
+
+/* Beat stadium live-fit felt rules (8:5 cqh box) — HUD is a flex column. */
+.player-game-layout--live-fit .player-table-hud.player-game-felt-panel--fill,
+.player-game-layout--live-fit.player-game-layout--with-dock
+  .player-table-hud.player-game-felt-panel--fill {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  height: auto;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0.2rem 0.35rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
+  container-type: normal;
+}
+
+.player-hud-opponents {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.player-hud-opponents > * {
+  flex: 1 1 calc(50% - 0.45rem);
+  max-width: calc(50% - 0.25rem);
+  min-width: 7.5rem;
+}
+
+@media (min-width: 480px) {
+  .player-hud-opponents > * {
+    flex: 1 1 calc(33.333% - 0.45rem);
+    max-width: calc(33.333% - 0.25rem);
+  }
+}
+
+.player-hud-center {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgb(251 191 36 / 0.22);
+  background:
+    radial-gradient(ellipse 70% 80% at 50% 40%, rgb(22 101 52 / 0.35) 0%, transparent 70%),
+    rgb(8 12 10 / 0.72);
+}
+
+.player-hud-center-pot-quiet {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.85rem, 3vw, 1.05rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgb(253 230 138 / 0.85);
+}
+
+.player-hud-board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.player-hud-board-empty {
   margin: 0;
-  transform: translateX(-50%);
-  pointer-events: none;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgb(255 255 255 / 0.4);
+}
+
+.player-hud-hero {
+  flex: 0 0 auto;
+}
+
+.player-hud-seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.4rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(251 191 36 / 0.22);
+  background: rgb(8 12 10 / 0.78);
+  text-align: center;
+}
+
+.player-hud-seat--hero {
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border-color: rgb(251 191 36 / 0.45);
+  background:
+    linear-gradient(90deg, rgb(69 26 3 / 0.35) 0%, rgb(8 12 10 / 0.88) 55%),
+    rgb(8 12 10 / 0.9);
+  box-shadow: inset 0 0 0 1px rgb(251 191 36 / 0.12);
+}
+
+.player-hud-seat--acting {
+  border-color: rgb(251 191 36 / 0.7);
+  box-shadow:
+    0 0 0 1px rgb(251 191 36 / 0.25),
+    0 0 18px rgb(251 191 36 / 0.12);
+}
+
+.player-hud-seat--folded {
+  opacity: 0.55;
+}
+
+.player-hud-seat-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.player-hud-seat--hero .player-hud-seat-meta {
+  align-items: flex-start;
+  text-align: left;
+  flex: 1 1 auto;
+}
+
+.player-hud-seat-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.95rem, 3.2vw, 1.15rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: rgb(167 243 208);
+}
+
+.player-hud-seat--hero .player-hud-seat-name {
+  color: rgb(253 224 71);
+  font-size: clamp(1.15rem, 4vw, 1.4rem);
+}
+
+.player-hud-seat-stack {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.9rem, 3vw, 1.05rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgb(253 230 138);
+}
+
+.player-hud-seat-holes {
+  display: flex;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.player-hud-seat-holes--empty {
+  min-height: 2.5rem;
+}
+
+.player-game-seat-pill--locked {
+  border-color: rgb(52 211 153 / 0.5);
+  background: rgb(6 40 28 / 0.92);
+  color: rgb(167 243 208);
 }
 
 .player-game-seat-street-in {

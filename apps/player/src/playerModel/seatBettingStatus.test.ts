@@ -3,6 +3,7 @@ import type { GameState, PlayerState } from '@qhe/core'
 import {
   buildPlayerTableStatusLine,
   formatActingCallHint,
+  heroRelativeSeatOrder,
   pickHighlightSeatAction,
   resolveSeatStatusPill,
   seatToCallAmount,
@@ -53,8 +54,15 @@ function baseState(overrides: Partial<GameState> = {}): GameState {
 
 describe('seatBettingStatus', () => {
   it('formats acting call hint', () => {
-    expect(formatActingCallHint(0)).toBe('Check')
+    expect(formatActingCallHint(0)).toBe('Acting')
     expect(formatActingCallHint(40)).toBe('Call $40')
+  })
+
+  it('orders seats hero-last for bottom HUD', () => {
+    expect(heroRelativeSeatOrder(4, 1)).toEqual({
+      opponentIndices: [2, 3, 0],
+      heroIndex: 1,
+    })
   })
 
   it('computes to-call from street bets', () => {

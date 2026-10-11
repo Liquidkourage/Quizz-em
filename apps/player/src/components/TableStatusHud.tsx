@@ -261,7 +261,18 @@ export default function TableStatusHud({
         <div className="player-hud-hero-cards" aria-label="Your cards">
           <span className="player-hud-hero-cards-label">Your cards</span>
           <div className="player-hud-hero-cards-pair">
-            <PlayerFeltHoleCards scale={0.92} faceDown={false} digits={heroHoles} />
+            <NumericPlayingCard
+              digit={heroHoles[0]}
+              size="normal"
+              compact
+              animated={false}
+            />
+            <NumericPlayingCard
+              digit={heroHoles[1]}
+              size="normal"
+              compact
+              animated={false}
+            />
           </div>
         </div>
       ) : null}

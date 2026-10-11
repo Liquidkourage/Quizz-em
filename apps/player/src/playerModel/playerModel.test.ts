@@ -121,7 +121,8 @@ describe('handSummary', () => {
     })
     expect(summary.stackDelta).toBe(300)
     expect(summary.pointsGained).toBe(40)
-    expect(summary.triviaPointsThisHand).toBe(98)
+    // |42 − 40| / 40 → 5% error → 95 pts (proportion of correct)
+    expect(summary.triviaPointsThisHand).toBe(95)
   })
 
   it('scores zero trivia when folded', () => {

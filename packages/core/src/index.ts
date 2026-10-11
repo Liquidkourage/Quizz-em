@@ -1383,10 +1383,23 @@ function playerIdsStillInChipContest(state: GameState): string[] {
   return state.players.filter((p) => inChipContest(p) && !p.hasFolded).map((p) => p.id);
 }
 
+/**
+ * Trivia points for one submitted guess (0–100): proportion of the correct magnitude.
+ * Exact → 100; off by half the answer → 50; off by a full answer-size or more → 0.
+ * Chip pot winners still use absolute distance (`determineTriviaWinners`).
+ */
+export function triviaAnswerPoints(submitted: number, correct: number): number {
+  if (!Number.isFinite(submitted) || !Number.isFinite(correct)) return 0;
+  if (nearlyEqualNumbers(correct, 0)) {
+    return nearlyEqualNumbers(submitted, 0) ? 100 : 0;
+  }
+  const relativeError = Math.abs(submitted - correct) / Math.abs(correct);
+  return Math.max(0, 100 * (1 - relativeError));
+}
+
 function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAnswer' | 'hasFolded'>, correct: number): number {
   if (snapshotPlayer.hasFolded || snapshotPlayer.submittedAnswer === undefined) return 0;
-  const distance = Math.abs(snapshotPlayer.submittedAnswer - correct);
-  return Math.max(0, 100 - Math.min(distance, 100));
+  return triviaAnswerPoints(snapshotPlayer.submittedAnswer, correct);
 }
 
 /** Run only from showdown (after reveal): pays pot, resets to lobby. Wrong phase → unchanged. */

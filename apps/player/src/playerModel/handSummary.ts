@@ -1,5 +1,5 @@
 import type { GamePhase, GameState, PlayerState } from '@qhe/core'
-import { formatTriviaNumber } from '@qhe/core'
+import { formatTriviaNumber, triviaAnswerPoints } from '@qhe/core'
 
 export type HandBaseline = {
   bankroll: number
@@ -41,8 +41,7 @@ export function triviaPointsForAnswer(
   folded: boolean
 ): number {
   if (folded || submitted === undefined) return 0
-  const distance = Math.abs(submitted - correct)
-  return Math.max(0, 100 - Math.min(distance, 100))
+  return triviaAnswerPoints(submitted, correct)
 }
 
 export function buildHandSummary(args: {

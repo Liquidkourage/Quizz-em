@@ -3,7 +3,7 @@ import { NumericPlayingCard, PlayerFeltHoleCards } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
 import {
   buildPlayerTableStatusLine,
-  firstName,
+  rosterDisplayName,
   resolveSeatStatusPill,
   seatStreetContribution,
   seatToCallAmount,
@@ -13,6 +13,9 @@ import {
 type TableStatusHudProps = {
   gameState: GameState
   playerName: string
+  /** Stable id — preferred when marking the You row (duplicate first names). */
+  myPlayerId?: string | null
+  myIndex?: number
   /** When false, pot is shown elsewhere (e.g. sticky question bar). */
   showCenterPot?: boolean
   fillViewport?: boolean
@@ -137,7 +140,7 @@ function SeatRow({
         {seatIndex + 1}
       </span>
       <span className="player-hud-seat-name">
-        {firstName(player.name)}
+        {rosterDisplayName(player.name)}
         {isYou ? <span className="player-hud-you-badge">You</span> : null}
       </span>
       <span className="player-hud-seat-stack">${player.bankroll.toLocaleString()}</span>
@@ -158,6 +161,8 @@ function SeatRow({
 export default function TableStatusHud({
   gameState,
   playerName,
+  myPlayerId = null,
+  myIndex: myIndexProp,
   showCenterPot = true,
   fillViewport = false,
   turnRemainingSec = null,
@@ -166,7 +171,16 @@ export default function TableStatusHud({
   const players = gameState.players
   if (players.length === 0) return null
 
-  const heroIndex = players.findIndex((p) => p.name === playerName)
+  const heroIndex = (() => {
+    if (typeof myIndexProp === 'number' && myIndexProp >= 0 && myIndexProp < players.length) {
+      return myIndexProp
+    }
+    if (myPlayerId) {
+      const byId = players.findIndex((p) => p.id === myPlayerId)
+      if (byId >= 0) return byId
+    }
+    return players.findIndex((p) => p.name === playerName)
+  })()
   const revealCards = gameState.phase === 'showdown' || gameState.phase === 'reveal'
   const actingIndex =
     gameState.phase === 'betting' &&

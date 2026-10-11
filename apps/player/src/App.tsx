@@ -366,6 +366,8 @@ function PlayerApp() {
     <TableFeltView
       gameState={gameState}
       playerName={playerName}
+      myPlayerId={currentPlayer?.id ?? joinPrefs.playerId}
+      myIndex={myIndex}
       showCenterPot={!showStickyQuestion}
       fillViewport={liveFit}
       turnRemainingSec={turnRemainingSec}
@@ -445,7 +447,11 @@ function PlayerApp() {
             ) : null}
 
             {showStickyQuestion ? (
-              <StickyQuestionBar questionText={questionText} pot={gameState.round.pot} />
+              <StickyQuestionBar
+                questionText={questionText}
+                pot={gameState.round.pot}
+                tableId={gameState.tableId}
+              />
             ) : null}
 
             {!hideLiveChrome ? <PhaseBanner gameState={gameState} /> : null}

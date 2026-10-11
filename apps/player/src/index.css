@@ -1894,6 +1894,12 @@
   color: rgb(255 255 255 / 0.5);
 }
 
+.player-sticky-question-table {
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: rgb(255 255 255 / 0.72);
+}
+
 .player-sticky-question-pot {
   letter-spacing: 0.04em;
   text-transform: none;

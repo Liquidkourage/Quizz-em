@@ -37,6 +37,20 @@ export function firstName(name: string): string {
   return space > 0 ? trimmed.slice(0, space) : trimmed
 }
 
+/**
+ * Roster label: keep last initial so two “Jay …” seats stay distinguishable
+ * (`Jay B.` / `Jay C.`), not both collapsing to “Jay”.
+ */
+export function rosterDisplayName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0]!
+  const first = parts[0]!
+  const last = parts[parts.length - 1]!
+  if (last.length <= 2 || last.endsWith('.')) return `${first} ${last}`
+  return `${first} ${last[0]!.toUpperCase()}.`
+}
+
 export function seatStreetContribution(
   player: Pick<PlayerState, 'id'>,
   playerBets: Record<string, number> | undefined

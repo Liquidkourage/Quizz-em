@@ -6,6 +6,7 @@ import {
   formatMergedSeatStatus,
   pickHighlightSeatAction,
   resolveSeatStatusPill,
+  rosterDisplayName,
   seatToCallAmount,
 } from './seatBettingStatus'
 
@@ -56,6 +57,13 @@ describe('seatBettingStatus', () => {
   it('formats acting call hint', () => {
     expect(formatActingCallHint(0)).toBe('Acting')
     expect(formatActingCallHint(40)).toBe('Call $40')
+  })
+
+  it('keeps last initial on roster labels', () => {
+    expect(rosterDisplayName('Jay B.')).toBe('Jay B.')
+    expect(rosterDisplayName('Jay C.')).toBe('Jay C.')
+    expect(rosterDisplayName('Maya Chen')).toBe('Maya C.')
+    expect(rosterDisplayName('Blake')).toBe('Blake')
   })
 
   it('merges street-in into status labels', () => {

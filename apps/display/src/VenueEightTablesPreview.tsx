@@ -2633,19 +2633,18 @@ function VenueBroadcastHeadlineStrip({
       ) : null}
       {inVenueShowdown && venueShowdownAnswer != null ? (
         <div
-          className="flex flex-col items-center justify-center gap-1 rounded-lg border border-amber-400/55 bg-amber-950/45 px-3 py-2"
+          className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-amber-300/70 bg-amber-950/70 px-5 py-3 shadow-[0_0_28px_rgba(251,191,36,0.28)] sm:px-7 sm:py-3.5"
           aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
         >
-          <span className={`font-semibold uppercase tracking-wide text-amber-200/70 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+          <span className={`font-black uppercase tracking-[0.18em] text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
             Correct answer
           </span>
+          <div className="font-mono text-[clamp(2.5rem,6vw,4rem)] font-black tabular-nums tracking-tight text-amber-50">
+            {formatTriviaNumber(venueShowdownAnswer)}
+          </div>
           {venueShowdownAnswerRow != null && venueShowdownAnswerRow.answerCards.length > 0 ? (
             <ShowdownFiveCardsUsed row={venueShowdownAnswerRow} size="sm" />
-          ) : (
-            <div className="font-mono text-2xl font-black tracking-tight text-amber-100 sm:text-3xl">
-              {formatTriviaNumber(venueShowdownAnswer)}
-            </div>
-          )}
+          ) : null}
         </div>
       ) : headlineTimerOnly && typeof timerSeconds === 'number' ? (
         <div
@@ -3270,19 +3269,18 @@ export default function VenueEightTablesPreview({
                   ) : null}
                   {inVenueShowdown && venueShowdownAnswer != null ? (
                     <div
-                      className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-lg border border-amber-400/55 bg-amber-950/45 px-2 py-1.5 shadow-[0_0_20px_rgba(251,191,36,0.1)] sm:px-3 sm:py-2"
+                      className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border-2 border-amber-300/70 bg-amber-950/75 px-3 py-2 shadow-[0_0_28px_rgba(251,191,36,0.28)] sm:min-w-[9.5rem] sm:px-4 sm:py-2.5 md:min-w-[11rem]"
                       aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
                     >
-                      <span className={`font-semibold uppercase tracking-wide text-amber-200/70 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+                      <span className={`font-black uppercase tracking-[0.16em] text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                         Correct answer
                       </span>
+                      <div className="font-mono text-[clamp(2.25rem,5.5vw,4.25rem)] font-black tabular-nums leading-none tracking-tight text-amber-50">
+                        {formatTriviaNumber(venueShowdownAnswer)}
+                      </div>
                       {venueShowdownAnswerRow != null && venueShowdownAnswerRow.answerCards.length > 0 ? (
                         <ShowdownFiveCardsUsed row={venueShowdownAnswerRow} size="sm" />
-                      ) : (
-                        <div className="font-mono text-2xl font-black tracking-tight text-amber-100 sm:text-4xl md:text-5xl">
-                          {formatTriviaNumber(venueShowdownAnswer)}
-                        </div>
-                      )}
+                      ) : null}
                     </div>
                   ) : headlineTimerOnly ? (
                     <div

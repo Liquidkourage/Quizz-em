@@ -38,12 +38,12 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
         exit={reducedMotion ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
         transition={{ duration: reducedMotion ? 0 : 0.42, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className="mb-5 flex shrink-0 items-center justify-between gap-4 border-b border-amber-500/30 pb-4 sm:mb-6 sm:pb-5">
+        <div className="mb-4 flex shrink-0 items-center justify-between gap-4 border-b border-amber-500/30 pb-3 sm:mb-5 sm:pb-4">
           <div className="min-w-0">
-            <p className="font-orbitron text-[clamp(0.75rem,1.5vw,1rem)] font-bold uppercase tracking-[0.24em] text-amber-300/90">
-              Time is up
+            <p className="font-orbitron text-[clamp(0.75rem,1.5vw,1rem)] font-bold uppercase tracking-[0.28em] text-amber-300/90">
+              The answer is
             </p>
-            <h2 className="mt-1 font-orbitron text-[clamp(1.5rem,3.2vw,2.35rem)] font-black uppercase leading-none tracking-[0.06em] text-amber-50">
+            <h2 className="mt-1 font-orbitron text-[clamp(1.35rem,2.8vw,2rem)] font-black uppercase leading-none tracking-[0.06em] text-amber-50/90">
               Correct answer
             </h2>
           </div>
@@ -57,20 +57,19 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
         <DisplayFitQuestionText
           text={question}
           hostClassName="display-fit-question-host-reveal"
-          maxFontVh={0.0925}
-          textClassName="venue-headline-question-slot text-balance text-left font-semibold leading-snug tracking-tight text-yellow-300/95 display-text-headline-question-spacious"
+          maxFontVh={0.072}
+          textClassName="venue-headline-question-slot text-balance text-left font-semibold leading-snug tracking-tight text-yellow-300/90 display-text-headline-question-spacious"
         />
 
-        <div className="mt-6 flex flex-col items-center gap-4 sm:mt-8">
+        <div className="mt-5 flex flex-col items-center gap-3 sm:mt-7">
+          <p className="font-mono text-[clamp(4.5rem,16vmin,9.5rem)] font-black tabular-nums leading-none tracking-tight text-amber-50 drop-shadow-[0_0_40px_rgba(251,191,36,0.45)]">
+            {formatTriviaNumber(answer)}
+          </p>
           {answerRow != null && answerRow.answerCards.length > 0 ? (
             <div className="w-full max-w-3xl px-2">
               <ShowdownFiveCardsUsed row={answerRow} size="broadcast-hero" />
             </div>
-          ) : (
-            <p className="font-mono text-[clamp(2.75rem,8vmin,5.5rem)] font-black tabular-nums leading-none tracking-tight text-amber-100">
-              {formatTriviaNumber(answer)}
-            </p>
-          )}
+          ) : null}
         </div>
       </motion.div>
     </motion.div>

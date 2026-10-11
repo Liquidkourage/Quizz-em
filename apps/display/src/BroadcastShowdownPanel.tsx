@@ -54,13 +54,26 @@ function BroadcastSplitWinners({
   amountPerWinner: number
 }) {
   const shareLabel = formatVenueBankroll(Math.max(0, Math.round(amountPerWinner)))
+  const visible = names.length > 3 ? names.slice(0, 3) : names
+  const extra = Math.max(0, names.length - visible.length)
   return (
     <div className="vfd-broadcast-showdown-reveal__hero vfd-broadcast-showdown-reveal__hero--split">
-      <p className="vfd-broadcast-showdown-reveal__name vfd-broadcast-showdown-reveal__name--split">
-        {names.join(' · ')}
+      <ul className="vfd-broadcast-showdown-reveal__split-names" aria-label={names.join(', ')}>
+        {visible.map((name) => (
+          <li key={name} className="vfd-broadcast-showdown-reveal__split-name" title={name}>
+            {name}
+          </li>
+        ))}
+        {extra > 0 ? (
+          <li className="vfd-broadcast-showdown-reveal__split-name vfd-broadcast-showdown-reveal__split-name--extra">
+            +{extra} more
+          </li>
+        ) : null}
+      </ul>
+      <p className="vfd-broadcast-showdown-reveal__payout vfd-broadcast-showdown-reveal__payout--split">
+        {shareLabel}
+        <span className="vfd-broadcast-showdown-reveal__payout-each"> each</span>
       </p>
-      <p className="vfd-broadcast-showdown-reveal__payout">{shareLabel}</p>
-      <p className="vfd-broadcast-showdown-reveal__payout-caption">each</p>
     </div>
   )
 }
@@ -101,12 +114,21 @@ export function BroadcastShowdownPanel({
   const names = winners.map((w) => w.name).filter(Boolean)
   const difference = formatDifference(chipRow, correctAnswer)
 
+  const cardSize = variant === 'split' || variant === 'side' ? 'broadcast' : 'broadcast-hero'
+
   return (
-    <div className="vfd-broadcast-showdown-reveal">
+    <div
+      className="vfd-broadcast-showdown-reveal"
+      data-reveal-variant={variant}
+    >
       <div className="vfd-broadcast-showdown-reveal__backdrop" aria-hidden />
       <div className="vfd-broadcast-showdown-reveal__spotlight" aria-hidden />
       <div className="vfd-broadcast-showdown-reveal__stage">
         <div className="vfd-broadcast-showdown-reveal__plaque">
+          {/* Banner → crown → body: never overlap flourish with the crown. */}
+          {variant === 'split' || variant === 'side' ? (
+            <BroadcastFlourishBanner variant={variant} />
+          ) : null}
           <img
             src={crownArt}
             alt=""
@@ -132,53 +154,48 @@ export function BroadcastShowdownPanel({
             />
 
             <div className="vfd-broadcast-showdown-reveal__content">
-            {variant === 'split' || variant === 'side' ? (
-              <BroadcastFlourishBanner variant={variant} />
-            ) : null}
-
-            {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
-              <BroadcastSidePotLedger lines={sidePotLines} />
-            ) : variant === 'split' ? (
-              <BroadcastSplitWinners names={names} amountPerWinner={pot} />
-            ) : names.length > 0 ? (
-              <div className="vfd-broadcast-showdown-reveal__hero">
-                <p className="vfd-broadcast-showdown-reveal__name">{names[0]}</p>
-                {pot > 0 ? (
-                  <p className="vfd-broadcast-showdown-reveal__payout">{formatVenueBankroll(pot)}</p>
-                ) : null}
-              </div>
-            ) : null}
-
-            {chipRow != null ? (
-              <section
-                className="vfd-broadcast-showdown-reveal__answer"
-                aria-label={`Winning answer ${chipRow.submitted != null ? formatTriviaNumber(chipRow.submitted) : ''}`}
-              >
-                <h3 className="vfd-broadcast-showdown-reveal__section-label">Winning Answer</h3>
-                <div className="vfd-broadcast-showdown-reveal__cards">
-                  <ShowdownFiveCardsUsed row={chipRow} size="broadcast-hero" />
+              {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
+                <BroadcastSidePotLedger lines={sidePotLines} />
+              ) : variant === 'split' ? (
+                <BroadcastSplitWinners names={names} amountPerWinner={pot} />
+              ) : names.length > 0 ? (
+                <div className="vfd-broadcast-showdown-reveal__hero">
+                  <p className="vfd-broadcast-showdown-reveal__name">{names[0]}</p>
+                  {pot > 0 ? (
+                    <p className="vfd-broadcast-showdown-reveal__payout">{formatVenueBankroll(pot)}</p>
+                  ) : null}
                 </div>
-              </section>
-            ) : null}
+              ) : null}
 
-            {difference != null ? (
-              <section
-                className="vfd-broadcast-showdown-reveal__difference"
-                aria-label={`Difference ${difference}`}
-              >
-                <h3 className="vfd-broadcast-showdown-reveal__section-label">Difference</h3>
-                <div className="vfd-broadcast-showdown-reveal__nameplate">
-                  <img
-                    src={nameplateArt}
-                    alt=""
-                    aria-hidden
-                    draggable={false}
-                    className="vfd-broadcast-showdown-reveal__nameplate-art"
-                  />
-                  <p className="vfd-broadcast-showdown-reveal__diff-value">{difference}</p>
-                </div>
-              </section>
-            ) : null}
+              {chipRow != null ? (
+                <section
+                  className="vfd-broadcast-showdown-reveal__answer"
+                  aria-label={`Winning answer ${chipRow.submitted != null ? formatTriviaNumber(chipRow.submitted) : ''}`}
+                >
+                  <h3 className="vfd-broadcast-showdown-reveal__section-label">Winning Answer</h3>
+                  <div className="vfd-broadcast-showdown-reveal__cards">
+                    <ShowdownFiveCardsUsed row={chipRow} size={cardSize} />
+                  </div>
+                </section>
+              ) : null}
+
+              {difference != null ? (
+                <section
+                  className="vfd-broadcast-showdown-reveal__difference"
+                  aria-label={`Difference ${difference}`}
+                >
+                  <div className="vfd-broadcast-showdown-reveal__nameplate">
+                    <img
+                      src={nameplateArt}
+                      alt=""
+                      aria-hidden
+                      draggable={false}
+                      className="vfd-broadcast-showdown-reveal__nameplate-art"
+                    />
+                    <p className="vfd-broadcast-showdown-reveal__diff-value">{difference}</p>
+                  </div>
+                </section>
+              ) : null}
             </div>
           </div>
         </div>

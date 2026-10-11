@@ -175,8 +175,9 @@
     height: 100%;
     align-items: center;
     justify-content: center;
-    padding: clamp(2.75rem, 7vmin, 4.5rem) clamp(0.75rem, 2.5vmin, 1.75rem)
+    padding: clamp(3.25rem, 8vmin, 5rem) clamp(0.75rem, 2.5vmin, 1.75rem)
       clamp(0.75rem, 2.5vmin, 1.75rem);
+    overflow: hidden;
   }
 
   .vfd-broadcast-showdown-reveal__plaque {
@@ -184,10 +185,11 @@
     display: flex;
     width: auto;
     max-width: min(94%, 46rem);
-    max-height: min(90vh, 40rem);
+    max-height: min(88%, 38rem);
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    overflow: visible;
+    justify-content: flex-start;
+    overflow: hidden;
     border: 3px solid rgb(212 165 55 / 0.92);
     border-radius: 1.55rem;
     background:
@@ -213,11 +215,17 @@
   .vfd-broadcast-showdown-reveal__frame {
     position: relative;
     display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: clamp(2.35rem, 6vmin, 3.5rem) clamp(3.75rem, 11vmin, 6.25rem)
-      clamp(1.5rem, 3.75vmin, 2.35rem);
+    padding: clamp(0.35rem, 1.2vmin, 0.75rem) clamp(3.75rem, 11vmin, 6.25rem)
+      clamp(1.1rem, 3vmin, 1.85rem);
+  }
+
+  .vfd-broadcast-showdown-reveal[data-reveal-variant='winner'] .vfd-broadcast-showdown-reveal__frame {
+    padding-top: clamp(1.75rem, 4.5vmin, 2.75rem);
   }
 
   .vfd-broadcast-showdown-reveal__laurel {
@@ -242,17 +250,26 @@
   }
 
   .vfd-broadcast-showdown-reveal__crown {
-    position: absolute;
-    top: 0;
-    left: 50%;
+    position: relative;
     z-index: 3;
-    height: clamp(3.5rem, 10vmin, 6.25rem);
+    flex-shrink: 0;
+    height: clamp(2.85rem, 7.5vmin, 5rem);
     width: auto;
+    margin-top: -0.35rem;
+    margin-bottom: -0.15rem;
     object-fit: contain;
     pointer-events: none;
     user-select: none;
-    transform: translate(-50%, -46%);
     filter: drop-shadow(0 10px 22px rgb(0 0 0 / 0.65));
+  }
+
+  .vfd-broadcast-showdown-reveal[data-reveal-variant='winner'] .vfd-broadcast-showdown-reveal__crown {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin: 0;
+    height: clamp(3.5rem, 10vmin, 6.25rem);
+    transform: translate(-50%, -46%);
   }
 
   .vfd-broadcast-showdown-reveal__content {
@@ -260,22 +277,27 @@
     z-index: 2;
     display: flex;
     width: min(100%, 34rem);
-    max-height: min(78vh, 34rem);
+    min-height: 0;
+    max-height: 100%;
+    flex: 1 1 auto;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    gap: clamp(0.75rem, 2.35vmin, 1.35rem);
-    overflow-x: hidden;
-    overflow-y: auto;
+    justify-content: center;
+    gap: clamp(0.45rem, 1.6vmin, 0.95rem);
+    overflow: hidden;
     text-align: center;
   }
 
   .vfd-broadcast-showdown-reveal__flourish {
     position: relative;
+    z-index: 4;
     display: flex;
-    width: min(100%, 20rem);
+    width: min(92%, 18rem);
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
+    margin-top: clamp(0.55rem, 1.6vmin, 0.95rem);
+    margin-bottom: -0.15rem;
   }
 
   .vfd-broadcast-showdown-reveal__flourish-art {
@@ -351,6 +373,39 @@
     font-size: clamp(1.75rem, 5.2vmin, 3.15rem);
   }
 
+  .vfd-broadcast-showdown-reveal__split-names {
+    display: flex;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.12em;
+  }
+
+  .vfd-broadcast-showdown-reveal__split-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: Rajdhani, system-ui, sans-serif;
+    font-size: clamp(1.35rem, 4.2vmin, 2.35rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.01em;
+    color: rgb(255 251 235 / 0.98);
+    text-shadow: 0 2px 12px rgb(0 0 0 / 0.88);
+  }
+
+  .vfd-broadcast-showdown-reveal__split-name--extra {
+    font-size: clamp(0.95rem, 2.4vmin, 1.25rem);
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(251 191 36 / 0.82);
+  }
+
   .vfd-broadcast-showdown-reveal__payout {
     margin: 0;
     font-family: Bungee, system-ui, sans-serif;
@@ -371,6 +426,31 @@
     background-clip: text;
     color: transparent;
     filter: drop-shadow(0 4px 0 rgb(69 26 3 / 0.85)) drop-shadow(0 10px 24px rgb(0 0 0 / 0.75));
+  }
+
+  .vfd-broadcast-showdown-reveal__payout--split {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.12em;
+    font-size: clamp(2.15rem, 7.5vmin, 4.5rem);
+    line-height: 1;
+  }
+
+  .vfd-broadcast-showdown-reveal__payout-each {
+    font-family: Rajdhani, sans-serif;
+    font-size: 0.42em;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-transform: uppercase;
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    color: rgb(251 191 36 / 0.88);
+    filter: none;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.85);
   }
 
   .vfd-broadcast-showdown-reveal__payout-caption {
@@ -446,6 +526,13 @@
     display: flex;
     justify-content: center;
     width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .vfd-broadcast-showdown-reveal__cards [data-showdown-winner-cards] {
+    max-width: 100%;
+    flex-wrap: nowrap;
   }
 
   .vfd-broadcast-showdown-reveal__difference {
@@ -453,6 +540,7 @@
     flex-direction: column;
     align-items: center;
     width: min(100%, 22rem);
+    flex-shrink: 0;
   }
 
   .vfd-broadcast-showdown-reveal__nameplate {
@@ -510,41 +598,66 @@
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__plaque {
-    max-width: min(98%, 36rem);
-    max-height: min(86vh, 32rem);
+    max-width: min(98%, 34rem);
+    max-height: min(92%, 30rem);
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__frame {
-    padding-inline: clamp(2.75rem, 8.5vmin, 4.75rem);
+    padding-inline: clamp(2.5rem, 7.5vmin, 4.25rem);
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__content {
-    width: min(100%, 28rem);
-    gap: clamp(0.55rem, 1.85vmin, 1rem);
+    width: min(100%, 24rem);
+    gap: clamp(0.35rem, 1.35vmin, 0.75rem);
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__name {
-    font-size: clamp(1.75rem, 5.8vmin, 3.5rem);
+    font-size: clamp(1.55rem, 5vmin, 2.85rem);
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__payout {
-    font-size: clamp(2.65rem, 9.5vmin, 6.25rem);
+    font-size: clamp(2.15rem, 7.5vmin, 4.75rem);
+  }
+
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__payout--split {
+    font-size: clamp(1.85rem, 6.2vmin, 3.35rem);
+  }
+
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__split-name {
+    font-size: clamp(1.15rem, 3.6vmin, 1.85rem);
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__crown {
+    height: clamp(2.25rem, 6.2vmin, 3.75rem);
+  }
+
+  [data-form-factor='broadcast-2']
+    .vfd-broadcast-showdown-reveal[data-reveal-variant='winner']
+    .vfd-broadcast-showdown-reveal__crown {
     height: clamp(2.65rem, 7.5vmin, 4.75rem);
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__laurel {
-    max-width: clamp(3.5rem, 14vmin, 6.25rem);
+    max-width: clamp(3.15rem, 12vmin, 5.5rem);
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__diff-value {
-    font-size: clamp(1.25rem, 3.5vmin, 2.15rem);
+    font-size: clamp(1.1rem, 3.1vmin, 1.85rem);
   }
 
-  [data-form-factor='broadcast-2'] [data-showdown-winner-cards='broadcast-hero'] {
-    gap: clamp(0.14rem, 0.55vmin, 0.42rem);
+  [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__nameplate {
+    min-height: clamp(2.75rem, 6.5vmin, 4rem);
+    width: min(100%, 14rem);
+  }
+
+  [data-form-factor='broadcast-2'] [data-showdown-winner-cards='broadcast-hero'],
+  [data-form-factor='broadcast-2'] [data-showdown-winner-cards='broadcast'] {
+    gap: clamp(0.1rem, 0.45vmin, 0.32rem);
+  }
+
+  [data-form-factor='broadcast-2'] [data-showdown-winner-cards='broadcast'] > * {
+    height: clamp(2.15rem, 5.8vmin, 3.35rem);
+    width: clamp(1.4rem, 3.9vmin, 2.25rem);
   }
 
   /** Mosaic tier hooks — extend per form factor without new class names. */

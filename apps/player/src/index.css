@@ -1360,6 +1360,21 @@
   overscroll-behavior: contain;
 }
 
+/* Live-fit: one scroll region for results/summary — not stacked on the HUD. */
+.player-game-layout--live-fit .player-game-fit-scroll--solo {
+  flex: 1 1 auto;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.player-game-layout--live-fit .player-game-fit-scroll--solo .player-table-results-scroll {
+  max-height: none;
+  overflow: visible;
+}
+
 .player-game-panel {
   position: relative;
   padding: clamp(0.85rem, 3vw, 1.15rem) clamp(0.9rem, 3.5vw, 1.25rem);
@@ -2449,26 +2464,18 @@
 .player-hud-opponents {
   display: flex;
   flex: 1 1 auto;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  justify-content: center;
-  gap: 0.45rem;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.22rem;
   min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
+  /* No nested scroll — dense rows must fit the leftover column. */
+  overflow: hidden;
 }
 
-.player-hud-opponents > * {
-  flex: 1 1 calc(50% - 0.45rem);
-  max-width: calc(50% - 0.25rem);
-  min-width: 7.5rem;
-}
-
-@media (min-width: 480px) {
-  .player-hud-opponents > * {
-    flex: 1 1 calc(33.333% - 0.45rem);
-    max-width: calc(33.333% - 0.25rem);
-  }
+.player-hud-opp-item {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 0;
 }
 
 .player-hud-center {
@@ -2514,22 +2521,29 @@
 }
 
 .player-hud-seat {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(3.5rem, 0.7fr) minmax(2.5rem, 0.55fr) auto;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.45rem 0.4rem 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgb(251 191 36 / 0.22);
+  gap: 0.25rem 0.35rem;
+  padding: 0.28rem 0.4rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgb(251 191 36 / 0.2);
   background: rgb(8 12 10 / 0.78);
-  text-align: center;
+  text-align: left;
+}
+
+.player-hud-seat--opp .player-hud-seat-holes--mini {
+  grid-column: 1 / -1;
+  justify-content: flex-start;
 }
 
 .player-hud-seat--hero {
+  display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
-  padding: 0.55rem 0.65rem;
+  padding: 0.45rem 0.55rem;
   border-color: rgb(251 191 36 / 0.45);
   background:
     linear-gradient(90deg, rgb(69 26 3 / 0.35) 0%, rgb(8 12 10 / 0.88) 55%),
@@ -2541,51 +2555,69 @@
   border-color: rgb(251 191 36 / 0.7);
   box-shadow:
     0 0 0 1px rgb(251 191 36 / 0.25),
-    0 0 18px rgb(251 191 36 / 0.12);
+    0 0 14px rgb(251 191 36 / 0.1);
 }
 
 .player-hud-seat--folded {
-  opacity: 0.55;
+  opacity: 0.58;
 }
 
 .player-hud-seat-meta {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.12rem;
-  min-width: 0;
-  width: 100%;
-}
-
-.player-hud-seat--hero .player-hud-seat-meta {
   align-items: flex-start;
-  text-align: left;
+  gap: 0.1rem;
+  min-width: 0;
   flex: 1 1 auto;
+  text-align: left;
 }
 
 .player-hud-seat-name {
-  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(0.95rem, 3.2vw, 1.15rem);
+  font-size: clamp(0.82rem, 2.6vw, 0.98rem);
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
   color: rgb(167 243 208);
 }
 
 .player-hud-seat--hero .player-hud-seat-name {
   color: rgb(253 224 71);
-  font-size: clamp(1.15rem, 4vw, 1.4rem);
+  font-size: clamp(1.05rem, 3.6vw, 1.28rem);
 }
 
 .player-hud-seat-stack {
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(0.9rem, 3vw, 1.05rem);
+  font-size: clamp(0.78rem, 2.4vw, 0.95rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: rgb(253 230 138);
+  text-align: right;
+}
+
+.player-hud-seat--hero .player-hud-seat-stack {
+  font-size: clamp(0.95rem, 3vw, 1.1rem);
+  text-align: left;
+}
+
+.player-hud-seat-spacer {
+  display: block;
+  min-width: 0;
+}
+
+.player-hud-seat--opp .player-game-seat-pill {
+  justify-self: end;
+  margin-top: 0;
+  font-size: 0.58rem;
+  padding: 0.1rem 0.32rem;
+}
+
+.player-hud-seat--opp .player-game-seat-street-in {
+  font-size: 0.68rem;
+  text-align: right;
 }
 
 .player-hud-seat-holes {
@@ -2594,8 +2626,27 @@
   flex: 0 0 auto;
 }
 
-.player-hud-seat-holes--empty {
-  min-height: 2.5rem;
+.player-hud-seat-holes--mini {
+  padding-top: 0.1rem;
+}
+
+/* Pack up to ~8 mate rows into leftover height without scrolling. */
+.player-game-layout--live-fit .player-hud-opponents {
+  container-type: size;
+}
+
+.player-game-layout--live-fit .player-hud-seat--opp {
+  padding-block: clamp(0.12rem, 1.4cqh, 0.28rem);
+}
+
+.player-game-layout--live-fit .player-hud-center {
+  padding: 0.3rem 0.4rem;
+  gap: 0.25rem;
+}
+
+.player-game-layout--live-fit .player-hud-board {
+  transform: scale(0.88);
+  transform-origin: center center;
 }
 
 .player-game-seat-pill--locked {

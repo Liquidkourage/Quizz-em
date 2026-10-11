@@ -427,17 +427,18 @@ function PlayerApp() {
             ) : null}
 
             {showLastHand ? (
-              <div className="player-game-fit-scroll">
+              <div className="player-game-fit-scroll player-game-fit-scroll--solo">
                 <PostHandSummaryCard summary={handSummary!} />
               </div>
             ) : null}
             {showTableResults ? (
-              <div className="player-game-fit-scroll">
+              <div className="player-game-fit-scroll player-game-fit-scroll--solo">
                 <TableResultsPanel results={tableResults!} />
               </div>
             ) : null}
 
-            {seatedAtTable ? feltView : null}
+            {/* Results own the middle — don't stack HUD under them (nested scroll). */}
+            {seatedAtTable && !showTableResults && !showLastHand ? feltView : null}
 
             {!seatedAtTable ? (
               <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} />

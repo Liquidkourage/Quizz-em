@@ -319,6 +319,17 @@ function HostApp() {
     })
   }
 
+  function shuffleSetlistQuestions(setlistId: string) {
+    const sl = setlists.find((s) => s.id === setlistId)
+    if (!sl || sl.questionIds.length < 2) return
+    const ids = [...sl.questionIds]
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[ids[i], ids[j]] = [ids[j]!, ids[i]!]
+    }
+    setlistSave({ id: setlistId, questionIds: ids })
+  }
+
   const handleDealCommunityCards = () => {
     if (socket) {
       socket.emit('action', { type: 'dealCommunityCards' })
@@ -1083,19 +1094,34 @@ function HostApp() {
                 <p className="text-sm text-white/50">Select a setlist to arrange its questions.</p>
               ) : (
                 <div className="space-y-3">
-                  <div className="text-sm font-bold text-white/90">
-                    Question order
-                    {draftSetlist ? (
-                      <span
-                        className={`ml-2 font-normal tabular-nums ${
-                          isSetlistTargetLength(draftSetlist.questionIds.length)
-                            ? 'text-emerald-300/90'
-                            : 'text-amber-200/85'
-                        }`}
-                      >
-                        {formatSetlistProgress(draftSetlist.questionIds.length)}
-                      </span>
-                    ) : null}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-sm font-bold text-white/90">
+                      Question order
+                      {draftSetlist ? (
+                        <span
+                          className={`ml-2 font-normal tabular-nums ${
+                            isSetlistTargetLength(draftSetlist.questionIds.length)
+                              ? 'text-emerald-300/90'
+                              : 'text-amber-200/85'
+                          }`}
+                        >
+                          {formatSetlistProgress(draftSetlist.questionIds.length)}
+                        </span>
+                      ) : null}
+                    </div>
+                    <NeonButton
+                      variant="purple"
+                      size="small"
+                      type="button"
+                      disabled={!draftSetlist || draftSetlist.questionIds.length < 2}
+                      title="Randomize cue order"
+                      onClick={() => {
+                        if (!setlistDraftId) return
+                        shuffleSetlistQuestions(setlistDraftId)
+                      }}
+                    >
+                      Shuffle
+                    </NeonButton>
                   </div>
                   {!draftSetlist || isSetlistTargetLength(draftSetlist.questionIds.length) ? null : (
                     <p className="text-xs text-amber-200/80">

@@ -423,6 +423,8 @@ export interface ServerToClientEvents {
   dealingCards: (payload?: { tableNum: number }) => void
   dealingCommunityCards: (payload?: { tableNum: number }) => void
   seated: (info: { tableId: string }) => void
+  /** Host desk: server moved control to this table (e.g. after Assign) — sync ?table= UI. */
+  hostBoundTable: (info: { tableId: string }) => void
   /** Sent only to sockets in HOST:{venue} — bank, setlists, active rundown */
   hostLibrary: (snapshot: HostLibrarySnapshot) => void
   /** Host cue: felts worth checking for public spotlight (cheap heuristic; updates with venue wall). */

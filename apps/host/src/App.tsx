@@ -6,6 +6,7 @@ import {
   onState,
   onToast,
   onHostLibrary,
+  onHostBoundTable,
   onHostVenueGameplayHints,
   onHostVenueFeltBeat,
   onHostVenueFloorBrief,
@@ -159,6 +160,16 @@ function HostApp() {
     })
     return cleanup
   }, [hostVenueCode, hostTableId, effectiveHostSecret])
+
+  // Assign / rehearsal moves the host socket to table 1 — keep the desk dropdown in sync.
+  useEffect(() => {
+    const off = onHostBoundTable(({ tableId }) => {
+      const next = String(tableId ?? '').trim()
+      if (!next) return
+      setHostTableId((prev) => (prev === next ? prev : next))
+    })
+    return off
+  }, [])
 
   useEffect(() => {
     const unsubscribe = onState((newGameState) => {

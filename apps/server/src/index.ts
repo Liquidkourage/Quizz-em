@@ -1412,16 +1412,27 @@ function assertHostRole(socket: Socket): boolean {
   return true
 }
 
+/** Point every felt in the venue at this host socket (hello / reclaim). */
+function bindSocketAsVenueHost(socket: Socket, venueCode: string): void {
+  const vn = normalizeVenueCode(venueCode)
+  for (const tk of allVenueSessionKeys(vn)) {
+    const gs = rooms.get(tk)
+    if (gs) rooms.set(tk, { ...gs, hostId: socket.id })
+  }
+}
+
 /**
- * Live table control: must also be the socket bound as `hostId` on this felt.
- * A second host tab, reconnect, or table switch can desync that binding — library
- * edits should use {@link assertHostRole} instead.
+ * Live table control. Authenticated host desks reclaim a stale `hostId` binding
+ * (reconnect, Assign moving the socket, second tab closed, table switch) instead
+ * of toast-blocking Run show. Library edits use {@link assertHostRole} only.
  */
-function assertVenueHost(socket: Socket, gs: { hostId: string }): boolean {
+function assertVenueHost(socket: Socket, gs: { hostId: string; code: string }): boolean {
   if (!assertHostRole(socket)) return false
   if (socket.id !== gs.hostId) {
-    socket.emit('toast', 'Only the venue host for this bound table can control the game.')
-    return false
+    bindSocketAsVenueHost(socket, gs.code)
+    // Keep the caller's local snapshot aligned so the end-of-handler rooms.set
+    // does not write the old hostId back over the rebind.
+    gs.hostId = socket.id
   }
   return true
 }
@@ -1836,6 +1847,8 @@ function moveVenueHostToTableOne(vn: string, hostId: string, fromSessionKey: str
     hostSock.leave(fromSessionKey)
     hostSock.join(t1Key)
     ;(hostSock.data as { sessionKey?: string }).sessionKey = t1Key
+    bindSocketAsVenueHost(hostSock, vn)
+    hostSock.emit('hostBoundTable', { tableId: '1' })
   }
   return t1Key
 }
@@ -2711,11 +2724,9 @@ io.on('connection', (socket) => {
 
     if (role === 'host') {
       gameState = { ...gameState, hostId: socket.id }
-      const vn = normalizeVenueCode(venueCode)
-      for (const tk of allVenueSessionKeys(vn)) {
-        const gs = rooms.get(tk)
-        if (gs) rooms.set(tk, { ...gs, hostId: socket.id })
-      }
+      bindSocketAsVenueHost(socket, venueCode)
+      // Refresh local snapshot after venue-wide bind (may have rewritten this session).
+      gameState = rooms.get(activeSessionKey) ?? gameState
     }
 
     let restoredTableId: string | undefined
@@ -3688,6 +3699,8 @@ io.on('connection', (socket) => {
             hostSock.leave(lobbyKey)
             hostSock.join(t1Key)
             ;(hostSock.data as { sessionKey?: string }).sessionKey = t1Key
+            bindSocketAsVenueHost(hostSock, lobbyGs.code)
+            hostSock.emit('hostBoundTable', { tableId: '1' })
           }
 
           socket.emit(

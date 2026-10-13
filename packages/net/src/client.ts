@@ -210,6 +210,15 @@ export function onSeated(callback: (info: { tableId: string }) => void) {
   }
 }
 
+export function onHostBoundTable(callback: (info: { tableId: string }) => void) {
+  if (!socket) return () => {}
+
+  socket.on('hostBoundTable', callback)
+  return () => {
+    if (socket) socket.off('hostBoundTable', callback)
+  }
+}
+
 export function onHostLibrary(callback: (snapshot: HostLibrarySnapshot) => void) {
   if (!socket) return () => {}
 

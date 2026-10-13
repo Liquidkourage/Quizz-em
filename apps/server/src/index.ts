@@ -1397,7 +1397,8 @@ function sanitizeSetlistQuestionIds(lib: VenueLibraryData, ids: string[]): strin
   return ids.filter((id) => known.has(id))
 }
 
-function assertVenueHost(socket: Socket, gs: { hostId: string }): boolean {
+/** Authenticated host desk (role + optional HOST_SECRET) — enough for venue library edits. */
+function assertHostRole(socket: Socket): boolean {
   const sd = socket.data as { role?: string; hostAuthed?: boolean }
   if (sd.role !== 'host') {
     socket.emit('toast', 'Only the host can perform this action.')
@@ -1408,6 +1409,16 @@ function assertVenueHost(socket: Socket, gs: { hostId: string }): boolean {
     socket.emit('toast', 'Host session is not authenticated (check HOST_SECRET).')
     return false
   }
+  return true
+}
+
+/**
+ * Live table control: must also be the socket bound as `hostId` on this felt.
+ * A second host tab, reconnect, or table switch can desync that binding — library
+ * edits should use {@link assertHostRole} instead.
+ */
+function assertVenueHost(socket: Socket, gs: { hostId: string }): boolean {
+  if (!assertHostRole(socket)) return false
   if (socket.id !== gs.hostId) {
     socket.emit('toast', 'Only the venue host for this bound table can control the game.')
     return false
@@ -3013,7 +3024,7 @@ io.on('connection', (socket) => {
         }
 
         case 'selectTriviaSetlist': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const venue = normalizeVenueCode(gameState.code)
           const lib = await ensureVenueLibrary(venue)
           const raw = payload?.setlistId
@@ -3039,7 +3050,7 @@ io.on('connection', (socket) => {
         }
 
         case 'setlistCreate': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const name = String(payload?.name ?? '').trim()
           if (!name) {
             socket.emit('toast', 'Setlist needs a name.')
@@ -3055,7 +3066,7 @@ io.on('connection', (socket) => {
         }
 
         case 'setlistSave': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const id = String(payload?.id ?? '').trim()
           if (!id) {
             socket.emit('toast', 'setlistSave requires id.')
@@ -3094,7 +3105,7 @@ io.on('connection', (socket) => {
         }
 
         case 'setlistDelete': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const id = String(payload?.id ?? '').trim()
           const venue = normalizeVenueCode(gameState.code)
           const lib = await ensureVenueLibrary(venue)
@@ -3788,7 +3799,7 @@ io.on('connection', (socket) => {
         }
 
         case 'questionBankAdd': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const lib = await ensureVenueLibrary(gameState.code)
           const bank = lib.questions
           const text = String(payload?.text ?? '').trim()
@@ -3815,7 +3826,7 @@ io.on('connection', (socket) => {
         }
 
         case 'questionBankUpdate': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const lib = await ensureVenueLibrary(gameState.code)
           const bank = lib.questions
           const id = String(payload?.id ?? '').trim()
@@ -3866,7 +3877,7 @@ io.on('connection', (socket) => {
         }
 
         case 'questionBankDelete': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const lib = await ensureVenueLibrary(gameState.code)
           const bank = lib.questions
           const id = String(payload?.id ?? '').trim()
@@ -3884,7 +3895,7 @@ io.on('connection', (socket) => {
         }
 
         case 'questionBankMove': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const lib = await ensureVenueLibrary(gameState.code)
           const bank = [...lib.questions]
           const id = String(payload?.id ?? '').trim()
@@ -3901,7 +3912,7 @@ io.on('connection', (socket) => {
         }
 
         case 'questionBankImportRows': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const replace = !!payload?.replace
           const rows = payload?.rows
           if (!Array.isArray(rows) || rows.length === 0) {
@@ -3933,7 +3944,7 @@ io.on('connection', (socket) => {
         }
 
         case 'questionBankResetSamples': {
-          if (!assertVenueHost(socket, gameState)) break
+          if (!assertHostRole(socket)) break
           const lib = await ensureVenueLibrary(gameState.code)
           lib.questions = STARTER_QUESTION_SET.map((q) => ({ ...q }))
           const starterIdx = lib.setlists.findIndex((s) => s.id === STARTER_SETLIST_ID)

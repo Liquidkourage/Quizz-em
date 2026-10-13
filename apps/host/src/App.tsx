@@ -918,6 +918,40 @@ function HostApp() {
                         >
                           ↓
                         </button>
+                        <select
+                          className="mr-2 max-w-[9.5rem] rounded border border-white/20 bg-zinc-950 px-1.5 py-0.5 text-xs text-white [color-scheme:dark] disabled:opacity-40"
+                          value=""
+                          disabled={setlists.length === 0}
+                          aria-label={`Add “${q.text.slice(0, 40)}” to a setlist`}
+                          title={
+                            setlists.length === 0
+                              ? 'Create a setlist below first'
+                              : 'Add this question to a setlist'
+                          }
+                          onChange={(e) => {
+                            const setlistId = e.target.value
+                            if (!setlistId) return
+                            appendQuestionToSetlist(setlistId, q.id)
+                            e.currentTarget.value = ''
+                          }}
+                        >
+                          <option value="" className="bg-zinc-950 text-white">
+                            + Setlist…
+                          </option>
+                          {setlists.map((sl) => {
+                            const already = sl.questionIds.includes(q.id)
+                            return (
+                              <option
+                                key={sl.id}
+                                value={sl.id}
+                                disabled={already}
+                                className="bg-zinc-950 text-white"
+                              >
+                                {already ? `✓ ${sl.name}` : sl.name}
+                              </option>
+                            )
+                          })}
+                        </select>
                         <button
                           type="button"
                           className="text-casino-emerald hover:underline mr-2 text-xs uppercase font-bold"

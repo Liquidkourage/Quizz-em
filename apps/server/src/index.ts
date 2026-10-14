@@ -26,6 +26,7 @@ import {
   PLAYER_ANSWER_DIGIT_CARD_COUNT,
   revealAnswer,
   endRound,
+  formatTriviaNumber,
   isSubmittedAnswerComposableFromDeal,
   adminCloseBetting,
   adminAdvanceTurn,
@@ -1527,6 +1528,25 @@ function resolveHumanTurnActor(
   const player = gs.players[idx]
   if (!player || player.id.startsWith('vp:') || player.hasFolded || !inChipContest(player)) return null
   return { seatIndex: idx, playerId: player.id, playerName: player.name }
+}
+
+/** Toast-facing seat label: First L. — never raw `human:…` ids. */
+function toastPlayerLabel(gs: GameState, playerId: string): string {
+  const p = gs.players.find((x) => x.id === playerId)
+  const s = String(p?.name ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+  if (!s) return 'Player'
+  const parts = s.split(' ')
+  if (parts[0]!.toUpperCase() === 'CPU' && parts.length >= 2) return s
+  if (parts.length === 1) return parts[0]!
+  const first = parts[0]!
+  const last = parts[parts.length - 1]!
+  if (/^[A-Za-z]\.?$/i.test(last)) {
+    return `${first} ${last.replace(/\./g, '').charAt(0).toUpperCase()}.`
+  }
+  const m = last.match(/[A-Za-z]/)
+  return m ? `${first} ${m[0]!.toUpperCase()}.` : first
 }
 
 /**
@@ -3177,27 +3197,44 @@ io.on('connection', (socket) => {
           break
         }
 
-        case 'bet':
+        case 'bet': {
           const betAction = payload as BetAction
+          const who = toastPlayerLabel(gameState, betAction.playerId)
           gameState = placeBet(gameState, betAction.playerId, betAction.amount)
-          io.to(sessionKey).emit('toast', `${betAction.playerId} bet $${betAction.amount}`)
+          io.to(sessionKey).emit('toast', `${who} bet $${betAction.amount.toLocaleString()}`)
           break
-        case 'check':
-          gameState = playerCheck(gameState, (payload as CheckAction).playerId)
-          io.to(sessionKey).emit('toast', `Check`)
+        }
+        case 'check': {
+          const checkAction = payload as CheckAction
+          const who = toastPlayerLabel(gameState, checkAction.playerId)
+          gameState = playerCheck(gameState, checkAction.playerId)
+          io.to(sessionKey).emit('toast', `${who} checked`)
           break
-        case 'call':
-          gameState = playerCall(gameState, (payload as CallAction).playerId)
-          io.to(sessionKey).emit('toast', `Call`)
+        }
+        case 'call': {
+          const callAction = payload as CallAction
+          const who = toastPlayerLabel(gameState, callAction.playerId)
+          gameState = playerCall(gameState, callAction.playerId)
+          io.to(sessionKey).emit('toast', `${who} called`)
           break
-        case 'raise':
-          gameState = playerRaise(gameState, (payload as RaiseAction).playerId, (payload as RaiseAction).amount)
-          io.to(sessionKey).emit('toast', `Raise`)
+        }
+        case 'raise': {
+          const raiseAction = payload as RaiseAction
+          const who = toastPlayerLabel(gameState, raiseAction.playerId)
+          gameState = playerRaise(gameState, raiseAction.playerId, raiseAction.amount)
+          io.to(sessionKey).emit(
+            'toast',
+            `${who} raised to $${raiseAction.amount.toLocaleString()}`,
+          )
           break
-        case 'allIn':
-          gameState = playerAllIn(gameState, (payload as AllInAction).playerId)
-          io.to(sessionKey).emit('toast', `All-in!`)
+        }
+        case 'allIn': {
+          const allInAction = payload as AllInAction
+          const who = toastPlayerLabel(gameState, allInAction.playerId)
+          gameState = playerAllIn(gameState, allInAction.playerId)
+          io.to(sessionKey).emit('toast', `${who} is all-in!`)
           break
+        }
         case 'adminCloseBetting': {
           if (!assertVenueHost(socket, gameState)) break
           const lockClose = requireVenueLockstepTables(
@@ -3357,11 +3394,13 @@ io.on('connection', (socket) => {
           break
         }
           
-        case 'fold':
+        case 'fold': {
           const foldAction = payload as FoldAction
+          const who = toastPlayerLabel(gameState, foldAction.playerId)
           gameState = foldPlayer(gameState, foldAction.playerId)
-          io.to(sessionKey).emit('toast', `${foldAction.playerId} folded`)
+          io.to(sessionKey).emit('toast', `${who} folded`)
           break
+        }
           
         case 'submitAnswer': {
           const submitAnswerAction = payload as SubmitAnswerAction
@@ -3388,13 +3427,17 @@ io.on('connection', (socket) => {
             })
             break
           }
+          const who = toastPlayerLabel(gameState, submitAnswerAction.playerId)
           gameState = submitAnswer(
             gameState,
             submitAnswerAction.playerId,
             submitAnswerAction.answer,
             submitAnswerAction.composition
           )
-          io.to(sessionKey).emit('toast', `Answer submitted: ${submitAnswerAction.answer}`)
+          io.to(sessionKey).emit(
+            'toast',
+            `${who} submitted ${formatTriviaNumber(submitAnswerAction.answer)}`,
+          )
           socket.emit('ack', { ok: true, message: 'Answer recorded.' })
           break
         }

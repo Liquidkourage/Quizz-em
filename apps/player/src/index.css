@@ -1040,6 +1040,11 @@
   flex-shrink: 0;
   position: static;
   padding: 0.4rem 0.65rem;
+  /* Verbose prompts stay fully readable; scroll instead of clipping. */
+  max-height: min(42vh, 14rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .player-game-layout--live-fit .player-sticky-question-label {
@@ -1049,11 +1054,9 @@
 
 .player-game-layout--live-fit .player-sticky-question-text {
   font-size: clamp(0.95rem, 3.2vw, 1.1rem);
-  line-height: 1.25;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .player-game-layout--live-fit .player-game-banner--compact {

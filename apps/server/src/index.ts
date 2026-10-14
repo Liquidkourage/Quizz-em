@@ -114,9 +114,11 @@ import {
   clearVenueHostLog,
   getVenueLastHandDisplay,
   recordVenueHostHandResults,
+  recordVenueMovesBetweenStates,
   setVenueLastHandDisplay,
   attachVenueLastHandSeating,
   clearVenueLastHandDisplay,
+  shortPlayerName,
 } from './venue-host-log'
 import {
   coerceImportQuestions,
@@ -1533,20 +1535,23 @@ function resolveHumanTurnActor(
 /** Toast-facing seat label: First L. — never raw `human:…` ids. */
 function toastPlayerLabel(gs: GameState, playerId: string): string {
   const p = gs.players.find((x) => x.id === playerId)
-  const s = String(p?.name ?? '')
-    .trim()
-    .replace(/\s+/g, ' ')
-  if (!s) return 'Player'
-  const parts = s.split(' ')
-  if (parts[0]!.toUpperCase() === 'CPU' && parts.length >= 2) return s
-  if (parts.length === 1) return parts[0]!
-  const first = parts[0]!
-  const last = parts[parts.length - 1]!
-  if (/^[A-Za-z]\.?$/i.test(last)) {
-    return `${first} ${last.replace(/\./g, '').charAt(0).toUpperCase()}.`
+  return shortPlayerName(p?.name ?? '')
+}
+
+/** Record host move-log deltas, persist room state, then broadcast. */
+function commitTableAdvance(
+  sessionKey: string,
+  before: GameState,
+  after: GameState,
+  opts?: { skipOrchestration?: boolean },
+): void {
+  const vn = normalizeVenueCode(after.code)
+  const tn = tableNumFromSessionKey(vn, sessionKey)
+  if (tn != null) {
+    recordVenueMovesBetweenStates(vn, tn, before, after)
   }
-  const m = last.match(/[A-Za-z]/)
-  return m ? `${first} ${m[0]!.toUpperCase()}.` : first
+  rooms.set(sessionKey, after)
+  emitVenueTableState(sessionKey, after, opts)
 }
 
 /**
@@ -1635,15 +1640,15 @@ function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
 
       const contrib = cur.round.playerBets?.[acting.id] ?? 0
       const toCall = Math.max(0, (cur.round.currentBet ?? 0) - contrib)
+      const beforeTimeout = cur
       cur = toCall === 0 ? playerCheck(cur, acting.id) : foldPlayer(cur, acting.id)
       cur = runVirtualPlayerSimulation(cur)
-      rooms.set(sessionKey, cur)
       humanTurnExtensions.delete(extKey)
       humanTurnDeadlineMs.delete(sessionKey)
-      emitVenueTableState(sessionKey, cur)
+      commitTableAdvance(sessionKey, beforeTimeout, cur)
       io.to(sessionKey).emit(
         'toast',
-        `${playerName} timed out — ${toCall === 0 ? 'checked' : 'folded'}.`,
+        `${shortPlayerName(playerName)} timed out — ${toCall === 0 ? 'checked' : 'folded'}.`,
       )
     }, nextDelayMs)
     humanTurnTimers.set(sessionKey, timer)
@@ -2439,6 +2444,7 @@ function drainCpuVpSessionChain(sessionKey: string) {
     return
   }
 
+  const beforeDrain = gs
   let s = gs
   let steps = 0
   while (steps < CPU_VP_STEPS_PER_CHUNK) {
@@ -2448,8 +2454,12 @@ function drainCpuVpSessionChain(sessionKey: string) {
     steps++
   }
 
-  rooms.set(sessionKey, s)
-  emitVenueTableState(sessionKey, s)
+  if (steps > 0) {
+    commitTableAdvance(sessionKey, beforeDrain, s)
+  } else {
+    rooms.set(sessionKey, s)
+    emitVenueTableState(sessionKey, s)
+  }
 
   gs = rooms.get(sessionKey)
   if (!gs || !tableIsCpuOnly(gs)) {
@@ -3939,9 +3949,9 @@ io.on('connection', (socket) => {
       }
       
       if (!VENUE_SYNC_ACTION_TYPES.has(type)) {
+        const beforeMoves = rooms.get(sessionKey) as GameState
         gameState = runVirtualPlayerSimulation(gameState)
-        rooms.set(sessionKey, gameState)
-        emitVenueTableState(sessionKey, gameState)
+        commitTableAdvance(sessionKey, beforeMoves, gameState)
       }
       
     } catch (error) {

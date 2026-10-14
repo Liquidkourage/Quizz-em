@@ -57,6 +57,7 @@ import {
   HostBlindsControls,
   HostVenueFeltBeatStrip,
   HostVenueFloorBriefPanel,
+  HostVenueMoveLogPanel,
   buildHostPhaseDockItems,
   buildHostRunOfShowSteps,
   formatVenueBlindsSummary,
@@ -1248,6 +1249,8 @@ function HostApp() {
           brief={venueFloorBrief}
           onSpotlight={spotlightTableOnTvs}
         />
+
+        <HostVenueMoveLogPanel brief={venueFloorBrief} hostPlayerLabel={hostPlayerLabel} />
 
         <HostRunProgressDots steps={runOfShowSteps} />
 

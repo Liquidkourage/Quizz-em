@@ -1,4 +1,4 @@
-import { type GameState, previewChipPayoutByPlayerId } from '@qhe/core'
+import { formatTriviaNumber, type GameState, type SeatBettingAction, previewChipPayoutByPlayerId } from '@qhe/core'
 import type {
   DisplayVenueTileSnapshot,
   DisplayVenueSeatingAnnouncement,
@@ -6,13 +6,18 @@ import type {
   HostVenueBigWinEntry,
   HostVenueBustEntry,
   HostVenueFloorBriefPayload,
+  HostVenueMoveLogEntry,
+  HostVenueMoveLogKind,
 } from '@qhe/net'
 
 const LOG_CAP = 48
+const MOVE_LOG_CAP = 200
 
 type VenueHostLog = {
   busts: HostVenueBustEntry[]
   bigWinners: HostVenueBigWinEntry[]
+  moveLog: HostVenueMoveLogEntry[]
+  moveSeq: number
 }
 
 const venueHostLogs = new Map<string, VenueHostLog>()
@@ -28,9 +33,11 @@ const venueLastHandDisplay = new Map<string, VenueLastHandDisplay>()
 function logForVenue(vn: string): VenueHostLog {
   let log = venueHostLogs.get(vn)
   if (!log) {
-    log = { busts: [], bigWinners: [] }
+    log = { busts: [], bigWinners: [], moveLog: [], moveSeq: 0 }
     venueHostLogs.set(vn, log)
   }
+  if (!Array.isArray(log.moveLog)) log.moveLog = []
+  if (typeof log.moveSeq !== 'number') log.moveSeq = 0
   return log
 }
 
@@ -66,6 +73,118 @@ export function clearVenueLastHandDisplay(vn: string): void {
 function bigWinThreshold(gs: GameState): number {
   const bb = typeof gs.bigBlind === 'number' && gs.bigBlind > 0 ? gs.bigBlind : 100
   return Math.max(300, bb * 12)
+}
+
+/** Host toast / log label: First L. (never raw human: ids). */
+export function shortPlayerName(raw: string): string {
+  const s = String(raw ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+  if (!s) return 'Player'
+  const parts = s.split(' ')
+  if (parts[0]!.toUpperCase() === 'CPU' && parts.length >= 2) return s
+  if (parts.length === 1) return parts[0]!
+  const first = parts[0]!
+  const last = parts[parts.length - 1]!
+  if (/^[A-Za-z]\.?$/i.test(last)) {
+    return `${first} ${last.replace(/\./g, '').charAt(0).toUpperCase()}.`
+  }
+  const m = last.match(/[A-Za-z]/)
+  return m ? `${first} ${m[0]!.toUpperCase()}.` : first
+}
+
+function money(n: number): string {
+  return `$${Math.round(n).toLocaleString()}`
+}
+
+function formatBettingMoveSummary(
+  gs: GameState,
+  playerId: string,
+  action: SeatBettingAction,
+  name: string,
+): string {
+  const toCall = Math.max(
+    0,
+    (gs.round.currentBet ?? 0) - (gs.round.playerBets?.[playerId] ?? 0),
+  )
+  switch (action) {
+    case 'check':
+      return `${name} checked`
+    case 'call':
+      return `${name} called`
+    case 'raise':
+      return `${name} raised to ${money(gs.round.currentBet ?? 0)}`
+    case 'fold':
+      return `${name} folded`
+    case 'allIn':
+      return toCall > 0 ? `${name} is all-in` : `${name} is all-in`
+    default:
+      return `${name} ${action}`
+  }
+}
+
+function pushMove(
+  log: VenueHostLog,
+  entry: Omit<HostVenueMoveLogEntry, 'id'>,
+): void {
+  log.moveSeq += 1
+  log.moveLog.unshift({
+    ...entry,
+    id: `${entry.atMs}-${entry.tableNum}-${log.moveSeq}`,
+  })
+  if (log.moveLog.length > MOVE_LOG_CAP) {
+    log.moveLog.length = MOVE_LOG_CAP
+  }
+}
+
+/** Diff two table states and append every new betting action / answer submit to the venue log. */
+export function recordVenueMovesBetweenStates(
+  vnRaw: string,
+  tableNum: number,
+  before: GameState,
+  after: GameState,
+): void {
+  if (before === after || !Number.isFinite(tableNum) || tableNum < 1) return
+  const vn = vnRaw.trim().toUpperCase()
+  const log = logForVenue(vn)
+  const now = Date.now()
+
+  const beforeActs = before.round.lastSeatBettingAction ?? []
+  const afterActs = after.round.lastSeatBettingAction ?? []
+  const beforeById = new Map(before.players.map((p) => [p.id, p]))
+
+  for (let i = 0; i < after.players.length; i++) {
+    const p = after.players[i]
+    if (!p) continue
+    const nextAct = afterActs[i] ?? null
+    const prevAct = beforeActs[i] ?? null
+    if (nextAct != null && nextAct !== prevAct) {
+      const name = shortPlayerName(p.name)
+      pushMove(log, {
+        atMs: now,
+        tableNum,
+        playerName: name,
+        kind: nextAct as HostVenueMoveLogKind,
+        summary: formatBettingMoveSummary(after, p.id, nextAct, name),
+      })
+    }
+
+    const prev = beforeById.get(p.id)
+    if (
+      typeof p.submittedAnswer === 'number' &&
+      Number.isFinite(p.submittedAnswer) &&
+      (prev == null || prev.submittedAnswer === undefined)
+    ) {
+      const name = shortPlayerName(p.name)
+      pushMove(log, {
+        atMs: now,
+        tableNum,
+        playerName: name,
+        kind: 'submit',
+        summary: `${name} submitted ${formatTriviaNumber(p.submittedAnswer)}`,
+      })
+    }
+  }
 }
 
 function formatActingSummary(tile: DisplayVenueTileSnapshot): string | null {
@@ -179,6 +298,7 @@ export function buildHostVenueFloorBrief(args: {
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
   return {
     actionRows: buildHostVenueActionRows(args.tiles),
+    moveLog: log.moveLog.slice(0, MOVE_LOG_CAP),
     busts: log.busts,
     bigWinners: log.bigWinners,
     bigWinMinAmount: Math.max(300, bb * 12),

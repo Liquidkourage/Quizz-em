@@ -1,7 +1,12 @@
 import { Children, useEffect, useState, type ReactNode } from 'react'
 import { ChipText, NeonButton } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
-import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload, VenueBlindsSnapshot } from '@qhe/net'
+import type {
+  HostVenueFeltBeatRow,
+  HostVenueFloorBriefPayload,
+  HostVenueMoveLogEntry,
+  VenueBlindsSnapshot,
+} from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID } from '@qhe/core'
 import { adminCloseBetting } from '@qhe/net'
 
@@ -926,6 +931,123 @@ function formatHostFloorMoney(n: number): string {
   return `$${Math.round(n).toLocaleString()}`
 }
 
+function formatMoveLogClock(atMs: number): string {
+  try {
+    return new Date(atMs).toLocaleTimeString(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+  } catch {
+    return ''
+  }
+}
+
+/** Live chronological log of every player move across all tables. */
+export function HostVenueMoveLogPanel({
+  brief,
+  hostPlayerLabel,
+}: {
+  brief: HostVenueFloorBriefPayload | null
+  hostPlayerLabel: (name: string) => string
+}) {
+  const moves = brief?.moveLog ?? []
+  const [tableFilter, setTableFilter] = useState<number | 'all'>('all')
+  const tableNums = Array.from(new Set(moves.map((m) => m.tableNum))).sort((a, b) => a - b)
+  const filtered =
+    tableFilter === 'all' ? moves : moves.filter((m) => m.tableNum === tableFilter)
+
+  return (
+    <HostCollapsible
+      defaultOpen
+      className="mb-3"
+      badge={
+        <span className="text-xs font-normal tabular-nums text-white/40">
+          {moves.length} move{moves.length === 1 ? '' : 's'}
+        </span>
+      }
+      summary={
+        <span>
+          Move log
+          <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
+            — every check, call, raise, fold, all-in, and answer
+          </span>
+        </span>
+      }
+    >
+      {brief == null ? (
+        <p className="text-sm text-white/50">Waiting for venue sync…</p>
+      ) : (
+        <>
+          {tableNums.length > 1 ? (
+            <div className="mb-2 flex flex-wrap gap-1">
+              <button
+                type="button"
+                onClick={() => setTableFilter('all')}
+                className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                  tableFilter === 'all'
+                    ? 'border-casino-emerald/50 bg-casino-emerald/15 text-emerald-100'
+                    : 'border-white/15 bg-black/30 text-white/55 hover:border-white/30'
+                }`}
+              >
+                All tables
+              </button>
+              {tableNums.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setTableFilter(n)}
+                  className={`rounded-full border px-2 py-0.5 text-xs font-semibold tabular-nums ${
+                    tableFilter === n
+                      ? 'border-casino-emerald/50 bg-casino-emerald/15 text-emerald-100'
+                      : 'border-white/15 bg-black/30 text-white/55 hover:border-white/30'
+                  }`}
+                >
+                  T{n}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {filtered.length === 0 ? (
+            <p className="text-sm text-white/50">
+              No player moves yet — they appear here as soon as someone acts.
+            </p>
+          ) : (
+            <ul className="max-h-[min(40vh,22rem)] space-y-1 overflow-y-auto overscroll-contain pr-1">
+              {filtered.map((m: HostVenueMoveLogEntry) => (
+                <li
+                  key={m.id}
+                  className="flex items-baseline gap-2 rounded-md border border-white/10 bg-black/25 px-2 py-1.5 text-xs"
+                >
+                  <span className="shrink-0 font-mono tabular-nums text-white/35">
+                    {formatMoveLogClock(m.atMs)}
+                  </span>
+                  <span className="shrink-0 font-black tabular-nums text-yellow-300/90">T{m.tableNum}</span>
+                  <span className="min-w-0 flex-1 font-semibold text-white/85">
+                    <ChipText text={relabelMoveSummary(m, hostPlayerLabel)} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
+    </HostCollapsible>
+  )
+}
+
+function relabelMoveSummary(
+  m: HostVenueMoveLogEntry,
+  hostPlayerLabel: (name: string) => string,
+): string {
+  const labeled = hostPlayerLabel(m.playerName)
+  if (!m.playerName || labeled === m.playerName) return m.summary
+  if (m.summary.startsWith(m.playerName)) {
+    return `${labeled}${m.summary.slice(m.playerName.length)}`
+  }
+  return m.summary
+}
+
 export function HostVenueFloorBriefPanel({
   brief,
   hostPlayerLabel,
@@ -951,7 +1073,7 @@ export function HostVenueFloorBriefPanel({
       }
       summary={
         <span>
-          Venue floor · action
+          Venue floor · now
           <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
             — who&apos;s acting, busts, big wins
           </span>

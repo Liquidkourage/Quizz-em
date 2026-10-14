@@ -274,6 +274,23 @@ export type HostVenueRecentAction = {
   action: SeatBettingAction
 }
 
+/** Chronological player move for the host action log (all tables). */
+export type HostVenueMoveLogKind =
+  | SeatBettingAction
+  | 'bet'
+  | 'submit'
+
+export type HostVenueMoveLogEntry = {
+  /** Stable React key; unique within a venue session. */
+  id: string
+  atMs: number
+  tableNum: number
+  playerName: string
+  kind: HostVenueMoveLogKind
+  /** Full line without table prefix, e.g. "Jay W. raised to $40". */
+  summary: string
+}
+
 /** Host-only: per-table action cue plus venue bust / big-win ledger. */
 export type HostVenueActionRow = {
   tableNum: number
@@ -302,6 +319,8 @@ export type HostVenueBigWinEntry = {
 
 export type HostVenueFloorBriefPayload = {
   actionRows: HostVenueActionRow[]
+  /** Newest-first log of every player move across seated tables. */
+  moveLog: HostVenueMoveLogEntry[]
   busts: HostVenueBustEntry[]
   bigWinners: HostVenueBigWinEntry[]
   bigWinMinAmount: number

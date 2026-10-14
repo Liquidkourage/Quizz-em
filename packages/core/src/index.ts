@@ -161,13 +161,19 @@ export function nearlyEqualNumbers(a: number, b: number): boolean {
   return Math.abs(a - b) <= ANSWER_NUMERIC_EPS * Math.max(1, Math.abs(a), Math.abs(b));
 }
 
-/** Human-readable trivia / guess values — strips float noise from decimal composition. */
+/** Human-readable trivia / guess values — strips float noise; commas for |n| ≥ 1,000. */
 export function formatTriviaNumber(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return '—';
   const rounded = Math.round(value * 1_000_000) / 1_000_000;
   const fixed = rounded.toFixed(6);
   const trimmed = fixed.replace(/\.?0+$/, '');
-  return trimmed === '' ? '0' : trimmed;
+  if (trimmed === '' || trimmed === '-') return '0';
+  const neg = trimmed.startsWith('-');
+  const abs = neg ? trimmed.slice(1) : trimmed;
+  const [intPart, fracPart] = abs.split('.');
+  const withCommas = (intPart ?? '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const body = fracPart != null ? `${withCommas}.${fracPart}` : withCommas;
+  return neg ? `-${body}` : body;
 }
 
 function addDecimalVariantsForFiveDigits(digitsFive: number[], sink: Set<number>): void {

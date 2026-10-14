@@ -20,10 +20,14 @@ function totalWealth(gs: GameState): number {
 }
 
 describe('formatTriviaNumber', () => {
-  it('strips binary float noise from decimal answers', () => {
+  it('strips binary float noise and commas thousands', () => {
     expect(formatTriviaNumber(0.1 + 0.2)).toBe('0.3')
     expect(formatTriviaNumber(12.345)).toBe('12.345')
-    expect(formatTriviaNumber(12345)).toBe('12345')
+    expect(formatTriviaNumber(999)).toBe('999')
+    expect(formatTriviaNumber(1000)).toBe('1,000')
+    expect(formatTriviaNumber(12345)).toBe('12,345')
+    expect(formatTriviaNumber(1234.56)).toBe('1,234.56')
+    expect(formatTriviaNumber(-12345)).toBe('-12,345')
   })
 })
 

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { formatTriviaNumber } from '@qhe/core'
-import { PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
+import { PokerChip, StadiumTableSeats, ChipText, type StadiumTableSeat } from '@qhe/ui'
 import {
   sortShowdownRowsByDistance,
   type ShowdownResultRow,
@@ -80,7 +80,7 @@ function rowsToStadiumSeats(
           ) : null}
           {row.chipPayout != null && row.chipPayout > 0 ? (
             <span className={`font-mono font-black tabular-nums text-emerald-300 ${tagText}`}>
-              {formatChipPayout(row.chipPayout)}
+              <ChipText text={formatChipPayout(row.chipPayout)} />
             </span>
           ) : null}
         </>
@@ -145,7 +145,7 @@ export default function ShowdownTableCard({
                 compact ? 'text-[0.6rem]' : 'text-xs sm:text-sm'
               }`}
             >
-              ${potShown.toLocaleString()}
+              <ChipText text={`$${potShown.toLocaleString()}`} />
             </p>
           ) : null}
         </div>
@@ -188,7 +188,7 @@ export default function ShowdownTableCard({
                   compact ? 'text-[0.55rem]' : 'text-xs'
                 }`}
               >
-                ${potShown.toLocaleString()}
+                <ChipText text={`$${potShown.toLocaleString()}`} />
               </span>
             ) : null
           }

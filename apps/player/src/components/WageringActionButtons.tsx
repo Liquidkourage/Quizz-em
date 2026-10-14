@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { PlayerState } from '@qhe/core'
+import { ChipText } from '@qhe/ui'
 import type { BettingContext } from '../playerModel/bettingModel'
 import { PlayerGameButton } from './PlayerGoldChrome'
 
@@ -136,7 +137,7 @@ export default function WageringActionButtons({
           ? 'Tap again to all-in'
           : dense
             ? 'All-in'
-            : `All-in $${currentPlayer.bankroll}`}
+            : <ChipText text={`All-in $${currentPlayer.bankroll}`} />}
       </PlayerGameButton>
     ) : null
 
@@ -159,7 +160,7 @@ export default function WageringActionButtons({
         disabled={!live}
         onClick={onCall}
       >
-        {'Call $' + String(ctx.toCall)}
+        <ChipText text={'Call $' + String(ctx.toCall)} />
       </PlayerGameButton>
     ) : shortAllInCall ? (
       <PlayerGameButton
@@ -178,7 +179,7 @@ export default function WageringActionButtons({
           onAllIn()
         }}
       >
-        {allInConfirmPending ? 'Tap again to all-in' : `All-in $${currentPlayer.bankroll}`}
+        {allInConfirmPending ? 'Tap again to all-in' : <ChipText text={`All-in $${currentPlayer.bankroll}`} />}
       </PlayerGameButton>
     ) : null
 
@@ -207,11 +208,13 @@ export default function WageringActionButtons({
                     disabled={raiseDisabled}
                     onClick={onRaise}
                   >
-                    {wagerVerb + ' $' + String(raiseToTotal)}
+                    <ChipText text={wagerVerb + ' $' + String(raiseToTotal)} />
                   </PlayerGameButton>
                   <div className="player-game-raise-amount-col">
                     <span className="player-game-raise-compact-label">{wagerVerb} to</span>
-                    <span className="player-game-raise-compact-min">min ${minRaiseTo}</span>
+                    <span className="player-game-raise-compact-min">
+                      min <ChipText text={`$${minRaiseTo}`} />
+                    </span>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -246,11 +249,13 @@ export default function WageringActionButtons({
                     disabled={raiseDisabled}
                     onClick={onRaise}
                   >
-                    {wagerVerb + ' $' + String(raiseToTotal)}
+                    <ChipText text={wagerVerb + ' $' + String(raiseToTotal)} />
                   </PlayerGameButton>
                     <div className="player-game-raise-amount-col">
                       <span className="player-game-raise-compact-label">{wagerVerb} to</span>
-                      <span className="player-game-raise-compact-min">min ${minRaiseTo}</span>
+                      <span className="player-game-raise-compact-min">
+                      min <ChipText text={`$${minRaiseTo}`} />
+                    </span>
                       <input
                         type="number"
                         inputMode="numeric"
@@ -323,7 +328,7 @@ export default function WageringActionButtons({
               disabled={!live}
               onClick={onCall}
             >
-              {'Call $' + String(ctx.toCall)}
+              <ChipText text={'Call $' + String(ctx.toCall)} />
             </PlayerGameButton>
           ) : null}
           {shortAllInCall ? (
@@ -343,7 +348,7 @@ export default function WageringActionButtons({
                 onAllIn()
               }}
             >
-              {allInConfirmPending ? 'Tap again to all-in' : `All-in $${currentPlayer.bankroll}`}
+              {allInConfirmPending ? 'Tap again to all-in' : <ChipText text={`All-in $${currentPlayer.bankroll}`} />}
             </PlayerGameButton>
           ) : null}
         </div>
@@ -352,12 +357,16 @@ export default function WageringActionButtons({
       {showRaise ? (
         <div className="player-game-raise-block">
           <label className="player-game-field-label" htmlFor="player-raise-to-input">
-            {wagerVerb} to <span>(min ${minRaiseTo})</span>
+            {wagerVerb} to <span>(min <ChipText text={`$${minRaiseTo}`} />)</span>
           </label>
           <p className="player-game-raise-min-hint">
-            {!ctx.isOpeningBet && ctx.toCall > 0
-              ? `Total includes the $${ctx.toCall} call`
-              : `Opening ${wagerVerb.toLowerCase()} must be at least $${minRaiseTo}`}
+              <ChipText
+                text={
+                  !ctx.isOpeningBet && ctx.toCall > 0
+                    ? `Total includes the $${ctx.toCall} call`
+                    : `Opening ${wagerVerb.toLowerCase()} must be at least $${minRaiseTo}`
+                }
+              />
           </p>
           <div className="player-game-raise-row">
             <input
@@ -386,7 +395,7 @@ export default function WageringActionButtons({
               disabled={!live || !ctx.canRaise}
               onClick={onRaise}
             >
-              {wagerVerb + ' $' + String(raiseToTotal)}
+              <ChipText text={wagerVerb + ' $' + String(raiseToTotal)} />
             </PlayerGameButton>
           </div>
         </div>

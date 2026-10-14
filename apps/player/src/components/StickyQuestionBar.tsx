@@ -1,3 +1,5 @@
+import { ChipText } from '@qhe/ui'
+
 type StickyQuestionBarProps = {
   questionText: string
   pot?: number
@@ -22,7 +24,10 @@ export default function StickyQuestionBar({ questionText, pot, tableId }: Sticky
           <span className="player-sticky-question-table"> · Table {tableLabel}</span>
         ) : null}
         {typeof pot === 'number' ? (
-          <span className="player-sticky-question-pot"> · Pot ${pot.toLocaleString()}</span>
+          <span className="player-sticky-question-pot">
+            {' · Pot '}
+            <ChipText text={`$${pot.toLocaleString()}`} />
+          </span>
         ) : null}
       </p>
       <p className="player-sticky-question-text">{questionText}</p>

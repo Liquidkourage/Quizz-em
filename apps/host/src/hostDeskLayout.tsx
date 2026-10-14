@@ -1,5 +1,5 @@
 import { Children, useEffect, useState, type ReactNode } from 'react'
-import { NeonButton } from '@qhe/ui'
+import { ChipText, NeonButton } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
 import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload, VenueBlindsSnapshot } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID } from '@qhe/core'
@@ -652,7 +652,9 @@ export function HostPhaseDock({
           </p>
           <p className="mt-0.5 text-base font-bold leading-snug text-white">{headline.title}</p>
           {headline.detail ? (
-            <p className="mt-1 text-xs leading-snug text-white/55">{headline.detail}</p>
+            <p className="mt-1 text-xs leading-snug text-white/55">
+              <ChipText text={headline.detail} />
+            </p>
           ) : null}
         </div>
       ) : null}
@@ -707,7 +709,7 @@ export function HostLiveStatusLine({
         {HOST_PHASE_LABEL[phase] ?? phase}
       </span>
       <span className="font-mono font-bold tabular-nums text-casino-emerald">
-        Pot ${Math.max(0, Math.round(pot)).toLocaleString()}
+        Pot <ChipText text={`$${Math.max(0, Math.round(pot)).toLocaleString()}`} />
       </span>
       <span className="text-white/50">
         {gameState.players.length} seated
@@ -993,12 +995,19 @@ export function HostVenueFloorBriefPanel({
                         </span>
                         <span className="text-xs text-white/50">
                           {phaseLabel}
-                          {row.pot > 0 ? ` · pot ${formatHostFloorMoney(row.pot)}` : ''}
+                          {row.pot > 0 ? (
+                            <>
+                              {' · pot '}
+                              <ChipText text={formatHostFloorMoney(row.pot)} />
+                            </>
+                          ) : (
+                            ''
+                          )}
                         </span>
                       </div>
                       {row.actingSummary ? (
                         <p className="mt-0.5 text-xs font-semibold text-amber-100/90">
-                          {row.actingSummary}
+                          <ChipText text={row.actingSummary} />
                         </p>
                       ) : null}
                       {row.recentActions.length > 0 ? (
@@ -1048,7 +1057,7 @@ export function HostVenueFloorBriefPanel({
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Big wins
               <span className="ml-1 font-normal normal-case text-white/35">
-                (≥ {formatHostFloorMoney(brief.bigWinMinAmount)})
+                (≥ <ChipText text={formatHostFloorMoney(brief.bigWinMinAmount)} />)
               </span>
             </p>
             {brief.bigWinners.length === 0 ? (
@@ -1064,7 +1073,7 @@ export function HostVenueFloorBriefPanel({
                       {hostPlayerLabel(w.name)}
                     </span>
                     <span className="shrink-0 font-mono font-bold tabular-nums text-emerald-200">
-                      +{formatHostFloorMoney(w.amount)}
+                      +<ChipText text={formatHostFloorMoney(w.amount)} />
                     </span>
                   </li>
                 ))}
@@ -1304,7 +1313,7 @@ export function HostBlindsControls({
     >
       {blindLevelSummary ? (
         <p className="text-xs leading-snug text-amber-100/85">
-          Venue blinds: <span className="font-semibold tabular-nums text-amber-50">{blindLevelSummary}</span>
+          Venue blinds: <span className="font-semibold tabular-nums text-amber-50"><ChipText text={blindLevelSummary} /></span>
         </p>
       ) : null}
       <div className={`flex flex-wrap items-end gap-2 ${compact ? '' : 'md:grid md:grid-cols-3 md:items-end md:gap-3'}`}>
@@ -1482,7 +1491,9 @@ export function HostRunBar({
             </p>
             <p className="mt-0.5 text-lg font-bold leading-snug text-white sm:text-xl">{headline.title}</p>
             {headline.detail ? (
-              <p className="mt-0.5 text-xs leading-snug text-white/55">{headline.detail}</p>
+              <p className="mt-0.5 text-xs leading-snug text-white/55">
+                <ChipText text={headline.detail} />
+              </p>
             ) : null}
           </div>
         ) : null}
@@ -1595,10 +1606,12 @@ export function HostFloorStrip({
                 </div>
                 {action?.actingSummary ? (
                   <p className="mt-0.5 max-w-[12rem] truncate text-xs font-medium text-amber-100/85">
-                    {action.actingSummary}
+                    <ChipText text={action.actingSummary} />
                   </p>
                 ) : action != null && action.pot > 0 ? (
-                  <p className="mt-0.5 text-xs text-white/45">Pot {formatHostFloorMoney(action.pot)}</p>
+                  <p className="mt-0.5 text-xs text-white/45">
+                    Pot <ChipText text={formatHostFloorMoney(action.pot)} />
+                  </p>
                 ) : null}
               </button>
             )

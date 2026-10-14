@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
 import { PokerChip } from './PokerChip';
+import { ChipText } from './ChipMark';
 export { NumericPlayingCard } from './NumericPlayingCard';
 export {
   CardFaceGraphic,
@@ -205,7 +206,7 @@ export function JackpotDisplay({
       <div className={clsx('text-center', className)}>
         <div className="text-lg text-white">Table pot:</div>
         <span className="text-casino-emerald font-bold text-xl tabular-nums">
-          ${amount.toLocaleString()}
+          <ChipText text={`$${amount.toLocaleString()}`} />
         </span>
       </div>
     )
@@ -238,7 +239,7 @@ export function JackpotDisplay({
       <div className="relative z-10 text-center">
         <div className="text-sm text-black/70 font-semibold mb-1">JACKPOT</div>
         <div className="text-3xl font-black text-black drop-shadow-lg">
-          ${amount.toLocaleString()}
+          <ChipText text={`$${amount.toLocaleString()}`} />
         </div>
       </div>
     </motion.div>
@@ -257,6 +258,7 @@ export function AnimatedBackground() {
 }
 
 export { PokerChip };
+export { ChipMark, ChipText, type ChipMarkProps } from './ChipMark';
 export { QuizzEmWordmark, type QuizzEmWordmarkProps } from './QuizzEmWordmark';
 export {
   PokerTableGraphic,

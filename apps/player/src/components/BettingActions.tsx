@@ -1,4 +1,5 @@
 import type { PlayerState } from '@qhe/core'
+import { ChipText } from '@qhe/ui'
 import type { BettingContext } from '../playerModel/bettingModel'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 import WageringActionButtons from './WageringActionButtons'
@@ -36,7 +37,9 @@ export default function BettingActions({
     <PlayerGoldPanel title="Wagering">
       <div className="player-game-wager-stack">
         <p className="player-game-stack-label">Your stack</p>
-        <p className="player-game-stack-value">${currentPlayer.bankroll}</p>
+        <p className="player-game-stack-value">
+          <ChipText text={`$${currentPlayer.bankroll}`} />
+        </p>
         {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
       </div>
 
@@ -46,10 +49,10 @@ export default function BettingActions({
             Round <strong>{ctx.isBettingOpen ? 'open' : 'closed'}</strong>
           </div>
           <div>
-            To call <strong>${ctx.toCall}</strong>
+            To call <strong><ChipText text={`$${ctx.toCall}`} /></strong>
           </div>
           <div>
-            Min raise <strong>${ctx.minRaise}</strong>
+            Min raise <strong><ChipText text={`$${ctx.minRaise}`} /></strong>
           </div>
           <div>
             Turn{' '}

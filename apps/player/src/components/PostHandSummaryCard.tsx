@@ -1,4 +1,5 @@
 import type { HandSummary } from '../playerModel/handSummary'
+import { ChipText } from '@qhe/ui'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type PostHandSummaryCardProps = {
@@ -21,7 +22,7 @@ export default function PostHandSummaryCard({ summary }: PostHandSummaryCardProp
           <div
             className={`player-game-delta-value ${summary.stackDelta >= 0 ? 'player-game-delta-value--up' : 'player-game-delta-value--down'}`}
           >
-            {formatDelta(summary.stackDelta, '$')}
+            <ChipText text={formatDelta(summary.stackDelta, '$')} />
           </div>
         </div>
         <div className="player-game-delta-cell">

@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { ChipText } from '@qhe/ui'
 
 type PlayerToastProps = {
   message: string | null
@@ -18,7 +19,7 @@ export default function PlayerToast({ message }: PlayerToastProps) {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 100 }}
         >
-          {message}
+          <ChipText text={message} />
         </motion.div>
       ) : null}
     </AnimatePresence>

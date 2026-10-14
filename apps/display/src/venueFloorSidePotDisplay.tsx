@@ -1,4 +1,5 @@
 import type { ShowdownResultRow } from './showdownDisplay'
+import { ChipText } from '@qhe/ui'
 import { VENUE_FLOOR_MOSAIC_CHROME } from './venueFloorGridLayout'
 
 /** Same gold badge as wagering mosaic cards — consistent table id on showdown overlays. */
@@ -51,7 +52,9 @@ function PotLedgerRow({
       <span className={nameClass} title={line.name}>
         {line.name}
       </span>
-      <span className={amountClass}>${line.amount.toLocaleString()}</span>
+      <span className={amountClass}>
+        <ChipText text={`$${line.amount.toLocaleString()}`} />
+      </span>
     </div>
   )
 }

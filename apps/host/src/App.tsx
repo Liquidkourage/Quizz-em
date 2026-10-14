@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState, useRef, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, NeonButton, PokerChip } from '@qhe/ui'
+import { Card, ChipText, NeonButton, PokerChip } from '@qhe/ui'
 import {
   connect,
   onState,
@@ -565,7 +565,7 @@ function HostApp() {
             exit={{ opacity: 0, x: 100 }}
             transition={{ duration: 0.3 }}
           >
-            {toastMessage}
+            <ChipText text={toastMessage} />
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ChipText } from '@qhe/ui'
 import { formatVenueBankroll, type VenueLeaderboardFooterStats } from './venueLeaderboard'
 import {
   LeaderboardAverageIcon,
@@ -39,13 +40,19 @@ export default function VenueLeaderboardStatsRibbon({ stats }: VenueLeaderboardS
       <div className="venue-lb-ribbon-inner">
         <StatSection label="Top stack" icon={<LeaderboardTopStackIcon className="venue-lb-stat-icon" />}>
           <span className="venue-lb-stat-name">{stats.topName}</span>{' '}
-          <span className="venue-lb-stat-amount">{formatVenueBankroll(stats.topStack)}</span>
+          <span className="venue-lb-stat-amount">
+            <ChipText text={formatVenueBankroll(stats.topStack)} />
+          </span>
         </StatSection>
         <StatSection label="Average stack" icon={<LeaderboardAverageIcon className="venue-lb-stat-icon" />}>
-          <span className="venue-lb-stat-amount">{formatVenueBankroll(stats.averageStack)}</span>
+          <span className="venue-lb-stat-amount">
+            <ChipText text={formatVenueBankroll(stats.averageStack)} />
+          </span>
         </StatSection>
         <StatSection label="Median stack" icon={<LeaderboardMedianIcon className="venue-lb-stat-icon" />}>
-          <span className="venue-lb-stat-amount">{formatVenueBankroll(stats.medianStack)}</span>
+          <span className="venue-lb-stat-amount">
+            <ChipText text={formatVenueBankroll(stats.medianStack)} />
+          </span>
         </StatSection>
         <StatSection label="Active tables" icon={<LeaderboardTablesIcon className="venue-lb-stat-icon" />}>
           <span className="venue-lb-stat-count">{stats.liveTables}</span>

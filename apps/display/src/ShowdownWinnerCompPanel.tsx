@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
+import { ChipMark, ChipText } from '@qhe/ui'
 import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { ShowdownStageChrome } from './ShowdownStageChrome'
 import type { ShowdownStageDensityTier } from './showdownStageArtLayout'
@@ -38,7 +39,7 @@ function ShowdownStageSplitLedger({
               {name}
             </span>
             <span className="vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--share">
-              {amountLabel}
+              <ChipText text={amountLabel} />
             </span>
           </div>
         ))}
@@ -67,7 +68,7 @@ function ShowdownStageSidePotSummary({ lines }: { lines: readonly ShowdownSidePo
             {mainLine.name}
           </span>
           <span className="vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--main">
-            ${mainLine.amount.toLocaleString()}
+            <ChipText text={`$${mainLine.amount.toLocaleString()}`} />
           </span>
         </div>
         <div className="vfd-showdown-stage-side-ledger-side-stack">
@@ -90,7 +91,7 @@ function ShowdownStageSidePotSummary({ lines }: { lines: readonly ShowdownSidePo
               <span
                 className={`vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--${line.label.toLowerCase()}`}
               >
-                ${line.amount.toLocaleString()}
+                <ChipText text={`$${line.amount.toLocaleString()}`} />
               </span>
             </div>
           ))}
@@ -118,7 +119,7 @@ function ShowdownStageSidePotSummary({ lines }: { lines: readonly ShowdownSidePo
             <span
               className={`vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--${line.label.toLowerCase()}`}
             >
-              ${line.amount.toLocaleString()}
+              <ChipText text={`$${line.amount.toLocaleString()}`} />
             </span>
           </div>
         </div>
@@ -136,7 +137,7 @@ function ShowdownStagePotAmount({ amount }: { amount: number }) {
       aria-label={`$${digits}`}
     >
       <span className="vfd-mosaic-dollar-sign" aria-hidden>
-        $
+        <ChipMark />
       </span>
       <span className="vfd-mosaic-dollar-digits">{digits}</span>
     </span>

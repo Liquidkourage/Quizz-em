@@ -1,4 +1,5 @@
 import type { PlayerVenueBrief } from '@qhe/net'
+import { ChipText } from '@qhe/ui'
 
 type VenueStatusStripProps = {
   brief: PlayerVenueBrief | null
@@ -39,5 +40,5 @@ export default function VenueStatusStrip({ brief, tableBlinds }: VenueStatusStri
 
   if (parts.length === 0) return null
 
-  return <p className="player-game-strip">{parts.join(' · ')}</p>
+  return <p className="player-game-strip"><ChipText text={parts.join(' · ')} /></p>
 }

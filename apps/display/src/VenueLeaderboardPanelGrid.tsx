@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { ChipText } from '@qhe/ui'
 import crownImg from './assets/showdown/crown.png'
 import {
   formatVenueBankroll,
@@ -76,7 +77,9 @@ function LeaderboardRankRow({ row, rank, zebra, podium }: RowProps) {
       ) : (
         <span className={`venue-lb-row-delta ${rankClass} venue-lb-row-delta--empty`} aria-hidden />
       )}
-      <span className={`venue-lb-row-stack-cell ${stackClass}`}>{formatVenueBankroll(row.bankroll)}</span>
+      <span className={`venue-lb-row-stack-cell ${stackClass}`}>
+        <ChipText text={formatVenueBankroll(row.bankroll)} />
+      </span>
     </div>
   )
 }

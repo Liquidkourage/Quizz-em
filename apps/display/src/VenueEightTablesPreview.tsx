@@ -2,6 +2,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CardFaceGraphic,
+  ChipMark,
+  ChipText,
   FeltHoleCardPair,
   PokerTableGraphic,
   QuizzEmWordmark,
@@ -160,7 +162,7 @@ function MosaicBungeeDollarAmount({
   const body = (
     <span className="vfd-mosaic-dollar">
       <span className="vfd-mosaic-dollar-sign" aria-hidden>
-        $
+        <ChipMark />
       </span>
       <span className="vfd-mosaic-dollar-digits">{digits}</span>
     </span>
@@ -222,7 +224,7 @@ function BroadcastCenterAmount({
       className={`vfd-broadcast-center-amount ${toneClass} ${className}`.trim()}
       style={{ fontSize: `${fontSizePx}px` }}
     >
-      {label}
+      <ChipText text={label} />
     </span>
   )
 
@@ -1884,7 +1886,7 @@ function SeatRingWithLabels({
                       : undefined
                   }
                 >
-                  {formatVenueBankroll(chips)}
+                  <ChipText text={formatVenueBankroll(chips)} />
                 </span>
                 ) : null}
               </div>
@@ -1921,7 +1923,7 @@ function SeatRingWithLabels({
                       isFolded ? 'text-white/40' : 'text-casino-emerald'
                     }`}
                   >
-                    {formatVenueBankroll(chips)}
+                    <ChipText text={formatVenueBankroll(chips)} />
                   </span>
                 ) : null}
               </div>
@@ -1947,7 +1949,7 @@ function SeatRingWithLabels({
                         : undefined
                     }
                   >
-                    {formatVenueBankroll(chips)}
+                    <ChipText text={formatVenueBankroll(chips)} />
                   </span>
                 </div>
               ) : null}
@@ -1970,7 +1972,7 @@ function SeatRingWithLabels({
                         : 'max-w-[min(90vw,12rem)] whitespace-normal rounded-md border-2 border-amber-300/35 bg-neutral-950/95 px-2 py-1 text-[0.65rem] font-bold tabular-nums leading-snug text-amber-50 shadow-md sm:text-xs'
                     }
                   >
-                    {formatActingCallHint(actingCallAmount ?? 0)}
+                    <ChipText text={formatActingCallHint(actingCallAmount ?? 0)} />
                   </span>
                 ) : null}
                 {lastBetAct != null ? (
@@ -2602,7 +2604,9 @@ function VenueBroadcastHeadlineStrip({
             >
               <span className="vfd-broadcast-headline-meta-primary">{broadcastMetaLine}</span>
               {showVenueBlindsHeadline && venueBlindsHeadline?.amount ? (
-                <span className="vfd-broadcast-headline-meta-blinds">{venueBlindsHeadline.amount}</span>
+                <span className="vfd-broadcast-headline-meta-blinds">
+                  <ChipText text={venueBlindsHeadline.amount} />
+                </span>
               ) : null}
             </div>
           ) : null}
@@ -2612,7 +2616,12 @@ function VenueBroadcastHeadlineStrip({
         <p className="vfd-broadcast-headline-meta-mobile text-center sm:hidden" aria-hidden>
           {broadcastMetaLine}
           {showVenueBlindsHeadline && venueBlindsHeadline?.amount
-            ? ` · ${venueBlindsHeadline.amount}`
+            ? (
+                <>
+                  {' · '}
+                  <ChipText text={venueBlindsHeadline.amount} />
+                </>
+              )
             : ''}
         </p>
       ) : null}
@@ -3251,7 +3260,7 @@ export default function VenueEightTablesPreview({
                         Blinds
                       </span>
                       <div className={`text-center font-mono font-black tabular-nums tracking-tight text-amber-50 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_AMOUNT}`}>
-                        {venueBlindsHeadline.amount}
+                        <ChipText text={venueBlindsHeadline.amount} />
                       </div>
                       {venueBlindsHeadline.meta ? (
                         <div className="flex max-w-[11rem] flex-col items-center gap-0.5 text-center">

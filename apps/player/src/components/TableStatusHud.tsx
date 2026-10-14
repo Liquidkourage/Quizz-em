@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { NumericPlayingCard, PlayerFeltHoleCards } from '@qhe/ui'
+import { NumericPlayingCard, PlayerFeltHoleCards, ChipText } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
 import {
   buildPlayerTableStatusLine,
@@ -62,7 +62,7 @@ function StatusPillView({
           : seatStatusPillClass(pill)
       }
     >
-      {pill.label}
+      {pill.label.includes('$') ? <ChipText text={pill.label} /> : pill.label}
     </span>
   )
 }
@@ -147,7 +147,9 @@ function SeatRow({
         {rosterDisplayName(player.name)}
         {isYou ? <span className="player-hud-you-badge">You</span> : null}
       </span>
-      <span className="player-hud-seat-stack">${player.bankroll.toLocaleString()}</span>
+      <span className="player-hud-seat-stack">
+        <ChipText text={`$${player.bankroll.toLocaleString()}`} />
+      </span>
       {statusPill ? (
         <StatusPillView pill={statusPill} locked={statusLocked} />
       ) : (
@@ -228,7 +230,7 @@ export default function TableStatusHud({
     >
       {statusLine ? (
         <p className="player-game-table-status" aria-live="polite" role="status">
-          {statusLine}
+          <ChipText text={statusLine} />
         </p>
       ) : null}
 
@@ -258,7 +260,9 @@ export default function TableStatusHud({
       {showPotBlock || showBoard ? (
         <div className="player-hud-center">
           {showPotBlock ? (
-            <span className="player-game-table-pot">Pot ${pot.toLocaleString()}</span>
+            <span className="player-game-table-pot">
+              <ChipText text={`Pot $${pot.toLocaleString()}`} />
+            </span>
           ) : null}
           {showBoard ? (
             <div className="player-hud-board" aria-label="Community cards">

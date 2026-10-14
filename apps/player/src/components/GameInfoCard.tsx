@@ -1,6 +1,6 @@
 import type { GameState, PlayerState } from '@qhe/core'
 import { formatTriviaNumber } from '@qhe/core'
-import { NumericPlayingCard } from '@qhe/ui'
+import { ChipText, NumericPlayingCard } from '@qhe/ui'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type GameInfoCardProps = {
@@ -42,13 +42,15 @@ export default function GameInfoCard({
         <div className="player-game-info-stats">
           <div className="player-game-info-stat">
             <p className="player-game-pot-label">Pot</p>
-            <p className="player-game-pot-value">${gameState.round.pot.toLocaleString()}</p>
+            <p className="player-game-pot-value">
+              <ChipText text={`$${gameState.round.pot.toLocaleString()}`} />
+            </p>
           </div>
           {currentPlayer ? (
             <div className="player-game-info-stat">
               <p className="player-game-pot-label">Your stack</p>
               <p className="player-game-pot-value player-game-pot-value--stack">
-                ${currentPlayer.bankroll.toLocaleString()}
+                <ChipText text={`$${currentPlayer.bankroll.toLocaleString()}`} />
               </p>
             </div>
           ) : null}

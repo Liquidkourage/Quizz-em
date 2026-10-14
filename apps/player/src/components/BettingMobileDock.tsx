@@ -1,4 +1,5 @@
 import type { PlayerState } from '@qhe/core'
+import { ChipText } from '@qhe/ui'
 import type { BettingContext } from '../playerModel/bettingModel'
 import type { PreAction } from '../playerModel/preAction'
 import { preActionArmedLabel } from '../playerModel/preAction'
@@ -54,7 +55,7 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
             {live ? 'Your turn' : preAction ? preActionArmedLabel(preAction) : 'Waiting'}
           </span>
           <span>
-            Stack <strong>${currentPlayer.bankroll.toLocaleString()}</strong>
+            Stack <strong><ChipText text={`$${currentPlayer.bankroll.toLocaleString()}`} /></strong>
           </span>
         </div>
 
@@ -84,10 +85,12 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
                 onClick={() => togglePre({ kind: 'callFold', maxBet: ctx.currentBet })}
               >
                 <span className="player-game-preact-title">
-                  Call / fold{ctx.toCall > 0 ? ` $${ctx.toCall}` : ''}
+                  <ChipText text={`Call / fold${ctx.toCall > 0 ? ` $${ctx.toCall}` : ''}`} />
                 </span>
                 <span className="player-game-preact-sub">
-                  {ctx.toCall > 0 ? `Call $${ctx.toCall}, fold if raised` : 'Call this bet, fold to a raise'}
+                  <ChipText
+                    text={ctx.toCall > 0 ? `Call $${ctx.toCall}, fold if raised` : 'Call this bet, fold to a raise'}
+                  />
                 </span>
               </button>
             </div>

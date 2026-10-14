@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
-import { QuizzEmWordmark } from '@qhe/ui'
+import { ChipText, QuizzEmWordmark } from '@qhe/ui'
 
 function CrownIcon({ className }: { className?: string }) {
   return (
@@ -45,7 +45,9 @@ export function LeaderboardHeader({
                     |
                   </span>
                 ) : null}
-                <span>{part}</span>
+                <span>
+                  <ChipText text={part} />
+                </span>
               </Fragment>
             ))}
           </p>

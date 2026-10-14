@@ -1,7 +1,7 @@
 ﻿import { Fragment, useEffect, useState, useCallback, useRef, useLayoutEffect, useMemo } from 'react'
 import type { RefObject } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { NumericPlayingCard, PokerChip, PokerTableGraphic, SeatCupholderMarker, FeltHoleCardPair, stadiumCupholderSizePx, stadiumHoleCardScale, STADIUM_CUPHOLDER_RADIAL, STADIUM_HOLE_CARDS_RADIAL, stadiumSeatPointPx } from '@qhe/ui'
+import { NumericPlayingCard, PokerChip, PokerTableGraphic, SeatCupholderMarker, FeltHoleCardPair, ChipText, stadiumCupholderSizePx, stadiumHoleCardScale, STADIUM_CUPHOLDER_RADIAL, STADIUM_HOLE_CARDS_RADIAL, stadiumSeatPointPx } from '@qhe/ui'
 import { onState, onToast, onDealingCards, onDealingCommunityCards, type DisplayVenueTileSnapshot } from '@qhe/net'
 import type { GameState, GamePhase, PlayerState, SeatBettingAction, NumericCard } from '@qhe/core'
 import {
@@ -294,7 +294,7 @@ function DisplayTableInfoBar({
                 {displayTableLabel(gameState.tableId ?? '1')}
               </div>
               <div className="mt-1 text-base tabular-nums text-white/55 sm:text-lg">
-                Blinds ${gameState.smallBlind} / ${gameState.bigBlind}
+                <ChipText text={`Blinds $${gameState.smallBlind} / $${gameState.bigBlind}`} />
               </div>
             </div>
 
@@ -311,7 +311,7 @@ function DisplayTableInfoBar({
                 <>
                   <div className="text-sm font-semibold uppercase tracking-wider text-white/55 md:text-base">Pot</div>
                   <div className="font-black tabular-nums text-[1.85rem] text-yellow-400 sm:text-[2.125rem] md:text-4xl">
-                    ${potShown.toLocaleString()}
+                    <ChipText text={`$${potShown.toLocaleString()}`} />
                   </div>
                 </>
               )}
@@ -357,7 +357,7 @@ function DisplayTableInfoBar({
           <div>
             <div className="text-base text-white md:text-xl">Blinds</div>
             <div className="text-xl font-bold tabular-nums text-yellow-400 md:text-3xl">
-              ${gameState.smallBlind} / ${gameState.bigBlind}
+              <ChipText text={`$${gameState.smallBlind} / $${gameState.bigBlind}`} />
             </div>
           </div>
           <div>
@@ -1361,7 +1361,7 @@ function DisplayTableLive({
             exit={{ opacity: 0, x: 100 }}
             transition={{ duration: 0.3 }}
           >
-            {toastMessage}
+            <ChipText text={toastMessage} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -1797,7 +1797,7 @@ function DisplayTableLive({
                     heroBettingHud.callLabel != null ? (
                       <div className="w-full rounded-xl border-2 border-amber-300/55 bg-neutral-950/95 px-5 py-3 text-center shadow-lg ring-2 ring-amber-400/35">
                         <p className="text-2xl font-black uppercase tracking-wide tabular-nums leading-tight text-amber-50 sm:text-3xl">
-                          {heroBettingHud.callLabel}
+                          <ChipText text={heroBettingHud.callLabel} />
                         </p>
                       </div>
                     ) : null}
@@ -1930,7 +1930,7 @@ function DisplayTableLive({
                         className="pointer-events-none h-[3.5rem] w-auto max-w-[5.75rem] shrink-0 select-none object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)] sm:h-[4.1rem] sm:max-w-[6.5rem] md:h-[4.35rem] md:max-w-[7rem]"
                       />
                       <span className="max-w-[13rem] text-center font-mono text-[1.7rem] font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[14rem] sm:text-[2rem] md:text-[2.25rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.96),0_2px_10px_rgba(0,0,0,0.88)]">
-                        {formatHeroStackMoney(player.bankroll)}
+                        <ChipText text={formatHeroStackMoney(player.bankroll)} />
                       </span>
                     </div>
                   </Fragment>
@@ -1940,7 +1940,14 @@ function DisplayTableLive({
               {/* Pot display - positioned higher */}
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-36 text-center">
                 <div className="bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 relative overflow-visible">
-                  <div className="text-white text-2xl">Pot: <span className="text-yellow-400 font-black text-5xl">${payoutTick > 0 ? payoutTick : displayGameState.round.pot}</span></div>
+                  <div className="text-white text-2xl">
+                    Pot:{' '}
+                    <span className="text-yellow-400 font-black text-5xl">
+                      <ChipText
+                        text={`$${payoutTick > 0 ? payoutTick : displayGameState.round.pot}`}
+                      />
+                    </span>
+                  </div>
                   {/* Chip flights from pot to winner */}
                   {showdownWinnerId && chipFlights.map(chip => (
                     <motion.div

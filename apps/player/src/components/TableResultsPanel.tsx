@@ -1,5 +1,6 @@
 import type { TableResults } from '../playerModel/tableResults'
 import { formatChipChange, formatStack, formatWinnerLine } from '../playerModel/tableResults'
+import { ChipText } from '@qhe/ui'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type TableResultsPanelProps = {
@@ -69,7 +70,7 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
               {row.formattedAnswer}
             </span>
             <span className="player-table-results-stack" role="cell">
-              {formatStack(row.stack)}
+              <ChipText text={formatStack(row.stack)} />
             </span>
             <span
               className={[
@@ -81,7 +82,7 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
                 .join(' ')}
               role="cell"
             >
-              {formatChipChange(row.chipChange)}
+              <ChipText text={formatChipChange(row.chipChange)} />
             </span>
           </div>
         ))}

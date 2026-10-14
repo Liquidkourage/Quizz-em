@@ -1,4 +1,5 @@
 import { formatTriviaNumber } from '@qhe/core'
+import { ChipText } from '@qhe/ui'
 import crownArt from './assets/showdown/crown.png'
 import flourishLineArt from './assets/showdown/flourish-line.png'
 import laurelLeftArt from './assets/showdown/laurel-left.png'
@@ -71,7 +72,7 @@ function BroadcastSplitWinners({
         ) : null}
       </ul>
       <p className="vfd-broadcast-showdown-reveal__payout vfd-broadcast-showdown-reveal__payout--split">
-        {shareLabel}
+        <ChipText text={shareLabel} />
         <span className="vfd-broadcast-showdown-reveal__payout-each"> each</span>
       </p>
     </div>
@@ -86,7 +87,7 @@ function BroadcastSidePotLedger({ lines }: { lines: readonly ShowdownSidePotLine
           <span className="vfd-broadcast-showdown-reveal__side-pot-label">{line.label}</span>
           <span className="vfd-broadcast-showdown-reveal__side-pot-name">{line.name}</span>
           <span className="vfd-broadcast-showdown-reveal__side-pot-amount">
-            {formatVenueBankroll(line.amount)}
+            <ChipText text={formatVenueBankroll(line.amount)} />
           </span>
         </li>
       ))}
@@ -162,7 +163,9 @@ export function BroadcastShowdownPanel({
                 <div className="vfd-broadcast-showdown-reveal__hero">
                   <p className="vfd-broadcast-showdown-reveal__name">{names[0]}</p>
                   {pot > 0 ? (
-                    <p className="vfd-broadcast-showdown-reveal__payout">{formatVenueBankroll(pot)}</p>
+                    <p className="vfd-broadcast-showdown-reveal__payout">
+                      <ChipText text={formatVenueBankroll(pot)} />
+                    </p>
                   ) : null}
                 </div>
               ) : null}

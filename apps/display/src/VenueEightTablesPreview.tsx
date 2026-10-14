@@ -759,6 +759,11 @@ function padSeatFolded(raw: boolean[] | undefined): boolean[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => raw?.[i] === true)
 }
 
+/** Matches server `seatPointsOnly` (busted / no chip stack). */
+function padSeatPointsOnly(raw: boolean[] | undefined): boolean[] {
+  return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => raw?.[i] === true)
+}
+
 function padSeatSubmittedAnswers(raw: (number | null | undefined)[] | undefined): (number | null)[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     const v = raw?.[i]
@@ -1218,6 +1223,7 @@ function SeatRingWithLabels({
   feltSeatStacks = false,
   blindSeats = null,
   seatFolded: seatFoldedIn,
+  seatPointsOnly: seatPointsOnlyIn,
   actingSeatIndex = null,
   showSeatBettingActions = false,
   seatLastBettingAction: seatLastBettingActionIn,
@@ -1280,6 +1286,8 @@ function SeatRingWithLabels({
   blindSeats?: VenueWallBlindSeats | null
   /** Folded seats this hand (same indexing as `seatNames`); absent means none. */
   seatFolded?: boolean[]
+  /** Busted (points-only) seats — hide chip stack graphic. */
+  seatPointsOnly?: boolean[]
   /** Pulse this seat rim during open betting; null hides. Matches `seatNames` index. */
   actingSeatIndex?: number | null
   /** While wagering: show each seat’s latest check / call / raise / fold / all-in this street. */
@@ -1304,6 +1312,7 @@ function SeatRingWithLabels({
   broadcastDensity?: BroadcastDensity
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
+  const seatPointsOnly = padSeatPointsOnly(seatPointsOnlyIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
   const seatHoleDigits = padSeatHoleDigits(seatHoleDigitsIn)
   const seatSubmittedAnswers = padSeatSubmittedAnswers(seatSubmittedAnswersIn)
@@ -1593,15 +1602,18 @@ function SeatRingWithLabels({
             : ''
         const chips = seatBankrolls[i] ?? 0
         const isFolded = filled && seatFolded[i] === true
-        const isActing = filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded
+        const isBusted = filled && seatPointsOnly[i] === true
+        const isActing =
+          filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded && !isBusted
         const showFeltStack = Boolean(
           raw &&
             !isFolded &&
+            !isBusted &&
             ((feltSeatStacks && size === 'lg') || isBroadcast)
         )
         const broadcastChipLayout =
-          isBroadcast && rimW > 0 && filled ? broadcastChipStackLayoutPx(rimW) : null
-        const broadcastRimStack = isBroadcast && filled
+          isBroadcast && rimW > 0 && filled && !isBusted ? broadcastChipStackLayoutPx(rimW) : null
+        const broadcastRimStack = isBroadcast && filled && !isBusted
         const broadcastRimStackInwardPx =
           broadcastRimStack && broadcastChipLayout
             ? broadcastRimStackOffsetPx(i, broadcastChipLayout.fontPx)
@@ -1917,7 +1929,7 @@ function SeatRingWithLabels({
                 >
                   {rimDisplayName}
                 </span>
-                {!broadcastRimStack && !(feltSeatStacks && size === 'lg') ? (
+                {!isBusted && !broadcastRimStack && !(feltSeatStacks && size === 'lg') ? (
                   <span
                     className={`mt-0.5 block max-w-full truncate font-mono tabular-nums text-[0.625rem] sm:text-[0.6875rem] md:text-xs lg:text-sm ${
                       isFolded ? 'text-white/40' : 'text-casino-emerald'
@@ -2088,6 +2100,7 @@ function VenueMosaicTableCard({
   const seatNames = padSeatNames(row.seatNames)
   const seatBankrolls = padSeatBankrolls(row.seatBankrolls)
   const seatFolded = padSeatFolded(row.seatFolded)
+  const seatPointsOnly = padSeatPointsOnly(row.seatPointsOnly)
   const blindSeatSnapshot = venueTileBlindSeats(row)
   const actingSeat = venueTileActingSeat(row)
   const seatLastBettingAction = padSeatLastBettingAction(row.seatLastBettingAction)
@@ -2320,6 +2333,7 @@ function VenueMosaicTableCard({
             seatBankrolls={seatBankrolls}
             blindSeats={blindSeatSnapshot}
             seatFolded={seatFolded}
+            seatPointsOnly={seatPointsOnly}
             actingSeatIndex={actingSeat}
             showSeatBettingActions={false}
             seatLastBettingAction={seatLastBettingAction}
@@ -2713,6 +2727,7 @@ export function VenueSingleTableBroadcast({
   const seatNames = padSeatNames(tile.seatNames)
   const seatBankrolls = padSeatBankrolls(tile.seatBankrolls)
   const seatFolded = padSeatFolded(tile.seatFolded)
+  const seatPointsOnly = padSeatPointsOnly(tile.seatPointsOnly)
   const blindSeatSnapshot = venueTileBlindSeats(tile)
   const actingSeat = venueTileActingSeat(tile)
   const seatLastBettingAction = padSeatLastBettingAction(tile.seatLastBettingAction)
@@ -2818,6 +2833,7 @@ export function VenueSingleTableBroadcast({
                 seatBankrolls={seatBankrolls}
                 blindSeats={blindSeatSnapshot}
                 seatFolded={seatFolded}
+                seatPointsOnly={seatPointsOnly}
                 actingSeatIndex={actingSeat}
                 seatLastBettingAction={seatLastBettingAction}
                 actingCallAmount={tile.actingCallAmount}

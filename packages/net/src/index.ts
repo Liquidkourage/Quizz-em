@@ -113,6 +113,8 @@ export type DisplayVenueTileSnapshot = {
   blindsTableOverride?: boolean
   /** Parallel to `seatNames`: true when that roster seat has folded this hand. Omitted by older servers. */
   seatFolded?: boolean[]
+  /** Parallel to `seatNames`: true when that seat is busted (points-only, no chip stack). Omitted by older servers. */
+  seatPointsOnly?: boolean[]
   /** This wagering street only: last check / call / raise / fold / all-in per seat. Omitted by older servers. */
   seatLastBettingAction?: (SeatBettingAction | null)[]
   /** Player to act: chips to call (min of facing amount and stack). Omitted when no one is up to wager. */

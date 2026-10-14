@@ -2076,6 +2076,10 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       const p = gs.players[i]
       return p != null && p.hasFolded === true
     })
+    const seatPointsOnly = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
+      const p = gs.players[i]
+      return p != null && p.pointsOnly === true
+    })
     const seatLastBettingAction = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
       const arr = gs.round.lastSeatBettingAction
       if (arr != null && i < arr.length) {
@@ -2189,6 +2193,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       seatNames,
       seatBankrolls,
       seatFolded,
+      seatPointsOnly,
       seatLastBettingAction,
       actingCallAmount,
       actingCallPctOfStack,

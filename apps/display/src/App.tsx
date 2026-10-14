@@ -1904,6 +1904,7 @@ function DisplayTableLive({
                 const { blindPx, chipPx } = heroFeltSeatAssetPositions(rimLeft, rimTop, index)
                 const blindPills = heroSeatBlindMarkerPills(index, blindSeatMarkers, 'onFelt')
                 const dimStack = player.hasFolded === true
+                const hideChipStack = player.pointsOnly === true
 
                 return (
                   <Fragment key={`felt-seat-${player.id}`}>
@@ -1915,24 +1916,26 @@ function DisplayTableLive({
                         {blindPills}
                       </div>
                     ) : null}
-                    <div
-                      className={`pointer-events-none absolute z-[118] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 ${
-                        dimStack ? 'opacity-45 saturate-[0.65]' : 'opacity-96'
-                      }`}
-                      style={{ left: `${chipPx.leftPx}px`, top: `${chipPx.topPx}px` }}
-                    >
-                      <img
-                        src={seatChipStackImg}
-                        alt=""
-                        width={96}
-                        height={72}
-                        draggable={false}
-                        className="pointer-events-none h-[3.5rem] w-auto max-w-[5.75rem] shrink-0 select-none object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)] sm:h-[4.1rem] sm:max-w-[6.5rem] md:h-[4.35rem] md:max-w-[7rem]"
-                      />
-                      <span className="max-w-[13rem] text-center font-mono text-[1.7rem] font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[14rem] sm:text-[2rem] md:text-[2.25rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.96),0_2px_10px_rgba(0,0,0,0.88)]">
-                        <ChipText text={formatHeroStackMoney(player.bankroll)} />
-                      </span>
-                    </div>
+                    {!hideChipStack ? (
+                      <div
+                        className={`pointer-events-none absolute z-[118] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 ${
+                          dimStack ? 'opacity-45 saturate-[0.65]' : 'opacity-96'
+                        }`}
+                        style={{ left: `${chipPx.leftPx}px`, top: `${chipPx.topPx}px` }}
+                      >
+                        <img
+                          src={seatChipStackImg}
+                          alt=""
+                          width={96}
+                          height={72}
+                          draggable={false}
+                          className="pointer-events-none h-[3.5rem] w-auto max-w-[5.75rem] shrink-0 select-none object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)] sm:h-[4.1rem] sm:max-w-[6.5rem] md:h-[4.35rem] md:max-w-[7rem]"
+                        />
+                        <span className="max-w-[13rem] text-center font-mono text-[1.7rem] font-extrabold leading-tight tabular-nums tracking-tight text-amber-50 sm:max-w-[14rem] sm:text-[2rem] md:text-[2.25rem] [text-shadow:0_1px_3px_rgba(0,0,0,0.96),0_2px_10px_rgba(0,0,0,0.88)]">
+                          <ChipText text={formatHeroStackMoney(player.bankroll)} />
+                        </span>
+                      </div>
+                    ) : null}
                   </Fragment>
                 )
               })}

@@ -92,11 +92,7 @@ import {
   tableIsCpuOnly,
   liveVirtualCount,
 } from './virtual-players'
-import {
-  isPostBoardWageringClosed,
-  openAnsweringPhase,
-  planVenueWageringOrchestration,
-} from './venue-wagering-orchestration'
+import { planVenueWageringOrchestration } from './venue-wagering-orchestration'
 import {
   applyVenueCondenseAfterRound,
   venueCondenseSnapshotFromRooms,
@@ -900,86 +896,19 @@ function tableSessionKey(venueCode: string, tableId?: string): string {
 }
 
 const rooms = new Map<string, any>()
-const answerTimers = new Map<string, NodeJS.Timeout>()
-const venueShowdownTimers = new Map<string, NodeJS.Timeout>()
+/** Soft guide deadline (epoch ms) for the venue answer countdown UI — host must reveal. */
 const venueShowdownAtMs = new Map<string, number>()
 const venueOrchestrationGuard = new Set<string>()
 let venueLibraries!: Map<string, VenueLibraryData>
 const venuePlayhead = new Map<string, { setlistId: string | null; nextIndex: number }>()
 
-function clearTableAnswerTimer(sessionKey: string) {
-  const prev = answerTimers.get(sessionKey)
-  if (prev) clearTimeout(prev)
-  answerTimers.delete(sessionKey)
-}
-
-function scheduleTableAnswerReveal(sessionKey: string, deadlineMs: number) {
-  clearTableAnswerTimer(sessionKey)
-  const delay = Math.max(0, deadlineMs - Date.now())
-  const timer = setTimeout(() => {
-    const cur = rooms.get(sessionKey)
-    if (!cur || cur.phase !== 'answering') return
-    const revealed = revealAnswer(cur)
-    rooms.set(sessionKey, revealed)
-    emitVenueTableState(sessionKey, revealed, { skipOrchestration: true })
-    io.to(sessionKey).emit('toast', '⏱️ Time up! Revealing answers...')
-  }, delay)
-  answerTimers.set(sessionKey, timer)
-}
-
-function clearVenueShowdownTimer(venueCode: string) {
-  const vn = normalizeVenueCode(venueCode)
-  const prev = venueShowdownTimers.get(vn)
-  if (prev) clearTimeout(prev)
-  venueShowdownTimers.delete(vn)
-}
-
 function clearVenueWageringOrchestrationState(venueCode: string) {
-  const vn = normalizeVenueCode(venueCode)
-  clearVenueShowdownTimer(vn)
-  venueShowdownAtMs.delete(vn)
-  for (const tk of allTableSessionsInVenue(vn)) {
-    clearTableAnswerTimer(tk)
-  }
+  venueShowdownAtMs.delete(normalizeVenueCode(venueCode))
 }
 
-function scheduleVenueShowdownTimer(venueCode: string, fireAtMs: number) {
-  const vn = normalizeVenueCode(venueCode)
-  clearVenueShowdownTimer(vn)
-  venueShowdownAtMs.set(vn, fireAtMs)
-  const delay = Math.max(0, fireAtMs - Date.now())
-  venueShowdownTimers.set(
-    vn,
-    setTimeout(() => {
-      executeVenueShowdown(vn)
-    }, delay)
-  )
-}
-
-function executeVenueShowdown(vnRaw: string) {
-  const vn = normalizeVenueCode(vnRaw)
-  clearVenueShowdownTimer(vn)
-  venueShowdownAtMs.delete(vn)
-  for (const tk of allSeatedTableSessionsInVenue(vn)) {
-    let gs = rooms.get(tk)
-    if (!gs) continue
-    clearTableAnswerTimer(tk)
-
-    if (gs.phase === 'betting' && gs.round.isBettingOpen === true) {
-      gs = adminCloseBetting(gs)
-    }
-    if (isPostBoardWageringClosed(gs)) {
-      gs = openAnsweringPhase(gs, Date.now())
-    }
-    gs = runVirtualPlayerSimulation(gs)
-    if (gs.phase === 'answering') {
-      gs = revealAnswer(gs)
-    }
-    rooms.set(tk, gs)
-    io.to(tk).emit('state', gs)
-  }
-  emitDisplayVenueSnapshotNow(vn)
-  io.to(hostVenueRoom(vn)).emit('toast', 'Answer window closed — showdown on all tables.')
+/** Remember the soft answer-guide deadline for lockstep UI; do not auto-close answers. */
+function armVenueAnswerGuideDeadline(venueCode: string, fireAtMs: number) {
+  venueShowdownAtMs.set(normalizeVenueCode(venueCode), fireAtMs)
 }
 
 /** Deal five community cards on every seated pre-board felt (round 2 opens). */
@@ -1066,12 +995,12 @@ function applyVenueWageringOrchestration(venueCode: string) {
     }
 
     if (plan.cancelShowdown) {
-      clearVenueShowdownTimer(vn)
+      clearVenueWageringOrchestrationState(vn)
     } else if (plan.scheduleShowdownAtMs != null) {
-      scheduleVenueShowdownTimer(vn, plan.scheduleShowdownAtMs)
+      armVenueAnswerGuideDeadline(vn, plan.scheduleShowdownAtMs)
       io.to(hostVenueRoom(vn)).emit(
         'toast',
-        'Last table finished wagering — showdown in 45 seconds.',
+        'Last table finished wagering — 45s guide countdown (reveal when ready).',
       )
     }
 
@@ -1090,17 +1019,12 @@ function applyVenueWageringOrchestration(venueCode: string) {
       ) {
         openedAnsweringWithTimer = true
       }
-      if (update.answerDeadlineMs != null) {
-        scheduleTableAnswerReveal(update.sessionKey, update.answerDeadlineMs)
-      } else {
-        clearTableAnswerTimer(update.sessionKey)
-      }
     }
     if (openedAnsweringWithTimer && plan.scheduleShowdownAtMs != null) {
       const sec = Math.max(1, Math.round((plan.scheduleShowdownAtMs - Date.now()) / 1000))
       io.to(hostVenueRoom(vn)).emit(
         'toast',
-        `Answer window started — ${sec}s countdown on all tables.`,
+        `Answer window open — ${sec}s guide on all tables; reveal when you are ready.`,
       )
     }
     emitDisplayVenueSnapshotNow(vn)
@@ -3212,6 +3136,7 @@ io.on('connection', (socket) => {
           const durationSec = resolveAnswerWindowSecondsForStart(vn, payload)
           const durationMs = durationSec * 1000
           const deadlineMs2 = Date.now() + durationMs
+          armVenueAnswerGuideDeadline(vn, deadlineMs2)
           for (const { tk } of lockAns) {
             let gs = rooms.get(tk)
             gs = {
@@ -3220,13 +3145,12 @@ io.on('connection', (socket) => {
               round: { ...gs.round, answerDeadline: deadlineMs2 }
             }
             gs = runVirtualPlayerSimulation(gs)
-            scheduleTableAnswerReveal(tk, deadlineMs2)
             rooms.set(tk, gs)
             emitVenueTableState(tk, gs, { skipOrchestration: true })
           }
           socket.emit(
             'toast',
-            `Answering opened — ${lockAns.length} table(s); ${durationSec}s countdown at each felt.`,
+            `Answering opened — ${lockAns.length} table(s); ${durationSec}s guide countdown (reveal when ready).`,
           )
           gameState = rooms.get(sessionKey)!
           break
@@ -3446,16 +3370,7 @@ io.on('connection', (socket) => {
             socket.emit('ack', { ok: false, message: 'Not accepting answers right now.' })
             break
           }
-          const deadline = gameState.round.answerDeadline
-          if (
-            typeof deadline === 'number' &&
-            Number.isFinite(deadline) &&
-            Date.now() > deadline
-          ) {
-            socket.emit('toast', '⏱️ Too late! Answer window has closed.')
-            socket.emit('ack', { ok: false, message: 'Answer window has closed.' })
-            break
-          }
+          // Guide countdown may hit 0; answers stay open until host revealAnswer.
           if (
             !isSubmittedAnswerComposableFromDeal(
               gameState,
@@ -3512,6 +3427,7 @@ io.on('connection', (socket) => {
               `Revealing on ${answeringRows.length} table(s) in answering — tables ${nums} are still catching up.`,
             )
           }
+          clearVenueWageringOrchestrationState(vnRev)
           for (const { tk } of answeringRows) {
             let gs = rooms.get(tk)
             if (!gs || gs.phase !== 'answering') continue
@@ -4033,7 +3949,7 @@ async function bootstrap(): Promise<void> {
   loadVenueBlindSettingsFromDisk()
   loadVenueShuffleSettingsFromDisk()
   console.log(
-    '⏱️ Trivia answer window: default from ANSWER_WINDOW_SECONDS (see server); venue overrides in data/venue-answer-settings.json.',
+    '⏱️ Trivia answer guide countdown: default from ANSWER_WINDOW_SECONDS (see server); host reveal closes answers (venue overrides in data/venue-answer-settings.json).',
   )
   console.log(
     '💰 Venue blinds: defaults 10/20 with level schedule; overrides in data/venue-blind-settings.json.',

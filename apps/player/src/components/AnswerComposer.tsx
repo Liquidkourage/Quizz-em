@@ -56,7 +56,13 @@ export default function AnswerComposer({
 
       {remainingSec != null ? (
         <p className="player-game-timer">
-          Time left: <strong>{remainingSec}s</strong>
+          {remainingSec > 0 ? (
+            <>
+              Guide: <strong>{remainingSec}s</strong>
+            </>
+          ) : (
+            <>Suggested time is up — keep editing until the host reveals.</>
+          )}
         </p>
       ) : null}
 

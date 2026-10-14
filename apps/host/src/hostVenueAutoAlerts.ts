@@ -75,7 +75,7 @@ export function snapshotVenueFeltBeat(felts: HostVenueFeltBeatRow[]): VenueFeltS
 function formatDeadlineDetail(deadlineMs: number | null): string | undefined {
   if (deadlineMs == null) return undefined
   const sec = Math.max(0, Math.ceil((deadlineMs - Date.now()) / 1000))
-  return `${sec}s countdown on every felt — players submit guesses on their phones.`
+  return `${sec}s guide on every felt — reveal when you are ready to close answers.`
 }
 
 export function detectVenueAutoAlerts(
@@ -133,7 +133,7 @@ export function hostVenueAutoAlertFromToast(message: string): HostVenueAutoAlert
       detail: m,
     }
   }
-  if (m.includes('showdown in 45 seconds')) {
+  if (m.includes('guide countdown') || m.includes('showdown in 45 seconds')) {
     return {
       kind: 'answer-window-started',
       title: 'All post-board bets in',

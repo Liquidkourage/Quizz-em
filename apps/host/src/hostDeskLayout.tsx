@@ -385,11 +385,11 @@ export function buildHostRunOfShowSteps(
     },
     'start-answer': {
       label: 'Open answer window',
-      hint: 'Starts the countdown for players to submit their numeric guess.',
+      hint: 'Starts a guide countdown for players to submit guesses — you close it with Reveal.',
     },
     reveal: {
       label: 'Reveal correct answer',
-      hint: 'Shows the answer on TVs and moves tables into showdown.',
+      hint: 'Closes answers, shows the correct answer on TVs, and moves tables into showdown.',
     },
     'end-round': {
       label: 'End round & pay out',

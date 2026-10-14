@@ -1351,7 +1351,7 @@ function HostApp() {
             <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
               <div className="flex flex-col gap-0.5">
                 <label htmlFor="answer-window-sec" className="text-xs font-semibold uppercase tracking-wide text-white/48">
-                  Countdown (sec)
+                  Guide countdown (sec)
                 </label>
                 <input
                   id="answer-window-sec"

@@ -170,6 +170,8 @@ export function planVenueWageringOrchestration(args: {
   let scheduleShowdownAtMs: number | null = null
   const allInRunoutAwaitingHost = venueAnyAllInRunoutAwaitingHost(args.seatedTableKeys, args.getState)
   if (allComplete && openWageringCount === 0 && showdownAt == null && !allInRunoutAwaitingHost) {
+    // Soft guide deadline for TV/phone countdowns. Host must revealAnswer to close —
+    // the server does not auto-advance when this timestamp elapses.
     showdownAt = nowMs + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS
     scheduleShowdownAtMs = showdownAt
   }

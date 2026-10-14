@@ -88,7 +88,7 @@ describe('venue wagering orchestration', () => {
     expect(venueAllPreBoardWageringComplete([done.key, 'V:2'], (tk) => states.get(tk))).toBe(false)
   })
 
-  it('opens answering with the 45s venue deadline when only one table is seated', () => {
+  it('opens answering with a 45s guide deadline when only one table is seated (host reveals)', () => {
     const { key, gs } = postBoardClosedTable()
     const plan = planVenueWageringOrchestration({
       seatedTableKeys: [key],
@@ -99,6 +99,7 @@ describe('venue wagering orchestration', () => {
     expect(plan.tableUpdates).toHaveLength(1)
     expect(plan.tableUpdates[0]!.gameState.phase).toBe('answering')
     expect(plan.tableUpdates[0]!.answerDeadlineMs).toBe(1_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
+    // Soft arm timestamp for UI lockstep — server must not auto-reveal on fire.
     expect(plan.scheduleShowdownAtMs).toBe(1_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
   })
 

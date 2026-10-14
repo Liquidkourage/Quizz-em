@@ -159,7 +159,6 @@ export function venueLeaderboardSplitColumns(
 export type VenueLeaderboardFooterStats = {
   topName: string
   topStack: number
-  averageStack: number
   medianStack: number
   liveTables: number
 }
@@ -171,7 +170,6 @@ export function venueLeaderboardFooterStats(
 ): VenueLeaderboardFooterStats | null {
   if (rows.length === 0) return null
   const stacks = rows.map((r) => r.bankroll).sort((a, b) => a - b)
-  const sum = stacks.reduce((acc, v) => acc + v, 0)
   const mid = Math.floor(stacks.length / 2)
   const median =
     stacks.length % 2 === 0 ? Math.round((stacks[mid - 1]! + stacks[mid]!) / 2) : stacks[mid]!
@@ -179,7 +177,6 @@ export function venueLeaderboardFooterStats(
   return {
     topName: top.name,
     topStack: top.bankroll,
-    averageStack: Math.round(sum / stacks.length),
     medianStack: median,
     liveTables: Math.max(0, Math.floor(liveTables)),
   }

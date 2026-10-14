@@ -74,13 +74,13 @@ describe('venueLeaderboardColumns', () => {
 })
 
 describe('venueLeaderboardFooterStats', () => {
-  it('derives top, average, and median from ranked rows', () => {
+  it('derives top and median from ranked rows', () => {
     const rows = venueLeaderboardRowsFromTiles([
       tile({ tableNum: 1, seatBankrolls: [100, 200, 0, 0, 0, 0, 0, 0], seatNames: ['A', 'B', '', '', '', '', '', ''] }),
     ])
     const stats = venueLeaderboardFooterStats(rows, 3)
     expect(stats?.topStack).toBe(200)
-    expect(stats?.averageStack).toBe(150)
+    expect(stats?.medianStack).toBe(150)
     expect(stats?.liveTables).toBe(3)
   })
 })

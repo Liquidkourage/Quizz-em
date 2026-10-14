@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { ChipText } from '@qhe/ui'
 import { formatVenueBankroll, type VenueLeaderboardFooterStats } from './venueLeaderboard'
 import {
-  LeaderboardAverageIcon,
   LeaderboardMedianIcon,
   LeaderboardTablesIcon,
   LeaderboardTopStackIcon,
@@ -42,11 +41,6 @@ export default function VenueLeaderboardStatsRibbon({ stats }: VenueLeaderboardS
           <span className="venue-lb-stat-name">{stats.topName}</span>{' '}
           <span className="venue-lb-stat-amount">
             <ChipText text={formatVenueBankroll(stats.topStack)} />
-          </span>
-        </StatSection>
-        <StatSection label="Average stack" icon={<LeaderboardAverageIcon className="venue-lb-stat-icon" />}>
-          <span className="venue-lb-stat-amount">
-            <ChipText text={formatVenueBankroll(stats.averageStack)} />
           </span>
         </StatSection>
         <StatSection label="Median stack" icon={<LeaderboardMedianIcon className="venue-lb-stat-icon" />}>

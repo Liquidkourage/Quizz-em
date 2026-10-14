@@ -7,14 +7,6 @@ export function LeaderboardTopStackIcon({ className = '' }: { className?: string
   )
 }
 
-export function LeaderboardAverageIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
-      <path d="M4 19h16v2H4v-2zM6 17V9h3v8H6zm5 0V5h3v12h-3zm5 0v-6h3v6h-3z" />
-    </svg>
-  )
-}
-
 export function LeaderboardMedianIcon({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>

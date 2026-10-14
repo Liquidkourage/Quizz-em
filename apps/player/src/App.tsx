@@ -30,6 +30,7 @@ import { useHandSummary } from './hooks/useHandSummary'
 import { useTableResults } from './hooks/useTableResults'
 import {
   EMPTY_COMPOSED_ANSWER,
+  backspaceFromAnswer,
   selectionToComposition,
   toggleCardInSelection,
   toggleDecimal,
@@ -266,6 +267,13 @@ function PlayerApp() {
       index,
     })
     if (next.error) showToast(next.error, 4000)
+    setSelectedCards(next.selected)
+    setComposedAnswer(next.composed)
+  }
+
+  const handleAnswerBackspace = () => {
+    if (submittedAnswerDisplay) return
+    const next = backspaceFromAnswer({ selected: selectedCards, composed: composedAnswer })
     setSelectedCards(next.selected)
     setComposedAnswer(next.composed)
   }
@@ -524,6 +532,7 @@ function PlayerApp() {
               if (submittedAnswerDisplay) return
               setComposedAnswer((c) => toggleDecimal(c))
             }}
+            onBackspace={handleAnswerBackspace}
             onClear={() => {
               if (submittedAnswerDisplay) return
               setComposedAnswer(EMPTY_COMPOSED_ANSWER)

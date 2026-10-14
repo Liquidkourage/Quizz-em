@@ -49,19 +49,16 @@ export function toggleCardInSelection(args: {
 }): { selected: SelectedCardRef[]; composed: ComposedAnswer; error?: string } {
   const { gameState, currentPlayer, selected, composed, type, index } = args
   const existing = selected.findIndex((sc) => sc.type === type && sc.index === index)
+  // Selected digits stay put — use backspace (or clear) to erase.
   if (existing >= 0) {
-    const nextSelected = selected.filter((_, i) => i !== existing)
-    return {
-      selected: nextSelected,
-      composed: rebuildComposedFromSelection(gameState, currentPlayer, nextSelected),
-    }
+    return { selected, composed }
   }
 
   if (selected.length >= ANSWER_CARD_COUNT) {
     return {
       selected,
       composed,
-      error: `Your answer uses exactly ${ANSWER_CARD_COUNT} cards — tap a selected card to remove it, or clear.`,
+      error: `Your answer uses exactly ${ANSWER_CARD_COUNT} cards — use Backspace or Clear to change it.`,
     }
   }
 
@@ -70,6 +67,48 @@ export function toggleCardInSelection(args: {
 
   const nextSelected = [...selected, { type, index }]
   const nextDigits = [...composed.digits, digit]
+  const display = nextDigits.map((d) => (d === 'decimal' ? '.' : String(d))).join('')
+  return {
+    selected: nextSelected,
+    composed: {
+      digits: nextDigits,
+      display,
+      value: parseFloat(display.replace(/\.$/, '')) || 0,
+    },
+  }
+}
+
+/** Remove the last composed token: trailing decimal first, else last selected digit card. */
+export function backspaceFromAnswer(args: {
+  selected: SelectedCardRef[]
+  composed: ComposedAnswer
+}): { selected: SelectedCardRef[]; composed: ComposedAnswer } {
+  const { selected, composed } = args
+  if (composed.digits.length === 0 && selected.length === 0) {
+    return { selected, composed }
+  }
+
+  if (composed.digits[composed.digits.length - 1] === 'decimal') {
+    return {
+      selected,
+      composed: {
+        digits: composed.digits.slice(0, -1),
+        display: composed.display.replace(/\.$/, ''),
+        value: parseFloat(composed.display.replace(/\.$/, '')) || 0,
+      },
+    }
+  }
+
+  if (selected.length === 0) return { selected, composed }
+
+  const nextSelected = selected.slice(0, -1)
+  const nextDigits = [...composed.digits]
+  for (let i = nextDigits.length - 1; i >= 0; i--) {
+    if (nextDigits[i] !== 'decimal') {
+      nextDigits.splice(i, 1)
+      break
+    }
+  }
   const display = nextDigits.map((d) => (d === 'decimal' ? '.' : String(d))).join('')
   return {
     selected: nextSelected,

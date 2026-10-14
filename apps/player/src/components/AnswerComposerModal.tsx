@@ -13,6 +13,7 @@ type AnswerComposerModalProps = {
   submittedDisplay?: string | null
   onSelectCard: (type: 'hand' | 'community', index: number) => void
   onToggleDecimal: () => void
+  onBackspace: () => void
   onClear: () => void
   onSubmit: () => void
   onEditSubmitted?: () => void

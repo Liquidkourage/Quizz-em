@@ -18,6 +18,7 @@ type AnswerComposerProps = {
   submittedDisplay?: string | null
   onSelectCard: (type: 'hand' | 'community', index: number) => void
   onToggleDecimal: () => void
+  onBackspace: () => void
   onClear: () => void
   onSubmit: () => void
   onEditSubmitted?: () => void
@@ -32,6 +33,7 @@ export default function AnswerComposer({
   submittedDisplay,
   onSelectCard,
   onToggleDecimal,
+  onBackspace,
   onClear,
   onSubmit,
   onEditSubmitted,
@@ -40,6 +42,7 @@ export default function AnswerComposer({
   const locked = Boolean(submittedDisplay)
   const canSubmit =
     !locked && selectedCards.length === ANSWER_CARD_COUNT && composed.display.trim().length > 0
+  const canBackspace = !locked && (selectedCards.length > 0 || composed.display.length > 0)
   const questionText = gameState.round.question?.text
 
   return (
@@ -73,7 +76,7 @@ export default function AnswerComposer({
           <div className="player-game-answer-block">
             <p className="player-game-question-label">Your answer</p>
             <p className="player-game-hint player-game-hint--composer">
-              Tap exactly {ANSWER_CARD_COUNT} cards; add a decimal if needed. Selected: {selectedCards.length}/
+              Tap {ANSWER_CARD_COUNT} cards in order; use Backspace to undo. Selected: {selectedCards.length}/
               {ANSWER_CARD_COUNT}
             </p>
             <div className="player-game-answer-display">{composed.display || '—'}</div>
@@ -88,9 +91,12 @@ export default function AnswerComposer({
                   return (
                     <motion.div
                       key={`h-${i}`}
-                      className={`cursor-pointer ${isSelected ? 'player-game-card-selected' : ''}`}
-                      onClick={() => onSelectCard('hand', i)}
-                      whileTap={{ scale: 0.95 }}
+                      className={`${isSelected ? 'player-game-card-selected player-game-card-selected--locked' : 'cursor-pointer'}`}
+                      onClick={() => {
+                        if (!isSelected) onSelectCard('hand', i)
+                      }}
+                      whileTap={isSelected ? undefined : { scale: 0.95 }}
+                      aria-disabled={isSelected || undefined}
                     >
                       <NumericPlayingCard
                         digit={card.digit}
@@ -115,9 +121,12 @@ export default function AnswerComposer({
                     return (
                       <motion.div
                         key={`c-${i}`}
-                        className={`cursor-pointer ${isSelected ? 'player-game-card-selected' : ''}`}
-                        onClick={() => onSelectCard('community', i)}
-                        whileTap={{ scale: 0.95 }}
+                        className={`${isSelected ? 'player-game-card-selected player-game-card-selected--locked' : 'cursor-pointer'}`}
+                        onClick={() => {
+                          if (!isSelected) onSelectCard('community', i)
+                        }}
+                        whileTap={isSelected ? undefined : { scale: 0.95 }}
+                        aria-disabled={isSelected || undefined}
                       >
                         <NumericPlayingCard
                           digit={card.digit}
@@ -140,15 +149,28 @@ export default function AnswerComposer({
             </div>
 
             <div className="player-game-card-group">
-              <p className="player-game-card-section-label">Decimal</p>
-              <motion.button
-                type="button"
-                className={`player-game-decimal-btn${composed.display.includes('.') ? ' player-game-decimal-btn--active' : ''}`}
-                onClick={onToggleDecimal}
-                whileTap={{ scale: 0.95 }}
-              >
-                .
-              </motion.button>
+              <p className="player-game-card-section-label">Keys</p>
+              <div className="player-game-composer-keys">
+                <motion.button
+                  type="button"
+                  className={`player-game-decimal-btn${composed.display.includes('.') ? ' player-game-decimal-btn--active' : ''}`}
+                  onClick={onToggleDecimal}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label="Decimal point"
+                >
+                  .
+                </motion.button>
+                <motion.button
+                  type="button"
+                  className="player-game-backspace-btn"
+                  onClick={onBackspace}
+                  disabled={!canBackspace}
+                  whileTap={canBackspace ? { scale: 0.95 } : undefined}
+                  aria-label="Backspace"
+                >
+                  ⌫
+                </motion.button>
+              </div>
             </div>
           </div>
 

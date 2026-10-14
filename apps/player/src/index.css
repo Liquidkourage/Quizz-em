@@ -2101,7 +2101,20 @@
   box-shadow: 0 0 0 3px rgb(253 224 71 / 0.85);
 }
 
-.player-game-decimal-btn {
+.player-game-card-selected--locked {
+  cursor: default;
+  opacity: 0.92;
+}
+
+.player-game-composer-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.player-game-decimal-btn,
+.player-game-backspace-btn {
   display: flex;
   height: 6rem;
   width: 4rem;
@@ -2114,6 +2127,12 @@
   font-size: 2rem;
   font-weight: 700;
   color: rgb(253 224 71);
+  cursor: pointer;
+}
+
+.player-game-backspace-btn:disabled {
+  cursor: default;
+  opacity: 0.4;
 }
 
 .player-game-decimal-btn--active {

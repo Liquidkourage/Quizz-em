@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createEmptyGame, LOBBY_TABLE_ID } from '@qhe/core'
 import {
   ANSWER_CARD_COUNT,
+  backspaceFromAnswer,
   toggleCardInSelection,
   validateAnswerSubmit,
 } from './answerComposition'
@@ -13,7 +14,7 @@ describe('answerComposition', () => {
     expect(validateAnswerSubmit('answering', [], { digits: [], display: '', value: 0 })).toMatch(/5 digit/)
   })
 
-  it('adds and removes cards from selection', () => {
+  it('adds cards and ignores re-taps; backspace undoes', () => {
     let gs = createEmptyGame('HOST01', 'host', '1')
     gs = {
       ...gs,
@@ -57,6 +58,21 @@ describe('answerComposition', () => {
     expect(selected).toHaveLength(ANSWER_CARD_COUNT)
     expect(composed.display).toBe('37124')
     expect(validateAnswerSubmit('answering', selected, composed)).toBeNull()
+
+    const retap = toggleCardInSelection({
+      gameState: gs,
+      currentPlayer: player,
+      selected,
+      composed,
+      type: 'hand',
+      index: 0,
+    })
+    expect(retap.selected).toHaveLength(ANSWER_CARD_COUNT)
+    expect(retap.composed.display).toBe('37124')
+
+    const afterBs = backspaceFromAnswer({ selected, composed })
+    expect(afterBs.selected).toHaveLength(4)
+    expect(afterBs.composed.display).toBe('3712')
   })
 })
 

@@ -208,7 +208,7 @@ export function buildPlayerTableStatusLine(
   const actPart = toCall > 0 ? `${actorLabel} to call $${toCall.toLocaleString()}` : `${actorLabel} to act`
   const clock =
     typeof turnRemainingSec === 'number' && turnRemainingSec >= 0
-      ? ` · ${turnRemainingSec}s`
+      ? ` · act in ${turnRemainingSec}s`
       : ''
 
   if (highlight) {

@@ -14,6 +14,7 @@ import {
   startAnswering,
   adminAdvanceTurn,
   adminCloseBetting,
+  nudgeActingPlayers,
   addVirtualPlayers,
   clearVirtualPlayers,
   clearTableBlinds,
@@ -478,6 +479,7 @@ function HostApp() {
     onEndRound: handleEndRound,
     onRandomQuestion: handleSetRandomQuestion,
     onNextSetlist: () => nextQuestionFromSetlist(),
+    onNudgeActing: () => nudgeActingPlayers(),
     onRehearsalSkipToShowdown: rehearsalCpuOnly ? () => rehearsalSkipToShowdown() : undefined,
     hasActiveSetlist,
   })
@@ -1608,6 +1610,15 @@ function HostApp() {
                 <NeonButton
                   variant="gold"
                   size="normal"
+                  onClick={() => nudgeActingPlayers()}
+                  disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
+                  className="w-full"
+                >
+                  Nudge acting (30s → check/fold)
+                </NeonButton>
+                <NeonButton
+                  variant="gold"
+                  size="normal"
                   onClick={() => adminAdvanceTurn()}
                   disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
                   className="w-full"
@@ -1619,11 +1630,15 @@ function HostApp() {
                   size="normal"
                   onClick={() => adminCloseBetting()}
                   disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
-                  className="w-full"
+                  className="w-full md:col-span-2"
                 >
                   Close betting
                 </NeonButton>
               </div>
+              <p className="text-xs text-white/45">
+                No always-on shot clock — players can think. <strong className="text-white/60">Nudge</strong> starts a
+                30s countdown; if they still don&apos;t act, the server auto-checks or auto-folds.
+              </p>
               <HostBlindsControls {...hostBlindsControlProps} />
               <NeonButton variant="gold" size="normal" onClick={handleNewGame} className="w-full">
                 New game (hard reset — clears all tables)

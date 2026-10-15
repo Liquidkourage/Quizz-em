@@ -485,6 +485,10 @@ export type AdminAdvanceTurnAction = z.infer<typeof AdminAdvanceTurnAction>
 export const AdminAdvanceTurnVenueAction = z.object({ type: z.literal('adminAdvanceTurnVenue') })
 export type AdminAdvanceTurnVenueAction = z.infer<typeof AdminAdvanceTurnVenueAction>
 
+/** Host: 30s countdown on acting humans, then auto check/fold. */
+export const NudgeActingPlayersAction = z.object({ type: z.literal('nudgeActingPlayers') })
+export type NudgeActingPlayersAction = z.infer<typeof NudgeActingPlayersAction>
+
 export const AdminSetBlindsAction = z.object({
   type: z.literal('adminSetBlinds'),
   smallBlind: z.number(),

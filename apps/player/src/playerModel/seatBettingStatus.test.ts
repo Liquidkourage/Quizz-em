@@ -124,7 +124,7 @@ describe('seatBettingStatus', () => {
 
   it('builds status line with highlight, to-call, and clock', () => {
     const line = buildPlayerTableStatusLine(baseState(), 'Alex', 18)
-    expect(line).toBe('Maya raised · Jay to call $40 · 18s')
+    expect(line).toBe('Maya raised · Jay to call $40 · act in 18s')
   })
 
   it('uses You for the viewer when acting', () => {

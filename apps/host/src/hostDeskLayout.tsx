@@ -379,7 +379,7 @@ export function buildHostRunOfShowSteps(
     },
     'close-bet-1': {
       label: 'Finish wagering (round 1)',
-      hint: 'Wait until every table completes pre-flop action, then close betting.',
+      hint: 'Wait for action, or Nudge a stalling player (30s then auto check/fold), then close betting.',
     },
     'deal-board': {
       label: 'Deal the board',
@@ -387,7 +387,7 @@ export function buildHostRunOfShowSteps(
     },
     'close-bet-2': {
       label: 'Finish wagering (round 2)',
-      hint: 'Wait until post-board action is done on every table, then close betting.',
+      hint: 'Wait for action, or Nudge a stalling player (30s then auto check/fold), then close betting.',
     },
     'start-answer': {
       label: 'Open answer window',
@@ -516,6 +516,8 @@ export function buildHostPhaseDockItems(args: {
   onEndRound: () => void
   onRandomQuestion: () => void
   onNextSetlist: () => void
+  /** 30s countdown on acting humans, then auto check/fold. */
+  onNudgeActing: () => void
   /** Rehearsal dry-run — jump venue wall to winner overlay without waiting for timers. */
   onRehearsalSkipToShowdown?: () => void
   /** Active rundown selected — show one-click Next from setlist in lobby. */
@@ -537,6 +539,7 @@ export function buildHostPhaseDockItems(args: {
     onEndRound,
     onRandomQuestion,
     onNextSetlist,
+    onNudgeActing,
     onRehearsalSkipToShowdown,
     hasActiveSetlist = false,
   } = args
@@ -593,6 +596,12 @@ export function buildHostPhaseDockItems(args: {
   if (phase === 'betting') {
     if (bettingOpen) {
       return withRehearsalSkip([
+        {
+          id: 'nudge',
+          label: 'Nudge acting (30s)',
+          onClick: onNudgeActing,
+          variant: 'gold',
+        },
         {
           id: 'close-bet',
           label: bettingRound <= 1 ? 'Finish wagering (round 1)' : 'Finish wagering (round 2)',

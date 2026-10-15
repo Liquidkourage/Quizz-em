@@ -621,6 +621,13 @@ export function adminAdvanceTurn(callback?: (ack: ServerAck) => void) {
   if (callback) socket.once('ack', callback)
 }
 
+/** Host: give every acting human 30s, then auto check/fold if they still stall. */
+export function nudgeActingPlayers(callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'nudgeActingPlayers' })
+  if (callback) socket.once('ack', callback)
+}
+
 export function adminSetBlinds(smallBlind: number, bigBlind: number, callback?: (ack: ServerAck) => void) {
   if (!socket) return
   socket.emit('action', { type: 'adminSetBlinds', payload: { smallBlind, bigBlind } })

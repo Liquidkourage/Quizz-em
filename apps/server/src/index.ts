@@ -1424,18 +1424,12 @@ const venueAudienceWelcomeExpired = new Set<string>()
 const SEATING_CHART_MIN_VISIBLE_MS = 60_000
 const venueSeatingChartPinnedUntilMs = new Map<string, number>()
 
-/** Auto check/fold when a human's turn exceeds this during wagering. */
-const HUMAN_TURN_TIMEOUT_MS = 75_000
-/** Extra seconds applied once when the shot clock expires (per turn). */
-const HUMAN_TIMEBANK_MS = 30_000
-/** One-time extension if the acting player is disconnected when the clock fires. */
-const HUMAN_DISCONNECT_GRACE_MS = 30_000
+/** Host nudge → auto check/fold if the acting human still hasn't acted. */
+const HUMAN_NUDGE_TIMEOUT_MS = 30_000
 const humanTurnTimers = new Map<string, ReturnType<typeof setTimeout>>()
-/** sessionKey → epoch ms when the current human shot clock expires. */
+/** sessionKey → epoch ms when a host-nudged shot clock expires (unset until nudged). */
 const humanTurnDeadlineMs = new Map<string, number>()
-/** `${sessionKey}:${playerId}:${seatIndex}` → extensions already used this turn. */
-const humanTurnExtensions = new Map<string, { timebank: boolean; disconnectGrace: boolean }>()
-/** sessionKey → `${playerId}:${seatIndex}` currently on the clock. */
+/** sessionKey → `${playerId}:${seatIndex}` the deadline applies to (cleared when the actor changes). */
 const humanTurnActorKey = new Map<string, string>()
 
 function markVenueShowStarted(code: string): void {
@@ -1495,17 +1489,18 @@ function findPlayerSessionInVenue(
   return null
 }
 
-function clearHumanTurnTimer(sessionKey: string): void {
+function clearHumanTurnTimerHandle(sessionKey: string): void {
   const timer = humanTurnTimers.get(sessionKey)
   if (timer) {
     clearTimeout(timer)
     humanTurnTimers.delete(sessionKey)
   }
-  humanTurnDeadlineMs.delete(sessionKey)
 }
 
-function humanTurnExtKey(sessionKey: string, playerId: string, seatIndex: number): string {
-  return `${sessionKey}:${playerId}:${seatIndex}`
+function clearHumanTurnClock(sessionKey: string): void {
+  clearHumanTurnTimerHandle(sessionKey)
+  humanTurnDeadlineMs.delete(sessionKey)
+  humanTurnActorKey.delete(sessionKey)
 }
 
 function buildPlayerOnlineMap(gs: GameState): Record<string, boolean> {
@@ -1555,110 +1550,94 @@ function commitTableAdvance(
 }
 
 /**
- * Keep shot-clock deadline in sync with the acting human. Returns deadline for the wire
- * payload (undefined when no human is on the clock).
+ * Shot clock is host-nudge only. Returns a deadline for the wire when the current
+ * acting human has been nudged; clears automatically when the actor changes.
  */
 function syncHumanTurnDeadline(sessionKey: string, gs: GameState): number | undefined {
   const actor = resolveHumanTurnActor(gs)
   if (!actor) {
-    humanTurnDeadlineMs.delete(sessionKey)
-    humanTurnActorKey.delete(sessionKey)
+    clearHumanTurnClock(sessionKey)
     return undefined
   }
   const actorKey = `${actor.playerId}:${actor.seatIndex}`
   const prevActor = humanTurnActorKey.get(sessionKey)
   if (prevActor !== actorKey) {
-    for (const k of [...humanTurnExtensions.keys()]) {
-      if (k.startsWith(`${sessionKey}:`)) humanTurnExtensions.delete(k)
-    }
+    // New actor — wait for an explicit host nudge (no always-on clock).
+    clearHumanTurnTimerHandle(sessionKey)
+    humanTurnDeadlineMs.delete(sessionKey)
     humanTurnActorKey.set(sessionKey, actorKey)
-    humanTurnExtensions.set(humanTurnExtKey(sessionKey, actor.playerId, actor.seatIndex), {
-      timebank: false,
-      disconnectGrace: false,
-    })
-    humanTurnDeadlineMs.set(sessionKey, Date.now() + HUMAN_TURN_TIMEOUT_MS)
-  } else if (!humanTurnDeadlineMs.has(sessionKey)) {
-    humanTurnDeadlineMs.set(sessionKey, Date.now() + HUMAN_TURN_TIMEOUT_MS)
+    return undefined
   }
-  return humanTurnDeadlineMs.get(sessionKey)
+  const deadline = humanTurnDeadlineMs.get(sessionKey)
+  return typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : undefined
 }
 
+/** Arm auto check/fold only when a host nudge deadline is active for the current actor. */
 function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): void {
   const actor = resolveHumanTurnActor(gs)
   if (!actor) {
-    clearHumanTurnTimer(sessionKey)
+    clearHumanTurnClock(sessionKey)
+    return
+  }
+
+  const deadline = humanTurnDeadlineMs.get(sessionKey)
+  if (deadline == null || !Number.isFinite(deadline)) {
+    clearHumanTurnTimerHandle(sessionKey)
     return
   }
 
   const { seatIndex, playerId, playerName } = actor
-  const extKey = humanTurnExtKey(sessionKey, playerId, seatIndex)
-  const deadline = humanTurnDeadlineMs.get(sessionKey) ?? Date.now() + HUMAN_TURN_TIMEOUT_MS
-  humanTurnDeadlineMs.set(sessionKey, deadline)
-  const delayMs = Math.max(0, deadline - Date.now())
-
-  const arm = (nextDelayMs: number, nextDeadlineMs: number) => {
-    clearTimeout(humanTurnTimers.get(sessionKey))
-    humanTurnTimers.delete(sessionKey)
-    humanTurnDeadlineMs.set(sessionKey, nextDeadlineMs)
-    const timer = setTimeout(() => {
-      humanTurnTimers.delete(sessionKey)
-      let cur = rooms.get(sessionKey) as GameState | undefined
-      if (!cur || cur.phase !== 'betting' || !cur.round.isBettingOpen) return
-      if (cur.round.currentPlayerIndex !== seatIndex) return
-      const acting = cur.players[seatIndex]
-      if (!acting || acting.id !== playerId) return
-
-      const ext = humanTurnExtensions.get(extKey) ?? { timebank: false, disconnectGrace: false }
-      const sock = getSocketForPlayer(playerId)
-      const disconnected = !sock || sock.connected !== true
-
-      if (disconnected && !ext.disconnectGrace) {
-        ext.disconnectGrace = true
-        humanTurnExtensions.set(extKey, ext)
-        io.to(sessionKey).emit(
-          'toast',
-          `${playerName} disconnected — +${Math.round(HUMAN_DISCONNECT_GRACE_MS / 1000)}s grace.`,
-        )
-        const graceDeadline = Date.now() + HUMAN_DISCONNECT_GRACE_MS
-        arm(HUMAN_DISCONNECT_GRACE_MS, graceDeadline)
-        emitVenueTableState(sessionKey, cur, { skipOrchestration: true })
-        return
-      }
-
-      if (!ext.timebank) {
-        ext.timebank = true
-        humanTurnExtensions.set(extKey, ext)
-        io.to(sessionKey).emit(
-          'toast',
-          `${playerName} is using their ${Math.round(HUMAN_TIMEBANK_MS / 1000)}s timebank.`,
-        )
-        const bankDeadline = Date.now() + HUMAN_TIMEBANK_MS
-        arm(HUMAN_TIMEBANK_MS, bankDeadline)
-        emitVenueTableState(sessionKey, cur, { skipOrchestration: true })
-        return
-      }
-
-      const contrib = cur.round.playerBets?.[acting.id] ?? 0
-      const toCall = Math.max(0, (cur.round.currentBet ?? 0) - contrib)
-      const beforeTimeout = cur
-      cur = toCall === 0 ? playerCheck(cur, acting.id) : foldPlayer(cur, acting.id)
-      cur = runVirtualPlayerSimulation(cur)
-      humanTurnExtensions.delete(extKey)
-      humanTurnDeadlineMs.delete(sessionKey)
-      commitTableAdvance(sessionKey, beforeTimeout, cur)
-      io.to(sessionKey).emit(
-        'toast',
-        `${shortPlayerName(playerName)} timed out — ${toCall === 0 ? 'checked' : 'folded'}.`,
-      )
-    }, nextDelayMs)
-    humanTurnTimers.set(sessionKey, timer)
+  const actorKey = `${actor.playerId}:${actor.seatIndex}`
+  if (humanTurnActorKey.get(sessionKey) !== actorKey) {
+    clearHumanTurnTimerHandle(sessionKey)
+    return
   }
 
-  // Don't clear deadline when re-arming the same turn — only replace the timer handle.
-  const prev = humanTurnTimers.get(sessionKey)
-  if (prev) clearTimeout(prev)
-  humanTurnTimers.delete(sessionKey)
-  arm(delayMs, deadline)
+  const delayMs = Math.max(0, deadline - Date.now())
+  clearHumanTurnTimerHandle(sessionKey)
+  const timer = setTimeout(() => {
+    humanTurnTimers.delete(sessionKey)
+    let cur = rooms.get(sessionKey) as GameState | undefined
+    if (!cur || cur.phase !== 'betting' || !cur.round.isBettingOpen) return
+    if (cur.round.currentPlayerIndex !== seatIndex) return
+    const acting = cur.players[seatIndex]
+    if (!acting || acting.id !== playerId) return
+
+    const contrib = cur.round.playerBets?.[acting.id] ?? 0
+    const toCall = Math.max(0, (cur.round.currentBet ?? 0) - contrib)
+    const beforeTimeout = cur
+    cur = toCall === 0 ? playerCheck(cur, acting.id) : foldPlayer(cur, acting.id)
+    cur = runVirtualPlayerSimulation(cur)
+    clearHumanTurnClock(sessionKey)
+    commitTableAdvance(sessionKey, beforeTimeout, cur)
+    io.to(sessionKey).emit(
+      'toast',
+      `${shortPlayerName(playerName)} nudged time up — ${toCall === 0 ? 'checked' : 'folded'}.`,
+    )
+  }, delayMs)
+  humanTurnTimers.set(sessionKey, timer)
+}
+
+/** Host: start a 30s countdown on every table whose acting seat is a human. */
+function nudgeActingHumansVenue(vnRaw: string): { nudged: number; names: string[] } {
+  const vn = normalizeVenueCode(vnRaw)
+  const names: string[] = []
+  let nudged = 0
+  const fireAt = Date.now() + HUMAN_NUDGE_TIMEOUT_MS
+  for (const { tk, gs } of venuePlayableSnapshots(vn)) {
+    const actor = resolveHumanTurnActor(gs)
+    if (!actor) continue
+    humanTurnActorKey.set(tk, `${actor.playerId}:${actor.seatIndex}`)
+    humanTurnDeadlineMs.set(tk, fireAt)
+    nudged += 1
+    names.push(shortPlayerName(actor.playerName))
+    emitVenueTableState(tk, gs, { skipOrchestration: true })
+    io.to(tk).emit(
+      'toast',
+      `${shortPlayerName(actor.playerName)} — host nudge: 30s to act (then auto check/fold).`,
+    )
+  }
+  return { nudged, names }
 }
 
 function runVenueCondenseAfterRound(
@@ -2572,6 +2551,7 @@ const VENUE_SYNC_ACTION_TYPES = new Set<string>([
   'newGame',
   'adminSetBlinds',
   'adminCloseBetting',
+  'nudgeActingPlayers',
   'assignTablesFromLobby'
 ])
 
@@ -3278,6 +3258,7 @@ io.on('connection', (socket) => {
           let advanced = 0
           for (const { tk, gs } of rowsAdv) {
             if (gs.phase !== 'betting' || !gs.round.isBettingOpen) continue
+            clearHumanTurnClock(tk)
             let next = adminAdvanceTurn(gs)
             next = runVirtualPlayerSimulation(next)
             rooms.set(tk, next)
@@ -3290,6 +3271,27 @@ io.on('connection', (socket) => {
               ? `Advanced wagering turn on ${advanced} table(s).`
               : 'No open wagering to advance on any table.',
           )
+          gameState = rooms.get(sessionKey)!
+          break
+        }
+
+        case 'nudgeActingPlayers': {
+          if (!assertVenueHost(socket, gameState)) break
+          const vnNudge = normalizeVenueCode(gameState.code)
+          const { nudged, names } = nudgeActingHumansVenue(vnNudge)
+          if (nudged === 0) {
+            socket.emit(
+              'toast',
+              'No human is to act on an open wagering table — nothing to nudge.',
+            )
+          } else {
+            const sample = names.slice(0, 4).join(', ')
+            const more = names.length > 4 ? ` +${names.length - 4} more` : ''
+            socket.emit(
+              'toast',
+              `Nudged ${nudged} player(s) — 30s then auto check/fold (${sample}${more}).`,
+            )
+          }
           gameState = rooms.get(sessionKey)!
           break
         }

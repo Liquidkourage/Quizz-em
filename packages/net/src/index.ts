@@ -304,6 +304,10 @@ export type HostVenueActionRow = {
   actingPlayerName: string | null
   actingSummary: string | null
   recentActions: HostVenueRecentAction[]
+  /** Seats still contesting the chip pot (not folded, not busted). */
+  inPotCount: number
+  /** Seats answering for trivia points only (folded and/or busted). */
+  pointsOnlyCount: number
 }
 
 export type HostVenueBustEntry = {

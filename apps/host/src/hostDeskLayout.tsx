@@ -9,6 +9,7 @@ import type {
 } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID } from '@qhe/core'
 import { adminCloseBetting } from '@qhe/net'
+import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
   lobby: 'Lobby',
@@ -931,6 +932,105 @@ function formatHostFloorMoney(n: number): string {
   return `$${Math.round(n).toLocaleString()}`
 }
 
+/** Badge: emerald = chip pot; amber = trivia points only. */
+export function HostContestBadge({
+  kind,
+  label,
+  reason,
+  title,
+}: {
+  kind: 'pot' | 'points'
+  label: string
+  reason?: string | null
+  title?: string
+}) {
+  const pot = kind === 'pot'
+  return (
+    <span
+      title={title}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide ${
+        pot
+          ? 'border-emerald-400/55 bg-emerald-950/45 text-emerald-100'
+          : 'border-amber-400/50 bg-amber-950/40 text-amber-100'
+      }`}
+    >
+      {label}
+      {reason ? <span className="font-semibold normal-case tracking-normal text-white/55">· {reason}</span> : null}
+    </span>
+  )
+}
+
+/** Bound-table roster: who is still in for chips vs trivia points only. */
+export function HostContestRoster({
+  gameState,
+  hostPlayerLabel,
+}: {
+  gameState: GameState
+  hostPlayerLabel: (name: string) => string
+}) {
+  const phase = gameState.phase
+  if (
+    phase !== 'betting' &&
+    phase !== 'answering' &&
+    phase !== 'showdown' &&
+    phase !== 'reveal' &&
+    phase !== 'payout'
+  ) {
+    return null
+  }
+  if (gameState.players.length === 0) return null
+
+  const inPot = gameState.players.filter((p) => hostContestStatus(p).kind === 'pot').length
+  const pointsOnly = gameState.players.length - inPot
+
+  return (
+    <div className="rounded-lg border border-white/12 bg-black/30 px-3 py-2.5">
+      <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">Contest status</p>
+        <p className="text-xs tabular-nums text-white/45">
+          <span className="font-semibold text-emerald-200/90">{inPot} in pot</span>
+          {pointsOnly > 0 ? (
+            <>
+              {' · '}
+              <span className="font-semibold text-amber-200/90">{pointsOnly} points only</span>
+            </>
+          ) : null}
+        </p>
+      </div>
+      <p className="mb-2 text-[0.7rem] leading-snug text-white/40">
+        <strong className="text-white/55">In pot</strong> = eligible for the chip pot.{' '}
+        <strong className="text-white/55">Points only</strong> = folded or busted — still answers for trivia pts.
+      </p>
+      <ul className="flex flex-wrap gap-1.5" aria-label="Player contest status">
+        {gameState.players.map((p, i) => {
+          const status = hostContestStatus(p)
+          const reason = hostContestReasonLabel(status)
+          return (
+            <li
+              key={p.id}
+              className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs ${
+                status.kind === 'pot'
+                  ? 'border-emerald-400/35 bg-emerald-950/25'
+                  : 'border-amber-400/30 bg-amber-950/20'
+              }`}
+              title={status.detail}
+            >
+              <span className="font-mono tabular-nums text-white/40">{i + 1}</span>
+              <span className="font-semibold text-white/90">{hostPlayerLabel(p.name)}</span>
+              <HostContestBadge
+                kind={status.kind}
+                label={status.label}
+                reason={reason}
+                title={status.detail}
+              />
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
 function formatMoveLogClock(atMs: number): string {
   try {
     return new Date(atMs).toLocaleTimeString(undefined, {
@@ -1127,6 +1227,19 @@ export function HostVenueFloorBriefPanel({
                           )}
                         </span>
                       </div>
+                      <p className="mt-0.5 text-xs tabular-nums text-white/50">
+                        <span className="font-semibold text-emerald-200/85">
+                          {row.inPotCount ?? 0} in pot
+                        </span>
+                        {(row.pointsOnlyCount ?? 0) > 0 ? (
+                          <>
+                            {' · '}
+                            <span className="font-semibold text-amber-200/85">
+                              {row.pointsOnlyCount} points only
+                            </span>
+                          </>
+                        ) : null}
+                      </p>
                       {row.actingSummary ? (
                         <p className="mt-0.5 text-xs font-semibold text-amber-100/90">
                           <ChipText text={row.actingSummary} />
@@ -1134,17 +1247,26 @@ export function HostVenueFloorBriefPanel({
                       ) : null}
                       {row.recentActions.length > 0 ? (
                         <div className="mt-1.5 flex flex-wrap gap-1">
-                          {row.recentActions.map((a, i) => (
-                            <span
-                              key={`${row.tableNum}-${a.seat}-${i}`}
-                              className="rounded-full border border-white/15 bg-black/35 px-2 py-0.5 text-xs font-semibold text-white/75"
-                            >
-                              {hostPlayerLabel(a.name)}{' '}
-                              <span className="text-white/45">
-                                {BET_ACTION_LABEL[a.action] ?? a.action}
+                          {row.recentActions.map((a, i) => {
+                            const folded = a.action === 'fold'
+                            return (
+                              <span
+                                key={`${row.tableNum}-${a.seat}-${i}`}
+                                className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
+                                  folded
+                                    ? 'border-amber-400/40 bg-amber-950/35 text-amber-100'
+                                    : 'border-white/15 bg-black/35 text-white/75'
+                                }`}
+                              >
+                                {hostPlayerLabel(a.name)}{' '}
+                                <span className={folded ? 'text-amber-100/70' : 'text-white/45'}>
+                                  {folded
+                                    ? 'Fold · points'
+                                    : (BET_ACTION_LABEL[a.action] ?? a.action)}
+                                </span>
                               </span>
-                            </span>
-                          ))}
+                            )
+                          })}
                         </div>
                       ) : null}
                     </li>

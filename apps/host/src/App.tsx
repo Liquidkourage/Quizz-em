@@ -43,6 +43,7 @@ import {
 import type { GameState, Question } from '@qhe/core'
 import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress, isSetlistTargetLength } from '@qhe/core'
+import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { readHostVenueCode } from './hostVenueCode'
 import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
 import {
@@ -58,6 +59,8 @@ import {
   HostVenueFeltBeatStrip,
   HostVenueFloorBriefPanel,
   HostVenueMoveLogPanel,
+  HostContestRoster,
+  HostContestBadge,
   buildHostPhaseDockItems,
   buildHostRunOfShowSteps,
   formatVenueBlindsSummary,
@@ -1264,8 +1267,12 @@ function HostApp() {
             currentRunStepId === 'close-bet-1' ||
             currentRunStepId === 'close-bet-2' ||
             currentRunStepId === 'start-answer' ||
+            currentRunStepId === 'reveal' ||
             currentRunStepId === 'end-round' ||
-            gameState.phase === 'showdown'
+            gameState.phase === 'betting' ||
+            gameState.phase === 'answering' ||
+            gameState.phase === 'showdown' ||
+            gameState.phase === 'reveal'
           }
         >
           {currentRunStepId === 'assign' &&
@@ -1382,6 +1389,8 @@ function HostApp() {
             <p className="text-xs text-amber-200/90">{startAnswerHint}</p>
           ) : null}
 
+          <HostContestRoster gameState={gameState} hostPlayerLabel={hostPlayerLabel} />
+
           {gameState.phase === 'showdown' ? (
             <>
               <div className="text-center text-white">
@@ -1398,7 +1407,8 @@ function HostApp() {
                     const distance = hasAnswer && typeof correct === 'number'
                       ? Math.abs((p.submittedAnswer as number) - correct)
                       : Infinity
-                    return { player: p, seat: seatIdx + 1, hasAnswer, distance }
+                    const contest = hostContestStatus(p)
+                    return { player: p, seat: seatIdx + 1, hasAnswer, distance, contest }
                   })
                   .sort((a, b) => a.distance - b.distance)
                 const winnerId = rows.length && rows[0].distance !== Infinity ? rows[0].player.id : undefined
@@ -1409,15 +1419,31 @@ function HostApp() {
                         <tr className="text-white/70">
                           <th className="py-2 px-3">Seat</th>
                           <th className="py-2 px-3">Player</th>
+                          <th className="py-2 px-3">Contest</th>
                           <th className="py-2 px-3">Submitted</th>
                           <th className="py-2 px-3">Distance</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {rows.map(({ player, seat, hasAnswer, distance }) => (
-                          <tr key={player.id} className={player.id === winnerId ? 'bg-white/10' : ''}>
+                        {rows.map(({ player, seat, hasAnswer, distance, contest }) => (
+                          <tr
+                            key={player.id}
+                            className={`${player.id === winnerId ? 'bg-white/10' : ''} ${
+                              contest.kind === 'points' ? 'opacity-90' : ''
+                            }`}
+                          >
                             <td className="py-2 px-3 tabular-nums text-white/80">{seat}</td>
-                            <td className="py-2 px-3 font-bold text-casino-emerald">{hostPlayerLabel(player.name)}</td>
+                            <td className="py-2 px-3 font-bold text-casino-emerald">
+                              {hostPlayerLabel(player.name)}
+                            </td>
+                            <td className="py-2 px-3">
+                              <HostContestBadge
+                                kind={contest.kind}
+                                label={contest.label}
+                                reason={hostContestReasonLabel(contest)}
+                                title={contest.detail}
+                              />
+                            </td>
                             <td className="py-2 px-3">{hasAnswer ? formatTriviaNumber(player.submittedAnswer) : '—'}</td>
                             <td className="py-2 px-3">
                               {hasAnswer && typeof correct === 'number' ? formatTriviaNumber(distance) : '—'}

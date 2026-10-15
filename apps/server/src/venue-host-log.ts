@@ -115,7 +115,7 @@ function formatBettingMoveSummary(
     case 'raise':
       return `${name} raised to ${money(gs.round.currentBet ?? 0)}`
     case 'fold':
-      return `${name} folded`
+      return `${name} folded (points only)`
     case 'allIn':
       return toCall > 0 ? `${name} is all-in` : `${name} is all-in`
     default:
@@ -221,6 +221,22 @@ function recentActionsFromTile(tile: DisplayVenueTileSnapshot): HostVenueActionR
   return out.slice(-4)
 }
 
+function contestCountsFromTile(tile: DisplayVenueTileSnapshot): {
+  inPotCount: number
+  pointsOnlyCount: number
+} {
+  let inPotCount = 0
+  let pointsOnlyCount = 0
+  for (let i = 0; i < tile.seatNames.length; i++) {
+    if (!tile.seatNames[i]?.trim()) continue
+    const busted = tile.seatPointsOnly?.[i] === true
+    const folded = tile.seatFolded?.[i] === true
+    if (busted || folded) pointsOnlyCount += 1
+    else inPotCount += 1
+  }
+  return { inPotCount, pointsOnlyCount }
+}
+
 export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): HostVenueActionRow[] {
   return tiles
     .filter((t) => t.seated > 0)
@@ -230,6 +246,7 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         idx != null && idx >= 0 && idx < tile.seatNames.length
           ? tile.seatNames[idx]?.trim() || null
           : null
+      const { inPotCount, pointsOnlyCount } = contestCountsFromTile(tile)
       return {
         tableNum: tile.tableNum,
         phase: tile.phase,
@@ -240,6 +257,8 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         actingPlayerName,
         actingSummary: formatActingSummary(tile),
         recentActions: recentActionsFromTile(tile),
+        inPotCount,
+        pointsOnlyCount,
       }
     })
     .sort((a, b) => {

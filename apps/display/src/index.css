@@ -3353,43 +3353,26 @@
     align-items: center;
     justify-content: flex-end;
     gap: clamp(3px, 0.4vw, 6px);
-    min-width: clamp(2rem, 2.4vw, 2.75rem);
+    min-width: clamp(2.1rem, 2.6vw, 3rem);
   }
 
-  .venue-lb-crown-icon {
-    width: clamp(1.05rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.95), 1.65rem);
-    height: clamp(1.05rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.95), 1.65rem);
+  .venue-lb-medal {
+    width: clamp(1.35rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.15), 2.1rem);
+    height: clamp(1.6rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.35), 2.5rem);
     flex-shrink: 0;
-    object-fit: contain;
+    filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.55));
   }
 
-  .venue-lb-podium-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: clamp(1.15rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.92), 1.55rem);
-    height: clamp(1.15rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.92), 1.55rem);
-    flex-shrink: 0;
-    border-radius: 999px;
-    border: 2px solid;
-    font-family: ui-monospace, monospace;
-    font-size: clamp(0.62rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 0.52), 0.82rem);
-    font-weight: 900;
-    line-height: 1;
+  .venue-lb-medal--1 {
+    filter: drop-shadow(0 0 8px rgb(251 191 36 / 0.45)) drop-shadow(0 1px 3px rgb(0 0 0 / 0.55));
   }
 
-  .venue-lb-podium-badge--2 {
-    border-color: rgb(226 232 240 / 0.75);
-    background: linear-gradient(180deg, rgb(203 213 225 / 0.35), rgb(100 116 139 / 0.35));
-    color: rgb(248 250 252 / 0.98);
-    box-shadow: 0 0 10px rgb(148 163 184 / 0.25);
+  .venue-lb-medal--2 {
+    filter: drop-shadow(0 0 6px rgb(148 163 184 / 0.4)) drop-shadow(0 1px 3px rgb(0 0 0 / 0.5));
   }
 
-  .venue-lb-podium-badge--3 {
-    border-color: rgb(253 186 116 / 0.72);
-    background: linear-gradient(180deg, rgb(251 146 60 / 0.38), rgb(180 83 9 / 0.35));
-    color: rgb(255 247 237 / 0.98);
-    box-shadow: 0 0 10px rgb(251 146 60 / 0.22);
+  .venue-lb-medal--3 {
+    filter: drop-shadow(0 0 6px rgb(251 146 60 / 0.4)) drop-shadow(0 1px 3px rgb(0 0 0 / 0.5));
   }
 
   .venue-lb-row-rank-num {
@@ -3397,18 +3380,6 @@
     font-weight: 900;
     font-variant-numeric: tabular-nums;
     color: rgb(253 224 71 / 0.92);
-  }
-
-  .venue-lb-row--podium-1 .venue-lb-row-rank-num {
-    color: rgb(254 243 199 / 0.98);
-  }
-
-  .venue-lb-row--podium-2 .venue-lb-row-rank-num {
-    color: rgb(241 245 249 / 0.96);
-  }
-
-  .venue-lb-row--podium-3 .venue-lb-row-rank-num {
-    color: rgb(255 237 213 / 0.96);
   }
 
   .venue-lb-row-name-cell {

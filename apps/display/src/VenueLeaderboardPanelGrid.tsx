@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import { ChipText } from '@qhe/ui'
-import crownImg from './assets/showdown/crown.png'
 import {
   formatVenueBankroll,
   formatVenueStackDelta,
@@ -20,11 +19,50 @@ function splitLeaderboardName(name: string): { given: string; suffix: string } {
   return { given: trimmed, suffix: '' }
 }
 
-function PodiumEmblem({ rank }: { rank: 2 | 3 }) {
+/** Gold / silver / bronze medal for leaderboard ranks 1–3. */
+function LeaderboardMedal({ rank }: { rank: 1 | 2 | 3 }) {
+  const metal =
+    rank === 1
+      ? { rim: '#f59e0b', face: '#fbbf24', shine: '#fef3c7', deep: '#b45309' }
+      : rank === 2
+        ? { rim: '#94a3b8', face: '#cbd5e1', shine: '#f8fafc', deep: '#64748b' }
+        : { rim: '#c2410c', face: '#fb923c', shine: '#ffedd5', deep: '#9a3412' }
+  const uid = `lb-medal-${rank}`
   return (
-    <span className={`venue-lb-podium-badge venue-lb-podium-badge--${rank}`} aria-hidden>
-      {rank}
-    </span>
+    <svg
+      className={`venue-lb-medal venue-lb-medal--${rank}`}
+      viewBox="0 0 40 48"
+      aria-hidden
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id={`${uid}-face`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={metal.shine} />
+          <stop offset="42%" stopColor={metal.face} />
+          <stop offset="100%" stopColor={metal.deep} />
+        </linearGradient>
+        <linearGradient id={`${uid}-ribbon`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f87171" />
+          <stop offset="100%" stopColor="#991b1b" />
+        </linearGradient>
+      </defs>
+      <path d="M14 2 L20 14 L12 14 Z" fill={`url(#${uid}-ribbon)`} />
+      <path d="M26 2 L28 14 L20 14 Z" fill={`url(#${uid}-ribbon)`} opacity="0.9" />
+      <circle cx="20" cy="30" r="14" fill={`url(#${uid}-face)`} stroke={metal.rim} strokeWidth="2.2" />
+      <circle cx="20" cy="30" r="10.5" fill="none" stroke={metal.shine} strokeWidth="1.1" opacity="0.55" />
+      <text
+        x="20"
+        y="30"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#0f172a"
+        fontFamily="ui-monospace, monospace"
+        fontSize="14"
+        fontWeight="900"
+      >
+        {rank}
+      </text>
+    </svg>
   )
 }
 
@@ -53,14 +91,13 @@ function LeaderboardRankRow({ row, rank, zebra, podium }: RowProps) {
   const stackClass = tier > 0 ? 'venue-lb-row-stack-top' : 'venue-lb-row-stack'
 
   return (
-    <div className={rowClass}>
+    <div className={rowClass} aria-label={`Rank ${rank}, ${row.name}`}>
       <span className={`venue-lb-row-rank-cell ${rankClass}`}>
-        {tier === 1 ? (
-          <img src={crownImg} alt="" className="venue-lb-crown-icon" draggable={false} />
-        ) : null}
-        {tier === 2 ? <PodiumEmblem rank={2} /> : null}
-        {tier === 3 ? <PodiumEmblem rank={3} /> : null}
-        <span className="venue-lb-row-rank-num">{rank}</span>
+        {tier === 1 || tier === 2 || tier === 3 ? (
+          <LeaderboardMedal rank={tier} />
+        ) : (
+          <span className="venue-lb-row-rank-num">{rank}</span>
+        )}
       </span>
       <span className={`venue-lb-row-name-cell ${nameClass}`}>
         {given}

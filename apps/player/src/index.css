@@ -2710,7 +2710,44 @@
 }
 
 .player-hud-seat--folded {
-  opacity: 0.58;
+  border-color: rgb(251 113 133 / 0.42);
+  background: rgb(76 5 25 / 0.35);
+  opacity: 1;
+}
+
+.player-hud-seat--folded .player-hud-seat-name,
+.player-hud-seat--folded.player-hud-seat--you .player-hud-seat-name {
+  color: rgb(251 113 133);
+}
+
+.player-hud-seat--folded .player-hud-seat-name-text {
+  text-decoration: line-through;
+  text-decoration-color: rgb(251 113 133 / 0.75);
+  text-decoration-thickness: 1.5px;
+}
+
+.player-hud-seat--folded .player-hud-seat-stack {
+  color: rgb(253 164 175 / 0.75);
+}
+
+.player-hud-seat--folded .player-hud-seat-pos {
+  color: rgb(251 113 133 / 0.7);
+}
+
+.player-hud-folded-tag {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.05rem 0.32rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgb(251 113 133 / 0.55);
+  background: rgb(76 5 25 / 0.65);
+  font-size: 0.58em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: rgb(254 205 211);
+  text-decoration: none;
 }
 
 .player-hud-seat-name {

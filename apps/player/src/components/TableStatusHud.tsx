@@ -38,6 +38,19 @@ function answeringStatus(
   phase: GameState['phase'],
 ): { pill: SeatStatusPill; locked: boolean } | null {
   if (phase !== 'answering') return null
+  // Keep fold color language while composing for trivia pts.
+  if (player.hasFolded) {
+    if (player.submittedAnswer != null) {
+      return {
+        pill: { kind: 'action', action: 'fold', label: 'FOLD · LOCKED' },
+        locked: false,
+      }
+    }
+    return {
+      pill: { kind: 'action', action: 'fold', label: 'FOLD · PTS' },
+      locked: false,
+    }
+  }
   if (player.submittedAnswer != null) {
     return {
       pill: { kind: 'action', action: 'check', label: 'LOCKED' },
@@ -144,8 +157,13 @@ function SeatRow({
         {seatIndex + 1}
       </span>
       <span className="player-hud-seat-name">
-        {rosterDisplayName(player.name)}
+        <span className="player-hud-seat-name-text">{rosterDisplayName(player.name)}</span>
         {isYou ? <span className="player-hud-you-badge">You</span> : null}
+        {player.hasFolded ? (
+          <span className="player-hud-folded-tag" aria-hidden>
+            Folded
+          </span>
+        ) : null}
       </span>
       <span className="player-hud-seat-stack">
         <ChipText text={`$${player.bankroll.toLocaleString()}`} />

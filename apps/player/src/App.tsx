@@ -56,6 +56,7 @@ import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
 import StickyQuestionBar from './components/StickyQuestionBar'
+import PointsOnlyLifeBanner from './components/PointsOnlyLifeBanner'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './components/PlayerGoldChrome'
 
 type JoinPhase = 'form' | 'connecting' | 'in_venue'
@@ -343,6 +344,7 @@ function PlayerApp() {
   }
 
   const showAnswerModal = gameState.phase === 'answering' && !!currentPlayer
+  const isPointsOnly = currentPlayer?.pointsOnly === true
 
   const seatedAtTable = (gameState.tableId ?? '') !== LOBBY_TABLE_ID
   const isBettingPhase = gameState.phase === 'betting'
@@ -353,6 +355,16 @@ function PlayerApp() {
   const showStickyQuestion =
     Boolean(questionText) &&
     (gameState.phase === 'betting' || gameState.phase === 'answering' || gameState.phase === 'question')
+  const showPointsOnlyBanner =
+    isPointsOnly &&
+    seatedAtTable &&
+    !showAnswerModal &&
+    (gameState.phase === 'betting' ||
+      gameState.phase === 'question' ||
+      gameState.phase === 'lobby' ||
+      gameState.phase === 'reveal' ||
+      gameState.phase === 'showdown' ||
+      gameState.phase === 'payout')
 
   /**
    * Once seated at a felt: one viewport, no page scroll.
@@ -375,7 +387,7 @@ function PlayerApp() {
       playerName={playerName}
       myPlayerId={currentPlayer?.id ?? joinPrefs.playerId}
       myIndex={myIndex}
-      showCenterPot={!showStickyQuestion}
+      showCenterPot={!showStickyQuestion && !isPointsOnly}
       fillViewport={liveFit}
       turnRemainingSec={turnRemainingSec}
       playerOnline={gameState.playerOnline}
@@ -456,8 +468,17 @@ function PlayerApp() {
             {showStickyQuestion ? (
               <StickyQuestionBar
                 questionText={questionText}
-                pot={gameState.round.pot}
+                pot={isPointsOnly ? undefined : gameState.round.pot}
                 tableId={gameState.tableId}
+                pointsOnly={isPointsOnly}
+                answerPoints={currentPlayer?.answerPoints ?? 0}
+              />
+            ) : null}
+
+            {showPointsOnlyBanner ? (
+              <PointsOnlyLifeBanner
+                answerPoints={currentPlayer?.answerPoints ?? 0}
+                compact={liveFit}
               />
             ) : null}
 

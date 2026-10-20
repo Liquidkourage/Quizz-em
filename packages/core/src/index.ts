@@ -1208,8 +1208,16 @@ export function submitAnswer(
   return { ...state, players: updatedPlayers };
 }
 
+/** Close the answer window and enter the short reveal beat (correct answer on TVs). */
 export function revealAnswer(state: GameState): GameState {
-  return { ...state, phase: 'showdown' };
+  if (state.phase !== 'answering') return state
+  return { ...state, phase: 'reveal' }
+}
+
+/** Advance from the reveal beat into showdown (pot preview / closest guesses). */
+export function advanceRevealToShowdown(state: GameState): GameState {
+  if (state.phase !== 'reveal') return state
+  return { ...state, phase: 'showdown' }
 }
 
 /** Trivia leaderboard: ties share the same `distance`; all IDs are joint winners for payout split. */
@@ -1408,9 +1416,9 @@ function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAns
   return triviaAnswerPoints(snapshotPlayer.submittedAnswer, correct);
 }
 
-/** Run only from showdown (after reveal): pays pot, resets to lobby. Wrong phase → unchanged. */
+/** Run from showdown (or reveal if host skips the beat): pays pot, resets to lobby. Wrong phase → unchanged. */
 export function endRound(state: GameState): GameState {
-  if (state.phase !== 'showdown') return state;
+  if (state.phase !== 'showdown' && state.phase !== 'reveal') return state;
 
   const afterPayout = payoutHandWithSidePots(state);
   const snapById = new Map(state.players.map((p) => [p.id, p]));

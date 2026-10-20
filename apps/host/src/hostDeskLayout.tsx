@@ -395,11 +395,11 @@ export function buildHostRunOfShowSteps(
     },
     reveal: {
       label: 'Reveal correct answer',
-      hint: 'Closes answers, shows the correct answer on TVs, and moves tables into showdown.',
+      hint: 'Closes answers, plays an 8s reveal beat on TVs, then auto-advances to showdown.',
     },
     'end-round': {
       label: 'End round & pay out',
-      hint: 'Settles pots and returns every table to lobby for the next hand.',
+      hint: 'Settles pots, plays payout → intermission on TVs, then lobby for the next hand.',
     },
   }
 
@@ -473,10 +473,19 @@ export function hostRunOfShowHeadline(
     }
   }
 
+  if (stepId === 'end-round' && phase === 'reveal') {
+    return {
+      title: 'Reveal beat — showdown follows',
+      detail:
+        'TVs are on the reveal beat (~8s). Wait for showdown, or End round now to settle early.',
+    }
+  }
+
   if (stepId === 'end-round' && phase === 'showdown') {
     return {
       title: 'Showdown — end the round',
-      detail: 'Payout runs when you end the round. Then start the next hand from step 1.',
+      detail:
+        'End round pays pots, then TVs play payout → intermission before the dual trophy leaderboard.',
     }
   }
 
@@ -1647,6 +1656,7 @@ export function HostTvBar({
   tableMax,
   onVenueFloor,
   onLeaderboard,
+  onTriviaLeaderboard,
   onSeatingRules,
   onSpotlight,
 }: {
@@ -1654,6 +1664,7 @@ export function HostTvBar({
   tableMax: number
   onVenueFloor: () => void
   onLeaderboard: () => void
+  onTriviaLeaderboard?: () => void
   onSeatingRules: () => void
   onSpotlight: (n: number) => void
 }) {
@@ -1673,8 +1684,13 @@ export function HostTvBar({
         Floor
       </NeonButton>
       <NeonButton variant="purple" size="normal" type="button" onClick={onLeaderboard}>
-        Leaderboard
+        Chip LB
       </NeonButton>
+      {onTriviaLeaderboard ? (
+        <NeonButton variant="blue" size="normal" type="button" onClick={onTriviaLeaderboard}>
+          Trivia LB
+        </NeonButton>
+      ) : null}
       <NeonButton variant="gold" size="normal" type="button" onClick={onSeatingRules}>
         Rules
       </NeonButton>
@@ -1727,20 +1743,30 @@ export function HostRunBar({
   statusLine,
   headline,
   tvBar,
+  pacingUrgency = 'ready',
 }: {
   items: HostDockItem[]
   statusLine?: ReactNode
   headline?: { title: string; detail?: string }
   tvBar?: ReactNode
+  pacingUrgency?: 'now' | 'soon' | 'ready'
 }) {
   if (items.length === 0 && !statusLine && !headline && !tvBar) return null
+  const urgencyLabel =
+    pacingUrgency === 'now' ? 'Suggested next · now' : pacingUrgency === 'soon' ? 'Suggested next · soon' : 'Do this now'
+  const urgencyClass =
+    pacingUrgency === 'now'
+      ? 'text-amber-300'
+      : pacingUrgency === 'soon'
+        ? 'text-sky-300'
+        : 'text-casino-emerald/90'
   return (
     <div className="sticky top-0 z-40 mb-3 rounded-xl border border-casino-emerald/40 bg-black/90 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-4">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
         {headline ? (
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-casino-emerald/90">
-              Do this now
+            <p className={`text-xs font-bold uppercase tracking-[0.14em] ${urgencyClass}`}>
+              {urgencyLabel}
             </p>
             <p className="mt-0.5 text-lg font-bold leading-snug text-white sm:text-xl">{headline.title}</p>
             {headline.detail ? (

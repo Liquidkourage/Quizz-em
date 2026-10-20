@@ -764,6 +764,10 @@ function padSeatPointsOnly(raw: boolean[] | undefined): boolean[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => raw?.[i] === true)
 }
 
+function padSeatAnswerLocked(raw: boolean[] | undefined): boolean[] {
+  return Array.from({ length: VENUE_WALL_SEAT_SLOTS }, (_, i) => raw?.[i] === true)
+}
+
 function padSeatSubmittedAnswers(raw: (number | null | undefined)[] | undefined): (number | null)[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     const v = raw?.[i]
@@ -1257,8 +1261,10 @@ function SeatRingWithLabels({
   feltOverlay = null,
   /** Mosaic: wagering street complete on this felt. */
   betsInPaused = false,
-  /** Mosaic: per-seat locked trivia answers during answering. */
+  /** Mosaic: per-seat locked trivia answers during answering (numeric; reveal/showdown). */
   seatSubmittedAnswers: seatSubmittedAnswersIn,
+  /** Mosaic: boolean lock flags during answering (preferred — no guess leak). */
+  seatAnswerLocked: seatAnswerLockedIn,
   answeringPhase = false,
   /** Side-by-side broadcast columns use tighter rim label geometry. */
   broadcastDensity = 'solo' as BroadcastDensity,
@@ -1308,6 +1314,7 @@ function SeatRingWithLabels({
   feltOverlay?: ReactNode
   betsInPaused?: boolean
   seatSubmittedAnswers?: (number | null)[]
+  seatAnswerLocked?: boolean[]
   answeringPhase?: boolean
   broadcastDensity?: BroadcastDensity
 }) {
@@ -1316,6 +1323,7 @@ function SeatRingWithLabels({
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
   const seatHoleDigits = padSeatHoleDigits(seatHoleDigitsIn)
   const seatSubmittedAnswers = padSeatSubmittedAnswers(seatSubmittedAnswersIn)
+  const seatAnswerLocked = padSeatAnswerLocked(seatAnswerLockedIn)
   const communityDigits =
     communityDigitsIn?.filter((d) => Number.isInteger(d) && d >= 0 && d <= 9) ?? []
   const prefersReducedMotion = usePrefersReducedMotion()
@@ -1639,7 +1647,7 @@ function SeatRingWithLabels({
           filled &&
           answeringPhase &&
           !isFolded &&
-          seatSubmittedAnswers[i] != null
+          (seatAnswerLocked[i] === true || seatSubmittedAnswers[i] != null)
         const isWinner =
           filled &&
           !isFolded &&
@@ -2344,6 +2352,7 @@ function VenueMosaicTableCard({
             communityDigits={row.communityDigits}
             betsInPaused={showNoMoreBets}
             seatSubmittedAnswers={row.seatSubmittedAnswers}
+            seatAnswerLocked={row.seatAnswerLocked}
             answeringPhase={ph === 'answering'}
           />
         </div>
@@ -2571,6 +2580,8 @@ function VenueBroadcastHeadlineStrip({
   headlineAnswering,
   inAnsweringCountdown,
   timerSeconds,
+  answerSubmitCount = null,
+  answerEligibleCount = null,
 }: {
   skipMountIntro?: boolean
   showSetlistCue: boolean
@@ -2589,6 +2600,8 @@ function VenueBroadcastHeadlineStrip({
   headlineAnswering: boolean
   inAnsweringCountdown: boolean
   timerSeconds: number | null
+  answerSubmitCount?: number | null
+  answerEligibleCount?: number | null
 }) {
   const broadcastQuestionFit = displayBroadcastHeadlineQuestionFitProfile()
   const questionTimerClass = headlineQuestionDisplay
@@ -2694,6 +2707,13 @@ function VenueBroadcastHeadlineStrip({
           <span className="vfd-broadcast-answer-prompt font-black uppercase tracking-wide text-cyan-100/90">
             Answer on your phone
           </span>
+          {typeof answerSubmitCount === 'number' &&
+          typeof answerEligibleCount === 'number' &&
+          answerEligibleCount > 0 ? (
+            <span className="text-[clamp(0.85rem,2.2vw,1.15rem)] font-black tabular-nums tracking-wide text-cyan-50/95">
+              {answerSubmitCount}/{answerEligibleCount} locked in
+            </span>
+          ) : null}
           {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
             <div className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight text-cyan-100`}>
               {timerSeconds}s
@@ -2846,6 +2866,7 @@ export function VenueSingleTableBroadcast({
                 communityDigits={tile.communityDigits}
                 betsInPaused={showNoMoreBets}
                 seatSubmittedAnswers={tile.seatSubmittedAnswers}
+                seatAnswerLocked={tile.seatAnswerLocked}
                 answeringPhase={ph === 'answering'}
               />
             </div>
@@ -3178,6 +3199,8 @@ export default function VenueEightTablesPreview({
                   headlineAnswering={headlineAnswering}
                   inAnsweringCountdown={inAnsweringCountdown}
                   timerSeconds={timerSeconds}
+                  answerSubmitCount={wall?.answerSubmitCount ?? null}
+                  answerEligibleCount={wall?.answerEligibleCount ?? null}
                 />
               ) : (
               <motion.div
@@ -3340,6 +3363,13 @@ export default function VenueEightTablesPreview({
                       <span className={`text-center font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
                         Answer on your phone
                       </span>
+                      {typeof wall?.answerSubmitCount === 'number' &&
+                      typeof wall?.answerEligibleCount === 'number' &&
+                      wall.answerEligibleCount > 0 ? (
+                        <div className="text-center font-black tabular-nums tracking-wide text-cyan-50/95 text-[clamp(0.95rem,2.4vw,1.35rem)]">
+                          {wall.answerSubmitCount}/{wall.answerEligibleCount} locked in
+                        </div>
+                      ) : null}
                       {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
                         <div className="text-center font-mono text-2xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-4xl md:text-5xl">
                           {timerSeconds}s

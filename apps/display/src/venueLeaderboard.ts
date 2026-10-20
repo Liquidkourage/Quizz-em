@@ -8,7 +8,11 @@ export type VenueLeaderboardRow = {
   bankroll: number
   /** Change vs stack at hand start; null when no baseline yet. */
   stackDelta: number | null
+  /** Cumulative trivia points — set on trivia-ranked boards. */
+  answerPoints?: number
 }
+
+export type VenueLeaderboardTrophy = 'chips' | 'trivia'
 
 export function venueLeaderboardPlayerKey(tableNum: number, seatNum: number, name: string): string {
   return `${tableNum}:${seatNum}:${name.trim()}`
@@ -48,6 +52,13 @@ function padSeatBankrolls(raw: number[] | undefined): number[] {
   return Array.from({ length: VENUE_WALL_SEAT_SLOTS }, (_, i) => {
     const v = raw?.[i]
     return typeof v === 'number' && Number.isFinite(v) ? v : 0
+  })
+}
+
+function padSeatAnswerPoints(raw: number[] | undefined): number[] {
+  return Array.from({ length: VENUE_WALL_SEAT_SLOTS }, (_, i) => {
+    const v = raw?.[i]
+    return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0
   })
 }
 
@@ -117,6 +128,46 @@ export function venueLeaderboardRowsFromTiles(
     return a.seatNum - b.seatNum
   })
   return out
+}
+
+/** Ranked by trivia answer points (desc); dual-trophy night companion to chip stacks. */
+export function venueTriviaLeaderboardRowsFromTiles(
+  tiles: DisplayVenueTileSnapshot[],
+): VenueLeaderboardRow[] {
+  const out: VenueLeaderboardRow[] = []
+  for (const t of tiles) {
+    const sn = t.seatNames
+    const pts = padSeatAnswerPoints(t.seatAnswerPoints)
+    const br = padSeatBankrolls(t.seatBankrolls)
+    if (sn == null || sn.length === 0) continue
+    for (let i = 0; i < sn.length; i++) {
+      const raw = sn[i]?.trim()
+      if (!raw) continue
+      out.push({
+        name: raw,
+        tableNum: t.tableNum,
+        seatNum: i + 1,
+        bankroll: br[i] ?? 0,
+        stackDelta: null,
+        answerPoints: pts[i] ?? 0,
+      })
+    }
+  }
+  out.sort((a, b) => {
+    const ap = a.answerPoints ?? 0
+    const bp = b.answerPoints ?? 0
+    if (bp !== ap) return bp - ap
+    const c = comparePlayersByFirstNameThenFullName(a, b)
+    if (c !== 0) return c
+    if (a.tableNum !== b.tableNum) return a.tableNum - b.tableNum
+    return a.seatNum - b.seatNum
+  })
+  return out
+}
+
+export function formatVenueTriviaPoints(amount: number): string {
+  const n = Number.isFinite(amount) ? Math.round(amount) : 0
+  return `${Math.max(0, n).toLocaleString()} pts`
 }
 
   /** @deprecated Use {@link buildVenueLeaderboardPresentation} — capped at 4 columns via pagination. */

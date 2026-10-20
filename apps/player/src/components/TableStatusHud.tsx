@@ -38,6 +38,16 @@ function answeringStatus(
   phase: GameState['phase'],
 ): { pill: SeatStatusPill; locked: boolean } | null {
   if (phase !== 'answering') return null
+  // Bust / second life — distinct from fold-while-still-in-chips.
+  if (player.pointsOnly === true) {
+    if (player.submittedAnswer != null) {
+      return {
+        pill: { kind: 'action', action: 'check', label: 'PTS · LOCKED' },
+        locked: true,
+      }
+    }
+    return { pill: { kind: 'acting', label: 'PTS · Thinking…' }, locked: false }
+  }
   // Keep fold color language while composing for trivia pts.
   if (player.hasFolded) {
     if (player.submittedAnswer != null) {
@@ -126,13 +136,15 @@ function SeatRow({
   const statusPill = quizStatus?.pill ?? bettingPill
   const statusLocked = quizStatus?.locked === true
 
+  const pointsOnly = player.pointsOnly === true
   const rowClass = [
     'player-hud-seat',
     'player-hud-seat--roster',
     isYou ? 'player-hud-seat--you' : '',
     isActing ? 'player-hud-seat--acting' : '',
-    player.hasFolded ? 'player-hud-seat--folded' : '',
-    isAway && !player.hasFolded ? 'player-hud-seat--away' : '',
+    pointsOnly ? 'player-hud-seat--points-only' : '',
+    !pointsOnly && player.hasFolded ? 'player-hud-seat--folded' : '',
+    isAway && !player.hasFolded && !pointsOnly ? 'player-hud-seat--away' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -144,7 +156,8 @@ function SeatRow({
         player.name,
         isYou ? 'you' : null,
         `seat ${seatIndex + 1}`,
-        player.hasFolded ? 'folded' : null,
+        pointsOnly ? 'points only' : null,
+        !pointsOnly && player.hasFolded ? 'folded' : null,
         isAway ? 'away' : null,
         isActing ? 'has the wagering turn' : null,
         statusPill?.label ?? null,
@@ -159,14 +172,22 @@ function SeatRow({
       <span className="player-hud-seat-name">
         <span className="player-hud-seat-name-text">{rosterDisplayName(player.name)}</span>
         {isYou ? <span className="player-hud-you-badge">You</span> : null}
-        {player.hasFolded ? (
+        {pointsOnly ? (
+          <span className="player-hud-points-only-tag" aria-hidden>
+            Pts
+          </span>
+        ) : player.hasFolded ? (
           <span className="player-hud-folded-tag" aria-hidden>
             Folded
           </span>
         ) : null}
       </span>
       <span className="player-hud-seat-stack">
-        <ChipText text={`$${player.bankroll.toLocaleString()}`} />
+        {pointsOnly ? (
+          <span className="player-hud-seat-stack-pts">{(player.answerPoints ?? 0).toLocaleString()} pts</span>
+        ) : (
+          <ChipText text={`$${player.bankroll.toLocaleString()}`} />
+        )}
       </span>
       {statusPill ? (
         <StatusPillView pill={statusPill} locked={statusLocked} />

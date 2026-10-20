@@ -1903,6 +1903,16 @@
   color: rgb(255 255 255 / 0.72);
 }
 
+.player-sticky-question--points-only {
+  border-color: rgb(167 139 250 / 0.45);
+  background: linear-gradient(180deg, rgb(46 16 101 / 0.55), rgb(15 23 42 / 0.72));
+}
+
+.player-sticky-question-pts {
+  color: rgb(196 181 253);
+  font-weight: 700;
+}
+
 .player-sticky-question-pot {
   letter-spacing: 0.04em;
   text-transform: none;
@@ -2748,6 +2758,94 @@
   vertical-align: middle;
   color: rgb(254 205 211);
   text-decoration: none;
+}
+
+.player-hud-seat--points-only {
+  border-color: rgb(167 139 250 / 0.42);
+  background: rgb(46 16 101 / 0.35);
+}
+
+.player-hud-seat--points-only .player-hud-seat-name,
+.player-hud-seat--points-only.player-hud-seat--you .player-hud-seat-name {
+  color: rgb(196 181 253);
+}
+
+.player-hud-seat--points-only .player-hud-seat-pos {
+  color: rgb(167 139 250 / 0.75);
+}
+
+.player-hud-points-only-tag {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.05rem 0.32rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgb(167 139 250 / 0.55);
+  background: rgb(46 16 101 / 0.65);
+  font-size: 0.58em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: rgb(237 233 254);
+}
+
+.player-hud-seat-stack-pts {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-weight: 700;
+  color: rgb(196 181 253);
+  letter-spacing: 0.02em;
+}
+
+.player-points-only-banner {
+  margin: 0 0 0.55rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgb(167 139 250 / 0.45);
+  background: linear-gradient(135deg, rgb(46 16 101 / 0.7), rgb(15 23 42 / 0.85));
+}
+
+.player-points-only-banner--compact {
+  padding: 0.4rem 0.65rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.65rem;
+  align-items: baseline;
+}
+
+.player-points-only-banner-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(196 181 253);
+}
+
+.player-points-only-banner-body {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: rgb(226 232 240);
+}
+
+.player-points-only-banner--compact .player-points-only-banner-body {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.player-points-only-banner-score {
+  margin: 0.4rem 0 0;
+  font-size: 0.92rem;
+  color: rgb(237 233 254);
+}
+
+.player-game-answer-second-life {
+  margin-bottom: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(167 139 250 / 0.4);
+  background: rgb(46 16 101 / 0.45);
 }
 
 .player-hud-seat-name {

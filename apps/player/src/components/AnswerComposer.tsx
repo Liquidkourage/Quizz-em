@@ -45,8 +45,20 @@ export default function AnswerComposer({
   const canBackspace = !locked && (selectedCards.length > 0 || composed.display.length > 0)
   const questionText = gameState.round.question?.text
 
+  const pointsOnly = currentPlayer.pointsOnly === true
+  const panelTitle = pointsOnly ? 'Second life · Compose for points' : 'Compose your answer'
+
   return (
-    <PlayerGoldPanel title="Compose your answer">
+    <PlayerGoldPanel title={panelTitle}>
+      {pointsOnly ? (
+        <div className="player-game-answer-second-life" role="status">
+          <p className="player-game-question-label">Points only</p>
+          <p className="player-game-hint">
+            Chip contest over — this guess still earns trivia points (
+            <strong>{(currentPlayer.answerPoints ?? 0).toLocaleString()}</strong> so far).
+          </p>
+        </div>
+      ) : null}
       {questionText ? (
         <div className="player-game-answer-question">
           <p className="player-game-question-label">Question</p>

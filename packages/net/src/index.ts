@@ -33,7 +33,7 @@ export const ClientRole = z.enum(['host', 'player', 'display'])
 export type ClientRole = z.infer<typeof ClientRole>
 
 /** Host-driven `/display` mode: mosaic shell always; `focusTable` spotlights one felt or null for overview. */
-export type VenueWallViewMode = 'floor' | 'leaderboard' | 'rules'
+export type VenueWallViewMode = 'floor' | 'leaderboard' | 'leaderboard-trivia' | 'rules'
 
 export type DisplayLayoutPayload = {
   layout: 'venueWall'
@@ -53,7 +53,13 @@ export function normalizeDisplayLayoutPayload(
   }
   const wallViewRaw = raw && typeof raw === 'object' ? (raw as Record<string, unknown>).wallView : undefined
   const wallView: VenueWallViewMode =
-    wallViewRaw === 'leaderboard' ? 'leaderboard' : wallViewRaw === 'rules' ? 'rules' : 'floor'
+    wallViewRaw === 'leaderboard'
+      ? 'leaderboard'
+      : wallViewRaw === 'leaderboard-trivia'
+        ? 'leaderboard-trivia'
+        : wallViewRaw === 'rules'
+          ? 'rules'
+          : 'floor'
   return { layout: 'venueWall', focusTable, wallView }
 }
 
@@ -115,6 +121,8 @@ export type DisplayVenueTileSnapshot = {
   seatFolded?: boolean[]
   /** Parallel to `seatNames`: true when that seat is busted (points-only, no chip stack). Omitted by older servers. */
   seatPointsOnly?: boolean[]
+  /** Parallel to `seatNames`: cumulative trivia answer points. Omitted by older servers. */
+  seatAnswerPoints?: number[]
   /** This wagering street only: last check / call / raise / fold / all-in per seat. Omitted by older servers. */
   seatLastBettingAction?: (SeatBettingAction | null)[]
   /** Player to act: chips to call (min of facing amount and stack). Omitted when no one is up to wager. */
@@ -139,9 +147,12 @@ export type DisplayVenueTileSnapshot = {
   showdownQuestionText?: string | null
   /**
    * Parallel to `seatNames` (physical 0..7): each seated player's trivia guess.
-   * Null when folded or no submission.
+   * During `answering`, servers should omit numeric values (use {@link seatAnswerLocked} instead).
+   * Null when folded or no submission. Present on reveal/showdown.
    */
   seatSubmittedAnswers?: (number | null)[]
+  /** Parallel to `seatNames`: true when that seat has locked an answer (safe during answering). */
+  seatAnswerLocked?: boolean[]
   /**
    * Parallel to `seatNames`: community board indices (0–4) each player used in their answer.
    * Omitted when unknown / older servers.
@@ -170,6 +181,18 @@ export type DisplayVenueWallSnapshot = {
   headlineAnswerComposition?: readonly { source: 'hole' | 'community'; index: number }[] | null
   /** Server epoch ms when a trivia-visible felt is in `answering` with `answerDeadline`; cleared outside that window. */
   answerDeadlineMs: number | null
+  /**
+   * Venue-wide answering drama: how many seated players have locked a guess.
+   * Safe to show on TV — never includes the numeric answers themselves.
+   */
+  answerSubmitCount?: number | null
+  /** Seated players eligible to submit (all roster seats while answering). */
+  answerEligibleCount?: number | null
+  /**
+   * Server epoch ms when End Round finished — drives the produced payout → intermission TV beats
+   * before the auto leaderboard latch. Cleared when the next hand opens.
+   */
+  postHandBeatStartedAtMs?: number | null
   /** Numbered felt driving `headlineQuestionText` / `answerDeadlineMs` (lowest table in the hottest phase bucket). */
   headlineTableNum?: number | null
   /** Core phase of the headline felt when a shared strip is active. */

@@ -26,6 +26,7 @@ import { useDisplayVenueStatePopups } from './useDisplayVenueStatePopups'
 import DisplayVenueStatePopup from './DisplayVenueStatePopup.tsx'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
+import PostHandBeatOverlay from './PostHandBeatOverlay.tsx'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -154,11 +155,13 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   const autoWallView = useVenueWallAutoView(hostPinnedRules ? null : venueWall)
   const wallViewBeforeBust =
     hostWallView === 'rules' ? 'rules' : autoWallView ?? hostWallView
+  const isLeaderboardView =
+    wallViewBeforeBust === 'leaderboard' || wallViewBeforeBust === 'leaderboard-trivia'
   const wouldShowSeatingChart =
     onVenueWallLayout &&
     !audienceBriefing &&
     !mosaicForcedByHost &&
-    wallViewBeforeBust !== 'leaderboard' &&
+    !isLeaderboardView &&
     wallViewBeforeBust !== 'rules' &&
     venueWallShowSeatingChart(venueWall, tileRows, venueWall?.serverNowMs ?? Date.now())
   const leaderboardRequested =
@@ -166,7 +169,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     !audienceBriefing &&
     !wouldShowSeatingChart &&
     venueWall != null &&
-    wallViewBeforeBust === 'leaderboard'
+    isLeaderboardView
   const bustAnnouncement = useVenueBustAnnouncement(venueWall, leaderboardRequested)
   const seatingAnnouncement = useVenueSeatingAnnouncement(venueWall, bustAnnouncement.visible)
   const handOverlayVisible = bustAnnouncement.visible || seatingAnnouncement.visible
@@ -182,8 +185,14 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     !handOverlayVisible &&
     !showRules &&
     hasFloorTables &&
-    wallView === 'leaderboard' &&
+    (wallView === 'leaderboard' || wallView === 'leaderboard-trivia') &&
     venueWall != null
+  const leaderboardTrophyMode =
+    hostWallView === 'leaderboard-trivia'
+      ? ('trivia' as const)
+      : hostWallView === 'leaderboard'
+        ? ('chips' as const)
+        : ('dual' as const)
 
   /** Reconnect only when venue or host spotlight changes — not when toggling floor ↔ leaderboard. */
   const connectFingerprint = `${venueCode}:focus:${layout.focusTable ?? 'none'}`
@@ -381,7 +390,11 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <VenueLeaderboardWall wall={venueWall} skipMountIntro={venueMosaicWasShownRef.current} />
+          <VenueLeaderboardWall
+            wall={venueWall}
+            skipMountIntro={venueMosaicWasShownRef.current}
+            trophyMode={leaderboardTrophyMode}
+          />
         </motion.div>
       )}
       {showRules && (
@@ -433,6 +446,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       {answerReveal.visible && answerReveal.payload ? (
         <VenueAnswerRevealOverlay key={`answer-reveal-${answerReveal.payload.answer}`} payload={answerReveal.payload} />
       ) : null}
+      <PostHandBeatOverlay key="post-hand-beats" wall={venueWall} />
     </AnimatePresence>
     </>
   )

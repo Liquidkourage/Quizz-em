@@ -15,6 +15,8 @@ export type LeaderboardHeaderProps = {
   pageText?: string
   rankRangeText?: string
   showdownAnswer?: number
+  /** Dual-trophy night: Chip leaders vs Trivia leaders. */
+  title?: string
 }
 
 export function LeaderboardHeader({
@@ -22,6 +24,7 @@ export function LeaderboardHeader({
   pageText,
   rankRangeText,
   showdownAnswer,
+  title = 'Leaderboard',
 }: LeaderboardHeaderProps) {
   return (
     <header className="venue-lb-header shrink-0">
@@ -34,7 +37,7 @@ export function LeaderboardHeader({
 
         <div className="venue-lb-header-copy min-w-0 flex-1">
           <div className="venue-lb-title-row">
-            <h1 className="venue-lb-title">Leaderboard</h1>
+            <h1 className="venue-lb-title">{title}</h1>
             <CrownIcon className="venue-lb-title-crown" />
           </div>
           <p className="venue-lb-meta" aria-label={metaParts.join(', ')}>

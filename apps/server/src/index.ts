@@ -25,6 +25,7 @@ import {
   inferAnswerComposition,
   PLAYER_ANSWER_DIGIT_CARD_COUNT,
   revealAnswer,
+  advanceRevealToShowdown,
   endRound,
   formatTriviaNumber,
   isSubmittedAnswerComposableFromDeal,
@@ -902,11 +903,46 @@ const rooms = new Map<string, any>()
 /** Soft guide deadline (epoch ms) for the venue answer countdown UI — host must reveal. */
 const venueShowdownAtMs = new Map<string, number>()
 const venueOrchestrationGuard = new Set<string>()
+/** Produced TV beat: reveal → showdown after this many ms. */
+const REVEAL_BEAT_MS = 8_000
+const venueRevealToShowdownTimers = new Map<string, ReturnType<typeof setTimeout>>()
+/** Epoch ms when End Round finished — drives display payout/intermission beats. */
+const venuePostHandBeatStartedAtMs = new Map<string, number>()
 let venueLibraries!: Map<string, VenueLibraryData>
 const venuePlayhead = new Map<string, { setlistId: string | null; nextIndex: number }>()
 
 function clearVenueWageringOrchestrationState(venueCode: string) {
   venueShowdownAtMs.delete(normalizeVenueCode(venueCode))
+}
+
+function clearVenueRevealBeatTimer(venueCode: string) {
+  const vn = normalizeVenueCode(venueCode)
+  const t = venueRevealToShowdownTimers.get(vn)
+  if (t != null) clearTimeout(t)
+  venueRevealToShowdownTimers.delete(vn)
+}
+
+/** After host reveal: short reveal phase on every felt, then auto-advance to showdown. */
+function scheduleVenueRevealToShowdown(venueCode: string) {
+  const vn = normalizeVenueCode(venueCode)
+  clearVenueRevealBeatTimer(vn)
+  venueRevealToShowdownTimers.set(
+    vn,
+    setTimeout(() => {
+      venueRevealToShowdownTimers.delete(vn)
+      const rows = venuePlayableSnapshots(vn)
+      let advanced = 0
+      for (const { tk } of rows) {
+        let gs = rooms.get(tk)
+        if (!gs || gs.phase !== 'reveal') continue
+        gs = advanceRevealToShowdown(gs)
+        rooms.set(tk, gs)
+        emitVenueTableState(tk, gs)
+        advanced++
+      }
+      if (advanced > 0) emitDisplayVenueSnapshotNow(vn)
+    }, REVEAL_BEAT_MS),
+  )
 }
 
 /** Remember the soft answer-guide deadline for lockstep UI; do not auto-close answers. */
@@ -2059,6 +2095,12 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       const p = gs.players[i]
       return p != null && p.pointsOnly === true
     })
+    const seatAnswerPoints = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
+      const p = gs.players[i]
+      if (p == null) return 0
+      const pts = p.answerPoints
+      return typeof pts === 'number' && Number.isFinite(pts) ? Math.max(0, Math.floor(pts)) : 0
+    })
     const seatLastBettingAction = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
       const arr = gs.round.lastSeatBettingAction
       if (arr != null && i < arr.length) {
@@ -2122,12 +2164,20 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
     let showdownAnswer: number | null | undefined
     let showdownQuestionText: string | null | undefined
     let seatSubmittedAnswers: (number | null)[] | undefined
+    let seatAnswerLocked: boolean[] | undefined
     let seatAnswerCommunityIndices: (readonly number[] | null)[] | undefined
     let seatAnswerCompositions:
       | (readonly { source: 'hole' | 'community'; index: number }[] | null)[]
       | undefined
     let seatChipPayout: (number | null)[] | undefined
-    if (gs.phase === 'answering' || gs.phase === 'showdown' || gs.phase === 'reveal') {
+    if (gs.phase === 'answering') {
+      // Privacy: never leak numeric guesses on the public wire during answering.
+      seatAnswerLocked = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
+        const p = gs.players[i]
+        return p != null && typeof p.submittedAnswer === 'number' && Number.isFinite(p.submittedAnswer)
+      })
+    }
+    if (gs.phase === 'showdown' || gs.phase === 'reveal') {
       seatSubmittedAnswers = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
         const p = gs.players[i]
         if (p == null) return null
@@ -2173,6 +2223,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       seatBankrolls,
       seatFolded,
       seatPointsOnly,
+      seatAnswerPoints,
       seatLastBettingAction,
       actingCallAmount,
       actingCallPctOfStack,
@@ -2180,6 +2231,7 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
       ...(communityDigits != null && communityDigits.length > 0 ? { communityDigits } : {}),
       ...(showdownAnswer != null ? { showdownAnswer, showdownQuestionText: showdownQuestionText ?? null } : {}),
       ...(seatSubmittedAnswers != null ? { seatSubmittedAnswers } : {}),
+      ...(seatAnswerLocked != null ? { seatAnswerLocked } : {}),
       ...(seatAnswerCommunityIndices != null &&
       seatAnswerCommunityIndices.some((x) => x != null && x.length > 0)
         ? { seatAnswerCommunityIndices }
@@ -2293,12 +2345,35 @@ function emitDisplayVenueSnapshotNow(vnRaw: string) {
 
   const lastHandDisplay = getVenueLastHandDisplay(vn)
 
+  let answerSubmitCount: number | null = null
+  let answerEligibleCount: number | null = null
+  if (headlinePhase === 'answering') {
+    let locked = 0
+    let eligible = 0
+    for (const t of tiles) {
+      if (t.phase !== 'answering') continue
+      const names = t.seatNames ?? []
+      for (let i = 0; i < names.length; i++) {
+        if (!names[i]?.trim()) continue
+        eligible++
+        if (t.seatAnswerLocked?.[i] === true) locked++
+      }
+    }
+    answerSubmitCount = locked
+    answerEligibleCount = eligible
+  }
+
+  const postHandBeatStartedAtMs = venuePostHandBeatStartedAtMs.get(vn) ?? null
+
   const payload: DisplayVenueWallSnapshot = {
     tiles,
     headlineQuestionText,
     headlineQuestionAnswer,
     headlineAnswerComposition,
     answerDeadlineMs,
+    answerSubmitCount,
+    answerEligibleCount,
+    postHandBeatStartedAtMs,
     headlineTableNum,
     headlinePhase,
     setlistCueNumber,
@@ -2862,6 +2937,8 @@ io.on('connection', (socket) => {
             break
           }
           clearVenueWageringOrchestrationState(gameState.code)
+          clearVenueRevealBeatTimer(vnStart)
+          venuePostHandBeatStartedAtMs.delete(vnStart)
           clearVenueLastHandDisplay(vnStart)
           for (const { tk } of rowsStart) {
             let gs = rooms.get(tk)
@@ -3476,7 +3553,12 @@ io.on('connection', (socket) => {
             )
             break
           }
-          const stragglers = rowsRev.filter((r) => r.gs.phase !== 'answering' && r.gs.phase !== 'showdown')
+          const stragglers = rowsRev.filter(
+            (r) =>
+              r.gs.phase !== 'answering' &&
+              r.gs.phase !== 'showdown' &&
+              r.gs.phase !== 'reveal',
+          )
           if (stragglers.length > 0) {
             const nums = stragglers
               .map((r) => (Number.isFinite(r.n) ? String(r.n) : '?'))
@@ -3488,6 +3570,7 @@ io.on('connection', (socket) => {
             )
           }
           clearVenueWageringOrchestrationState(vnRev)
+          venuePostHandBeatStartedAtMs.delete(vnRev)
           for (const { tk } of answeringRows) {
             let gs = rooms.get(tk)
             if (!gs || gs.phase !== 'answering') continue
@@ -3495,11 +3578,13 @@ io.on('connection', (socket) => {
             rooms.set(tk, gs)
             emitVenueTableState(tk, gs)
           }
+          scheduleVenueRevealToShowdown(vnRev)
+          emitDisplayVenueSnapshotNow(vnRev)
           socket.emit(
             'toast',
             stragglers.length === 0
-              ? 'Answers revealed — every table at this venue.'
-              : `Answers revealed on ${answeringRows.length} table(s).`,
+              ? 'Answers revealed — showdown in a few seconds.'
+              : `Answers revealed on ${answeringRows.length} table(s) — showdown follows shortly.`,
           )
           gameState = rooms.get(sessionKey)!
           break
@@ -3510,11 +3595,12 @@ io.on('connection', (socket) => {
           const lockEnd = requireVenueLockstepTables(
             socket,
             gameState.code,
-            (gs) => gs.phase === 'showdown',
-            'bring every felt to showdown (reveal trivia) before paying / resetting the wave',
+            (gs) => gs.phase === 'showdown' || gs.phase === 'reveal',
+            'bring every felt to reveal/showdown before paying / resetting the wave',
           )
           if (!lockEnd) break
           clearVenueWageringOrchestrationState(gameState.code)
+          clearVenueRevealBeatTimer(gameState.code)
           const vnEnd = normalizeVenueCode(gameState.code)
           const handResultRows: { tableNum: number; before: GameState; after: GameState }[] = []
           for (const { tk, n } of lockEnd) {
@@ -3524,6 +3610,7 @@ io.on('connection', (socket) => {
           }
           const handBusts = recordVenueHostHandResults(vnEnd, handResultRows)
           setVenueLastHandDisplay(vnEnd, handBusts)
+          venuePostHandBeatStartedAtMs.set(vnEnd, Date.now())
           for (let i = 0; i < handResultRows.length; i++) {
             const tk = lockEnd[i]!.tk
             rooms.set(tk, handResultRows[i]!.after)
@@ -3554,6 +3641,8 @@ io.on('connection', (socket) => {
           if (!assertVenueHost(socket, gameState)) break
           const vn = normalizeVenueCode(gameState.code)
           clearVenueWageringOrchestrationState(vn)
+          clearVenueRevealBeatTimer(vn)
+          venuePostHandBeatStartedAtMs.delete(vn)
           const hostIdSnap = gameState.hostId
           const lobbyKey = tableSessionKey(vn, LOBBY_TABLE_ID)
           for (const tk of allTableSessionsInVenue(vn)) {
@@ -3959,6 +4048,10 @@ io.on('connection', (socket) => {
         const beforeMoves = rooms.get(sessionKey) as GameState
         gameState = runVirtualPlayerSimulation(gameState)
         commitTableAdvance(sessionKey, beforeMoves, gameState)
+        // Keep answering “locked in” counts live on public TVs.
+        if (type === 'submitAnswer' && gameState.phase === 'answering') {
+          emitDisplayVenueSnapshotNow(gameState.code)
+        }
       }
       
     } catch (error) {

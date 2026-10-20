@@ -3,7 +3,9 @@ import { ChipText } from '@qhe/ui'
 import {
   formatVenueBankroll,
   formatVenueStackDelta,
+  formatVenueTriviaPoints,
   type VenueLeaderboardRow,
+  type VenueLeaderboardTrophy,
 } from './venueLeaderboard'
 import {
   LEADERBOARD_MAX_COLUMNS,
@@ -71,9 +73,10 @@ type RowProps = {
   rank: number
   zebra: boolean
   podium: boolean
+  trophy: VenueLeaderboardTrophy
 }
 
-function LeaderboardRankRow({ row, rank, zebra, podium }: RowProps) {
+function LeaderboardRankRow({ row, rank, zebra, podium, trophy }: RowProps) {
   const { given, suffix } = splitLeaderboardName(row.name)
   const tier = podium ? (rank === 1 ? 1 : rank === 2 ? 2 : rank === 3 ? 3 : 0) : 0
 
@@ -103,7 +106,7 @@ function LeaderboardRankRow({ row, rank, zebra, podium }: RowProps) {
         {given}
         {suffix ? <span className="venue-lb-row-suffix"> {suffix}</span> : null}
       </span>
-      {row.stackDelta != null && row.stackDelta !== 0 ? (
+      {trophy === 'chips' && row.stackDelta != null && row.stackDelta !== 0 ? (
         <span
           className={`venue-lb-row-delta ${rankClass} ${row.stackDelta > 0 ? 'venue-lb-row-delta--up' : 'venue-lb-row-delta--down'}`}
           title={formatVenueStackDelta(row.stackDelta)}
@@ -115,7 +118,13 @@ function LeaderboardRankRow({ row, rank, zebra, podium }: RowProps) {
         <span className={`venue-lb-row-delta ${rankClass} venue-lb-row-delta--empty`} aria-hidden />
       )}
       <span className={`venue-lb-row-stack-cell ${stackClass}`}>
-        <ChipText text={formatVenueBankroll(row.bankroll)} />
+        <ChipText
+          text={
+            trophy === 'trivia'
+              ? formatVenueTriviaPoints(row.answerPoints ?? 0)
+              : formatVenueBankroll(row.bankroll)
+          }
+        />
       </span>
     </div>
   )
@@ -133,10 +142,12 @@ function LeaderboardColumnPanel({
   column,
   colIndex,
   showTopThreePodium,
+  trophy,
 }: {
   column: VenueLeaderboardColumnModel
   colIndex: number
   showTopThreePodium: boolean
+  trophy: VenueLeaderboardTrophy
 }) {
   const podiumColumn = showTopThreePodium && colIndex === 0
   const accentClass = `venue-lb-panel--accent-${Math.min(colIndex, 3)}`
@@ -155,6 +166,7 @@ function LeaderboardColumnPanel({
             rank={player.rank}
             zebra={rowIndex % 2 === 0}
             podium={podiumColumn && player.rank <= 3}
+            trophy={trophy}
           />
         ))}
       </div>
@@ -164,9 +176,13 @@ function LeaderboardColumnPanel({
 
 type VenueLeaderboardPanelGridProps = {
   page: VenueLeaderboardPageModel
+  trophy?: VenueLeaderboardTrophy
 }
 
-export default function VenueLeaderboardPanelGrid({ page }: VenueLeaderboardPanelGridProps) {
+export default function VenueLeaderboardPanelGrid({
+  page,
+  trophy = 'chips',
+}: VenueLeaderboardPanelGridProps) {
   const centered = page.columnCount < LEADERBOARD_MAX_COLUMNS
   const widthPct = page.columnCount === 1 ? 42 : page.columnCount === 2 ? 68 : page.columnCount === 3 ? 86 : 100
 
@@ -186,6 +202,7 @@ export default function VenueLeaderboardPanelGrid({ page }: VenueLeaderboardPane
             column={column}
             colIndex={colIndex}
             showTopThreePodium={page.showTopThreePodium}
+            trophy={trophy}
           />
         ))}
       </div>

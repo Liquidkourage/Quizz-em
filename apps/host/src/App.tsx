@@ -67,7 +67,6 @@ import {
   formatVenueBlindsSummary,
   hostControlGameStateFromBeat,
   hostHeaderPhaseDisplay,
-  hostRunOfShowHeadline,
   resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
 import {
@@ -79,6 +78,7 @@ import { hostVenueAutoAlertFromToast } from './hostVenueAutoAlerts'
 import { useHostVenueAutoAlerts } from './useHostVenueAutoAlerts'
 import HostVenueAutoAlertBanner from './HostVenueAutoAlertBanner.tsx'
 import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
+import { suggestNextHostAction } from './hostPacingCopilot'
 
 const HOST_TABS = [
   { id: 'live' as const, label: 'Run show', hint: 'One cue at a time — TVs up top' },
@@ -485,7 +485,11 @@ function HostApp() {
   })
 
   const runOfShowSteps = buildHostRunOfShowSteps(gameState, venueFeltBeat)
-  const runOfShowHeadline = hostRunOfShowHeadline(gameState, venueFeltBeat, { hasActiveSetlist })
+  const pacingSuggestion = suggestNextHostAction(gameState, venueFeltBeat, { hasActiveSetlist })
+  const runOfShowHeadline = {
+    title: pacingSuggestion.title,
+    detail: pacingSuggestion.detail,
+  }
   const currentRunStepId = resolveRunOfShowStepForHost(gameState, venueFeltBeat)
   const triviaOptionalNote =
     currentRunStepId === 'question' && !controlRound?.question ? (
@@ -544,6 +548,8 @@ function HostApp() {
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'floor' })
   const showLeaderboardOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
+  const showTriviaLeaderboardOnTvs = () =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard-trivia' })
   const showSeatingRulesOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'rules' })
   const spotlightTableOnTvs = (n: number) =>
@@ -1230,6 +1236,7 @@ function HostApp() {
         <HostRunBar
           items={phaseDockItems}
           headline={runOfShowHeadline}
+          pacingUrgency={pacingSuggestion.urgency}
           statusLine={
             <HostLiveStatusLine
               gameState={gameState}
@@ -1243,6 +1250,7 @@ function HostApp() {
               tableMax={VENUE_NUMBERED_TABLE_MAX}
               onVenueFloor={showVenueFloorOnTvs}
               onLeaderboard={showLeaderboardOnTvs}
+              onTriviaLeaderboard={showTriviaLeaderboardOnTvs}
               onSeatingRules={showSeatingRulesOnTvs}
               onSpotlight={spotlightTableOnTvs}
             />

@@ -3,16 +3,13 @@ import type { GameState } from '@qhe/core'
 import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import {
   HostFloorStrip,
-  HostLiveStatusLine,
   HostRunBar,
-  HostRunProgressDots,
   HostThisHandPanel,
   HostTvBar,
   type HostDockItem,
-  type RunOfShowStep,
+  isHostWaitingForJoiners,
 } from './hostDeskLayout'
 import { HostMoreMenu } from './HostMoreMenu'
-import { isHostWaitingForJoiners } from './hostDeskLayout'
 
 export function HostLivePanel({
   gameState,
@@ -20,8 +17,6 @@ export function HostLivePanel({
   runOfShowHeadline,
   pacingUrgency,
   runBarCueHint,
-  hostPlayerLabel,
-  virtualSeatCount,
   onVenueFloor,
   onLeaderboard,
   onTriviaLeaderboard,
@@ -29,7 +24,6 @@ export function HostLivePanel({
   venueFeltBeat,
   venueFloorBrief,
   onSpotlight,
-  runOfShowSteps,
   handShow,
   handBody,
   moreBody,
@@ -40,8 +34,6 @@ export function HostLivePanel({
   runOfShowHeadline: { title: string; detail?: string }
   pacingUrgency: 'now' | 'soon' | 'ready'
   runBarCueHint: string | null
-  hostPlayerLabel: (raw: string) => string
-  virtualSeatCount: number
   onVenueFloor: () => void
   onLeaderboard: () => void
   onTriviaLeaderboard: () => void
@@ -49,7 +41,6 @@ export function HostLivePanel({
   venueFeltBeat: HostVenueFeltBeatRow[] | null
   venueFloorBrief: HostVenueFloorBriefPayload | null
   onSpotlight: (n: number) => void
-  runOfShowSteps: RunOfShowStep[]
   handShow: boolean
   handBody: ReactNode
   moreBody: ReactNode
@@ -62,9 +53,9 @@ export function HostLivePanel({
   if (waiting || !hasSeatedFelts) {
     return (
       <div className="rounded-xl border border-amber-400/30 bg-amber-950/20 p-5 sm:p-6">
-        <h2 className="text-xl font-bold text-amber-50">Nothing to run yet</h2>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-amber-100/80">
-          Seat players from Pre-show first. The live cue desk appears once tables exist.
+        <h2 className="text-xl font-bold text-amber-50">Seat players first</h2>
+        <p className="mt-2 max-w-lg text-sm text-amber-100/80">
+          Live cues appear after Pre-show seating.
         </p>
         <button
           type="button"
@@ -84,13 +75,6 @@ export function HostLivePanel({
         headline={runOfShowHeadline}
         pacingUrgency={pacingUrgency}
         cueHint={runBarCueHint}
-        statusLine={
-          <HostLiveStatusLine
-            gameState={gameState}
-            hostPlayerLabel={hostPlayerLabel}
-            virtualSeatCount={virtualSeatCount}
-          />
-        }
         tvBar={
           <HostTvBar
             onVenueFloor={onVenueFloor}
@@ -106,8 +90,6 @@ export function HostLivePanel({
         brief={venueFloorBrief}
         onSpotlight={onSpotlight}
       />
-
-      <HostRunProgressDots steps={runOfShowSteps} />
 
       <HostThisHandPanel title="Right now" show={handShow}>
         {handBody}

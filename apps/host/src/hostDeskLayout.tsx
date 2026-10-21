@@ -1846,13 +1846,7 @@ export function HostRunBar({
 }) {
   if (items.length === 0 && !statusLine && !headline && !tvBar) return null
   const waitingOnly = items.length === 0 && headline?.title?.toLowerCase().includes('waiting')
-  const urgencyLabel = waitingOnly
-    ? 'Getting started'
-    : pacingUrgency === 'now'
-      ? 'Do this next'
-      : pacingUrgency === 'soon'
-        ? 'Coming up'
-        : 'Your next step'
+  const urgencyLabel = 'Next'
   const urgencyClass = waitingOnly
     ? 'text-sky-300'
     : pacingUrgency === 'now'

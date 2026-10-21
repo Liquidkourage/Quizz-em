@@ -52,7 +52,6 @@ import {
   HostContestRoster,
   HostContestBadge,
   buildHostPhaseDockItems,
-  buildHostRunOfShowSteps,
   formatVenueBlindsSummary,
   hostControlGameStateFromBeat,
   hostFloorLockstepMisaligned,
@@ -499,7 +498,6 @@ function HostApp() {
     hasActiveSetlist,
   })
 
-  const runOfShowSteps = buildHostRunOfShowSteps(gameState, venueFeltBeat)
   const pacingSuggestion = suggestNextHostAction(gameState, venueFeltBeat, { hasActiveSetlist })
   const runOfShowHeadline = {
     title: pacingSuggestion.title,
@@ -704,11 +702,6 @@ function HostApp() {
                         </span>
                       ) : null}
                     </span>
-                    {active ? (
-                      <span className="mt-0.5 hidden text-xs font-normal tracking-wide text-casino-emerald/85 sm:block">
-                        {t.hint}
-                      </span>
-                    ) : null}
                   </button>
                 )
               })}
@@ -722,10 +715,6 @@ function HostApp() {
             hostPlayerLabel={hostPlayerLabel}
             tvPairCode={tvPairCode}
             setTvPairCode={setTvPairCode}
-            setlists={setlists}
-            activeSetlistId={activeSetlistId}
-            activeSetlistNextIndex={activeSetlistNextIndex}
-            hostBlindsControlProps={hostBlindsControlProps}
             onSeatPlayers={handleSeatPlayers}
             onGoQuestions={() => selectHostMode('questions')}
             onPairTv={(code) => {
@@ -783,8 +772,6 @@ function HostApp() {
             runOfShowHeadline={runOfShowHeadline}
             pacingUrgency={pacingSuggestion.urgency}
             runBarCueHint={runBarCueHint}
-            hostPlayerLabel={hostPlayerLabel}
-            virtualSeatCount={virtualSeatCount}
             onVenueFloor={showVenueFloorOnTvs}
             onLeaderboard={showLeaderboardOnTvs}
             onTriviaLeaderboard={showTriviaLeaderboardOnTvs}
@@ -792,7 +779,6 @@ function HostApp() {
             venueFeltBeat={venueFeltBeat}
             venueFloorBrief={venueFloorBrief}
             onSpotlight={spotlightTableOnTvs}
-            runOfShowSteps={runOfShowSteps}
             handShow={
               currentRunStepId === 'deal-board' ||
               currentRunStepId === 'start-answer' ||

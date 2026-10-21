@@ -18,7 +18,7 @@ export function HostMoreMenu({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span>More — recovery, practice bots, diagnostics</span>
+        <span>More</span>
         <span className={`text-white/35 transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
       </button>
       {open ? <div className="space-y-4 border-t border-white/10 px-4 py-4">{children}</div> : null}

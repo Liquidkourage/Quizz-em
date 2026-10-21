@@ -1714,10 +1714,10 @@ function phaseStrictSignature(gs: GameState): string {
     const cc = Array.isArray(r?.communityCards) ? r.communityCards.length : 0
     return `bet|${br}|${open}|cc${cc}`
   }
-  if (phase === 'answering') {
-    const dl = typeof r?.answerDeadline === 'number' && Number.isFinite(r.answerDeadline) ? Math.floor(r.answerDeadline) : '?'
-    return `answer|dl${dl}`
-  }
+  // Ignore per-table deadline ms — venue guide is shared; mismatched clocks were false desyncs.
+  if (phase === 'answering') return 'answer'
+  // Reveal beat and showdown are one post-hand lockstep bucket (8s auto-advance must not block End Round).
+  if (phase === 'reveal' || phase === 'showdown') return 'postHand'
   return String(phase)
 }
 
@@ -1732,6 +1732,7 @@ function humanReadableStrictState(gs: GameState): string {
     return `${street}, ${clock}, ${cc}/5 board`
   }
   if (ph === 'answering') return 'answer window'
+  if (ph === 'reveal') return 'reveal beat'
   if (ph === 'showdown') return 'showdown'
   if (ph === 'question') return 'deal setup'
   if (ph === 'lobby') return 'lobby between hands'
@@ -1858,9 +1859,11 @@ function toastVenueMisaligned(socket: Socket, rows: { n: number; gs: GameState }
       .sort()
     parts.push(`${nums.join(',')}→${humanReadableStrictState(row.gs)}`)
   }
+  const detail = parts.join(' · ')
+  console.warn(`[venue-lockstep] out of sync code=${rows[0]?.gs?.code ?? '?'} ${detail}`)
   socket.emit(
     'toast',
-    `Tables are out of sync (${parts.join(' · ')}). Fix the stragglers so every felt matches before advancing.`,
+    `Tables are out of sync (${detail}). Fix the stragglers so every felt matches before advancing.`,
   )
 }
 

@@ -2711,6 +2711,23 @@ io.on('connection', (socket) => {
         return
       }
 
+      /**
+       * Once the show has started (Assign / Start Game / first non-lobby felt),
+       * reject brand-new players. Returning seats with a stored playerId still reconnect.
+       */
+      if (
+        role === 'player' &&
+        !playerReconnect &&
+        venueAudienceWelcomeExpired.has(venueCode)
+      ) {
+        socket.emit('ack', {
+          ok: false,
+          message:
+            'This game has already started — new players can’t join. If you were seated earlier, reopen the same join link on this phone to reconnect.',
+        })
+        return
+      }
+
       const candidateExists = !!rooms.get(helloSessionKey)
       if (
         !playerReconnect &&

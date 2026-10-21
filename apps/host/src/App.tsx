@@ -135,8 +135,6 @@ function HostApp() {
     setHostModeTouched(true)
     setHostMode(mode)
   }
-  const [hostSecretApplied, setHostSecretApplied] = useState('')
-  const [secretDraft, setSecretDraft] = useState('')
   const importFileRef = useRef<HTMLInputElement>(null)
   const importReplaceRef = useRef(false)
   const [tvPairCode, setTvPairCode] = useState('')
@@ -154,7 +152,7 @@ function HostApp() {
 
   const viteHostSecret =
     typeof import.meta.env.VITE_HOST_SECRET === 'string' ? import.meta.env.VITE_HOST_SECRET.trim() : ''
-  const effectiveHostSecret = viteHostSecret || hostSecretApplied.trim() || undefined
+  const effectiveHostSecret = viteHostSecret || undefined
 
   useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
 
@@ -724,10 +722,6 @@ function HostApp() {
             hostPlayerLabel={hostPlayerLabel}
             tvPairCode={tvPairCode}
             setTvPairCode={setTvPairCode}
-            viteHostSecret={viteHostSecret}
-            secretDraft={secretDraft}
-            setSecretDraft={setSecretDraft}
-            onApplyHostSecret={() => setHostSecretApplied(secretDraft)}
             setlists={setlists}
             activeSetlistId={activeSetlistId}
             activeSetlistNextIndex={activeSetlistNextIndex}

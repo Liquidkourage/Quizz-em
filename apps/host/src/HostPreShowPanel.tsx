@@ -1,7 +1,6 @@
 import { NeonButton, PokerChip } from '@qhe/ui'
 import type { GameState } from '@qhe/core'
 import { LOBBY_TABLE_ID, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress } from '@qhe/core'
-// LOBBY_TABLE_ID used for waiting-room player filter
 import { selectTriviaSetlist } from '@qhe/net'
 import { HostBlindsControls, isHostWaitingForJoiners } from './hostDeskLayout'
 import type { ComponentProps } from 'react'
@@ -13,10 +12,6 @@ export function HostPreShowPanel({
   hostPlayerLabel,
   tvPairCode,
   setTvPairCode,
-  viteHostSecret,
-  secretDraft,
-  setSecretDraft,
-  onApplyHostSecret,
   setlists,
   activeSetlistId,
   activeSetlistNextIndex,
@@ -29,10 +24,6 @@ export function HostPreShowPanel({
   hostPlayerLabel: (raw: string) => string
   tvPairCode: string
   setTvPairCode: (v: string) => void
-  viteHostSecret: string
-  secretDraft: string
-  setSecretDraft: (v: string) => void
-  onApplyHostSecret: () => void
   setlists: Array<{ id: string; name: string; questionIds: string[] }>
   activeSetlistId: string | null
   activeSetlistNextIndex: number
@@ -110,31 +101,6 @@ export function HostPreShowPanel({
               Attach TV
             </NeonButton>
           </div>
-
-          {!viteHostSecret ? (
-            <form
-              className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4 text-sm"
-              onSubmit={(e) => {
-                e.preventDefault()
-                onApplyHostSecret()
-              }}
-            >
-              <span className="text-white/50">Host password</span>
-              <input
-                type="password"
-                value={secretDraft}
-                onChange={(e) => setSecretDraft(e.target.value)}
-                placeholder="if the server requires one"
-                className="w-48 max-w-full rounded-lg border border-white/20 bg-black/40 px-2 py-1.5 text-white"
-                autoComplete="off"
-              />
-              <NeonButton variant="blue" size="small" type="submit">
-                Apply & reconnect
-              </NeonButton>
-            </form>
-          ) : (
-            <p className="mt-3 text-xs text-emerald-200/80">Host password already configured.</p>
-          )}
         </section>
 
         <section className="rounded-xl border border-white/10 bg-black/30 p-4 sm:p-5">

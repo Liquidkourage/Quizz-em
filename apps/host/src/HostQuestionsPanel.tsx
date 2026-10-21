@@ -525,8 +525,6 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
             </div>
           </div>
         </Card>
-        </>
-        )}
     </>
   )
 }

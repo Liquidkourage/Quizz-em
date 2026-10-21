@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState, useRef, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card, ChipText, NeonButton, PokerChip } from '@qhe/ui'
+import { ChipText, NeonButton, PokerChip } from '@qhe/ui'
 import {
   connect,
   onState,
@@ -35,22 +35,14 @@ import {
   setQuestion as pushQuestionToVenue,
   questionBankAdd,
   questionBankUpdate,
-  questionBankDelete,
-  questionBankMove,
-  questionBankRestoreSamples,
-  questionBankImportRows,
-  selectTriviaSetlist,
   nextQuestionFromSetlist,
-  setlistCreate,
   setlistSave,
-  setlistDelete,
 } from '@qhe/net'
 import type { GameState, Question } from '@qhe/core'
 import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress, isSetlistTargetLength } from '@qhe/core'
+import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { readHostVenueCode } from './hostVenueCode'
-import { parseQuestionsCsv, parseQuestionsJson } from './questionImport'
 import {
   HostCollapsible,
   HostBlindsControls,
@@ -65,7 +57,6 @@ import {
   hostControlGameStateFromBeat,
   hostFloorLockstepMisaligned,
   hostHeaderPhaseDisplay,
-  isHostWaitingForJoiners,
   resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
 import { HOST_MODES, suggestHostMode, type HostMode } from './hostMode'
@@ -527,10 +518,6 @@ function HostApp() {
         : primaryDockId === 'start-answer' && startAnswerBlocked
           ? startAnswerHint
           : null
-  const showLobbyPrepStrip =
-    currentRunStepId === 'assign' ||
-    currentRunStepId === 'start' ||
-    currentRunStepId === 'question'
   const triviaOptionalNote =
     currentRunStepId === 'question' && !controlRound?.question ? (
       <p className="text-sm text-amber-200/80">

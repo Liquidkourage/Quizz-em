@@ -15,6 +15,11 @@ import {
   allIn as allInAction,
   useSocket,
   setActivePlayerId,
+  onSocketConnectionStatus,
+  getSocketConnectionStatus,
+  startConnectionKeepalive,
+  requestSyncState,
+  type SocketConnectionStatus,
 } from '@qhe/net'
 import type { PlayerGameStateWire, PlayerVenueBrief } from '@qhe/net'
 import { LOBBY_TABLE_ID, inChipContest } from '@qhe/core'
@@ -69,7 +74,10 @@ function PlayerApp() {
   const [gameState, setGameState] = useState<PlayerGameStateWire | null>(null)
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const [disconnected, setDisconnected] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
+    getSocketConnectionStatus(),
+  )
+  const disconnected = connectionStatus !== 'connected'
   const [lastTableId, setLastTableId] = useState<string | null>(null)
   const [raiseAmount, setRaiseAmount] = useState(0)
   const [preAction, setPreAction] = useState<PreAction | null>(null)
@@ -139,7 +147,6 @@ function PlayerApp() {
       if (cancelled) return
       recordServerClockSample(state.serverNowMs ?? null)
       setGameState(state)
-      setDisconnected(false)
     })
     const offToast = onToast((message) => showToast(message))
     const offSeated = onSeated(({ tableId }) => {
@@ -147,9 +154,11 @@ function PlayerApp() {
       showToast(`You're at table ${tableId}`, 4500)
     })
     const offBrief = onPlayerVenueBrief(setVenueBrief)
+    const stopKeepalive = startConnectionKeepalive({ syncMs: 30_000 })
 
     return () => {
       cancelled = true
+      stopKeepalive()
       offState()
       offToast()
       offSeated()
@@ -162,20 +171,14 @@ function PlayerApp() {
       socket.connect()
       return
     }
+    if (socket?.connected) {
+      requestSyncState()
+      return
+    }
     setJoinNonce((n) => n + 1)
   }, [socket])
 
-  useEffect(() => {
-    if (!socket) return undefined
-    const onDisconnect = () => setDisconnected(true)
-    const onConnect = () => setDisconnected(false)
-    socket.on('disconnect', onDisconnect)
-    socket.on('connect', onConnect)
-    return () => {
-      socket.off('disconnect', onDisconnect)
-      socket.off('connect', onConnect)
-    }
-  }, [socket])
+  useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
 
   useEffect(() => {
     if (gameState?.phase === 'lobby') {
@@ -336,6 +339,7 @@ function PlayerApp() {
           waitingCount={gameState.players.length}
           waitingPosition={waitingPosition}
           disconnected={disconnected}
+          connectionStatus={connectionStatus}
           lastTableId={lastTableId}
           onReconnect={handleForceReconnect}
         />
@@ -438,6 +442,7 @@ function PlayerApp() {
         <PlayerGameShell>
           <PlayerTableHeader
             disconnected={disconnected}
+            connectionStatus={connectionStatus}
             lastTableId={lastTableId ?? gameState.tableId ?? undefined}
             onReconnect={handleForceReconnect}
             compactLive={liveFit}

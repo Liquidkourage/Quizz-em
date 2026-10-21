@@ -20,6 +20,48 @@ import { normalizeDisplayLayoutPayload } from './index'
 let socket: Socket | null = null
 let activePlayerId: string | null = null
 
+/** GoT-style Socket.IO options — prefer websocket, infinite retry with backoff. */
+export const QHE_SOCKET_IO_OPTIONS = {
+  transports: ['websocket'] as string[],
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20_000,
+}
+
+export type SocketConnectionStatus = 'connected' | 'reconnecting' | 'disconnected'
+
+let connectionStatus: SocketConnectionStatus = 'disconnected'
+const connectionStatusListeners = new Set<
+  (status: SocketConnectionStatus, meta?: { attempt?: number }) => void
+>()
+
+function setConnectionStatus(next: SocketConnectionStatus, meta?: { attempt?: number }) {
+  connectionStatus = next
+  for (const cb of connectionStatusListeners) {
+    try {
+      cb(next, meta)
+    } catch {
+      /* ignore listener errors */
+    }
+  }
+}
+
+export function getSocketConnectionStatus(): SocketConnectionStatus {
+  return connectionStatus
+}
+
+export function onSocketConnectionStatus(
+  callback: (status: SocketConnectionStatus, meta?: { attempt?: number }) => void,
+): () => void {
+  connectionStatusListeners.add(callback)
+  callback(connectionStatus)
+  return () => {
+    connectionStatusListeners.delete(callback)
+  }
+}
+
 export function getActivePlayerId(): string | null {
   return activePlayerId
 }
@@ -83,6 +125,17 @@ export type ConnectOptions = {
   playerId?: string
 }
 
+function attachConnectionLifecycle(sock: Socket) {
+  sock.on('connect', () => setConnectionStatus('connected'))
+  sock.on('disconnect', () => setConnectionStatus('disconnected'))
+  sock.on('reconnect_attempt', (attempt: number) =>
+    setConnectionStatus('reconnecting', { attempt: typeof attempt === 'number' ? attempt : 1 }),
+  )
+  sock.on('reconnect', () => setConnectionStatus('connected'))
+  sock.on('connect_error', () => setConnectionStatus('reconnecting'))
+  sock.on('reconnect_error', () => setConnectionStatus('reconnecting'))
+}
+
 export function connect(
   role: 'host' | 'player' | 'display',
   name: string,
@@ -98,11 +151,13 @@ export function connect(
     activePlayerId = options.playerId.trim()
   }
 
-  socket = io(socketOrigin(), { reconnection: true, reconnectionAttempts: Infinity })
+  setConnectionStatus('reconnecting')
+  socket = io(socketOrigin(), QHE_SOCKET_IO_OPTIONS)
+  attachConnectionLifecycle(socket)
 
   socket.on('connect', () => {
     console.log('Connected to server')
-    
+
     const hello: ClientHello = {
       role,
       name,
@@ -130,6 +185,8 @@ export function connect(
     }
 
     socket!.emit('hello', hello)
+    // Belt-and-suspenders: pull fresh venue state after every (re)connect.
+    socket!.emit('action', { type: 'syncState' })
   })
 
   socket.on('disconnect', () => {
@@ -141,6 +198,49 @@ export function connect(
       socket.disconnect()
       socket = null
     }
+    setConnectionStatus('disconnected')
+  }
+}
+
+/** Ask the server to re-push this client's authoritative snapshots (lockstep heal). */
+export function requestSyncState() {
+  if (!socket?.connected) return
+  socket.emit('action', { type: 'syncState' })
+}
+
+/** Display presence ping — host/TV health; keeps venue wall alive across brief blips. */
+export function emitDisplayHeartbeat() {
+  if (!socket?.connected) return
+  socket.emit('action', { type: 'displayHeartbeat' })
+}
+
+/**
+ * Periodic syncState so host/player heal drift without waiting for the next game event.
+ */
+export function startConnectionKeepalive(opts?: { syncMs?: number }): () => void {
+  const syncMs = opts?.syncMs ?? 30_000
+  requestSyncState()
+  const sync = window.setInterval(() => requestSyncState(), syncMs)
+  return () => window.clearInterval(sync)
+}
+
+/**
+ * While connected as a display, ping every `intervalMs` and request a full
+ * venue snapshot on a slower cadence (GoT-style projector health + periodic sync).
+ */
+export function startDisplayConnectionKeepalive(opts?: {
+  heartbeatMs?: number
+  syncMs?: number
+}): () => void {
+  const heartbeatMs = opts?.heartbeatMs ?? 12_000
+  const syncMs = opts?.syncMs ?? 30_000
+  emitDisplayHeartbeat()
+  requestSyncState()
+  const hb = window.setInterval(() => emitDisplayHeartbeat(), heartbeatMs)
+  const sync = window.setInterval(() => requestSyncState(), syncMs)
+  return () => {
+    window.clearInterval(hb)
+    window.clearInterval(sync)
   }
 }
 
@@ -285,7 +385,9 @@ export function connectDisplayAwaitingPairing(
     socket.disconnect()
     socket = null
   }
-  socket = io(socketOrigin())
+  setConnectionStatus('reconnecting')
+  socket = io(socketOrigin(), QHE_SOCKET_IO_OPTIONS)
+  attachConnectionLifecycle(socket)
 
   const onPairing = (p: { code: string }) => handlers.onPairingCode(p.code)
   const onAssigned = (p: { venueCode: string }) => handlers.onVenueAssigned(p.venueCode)
@@ -317,6 +419,7 @@ export function connectDisplayAwaitingPairing(
     if (!opts?.keepConnected) {
       socket.disconnect()
       socket = null
+      setConnectionStatus('disconnected')
     }
   }
 }

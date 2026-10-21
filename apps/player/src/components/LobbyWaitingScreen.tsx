@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
+import type { SocketConnectionStatus } from '@qhe/net'
 import {
   PlayerGoldBackdrop,
   PlayerGoldDivider,
@@ -14,6 +15,7 @@ type LobbyWaitingScreenProps = {
   waitingCount: number
   waitingPosition: number | null
   disconnected?: boolean
+  connectionStatus?: SocketConnectionStatus
   lastTableId?: string | null
   onReconnect?: () => void
 }
@@ -24,6 +26,7 @@ export default function LobbyWaitingScreen({
   waitingCount,
   waitingPosition,
   disconnected,
+  connectionStatus,
   lastTableId,
   onReconnect,
 }: LobbyWaitingScreenProps) {
@@ -56,6 +59,7 @@ export default function LobbyWaitingScreen({
             {disconnected && onReconnect ? (
               <PlayerReconnectBanner
                 disconnected={disconnected}
+                connectionStatus={connectionStatus}
                 lastTableId={lastTableId ?? undefined}
                 onReconnect={onReconnect}
               />

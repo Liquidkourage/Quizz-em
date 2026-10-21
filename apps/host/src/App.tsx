@@ -11,6 +11,10 @@ import {
   onHostVenueFeltBeat,
   onHostVenueFloorBrief,
   useSocket,
+  onSocketConnectionStatus,
+  getSocketConnectionStatus,
+  startConnectionKeepalive,
+  type SocketConnectionStatus,
   startAnswering,
   adminAdvanceTurn,
   adminCloseBetting,
@@ -154,16 +158,25 @@ function HostApp() {
   const [blindLevelSummary, setBlindLevelSummary] = useState<string | null>(null)
   const [venueFeltBeat, setVenueFeltBeat] = useState<HostVenueFeltBeatRow[] | null>(null)
   const [venueFloorBrief, setVenueFloorBrief] = useState<HostVenueFloorBriefPayload | null>(null)
+  const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
+    getSocketConnectionStatus(),
+  )
 
   const viteHostSecret =
     typeof import.meta.env.VITE_HOST_SECRET === 'string' ? import.meta.env.VITE_HOST_SECRET.trim() : ''
   const effectiveHostSecret = viteHostSecret || hostSecretApplied.trim() || undefined
 
+  useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
+
   useEffect(() => {
     const cleanup = connect('host', 'HOST', hostVenueCode, hostTableId, {
       hostSecret: effectiveHostSecret,
     })
-    return cleanup
+    const stopKeepalive = startConnectionKeepalive({ syncMs: 30_000 })
+    return () => {
+      stopKeepalive()
+      cleanup()
+    }
   }, [hostVenueCode, hostTableId, effectiveHostSecret])
 
   // Assign / rehearsal moves the host socket to table 1 — keep the desk dropdown in sync.
@@ -563,6 +576,17 @@ function HostApp() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(0,180,120,0.08),transparent_55%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(100,70,160,0.06),transparent_50%)]" />
       </div>
+
+      {connectionStatus !== 'connected' ? (
+        <div
+          className="fixed left-1/2 top-3 z-[60] -translate-x-1/2 rounded-lg border border-amber-400/50 bg-amber-950/90 px-4 py-2 text-sm font-semibold text-amber-100 shadow-lg"
+          role="status"
+        >
+          {connectionStatus === 'reconnecting'
+            ? 'Reconnecting to server… desk will resync automatically.'
+            : 'Host disconnected — retrying…'}
+        </div>
+      ) : null}
 
       {/* Toast Messages */}
       <AnimatePresence>

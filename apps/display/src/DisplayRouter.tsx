@@ -5,7 +5,11 @@ import {
   connect,
   onDisplayLayout,
   onDisplayVenueSnapshot,
+  onSocketConnectionStatus,
+  getSocketConnectionStatus,
+  startDisplayConnectionKeepalive,
   subscribeDisplayLayoutLocal,
+  type SocketConnectionStatus,
 } from '@qhe/net'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { readUrlLayoutBootstrap } from './displayUrlParams'
@@ -196,6 +200,11 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
 
   /** Reconnect only when venue or host spotlight changes — not when toggling floor ↔ leaderboard. */
   const connectFingerprint = `${venueCode}:focus:${layout.focusTable ?? 'none'}`
+  const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
+    getSocketConnectionStatus(),
+  )
+
+  useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
 
   useEffect(() => {
     const hostFocus = layout.focusTable
@@ -225,8 +234,10 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
 
     const offDisplay = onDisplayLayout(handleDisplayLayout)
     const offLocal = subscribeDisplayLayoutLocal(handleLocalLayoutRelay)
+    const stopKeepalive = startDisplayConnectionKeepalive()
 
     return () => {
+      stopKeepalive()
       offDisplay()
       offLocal()
       disconnectSock()
@@ -351,8 +362,19 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     showVenueMosaicShell && !handOverlayVisible ? venueWall : null,
   )
 
+  const showConnBadge = connectionStatus !== 'connected'
+
   return (
     <>
+    {showConnBadge ? (
+      <div
+        className="pointer-events-none fixed left-1/2 top-3 z-[100] -translate-x-1/2 rounded-md border border-amber-400/40 bg-black/80 px-4 py-2 text-sm font-semibold tracking-wide text-amber-100 shadow-lg"
+        role="status"
+        aria-live="polite"
+      >
+        {connectionStatus === 'reconnecting' ? 'Reconnecting display…' : 'Display disconnected — retrying…'}
+      </div>
+    ) : null}
     <AnimatePresence mode="sync">
       {showBriefingHero && (
         <motion.div

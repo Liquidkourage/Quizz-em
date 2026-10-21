@@ -1,10 +1,12 @@
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { GameState } from '@qhe/core'
+import type { SocketConnectionStatus } from '@qhe/net'
 import { LOBBY_TABLE_ID, displayBettingPhaseLabel, isWageringPaused } from '@qhe/core'
 import { PlayerReconnectBanner } from './PlayerReconnectBanner'
 
 type PlayerTableHeaderProps = {
   disconnected?: boolean
+  connectionStatus?: SocketConnectionStatus
   lastTableId?: string
   onReconnect?: () => void
   /** Seated live play — shrink brand chrome so roster/dock own the screen. */
@@ -13,6 +15,7 @@ type PlayerTableHeaderProps = {
 
 export function PlayerTableHeader({
   disconnected,
+  connectionStatus,
   lastTableId,
   onReconnect,
   compactLive = false,
@@ -30,6 +33,7 @@ export function PlayerTableHeader({
       {disconnected && onReconnect ? (
         <PlayerReconnectBanner
           disconnected={disconnected}
+          connectionStatus={connectionStatus}
           lastTableId={lastTableId}
           onReconnect={onReconnect}
         />

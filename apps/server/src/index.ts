@@ -881,9 +881,15 @@ const io = new Server(httpServer, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
-  }
+  },
+  /** Faster dead-connection detection so devices rejoin lockstep sooner (GoT-style). */
+  pingInterval: 10_000,
+  pingTimeout: 20_000,
 })
 initPlayerSocketRegistry(io)
+
+/** Last displayHeartbeat epoch ms per venue → socketId (presence / health). */
+const displayHeartbeatByVenue = new Map<string, Map<string, number>>()
 
 function normalizeVenueCode(roomCode: string): string {
   return roomCode.trim().toUpperCase()
@@ -1203,6 +1209,24 @@ type DisplaySockData = {
   hostAuthed?: boolean
   displayAwaitPairing?: boolean
   displayClientName?: string
+  /** Normalized venue code for syncState / heartbeat without parsing session keys. */
+  venueCode?: string
+}
+
+function resolveVenueCodeForSocket(socket: Socket): string | null {
+  const sockData = socket.data as DisplaySockData
+  if (typeof sockData.venueCode === 'string' && sockData.venueCode.trim()) {
+    return normalizeVenueCode(sockData.venueCode)
+  }
+  const sessionKey = getActiveSessionKey(socket)
+  if (!sessionKey) return null
+  const gs = rooms.get(sessionKey) as { code?: string } | undefined
+  if (typeof gs?.code === 'string' && gs.code.trim()) {
+    return normalizeVenueCode(gs.code)
+  }
+  const colon = sessionKey.indexOf(':')
+  if (colon > 0) return normalizeVenueCode(sessionKey.slice(0, colon))
+  return null
 }
 
 function clearDisplayPairingForSocket(socketId: string) {
@@ -1236,6 +1260,8 @@ function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, data: Cl
   const vn = normalizeVenueCode(venueCodeRaw)
   const sockData = socket.data as DisplaySockData
   sockData.displayAwaitPairing = false
+  sockData.venueCode = vn
+  sockData.role = 'display'
 
   socket.join(displayVenueRoom(vn))
   const layout = resolveDisplayLayoutForHello(vn, data)
@@ -2711,6 +2737,7 @@ io.on('connection', (socket) => {
 
     const sockData = socket.data as DisplaySockData
     sockData.role = role
+    sockData.venueCode = venueCode
     if (role === 'host') {
       sockData.hostAuthed = true
     }
@@ -2792,6 +2819,56 @@ io.on('connection', (socket) => {
 
   socket.on('action', async (data: any) => {
     const { type, payload } = data
+
+    /**
+     * Lockstep heal: re-push this client's authoritative snapshots after reconnect
+     * or periodic keepalive (GoT sync-state pattern).
+     */
+    if (type === 'syncState') {
+      const sockData = socket.data as DisplaySockData
+      const vn = resolveVenueCodeForSocket(socket)
+      if (!vn) return
+
+      const sessionKey = getActiveSessionKey(socket)
+      if (sessionKey) {
+        const gs = rooms.get(sessionKey) as GameState | undefined
+        if (gs) {
+          const turnDeadlineMs = syncHumanTurnDeadline(sessionKey, gs)
+          socket.emit('state', {
+            ...gs,
+            serverNowMs: Date.now(),
+            playerOnline: buildPlayerOnlineMap(gs),
+            round: { ...gs.round, turnDeadlineMs },
+          })
+        }
+      }
+
+      if (sockData.role === 'display') {
+        const layout = venueDisplayLayouts.get(vn)
+        if (layout) socket.emit('displayLayout', layout)
+        emitDisplayVenueSnapshotNow(vn)
+      } else if (sockData.role === 'host') {
+        emitDisplayVenueSnapshotNow(vn)
+        socket.emit('hostLibrary', await buildHostLibraryPayload(vn))
+      } else if (sockData.role === 'player') {
+        emitPlayerVenueBriefNow(vn)
+      }
+      return
+    }
+
+    if (type === 'displayHeartbeat') {
+      const sockData = socket.data as DisplaySockData
+      if (sockData.role !== 'display') return
+      const vn = resolveVenueCodeForSocket(socket)
+      if (!vn) return
+      let bySock = displayHeartbeatByVenue.get(vn)
+      if (!bySock) {
+        bySock = new Map()
+        displayHeartbeatByVenue.set(vn, bySock)
+      }
+      bySock.set(socket.id, Date.now())
+      return
+    }
 
     if (type === 'displaySetLayout') {
       const sessionKey = getActiveSessionKey(socket)

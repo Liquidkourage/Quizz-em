@@ -60,6 +60,8 @@ export type HostDockItem = {
   onClick: () => void
   disabled?: boolean
   variant: 'emerald' | 'blue' | 'purple' | 'gold' | 'red'
+  /** primary = large CTA; secondary = quieter chip; danger = recovery overflow */
+  role?: 'primary' | 'secondary' | 'danger'
 }
 
 export type RunOfShowStepState = 'done' | 'current' | 'upcoming' | 'skipped'
@@ -527,6 +529,8 @@ export function buildHostPhaseDockItems(args: {
   onNextSetlist: () => void
   /** 30s countdown on acting humans, then auto check/fold. */
   onNudgeActing: () => void
+  /** Skip one stuck actor mid-wager (danger secondary). */
+  onForceAdvance?: () => void
   /** Rehearsal dry-run — jump venue wall to winner overlay without waiting for timers. */
   onRehearsalSkipToShowdown?: () => void
   /** Active rundown selected — show one-click Next from setlist in lobby. */
@@ -549,6 +553,7 @@ export function buildHostPhaseDockItems(args: {
     onRandomQuestion,
     onNextSetlist,
     onNudgeActing,
+    onForceAdvance,
     onRehearsalSkipToShowdown,
     hasActiveSetlist = false,
   } = args
@@ -568,6 +573,7 @@ export function buildHostPhaseDockItems(args: {
         label: 'Skip to winner screen',
         onClick: onRehearsalSkipToShowdown,
         variant: 'gold',
+        role: 'secondary',
       },
     ]
   }
@@ -580,45 +586,94 @@ export function buildHostPhaseDockItems(args: {
         label: 'Seat players',
         onClick: onAssignFromLobby,
         variant: 'blue',
+        role: 'primary',
+      })
+    } else if (hasActiveSetlist) {
+      items.push({
+        id: 'setlist',
+        label: 'Next from setlist',
+        onClick: onNextSetlist,
+        variant: 'purple',
+        role: 'primary',
+      })
+      items.push({
+        id: 'start',
+        label: 'Start without setlist',
+        onClick: onStartGame,
+        variant: 'emerald',
+        role: 'secondary',
       })
     } else {
-      if (hasActiveSetlist) {
-        items.push({
-          id: 'setlist',
-          label: 'Next from setlist',
-          onClick: onNextSetlist,
-          variant: 'purple',
-        })
-      }
-      items.push({ id: 'start', label: 'Start the round', onClick: onStartGame, variant: 'emerald' })
+      items.push({
+        id: 'start',
+        label: 'Start the round',
+        onClick: onStartGame,
+        variant: 'emerald',
+        role: 'primary',
+      })
     }
     return withRehearsalSkip(items)
   }
 
   if (phase === 'question') {
+    if (hasActiveSetlist) {
+      return withRehearsalSkip([
+        {
+          id: 'setlist',
+          label: 'Next from setlist',
+          onClick: onNextSetlist,
+          variant: 'purple',
+          role: 'primary',
+        },
+        {
+          id: 'random',
+          label: 'Random from bank',
+          onClick: onRandomQuestion,
+          variant: 'purple',
+          role: 'secondary',
+        },
+      ])
+    }
     return withRehearsalSkip([
-      { id: 'setlist', label: 'Next from setlist', onClick: onNextSetlist, variant: 'purple' },
-      { id: 'random', label: 'Random from bank', onClick: onRandomQuestion, variant: 'purple' },
+      {
+        id: 'random',
+        label: 'Random from bank',
+        onClick: onRandomQuestion,
+        variant: 'purple',
+        role: 'primary',
+      },
     ])
   }
 
   if (phase === 'betting') {
     if (bettingOpen) {
-      return withRehearsalSkip([
-        {
-          id: 'nudge',
-          label: 'Nudge acting (30s)',
-          onClick: onNudgeActing,
-          variant: 'gold',
-        },
+      const items: HostDockItem[] = [
         {
           id: 'close-bet',
           label: bettingRound <= 1 ? 'Finish wagering (round 1)' : 'Finish wagering (round 2)',
           onClick: () => adminCloseBetting(),
           disabled: closeBetBlocked,
           variant: 'red',
+          role: 'primary',
         },
-      ])
+        {
+          id: 'nudge',
+          label: 'Nudge (30s)',
+          onClick: onNudgeActing,
+          variant: 'gold',
+          role: 'secondary',
+        },
+      ]
+      if (onForceAdvance) {
+        items.push({
+          id: 'force-advance',
+          label: 'Force next',
+          onClick: onForceAdvance,
+          variant: 'gold',
+          role: 'danger',
+        })
+      }
+      return withRehearsalSkip(items)
     }
     if (bettingRound === 1 && communityLen < 5) {
       return withRehearsalSkip([
@@ -628,6 +683,7 @@ export function buildHostPhaseDockItems(args: {
           onClick: onDealCommunity,
           disabled: dealCommunityBlocked,
           variant: 'blue',
+          role: 'primary',
         },
       ])
     }
@@ -639,6 +695,7 @@ export function buildHostPhaseDockItems(args: {
           onClick: onStartAnswering,
           disabled: startAnswerBlocked,
           variant: 'purple',
+          role: 'primary',
         },
       ])
     }
@@ -646,12 +703,26 @@ export function buildHostPhaseDockItems(args: {
 
   if (phase === 'answering') {
     return withRehearsalSkip([
-      { id: 'reveal', label: 'Reveal correct answer', onClick: onRevealAnswer, variant: 'gold' },
+      {
+        id: 'reveal',
+        label: 'Reveal correct answer',
+        onClick: onRevealAnswer,
+        variant: 'gold',
+        role: 'primary',
+      },
     ])
   }
 
-  if (phase === 'showdown') {
-    return [{ id: 'end-round', label: 'End round & pay out', onClick: onEndRound, variant: 'red' }]
+  if (phase === 'reveal' || phase === 'showdown') {
+    return [
+      {
+        id: 'end-round',
+        label: 'End round & pay out',
+        onClick: onEndRound,
+        variant: 'red',
+        role: 'primary',
+      },
+    ]
   }
 
   return withRehearsalSkip([])
@@ -768,6 +839,11 @@ export function HostLiveStatusLine({
       ) : null}
     </div>
   )
+}
+
+/** True when seated felts disagree on phase fingerprint (floor strip / move log). */
+export function hostFloorLockstepMisaligned(rows: HostVenueFeltBeatRow[] | null): boolean {
+  return venueFeltBeatLockstep(rows).lockstepMisaligned
 }
 
 function venueFeltBeatLockstep(rows: HostVenueFeltBeatRow[] | null): {
@@ -1065,9 +1141,12 @@ function formatMoveLogClock(atMs: number): string {
 export function HostVenueMoveLogPanel({
   brief,
   hostPlayerLabel,
+  forceOpen = false,
 }: {
   brief: HostVenueFloorBriefPayload | null
   hostPlayerLabel: (name: string) => string
+  /** Auto-expand when tables are out of sync. */
+  forceOpen?: boolean
 }) {
   const moves = brief?.moveLog ?? []
   const [tableFilter, setTableFilter] = useState<number | 'all'>('all')
@@ -1077,7 +1156,8 @@ export function HostVenueMoveLogPanel({
 
   return (
     <HostCollapsible
-      defaultOpen
+      defaultOpen={false}
+      forceOpen={forceOpen}
       className="mb-3"
       badge={
         <span className="text-xs font-normal tabular-nums text-white/40">
@@ -1650,28 +1730,30 @@ const RUN_STEP_SHORT: Partial<Record<RunOfShowStepId, string>> = {
   'end-round': 'Pay',
 }
 
-/** One-row TV routing — floor, leaderboard, live spotlight chips, overflow grid. */
+/** Compact TV mode switcher — spotlight lives on the floor strip only. */
 export function HostTvBar({
-  livelyTableNums,
-  tableMax,
   onVenueFloor,
   onLeaderboard,
   onTriviaLeaderboard,
   onSeatingRules,
-  onSpotlight,
 }: {
-  livelyTableNums: number[]
-  tableMax: number
   onVenueFloor: () => void
   onLeaderboard: () => void
   onTriviaLeaderboard?: () => void
   onSeatingRules: () => void
-  onSpotlight: (n: number) => void
+  /** @deprecated Spotlight via HostFloorStrip — ignored. */
+  livelyTableNums?: number[]
+  tableMax?: number
+  onSpotlight?: (n: number) => void
 }) {
-  const livelySet = new Set(livelyTableNums)
-  const quietNums = Array.from({ length: Math.min(20, tableMax) }, (_, i) => i + 1).filter(
-    (n) => !livelySet.has(n),
-  )
+  const modes: Array<{ id: string; label: string; onClick: () => void }> = [
+    { id: 'floor', label: 'Floor', onClick: onVenueFloor },
+    { id: 'chip-lb', label: 'Chip LB', onClick: onLeaderboard },
+  ]
+  if (onTriviaLeaderboard) {
+    modes.push({ id: 'trivia-lb', label: 'Trivia LB', onClick: onTriviaLeaderboard })
+  }
+  modes.push({ id: 'rules', label: 'Rules', onClick: onSeatingRules })
 
   return (
     <div
@@ -1680,76 +1762,41 @@ export function HostTvBar({
       aria-label="Public display routing"
     >
       <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/35">TVs</span>
-      <NeonButton variant="emerald" size="normal" type="button" onClick={onVenueFloor}>
-        Floor
-      </NeonButton>
-      <NeonButton variant="purple" size="normal" type="button" onClick={onLeaderboard}>
-        Chip LB
-      </NeonButton>
-      {onTriviaLeaderboard ? (
-        <NeonButton variant="blue" size="normal" type="button" onClick={onTriviaLeaderboard}>
-          Trivia LB
-        </NeonButton>
-      ) : null}
-      <NeonButton variant="gold" size="normal" type="button" onClick={onSeatingRules}>
-        Rules
-      </NeonButton>
-      {livelyTableNums.length > 0 ? (
-        <>
-          <span className="hidden h-4 w-px bg-white/15 sm:block" aria-hidden />
-          {livelyTableNums.map((n) => (
-            <NeonButton
-              key={n}
-              variant="gold"
-              size="small"
-              type="button"
-              className="ring-2 ring-amber-400/60"
-              title={`Spotlight table ${n} on every TV`}
-              onClick={() => onSpotlight(n)}
-            >
-              ● {n}
-            </NeonButton>
-          ))}
-        </>
-      ) : null}
-      {quietNums.length > 0 ? (
-        <details className="relative ml-auto">
-          <summary className="cursor-pointer list-none rounded-md border border-white/15 bg-white/5 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-white/55 hover:bg-white/10 [&::-webkit-details-marker]:hidden">
-            Highlight table ▾
-          </summary>
-          <div className="absolute right-0 z-50 mt-1 flex max-w-[min(18rem,90vw)] flex-wrap gap-1 rounded-lg border border-white/15 bg-zinc-950/95 p-2 shadow-xl backdrop-blur-md">
-            {quietNums.map((n) => (
-              <NeonButton
-                key={n}
-                variant="gold"
-                size="small"
-                type="button"
-                className="!min-w-[2.75rem]"
-                onClick={() => onSpotlight(n)}
-              >
-                {n}
-              </NeonButton>
-            ))}
-          </div>
-        </details>
-      ) : null}
+      <div className="inline-flex flex-wrap overflow-hidden rounded-lg border border-white/20 bg-black/40">
+        {modes.map((m, i) => (
+          <button
+            key={m.id}
+            type="button"
+            onClick={m.onClick}
+            className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white/75 transition-colors hover:bg-white/10 hover:text-white ${
+              i > 0 ? 'border-l border-white/15' : ''
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <span className="text-xs text-white/35">Spotlight: tap a table on the Floor strip</span>
     </div>
   )
 }
 
-/** Sticky run bar: headline, status, primary cue, TV routing. */
+/** Sticky run bar: headline, status, one primary cue + quiet secondaries, TV routing. */
 export function HostRunBar({
   items,
   statusLine,
   headline,
   tvBar,
   pacingUrgency = 'ready',
+  cueHint,
 }: {
   items: HostDockItem[]
   statusLine?: ReactNode
   headline?: { title: string; detail?: string }
   tvBar?: ReactNode
   pacingUrgency?: 'now' | 'soon' | 'ready'
+  /** Shown under the primary button when gated / blocked. */
+  cueHint?: string | null
 }) {
   if (items.length === 0 && !statusLine && !headline && !tvBar) return null
   const urgencyLabel =
@@ -1760,6 +1807,12 @@ export function HostRunBar({
       : pacingUrgency === 'soon'
         ? 'text-sky-300'
         : 'text-casino-emerald/90'
+
+  const primary = items.find((i) => i.role === 'primary') ?? items[0] ?? null
+  const rest = items.filter((i) => i !== primary)
+  const quiet = rest.filter((i) => i.role !== 'danger')
+  const danger = rest.filter((i) => i.role === 'danger')
+
   return (
     <div className="sticky top-0 z-40 mb-3 rounded-xl border border-casino-emerald/40 bg-black/90 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-4">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
@@ -1778,20 +1831,47 @@ export function HostRunBar({
         ) : null}
         {statusLine ? <div className="shrink-0 lg:max-w-[min(100%,28rem)]">{statusLine}</div> : null}
       </div>
-      {items.length > 0 ? (
-        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Primary show cues">
-          {items.map((item) => (
-            <NeonButton
-              key={item.id}
-              variant={item.variant}
-              size="normal"
-              disabled={item.disabled}
-              onClick={item.onClick}
-              className="!px-5 !py-3 !text-lg !font-bold"
-            >
-              {item.label}
-            </NeonButton>
-          ))}
+      {primary || quiet.length > 0 || danger.length > 0 ? (
+        <div className="mt-2 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Show cues">
+            {primary ? (
+              <NeonButton
+                key={primary.id}
+                variant={primary.variant}
+                size="normal"
+                disabled={primary.disabled}
+                onClick={primary.onClick}
+                className="!px-6 !py-3.5 !text-xl !font-bold"
+              >
+                {primary.label}
+              </NeonButton>
+            ) : null}
+            {quiet.map((item) => (
+              <NeonButton
+                key={item.id}
+                variant={item.variant}
+                size="small"
+                disabled={item.disabled}
+                onClick={item.onClick}
+                className="!px-3 !py-2 !text-sm !font-semibold opacity-90"
+              >
+                {item.label}
+              </NeonButton>
+            ))}
+            {danger.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                disabled={item.disabled}
+                onClick={item.onClick}
+                className="rounded-md border border-rose-400/40 bg-rose-950/40 px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide text-rose-100/90 hover:bg-rose-900/50 disabled:opacity-40"
+                title="Skip the current actor without waiting"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          {cueHint ? <p className="text-xs font-medium text-amber-200/90">{cueHint}</p> : null}
         </div>
       ) : null}
       {tvBar}

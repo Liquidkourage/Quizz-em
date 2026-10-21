@@ -70,6 +70,7 @@ import {
   buildHostRunOfShowSteps,
   formatVenueBlindsSummary,
   hostControlGameStateFromBeat,
+  hostFloorLockstepMisaligned,
   hostHeaderPhaseDisplay,
   resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
@@ -493,6 +494,7 @@ function HostApp() {
     onRandomQuestion: handleSetRandomQuestion,
     onNextSetlist: () => nextQuestionFromSetlist(),
     onNudgeActing: () => nudgeActingPlayers(),
+    onForceAdvance: () => adminAdvanceTurn(),
     onRehearsalSkipToShowdown: rehearsalCpuOnly ? () => rehearsalSkipToShowdown() : undefined,
     hasActiveSetlist,
   })
@@ -504,6 +506,20 @@ function HostApp() {
     detail: pacingSuggestion.detail,
   }
   const currentRunStepId = resolveRunOfShowStepForHost(gameState, venueFeltBeat)
+  const floorLockstepMisaligned = hostFloorLockstepMisaligned(venueFeltBeat)
+  const primaryDockId = phaseDockItems.find((i) => i.role === 'primary')?.id ?? phaseDockItems[0]?.id
+  const runBarCueHint =
+    primaryDockId === 'close-bet' && closeBetBlocked
+      ? closeBetHint
+      : primaryDockId === 'deal-board' && dealCommunityBlocked
+        ? dealCommunityHint
+        : primaryDockId === 'start-answer' && startAnswerBlocked
+          ? startAnswerHint
+          : null
+  const showLobbyPrepStrip =
+    currentRunStepId === 'assign' ||
+    currentRunStepId === 'start' ||
+    currentRunStepId === 'question'
   const triviaOptionalNote =
     currentRunStepId === 'question' && !controlRound?.question ? (
       <p className="text-sm text-amber-200/80">
@@ -521,14 +537,6 @@ function HostApp() {
     const n = Number.parseInt(String(raw), 10)
     return Number.isFinite(n) && n >= 1 ? n : 1
   })()
-  const showRunOfShowBlinds =
-    currentRunStepId === 'start' ||
-    currentRunStepId === 'question' ||
-    (currentRunStepId === 'assign' &&
-      gameState.phase === 'lobby' &&
-      (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
-      gameState.players.length > 0)
-
   const saveVenueBlinds = () => {
     setVenueBlinds(Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
   }
@@ -1261,6 +1269,7 @@ function HostApp() {
           items={phaseDockItems}
           headline={runOfShowHeadline}
           pacingUrgency={pacingSuggestion.urgency}
+          cueHint={runBarCueHint}
           statusLine={
             <HostLiveStatusLine
               gameState={gameState}
@@ -1270,13 +1279,10 @@ function HostApp() {
           }
           tvBar={
             <HostTvBar
-              livelyTableNums={livelyGameplayTableNums}
-              tableMax={VENUE_NUMBERED_TABLE_MAX}
               onVenueFloor={showVenueFloorOnTvs}
               onLeaderboard={showLeaderboardOnTvs}
               onTriviaLeaderboard={showTriviaLeaderboardOnTvs}
               onSeatingRules={showSeatingRulesOnTvs}
-              onSpotlight={spotlightTableOnTvs}
             />
           }
         />
@@ -1287,22 +1293,13 @@ function HostApp() {
           onSpotlight={spotlightTableOnTvs}
         />
 
-        <HostVenueMoveLogPanel brief={venueFloorBrief} hostPlayerLabel={hostPlayerLabel} />
-
         <HostRunProgressDots steps={runOfShowSteps} />
 
         <HostThisHandPanel
           show={
-            currentRunStepId === 'assign' ||
-            currentRunStepId === 'start' ||
-            currentRunStepId === 'question' ||
-            showRunOfShowBlinds ||
+            showLobbyPrepStrip ||
             currentRunStepId === 'deal-board' ||
-            currentRunStepId === 'close-bet-1' ||
-            currentRunStepId === 'close-bet-2' ||
             currentRunStepId === 'start-answer' ||
-            currentRunStepId === 'reveal' ||
-            currentRunStepId === 'end-round' ||
             gameState.phase === 'betting' ||
             gameState.phase === 'answering' ||
             gameState.phase === 'showdown' ||
@@ -1332,62 +1329,16 @@ function HostApp() {
             <p className="text-sm text-white/58">Waiting for players to join the lobby…</p>
           ) : null}
 
-          {showRunOfShowBlinds ? (
-            <HostBlindsControls {...hostBlindsControlProps} compact showTableOverride={false} />
-          ) : null}
+          {showLobbyPrepStrip ? triviaOptionalNote : null}
 
-          {currentRunStepId === 'start' || currentRunStepId === 'question' ? (
-            <div className="space-y-2">
-              <select
-                className="w-full max-w-md rounded-lg border border-white/25 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]"
-                value={activeSetlistId ?? ''}
-                onChange={(e) => selectTriviaSetlist(e.target.value || null)}
-              >
-                <option value="" className="bg-zinc-950 text-white">
-                  No setlist (free play)
-                </option>
-                {setlists.map((sl) => (
-                  <option key={sl.id} value={sl.id} className="bg-zinc-950 text-white">
-                    {sl.name} ({formatSetlistProgress(sl.questionIds.length)})
-                  </option>
-                ))}
-              </select>
-              {activeSetlistId ? (
-                <p className="text-xs text-white/55">
-                  {(() => {
-                    const sl = setlists.find((s) => s.id === activeSetlistId)
-                    const n = sl?.questionIds.length ?? 0
-                    if (!n) return 'This setlist is empty — add cues under Content.'
-                    if (activeSetlistNextIndex >= n) return 'End of rundown — choose another list or clear.'
-                    const progress = `${activeSetlistNextIndex + 1} / ${n}`
-                    const setNote =
-                      n === VENUE_QUESTION_SET_LENGTH
-                        ? ''
-                        : ` (${formatSetlistProgress(n)} — full sets are ${VENUE_QUESTION_SET_LENGTH})`
-                    return `Next cue: ${progress}${setNote}`
-                  })()}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-
-          {(currentRunStepId === 'start' || currentRunStepId === 'question') && triviaOptionalNote}
-
-          {currentRunStepId === 'deal-board' && dealCommunityHint ? (
-            <p className="text-xs text-amber-200/90">{dealCommunityHint}</p>
-          ) : null}
           {currentRunStepId === 'deal-board' ? dealCommunityHostStaleNote : null}
-
-          {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
-          closeBetHint ? (
-            <p className="text-xs text-amber-200/90">{closeBetHint}</p>
-          ) : null}
 
           {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
           hostControlState.phase === 'betting' ? (
             <p className="text-xs text-white/50">
-              Players act on their phones. Use the button above when every table is quiet — or open{' '}
-              <strong className="text-white/70">Advanced</strong> below to force advance.
+              Players act on their phones. Finish wagering when every table is quiet — use{' '}
+              <strong className="text-white/70">Nudge</strong> or{' '}
+              <strong className="text-rose-200/90">Force next</strong> above if someone is stuck.
             </p>
           ) : null}
 
@@ -1419,33 +1370,89 @@ function HostApp() {
             </div>
           ) : null}
 
-          {currentRunStepId === 'start-answer' && startAnswerBlocked && startAnswerHint ? (
-            <p className="text-xs text-amber-200/90">{startAnswerHint}</p>
-          ) : null}
-
           <HostContestRoster gameState={gameState} hostPlayerLabel={hostPlayerLabel} />
 
-          {gameState.phase === 'showdown' ? (
-            <>
-              <div className="text-center text-white">
-                <div className="text-xs text-white/70">Correct answer</div>
-                <div className="text-3xl font-extrabold text-casino-gold">
-                  {formatTriviaNumber(gameState.round.question?.answer)}
-                </div>
+          {gameState.phase === 'showdown' || gameState.phase === 'reveal' ? (
+            <div className="text-center text-white">
+              <div className="text-xs text-white/70">Correct answer</div>
+              <div className="text-3xl font-extrabold text-casino-gold">
+                {formatTriviaNumber(gameState.round.question?.answer)}
               </div>
+              {gameState.phase === 'reveal' ? (
+                <p className="mt-1 text-xs text-white/50">
+                  Showdown follows automatically, or hit <strong className="text-white/70">End round</strong> now.
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-white/50">
+                  After payout, use <strong className="text-white/70">Start the round</strong> for the next hand.
+                </p>
+              )}
+            </div>
+          ) : null}
+        </HostThisHandPanel>
+
+        <HostVenueMoveLogPanel
+          brief={venueFloorBrief}
+          hostPlayerLabel={hostPlayerLabel}
+          forceOpen={floorLockstepMisaligned}
+        />
+
+        <HostAdvancedPanel>
+          <div className="space-y-2 rounded-lg border border-white/10 bg-black/30 px-3 py-3">
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/40">
+              Prep — setlist & blinds
+            </p>
+            <select
+              className="w-full max-w-md rounded-lg border border-white/25 bg-zinc-950 px-3 py-2 text-sm text-white [color-scheme:dark]"
+              value={activeSetlistId ?? ''}
+              onChange={(e) => selectTriviaSetlist(e.target.value || null)}
+            >
+              <option value="" className="bg-zinc-950 text-white">
+                No setlist (free play)
+              </option>
+              {setlists.map((sl) => (
+                <option key={sl.id} value={sl.id} className="bg-zinc-950 text-white">
+                  {sl.name} ({formatSetlistProgress(sl.questionIds.length)})
+                </option>
+              ))}
+            </select>
+            {activeSetlistId ? (
+              <p className="text-xs text-white/55">
+                {(() => {
+                  const sl = setlists.find((s) => s.id === activeSetlistId)
+                  const n = sl?.questionIds.length ?? 0
+                  if (!n) return 'This setlist is empty — add cues under Content.'
+                  if (activeSetlistNextIndex >= n) return 'End of rundown — choose another list or clear.'
+                  const progress = `${activeSetlistNextIndex + 1} / ${n}`
+                  const setNote =
+                    n === VENUE_QUESTION_SET_LENGTH
+                      ? ''
+                      : ` (${formatSetlistProgress(n)} — full sets are ${VENUE_QUESTION_SET_LENGTH})`
+                  return `Next cue: ${progress}${setNote}`
+                })()}
+              </p>
+            ) : null}
+            <HostBlindsControls {...hostBlindsControlProps} compact showTableOverride={false} />
+          </div>
+
+          {(gameState.phase === 'showdown' || gameState.phase === 'reveal') &&
+          gameState.round.question ? (
+            <HostCollapsible summary="Showdown distance table" className="mb-0" defaultOpen={false}>
               {(() => {
                 const correct = gameState.round.question?.answer
                 const rows = gameState.players
                   .map((p, seatIdx) => {
                     const hasAnswer = typeof p.submittedAnswer === 'number'
-                    const distance = hasAnswer && typeof correct === 'number'
-                      ? Math.abs((p.submittedAnswer as number) - correct)
-                      : Infinity
+                    const distance =
+                      hasAnswer && typeof correct === 'number'
+                        ? Math.abs((p.submittedAnswer as number) - correct)
+                        : Infinity
                     const contest = hostContestStatus(p)
                     return { player: p, seat: seatIdx + 1, hasAnswer, distance, contest }
                   })
                   .sort((a, b) => a.distance - b.distance)
-                const winnerId = rows.length && rows[0].distance !== Infinity ? rows[0].player.id : undefined
+                const winnerId =
+                  rows.length && rows[0].distance !== Infinity ? rows[0].player.id : undefined
                 return (
                   <div className="overflow-x-auto rounded-lg border border-white/10">
                     <table className="min-w-full text-left text-sm text-white/90">
@@ -1478,9 +1485,13 @@ function HostApp() {
                                 title={contest.detail}
                               />
                             </td>
-                            <td className="py-2 px-3">{hasAnswer ? formatTriviaNumber(player.submittedAnswer) : '—'}</td>
                             <td className="py-2 px-3">
-                              {hasAnswer && typeof correct === 'number' ? formatTriviaNumber(distance) : '—'}
+                              {hasAnswer ? formatTriviaNumber(player.submittedAnswer) : '—'}
+                            </td>
+                            <td className="py-2 px-3">
+                              {hasAnswer && typeof correct === 'number'
+                                ? formatTriviaNumber(distance)
+                                : '—'}
                             </td>
                           </tr>
                         ))}
@@ -1489,17 +1500,9 @@ function HostApp() {
                   </div>
                 )
               })()}
-            </>
+            </HostCollapsible>
           ) : null}
 
-          {currentRunStepId === 'end-round' && hostControlState.phase === 'showdown' ? (
-            <p className="text-xs text-white/50">
-              After payout, use <strong className="text-white/70">Start the round</strong> for the next hand.
-            </p>
-          ) : null}
-        </HostThisHandPanel>
-
-        <HostAdvancedPanel>
           <HostCollapsible summary="Rehearsal & test bots" className="mb-0">
             <section aria-labelledby="live-rehearsal-heading" className="space-y-3">
               <p className="text-xs text-white/60 leading-relaxed">

@@ -642,11 +642,7 @@ function HostApp() {
                       Table {gameState.tableId}
                     </span>
                   </>
-                ) : (
-                  <span className="rounded-full border border-sky-500/30 bg-sky-950/30 px-2.5 py-0.5 text-sm font-medium text-sky-100/90">
-                    Waiting room
-                  </span>
-                )}
+                ) : null}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">

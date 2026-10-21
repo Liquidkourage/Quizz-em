@@ -12,14 +12,23 @@ import { adminCloseBetting } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
-  lobby: 'Lobby',
-  question: 'Question / deal setup',
-  betting: 'Wagering',
-  answering: 'Answering',
-  reveal: 'Reveal',
-  showdown: 'Showdown',
-  payout: 'Payout',
-  intermission: 'Intermission',
+  lobby: 'Waiting room',
+  question: 'Deal / question',
+  betting: 'Betting',
+  answering: 'Guessing',
+  reveal: 'Answer reveal',
+  showdown: 'Results',
+  payout: 'Paying out',
+  intermission: 'Break',
+}
+
+/** Empty venue pool — no one to seat yet (brand-new host empty desk). */
+export function isHostWaitingForJoiners(gameState: GameState): boolean {
+  return (
+    gameState.phase === 'lobby' &&
+    (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
+    gameState.players.length === 0
+  )
 }
 
 export function HostCollapsible({
@@ -369,39 +378,39 @@ export function buildHostRunOfShowSteps(
   const defs: Record<RunOfShowStepId, { label: string; hint: string }> = {
     assign: {
       label: 'Seat players',
-      hint: 'Move everyone from the lobby pool into random table seats.',
+      hint: 'Split everyone in the waiting room onto tables at random.',
     },
     start: {
-      label: 'Start the round',
-      hint: 'Deals hole cards on every table — then reveal a question to open wagering.',
+      label: 'Deal cards',
+      hint: 'Gives each player two private cards. Next you’ll show a trivia question.',
     },
     question: {
-      label: 'Reveal the question',
-      hint: 'Shows trivia on all tables and opens wagering round 1.',
+      label: 'Show the question',
+      hint: 'Puts the trivia question on phones and TVs, then opens the first betting round.',
     },
     'close-bet-1': {
-      label: 'Finish wagering (round 1)',
-      hint: 'Wait for action, or Nudge a stalling player (30s then auto check/fold), then close betting.',
+      label: 'Close betting (1st round)',
+      hint: 'When everyone has checked, called, raised, or folded — close this betting round.',
     },
     'deal-board': {
-      label: 'Deal the board',
-      hint: 'Reveals all five community cards at once.',
+      label: 'Reveal shared cards',
+      hint: 'Flips the five shared cards in the middle of every table.',
     },
     'close-bet-2': {
-      label: 'Finish wagering (round 2)',
-      hint: 'Wait for action, or Nudge a stalling player (30s then auto check/fold), then close betting.',
+      label: 'Close betting (2nd round)',
+      hint: 'When everyone is done betting on the shared cards — close this round.',
     },
     'start-answer': {
-      label: 'Open answer window',
-      hint: 'Starts a guide countdown for players to submit guesses — you close it with Reveal.',
+      label: 'Open guessing',
+      hint: 'Players submit their trivia guess on their phones. You stop the timer with Reveal.',
     },
     reveal: {
-      label: 'Reveal correct answer',
-      hint: 'Closes answers, plays an 8s reveal beat on TVs, then auto-advances to showdown.',
+      label: 'Reveal the answer',
+      hint: 'Shows the correct number on TVs, then moves to results.',
     },
     'end-round': {
-      label: 'End round & pay out',
-      hint: 'Settles pots, plays payout → intermission on TVs, then lobby for the next hand.',
+      label: 'Pay winners',
+      hint: 'Pays chip pots, scores trivia points, then resets for the next hand.',
     },
   }
 
@@ -461,50 +470,63 @@ export function hostRunOfShowHeadline(
     }
   }
 
+  if (isHostWaitingForJoiners(gameState)) {
+    return {
+      title: 'Waiting for players to join',
+      detail: `Share room code ${gameState.code}. Players open the join link on their phones. When names appear, you’ll seat them at tables.`,
+    }
+  }
+
+  if (stepId === 'assign') {
+    const n = gameState.players.length
+    return {
+      title: 'Seat everyone at tables',
+      detail: `${n} player${n === 1 ? '' : 's'} waiting — tap Seat players to split them onto tables and start the show.`,
+    }
+  }
+
   if (stepId === 'question' && !controlState.round.question) {
     return {
-      title: 'Reveal the question',
-      detail: 'Hole cards are dealt — pick from bank or setlist to show trivia and open wagering.',
+      title: 'Show the trivia question',
+      detail: 'Cards are dealt. Pick the next question (setlist or bank) so players can bet.',
     }
   }
 
   if (stepId === 'question' && controlState.round.question) {
     return {
-      title: 'Question loaded — open wagering',
-      detail: 'Trivia is set; wagering should open automatically when revealed from bank or setlist.',
+      title: 'Question is live',
+      detail: 'Betting should open on its own. If tables stall, use the cue below.',
     }
   }
 
   if (stepId === 'end-round' && phase === 'reveal') {
     return {
-      title: 'Reveal beat — showdown follows',
-      detail:
-        'TVs are on the reveal beat (~8s). Wait for showdown, or End round now to settle early.',
+      title: 'Answer is on the TVs',
+      detail: 'Results follow in a few seconds — or tap Pay winners now to settle early.',
     }
   }
 
   if (stepId === 'end-round' && phase === 'showdown') {
     return {
-      title: 'Showdown — end the round',
-      detail:
-        'End round pays pots, then TVs play payout → intermission before the dual trophy leaderboard.',
+      title: 'Pay winners & clear the hand',
+      detail: 'Pays chip pots and trivia points, then gets ready for the next hand.',
     }
   }
 
   if (stepId === 'start' && phase === 'lobby') {
     return {
-      title: current.label,
+      title: opts?.hasActiveSetlist === true ? 'Start the next hand' : 'Deal cards to start',
       detail:
         opts?.hasActiveSetlist === true
-          ? 'Every felt is between hands. Next from setlist loads the next cue, deals holes, and opens wagering in one step — or Start the round first if you prefer manual reveal.'
-          : `Blinds $${gameState.smallBlind} / $${gameState.bigBlind} — confirm below, then start to deal hole cards.`,
+          ? 'Tables are ready between hands. Next from setlist deals cards and loads the next question in one tap — or Deal cards if you want to pick the question yourself.'
+          : `Ready when you are. Starting deals two private cards to each player (blinds $${gameState.smallBlind} / $${gameState.bigBlind}).`,
     }
   }
 
   if (stepId === 'start' && phase === 'question') {
     return {
-      title: 'Hole cards dealt',
-      detail: 'Reveal a question from bank or setlist to open wagering round 1.',
+      title: 'Cards dealt — show a question',
+      detail: 'Use Next from setlist or Random from bank so players can start betting.',
     }
   }
 
@@ -583,22 +605,25 @@ export function buildHostPhaseDockItems(args: {
     if (tableId === LOBBY_TABLE_ID && gameState.players.length > 0) {
       items.push({
         id: 'assign',
-        label: 'Seat players',
+        label: 'Seat players at tables',
         onClick: onAssignFromLobby,
         variant: 'blue',
         role: 'primary',
       })
+    } else if (isHostWaitingForJoiners(gameState)) {
+      // No premature Start — nothing to deal yet.
+      return []
     } else if (hasActiveSetlist) {
       items.push({
         id: 'setlist',
-        label: 'Next from setlist',
+        label: 'Next question (setlist)',
         onClick: onNextSetlist,
         variant: 'purple',
         role: 'primary',
       })
       items.push({
         id: 'start',
-        label: 'Start without setlist',
+        label: 'Deal cards only',
         onClick: onStartGame,
         variant: 'emerald',
         role: 'secondary',
@@ -606,7 +631,7 @@ export function buildHostPhaseDockItems(args: {
     } else {
       items.push({
         id: 'start',
-        label: 'Start the round',
+        label: 'Deal cards',
         onClick: onStartGame,
         variant: 'emerald',
         role: 'primary',
@@ -620,14 +645,14 @@ export function buildHostPhaseDockItems(args: {
       return withRehearsalSkip([
         {
           id: 'setlist',
-          label: 'Next from setlist',
+          label: 'Next question (setlist)',
           onClick: onNextSetlist,
           variant: 'purple',
           role: 'primary',
         },
         {
           id: 'random',
-          label: 'Random from bank',
+          label: 'Random question',
           onClick: onRandomQuestion,
           variant: 'purple',
           role: 'secondary',
@@ -637,7 +662,7 @@ export function buildHostPhaseDockItems(args: {
     return withRehearsalSkip([
       {
         id: 'random',
-        label: 'Random from bank',
+        label: 'Show a random question',
         onClick: onRandomQuestion,
         variant: 'purple',
         role: 'primary',
@@ -650,7 +675,7 @@ export function buildHostPhaseDockItems(args: {
       const items: HostDockItem[] = [
         {
           id: 'close-bet',
-          label: bettingRound <= 1 ? 'Finish wagering (round 1)' : 'Finish wagering (round 2)',
+          label: bettingRound <= 1 ? 'Close 1st betting round' : 'Close 2nd betting round',
           onClick: () => adminCloseBetting(),
           disabled: closeBetBlocked,
           variant: 'red',
@@ -658,7 +683,7 @@ export function buildHostPhaseDockItems(args: {
         },
         {
           id: 'nudge',
-          label: 'Nudge (30s)',
+          label: 'Nudge slow player',
           onClick: onNudgeActing,
           variant: 'gold',
           role: 'secondary',
@@ -667,7 +692,7 @@ export function buildHostPhaseDockItems(args: {
       if (onForceAdvance) {
         items.push({
           id: 'force-advance',
-          label: 'Force next',
+          label: 'Skip this player',
           onClick: onForceAdvance,
           variant: 'gold',
           role: 'danger',
@@ -679,7 +704,7 @@ export function buildHostPhaseDockItems(args: {
       return withRehearsalSkip([
         {
           id: 'deal-board',
-          label: 'Deal the board',
+          label: 'Reveal shared cards',
           onClick: onDealCommunity,
           disabled: dealCommunityBlocked,
           variant: 'blue',
@@ -691,7 +716,7 @@ export function buildHostPhaseDockItems(args: {
       return withRehearsalSkip([
         {
           id: 'start-answer',
-          label: `Open answer window (${answerWindowSeconds}s)`,
+          label: `Open guessing (${answerWindowSeconds}s)`,
           onClick: onStartAnswering,
           disabled: startAnswerBlocked,
           variant: 'purple',
@@ -705,7 +730,7 @@ export function buildHostPhaseDockItems(args: {
     return withRehearsalSkip([
       {
         id: 'reveal',
-        label: 'Reveal correct answer',
+        label: 'Reveal the answer',
         onClick: onRevealAnswer,
         variant: 'gold',
         role: 'primary',
@@ -717,7 +742,7 @@ export function buildHostPhaseDockItems(args: {
     return [
       {
         id: 'end-round',
-        label: 'End round & pay out',
+        label: 'Pay winners',
         onClick: onEndRound,
         variant: 'red',
         role: 'primary',
@@ -743,7 +768,7 @@ export function HostPhaseDock({
       {headline ? (
         <div className="mb-2 border-b border-white/10 pb-2">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-casino-emerald/90">
-            Do this now
+            Your next step
           </p>
           <p className="mt-0.5 text-base font-bold leading-snug text-white">{headline.title}</p>
           {headline.detail ? (
@@ -790,6 +815,9 @@ export function HostLiveStatusLine({
   const phase = gameState.phase
   const bettingRound = gameState.round.bettingRound ?? 0
   const bettingOpen = gameState.round.isBettingOpen !== false
+  const waiting = isHostWaitingForJoiners(gameState)
+  const inLobbyPool =
+    phase === 'lobby' && (gameState.tableId ?? '') === LOBBY_TABLE_ID
 
   const [, setTick] = useState(0)
   useEffect(() => {
@@ -798,16 +826,34 @@ export function HostLiveStatusLine({
     return () => window.clearInterval(id)
   }, [phase])
 
+  if (waiting) {
+    return (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm leading-snug">
+        <span className="rounded-md border border-sky-400/35 bg-sky-950/40 px-2 py-0.5 font-semibold text-sky-100">
+          Waiting room
+        </span>
+        <span className="text-white/55">
+          Room <span className="font-mono font-semibold text-white/85">{gameState.code}</span>
+        </span>
+        <span className="text-white/40">No players yet</span>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm leading-snug">
-      <span className="rounded-md border border-white/15 bg-white/5 px-2 py-0.5 font-semibold capitalize text-white/80">
+      <span className="rounded-md border border-white/15 bg-white/5 px-2 py-0.5 font-semibold text-white/80">
         {HOST_PHASE_LABEL[phase] ?? phase}
       </span>
-      <span className="font-mono font-bold tabular-nums text-casino-emerald">
-        Pot <ChipText text={`$${Math.max(0, Math.round(pot)).toLocaleString()}`} />
-      </span>
+      {!inLobbyPool || pot > 0 ? (
+        <span className="font-mono font-bold tabular-nums text-casino-emerald">
+          Pot <ChipText text={`$${Math.max(0, Math.round(pot)).toLocaleString()}`} />
+        </span>
+      ) : null}
       <span className="text-white/50">
-        {gameState.players.length} seated
+        {inLobbyPool
+          ? `${gameState.players.length} waiting`
+          : `${gameState.players.length} at this table`}
         {virtualSeatCount > 0 ? (
           <span className="text-amber-200/80"> · {virtualSeatCount} CPU</span>
         ) : null}
@@ -819,7 +865,7 @@ export function HostLiveStatusLine({
       ) : null}
       {phase === 'betting' && bettingOpen ? (
         <span className="font-semibold text-amber-200/90">
-          R{bettingRound} · action on{' '}
+          Betting round {bettingRound} · waiting on{' '}
           {(() => {
             const idx = gameState.round.currentPlayerIndex
             const p = typeof idx === 'number' && idx >= 0 ? gameState.players[idx] : undefined
@@ -829,7 +875,7 @@ export function HostLiveStatusLine({
       ) : null}
       {phase === 'answering' ? (
         <span className="font-mono text-base font-bold tabular-nums text-casino-gold">
-          {Math.max(0, Math.ceil(((gameState.round.answerDeadline ?? 0) - Date.now()) / 1000))}s
+          {Math.max(0, Math.ceil(((gameState.round.answerDeadline ?? 0) - Date.now()) / 1000))}s left
         </span>
       ) : null}
       {phase === 'showdown' && typeof question?.answer === 'number' ? (
@@ -1166,9 +1212,9 @@ export function HostVenueMoveLogPanel({
       }
       summary={
         <span>
-          Move log
+          Player actions
           <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
-            — every check, call, raise, fold, all-in, and answer
+            — bets, folds, and guesses as they happen
           </span>
         </span>
       }
@@ -1720,12 +1766,12 @@ export function HostBlindsControls({
 
 const RUN_STEP_SHORT: Partial<Record<RunOfShowStepId, string>> = {
   assign: 'Seat',
-  start: 'Start',
-  question: 'Q',
-  'close-bet-1': 'R1',
-  'deal-board': 'Board',
-  'close-bet-2': 'R2',
-  'start-answer': 'Answer',
+  start: 'Deal',
+  question: 'Ask',
+  'close-bet-1': 'Bet 1',
+  'deal-board': 'Cards',
+  'close-bet-2': 'Bet 2',
+  'start-answer': 'Guess',
   reveal: 'Reveal',
   'end-round': 'Pay',
 }
@@ -1747,28 +1793,28 @@ export function HostTvBar({
   onSpotlight?: (n: number) => void
 }) {
   const modes: Array<{ id: string; label: string; onClick: () => void }> = [
-    { id: 'floor', label: 'Floor', onClick: onVenueFloor },
-    { id: 'chip-lb', label: 'Chip LB', onClick: onLeaderboard },
+    { id: 'floor', label: 'Tables', onClick: onVenueFloor },
+    { id: 'chip-lb', label: 'Chip scores', onClick: onLeaderboard },
   ]
   if (onTriviaLeaderboard) {
-    modes.push({ id: 'trivia-lb', label: 'Trivia LB', onClick: onTriviaLeaderboard })
+    modes.push({ id: 'trivia-lb', label: 'Trivia scores', onClick: onTriviaLeaderboard })
   }
-  modes.push({ id: 'rules', label: 'Rules', onClick: onSeatingRules })
+  modes.push({ id: 'rules', label: 'How to play', onClick: onSeatingRules })
 
   return (
     <div
       className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-2"
       role="group"
-      aria-label="Public display routing"
+      aria-label="What the audience TVs show"
     >
-      <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/35">TVs</span>
+      <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/35">Audience TVs</span>
       <div className="inline-flex flex-wrap overflow-hidden rounded-lg border border-white/20 bg-black/40">
         {modes.map((m, i) => (
           <button
             key={m.id}
             type="button"
             onClick={m.onClick}
-            className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white/75 transition-colors hover:bg-white/10 hover:text-white ${
+            className={`px-3 py-1.5 text-xs font-semibold tracking-wide text-white/75 transition-colors hover:bg-white/10 hover:text-white ${
               i > 0 ? 'border-l border-white/15' : ''
             }`}
           >
@@ -1776,7 +1822,7 @@ export function HostTvBar({
           </button>
         ))}
       </div>
-      <span className="text-xs text-white/35">Spotlight: tap a table on the Floor strip</span>
+      <span className="text-xs text-white/35">Highlight one table: tap it under Tables</span>
     </div>
   )
 }
@@ -1799,10 +1845,17 @@ export function HostRunBar({
   cueHint?: string | null
 }) {
   if (items.length === 0 && !statusLine && !headline && !tvBar) return null
-  const urgencyLabel =
-    pacingUrgency === 'now' ? 'Suggested next · now' : pacingUrgency === 'soon' ? 'Suggested next · soon' : 'Do this now'
-  const urgencyClass =
-    pacingUrgency === 'now'
+  const waitingOnly = items.length === 0 && headline?.title?.toLowerCase().includes('waiting')
+  const urgencyLabel = waitingOnly
+    ? 'Getting started'
+    : pacingUrgency === 'now'
+      ? 'Do this next'
+      : pacingUrgency === 'soon'
+        ? 'Coming up'
+        : 'Your next step'
+  const urgencyClass = waitingOnly
+    ? 'text-sky-300'
+    : pacingUrgency === 'now'
       ? 'text-amber-300'
       : pacingUrgency === 'soon'
         ? 'text-sky-300'
@@ -1908,10 +1961,10 @@ export function HostFloorStrip({
     <div className="mb-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 sm:px-4 sm:py-3">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/40">
-          Floor
+          Tables
           {brief != null ? (
             <span className="ml-2 font-normal normal-case tracking-normal text-white/35">
-              {brief.liveTableCount} tables · {brief.fieldPlayerCount} players
+              {brief.liveTableCount} live · {brief.fieldPlayerCount} players
             </span>
           ) : null}
         </p>
@@ -1929,7 +1982,9 @@ export function HostFloorStrip({
         </p>
       ) : null}
       {seated.length === 0 ? (
-        <p className="text-sm text-white/50">No seated tables yet.</p>
+        <p className="text-sm text-white/50">
+          No tables yet — players join first, then you seat them.
+        </p>
       ) : (
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 overscroll-x-contain">
           {seated.map((row) => {
@@ -1944,7 +1999,7 @@ export function HostFloorStrip({
               <button
                 key={row.tableNum}
                 type="button"
-                title={`Spotlight table ${row.tableNum} on TVs`}
+                title={`Show table ${row.tableNum} large on the TVs`}
                 onClick={() => onSpotlight(row.tableNum)}
                 className={`shrink-0 rounded-lg border px-3 py-2 text-left transition-colors hover:border-casino-emerald/50 hover:bg-emerald-950/20 ${
                   action?.interestingAction
@@ -2028,9 +2083,11 @@ export function HostRunProgressDots({ steps }: { steps: RunOfShowStep[] }) {
 /** Context for the current hand only — no duplicate primary CTAs. */
 export function HostThisHandPanel({
   show,
+  title = 'Right now',
   children,
 }: {
   show: boolean
+  title?: string
   children?: ReactNode
 }) {
   if (!show || !children) return null
@@ -2041,7 +2098,7 @@ export function HostThisHandPanel({
   if (!hasContent) return null
   return (
     <div className="mb-3 rounded-xl border border-white/10 bg-black/25 p-3 sm:p-4">
-      <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-white/40">This hand</p>
+      <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
       <div className="space-y-2">{children}</div>
     </div>
   )
@@ -2049,7 +2106,7 @@ export function HostThisHandPanel({
 
 /** Backstage: diagnostics, rehearsal, overrides — off the live scroll path. */
 export function HostAdvancedPanel({
-  summary = 'Advanced — rehearsal, overrides, diagnostics',
+  summary = 'More tools — practice bots, blinds, emergency overrides',
   defaultOpen = false,
   children,
 }: {

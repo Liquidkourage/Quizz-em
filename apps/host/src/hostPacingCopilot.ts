@@ -2,6 +2,7 @@ import type { GameState } from '@qhe/core'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
 import {
   hostRunOfShowHeadline,
+  isHostWaitingForJoiners,
   resolveRunOfShowStepForHost,
   type RunOfShowStepId,
 } from './hostDeskLayout'
@@ -25,6 +26,15 @@ export function suggestNextHostAction(
   const headline = hostRunOfShowHeadline(gameState, venueBeat, opts)
   const detail = headline.detail ?? 'Follow the primary cue below.'
 
+  if (isHostWaitingForJoiners(gameState)) {
+    return {
+      stepId,
+      title: headline.title,
+      detail: headline.detail ?? detail,
+      urgency: 'ready',
+    }
+  }
+
   let urgency: HostPacingSuggestion['urgency'] = 'ready'
   if (
     stepId === 'close-bet-1' ||
@@ -43,7 +53,7 @@ export function suggestNextHostAction(
     return {
       stepId,
       title: headline.title,
-      detail: `${detail} Tip: Nudge stalls (30s → auto check/fold), then close betting.`,
+      detail: `${detail} Tip: Nudge a slow player (30s, then auto-acts), then close betting.`,
       urgency: 'now',
     }
   }

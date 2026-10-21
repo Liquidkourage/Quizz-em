@@ -72,6 +72,7 @@ import {
   hostControlGameStateFromBeat,
   hostFloorLockstepMisaligned,
   hostHeaderPhaseDisplay,
+  isHostWaitingForJoiners,
   resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
 import {
@@ -86,8 +87,8 @@ import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
 import { suggestNextHostAction } from './hostPacingCopilot'
 
 const HOST_TABS = [
-  { id: 'live' as const, label: 'Run show', hint: 'One cue at a time — TVs up top' },
-  { id: 'content' as const, label: 'Content', hint: 'Bank & setlists' },
+  { id: 'live' as const, label: 'Run show', hint: 'Run the live game — one step at a time' },
+  { id: 'content' as const, label: 'Questions', hint: 'Write questions & setlists' },
 ]
 
 /** Host UI: "First L." from full name; unchanged for single tokens and CPU seats */
@@ -523,12 +524,13 @@ function HostApp() {
   const triviaOptionalNote =
     currentRunStepId === 'question' && !controlRound?.question ? (
       <p className="text-sm text-amber-200/80">
-        Hole cards are dealt — use <strong>Random from bank</strong> or <strong>Next from setlist</strong> to reveal trivia and open wagering.
+        Cards are dealt — use <strong>Next question</strong> or <strong>Random question</strong> so
+        players can start betting.
       </p>
     ) : currentRunStepId === 'start' && hasActiveSetlist && hostControlState.phase === 'lobby' ? (
       <p className="text-sm text-violet-200/85">
-        All felts are in lobby between hands — <strong>Next from setlist</strong> loads question{' '}
-        {activeSetlistNextIndex + 1} and opens wagering without a separate Start click.
+        Between hands — <strong>Next question (setlist)</strong> loads question{' '}
+        {activeSetlistNextIndex + 1}, deals cards, and opens betting in one tap.
       </p>
     ) : null
   const hostTableNum = (() => {
@@ -632,31 +634,52 @@ function HostApp() {
               </div>
               <span className="hidden h-8 w-px bg-white/15 lg:block" aria-hidden />
               <div className="flex flex-wrap items-center gap-2 text-base">
+                <span className="text-white/45">Room</span>
                 <span className="rounded-full border border-white/15 bg-black/40 px-3 py-1 font-mono font-semibold text-white/90 tabular-nums">
                   {gameState.code}
                 </span>
-                <span className="text-white/45">Synced table</span>
-                <span className="rounded-full border border-amber-500/35 bg-amber-950/30 px-2.5 py-0.5 font-medium text-casino-gold">
-                  {gameState.tableId ?? '1'}
-                </span>
+                {(gameState.tableId ?? '') !== LOBBY_TABLE_ID ? (
+                  <>
+                    <span className="text-white/45">Your focus</span>
+                    <span className="rounded-full border border-amber-500/35 bg-amber-950/30 px-2.5 py-0.5 font-medium text-casino-gold">
+                      Table {gameState.tableId}
+                    </span>
+                  </>
+                ) : (
+                  <span className="rounded-full border border-sky-500/30 bg-sky-950/30 px-2.5 py-0.5 text-sm font-medium text-sky-100/90">
+                    Waiting room
+                  </span>
+                )}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-              <span className="text-base uppercase tracking-wider text-white/35">Phase</span>
+              <span className="text-base uppercase tracking-wider text-white/35">Status</span>
               <div className="flex flex-col items-end gap-0.5">
-                <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3.5 py-1.5 text-lg font-bold capitalize text-casino-emerald">
-                  {headerPhase.phase}
+                <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3.5 py-1.5 text-lg font-bold text-casino-emerald">
+                  {headerPhase.phase === 'lobby'
+                    ? 'Waiting room'
+                    : headerPhase.phase === 'betting'
+                      ? 'Betting'
+                      : headerPhase.phase === 'answering'
+                        ? 'Guessing'
+                        : headerPhase.phase === 'showdown'
+                          ? 'Results'
+                          : headerPhase.phase === 'question'
+                            ? 'Question'
+                            : headerPhase.phase === 'reveal'
+                              ? 'Answer reveal'
+                              : headerPhase.phase}
                 </span>
                 {headerPhase.floorMirrored ? (
-                  <span className="text-xs font-semibold uppercase tracking-wide text-white/40">
-                    Venue floor · lobby pool idle
+                  <span className="text-xs font-semibold tracking-wide text-white/40">
+                    Watching the floor from the waiting room
                   </span>
                 ) : null}
               </div>
             </div>
           </div>
 
-          <HostCollapsible summary="Setup — pair TV, password, diagnostics" className="mt-3">
+          <HostCollapsible summary="Setup — connect a TV, host password" className="mt-3">
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-white/45">Pair TV</span>
@@ -1293,10 +1316,14 @@ function HostApp() {
           onSpotlight={spotlightTableOnTvs}
         />
 
-        <HostRunProgressDots steps={runOfShowSteps} />
+        {!isHostWaitingForJoiners(gameState) ? (
+          <HostRunProgressDots steps={runOfShowSteps} />
+        ) : null}
 
         <HostThisHandPanel
+          title={isHostWaitingForJoiners(gameState) ? 'How to begin' : 'Right now'}
           show={
+            isHostWaitingForJoiners(gameState) ||
             showLobbyPrepStrip ||
             currentRunStepId === 'deal-board' ||
             currentRunStepId === 'start-answer' ||
@@ -1306,11 +1333,28 @@ function HostApp() {
             gameState.phase === 'reveal'
           }
         >
+          {isHostWaitingForJoiners(gameState) ? (
+            <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-white/75">
+              <li>
+                Players open the join page and enter room{' '}
+                <span className="font-mono font-semibold text-casino-gold">{gameState.code}</span>.
+              </li>
+              <li>Their names show up here in the waiting room.</li>
+              <li>
+                Tap <strong className="text-white">Seat players at tables</strong> when you’re ready —
+                that starts the show.
+              </li>
+              <li className="text-white/50">
+                Optional: open Setup above to connect a TV, or Questions to load a setlist.
+              </li>
+            </ol>
+          ) : null}
+
           {currentRunStepId === 'assign' &&
           gameState.phase === 'lobby' &&
           (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
           gameState.players.length > 0 ? (
-            <ul className="flex flex-wrap gap-2" aria-label="Players in lobby">
+            <ul className="flex flex-wrap gap-2" aria-label="Players in waiting room">
               {gameState.players.map((p) => (
                 <li
                   key={p.id}
@@ -1322,23 +1366,16 @@ function HostApp() {
             </ul>
           ) : null}
 
-          {currentRunStepId === 'start' &&
-          gameState.phase === 'lobby' &&
-          (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
-          gameState.players.length === 0 ? (
-            <p className="text-sm text-white/58">Waiting for players to join the lobby…</p>
-          ) : null}
-
-          {showLobbyPrepStrip ? triviaOptionalNote : null}
+          {showLobbyPrepStrip && !isHostWaitingForJoiners(gameState) ? triviaOptionalNote : null}
 
           {currentRunStepId === 'deal-board' ? dealCommunityHostStaleNote : null}
 
           {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
           hostControlState.phase === 'betting' ? (
             <p className="text-xs text-white/50">
-              Players act on their phones. Finish wagering when every table is quiet — use{' '}
-              <strong className="text-white/70">Nudge</strong> or{' '}
-              <strong className="text-rose-200/90">Force next</strong> above if someone is stuck.
+              Players bet on their phones. Close the betting round when every table is done — use{' '}
+              <strong className="text-white/70">Nudge slow player</strong> or{' '}
+              <strong className="text-rose-200/90">Skip this player</strong> above if someone is stuck.
             </p>
           ) : null}
 

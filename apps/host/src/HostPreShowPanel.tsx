@@ -1,6 +1,13 @@
+import { useEffect, useState } from 'react'
 import { NeonButton, PokerChip } from '@qhe/ui'
 import type { GameState } from '@qhe/core'
-import { LOBBY_TABLE_ID } from '@qhe/core'
+import {
+  computeOptimalTableCount,
+  LOBBY_TABLE_ID,
+  VENUE_CONDENSE_MAX_SEATS,
+  VENUE_CONDENSE_MIN_SEATS,
+  VENUE_NUMBERED_TABLE_MAX,
+} from '@qhe/core'
 import { isHostWaitingForJoiners } from './hostDeskLayout'
 
 export function HostPreShowPanel({
@@ -16,7 +23,10 @@ export function HostPreShowPanel({
   hostPlayerLabel: (raw: string) => string
   tvPairCode: string
   setTvPairCode: (v: string) => void
-  onSeatPlayers: () => void
+  onSeatPlayers: (plan: {
+    tableCount: number
+    assignments: { playerId: string; tableNum: number }[]
+  }) => void
   onGoQuestions: () => void
   onPairTv: (code: string) => void
 }) {
@@ -26,6 +36,24 @@ export function HostPreShowPanel({
       ? gameState.players
       : []
   const canSeat = lobbyPlayers.length > 0
+  const headcount = lobbyPlayers.length
+  const suggested =
+    headcount === 0
+      ? 1
+      : computeOptimalTableCount(headcount, VENUE_CONDENSE_MAX_SEATS, VENUE_CONDENSE_MIN_SEATS)
+  const minTables = headcount === 0 ? 1 : Math.max(1, Math.ceil(headcount / VENUE_CONDENSE_MAX_SEATS))
+  const maxTables = Math.max(minTables, Math.min(Math.max(headcount, 1), VENUE_NUMBERED_TABLE_MAX))
+  const [tableCount, setTableCount] = useState(suggested)
+  const [countTouched, setCountTouched] = useState(false)
+  const [picks, setPicks] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    if (!countTouched) {
+      setTableCount(suggested)
+      return
+    }
+    setTableCount((current) => Math.min(maxTables, Math.max(minTables, current)))
+  }, [suggested, countTouched, minTables, maxTables])
 
   return (
     <div className="space-y-3">
@@ -73,7 +101,7 @@ export function HostPreShowPanel({
             <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">Players</h3>
             {canSeat ? (
               <p className="mt-1 text-sm text-white/60">
-                {lobbyPlayers.length} waiting — seat when ready.
+                {lobbyPlayers.length} waiting — set the tables, then seat.
               </p>
             ) : waiting ? (
               <p className="mt-1 text-sm text-white/50">Waiting for players…</p>
@@ -83,16 +111,66 @@ export function HostPreShowPanel({
               </p>
             )}
 
+            {canSeat ? (
+              <label className="mt-3 flex flex-wrap items-center gap-2 text-sm text-white/70">
+                Tables
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={minTables}
+                  max={maxTables}
+                  value={tableCount}
+                  aria-label="Number of tables"
+                  onChange={(e) => {
+                    setCountTouched(true)
+                    const next = Math.floor(Number(e.target.value))
+                    if (!Number.isFinite(next)) return
+                    setTableCount(Math.min(maxTables, Math.max(minTables, next)))
+                  }}
+                  className="w-16 rounded-md border border-white/15 bg-black/45 px-2 py-1.5 text-center font-mono text-base text-white outline-none focus:border-sky-500/60"
+                />
+                <span className="text-xs text-white/40">
+                  {minTables}–{maxTables}, {VENUE_CONDENSE_MAX_SEATS} seats each
+                </span>
+              </label>
+            ) : null}
+
             {lobbyPlayers.length > 0 ? (
-              <ul className="mt-3 flex flex-wrap gap-2" aria-label="Players in waiting room">
-                {lobbyPlayers.map((p) => (
-                  <li
-                    key={p.id}
-                    className="rounded-full border border-emerald-400/40 bg-black/35 px-3 py-1 text-sm font-semibold text-emerald-100"
-                  >
-                    {hostPlayerLabel(p.name)}
-                  </li>
-                ))}
+              <ul className="mt-3 space-y-1.5" aria-label="Players in waiting room">
+                {lobbyPlayers.map((p) => {
+                  const label = hostPlayerLabel(p.name)
+                  const picked = picks[p.id]
+                  const value = picked && picked >= 1 && picked <= tableCount ? String(picked) : ''
+                  return (
+                    <li
+                      key={p.id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-black/25 px-2.5 py-1.5"
+                    >
+                      <span className="min-w-0 truncate text-sm font-semibold text-emerald-100">{label}</span>
+                      <select
+                        aria-label={`Table for ${label}`}
+                        value={value}
+                        onChange={(e) => {
+                          const next = Number(e.target.value)
+                          setPicks((current) => {
+                            const copy = { ...current }
+                            if (!Number.isFinite(next) || next < 1) delete copy[p.id]
+                            else copy[p.id] = next
+                            return copy
+                          })
+                        }}
+                        className="shrink-0 rounded-md border border-white/15 bg-black/50 px-2 py-1 text-sm text-white"
+                      >
+                        <option value="">Auto</option>
+                        {Array.from({ length: tableCount }, (_, index) => (
+                          <option key={index + 1} value={index + 1}>
+                            Table {index + 1}
+                          </option>
+                        ))}
+                      </select>
+                    </li>
+                  )
+                })}
               </ul>
             ) : waiting ? (
               <div className="mt-3 flex items-center gap-3 rounded-lg border border-dashed border-white/15 bg-black/25 px-3 py-4 text-white/40">
@@ -102,14 +180,26 @@ export function HostPreShowPanel({
             ) : null}
 
             {canSeat ? (
-              <NeonButton
-                variant="blue"
-                size="normal"
-                className="mt-4 !px-6 !py-3.5 !text-lg !font-bold"
-                onClick={onSeatPlayers}
-              >
-                Seat players at tables
-              </NeonButton>
+              <>
+                <p className="mt-2 text-xs text-white/40">
+                  Auto fills open seats. Each table needs at least one player.
+                </p>
+                <NeonButton
+                  variant="blue"
+                  size="normal"
+                  className="mt-3 !px-6 !py-3.5 !text-lg !font-bold"
+                  onClick={() => {
+                    const assignments = lobbyPlayers.flatMap((player) => {
+                      const tableNum = picks[player.id]
+                      if (!tableNum || tableNum < 1 || tableNum > tableCount) return []
+                      return [{ playerId: player.id, tableNum }]
+                    })
+                    onSeatPlayers({ tableCount, assignments })
+                  }}
+                >
+                  Seat players at tables
+                </NeonButton>
+              </>
             ) : null}
           </div>
         </div>

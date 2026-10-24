@@ -742,9 +742,23 @@ export function adminSetBlinds(smallBlind: number, bigBlind: number, callback?: 
   if (callback) socket.once('ack', callback)
 }
 
-export function assignTablesFromLobby() {
+export type LobbySeatPlan = {
+  tableCount?: number
+  assignments?: { playerId: string; tableNum: number }[]
+}
+
+/** No plan keeps the random split. A plan sets the table count and optional per-player tables. */
+export function assignTablesFromLobby(plan?: LobbySeatPlan, callback?: (ack: ServerAck) => void) {
   if (!socket) return
-  socket.emit('action', { type: 'assignTablesFromLobby' })
+  const payload =
+    plan && (plan.tableCount != null || (plan.assignments && plan.assignments.length > 0))
+      ? plan
+      : undefined
+  socket.emit('action', {
+    type: 'assignTablesFromLobby',
+    ...(payload ? { payload } : {}),
+  })
+  if (callback) socket.once('ack', callback)
 }
 
 /** Host-only: add CPU seats tracked as `vp:*` player ids (server autopilots betting and answers). */

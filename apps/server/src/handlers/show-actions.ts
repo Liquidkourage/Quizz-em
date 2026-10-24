@@ -466,39 +466,91 @@ export async function handleShowAction(
         }
 
         case 'assignTablesFromLobby': {
+          const refuseSeat = (message: string) => {
+            socket.emit('toast', message)
+            socket.emit('ack', { ok: false, message })
+          }
           if (!g.isLobbySessionKey(sessionKey)) {
-            socket.emit(
-              'toast',
-              'Run “Assign” from the lobby session only (join host as table LOBBY).'
-            )
+            refuseSeat('Run “Assign” from the lobby session only (join host as table LOBBY).')
             break
           }
-          if (!g.assertVenueHost(socket, gameState)) break
+          if (!g.assertVenueHost(socket, gameState)) {
+            socket.emit('ack', { ok: false, message: 'Only the host can seat players.' })
+            break
+          }
           if (gameState.phase !== 'lobby') {
-            socket.emit('toast', 'Assign only while still in lobby phase.')
+            refuseSeat('Assign only while still in lobby phase.')
             break
           }
           const lobbyKey = sessionKey
           const lobbyGs = g.rooms.get(lobbyKey)!
           const roster = [...lobbyGs.players]
           if (roster.length === 0) {
-            socket.emit('toast', 'No players in the lobby.')
+            refuseSeat('No players in the lobby.')
             break
           }
           const hostIdSnap = lobbyGs.hostId
           const N = roster.length
-          let tableCount = g.computeOptimalTableCount(
-            N,
-            g.VENUE_CONDENSE_MAX_SEATS,
-            g.VENUE_CONDENSE_MIN_SEATS,
-          )
-          tableCount = Math.min(tableCount, g.VENUE_NUMBERED_TABLE_MAX)
-          const sizes = g.splitIntoTableSizes(N, tableCount)
-          const shuffled = g.shuffle(roster)
-          let offset = 0
-          for (let ti = 0; ti < tableCount; ti++) {
-            const slice = shuffled.slice(offset, offset + sizes[ti])
-            offset += sizes[ti]
+          const seatPlan = payload as
+            | {
+                tableCount?: number
+                assignments?: { playerId?: string; tableNum?: number }[]
+              }
+            | undefined
+          const requestedCount = Number(seatPlan?.tableCount)
+          const pins = Array.isArray(seatPlan?.assignments)
+            ? seatPlan.assignments
+                .map((row) => ({
+                  playerId: typeof row?.playerId === 'string' ? row.playerId : '',
+                  tableNum: Number(row?.tableNum),
+                }))
+                .filter((row) => row.playerId.length > 0 && Number.isFinite(row.tableNum))
+            : []
+          const hostChoseSeating = Number.isFinite(requestedCount) || pins.length > 0
+
+          let groups: typeof roster[]
+          let tableCount: number
+          if (!hostChoseSeating) {
+            tableCount = g.computeOptimalTableCount(
+              N,
+              g.VENUE_CONDENSE_MAX_SEATS,
+              g.VENUE_CONDENSE_MIN_SEATS,
+            )
+            tableCount = Math.min(tableCount, g.VENUE_NUMBERED_TABLE_MAX)
+            const sizes = g.splitIntoTableSizes(N, tableCount)
+            const shuffled = g.shuffle(roster)
+            groups = []
+            let offset = 0
+            for (const size of sizes) {
+              groups.push(shuffled.slice(offset, offset + size))
+              offset += size
+            }
+          } else {
+            tableCount = Number.isFinite(requestedCount)
+              ? Math.floor(requestedCount)
+              : g.computeOptimalTableCount(
+                  N,
+                  g.VENUE_CONDENSE_MAX_SEATS,
+                  g.VENUE_CONDENSE_MIN_SEATS,
+                )
+            tableCount = Math.min(Math.max(1, tableCount), g.VENUE_NUMBERED_TABLE_MAX)
+            const plan = g.planLobbyTableGroups(
+              g.shuffle(roster),
+              tableCount,
+              pins,
+              g.VENUE_CONDENSE_MAX_SEATS,
+            )
+            if (!plan.ok) {
+              refuseSeat(plan.message)
+              break
+            }
+            groups = plan.groups
+            tableCount = groups.length
+          }
+
+          const sizes = groups.map((slice) => slice.length)
+          for (let ti = 0; ti < groups.length; ti++) {
+            const slice = groups[ti]!
             const tid = String(ti + 1)
             const tk = g.tableSessionKey(lobbyGs.code, tid)
             let gsNew = g.applyEffectiveBlindsToGameState(
@@ -551,10 +603,14 @@ export async function handleShowAction(
             hostSock.emit('hostBoundTable', { tableId: '1' })
           }
 
-          socket.emit(
-            'toast',
-            `Seated ${N} players randomly across ${tableCount} tables (${sizes.join(', ')}). You are now on table 1.`
-          )
+          const placedByHost = pins.filter((pin) => roster.some((player) => player.id === pin.playerId)).length
+          const seatMessage = hostChoseSeating
+            ? `Seated ${N} players across ${tableCount} tables (${sizes.join(', ')})${
+                placedByHost > 0 ? `, ${placedByHost} placed by you` : ''
+              }. You are now on table 1.`
+            : `Seated ${N} players randomly across ${tableCount} tables (${sizes.join(', ')}). You are now on table 1.`
+          socket.emit('toast', seatMessage)
+          socket.emit('ack', { ok: true, message: seatMessage })
           g.markVenueShowStarted(lobbyGs.code)
           g.venueSeatingChartPinnedUntilMs.set(
             g.normalizeVenueCode(lobbyGs.code),

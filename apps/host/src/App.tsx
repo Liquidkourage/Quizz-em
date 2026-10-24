@@ -383,10 +383,15 @@ function HostApp() {
     setHostMode('preshow')
   }
 
-  const handleSeatPlayers = () => {
-    assignTablesFromLobby()
-    setHostModeTouched(true)
-    setHostMode('live')
+  const handleSeatPlayers = (plan?: {
+    tableCount: number
+    assignments: { playerId: string; tableNum: number }[]
+  }) => {
+    assignTablesFromLobby(plan, (ack) => {
+      if (!ack.ok) return
+      setHostModeTouched(true)
+      setHostMode('live')
+    })
   }
 
   const feltAutoAlert = useHostVenueAutoAlerts(venueFeltBeat)

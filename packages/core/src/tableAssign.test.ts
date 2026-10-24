@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeOptimalTableCount, splitIntoTableSizes } from './index'
+import { computeOptimalTableCount, planLobbyTableGroups, splitIntoTableSizes } from './index'
 
 function assertSplitSumsToTotal(total: number, tableCount: number) {
   const sizes = splitIntoTableSizes(total, tableCount)
@@ -33,6 +33,56 @@ describe('splitIntoTableSizes', () => {
         assertSplitSumsToTotal(n, t)
       }
     }
+  })
+})
+
+describe('planLobbyTableGroups', () => {
+  const players = (ids: string[]) => ids.map((id) => ({ id }))
+
+  it('fills the smallest tables when nobody is pinned', () => {
+    const plan = planLobbyTableGroups(players(['a', 'b', 'c', 'd', 'e']), 2, [], 8)
+    expect(plan.ok).toBe(true)
+    if (!plan.ok) return
+    expect(plan.groups.map((g) => g.map((p) => p.id))).toEqual([
+      ['a', 'c', 'e'],
+      ['b', 'd'],
+    ])
+  })
+
+  it('keeps a pinned player on the requested table', () => {
+    const plan = planLobbyTableGroups(
+      players(['a', 'b', 'c', 'd']),
+      2,
+      [{ playerId: 'c', tableNum: 1 }],
+      8,
+    )
+    expect(plan.ok).toBe(true)
+    if (!plan.ok) return
+    expect(plan.groups[0]!.map((p) => p.id)).toContain('c')
+    expect(plan.groups[1]!.map((p) => p.id)).not.toContain('c')
+    expect(plan.groups.flat()).toHaveLength(4)
+  })
+
+  it('rejects a table count that would overflow 8 seats', () => {
+    const plan = planLobbyTableGroups(players(['a', 'b', 'c']), 1, [], 2)
+    expect(plan.ok).toBe(false)
+    if (plan.ok) return
+    expect(plan.message).toMatch(/at least 2 tables/)
+  })
+
+  it('rejects an empty table', () => {
+    const plan = planLobbyTableGroups(
+      players(['a', 'b']),
+      2,
+      [
+        { playerId: 'a', tableNum: 1 },
+        { playerId: 'b', tableNum: 1 },
+      ],
+      8,
+    )
+    expect(plan.ok).toBe(false)
+    if (plan.ok) return
+    expect(plan.message).toMatch(/Table 2 has no one/)
   })
 })
 

@@ -127,6 +127,86 @@ export function computeOptimalTableCount(numPlayers: number, maxPerTable: number
   return Math.min(tHigh, Math.max(tLow, ideal));
 }
 
+export type LobbyTablePin = { playerId: string; tableNum: number }
+
+/**
+ * Place lobby players onto `tableCount` tables.
+ * Pins lock a player to a table. Everyone else fills the smallest open table, in input order.
+ */
+export function planLobbyTableGroups<T extends { id: string }>(
+  players: readonly T[],
+  tableCount: number,
+  pins: readonly LobbyTablePin[],
+  maxPerTable: number,
+): { ok: true; groups: T[][] } | { ok: false; message: string } {
+  const maxSeats = Math.max(1, Math.floor(maxPerTable))
+  const count = Math.floor(tableCount)
+  if (players.length === 0) return { ok: false, message: 'No players in the lobby.' }
+  if (!Number.isInteger(count) || count < 1) {
+    return { ok: false, message: 'Table count must be at least 1.' }
+  }
+  const minTables = Math.ceil(players.length / maxSeats)
+  if (count < minTables) {
+    return {
+      ok: false,
+      message: `Need at least ${minTables} tables for ${players.length} players (${maxSeats} seats each).`,
+    }
+  }
+  if (count > players.length) {
+    return {
+      ok: false,
+      message: `${players.length} players can fill at most ${players.length} tables.`,
+    }
+  }
+
+  const byId = new Map(players.map((p) => [p.id, p]))
+  const groups: T[][] = Array.from({ length: count }, () => [])
+  const placed = new Set<string>()
+
+  for (const pin of pins) {
+    const player = byId.get(pin.playerId)
+    if (!player || placed.has(player.id)) continue
+    const tableNum = Math.floor(pin.tableNum)
+    if (!Number.isInteger(tableNum) || tableNum < 1 || tableNum > count) {
+      return { ok: false, message: `Table ${pin.tableNum} is outside 1–${count}.` }
+    }
+    const bucket = groups[tableNum - 1]!
+    if (bucket.length >= maxSeats) {
+      return { ok: false, message: `Table ${tableNum} is full (${maxSeats} seats).` }
+    }
+    bucket.push(player)
+    placed.add(player.id)
+  }
+
+  for (const player of players) {
+    if (placed.has(player.id)) continue
+    let best = -1
+    let bestLen = Infinity
+    for (let i = 0; i < groups.length; i++) {
+      const len = groups[i]!.length
+      if (len < maxSeats && len < bestLen) {
+        best = i
+        bestLen = len
+      }
+    }
+    if (best < 0) {
+      return { ok: false, message: `Not enough seats for ${players.length} players.` }
+    }
+    groups[best]!.push(player)
+    placed.add(player.id)
+  }
+
+  const empty = groups.findIndex((g) => g.length === 0)
+  if (empty >= 0) {
+    return {
+      ok: false,
+      message: `Table ${empty + 1} has no one. Assign a player or use fewer tables.`,
+    }
+  }
+
+  return { ok: true, groups }
+}
+
 /** Near-equal split, e.g. 11 → [6,5] for 2 tables. */
 export function splitIntoTableSizes(totalPlayers: number, tableCount: number): number[] {
   const t = Math.max(1, Math.floor(tableCount));

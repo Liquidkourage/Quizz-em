@@ -18,6 +18,20 @@ export async function handleWageringAction(
   gameStateIn: GameState,
 ): Promise<GameState | null> {
   let gameState = gameStateIn
+  const holdBlocksWager = new Set([
+    'bet',
+    'check',
+    'call',
+    'raise',
+    'fold',
+    'allIn',
+    'adminCloseBetting',
+    'adminAdvanceTurn',
+  ])
+  if (holdBlocksWager.has(type) && g.isVenueHeld(gameState.code)) {
+    socket.emit('toast', 'The room is on hold. Resume to continue.')
+    return gameState
+  }
   switch (type) {
         case 'bet': {
           const betAction = payload as BetAction

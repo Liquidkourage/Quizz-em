@@ -322,6 +322,8 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           typeof p.venueShuffleEveryHands === 'number' && Number.isFinite(p.venueShuffleEveryHands)
             ? Math.floor(p.venueShuffleEveryHands)
             : null,
+        venueHeld: p.venueHeld === true,
+        venueShuffleHeld: p.venueShuffleHeld === true,
         /** Older servers never sent this — keep briefing until reconnect to a newer build. */
         showAudienceWelcome: p.showAudienceWelcome !== false,
         seatingChartPinnedUntilMs:
@@ -373,6 +375,18 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
         aria-live="polite"
       >
         {connectionStatus === 'reconnecting' ? 'Reconnecting display…' : 'Display disconnected — retrying…'}
+      </div>
+    ) : null}
+    {venueWall?.venueHeld === true && !showBriefingHero && !showSeatingChart ? (
+      <div
+        className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center bg-black/55"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="rounded-2xl border border-amber-300/50 bg-black/80 px-10 py-8 text-center shadow-2xl">
+          <p className="text-sm font-bold uppercase tracking-[0.22em] text-amber-200/80">Hold</p>
+          <p className="mt-2 text-5xl font-black text-white">We'll resume</p>
+        </div>
       </div>
     ) : null}
     <AnimatePresence mode="sync">

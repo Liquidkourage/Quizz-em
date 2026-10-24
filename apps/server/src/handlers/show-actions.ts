@@ -10,6 +10,26 @@ export async function handleShowAction(
   gameStateIn: GameState,
 ): Promise<GameState | null> {
   let gameState = gameStateIn
+  const holdBlocksShow = new Set([
+    'startGame',
+    'setQuestion',
+    'nextQuestionFromSetlist',
+    'dealInitialCards',
+    'dealCommunityCards',
+    'startAnswering',
+    'revealAnswer',
+    'endRound',
+    'submitAnswer',
+    'nudgeActingPlayers',
+    'adminAdvanceTurn',
+    'rehearsalSkipToShowdown',
+  ])
+  if (holdBlocksShow.has(type) && g.isVenueHeld(gameState.code)) {
+    const message = 'The room is on hold. Resume to continue.'
+    socket.emit('toast', message)
+    if (type === 'submitAnswer') socket.emit('ack', { ok: false, message })
+    return gameState
+  }
   switch (type) {
 
         case 'startGame': {
@@ -423,6 +443,7 @@ export async function handleShowAction(
         case 'newGame': {
           if (!g.assertVenueHost(socket, gameState)) break
           const vn = g.normalizeVenueCode(gameState.code)
+          g.clearVenueHold(vn)
           g.clearVenueWageringOrchestrationState(vn)
           g.clearVenueRevealBeatTimer(vn)
           g.venuePostHandBeatStartedAtMs.delete(vn)
@@ -601,6 +622,8 @@ export async function handleShowAction(
             ;(hostSock.data as { sessionKey?: string }).sessionKey = t1Key
             g.bindSocketAsVenueHost(hostSock, lobbyGs.code)
             hostSock.emit('hostBoundTable', { tableId: '1' })
+            const seatedHostView = g.rooms.get(t1Key)
+            if (seatedHostView) hostSock.emit('state', seatedHostView)
           }
 
           const placedByHost = pins.filter((pin) => roster.some((player) => player.id === pin.playerId)).length
@@ -618,6 +641,63 @@ export async function handleShowAction(
           )
           g.emitDisplayVenueSnapshotNow(lobbyGs.code)
           gameState = g.rooms.get(t1Key)!
+          break
+        }
+
+        case 'movePlayerToTable': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const playerId = typeof (payload as { playerId?: unknown })?.playerId === 'string'
+            ? (payload as { playerId: string }).playerId
+            : ''
+          const toTableNum = Number((payload as { toTableNum?: unknown })?.toTableNum)
+          const moved = g.moveSeatedPlayer(gameState.code, playerId, toTableNum)
+          socket.emit('toast', moved.message)
+          socket.emit('ack', { ok: moved.ok, message: moved.message })
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
+        case 'setVenueHold': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const held = (payload as { held?: unknown })?.held === true
+          const nowHeld = g.setVenueRoomHold(gameState.code, held)
+          const message = nowHeld ? 'Room on hold. Phones and TVs are waiting.' : 'Room resumed.'
+          socket.emit('toast', message)
+          socket.emit('ack', { ok: true, message })
+          g.io.to(g.hostVenueRoom(g.normalizeVenueCode(gameState.code))).emit('toast', message)
+          break
+        }
+
+        case 'setVenueShuffleEvery': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const every = g.setVenueShuffleEveryAndBroadcast(
+            gameState.code,
+            (payload as { every?: unknown })?.every,
+          )
+          const message = `Tables shuffle every ${every} hands.`
+          socket.emit('toast', message)
+          socket.emit('ack', { ok: true, message })
+          break
+        }
+
+        case 'setVenueSkipNextShuffle': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const skip = (payload as { skip?: unknown })?.skip === true
+          g.setVenueSkipNextShuffleAndBroadcast(gameState.code, skip)
+          const message = skip
+            ? 'Next shuffle skipped. These tables stay through that break.'
+            : 'Next shuffle is back on schedule.'
+          socket.emit('toast', message)
+          socket.emit('ack', { ok: true, message })
+          break
+        }
+
+        case 'shuffleTablesNow': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const shuffled = g.shuffleVenueTablesNow(gameState.code, gameState.hostId)
+          socket.emit('toast', shuffled.message)
+          socket.emit('ack', { ok: shuffled.ok, message: shuffled.message })
+          gameState = g.rooms.get(sessionKey) ?? gameState
           break
         }
 

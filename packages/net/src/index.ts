@@ -78,6 +78,10 @@ export type PlayerVenueBrief = {
   venueHandsUntilShuffle?: number | null
   /** Shuffle cadence (typically 5 venue-wide End Rounds). */
   venueShuffleEveryHands?: number | null
+  /** Host froze phones, TVs, and the cue bar. */
+  venueHeld?: boolean
+  /** Next scheduled shuffle is postponed one cycle. */
+  venueShuffleHeld?: boolean
 }
 
 /** Server `state` payload may include wire-only timing metadata. */
@@ -228,6 +232,10 @@ export type DisplayVenueWallSnapshot = {
   venueHandsUntilShuffle?: number | null
   /** Shuffle cadence (typically 5 venue-wide End Rounds). */
   venueShuffleEveryHands?: number | null
+  /** Host froze the room. TVs show "We'll resume". */
+  venueHeld?: boolean
+  /** Next scheduled shuffle is postponed one cycle. */
+  venueShuffleHeld?: boolean
   /**
    * Public TV briefing: false after host **Assign from lobby** (or **Start Game** fallback for single-table flows),
    * mosaic tile phases, or local mosaic force.
@@ -355,6 +363,11 @@ export type HostVenueFloorBriefPayload = {
   bigWinMinAmount: number
   fieldPlayerCount: number
   liveTableCount: number
+  roster: { playerId: string; name: string; tableNum: number }[]
+  venueHeld: boolean
+  shuffleEveryHands: number
+  venueShuffleHeld: boolean
+  handsUntilShuffle: number | null
 }
 
 export const ClientHello = z.object({

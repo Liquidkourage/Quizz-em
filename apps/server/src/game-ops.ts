@@ -86,7 +86,7 @@ import {
   addVirtualPlayers as spawnVirtualPlayers,
   removeAllVirtualPlayers,
   advanceVirtualBettingStep,
-  runVirtualPlayerSimulation,
+  runVirtualPlayerSimulation as simulateVirtualPlayers,
   tableIsCpuOnly,
   liveVirtualCount,
 } from './virtual-players'
@@ -97,10 +97,15 @@ import {
   venueSeatingAnnouncementFromResult,
 } from './venue-condense'
 import {
+  alignVenueShuffleCounterAfterManualShuffle,
   getVenueHandsCompleted,
+  getVenueShuffleEvery,
+  isVenueShuffleHeld,
   loadVenueShuffleSettingsFromDisk,
   recordVenueShuffleHandCompleted,
   resetVenueShuffleCounter,
+  setVenueShuffleEvery,
+  setVenueSkipNextShuffle,
 } from './venue-shuffle-settings'
 import {
   fastForwardTableToShowdown,
@@ -199,7 +204,6 @@ export {
   resetVenueShuffleCounter,
   resolveAnswerWindowSecondsForStart,
   revealAnswer,
-  runVirtualPlayerSimulation,
   setTableBlindsOverride,
   setVenueAnswerWindowSecondsPersist,
   setVenueBlindStructurePersist,
@@ -456,6 +460,8 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
   const shuffleDisplay = venueShuffleDisplayFields({
     handsCompletedAtVenue: getVenueHandsCompleted(vn),
     liveTableCount: condenseCounts.liveTableCount,
+    every: getVenueShuffleEvery(vn),
+    skipNext: isVenueShuffleHeld(vn),
   })
   return {
     setlistCueNumber,
@@ -469,6 +475,8 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
     handsUntilNextBlindLevel: blindsSnap.handsUntilNextLevel,
     venueHandsUntilShuffle: shuffleDisplay.handsUntilShuffle,
     venueShuffleEveryHands: shuffleDisplay.shuffleEveryHands,
+    venueHeld: isVenueHeld(vn),
+    venueShuffleHeld: isVenueShuffleHeld(vn),
   }
 }
 
@@ -831,6 +839,14 @@ export const humanTurnDeadlineMs = new Map<string, number>()
 /** sessionKey → `${playerId}:${seatIndex}` the deadline applies to (cleared when the actor changes). */
 export const humanTurnActorKey = new Map<string, string>()
 
+/** Venue codes whose phones, TVs, and cue bar are frozen until the host resumes. */
+const venueHeld = new Set<string>()
+const venueHoldStartedAtMs = new Map<string, number>()
+
+export function isVenueHeld(venueCode: string): boolean {
+  return venueHeld.has(normalizeVenueCode(venueCode))
+}
+
 export function markVenueShowStarted(code: string): void {
   const vn = normalizeVenueCode(code)
   if (!venueAudienceWelcomeExpired.has(vn)) {
@@ -871,6 +887,170 @@ export function moveHumanToTableSession(playerId: string, toSessionKey: string, 
   sock.join(toSessionKey)
   ;(sock.data as { sessionKey?: string }).sessionKey = toSessionKey
   sock.emit('seated', { tableId })
+}
+
+export function runVirtualPlayerSimulation(state: GameState): GameState {
+  if (isVenueHeld(state.code)) return state
+  return simulateVirtualPlayers(state)
+}
+
+/** Drop a hold without shifting clocks. Used when the venue is wiped. */
+export function clearVenueHold(venueCode: string): void {
+  const vn = normalizeVenueCode(venueCode)
+  venueHeld.delete(vn)
+  venueHoldStartedAtMs.delete(vn)
+  for (const { tk } of venuePlayableSnapshots(vn)) {
+    clearHumanTurnTimerHandle(tk)
+  }
+}
+
+/**
+ * Freeze or resume the room.
+ * Nudge clocks and answer guides keep the time that was left when the hold started.
+ */
+export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
+  const vn = normalizeVenueCode(venueCode)
+  if (held) {
+    if (venueHeld.has(vn)) return true
+    venueHeld.add(vn)
+    venueHoldStartedAtMs.set(vn, Date.now())
+    for (const { tk } of venuePlayableSnapshots(vn)) {
+      clearHumanTurnTimerHandle(tk)
+    }
+    emitDisplayVenueSnapshotNow(vn)
+    return true
+  }
+  if (!venueHeld.has(vn)) return false
+  const started = venueHoldStartedAtMs.get(vn) ?? Date.now()
+  const elapsed = Math.max(0, Date.now() - started)
+  venueHeld.delete(vn)
+  venueHoldStartedAtMs.delete(vn)
+  for (const { tk, gs } of venuePlayableSnapshots(vn)) {
+    const deadline = humanTurnDeadlineMs.get(tk)
+    if (deadline != null) humanTurnDeadlineMs.set(tk, deadline + elapsed)
+    const answerDeadline = gs.round.answerDeadline
+    let next = gs
+    if (typeof answerDeadline === 'number' && Number.isFinite(answerDeadline)) {
+      next = { ...gs, round: { ...gs.round, answerDeadline: answerDeadline + elapsed } }
+      rooms.set(tk, next)
+    }
+    if (humanTurnDeadlineMs.has(tk)) scheduleHumanTurnTimeout(tk, next)
+    emitVenueTableState(tk, next)
+  }
+  emitDisplayVenueSnapshotNow(vn)
+  return false
+}
+
+function withDealerInRange(gs: GameState): GameState {
+  const n = gs.players.length
+  if (n <= 0) return gs
+  const dealer = gs.round.dealerIndex
+  if (Number.isInteger(dealer) && dealer >= 0 && dealer < n) return gs
+  return { ...gs, round: { ...gs.round, dealerIndex: 0 } }
+}
+
+/** Host: move any seated player to another table. Only while every felt is between hands. */
+export function moveSeatedPlayer(
+  venueCode: string,
+  playerId: string,
+  toTableNum: number,
+): { ok: true; message: string } | { ok: false; message: string } {
+  const vn = normalizeVenueCode(venueCode)
+  const toNum = Math.floor(Number(toTableNum))
+  if (!Number.isInteger(toNum) || toNum < 1 || toNum > VENUE_NUMBERED_TABLE_MAX) {
+    return { ok: false, message: `Pick a table from 1 to ${VENUE_NUMBERED_TABLE_MAX}.` }
+  }
+  const found = findPlayerSessionInVenue(vn, playerId)
+  if (!found || isLobbySessionKey(found.sessionKey)) {
+    return { ok: false, message: 'That player is not seated at a table.' }
+  }
+  const fromNum = tableNumFromSessionKey(vn, found.sessionKey)
+  if (fromNum == null) return { ok: false, message: 'That player is not seated at a table.' }
+  const player = found.gameState.players.find((p) => p.id === playerId)
+  if (!player) return { ok: false, message: 'That player is not seated at a table.' }
+  const name = shortPlayerName(player.name)
+  if (fromNum === toNum) return { ok: false, message: `${name} is already at table ${toNum}.` }
+
+  const busy = venuePlayableSnapshots(vn).find((row) => row.gs.phase !== 'lobby')
+  if (busy) {
+    return { ok: false, message: 'Move players between hands, when every table is waiting.' }
+  }
+
+  const toKey = tableSessionKey(vn, String(toNum))
+  const existingDest = rooms.get(toKey)
+  if ((existingDest?.players.length ?? 0) >= VENUE_CONDENSE_MAX_SEATS) {
+    return { ok: false, message: `Table ${toNum} is full (${VENUE_CONDENSE_MAX_SEATS} seats).` }
+  }
+
+  const fromGs = found.gameState
+  const nextFrom = withDealerInRange({
+    ...fromGs,
+    players: fromGs.players.filter((p) => p.id !== playerId),
+  })
+  rooms.set(found.sessionKey, nextFrom)
+
+  const destBase =
+    existingDest ??
+    ({
+      ...createEmptyGame(vn, fromGs.hostId, String(toNum)),
+      smallBlind: fromGs.smallBlind,
+      bigBlind: fromGs.bigBlind,
+    } satisfies GameState)
+  const nextTo = applyEffectiveBlindsToGameState(
+    withDealerInRange({ ...destBase, players: destBase.players.concat(player) }),
+    vn,
+    toKey,
+  )
+  rooms.set(toKey, nextTo)
+  if (!player.id.startsWith('vp:')) moveHumanToTableSession(player.id, toKey, String(toNum))
+  emitVenueTableState(found.sessionKey, nextFrom)
+  emitVenueTableState(toKey, nextTo)
+  emitDisplayVenueSnapshotNow(vn)
+  return { ok: true, message: `Moved ${name} from table ${fromNum} to table ${toNum}.` }
+}
+
+export function setVenueShuffleEveryAndBroadcast(venueCode: string, every: unknown): number {
+  const next = setVenueShuffleEvery(venueCode, every)
+  emitDisplayVenueSnapshotNow(venueCode)
+  return next
+}
+
+export function setVenueSkipNextShuffleAndBroadcast(venueCode: string, skip: boolean): boolean {
+  const next = setVenueSkipNextShuffle(venueCode, skip)
+  emitDisplayVenueSnapshotNow(venueCode)
+  return next
+}
+
+export function shuffleVenueTablesNow(
+  venueCode: string,
+  hostId: string,
+): { ok: boolean; message: string } {
+  const vn = normalizeVenueCode(venueCode)
+  const tables = venuePlayableSnapshots(vn)
+  if (tables.length < 2) return { ok: false, message: 'Need at least two tables to shuffle.' }
+  if (tables.some((row) => row.gs.phase !== 'lobby')) {
+    return { ok: false, message: 'Shuffle tables between hands, when every table is waiting.' }
+  }
+  const result = runVenueCondenseAfterRound(vn, hostId, true)
+  alignVenueShuffleCounterAfterManualShuffle(vn)
+  emitDisplayVenueSnapshotNow(vn)
+  const message = result.shuffled
+    ? `Tables shuffled — ${result.tablesBefore} → ${result.tablesAfter}.`
+    : 'Tables stayed as they are.'
+  return { ok: result.shuffled, message }
+}
+
+export function venueRosterSeats(
+  venueCode: string,
+): { playerId: string; name: string; tableNum: number }[] {
+  const out: { playerId: string; name: string; tableNum: number }[] = []
+  for (const row of venuePlayableSnapshots(venueCode)) {
+    if (!Number.isFinite(row.n)) continue
+    for (const player of row.gs.players) {
+      out.push({ playerId: player.id, name: player.name, tableNum: row.n })
+    }
+  }
+  return out
 }
 
 export function findPlayerSessionInVenue(
@@ -997,7 +1177,8 @@ export function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): voi
   const timer = setTimeout(() => {
     humanTurnTimers.delete(sessionKey)
     let cur = rooms.get(sessionKey) as GameState | undefined
-    if (!cur || cur.phase !== 'betting' || !cur.round.isBettingOpen) return
+    if (!cur || isVenueHeld(cur.code)) return
+    if (cur.phase !== 'betting' || !cur.round.isBettingOpen) return
     if (cur.round.currentPlayerIndex !== seatIndex) return
     const acting = cur.players[seatIndex]
     if (!acting || acting.id !== playerId) return
@@ -1707,6 +1888,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
   const shuffleDisplay = venueShuffleDisplayFields({
     handsCompletedAtVenue: getVenueHandsCompleted(vn),
     liveTableCount: condenseCounts.liveTableCount,
+    every: getVenueShuffleEvery(vn),
+    skipNext: isVenueShuffleHeld(vn),
   })
 
   const lastHandDisplay = getVenueLastHandDisplay(vn)
@@ -1759,6 +1942,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     venueChipSurvivorCount: condenseCounts.chipSurvivorCount,
     venueHandsUntilShuffle: shuffleDisplay.handsUntilShuffle,
     venueShuffleEveryHands: shuffleDisplay.shuffleEveryHands,
+    venueHeld: isVenueHeld(vn),
+    venueShuffleHeld: isVenueShuffleHeld(vn),
     ...(lastHandDisplay != null &&
     (lastHandDisplay.busts.length > 0 ||
       (lastHandDisplay.seating != null &&
@@ -1795,6 +1980,11 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       fieldPlayerCount: condenseCounts.chipSurvivorCount,
       liveTableCount: condenseCounts.liveTableCount,
       bigBlindHint: blindsSnap.bigBlind,
+      roster: venueRosterSeats(vn),
+      venueHeld: isVenueHeld(vn),
+      shuffleEveryHands: shuffleDisplay.shuffleEveryHands,
+      venueShuffleHeld: isVenueShuffleHeld(vn),
+      handsUntilShuffle: shuffleDisplay.handsUntilShuffle,
     }),
   )
 }
@@ -1993,7 +2183,12 @@ export const VENUE_SYNC_ACTION_TYPES = new Set<string>([
   'adminSetBlinds',
   'adminCloseBetting',
   'nudgeActingPlayers',
-  'assignTablesFromLobby'
+  'assignTablesFromLobby',
+  'movePlayerToTable',
+  'setVenueHold',
+  'setVenueShuffleEvery',
+  'setVenueSkipNextShuffle',
+  'shuffleTablesNow',
 ])
 
 export async function prepareVenuePersistence(): Promise<string> {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   handsUntilVenueShuffle,
   isVenueShuffleHand,
+  resolveVenueShuffleTick,
   mergeTargetTableCount,
   optimalVenueTableCount,
   planVenueCondense,
@@ -48,6 +49,27 @@ describe('venue shuffle schedule', () => {
     expect(
       venueShuffleDisplayFields({ handsCompletedAtVenue: 3, liveTableCount: 12 }).handsUntilShuffle,
     ).toBe(2)
+    expect(
+      venueShuffleDisplayFields({
+        handsCompletedAtVenue: 3,
+        liveTableCount: 12,
+        skipNext: true,
+      }).handsUntilShuffle,
+    ).toBe(7)
+  })
+
+  it('skips one shuffle boundary and then resumes the cycle', () => {
+    const skipped = resolveVenueShuffleTick({
+      handsCompletedAtVenue: 5,
+      every: 5,
+      skipNext: true,
+    })
+    expect(skipped.shuffleThisRound).toBe(false)
+    expect(skipped.skipNext).toBe(false)
+    expect(skipped.handsUntilShuffle).toBe(5)
+
+    const due = resolveVenueShuffleTick({ handsCompletedAtVenue: 10, every: 5, skipNext: false })
+    expect(due.shuffleThisRound).toBe(true)
   })
 })
 

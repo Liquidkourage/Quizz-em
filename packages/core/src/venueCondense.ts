@@ -291,11 +291,32 @@ export function planVenueCondense(
   return { playerMoves, scheduledMerge }
 }
 
+/**
+ * Whether the hand that just finished should reshuffle.
+ * `skipNext` consumes itself on the boundary and pushes the countdown a full cycle.
+ */
+export function resolveVenueShuffleTick(args: {
+  handsCompletedAtVenue: number
+  every?: number
+  skipNext?: boolean
+}): { shuffleThisRound: boolean; skipNext: boolean; handsUntilShuffle: number } {
+  const shuffleEveryHands = Math.max(1, Math.floor(args.every ?? VENUE_SHUFFLE_EVERY_HANDS))
+  const due = isVenueShuffleHand(args.handsCompletedAtVenue, shuffleEveryHands)
+  const skipNext = args.skipNext === true
+  return {
+    shuffleThisRound: due && !skipNext,
+    skipNext: due ? false : skipNext,
+    handsUntilShuffle: handsUntilVenueShuffle(args.handsCompletedAtVenue, shuffleEveryHands),
+  }
+}
+
 /** Audience copy inputs for the scheduled shuffle countdown. */
 export function venueShuffleDisplayFields(args: {
   handsCompletedAtVenue: number
   liveTableCount: number
   every?: number
+  /** When set, the upcoming boundary is postponed by one full cycle. */
+  skipNext?: boolean
 }): {
   handsUntilShuffle: number | null
   shuffleEveryHands: number
@@ -304,8 +325,7 @@ export function venueShuffleDisplayFields(args: {
   if (args.liveTableCount <= 1) {
     return { handsUntilShuffle: null, shuffleEveryHands }
   }
-  return {
-    handsUntilShuffle: handsUntilVenueShuffle(args.handsCompletedAtVenue, shuffleEveryHands),
-    shuffleEveryHands,
-  }
+  let handsUntilShuffle = handsUntilVenueShuffle(args.handsCompletedAtVenue, shuffleEveryHands)
+  if (args.skipNext) handsUntilShuffle += shuffleEveryHands
+  return { handsUntilShuffle, shuffleEveryHands }
 }

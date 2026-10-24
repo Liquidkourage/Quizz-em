@@ -312,6 +312,11 @@ export function buildHostVenueFloorBrief(args: {
   fieldPlayerCount: number
   liveTableCount: number
   bigBlindHint: number
+  roster?: { playerId: string; name: string; tableNum: number }[]
+  venueHeld?: boolean
+  shuffleEveryHands?: number
+  venueShuffleHeld?: boolean
+  handsUntilShuffle?: number | null
 }): HostVenueFloorBriefPayload {
   const log = logForVenue(args.venueCode)
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
@@ -323,5 +328,10 @@ export function buildHostVenueFloorBrief(args: {
     bigWinMinAmount: Math.max(300, bb * 12),
     fieldPlayerCount: args.fieldPlayerCount,
     liveTableCount: args.liveTableCount,
+    roster: args.roster ?? [],
+    venueHeld: args.venueHeld === true,
+    shuffleEveryHands: args.shuffleEveryHands ?? 5,
+    venueShuffleHeld: args.venueShuffleHeld === true,
+    handsUntilShuffle: args.handsUntilShuffle ?? null,
   }
 }

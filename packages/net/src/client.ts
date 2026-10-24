@@ -761,6 +761,36 @@ export function assignTablesFromLobby(plan?: LobbySeatPlan, callback?: (ack: Ser
   if (callback) socket.once('ack', callback)
 }
 
+export function movePlayerToTable(playerId: string, toTableNum: number, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'movePlayerToTable', payload: { playerId, toTableNum } })
+  if (callback) socket.once('ack', callback)
+}
+
+export function setVenueHold(held: boolean, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'setVenueHold', payload: { held } })
+  if (callback) socket.once('ack', callback)
+}
+
+export function setVenueShuffleEvery(every: number, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'setVenueShuffleEvery', payload: { every } })
+  if (callback) socket.once('ack', callback)
+}
+
+export function setVenueSkipNextShuffle(skip: boolean, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'setVenueSkipNextShuffle', payload: { skip } })
+  if (callback) socket.once('ack', callback)
+}
+
+export function shuffleTablesNow(callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'shuffleTablesNow' })
+  if (callback) socket.once('ack', callback)
+}
+
 /** Host-only: add CPU seats tracked as `vp:*` player ids (server autopilots betting and answers). */
 export function addVirtualPlayers(count = 2) {
   if (!socket) return

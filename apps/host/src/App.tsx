@@ -26,6 +26,11 @@ import {
   rehearsalPreviewWinnerScreen,
   rehearsalSkipToShowdown,
   assignTablesFromLobby,
+  movePlayerToTable,
+  setVenueHold,
+  setVenueShuffleEvery,
+  setVenueSkipNextShuffle,
+  shuffleTablesNow,
   displaySetLayout,
   pairDisplayWithHost,
   setVenueAnswerWindowSeconds,
@@ -60,6 +65,7 @@ import {
 } from './hostDeskLayout'
 import { HOST_MODES, suggestHostMode, type HostMode } from './hostMode'
 import { HostPreShowPanel } from './HostPreShowPanel'
+import { HostRoomControls } from './HostRoomControls'
 import { HostLivePanel } from './HostLivePanel'
 import { HostQuestionsPanel } from './HostQuestionsPanel'
 import {
@@ -387,10 +393,11 @@ function HostApp() {
     tableCount: number
     assignments: { playerId: string; tableNum: number }[]
   }) => {
+    setHostModeTouched(true)
+    setHostMode('live')
     assignTablesFromLobby(plan, (ack) => {
-      if (!ack.ok) return
-      setHostModeTouched(true)
-      setHostMode('live')
+      if (ack.ok) return
+      setHostMode('preshow')
     })
   }
 
@@ -650,7 +657,9 @@ function HostApp() {
               <span className="text-base uppercase tracking-wider text-white/35">Status</span>
               <div className="flex flex-col items-end gap-0.5">
                 <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3.5 py-1.5 text-lg font-bold text-casino-emerald">
-                  {headerPhase.phase === 'lobby'
+                  {venueFloorBrief?.venueHeld
+                    ? 'On hold'
+                    : headerPhase.phase === 'lobby'
                     ? 'Waiting room'
                     : headerPhase.phase === 'betting'
                       ? 'Betting'
@@ -670,6 +679,19 @@ function HostApp() {
                   </span>
                 ) : null}
               </div>
+              {(venueFloorBrief?.roster.length ?? 0) > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setVenueHold(!(venueFloorBrief?.venueHeld === true))}
+                  className={`rounded-md px-3.5 py-1.5 text-base font-bold ${
+                    venueFloorBrief?.venueHeld
+                      ? 'border border-amber-300/70 bg-amber-400 text-black'
+                      : 'border border-amber-400/40 bg-amber-950/40 text-amber-100'
+                  }`}
+                >
+                  {venueFloorBrief?.venueHeld ? 'Resume' : 'Hold'}
+                </button>
+              ) : null}
             </div>
           </div>
 
@@ -865,6 +887,14 @@ function HostApp() {
             }
             moreBody={
               <>
+                <HostRoomControls
+                  brief={venueFloorBrief}
+                  hostPlayerLabel={hostPlayerLabel}
+                  onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
+                  onShuffleEvery={(every) => setVenueShuffleEvery(every)}
+                  onSkipNextShuffle={(skip) => setVenueSkipNextShuffle(skip)}
+                  onShuffleNow={() => shuffleTablesNow()}
+                />
                 <HostVenueMoveLogPanel
                   brief={venueFloorBrief}
                   hostPlayerLabel={hostPlayerLabel}

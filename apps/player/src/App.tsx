@@ -283,6 +283,10 @@ function PlayerApp() {
   }
 
   const handleSubmitAnswer = () => {
+    if (venueBrief?.venueHeld) {
+      showToast("We'll resume in a moment.", 2500)
+      return
+    }
     if (!gameState || submittedAnswerDisplay) return
     const err = validateAnswerSubmit(gameState.phase, selectedCards, composedAnswer)
     if (err) {
@@ -409,6 +413,12 @@ function PlayerApp() {
       gameState.phase === 'showdown' ||
       gameState.phase === 'payout')
 
+  const blockIfHeld = () => {
+    if (!venueBrief?.venueHeld) return false
+    showToast("We'll resume in a moment.", 2500)
+    return true
+  }
+
   const mobileDock =
     needsMobileBetDock && bettingCtx && currentPlayer ? (
       <BettingMobileDock
@@ -419,11 +429,26 @@ function PlayerApp() {
         preAction={preAction}
         onPreActionChange={setPreAction}
         onRaiseAmountChange={setRaiseAmount}
-        onCheck={() => checkAction()}
-        onCall={() => callAction()}
-        onRaise={() => raiseAmount > 0 && raiseAction(raiseAmount)}
-        onFold={() => fold()}
-        onAllIn={() => allInAction()}
+        onCheck={() => {
+          if (blockIfHeld()) return
+          checkAction()
+        }}
+        onCall={() => {
+          if (blockIfHeld()) return
+          callAction()
+        }}
+        onRaise={() => {
+          if (blockIfHeld()) return
+          if (raiseAmount > 0) raiseAction(raiseAmount)
+        }}
+        onFold={() => {
+          if (blockIfHeld()) return
+          fold()
+        }}
+        onAllIn={() => {
+          if (blockIfHeld()) return
+          allInAction()
+        }}
       />
     ) : null
 
@@ -457,6 +482,12 @@ function PlayerApp() {
                 myIndex={myIndex}
                 answerPoints={currentPlayer?.answerPoints ?? 0}
               />
+            ) : null}
+
+            {venueBrief?.venueHeld ? (
+              <p className="player-game-strip" role="status">
+                Hold — we'll resume in a moment. Bets and guesses are paused.
+              </p>
             ) : null}
 
             {!hideLiveChrome ? (
@@ -527,11 +558,26 @@ function PlayerApp() {
                   raiseAmount={raiseAmount}
                   pot={gameState.round.pot}
                   onRaiseAmountChange={setRaiseAmount}
-                  onCheck={() => checkAction()}
-                  onCall={() => callAction()}
-                  onRaise={() => raiseAmount > 0 && raiseAction(raiseAmount)}
-                  onFold={() => fold()}
-                  onAllIn={() => allInAction()}
+                  onCheck={() => {
+                    if (blockIfHeld()) return
+                    checkAction()
+                  }}
+                  onCall={() => {
+                    if (blockIfHeld()) return
+                    callAction()
+                  }}
+                  onRaise={() => {
+                    if (blockIfHeld()) return
+                    if (raiseAmount > 0) raiseAction(raiseAmount)
+                  }}
+                  onFold={() => {
+                    if (blockIfHeld()) return
+                    fold()
+                  }}
+                  onAllIn={() => {
+                    if (blockIfHeld()) return
+                    allInAction()
+                  }}
                 />
               </div>
             ) : null}

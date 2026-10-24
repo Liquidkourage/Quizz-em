@@ -1567,6 +1567,7 @@ export {
   VENUE_SHUFFLE_EVERY_HANDS,
   handsUntilVenueShuffle,
   isVenueShuffleHand,
+  resolveVenueShuffleTick,
   countChipSurvivors,
   isChipSurvivor,
   mergeTargetTableCount,

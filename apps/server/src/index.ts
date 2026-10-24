@@ -736,6 +736,9 @@ const io = new Server(httpServer, {
     origin: "*",
     methods: ["GET", "POST"]
   },
+  /** Polling is the join backbone; websocket is the upgrade. Both stay enabled. */
+  transports: ['polling', 'websocket'],
+  allowUpgrades: true,
   /** Faster dead-connection detection so devices rejoin lockstep sooner (GoT-style). */
   pingInterval: 10_000,
   pingTimeout: 20_000,

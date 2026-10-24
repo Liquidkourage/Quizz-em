@@ -20,9 +20,14 @@ import { normalizeDisplayLayoutPayload } from './index'
 let socket: Socket | null = null
 let activePlayerId: string | null = null
 
-/** GoT-style Socket.IO options — prefer websocket, infinite retry with backoff. */
+/**
+ * HTTP long-polling opens the session so a venue that blocks WebSockets still joins.
+ * Socket.IO then upgrades to websocket when the network allows it. Infinite retry with backoff.
+ * Safe on one server process — do not run multiple replicas without sticky sessions.
+ */
 export const QHE_SOCKET_IO_OPTIONS = {
-  transports: ['websocket'] as string[],
+  transports: ['polling', 'websocket'] as Array<'polling' | 'websocket'>,
+  upgrade: true,
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,

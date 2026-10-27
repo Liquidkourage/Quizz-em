@@ -1545,6 +1545,8 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
         clock: '—',
         answerDeadlineMs: null,
         phaseStrictSig: null,
+        questionText: null,
+        questionAnswer: null,
       })
       continue
     }
@@ -1589,6 +1591,11 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
       clock,
       answerDeadlineMs,
       phaseStrictSig: phaseStrictSignature(gs),
+      questionText: gs.round.question?.text?.trim() || null,
+      questionAnswer:
+        gs.round.question != null && Number.isFinite(gs.round.question.answer)
+          ? gs.round.question.answer
+          : null,
     })
   }
   return { felts }

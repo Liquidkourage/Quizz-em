@@ -328,6 +328,42 @@ export function hostControlGameStateFromBeat(
   return syntheticControlStateFromBeatRow(gameState, resolved.phase, resolved.sig, resolved.row)
 }
 
+/**
+ * The felt beat carries the live question even when this desk's table snapshot is still the waiting room.
+ * Stamp that question onto the control state so Deal and the question card can appear.
+ */
+export function hostDeskStateWithLiveQuestion(
+  gameState: GameState,
+  venueBeat: HostVenueFeltBeatRow[] | null,
+): GameState {
+  const control = hostControlGameStateFromBeat(gameState, venueBeat)
+  if (control.round.question != null) return control
+  const tableRaw = gameState.tableId ?? ''
+  const focusNum =
+    tableRaw !== LOBBY_TABLE_ID && tableRaw !== '' ? Number.parseInt(tableRaw, 10) : NaN
+  const focusRow =
+    Number.isFinite(focusNum) ? venueBeat?.find((r) => r.tableNum === focusNum) : undefined
+  const row =
+    focusRow?.questionText
+      ? focusRow
+      : venueBeat?.find((r) => r.active && r.questionText && r.questionAnswer != null)
+  if (!row?.questionText || row.questionAnswer == null || !Number.isFinite(row.questionAnswer)) {
+    return control
+  }
+  return {
+    ...control,
+    phase: control.phase === 'lobby' ? 'question' : control.phase,
+    round: {
+      ...control.round,
+      question: {
+        id: `table-${row.tableNum}`,
+        text: row.questionText,
+        answer: row.questionAnswer,
+      },
+    },
+  }
+}
+
 /** Run-of-show step — uses venue felts when the host session is stale vs the floor. */
 export function resolveRunOfShowStepForHost(
   gameState: GameState,
@@ -649,7 +685,7 @@ export function buildHostPhaseDockItems(args: {
       const dealItems: HostDockItem[] = [
         {
           id: 'start',
-          label: 'Deal cards',
+          label: 'Deal hole cards',
           onClick: onStartGame,
           variant: 'emerald',
           role: 'primary',
@@ -1868,6 +1904,23 @@ export function HostTvBar({
       </div>
       <span className="text-xs text-white/35">Highlight one table: tap it under Tables</span>
     </div>
+  )
+}
+
+/** Question and answer for the host desk. The answer stays off player phones until Reveal. */
+export function HostLiveQuestionCard({ text, answer }: { text: string; answer: number }) {
+  return (
+    <section
+      className="mb-3 rounded-xl border border-amber-400/40 bg-black/55 px-4 py-3"
+      aria-label="Live question"
+    >
+      <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">Question</p>
+      <p className="mt-1 whitespace-pre-wrap text-lg font-semibold leading-snug text-white">{text}</p>
+      <p className="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-casino-gold/80">Answer</p>
+      <p className="mt-0.5 text-3xl font-extrabold tabular-nums text-casino-gold">
+        {formatTriviaNumber(answer)}
+      </p>
+    </section>
   )
 }
 

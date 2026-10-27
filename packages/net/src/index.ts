@@ -295,6 +295,10 @@ export type HostVenueFeltBeatRow = {
    * Host compares across active felts to flag drift.
    */
   phaseStrictSig: string | null
+  /** Live trivia on this felt. Null between hands. */
+  questionText?: string | null
+  /** Host-only answer for {@link questionText}. */
+  questionAnswer?: number | null
 }
 
 export type HostVenueFeltBeatPayload = {

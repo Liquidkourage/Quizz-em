@@ -56,9 +56,10 @@ import {
   HostVenueMoveLogPanel,
   HostContestRoster,
   HostContestBadge,
+  HostLiveQuestionCard,
   buildHostPhaseDockItems,
   formatVenueBlindsSummary,
-  hostControlGameStateFromBeat,
+  hostDeskStateWithLiveQuestion,
   hostFloorLockstepMisaligned,
   hostHeaderPhaseDisplay,
   resolveRunOfShowStepForHost,
@@ -446,7 +447,7 @@ function HostApp() {
   const hasVenueFeltBeat =
     venueFeltBeat != null && venueFeltBeat.some((r) => r.active && r.seated > 0)
 
-  const hostControlState = hostControlGameStateFromBeat(gameState, venueFeltBeat)
+  const hostControlState = hostDeskStateWithLiveQuestion(gameState, venueFeltBeat)
   const headerPhase = hostHeaderPhaseDisplay(gameState, hostControlState)
   const controlRound = hostControlState.round
   const controlBettingRound = controlRound.bettingRound ?? 0
@@ -516,12 +517,12 @@ function HostApp() {
     hasActiveSetlist,
   })
 
-  const pacingSuggestion = suggestNextHostAction(gameState, venueFeltBeat, { hasActiveSetlist })
+  const pacingSuggestion = suggestNextHostAction(hostControlState, venueFeltBeat, { hasActiveSetlist })
   const runOfShowHeadline = {
     title: pacingSuggestion.title,
     detail: pacingSuggestion.detail,
   }
-  const currentRunStepId = resolveRunOfShowStepForHost(gameState, venueFeltBeat)
+  const currentRunStepId = resolveRunOfShowStepForHost(hostControlState, venueFeltBeat)
   const floorLockstepMisaligned = hostFloorLockstepMisaligned(venueFeltBeat)
   const primaryDockId = phaseDockItems.find((i) => i.role === 'primary')?.id ?? phaseDockItems[0]?.id
   const runBarCueHint =
@@ -826,7 +827,16 @@ function HostApp() {
             venueFeltBeat={venueFeltBeat}
             venueFloorBrief={venueFloorBrief}
             onSpotlight={spotlightTableOnTvs}
+            questionSlot={
+              hostControlState.round.question ? (
+                <HostLiveQuestionCard
+                  text={hostControlState.round.question.text}
+                  answer={hostControlState.round.question.answer}
+                />
+              ) : null
+            }
             handShow={
+              hostControlState.round.question != null ||
               currentRunStepId === 'deal-board' ||
               currentRunStepId === 'start-answer' ||
               currentRunStepId === 'close-bet-1' ||

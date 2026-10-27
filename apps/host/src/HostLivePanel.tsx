@@ -24,6 +24,7 @@ export function HostLivePanel({
   venueFeltBeat,
   venueFloorBrief,
   onSpotlight,
+  questionSlot,
   handShow,
   handBody,
   moreBody,
@@ -41,6 +42,7 @@ export function HostLivePanel({
   venueFeltBeat: HostVenueFeltBeatRow[] | null
   venueFloorBrief: HostVenueFloorBriefPayload | null
   onSpotlight: (n: number) => void
+  questionSlot?: ReactNode
   handShow: boolean
   handBody: ReactNode
   moreBody: ReactNode
@@ -84,6 +86,8 @@ export function HostLivePanel({
           />
         }
       />
+
+      {questionSlot}
 
       <HostFloorStrip
         rows={venueFeltBeat}

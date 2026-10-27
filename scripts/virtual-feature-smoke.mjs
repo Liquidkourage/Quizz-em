@@ -219,10 +219,10 @@ async function main() {
     fail('postHandBeatStartedAtMs', String(err.message || err))
   }
 
-  // New hand: start → random bank question → force streets → answering drama → reveal → showdown
-  action(host, 'startGame')
-  await sleep(600)
+  // New hand: question first, then deal → force streets → answering drama → reveal → showdown
   action(host, 'setQuestion', {})
+  await sleep(600)
+  action(host, 'startGame')
   await sleep(1000)
 
   for (let i = 0; i < 16; i++) {
@@ -240,7 +240,7 @@ async function main() {
       action(host, 'startAnswering')
       await sleep(500)
     } else if (p === 'question') {
-      action(host, 'setQuestion', {})
+      action(host, 'startGame')
       await sleep(600)
     } else {
       await sleep(400)

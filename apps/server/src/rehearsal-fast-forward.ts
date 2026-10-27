@@ -75,15 +75,13 @@ export function fastForwardTableToShowdown(gs: GameState, fallbackQuestion: Ques
     }
 
     if (s.phase === 'question') {
+      if (s.round.question == null) break
       if (!playersHaveHoleCards(s)) {
         s = dealHoleCards(s)
         continue
       }
-      if (s.round.question != null) {
-        s = openBettingRound1(s)
-        continue
-      }
-      break
+      s = openBettingRound1(s)
+      continue
     }
 
     if (s.phase === 'lobby') {

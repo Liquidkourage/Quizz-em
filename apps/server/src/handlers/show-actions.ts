@@ -52,37 +52,28 @@ export async function handleShowAction(
           if (startMisaligned) break
 
           const sample = rowsStart[0]!.gs
-          if (sample.phase === 'question') {
-            g.autoDealHoleCardsOnVenue(gameState.code)
-            socket.emit(
-              'toast',
-              'Felts are already in deal setup — skip Start and use Reveal question or Next from setlist.',
-            )
-            gameState = g.rooms.get(sessionKey)!
+          const allHaveQuestion = rowsStart.every((r) => r.gs.round.question != null)
+          if (!allHaveQuestion) {
+            socket.emit('toast', 'Show the question before dealing cards.')
             break
           }
-          if (sample.phase !== 'lobby') {
+          if (sample.phase !== 'question') {
             socket.emit(
               'toast',
-              `Every table must be in lobby before starting the trivia wave (yours collectively: ${g.humanReadableStrictState(sample)}). Run End round & pay out if the last hand finished.`,
+              `Show the question before dealing cards (tables are ${g.humanReadableStrictState(sample)}).`,
             )
             break
           }
           g.clearVenueWageringOrchestrationState(gameState.code)
-          g.clearVenueRevealBeatTimer(vnStart)
-          g.venuePostHandBeatStartedAtMs.delete(vnStart)
-          g.clearVenueLastHandDisplay(vnStart)
-          for (const { tk } of rowsStart) {
-            let gs = g.rooms.get(tk)!
-            gs = g.startGame(gs)
-            gs = g.runVirtualPlayerSimulation(gs)
-            g.rooms.set(tk, gs)
-            g.emitVenueTableState(tk, gs)
-          }
-          g.autoDealHoleCardsOnVenue(gameState.code)
+          const dealt = g.autoDealHoleCardsOnVenue(gameState.code)
+          const opened = g.openBettingAfterQuestionOnVenue(gameState.code)
           socket.emit(
             'toast',
-            'Round started — hole cards dealt on every table. Reveal a question to open wagering.',
+            opened
+              ? 'Hole cards dealt — wagering round 1 open (all tables).'
+              : dealt
+                ? 'Hole cards dealt. Wagering did not open — check every table.'
+                : 'Cards are already dealt.',
           )
           g.markVenueShowStarted(gameState.code)
           gameState = g.rooms.get(sessionKey)!
@@ -118,11 +109,16 @@ export async function handleShowAction(
           }
           const bettingOpened = g.applyQuestionToAllPlayable(gameState.code, picked)
           await g.emitHostLibrary(gameState.code)
+          const afterQuestion = g.venuePlayableSnapshots(gameState.code)
+          const holesReady =
+            afterQuestion.length > 0 && afterQuestion.every((r) => g.playersHaveHoleCards(r.gs))
           socket.emit(
             'toast',
             bettingOpened
               ? 'Question revealed — wagering round 1 open (all tables).'
-              : 'Question synced — deal hole cards first (Start the round), then reveal again if needed.',
+              : holesReady
+                ? 'Question synced — wagering did not open. Deal again if the tables are still in setup.'
+                : 'Question is on the tables. Deal cards when you’re ready.',
           )
           gameState = g.rooms.get(sessionKey)!
           break
@@ -165,7 +161,7 @@ export async function handleShowAction(
                 'toast',
                 bettingOpened
                   ? `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} — wagering round 1 open.`
-                  : `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} → all tables (start the round first if holes are missing).`,
+                  : `Setlist “${sl.name}”: question ${pos} of ${sl.questionIds.length} is on the tables. Deal cards when you’re ready.`,
               )
               gameState = g.rooms.get(sessionKey)!
               dispatched = true
@@ -194,6 +190,10 @@ export async function handleShowAction(
           const vn = g.normalizeVenueCode(gameState.code)
           const rows = g.venuePlayableSnapshots(vn)
           const allHaveQuestion = rows.every((r) => r.gs.round.question != null)
+          if (!allHaveQuestion) {
+            socket.emit('toast', 'Show the question before dealing cards.')
+            break
+          }
           const allHaveHoles = rows.every((r) => g.playersHaveHoleCards(r.gs))
           if (allHaveQuestion && allHaveHoles) {
             if (g.openBettingAfterQuestionOnVenue(gameState.code)) {
@@ -206,13 +206,11 @@ export async function handleShowAction(
               if (allHaveQuestion && g.openBettingAfterQuestionOnVenue(gameState.code)) {
                 socket.emit('toast', 'Hole cards dealt — wagering round 1 open (all tables).')
               } else {
-                socket.emit('toast', 'Hole cards dealt — reveal a question to open wagering.')
+                socket.emit('toast', 'Hole cards dealt — show the question again if wagering did not open.')
               }
             } else {
-              socket.emit('toast', 'Could not deal — every seated table must be in question setup.')
+              socket.emit('toast', 'Could not deal — every seated table must be in question setup with a question showing.')
             }
-          } else {
-            socket.emit('toast', 'Reveal a question first — wagering opens after trivia is shown.')
           }
           gameState = g.rooms.get(sessionKey)!
           break

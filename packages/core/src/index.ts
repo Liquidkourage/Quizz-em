@@ -557,9 +557,10 @@ export function playersHaveHoleCards(state: GameState): boolean {
   return state.players.some((p) => p.hand.length >= 2);
 }
 
-/** Deal two hole cards per player; stays in question until trivia opens wagering. */
+/** Deal two hole cards per player; stays in question until trivia opens wagering. No-op until a question is on the table. */
 export function dealHoleCards(state: GameState): GameState {
   if (state.phase !== 'question' || state.players.length === 0) return state;
+  if (state.round.question == null) return state;
   if (playersHaveHoleCards(state)) return state;
   const updatedPlayers = state.players.map((player) => ({
     ...player,

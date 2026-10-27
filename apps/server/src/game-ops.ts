@@ -2111,7 +2111,6 @@ export function applyQuestionToAllPlayable(venueCode: string, picked: Question):
     rooms.set(tk, gs)
     emitVenueTableState(tk, gs!)
   }
-  autoDealHoleCardsOnVenue(venueCode)
   return openBettingAfterQuestionOnVenue(venueCode)
 }
 
@@ -2120,12 +2119,12 @@ export function autoDealHoleCardsOnVenue(venueCode: string): boolean {
   const vn = normalizeVenueCode(venueCode)
   const rows = venuePlayableSnapshots(vn)
   if (rows.length === 0) return false
-  if (!rows.every((r) => r.gs.phase === 'question')) return false
+  if (!rows.every((r) => r.gs.phase === 'question' && r.gs.round.question != null)) return false
 
   let anyDealt = false
   for (const { tk } of rows) {
     let gs = rooms.get(tk)
-    if (!gs || gs.phase !== 'question' || gs.players.length === 0) continue
+    if (!gs || gs.phase !== 'question' || gs.round.question == null || gs.players.length === 0) continue
     if (playersHaveHoleCards(gs)) continue
     gs = dealHoleCards(gs)
     anyDealt = true

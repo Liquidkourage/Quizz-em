@@ -9,8 +9,8 @@ import {
 } from '@qhe/core'
 import { addVirtualPlayers } from './virtual-players'
 
-describe('holes before question reveal', () => {
-  it('dealHoleCards after startGame keeps question phase with hands only', () => {
+describe('question before hole cards', () => {
+  it('refuses to deal until a question is on the table', () => {
     const q = SAMPLE_QUESTIONS[0]!
     let gs = createEmptyGame('V', '', '1')
     gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
@@ -19,16 +19,19 @@ describe('holes before question reveal', () => {
     expect(gs.phase).toBe('question')
     expect(gs.round.question).toBeFalsy()
 
+    const blocked = dealHoleCards(gs)
+    expect(blocked).toBe(gs)
+    expect(blocked.players.every((p) => p.hand.length === 0)).toBe(true)
+
+    gs = setQuestion(gs, q)
+    expect(gs.round.question?.id).toBe(q.id)
+    expect(gs.players.every((p) => p.hand.length === 0)).toBe(true)
+
     gs = dealHoleCards(gs)
     expect(gs.phase).toBe('question')
-    expect(gs.round.question).toBeFalsy()
     expect(gs.players.every((p) => p.hand.length === 2)).toBe(true)
     expect(gs.round.isBettingOpen).toBe(false)
     expect(gs.round.pot).toBe(0)
-
-    gs = setQuestion(gs, q)
-    expect(gs.phase).toBe('question')
-    expect(gs.round.question?.id).toBe(q.id)
 
     gs = openBettingRound1(gs)
     expect(gs.phase).toBe('betting')

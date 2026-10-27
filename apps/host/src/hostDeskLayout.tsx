@@ -7,7 +7,7 @@ import type {
   HostVenueMoveLogEntry,
   VenueBlindsSnapshot,
 } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID } from '@qhe/core'
+import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards } from '@qhe/core'
 import { adminCloseBetting } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 
@@ -84,8 +84,8 @@ export type RunOfShowStep = {
 
 const RUN_OF_SHOW_ORDER = [
   'assign',
-  'start',
   'question',
+  'start',
   'close-bet-1',
   'deal-board',
   'close-bet-2',
@@ -290,9 +290,9 @@ function runOfShowStepFromBeatPhase(
 ): RunOfShowStepId | null {
   if (phase === 'lobby') {
     if (assignStepApplies(gameState)) return 'assign'
-    return 'start'
+    return 'question'
   }
-  if (phase === 'question') return 'question'
+  if (phase === 'question') return gameState.round.question != null ? 'start' : 'question'
   if (phase === 'betting') {
     if (!sig) return 'close-bet-2'
     const m = /^bet\|(\d+)\|([TF?])\|cc(\d+)$/.exec(sig)
@@ -349,10 +349,10 @@ export function resolveRunOfShowCurrentStepId(gameState: GameState): RunOfShowSt
 
   if (phase === 'lobby') {
     if (assignStepApplies(gameState)) return 'assign'
-    return 'start'
+    return 'question'
   }
   if (phase === 'question') {
-    return 'question'
+    return gameState.round.question != null ? 'start' : 'question'
   }
   if (phase === 'betting') {
     if (bettingOpen && bettingRound <= 1) return 'close-bet-1'
@@ -382,11 +382,11 @@ export function buildHostRunOfShowSteps(
     },
     start: {
       label: 'Deal cards',
-      hint: 'Gives each player two private cards. Next you’ll show a trivia question.',
+      hint: 'Gives each player two private cards and opens the first betting round.',
     },
     question: {
       label: 'Show the question',
-      hint: 'Puts the trivia question on phones and TVs, then opens the first betting round.',
+      hint: 'Puts the trivia question on phones and TVs. Cards stay in the deck until you deal.',
     },
     'close-bet-1': {
       label: 'Close betting (1st round)',
@@ -486,9 +486,21 @@ export function hostRunOfShowHeadline(
   }
 
   if (stepId === 'question' && !controlState.round.question) {
+    const holesOut = playersHaveHoleCards(controlState)
     return {
       title: 'Show the trivia question',
-      detail: 'Cards are dealt. Pick the next question (setlist or bank) so players can bet.',
+      detail: holesOut
+        ? 'Cards are already out. Show the question so players can bet.'
+        : opts?.hasActiveSetlist === true
+          ? 'Next from the setlist puts the question on phones and TVs. Dealing stays locked until then.'
+          : 'Put the question on phones and TVs first. Dealing stays locked until it’s up.',
+    }
+  }
+
+  if (stepId === 'start' && controlState.round.question != null && !playersHaveHoleCards(controlState)) {
+    return {
+      title: 'Deal cards',
+      detail: 'The question is on the tables. Dealing gives everyone two private cards and opens the first betting round.',
     }
   }
 
@@ -513,20 +525,10 @@ export function hostRunOfShowHeadline(
     }
   }
 
-  if (stepId === 'start' && phase === 'lobby') {
-    return {
-      title: opts?.hasActiveSetlist === true ? 'Start the next hand' : 'Deal cards to start',
-      detail:
-        opts?.hasActiveSetlist === true
-          ? 'Tables are ready between hands. Next from setlist deals cards and loads the next question in one tap — or Deal cards if you want to pick the question yourself.'
-          : `Ready when you are. Starting deals two private cards to each player (blinds $${gameState.smallBlind} / $${gameState.bigBlind}).`,
-    }
-  }
-
   if (stepId === 'start' && phase === 'question') {
     return {
-      title: 'Cards dealt — show a question',
-      detail: 'Use Next from setlist or Random from bank so players can start betting.',
+      title: 'Open betting',
+      detail: `Cards and the question are ready. Opening the round posts blinds $${gameState.smallBlind} / $${gameState.bigBlind}.`,
     }
   }
 
@@ -622,18 +624,18 @@ export function buildHostPhaseDockItems(args: {
         role: 'primary',
       })
       items.push({
-        id: 'start',
-        label: 'Deal cards only',
-        onClick: onStartGame,
-        variant: 'emerald',
+        id: 'random',
+        label: 'Random question',
+        onClick: onRandomQuestion,
+        variant: 'purple',
         role: 'secondary',
       })
     } else {
       items.push({
-        id: 'start',
-        label: 'Deal cards',
-        onClick: onStartGame,
-        variant: 'emerald',
+        id: 'random',
+        label: 'Show a random question',
+        onClick: onRandomQuestion,
+        variant: 'purple',
         role: 'primary',
       })
     }
@@ -641,6 +643,48 @@ export function buildHostPhaseDockItems(args: {
   }
 
   if (phase === 'question') {
+    const questionLive = gameState.round.question != null
+    const holesDealt = playersHaveHoleCards(gameState)
+    if (questionLive && !holesDealt) {
+      const dealItems: HostDockItem[] = [
+        {
+          id: 'start',
+          label: 'Deal cards',
+          onClick: onStartGame,
+          variant: 'emerald',
+          role: 'primary',
+        },
+      ]
+      if (hasActiveSetlist) {
+        dealItems.push({
+          id: 'setlist',
+          label: 'Different question',
+          onClick: onNextSetlist,
+          variant: 'purple',
+          role: 'secondary',
+        })
+      } else {
+        dealItems.push({
+          id: 'random',
+          label: 'Different question',
+          onClick: onRandomQuestion,
+          variant: 'purple',
+          role: 'secondary',
+        })
+      }
+      return withRehearsalSkip(dealItems)
+    }
+    if (questionLive && holesDealt) {
+      return withRehearsalSkip([
+        {
+          id: 'start',
+          label: 'Open betting',
+          onClick: onStartGame,
+          variant: 'emerald',
+          role: 'primary',
+        },
+      ])
+    }
     if (hasActiveSetlist) {
       return withRehearsalSkip([
         {

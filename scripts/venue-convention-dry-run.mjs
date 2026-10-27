@@ -306,19 +306,20 @@ async function main() {
     fail('Reconnect restored table', `expected ${victimTableBefore}, got ${reack.restoredTableId}`)
   }
 
+  await hostAction(host, 'setQuestion', {})
   const startPromise = waitForState(
     host,
-    (s) => s.phase === 'question' || s.phase === 'betting',
-    'host table started',
+    (s) => s.phase === 'betting',
+    'host table dealt',
     30_000,
   )
 
   await hostAction(host, 'startGame')
   const hostOnTable = await startPromise
-  if (hostOnTable.phase === 'question' || hostOnTable.phase === 'betting') {
-    pass('Host startGame advanced venue', hostOnTable.phase)
+  if (hostOnTable.phase === 'betting') {
+    pass('Deal waits for the question, then opens wagering', hostOnTable.phase)
   } else {
-    fail('Host startGame advanced venue', hostOnTable.phase)
+    fail('Deal waits for the question, then opens wagering', hostOnTable.phase)
   }
 
   await hostAction(host, 'adminAdvanceTurnVenue')

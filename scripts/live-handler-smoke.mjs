@@ -271,21 +271,21 @@ async function main() {
     else fail('Late join rejected', err.message)
   }
 
-  const started = waitFor(
+  const revealed = waitFor(
     host,
     'state',
-    (s) => s.phase === 'question' || s.phase === 'betting',
-    'startGame',
+    (s) => s.phase === 'question' && s.round?.question != null && !s.players?.some((p) => (p.hand?.length ?? 0) >= 2),
+    'question before cards',
     20_000,
   )
-  action(host, 'startGame')
-  const afterStart = await started
-  pass('startGame', afterStart.phase)
+  action(host, 'setQuestion', {})
+  const afterQuestion = await revealed
+  pass('setQuestion before deal', afterQuestion.round?.question?.text ?? 'question')
 
   const betting = waitFor(host, 'state', (s) => s.phase === 'betting' && s.round?.isBettingOpen, 'betting open', 20_000)
-  action(host, 'setQuestion', {})
+  action(host, 'startGame')
   const betState = await betting
-  pass('setQuestion opens wagering', `pot ${betState.round?.pot}`)
+  pass('deal opens wagering', `pot ${betState.round?.pot}`)
 
   const idx = betState.round.currentPlayerIndex
   const actor = betState.players[idx]

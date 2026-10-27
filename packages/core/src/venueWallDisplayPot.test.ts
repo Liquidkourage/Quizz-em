@@ -30,14 +30,15 @@ describe('venueWallDisplayPot', () => {
     expect(dealt.phase).toBe('betting')
   })
 
-  it('is zero after hole cards before question reveal', () => {
+  it('does not deal hole cards before the question is shown', () => {
     let gs = createEmptyGame('V1', 'h1')
     gs = addPlayer(gs, 'a', 'Alice')
     gs = addPlayer(gs, 'b', 'Bob')
     gs = startGame(gs)
-    gs = dealHoleCards(gs)
-    expect(gs.phase).toBe('question')
-    expect(venueWallDisplayPot(gs)).toBe(0)
+    const blocked = dealHoleCards(gs)
+    expect(blocked).toBe(gs)
+    expect(blocked.players.every((p) => p.hand.length === 0)).toBe(true)
+    expect(venueWallDisplayPot(blocked)).toBe(0)
   })
 
   it('reflects posted blinds after dealInitialCards', () => {

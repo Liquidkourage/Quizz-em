@@ -535,13 +535,11 @@ function HostApp() {
   const triviaOptionalNote =
     currentRunStepId === 'question' && !controlRound?.question ? (
       <p className="text-sm text-amber-200/80">
-        Cards are dealt — use <strong>Next question</strong> or <strong>Random question</strong> so
-        players can start betting.
+        Show the question before dealing. Cards stay in the deck until it’s on the tables.
       </p>
-    ) : currentRunStepId === 'start' && hasActiveSetlist && hostControlState.phase === 'lobby' ? (
+    ) : currentRunStepId === 'start' && controlRound?.question ? (
       <p className="text-sm text-violet-200/85">
-        Between hands — <strong>Next question (setlist)</strong> loads question{' '}
-        {activeSetlistNextIndex + 1}, deals cards, and opens betting in one tap.
+        Question is up. <strong>Deal cards</strong> gives everyone two private cards and opens betting.
       </p>
     ) : null
   const hostTableNum = (() => {

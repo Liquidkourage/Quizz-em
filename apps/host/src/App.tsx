@@ -99,6 +99,12 @@ function hostPlayerLabel(raw: string): string {
   return L ? `${first} ${L}.` : first
 }
 
+function openVenueWindow(path: 'display' | 'player', roomCode: string) {
+  const url = new URL(`/${path}/`, window.location.origin)
+  url.searchParams.set('room', roomCode.trim().toUpperCase())
+  window.open(url.toString(), `qhe-${path}`)
+}
+
 /** Match server clamp in apps/server venue-answer-window-settings. */
 function clampVenueAnswerWindow(v: number): number {
   return Math.min(300, Math.max(15, Math.floor(Number.isFinite(v) ? v : 45)))
@@ -643,6 +649,22 @@ function HostApp() {
                 <span className="rounded-full border border-white/15 bg-black/40 px-3 py-1 font-mono font-semibold text-white/90 tabular-nums">
                   {gameState.code}
                 </span>
+                <button
+                  type="button"
+                  aria-label="Open public display"
+                  onClick={() => openVenueWindow('display', gameState.code)}
+                  className="rounded-md border border-sky-400/40 bg-sky-950/40 px-3 py-1 text-sm font-bold text-sky-100 hover:bg-sky-900/50"
+                >
+                  Display
+                </button>
+                <button
+                  type="button"
+                  aria-label="Open player"
+                  onClick={() => openVenueWindow('player', gameState.code)}
+                  className="rounded-md border border-emerald-400/40 bg-emerald-950/40 px-3 py-1 text-sm font-bold text-emerald-100 hover:bg-emerald-900/50"
+                >
+                  Player
+                </button>
                 {(gameState.tableId ?? '') !== LOBBY_TABLE_ID ? (
                   <>
                     <span className="text-white/45">Your focus</span>

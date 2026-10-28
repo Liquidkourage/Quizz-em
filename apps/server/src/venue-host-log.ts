@@ -4,6 +4,7 @@ import type {
   DisplayVenueSeatingAnnouncement,
   HostVenueActionRow,
   HostVenueBigWinEntry,
+  HostVenueBigBetEntry,
   HostVenueBustEntry,
   HostVenueFloorBriefPayload,
   HostVenueMoveLogEntry,
@@ -16,6 +17,7 @@ const MOVE_LOG_CAP = 200
 type VenueHostLog = {
   busts: HostVenueBustEntry[]
   bigWinners: HostVenueBigWinEntry[]
+  bigBets: HostVenueBigBetEntry[]
   moveLog: HostVenueMoveLogEntry[]
   moveSeq: number
 }
@@ -33,9 +35,10 @@ const venueLastHandDisplay = new Map<string, VenueLastHandDisplay>()
 function logForVenue(vn: string): VenueHostLog {
   let log = venueHostLogs.get(vn)
   if (!log) {
-    log = { busts: [], bigWinners: [], moveLog: [], moveSeq: 0 }
+    log = { busts: [], bigWinners: [], bigBets: [], moveLog: [], moveSeq: 0 }
     venueHostLogs.set(vn, log)
   }
+  if (!Array.isArray(log.bigBets)) log.bigBets = []
   if (!Array.isArray(log.moveLog)) log.moveLog = []
   if (typeof log.moveSeq !== 'number') log.moveSeq = 0
   return log
@@ -97,27 +100,35 @@ function money(n: number): string {
   return `$${Math.round(n).toLocaleString()}`
 }
 
+function chipsJustCommitted(before: GameState, after: GameState, playerId: string): number {
+  const prev = before.players.find((p) => p.id === playerId)
+  const next = after.players.find((p) => p.id === playerId)
+  if (prev != null && next != null) {
+    const fromStack = prev.bankroll - next.bankroll
+    if (fromStack > 0) return Math.round(fromStack)
+  }
+  const prevBet = before.round.playerBets?.[playerId] ?? 0
+  const nextBet = after.round.playerBets?.[playerId] ?? 0
+  return Math.max(0, Math.round(nextBet - prevBet))
+}
+
 function formatBettingMoveSummary(
   gs: GameState,
-  playerId: string,
   action: SeatBettingAction,
   name: string,
+  committed: number,
 ): string {
-  const toCall = Math.max(
-    0,
-    (gs.round.currentBet ?? 0) - (gs.round.playerBets?.[playerId] ?? 0),
-  )
   switch (action) {
     case 'check':
       return `${name} checked`
     case 'call':
-      return `${name} called`
+      return committed > 0 ? `${name} called ${money(committed)}` : `${name} called`
     case 'raise':
       return `${name} raised to ${money(gs.round.currentBet ?? 0)}`
     case 'fold':
       return `${name} folded (points only)`
     case 'allIn':
-      return toCall > 0 ? `${name} is all-in` : `${name} is all-in`
+      return committed > 0 ? `${name} is all-in for ${money(committed)}` : `${name} is all-in`
     default:
       return `${name} ${action}`
   }
@@ -160,13 +171,26 @@ export function recordVenueMovesBetweenStates(
     const prevAct = beforeActs[i] ?? null
     if (nextAct != null && nextAct !== prevAct) {
       const name = shortPlayerName(p.name)
+      const committed = chipsJustCommitted(before, after, p.id)
       pushMove(log, {
         atMs: now,
         tableNum,
         playerName: name,
         kind: nextAct as HostVenueMoveLogKind,
-        summary: formatBettingMoveSummary(after, p.id, nextAct, name),
+        summary: formatBettingMoveSummary(after, nextAct, name, committed),
       })
+      if (
+        (nextAct === 'call' || nextAct === 'raise' || nextAct === 'allIn') &&
+        committed >= bigWinThreshold(after)
+      ) {
+        log.bigBets.unshift({
+          name,
+          tableNum,
+          amount: committed,
+          kind: nextAct,
+          atMs: now,
+        })
+      }
     }
 
     const prev = beforeById.get(p.id)
@@ -185,6 +209,7 @@ export function recordVenueMovesBetweenStates(
       })
     }
   }
+  log.bigBets = log.bigBets.slice(0, LOG_CAP)
 }
 
 function formatActingSummary(tile: DisplayVenueTileSnapshot): string | null {
@@ -303,6 +328,7 @@ export function recordVenueHostHandResults(
 
   log.busts = log.busts.slice(0, LOG_CAP)
   log.bigWinners = log.bigWinners.slice(0, LOG_CAP)
+  log.bigBets = log.bigBets.slice(0, LOG_CAP)
   return handBusts
 }
 
@@ -325,6 +351,7 @@ export function buildHostVenueFloorBrief(args: {
     moveLog: log.moveLog.slice(0, MOVE_LOG_CAP),
     busts: log.busts,
     bigWinners: log.bigWinners,
+    bigBets: log.bigBets,
     bigWinMinAmount: Math.max(300, bb * 12),
     fieldPlayerCount: args.fieldPlayerCount,
     liveTableCount: args.liveTableCount,

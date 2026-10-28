@@ -358,12 +358,23 @@ export type HostVenueBigWinEntry = {
   atMs: number
 }
 
+/** One raise, call, or all-in that committed at least the big-win chip bar. */
+export type HostVenueBigBetEntry = {
+  name: string
+  tableNum: number
+  amount: number
+  kind: 'call' | 'raise' | 'allIn'
+  atMs: number
+}
+
 export type HostVenueFloorBriefPayload = {
   actionRows: HostVenueActionRow[]
   /** Newest-first log of every player move across seated tables. */
   moveLog: HostVenueMoveLogEntry[]
   busts: HostVenueBustEntry[]
   bigWinners: HostVenueBigWinEntry[]
+  /** Newest-first raises, calls, and all-ins at or above {@link bigWinMinAmount}. */
+  bigBets: HostVenueBigBetEntry[]
   bigWinMinAmount: number
   fieldPlayerCount: number
   liveTableCount: number

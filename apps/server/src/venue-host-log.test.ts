@@ -101,5 +101,66 @@ describe('recordVenueMovesBetweenStates', () => {
     expect(brief.moveLog.some((m) => m.kind === 'raise' && m.summary.includes('Bob'))).toBe(true)
     expect(brief.moveLog.some((m) => m.kind === 'submit' && m.summary.includes('42'))).toBe(true)
     expect(brief.moveLog.every((m) => m.tableNum === 1)).toBe(true)
+    expect(brief.bigBets).toHaveLength(0)
+  })
+
+  it('keeps raises, calls, and all-ins that clear the big-win bar', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const smallCall: GameState = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 980 } : p,
+      ),
+      round: {
+        ...before.round,
+        lastSeatBettingAction: ['call', null],
+        playerBets: { 'human:a': 20 },
+        currentPlayerIndex: 1,
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, before, smallCall)
+
+    const bigRaise: GameState = {
+      ...smallCall,
+      players: smallCall.players.map((p) =>
+        p.id === 'human:b' ? { ...p, bankroll: 500 } : p,
+      ),
+      round: {
+        ...smallCall.round,
+        currentBet: 500,
+        lastSeatBettingAction: ['call', 'raise'],
+        playerBets: { 'human:a': 20, 'human:b': 500 },
+        currentPlayerIndex: 0,
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, smallCall, bigRaise)
+
+    const beforeShove = bigRaise
+    const allIn: GameState = {
+      ...beforeShove,
+      players: beforeShove.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 0, isAllIn: true } : p,
+      ),
+      round: {
+        ...beforeShove.round,
+        lastSeatBettingAction: ['allIn', 'raise'],
+        playerBets: { 'human:a': 1000, 'human:b': 500 },
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, beforeShove, allIn)
+
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(brief.bigWinMinAmount).toBe(300)
+    expect(brief.bigBets.map((b) => `${b.kind}:${b.amount}:${b.name}`)).toEqual([
+      'allIn:980:Alice C.',
+      'raise:500:Bob D.',
+    ])
   })
 })

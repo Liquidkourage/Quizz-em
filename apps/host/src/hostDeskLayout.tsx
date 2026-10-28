@@ -1399,7 +1399,7 @@ export function HostVenueFloorBriefPanel({
         <span>
           Venue floor · now
           <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
-            — who&apos;s acting, busts, big wins
+            — who&apos;s acting, busts, big bets, big wins
           </span>
         </span>
       }
@@ -1407,7 +1407,7 @@ export function HostVenueFloorBriefPanel({
       {brief == null ? (
         <p className="text-sm text-white/50">Waiting for venue sync…</p>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.8fr)]">
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,0.75fr))]">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Table action
@@ -1515,6 +1515,40 @@ export function HostVenueFloorBriefPanel({
                   >
                     <span className="font-semibold text-red-100">{hostPlayerLabel(b.name)}</span>
                     <span className="shrink-0 text-white/45">T{b.tableNum}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
+              Big bets
+              <span className="ml-1 font-normal normal-case text-white/35">
+                (≥ <ChipText text={formatHostFloorMoney(brief.bigWinMinAmount)} />)
+              </span>
+            </p>
+            {(brief.bigBets ?? []).length === 0 ? (
+              <p className="text-sm text-white/50">None yet this session.</p>
+            ) : (
+              <ul className="max-h-56 space-y-1 overflow-y-auto pr-1">
+                {(brief.bigBets ?? []).map((bet, i) => (
+                  <li
+                    key={`${bet.name}-${bet.tableNum}-${bet.atMs}-${bet.kind}-${i}`}
+                    className="flex items-baseline justify-between gap-2 rounded-md border border-amber-400/30 bg-amber-950/20 px-2 py-1.5 text-xs"
+                  >
+                    <span className="min-w-0 truncate font-semibold text-amber-50">
+                      {hostPlayerLabel(bet.name)}
+                      <span className="ml-1.5 font-bold uppercase tracking-wide text-amber-200/70">
+                        {BET_ACTION_LABEL[bet.kind] ?? bet.kind}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-right">
+                      <span className="mr-1.5 text-white/40">T{bet.tableNum}</span>
+                      <span className="font-mono font-bold tabular-nums text-amber-100">
+                        <ChipText text={formatHostFloorMoney(bet.amount)} />
+                      </span>
+                    </span>
                   </li>
                 ))}
               </ul>

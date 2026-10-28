@@ -76,7 +76,7 @@ export function suggestNextHostAction(
         gameState.phase === 'reveal'
           ? (headline.detail ??
             'Answer is on the TVs. Pay winners when you are ready.')
-          : 'Pays pots and starts produced payout → intermission beats on TVs before the leaderboard.',
+          : 'Pays pots. The leaderboard follows on the TVs.',
       urgency: 'now',
     }
   }

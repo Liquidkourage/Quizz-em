@@ -1,9 +1,8 @@
-/** Produced TV beats after End Round before the auto leaderboard latch. */
+/** Produced TV beat after End Round, before the auto leaderboard latch. */
 export const POST_HAND_PAYOUT_MS = 10_000
-export const POST_HAND_INTERMISSION_MS = 8_000
-export const POST_HAND_TOTAL_MS = POST_HAND_PAYOUT_MS + POST_HAND_INTERMISSION_MS
+export const POST_HAND_TOTAL_MS = POST_HAND_PAYOUT_MS
 
-export type PostHandBeatKind = 'payout' | 'intermission' | null
+export type PostHandBeatKind = 'payout' | null
 
 /**
  * Which produced beat is live for a given `postHandBeatStartedAtMs` (server epoch)
@@ -15,12 +14,11 @@ export function resolvePostHandBeat(
 ): PostHandBeatKind {
   if (startedAtMs == null || !Number.isFinite(startedAtMs)) return null
   const elapsed = nowMs - startedAtMs
-  if (elapsed < 0 || elapsed >= POST_HAND_TOTAL_MS) return null
-  if (elapsed < POST_HAND_PAYOUT_MS) return 'payout'
-  return 'intermission'
+  if (elapsed < 0 || elapsed >= POST_HAND_PAYOUT_MS) return null
+  return 'payout'
 }
 
-/** True while payout/intermission should block the auto leaderboard latch. */
+/** True while the payout card should block the auto leaderboard latch. */
 export function postHandBeatsActive(
   startedAtMs: number | null | undefined,
   nowMs: number,

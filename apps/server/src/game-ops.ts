@@ -253,7 +253,7 @@ export const rooms = new Map<string, GameState>()
 export const venueShowdownAtMs = new Map<string, number>()
 export const venueOrchestrationGuard = new Set<string>()
 export const venueRevealToShowdownTimers = new Map<string, ReturnType<typeof setTimeout>>()
-/** Epoch ms when End Round finished — drives display payout/intermission beats. */
+/** Epoch ms when End Round finished — drives the display payout card. */
 export const venuePostHandBeatStartedAtMs = new Map<string, number>()
 export let venueLibraries!: Map<string, VenueLibraryData>
 export const venuePlayhead = new Map<string, { setlistId: string | null; nextIndex: number }>()

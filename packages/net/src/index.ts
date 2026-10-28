@@ -193,7 +193,7 @@ export type DisplayVenueWallSnapshot = {
   /** Seated players eligible to submit (all roster seats while answering). */
   answerEligibleCount?: number | null
   /**
-   * Server epoch ms when End Round finished — drives the produced payout → intermission TV beats
+   * Server epoch ms when End Round finished — drives the produced payout TV card
    * before the auto leaderboard latch. Cleared when the next hand opens.
    */
   postHandBeatStartedAtMs?: number | null

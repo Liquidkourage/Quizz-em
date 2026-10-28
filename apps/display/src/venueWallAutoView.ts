@@ -57,7 +57,7 @@ export const INITIAL_VENUE_WALL_AUTO_VIEW_STATE: VenueWallAutoViewState = {
 /**
  * After payouts (showdown → lobby), latch leaderboard until the next question opens.
  * During an active hand, always prefer the floor mosaic.
- * Hold the latch until produced payout/intermission beats finish when a start time is known.
+ * Hold the latch until the payout card finishes when a start time is known.
  */
 export function stepVenueWallAutoView(
   prev: VenueWallAutoViewState,

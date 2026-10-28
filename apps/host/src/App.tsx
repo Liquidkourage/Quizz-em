@@ -123,6 +123,8 @@ function HostApp() {
       ? new URLSearchParams(window.location.search).get('table') ?? LOBBY_TABLE_ID
       : LOBBY_TABLE_ID
   )
+  /** Hello table. Server-side binds (assign, refresh) must not reconnect — that drops live listeners. */
+  const [socketTableId, setSocketTableId] = useState(hostTableId)
   const socket = useSocket()
 
   const [questionBank, setQuestionBank] = useState<Question[]>([])
@@ -169,7 +171,7 @@ function HostApp() {
   useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
 
   useEffect(() => {
-    const cleanup = connect('host', 'HOST', hostVenueCode, hostTableId, {
+    const cleanup = connect('host', 'HOST', hostVenueCode, socketTableId, {
       hostSecret: effectiveHostSecret,
     })
     const stopKeepalive = startConnectionKeepalive({ syncMs: 30_000 })
@@ -177,9 +179,9 @@ function HostApp() {
       stopKeepalive()
       cleanup()
     }
-  }, [hostVenueCode, hostTableId, effectiveHostSecret])
+  }, [hostVenueCode, socketTableId, effectiveHostSecret])
 
-  // Assign / rehearsal moves the host socket to table 1 — keep the desk dropdown in sync.
+  // Assign / refresh moves this socket on the server. Update the desk label only.
   useEffect(() => {
     const off = onHostBoundTable(({ tableId }) => {
       const next = String(tableId ?? '').trim()
@@ -1134,7 +1136,11 @@ function HostApp() {
                       <span>Host view table (diagnostics)</span>
                       <select
                         value={hostTableId}
-                        onChange={(e) => setHostTableId(e.target.value)}
+                        onChange={(e) => {
+                          const next = e.target.value
+                          setHostTableId(next)
+                          setSocketTableId(next)
+                        }}
                         className="max-w-[14rem] rounded-lg border border-white/20 bg-zinc-950 py-1.5 pl-2 pr-8 text-sm text-white [color-scheme:dark]"
                       >
                         {[

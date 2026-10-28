@@ -1049,7 +1049,7 @@ function mosaicPhaseLabel(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean
   const ph = String(row.phase ?? '').trim().toLowerCase()
   if (dense) {
     if (ph === 'betting') return 'WAGER'
-    if (ph === 'question') return 'Setup'
+    if (ph === 'question') return 'Question'
     if (ph === 'answering') return 'Answer'
     if (ph === 'showdown') return 'Showdown'
     if (ph === 'intermission') return 'Break'
@@ -2018,7 +2018,7 @@ function SeatRingWithLabels({
 
 function phaseLabel(ph: string) {
   if (ph === 'lobby') return 'Lobby'
-  if (ph === 'question') return 'Question setup'
+  if (ph === 'question') return 'Question'
   if (ph === 'betting') return 'Wagering'
   if (ph === 'answering') return 'Answering'
   if (ph === 'reveal') return 'Reveal'

@@ -2122,7 +2122,9 @@ export function drainCpuVpSessionChain(sessionKey: string) {
 }
 
 export function applyQuestionToAllPlayable(venueCode: string, picked: Question): boolean {
-  const playable = allSeatedTableSessionsInVenue(venueCode)
+  const vn = normalizeVenueCode(venueCode)
+  venueSeatingChartPinnedUntilMs.delete(vn)
+  const playable = allSeatedTableSessionsInVenue(vn)
   for (const tk of playable) {
     let gs = rooms.get(tk)!
     gs = setQuestion(gs, picked)

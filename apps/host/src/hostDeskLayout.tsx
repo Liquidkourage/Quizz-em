@@ -472,10 +472,10 @@ export function hostHeaderPhaseDisplay(
   hostControlState: GameState,
 ): { phase: string; floorMirrored: boolean } {
   const tableId = gameState.tableId ?? ''
-  const floorMirrored = tableId === LOBBY_TABLE_ID && hostControlState.phase !== gameState.phase
+  const floorAhead = hostControlState.phase !== gameState.phase
   return {
-    phase: floorMirrored ? hostControlState.phase : gameState.phase,
-    floorMirrored,
+    phase: floorAhead ? hostControlState.phase : gameState.phase,
+    floorMirrored: tableId === LOBBY_TABLE_ID && floorAhead,
   }
 }
 

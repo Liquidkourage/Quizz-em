@@ -99,7 +99,7 @@ export function showdownTableNums(tileRows: DisplayVenueTileSnapshot[]): number[
 /** Human label for venue-wall headline phase chips. */
 export function venueWallPhaseLabel(ph: string): string {
   if (ph === 'lobby') return 'Lobby'
-  if (ph === 'question') return 'Question setup'
+  if (ph === 'question') return 'Question'
   if (ph === 'betting') return 'Wagering'
   if (ph === 'answering') return 'Answering'
   if (ph === 'reveal') return 'Reveal'
@@ -140,7 +140,7 @@ export function venueHeadlinePhaseBadge(
     }
     return roundLabel != null ? `${roundLabel} · Wagering` : 'Wagering'
   }
-  if (ph === 'question') return 'Question setup'
+  if (ph === 'question') return 'Question'
   if (ph === 'showdown' || ph === 'reveal' || ph === 'payout') return venueWallPhaseLabel(ph)
   return null
 }
@@ -426,12 +426,10 @@ export function venueWallShowSeatingChart(
   if (tileRows.length === 0) return false
   const tables = seatingChartTablesFromTiles(tileRows)
   if (tables.length === 0) return false
-  if (
-    wall!.seatingChartPinnedUntilMs != null &&
-    nowMs < wall!.seatingChartPinnedUntilMs
-  ) {
-    return true
-  }
-  if (!tileRows.every((t) => t.phase === 'lobby')) return false
+  const seated = tileRows.filter((t) => t.seated > 0)
+  if (seated.length === 0) return false
+  // Showing a question (or any later phase) replaces the chart immediately, pin timer included.
+  if (seated.some((t) => t.phase !== 'lobby')) return false
+  void nowMs
   return true
 }

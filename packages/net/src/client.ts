@@ -21,6 +21,32 @@ let socket: Socket | null = null
 let activePlayerId: string | null = null
 
 /**
+ * React subscribes once, then `connect()` may replace the socket (table change, pairing).
+ * Keep callbacks here and hang them on every new socket so the desk does not go deaf.
+ */
+const persistentSocketListeners = new Map<string, Set<(...args: any[]) => void>>()
+
+function subscribeSocket(event: string, callback: (...args: any[]) => void): () => void {
+  let bucket = persistentSocketListeners.get(event)
+  if (!bucket) {
+    bucket = new Set()
+    persistentSocketListeners.set(event, bucket)
+  }
+  bucket.add(callback)
+  socket?.on(event, callback)
+  return () => {
+    bucket!.delete(callback)
+    socket?.off(event, callback)
+  }
+}
+
+function reattachPersistentSocketListeners(sock: Socket) {
+  for (const [event, bucket] of persistentSocketListeners) {
+    for (const callback of bucket) sock.on(event, callback)
+  }
+}
+
+/**
  * HTTP long-polling opens the session so a venue that blocks WebSockets still joins.
  * Socket.IO then upgrades to websocket when the network allows it. Infinite retry with backoff.
  * Safe on one server process — do not run multiple replicas without sticky sessions.
@@ -159,6 +185,7 @@ export function connect(
   setConnectionStatus('reconnecting')
   socket = io(socketOrigin(), QHE_SOCKET_IO_OPTIONS)
   attachConnectionLifecycle(socket)
+  reattachPersistentSocketListeners(socket)
 
   socket.on('connect', () => {
     console.log('Connected to server')
@@ -250,130 +277,55 @@ export function startDisplayConnectionKeepalive(opts?: {
 }
 
 export function onState(callback: (state: PlayerGameStateWire) => void) {
-  if (!socket) return () => {}
-
-  socket.on('state', callback)
-  
-  return () => {
-    if (socket) {
-      socket.off('state', callback)
-    }
-  }
+  return subscribeSocket('state', callback)
 }
 
 export function onPlayerVenueBrief(callback: (payload: PlayerVenueBrief) => void) {
-  if (!socket) return () => {}
-
-  socket.on('playerVenueBrief', callback)
-  return () => {
-    if (socket) socket.off('playerVenueBrief', callback)
-  }
+  return subscribeSocket('playerVenueBrief', callback)
 }
 
 export function onToast(callback: (message: string) => void) {
-  if (!socket) return () => {}
-
-  socket.on('toast', callback)
-  
-  return () => {
-    if (socket) {
-      socket.off('toast', callback)
-    }
-  }
+  return subscribeSocket('toast', callback)
 }
 
 export function onDealingCards(callback: (payload?: { tableNum: number }) => void) {
-  if (!socket) return () => {}
-
-  socket.on('dealingCards', callback)
-  
-  return () => {
-    if (socket) {
-      socket.off('dealingCards', callback)
-    }
-  }
+  return subscribeSocket('dealingCards', callback)
 }
 
 export function onDealingCommunityCards(callback: (payload?: { tableNum: number }) => void) {
-  if (!socket) return () => {}
-
-  socket.on('dealingCommunityCards', callback)
-  
-  return () => {
-    if (socket) {
-      socket.off('dealingCommunityCards', callback)
-    }
-  }
+  return subscribeSocket('dealingCommunityCards', callback)
 }
 
 export function onSeated(callback: (info: { tableId: string }) => void) {
-  if (!socket) return () => {}
-
-  socket.on('seated', callback)
-  return () => {
-    if (socket) socket.off('seated', callback)
-  }
+  return subscribeSocket('seated', callback)
 }
 
 export function onHostBoundTable(callback: (info: { tableId: string }) => void) {
-  if (!socket) return () => {}
-
-  socket.on('hostBoundTable', callback)
-  return () => {
-    if (socket) socket.off('hostBoundTable', callback)
-  }
+  return subscribeSocket('hostBoundTable', callback)
 }
 
 export function onHostLibrary(callback: (snapshot: HostLibrarySnapshot) => void) {
-  if (!socket) return () => {}
-
-  socket.on('hostLibrary', callback)
-  return () => {
-    if (socket) socket.off('hostLibrary', callback)
-  }
+  return subscribeSocket('hostLibrary', callback)
 }
 
 export function onHostVenueGameplayHints(callback: (payload: HostVenueGameplayHintsPayload) => void) {
-  if (!socket) return () => {}
-
-  socket.on('hostVenueGameplayHints', callback)
-  return () => {
-    if (socket) socket.off('hostVenueGameplayHints', callback)
-  }
+  return subscribeSocket('hostVenueGameplayHints', callback)
 }
 
 export function onHostVenueFeltBeat(callback: (payload: HostVenueFeltBeatPayload) => void) {
-  if (!socket) return () => {}
-
-  socket.on('hostVenueFeltBeat', callback)
-  return () => {
-    if (socket) socket.off('hostVenueFeltBeat', callback)
-  }
+  return subscribeSocket('hostVenueFeltBeat', callback)
 }
 
 export function onHostVenueFloorBrief(callback: (payload: HostVenueFloorBriefPayload) => void) {
-  if (!socket) return () => {}
-
-  socket.on('hostVenueFloorBrief', callback)
-  return () => {
-    if (socket) socket.off('hostVenueFloorBrief', callback)
-  }
+  return subscribeSocket('hostVenueFloorBrief', callback)
 }
 
 export function onDisplayLayout(callback: (layout: DisplayLayoutPayload) => void) {
-  if (!socket) return () => {}
-  socket.on('displayLayout', callback)
-  return () => {
-    if (socket) socket.off('displayLayout', callback)
-  }
+  return subscribeSocket('displayLayout', callback)
 }
 
 export function onDisplayVenueSnapshot(callback: (payload: DisplayVenueWallSnapshot) => void) {
-  if (!socket) return () => {}
-  socket.on('displayVenueSnapshot', callback)
-  return () => {
-    if (socket) socket.off('displayVenueSnapshot', callback)
-  }
+  return subscribeSocket('displayVenueSnapshot', callback)
 }
 
 /** When `keepConnected`, drop pairing listeners only (venue handoff reuse). */
@@ -393,6 +345,7 @@ export function connectDisplayAwaitingPairing(
   setConnectionStatus('reconnecting')
   socket = io(socketOrigin(), QHE_SOCKET_IO_OPTIONS)
   attachConnectionLifecycle(socket)
+  reattachPersistentSocketListeners(socket)
 
   const onPairing = (p: { code: string }) => handlers.onPairingCode(p.code)
   const onAssigned = (p: { venueCode: string }) => handlers.onVenueAssigned(p.venueCode)

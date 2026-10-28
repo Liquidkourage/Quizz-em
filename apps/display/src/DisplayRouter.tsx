@@ -26,10 +26,6 @@ import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import { useVenueSeatingAnnouncement, venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
-import { useDisplayVenueStatePopups } from './useDisplayVenueStatePopups'
-import DisplayVenueStatePopup from './DisplayVenueStatePopup.tsx'
-import { useVenueAnswerReveal } from './useVenueAnswerReveal'
-import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -267,6 +263,14 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
         tiles,
         headlineQuestionText: p.headlineQuestionText ?? null,
         answerDeadlineMs: p.answerDeadlineMs ?? null,
+        answerSubmitCount:
+          typeof p.answerSubmitCount === 'number' && Number.isFinite(p.answerSubmitCount)
+            ? Math.max(0, Math.floor(p.answerSubmitCount))
+            : null,
+        answerEligibleCount:
+          typeof p.answerEligibleCount === 'number' && Number.isFinite(p.answerEligibleCount)
+            ? Math.max(0, Math.floor(p.answerEligibleCount))
+            : null,
         headlineTableNum:
           typeof p.headlineTableNum === 'number' && Number.isFinite(p.headlineTableNum)
             ? Math.floor(p.headlineTableNum)
@@ -355,13 +359,6 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
     !showSeatingChart &&
     !showLeaderboard &&
     !showRules
-
-  const statePopup = useDisplayVenueStatePopups(
-    showVenueMosaicShell && !handOverlayVisible ? venueWall : null,
-  )
-  const answerReveal = useVenueAnswerReveal(
-    showVenueMosaicShell && !handOverlayVisible ? venueWall : null,
-  )
 
   const showConnBadge = connectionStatus !== 'connected'
 
@@ -474,12 +471,6 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
           key={`venue-seating-${venueWall?.lastHandEndMs ?? 'x'}`}
           seating={seatingAnnouncement.seating}
         />
-      ) : null}
-      {statePopup.visible && statePopup.popup ? (
-        <DisplayVenueStatePopup key={`${statePopup.popup.kind}-${statePopup.popup.title}`} popup={statePopup.popup} />
-      ) : null}
-      {answerReveal.visible && answerReveal.payload ? (
-        <VenueAnswerRevealOverlay key={`answer-reveal-${answerReveal.payload.answer}`} payload={answerReveal.payload} />
       ) : null}
     </AnimatePresence>
     </>

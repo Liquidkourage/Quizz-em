@@ -143,9 +143,10 @@ export function selectionToComposition(selected: SelectedCardRef[]): AnswerCardP
 export function validateAnswerSubmit(
   phase: string,
   selected: SelectedCardRef[],
-  composed: ComposedAnswer
+  composed: ComposedAnswer,
+  opts?: { preload?: boolean }
 ): string | null {
-  if (phase !== 'answering') return 'Answering is not open yet.'
+  if (phase !== 'answering' && !opts?.preload) return 'Answering is not open yet.'
   if (selected.length !== ANSWER_CARD_COUNT) {
     return `Select exactly ${ANSWER_CARD_COUNT} digit cards to build your answer.`
   }

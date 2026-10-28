@@ -22,6 +22,8 @@ type AnswerComposerProps = {
   onClear: () => void
   onSubmit: () => void
   onEditSubmitted?: () => void
+  /** All-in runout: lock a guess before the host opens the clock. */
+  preload?: boolean
 }
 
 export default function AnswerComposer({
@@ -37,6 +39,7 @@ export default function AnswerComposer({
   onClear,
   onSubmit,
   onEditSubmitted,
+  preload = false,
 }: AnswerComposerProps) {
   const boardDealt = communityBoardDealt(gameState)
   const locked = Boolean(submittedDisplay)
@@ -46,7 +49,11 @@ export default function AnswerComposer({
   const questionText = gameState.round.question?.text
 
   const pointsOnly = currentPlayer.pointsOnly === true
-  const panelTitle = pointsOnly ? 'Second life · Compose for points' : 'Compose your answer'
+  const panelTitle = preload
+    ? 'Pre-load your answer'
+    : pointsOnly
+      ? 'Second life · Compose for points'
+      : 'Compose your answer'
 
   return (
     <PlayerGoldPanel title={panelTitle}>
@@ -59,6 +66,12 @@ export default function AnswerComposer({
           </p>
         </div>
       ) : null}
+      {preload ? (
+        <p className="player-game-hint" role="status">
+          Everyone still in the chips is all-in. Lock your guess now — the host still starts the clock.
+        </p>
+      ) : null}
+
       {questionText ? (
         <div className="player-game-answer-question">
           <p className="player-game-question-label">Question</p>
@@ -197,7 +210,7 @@ export default function AnswerComposer({
               Clear
             </PlayerGameButton>
             <PlayerGameButton variant="gold" size="large" onClick={onSubmit} disabled={!canSubmit}>
-              Submit answer
+              {preload ? 'Lock in answer' : 'Submit answer'}
             </PlayerGameButton>
           </div>
         </>

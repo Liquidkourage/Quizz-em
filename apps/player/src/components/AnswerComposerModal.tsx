@@ -17,6 +17,7 @@ type AnswerComposerModalProps = {
   onClear: () => void
   onSubmit: () => void
   onEditSubmitted?: () => void
+  preload?: boolean
 }
 
 export default function AnswerComposerModal(props: AnswerComposerModalProps) {

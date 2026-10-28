@@ -1065,6 +1065,11 @@ export function isAllInRunout(state: GameState): boolean {
   return stillContesting >= 2 && canAct === 0;
 }
 
+/** All-in runout with the five community cards out — phones may lock a guess before the host opens the clock. */
+export function canPreloadTriviaAnswer(state: GameState): boolean {
+  return isAllInRunout(state) && (state.round.communityCards?.length ?? 0) >= 5;
+}
+
 /**
  * When the action seat is folded, all-in, or off the roster, advance or close wagering so
  * CPU drains and venue lockstep do not stall with an open clock on a dead seat.

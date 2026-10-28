@@ -58,6 +58,8 @@ describe('answerComposition', () => {
     expect(selected).toHaveLength(ANSWER_CARD_COUNT)
     expect(composed.display).toBe('37124')
     expect(validateAnswerSubmit('answering', selected, composed)).toBeNull()
+    expect(validateAnswerSubmit('betting', selected, composed)).toMatch(/not open/)
+    expect(validateAnswerSubmit('betting', selected, composed, { preload: true })).toBeNull()
 
     const retap = toggleCardInSelection({
       gameState: gs,

@@ -1,5 +1,6 @@
 import { Server, Socket } from 'socket.io'
 import {
+  canPreloadTriviaAnswer,
   createEmptyGame,
   addPlayer,
   removePlayer,
@@ -169,6 +170,7 @@ export {
   addPlayer,
   adminAdvanceTurn,
   adminCloseBetting,
+  canPreloadTriviaAnswer,
   ANSWER_WINDOW_MAX_SEC,
   ANSWER_WINDOW_MIN_SEC,
   applyEffectiveBlindsToGameState,

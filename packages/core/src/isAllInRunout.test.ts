@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyGame, isAllInRunout, type GameState } from './index'
+import { canPreloadTriviaAnswer, createEmptyGame, isAllInRunout, type GameState } from './index'
 
 function runoutTable(): GameState {
   const base = createEmptyGame('V', '', '1')
@@ -54,5 +54,18 @@ describe('isAllInRunout', () => {
     const gs = runoutTable()
     gs.players = [{ id: 'a', name: 'A', bankroll: 0, hand: [], hasFolded: false, isAllIn: true }]
     expect(isAllInRunout(gs)).toBe(false)
+  })
+})
+
+describe('canPreloadTriviaAnswer', () => {
+  it('is true once the all-in board is complete', () => {
+    expect(canPreloadTriviaAnswer(runoutTable())).toBe(true)
+  })
+
+  it('stays closed until the five community cards are out', () => {
+    const gs = runoutTable()
+    gs.round = { ...gs.round, communityCards: [], bettingRound: 1 }
+    expect(isAllInRunout(gs)).toBe(true)
+    expect(canPreloadTriviaAnswer(gs)).toBe(false)
   })
 })

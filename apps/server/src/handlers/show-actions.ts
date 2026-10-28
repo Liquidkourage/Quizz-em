@@ -299,7 +299,9 @@ export async function handleShowAction(
 
         case 'submitAnswer': {
           const submitAnswerAction = payload as g.SubmitAnswerAction
-          if (gameState.phase !== 'answering') {
+          const accepting =
+            gameState.phase === 'answering' || g.canPreloadTriviaAnswer(gameState)
+          if (!accepting) {
             socket.emit('toast', 'Not accepting answers right now.')
             socket.emit('ack', { ok: false, message: 'Not accepting answers right now.' })
             break

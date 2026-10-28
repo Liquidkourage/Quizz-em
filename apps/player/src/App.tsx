@@ -22,7 +22,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import type { PlayerGameStateWire, PlayerVenueBrief } from '@qhe/net'
-import { LOBBY_TABLE_ID, inChipContest } from '@qhe/core'
+import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, inChipContest, isAllInRunout } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
   readPlayerJoinPrefs,
@@ -288,7 +288,9 @@ function PlayerApp() {
       return
     }
     if (!gameState || submittedAnswerDisplay) return
-    const err = validateAnswerSubmit(gameState.phase, selectedCards, composedAnswer)
+    const err = validateAnswerSubmit(gameState.phase, selectedCards, composedAnswer, {
+      preload: canPreloadTriviaAnswer(gameState),
+    })
     if (err) {
       showToast(err, 4000)
       return
@@ -351,7 +353,10 @@ function PlayerApp() {
     )
   }
 
-  const showAnswerModal = gameState.phase === 'answering' && !!currentPlayer
+  const preloadAnswer = canPreloadTriviaAnswer(gameState)
+  const showAnswerModal = (gameState.phase === 'answering' || preloadAnswer) && !!currentPlayer
+  const allInWaitingOnBoard =
+    gameState.phase === 'betting' && isAllInRunout(gameState) && !preloadAnswer
   const isPointsOnly = currentPlayer?.pointsOnly === true
 
   const seatedAtTable = (gameState.tableId ?? '') !== LOBBY_TABLE_ID
@@ -520,6 +525,12 @@ function PlayerApp() {
 
             {!hideLiveChrome ? <PhaseBanner gameState={gameState} /> : null}
 
+            {allInWaitingOnBoard ? (
+              <p className="player-game-banner player-game-banner--compact" role="status">
+                All-in. Your answer opens as soon as the five community cards are out.
+              </p>
+            ) : null}
+
             {showSeatedLobbyWait ? (
               <p className="player-game-banner player-game-banner--compact">
                 {waitingForFirstStart
@@ -612,6 +623,7 @@ function PlayerApp() {
             }}
             onSubmit={handleSubmitAnswer}
             onEditSubmitted={() => setSubmittedAnswerDisplay(null)}
+            preload={preloadAnswer}
           />
         ) : null}
       </AnimatePresence>

@@ -30,7 +30,6 @@ import { useDisplayVenueStatePopups } from './useDisplayVenueStatePopups'
 import DisplayVenueStatePopup from './DisplayVenueStatePopup.tsx'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
-import PostHandBeatOverlay from './PostHandBeatOverlay.tsx'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -482,7 +481,6 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       {answerReveal.visible && answerReveal.payload ? (
         <VenueAnswerRevealOverlay key={`answer-reveal-${answerReveal.payload.answer}`} payload={answerReveal.payload} />
       ) : null}
-      <PostHandBeatOverlay key="post-hand-beats" wall={venueWall} />
     </AnimatePresence>
     </>
   )

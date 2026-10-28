@@ -192,11 +192,6 @@ export type DisplayVenueWallSnapshot = {
   answerSubmitCount?: number | null
   /** Seated players eligible to submit (all roster seats while answering). */
   answerEligibleCount?: number | null
-  /**
-   * Server epoch ms when End Round finished — drives the produced payout TV card
-   * before the auto leaderboard latch. Cleared when the next hand opens.
-   */
-  postHandBeatStartedAtMs?: number | null
   /** Numbered felt driving `headlineQuestionText` / `answerDeadlineMs` (lowest table in the hottest phase bucket). */
   headlineTableNum?: number | null
   /** Core phase of the headline felt when a shared strip is active. */

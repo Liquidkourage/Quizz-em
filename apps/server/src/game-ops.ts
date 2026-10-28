@@ -253,8 +253,6 @@ export const rooms = new Map<string, GameState>()
 export const venueShowdownAtMs = new Map<string, number>()
 export const venueOrchestrationGuard = new Set<string>()
 export const venueRevealToShowdownTimers = new Map<string, ReturnType<typeof setTimeout>>()
-/** Epoch ms when End Round finished — drives the display payout card. */
-export const venuePostHandBeatStartedAtMs = new Map<string, number>()
 export let venueLibraries!: Map<string, VenueLibraryData>
 export const venuePlayhead = new Map<string, { setlistId: string | null; nextIndex: number }>()
 
@@ -1925,8 +1923,6 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     answerEligibleCount = eligible
   }
 
-  const postHandBeatStartedAtMs = venuePostHandBeatStartedAtMs.get(vn) ?? null
-
   const payload: DisplayVenueWallSnapshot = {
     tiles,
     headlineQuestionText,
@@ -1935,7 +1931,6 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     answerDeadlineMs,
     answerSubmitCount,
     answerEligibleCount,
-    postHandBeatStartedAtMs,
     headlineTableNum,
     headlinePhase,
     setlistCueNumber,

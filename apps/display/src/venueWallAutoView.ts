@@ -1,5 +1,4 @@
 import type { DisplayVenueTileSnapshot, VenueWallViewMode } from '@qhe/net'
-import { postHandBeatsActive } from './postHandBeats'
 
 export type VenueWallAutoViewState = {
   latchedLeaderboard: boolean
@@ -55,26 +54,22 @@ export const INITIAL_VENUE_WALL_AUTO_VIEW_STATE: VenueWallAutoViewState = {
 }
 
 /**
- * After payouts (showdown → lobby), latch leaderboard until the next question opens.
- * During an active hand, always prefer the floor mosaic.
- * Hold the latch until the payout card finishes when a start time is known.
+ * After showdown clears to lobby, latch the leaderboard until the next question opens.
+ * During an active hand, always prefer the floor.
  */
 export function stepVenueWallAutoView(
   prev: VenueWallAutoViewState,
   tiles: DisplayVenueTileSnapshot[],
   headlinePhase: string | null | undefined,
-  opts?: { postHandBeatStartedAtMs?: number | null; nowMs?: number }
 ): { state: VenueWallAutoViewState; view: VenueWallViewMode | null } {
   let latchedLeaderboard = prev.latchedLeaderboard
   let sawPostHandPhase = prev.sawPostHandPhase
-  const nowMs = opts?.nowMs ?? Date.now()
-  const beatsHold = postHandBeatsActive(opts?.postHandBeatStartedAtMs, nowMs)
 
   if (venueWallAnyPostHand(tiles)) {
     sawPostHandPhase = true
   }
 
-  if (sawPostHandPhase && venueWallAllLobby(tiles) && !beatsHold) {
+  if (sawPostHandPhase && venueWallAllLobby(tiles)) {
     latchedLeaderboard = true
     sawPostHandPhase = false
   }
@@ -85,7 +80,7 @@ export function stepVenueWallAutoView(
 
   const state = { latchedLeaderboard, sawPostHandPhase }
 
-  if (venueWallLiveFloorActive(tiles, headlinePhase) || beatsHold) {
+  if (venueWallLiveFloorActive(tiles, headlinePhase)) {
     return { state, view: 'floor' }
   }
 

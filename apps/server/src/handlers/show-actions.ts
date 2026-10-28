@@ -373,7 +373,6 @@ export async function handleShowAction(
             )
           }
           g.clearVenueWageringOrchestrationState(vnRev)
-          g.venuePostHandBeatStartedAtMs.delete(vnRev)
           for (const { tk } of answeringRows) {
             let gs = g.rooms.get(tk)
             if (!gs || gs.phase !== 'answering') continue
@@ -411,7 +410,6 @@ export async function handleShowAction(
           }
           const handBusts = g.recordVenueHostHandResults(vnEnd, handResultRows)
           g.setVenueLastHandDisplay(vnEnd, handBusts)
-          g.venuePostHandBeatStartedAtMs.set(vnEnd, Date.now())
           for (let i = 0; i < handResultRows.length; i++) {
             const tk = lockEnd[i]!.tk
             g.rooms.set(tk, handResultRows[i]!.after)
@@ -444,7 +442,6 @@ export async function handleShowAction(
           g.clearVenueHold(vn)
           g.clearVenueWageringOrchestrationState(vn)
           g.clearVenueRevealBeatTimer(vn)
-          g.venuePostHandBeatStartedAtMs.delete(vn)
           const hostIdSnap = gameState.hostId
           const lobbyKey = g.tableSessionKey(vn, g.LOBBY_TABLE_ID)
           for (const tk of g.allTableSessionsInVenue(vn)) {

@@ -63,7 +63,7 @@ export function suggestNextHostAction(
       stepId,
       title: 'Reveal when ready',
       detail:
-        'Closes answers, plays the short reveal beat on TVs, then auto-advances to showdown. You can End round during reveal if you need to settle early.',
+        'Closes answers and puts the correct answer and closest guesses on the TVs. Pay winners when you are ready.',
       urgency: 'now',
     }
   }
@@ -75,7 +75,7 @@ export function suggestNextHostAction(
       detail:
         gameState.phase === 'reveal'
           ? (headline.detail ??
-            'TVs are on the reveal beat. Wait for showdown, or End round now to settle early.')
+            'Answer is on the TVs. Pay winners when you are ready.')
           : 'Pays pots and starts produced payout → intermission beats on TVs before the leaderboard.',
       urgency: 'now',
     }

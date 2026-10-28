@@ -907,8 +907,7 @@ function HostApp() {
                     </div>
                     {gameState.phase === 'reveal' ? (
                       <p className="mt-1 text-xs text-white/50">
-                        Results follow automatically, or hit <strong className="text-white/70">Pay winners</strong>{' '}
-                        now.
+                        Hit <strong className="text-white/70">Pay winners</strong> when you are ready.
                       </p>
                     ) : (
                       <p className="mt-1 text-xs text-white/50">

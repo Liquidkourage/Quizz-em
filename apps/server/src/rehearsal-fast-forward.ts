@@ -5,6 +5,7 @@ import {
   openBettingRound1,
   pickRandomQuestion,
   playersHaveHoleCards,
+  advanceRevealToShowdown,
   revealAnswer,
   setQuestion,
   startGame,
@@ -45,7 +46,7 @@ export function fastForwardTableToShowdown(gs: GameState, fallbackQuestion: Ques
 
     if (s.phase === 'answering') {
       s = runVirtualPlayerSimulation(s)
-      s = revealAnswer(s)
+      s = advanceRevealToShowdown(revealAnswer(s))
       break
     }
 
@@ -67,7 +68,7 @@ export function fastForwardTableToShowdown(gs: GameState, fallbackQuestion: Ques
       if (isPostBoardWageringClosed(s)) {
         s = openAnsweringPhase(s, Date.now())
         s = runVirtualPlayerSimulation(s)
-        s = revealAnswer(s)
+        s = advanceRevealToShowdown(revealAnswer(s))
         break
       }
 
@@ -94,7 +95,7 @@ export function fastForwardTableToShowdown(gs: GameState, fallbackQuestion: Ques
 
   if (s.phase === 'answering') {
     s = runVirtualPlayerSimulation(s)
-    s = revealAnswer(s)
+    s = advanceRevealToShowdown(revealAnswer(s))
   }
 
   return s

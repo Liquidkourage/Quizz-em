@@ -1294,7 +1294,7 @@ export function submitAnswer(
   return { ...state, players: updatedPlayers };
 }
 
-/** Close the answer window and enter the short reveal beat (correct answer on TVs). */
+/** Close the answer window. The server advances this straight into showdown. */
 export function revealAnswer(state: GameState): GameState {
   if (state.phase !== 'answering') return state
   return { ...state, phase: 'reveal' }

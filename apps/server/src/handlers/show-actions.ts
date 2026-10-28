@@ -379,15 +379,13 @@ export async function handleShowAction(
             if (!gs || gs.phase !== 'answering') continue
             gs = g.revealAnswer(gs)
             g.rooms.set(tk, gs)
-            g.emitVenueTableState(tk, gs)
           }
           g.scheduleVenueRevealToShowdown(vnRev)
-          g.emitDisplayVenueSnapshotNow(vnRev)
           socket.emit(
             'toast',
             stragglers.length === 0
-              ? 'Answers revealed — showdown in a few seconds.'
-              : `Answers revealed on ${answeringRows.length} table(s) — showdown follows shortly.`,
+              ? 'Answers revealed.'
+              : `Answers revealed on ${answeringRows.length} table(s).`,
           )
           gameState = g.rooms.get(sessionKey)!
           break

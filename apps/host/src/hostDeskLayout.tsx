@@ -550,7 +550,7 @@ export function hostRunOfShowHeadline(
   if (stepId === 'end-round' && phase === 'reveal') {
     return {
       title: 'Answer is on the TVs',
-      detail: 'Results follow in a few seconds — or tap Pay winners now to settle early.',
+      detail: 'Pay winners when you are ready.',
     }
   }
 

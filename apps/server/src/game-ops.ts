@@ -252,8 +252,6 @@ export const rooms = new Map<string, GameState>()
 /** Soft guide deadline (epoch ms) for the venue answer countdown UI — host must reveal. */
 export const venueShowdownAtMs = new Map<string, number>()
 export const venueOrchestrationGuard = new Set<string>()
-/** Produced TV beat: reveal → showdown after this many ms. */
-export const REVEAL_BEAT_MS = 8_000
 export const venueRevealToShowdownTimers = new Map<string, ReturnType<typeof setTimeout>>()
 /** Epoch ms when End Round finished — drives display payout/intermission beats. */
 export const venuePostHandBeatStartedAtMs = new Map<string, number>()
@@ -271,27 +269,21 @@ export function clearVenueRevealBeatTimer(venueCode: string) {
   venueRevealToShowdownTimers.delete(vn)
 }
 
-/** After host reveal: short reveal phase on every felt, then auto-advance to showdown. */
+/** Host reveal goes straight to showdown. The old 8s reveal beat never drew on the TV. */
 export function scheduleVenueRevealToShowdown(venueCode: string) {
   const vn = normalizeVenueCode(venueCode)
   clearVenueRevealBeatTimer(vn)
-  venueRevealToShowdownTimers.set(
-    vn,
-    setTimeout(() => {
-      venueRevealToShowdownTimers.delete(vn)
-      const rows = venuePlayableSnapshots(vn)
-      let advanced = 0
-      for (const { tk } of rows) {
-        let gs = rooms.get(tk)
-        if (!gs || gs.phase !== 'reveal') continue
-        gs = advanceRevealToShowdown(gs)
-        rooms.set(tk, gs)
-        emitVenueTableState(tk, gs)
-        advanced++
-      }
-      if (advanced > 0) emitDisplayVenueSnapshotNow(vn)
-    }, REVEAL_BEAT_MS),
-  )
+  const rows = venuePlayableSnapshots(vn)
+  let advanced = 0
+  for (const { tk } of rows) {
+    let gs = rooms.get(tk)
+    if (!gs || gs.phase !== 'reveal') continue
+    gs = advanceRevealToShowdown(gs)
+    rooms.set(tk, gs)
+    emitVenueTableState(tk, gs)
+    advanced++
+  }
+  if (advanced > 0) emitDisplayVenueSnapshotNow(vn)
 }
 
 /** Remember the soft answer-guide deadline for lockstep UI; do not auto-close answers. */
@@ -1274,7 +1266,7 @@ export function phaseStrictSignature(gs: GameState): string {
   }
   // Ignore per-table deadline ms — venue guide is shared; mismatched clocks were false desyncs.
   if (phase === 'answering') return 'answer'
-  // Reveal beat and showdown are one post-hand lockstep bucket (8s auto-advance must not block End Round).
+  // Reveal and showdown are one post-hand lockstep bucket.
   if (phase === 'reveal' || phase === 'showdown') return 'postHand'
   return String(phase)
 }
@@ -1290,7 +1282,7 @@ export function humanReadableStrictState(gs: GameState): string {
     return `${street}, ${clock}, ${cc}/5 board`
   }
   if (ph === 'answering') return 'answer window'
-  if (ph === 'reveal') return 'reveal beat'
+  if (ph === 'reveal') return 'showdown'
   if (ph === 'showdown') return 'showdown'
   if (ph === 'question') return 'deal setup'
   if (ph === 'lobby') return 'lobby between hands'

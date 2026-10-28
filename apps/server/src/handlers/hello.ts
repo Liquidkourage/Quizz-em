@@ -112,22 +112,35 @@ export async function handleHello(socket: Socket, data: ClientHello) {
 
     socket.join(activeSessionKey)
     sockData.sessionKey = activeSessionKey
+    let emitKey = activeSessionKey
 
-    let gameState = g.rooms.get(activeSessionKey)
+    let gameState = g.rooms.get(emitKey)
     if (!gameState) {
       gameState = g.applyEffectiveBlindsToGameState(
         g.createEmptyGame(venueCode, '', playerReconnect?.tableId ?? tableId),
         venueCode,
-        activeSessionKey,
+        emitKey,
       )
-      g.rooms.set(activeSessionKey, gameState)
+      g.rooms.set(emitKey, gameState)
+    }
+
+    if (role === 'host' && tableId === g.LOBBY_TABLE_ID) {
+      const live = g.lowestSeatedTableInVenue(venueCode)
+      if (live && live.sessionKey !== emitKey) {
+        socket.leave(emitKey)
+        socket.join(live.sessionKey)
+        sockData.sessionKey = live.sessionKey
+        emitKey = live.sessionKey
+        gameState = g.rooms.get(emitKey) ?? gameState
+        socket.emit('hostBoundTable', { tableId: live.tableId })
+      }
     }
 
     if (role === 'host') {
       gameState = { ...gameState, hostId: socket.id }
       g.bindSocketAsVenueHost(socket, venueCode)
       // Refresh local snapshot after venue-wide bind (may have rewritten this session).
-      gameState = g.rooms.get(activeSessionKey) ?? gameState
+      gameState = g.rooms.get(emitKey) ?? gameState
     }
 
     let restoredTableId: string | undefined
@@ -154,7 +167,7 @@ export async function handleHello(socket: Socket, data: ClientHello) {
     }
 
     gameState = g.runVirtualPlayerSimulation(gameState)
-    g.rooms.set(activeSessionKey, gameState)
+    g.rooms.set(emitKey, gameState)
 
     const ack: ServerAck = {
       ok: true,
@@ -168,7 +181,7 @@ export async function handleHello(socket: Socket, data: ClientHello) {
     }
     socket.emit('ack', ack)
 
-    g.emitVenueTableState(activeSessionKey, gameState)
+    g.emitVenueTableState(emitKey, gameState)
     if (role === 'player') {
       g.emitPlayerVenueBriefNow(venueCode)
     }

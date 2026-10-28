@@ -770,6 +770,8 @@ function HostApp() {
                 if (ack.ok) setTvPairCode('')
               })
             }}
+            floorSeated={hasVenueFeltBeat}
+            onNewGame={handleNewGame}
           />
         ) : null}
 

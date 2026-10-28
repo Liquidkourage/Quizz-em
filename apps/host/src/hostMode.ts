@@ -16,14 +16,14 @@ export function suggestHostMode(
   gameState: GameState,
   venueFeltBeat: HostVenueFeltBeatRow[] | null,
 ): HostMode {
+  const hasSeatedFelts =
+    venueFeltBeat != null && venueFeltBeat.some((r) => r.active && r.seated > 0)
+  if (hasSeatedFelts || (gameState.tableId ?? '') !== LOBBY_TABLE_ID) return 'live'
   if (isHostWaitingForJoiners(gameState)) return 'preshow'
   const inLobbyPool =
     gameState.phase === 'lobby' &&
     (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
     gameState.players.length > 0
   if (inLobbyPool) return 'preshow'
-  const hasSeatedFelts =
-    venueFeltBeat != null && venueFeltBeat.some((r) => r.active && r.seated > 0)
-  if (hasSeatedFelts || (gameState.tableId ?? '') !== LOBBY_TABLE_ID) return 'live'
   return 'preshow'
 }

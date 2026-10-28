@@ -816,6 +816,18 @@ export function allSeatedTableSessionsInVenue(venueCode: string): string[] {
   })
 }
 
+/** Lowest numbered felt that already has players, for a host refresh that landed in the empty lobby. */
+export function lowestSeatedTableInVenue(venueCode: string): { sessionKey: string; tableId: string } | null {
+  const vn = normalizeVenueCode(venueCode)
+  let best: { sessionKey: string; n: number } | null = null
+  for (const tk of allSeatedTableSessionsInVenue(vn)) {
+    const n = tableNumFromSessionKey(vn, tk)
+    if (n == null) continue
+    if (!best || n < best.n) best = { sessionKey: tk, n }
+  }
+  return best ? { sessionKey: best.sessionKey, tableId: String(best.n) } : null
+}
+
 /** Seats labeled on the public venue-wall mosaic (matches felt chair count in UI). */
 export const VENUE_WALL_SEAT_COUNT = VENUE_WALL_SEAT_SLOTS
 

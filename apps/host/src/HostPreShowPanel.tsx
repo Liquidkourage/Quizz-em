@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NeonButton, PokerChip } from '@qhe/ui'
+import { HostMoreMenu } from './HostMoreMenu'
 import type { GameState } from '@qhe/core'
 import {
   computeOptimalTableCount,
@@ -18,6 +19,8 @@ export function HostPreShowPanel({
   onSeatPlayers,
   onGoQuestions,
   onPairTv,
+  floorSeated = false,
+  onNewGame,
 }: {
   gameState: GameState
   hostPlayerLabel: (raw: string) => string
@@ -29,6 +32,8 @@ export function HostPreShowPanel({
   }) => void
   onGoQuestions: () => void
   onPairTv: (code: string) => void
+  floorSeated?: boolean
+  onNewGame?: () => void
 }) {
   const waiting = isHostWaitingForJoiners(gameState)
   const lobbyPlayers =
@@ -103,11 +108,15 @@ export function HostPreShowPanel({
               <p className="mt-1 text-sm text-white/60">
                 {lobbyPlayers.length} waiting — set the tables, then seat.
               </p>
+            ) : waiting && floorSeated ? (
+              <p className="mt-1 text-sm text-white/60">
+                Players are already seated. Open Live for the hand, or hard reset from More.
+              </p>
             ) : waiting ? (
               <p className="mt-1 text-sm text-white/50">Waiting for players…</p>
             ) : (
               <p className="mt-1 text-sm text-white/55">
-                Seated. Switch to Live, or New game from Live → More.
+                Seated. The hand is on Live. Hard reset is under More.
               </p>
             )}
 
@@ -172,7 +181,7 @@ export function HostPreShowPanel({
                   )
                 })}
               </ul>
-            ) : waiting ? (
+            ) : waiting && !floorSeated ? (
               <div className="mt-3 flex items-center gap-3 rounded-lg border border-dashed border-white/15 bg-black/25 px-3 py-4 text-white/40">
                 <PokerChip size="md" className="opacity-70" />
                 <span className="text-sm">No one yet</span>
@@ -213,6 +222,13 @@ export function HostPreShowPanel({
             Questions & setlists
           </button>
         </div>
+        {onNewGame ? (
+          <HostMoreMenu>
+            <NeonButton variant="gold" size="normal" onClick={onNewGame} className="w-full">
+              New game (hard reset — clears all tables)
+            </NeonButton>
+          </HostMoreMenu>
+        ) : null}
       </div>
     </div>
   )

@@ -478,30 +478,19 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
 
       {addCueOpen && draft ? (
         <HostModal
+          wide
           title="Add from bank"
           onClose={() => {
             setAddCueOpen(false)
             setAddQuery('')
           }}
         >
-          <label className="block text-sm text-white/80">
-            Search
-            <input
-              autoFocus
-              value={addQuery}
-              onChange={(e) => setAddQuery(e.target.value)}
-              placeholder="Question, category, or answer"
-              className={fieldClass}
-            />
-          </label>
           <AddCueResults
             questionBank={questionBank}
             draft={draft}
             query={addQuery}
-            onAdd={(questionId) => {
-              appendQuestionToSetlist(draft.id, questionId)
-              setAddQuery('')
-            }}
+            setQuery={setAddQuery}
+            onAdd={(questionId) => appendQuestionToSetlist(draft.id, questionId)}
           />
         </HostModal>
       ) : null}
@@ -684,34 +673,101 @@ function AddCueResults(props: {
   questionBank: Question[]
   draft: SetlistRow
   query: string
+  setQuery: (value: string) => void
   onAdd: (questionId: string) => void
 }) {
-  const addable = props.questionBank.filter(
-    (q) =>
-      !props.draft.questionIds.includes(q.id) &&
-      matchesQuery(`${q.text} ${q.category ?? ''} ${q.answer}`, props.query),
-  )
-  if (!props.query.trim()) {
-    return <p className="mt-3 text-sm text-white/45">Type to search the bank.</p>
-  }
-  if (addable.length === 0) {
-    return <p className="mt-3 text-sm text-white/45">Nothing in the bank matches that.</p>
-  }
+  const [category, setCategory] = useState('all')
+  const categories = useMemo(() => {
+    const names = new Set<string>()
+    for (const q of props.questionBank) {
+      const name = q.category?.trim()
+      if (name) names.add(name)
+    }
+    return [...names].sort((a, b) => a.localeCompare(b))
+  }, [props.questionBank])
+
+  const visible = props.questionBank.filter((q) => {
+    if (category !== 'all' && (q.category?.trim() || 'Uncategorized') !== category) return false
+    return matchesQuery(`${q.text} ${q.category ?? ''} ${q.answer}`, props.query)
+  })
+  const inRundown = new Set(props.draft.questionIds)
+
   return (
-    <ul className="mt-3 space-y-1">
-      {addable.slice(0, 12).map((q) => (
-        <li key={q.id}>
+    <div className="space-y-3">
+      <label className="block text-sm text-white/80">
+        Search
+        <input
+          autoFocus
+          value={props.query}
+          onChange={(e) => props.setQuery(e.target.value)}
+          placeholder="Question, category, or answer"
+          className={fieldClass}
+        />
+      </label>
+      {categories.length > 1 ? (
+        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Categories">
           <button
             type="button"
-            className="flex w-full items-baseline justify-between gap-3 rounded-lg px-2 py-2 text-left text-sm hover:bg-white/10"
-            onClick={() => props.onAdd(q.id)}
+            role="tab"
+            aria-selected={category === 'all'}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              category === 'all' ? 'bg-white/15 text-white ring-1 ring-white/25' : 'text-white/55 hover:text-white'
+            }`}
+            onClick={() => setCategory('all')}
           >
-            <span className="min-w-0 text-white/90">{q.text}</span>
-            <span className="shrink-0 font-mono text-casino-gold">{formatTriviaNumber(q.answer)}</span>
+            All
           </button>
-        </li>
-      ))}
-    </ul>
+          {categories.map((name) => (
+            <button
+              key={name}
+              type="button"
+              role="tab"
+              aria-selected={category === name}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                category === name ? 'bg-white/15 text-white ring-1 ring-white/25' : 'text-white/55 hover:text-white'
+              }`}
+              onClick={() => setCategory(name)}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <p className="text-xs tabular-nums text-white/45">
+        {visible.length} of {props.questionBank.length}
+      </p>
+      {props.questionBank.length === 0 ? (
+        <p className="text-sm text-white/50">The bank is empty.</p>
+      ) : visible.length === 0 ? (
+        <p className="text-sm text-white/50">No questions in this view.</p>
+      ) : (
+        <ul className="space-y-1">
+          {visible.map((q) => {
+            const already = inRundown.has(q.id)
+            return (
+              <li key={q.id}>
+                <button
+                  type="button"
+                  disabled={already}
+                  className="flex w-full items-baseline justify-between gap-3 rounded-lg px-2 py-2 text-left text-sm hover:bg-white/10 disabled:text-white/35 disabled:hover:bg-transparent"
+                  onClick={() => props.onAdd(q.id)}
+                >
+                  <span className="min-w-0">
+                    {q.category?.trim() ? (
+                      <span className="mr-2 text-[10px] font-semibold uppercase tracking-wide text-white/40">{q.category}</span>
+                    ) : null}
+                    <span className={already ? 'text-white/40' : 'text-white/90'}>{q.text}</span>
+                  </span>
+                  <span className={`shrink-0 font-mono ${already ? 'text-white/40' : 'text-casino-gold'}`}>
+                    {already ? 'In rundown' : formatTriviaNumber(q.answer)}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
   )
 }
 

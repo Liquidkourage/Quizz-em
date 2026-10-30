@@ -34,6 +34,8 @@ export type StadiumTableSeat = {
   nameTagClassName?: string
   state?: SeatCupholderState
   holeDigits?: readonly [number, number] | null
+  /** Face-down pair when the digits are withheld. */
+  holeBacks?: boolean
   faceDown?: boolean
   holeVariant?: 'emerald' | 'gold' | 'purple' | 'red' | 'blue' | 'cyan' | 'pink' | 'orange' | 'lime' | 'violet'
   'aria-label'?: string
@@ -169,8 +171,11 @@ export function StadiumTableSeats({
             ? mosaicSeatLabelPct(i, rimW, rimH, labelOutwardPx)
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_NAME_LABEL_RADIAL)
           const state = seat?.state ?? (seat == null ? 'empty' : 'default')
-          const showHoles = seat != null && seat.holeDigits != null && state !== 'folded'
-          const holesFaceUp = showHoles && !(seat!.faceDown ?? true)
+          const showHoles =
+            seat != null &&
+            state !== 'folded' &&
+            (seat.holeDigits != null || seat.holeBacks === true)
+          const holesFaceUp = showHoles && seat!.holeDigits != null && !(seat!.faceDown ?? true)
           const seatHoleScale = isPlayerLayout
             ? stadiumPlayerSeatHoleCardScale(rimW, occupiedForSizing, holesFaceUp)
             : holeScale
@@ -204,14 +209,14 @@ export function StadiumTableSeats({
                     <PlayerFeltHoleCards
                       rotateDeg={holePt.rotateDeg}
                       scale={seatHoleScale}
-                      faceDown={seat!.faceDown ?? true}
+                      faceDown={seat!.faceDown ?? seat!.holeDigits == null}
                       digits={seat!.holeDigits}
                     />
                   ) : (
                     <FeltHoleCardPair
                       rotateDeg={holePt.rotateDeg}
                       scale={seatHoleScale}
-                      faceDown={seat!.faceDown ?? true}
+                      faceDown={seat!.faceDown ?? seat!.holeDigits == null}
                       digits={seat!.holeDigits}
                       variant={seat!.holeVariant ?? 'cyan'}
                     />

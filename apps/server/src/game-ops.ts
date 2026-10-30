@@ -153,9 +153,11 @@ import {
   clearPlayerSocketRegistry,
   getSocketForPlayer,
   initPlayerSocketRegistry,
+  playerIdForSocket,
   registerPlayerSocket,
   unregisterPlayerSocket,
 } from './player-socket-registry'
+import { handSecretsArePublic, redactGameStateForViewer } from './audience-view'
 
 export {
   clearPlayerSocketRegistry,
@@ -389,7 +391,7 @@ export function applyVenueWageringOrchestration(venueCode: string) {
       const prev = rooms.get(update.sessionKey)
       let gs = runVirtualPlayerSimulation(update.gameState)
       rooms.set(update.sessionKey, gs)
-      io.to(update.sessionKey).emit('state', gs)
+      emitStateToSession(update.sessionKey, gs)
       if (
         prev?.phase !== 'answering' &&
         gs.phase === 'answering' &&
@@ -644,7 +646,7 @@ export function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, d
         ? buildDisplayPreviewGameState(normalizeVenueCode(vn), tid)
         : createEmptyGame(vn, '', tid)
     socket.emit('ack', { ok: true, message: 'Connected successfully' } satisfies ServerAck)
-    socket.emit('state', runVirtualPlayerSimulation(synthetic))
+    emitStateToSocket(socket, runVirtualPlayerSimulation(synthetic))
     emitDisplayVenueSnapshotNow(vn)
     return
   }
@@ -703,7 +705,7 @@ export function syncVenueBlindsToAllSessions(vn: string) {
     const next = applyEffectiveBlindsToGameState(gs, vn, tk)
     if (next.smallBlind !== gs.smallBlind || next.bigBlind !== gs.bigBlind) {
       rooms.set(tk, next)
-      io.to(tk).emit('state', next)
+      emitStateToSession(tk, next)
     }
   }
 }
@@ -1689,13 +1691,21 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
         gs.phase === 'reveal' ||
         gs.phase === 'showdown')
     const blindEff = effectiveBlindsForSessionKey(vn, key)
-    const seatHoleDigits = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
+    const secretsPublic = handSecretsArePublic(gs.phase)
+    const seatHolesDealt = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
       const p = gs.players[i]
-      // Hide folded holes until showdown so mucked cards stay private during betting.
+      if (p == null || p.hand.length < 2) return false
+      if (p.hasFolded && !secretsPublic) return false
+      return true
+    })
+    const seatHoleDigits = secretsPublic
+      ? Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
+      const p = gs.players[i]
+      // Hide folded holes until the hand is public so mucked cards stay private during betting.
       if (
         p == null ||
         p.hand.length < 2 ||
-        (p.hasFolded && gs.phase !== 'showdown' && gs.phase !== 'reveal')
+        (p.hasFolded && !secretsPublic)
       ) {
         return null
       }
@@ -1715,6 +1725,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       }
       return [d0, d1] as [number, number]
     })
+      : Array.from({ length: VENUE_WALL_SEAT_COUNT }, () => null)
     const communityDigits =
       gs.round.communityCards.length > 0
         ? gs.round.communityCards.map((c: { digit: number }) => c.digit)
@@ -1785,6 +1796,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       seatLastBettingAction,
       actingCallAmount,
       actingCallPctOfStack,
+      ...(seatHolesDealt.some(Boolean) ? { seatHolesDealt } : {}),
       ...(seatHoleDigits.some((h) => h != null) ? { seatHoleDigits } : {}),
       ...(communityDigits != null && communityDigits.length > 0 ? { communityDigits } : {}),
       ...(showdownAnswer != null ? { showdownAnswer, showdownQuestionText: showdownQuestionText ?? null } : {}),
@@ -1841,7 +1853,12 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     if (q != null && typeof q.text === 'string' && q.text.trim() !== '') {
       headlineQuestionText = q.text.trim()
     }
-    if (q != null && typeof q.answer === 'number' && Number.isFinite(q.answer)) {
+    if (
+      handSecretsArePublic(headlineGs.phase) &&
+      q != null &&
+      typeof q.answer === 'number' &&
+      Number.isFinite(q.answer)
+    ) {
       headlineQuestionAnswer = q.answer
       if (headlineGs.round.communityCards.length >= 5) {
         for (const p of headlineGs.players) {
@@ -2002,19 +2019,56 @@ export function afterTableStateBroadcast(gs: GameState, _sessionKey: string) {
   emitDisplayVenueSnapshotNow(gs.code)
 }
 
+function viewerForSocket(sock: Socket): { role?: string; playerId?: string | null } {
+  const data = sock.data as DisplaySockData
+  return {
+    role: data.role,
+    playerId: data.role === 'player' ? (playerIdForSocket(sock.id) ?? null) : null,
+  }
+}
+
+/** One socket's `state`. Hosts receive the full hand; everyone else is redacted. */
+export function emitStateToSocket(
+  sock: Socket,
+  gs: GameState,
+  extras?: {
+    serverNowMs?: number
+    playerOnline?: Record<string, boolean>
+    turnDeadlineMs?: number
+  },
+): void {
+  const view = redactGameStateForViewer(gs, viewerForSocket(sock))
+  sock.emit('state', {
+    ...view,
+    serverNowMs: extras?.serverNowMs ?? Date.now(),
+    ...(extras?.playerOnline != null ? { playerOnline: extras.playerOnline } : {}),
+    ...(extras != null && 'turnDeadlineMs' in extras
+      ? { round: { ...view.round, turnDeadlineMs: extras.turnDeadlineMs } }
+      : {}),
+  })
+}
+
+/** Table room holds the host, the players, and sometimes a display. Each socket gets its own view. */
+export function emitStateToSession(sessionKey: string, gs: GameState): void {
+  const room = io.sockets.adapter.rooms.get(sessionKey)
+  if (!room) return
+  const serverNowMs = Date.now()
+  const playerOnline = buildPlayerOnlineMap(gs)
+  const turnDeadlineMs = syncHumanTurnDeadline(sessionKey, gs)
+  for (const id of room) {
+    const sock = io.sockets.sockets.get(id)
+    if (!sock) continue
+    emitStateToSocket(sock, gs, { serverNowMs, playerOnline, turnDeadlineMs })
+  }
+}
+
 /** Emit felt state then refresh DISPLAY:{venue} wall summaries for numbered felts */
 export function emitVenueTableState(
   sessionKey: string,
   gs: GameState,
   opts?: { skipOrchestration?: boolean }
 ) {
-  const turnDeadlineMs = syncHumanTurnDeadline(sessionKey, gs)
-  io.to(sessionKey).emit('state', {
-    ...gs,
-    serverNowMs: Date.now(),
-    playerOnline: buildPlayerOnlineMap(gs),
-    round: { ...gs.round, turnDeadlineMs },
-  })
+  emitStateToSession(sessionKey, gs)
   scheduleHumanTurnTimeout(sessionKey, gs)
   afterTableStateBroadcast(gs, sessionKey)
   if (!opts?.skipOrchestration) {

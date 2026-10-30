@@ -809,6 +809,10 @@ function padSeatHoleDigits(
   })
 }
 
+function padSeatHolesDealt(raw: readonly boolean[] | undefined): boolean[] {
+  return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => raw?.[i] === true)
+}
+
 const SEAT_LAYER_FELT_HOLE = 'z-[19]'
 
 /** Community / center board card — fixed px from measured ring (same pattern as hole cards). */
@@ -1251,6 +1255,8 @@ function SeatRingWithLabels({
   winnerSeatIndexes = null,
   /** Mosaic: hole-card digits per physical seat (parallel to seatNames). */
   seatHoleDigits: seatHoleDigitsIn,
+  /** Face-down pairs dealt before the digits are public. */
+  seatHolesDealt: seatHolesDealtIn,
   /** Mosaic: community board digits (0–5 cards). */
   communityDigits: communityDigitsIn,
   /** Hide pot / community board while a felt showdown overlay covers the table. */
@@ -1308,6 +1314,7 @@ function SeatRingWithLabels({
   broadcastCallAmount?: number | null
   winnerSeatIndexes?: ReadonlySet<number> | null
   seatHoleDigits?: (readonly [number, number] | null)[]
+  seatHolesDealt?: boolean[]
   communityDigits?: number[]
   suppressFeltCenter?: boolean
   suppressSeatChrome?: boolean
@@ -1322,6 +1329,7 @@ function SeatRingWithLabels({
   const seatPointsOnly = padSeatPointsOnly(seatPointsOnlyIn)
   const seatLastBettingAction = padSeatLastBettingAction(seatLastBettingActionIn)
   const seatHoleDigits = padSeatHoleDigits(seatHoleDigitsIn)
+  const seatHolesDealt = padSeatHolesDealt(seatHolesDealtIn)
   const seatSubmittedAnswers = padSeatSubmittedAnswers(seatSubmittedAnswersIn)
   const seatAnswerLocked = padSeatAnswerLocked(seatAnswerLockedIn)
   const communityDigits =
@@ -1742,7 +1750,7 @@ function SeatRingWithLabels({
                 }
               />
             </div>
-            {filled && !isFolded && seatHoleDigits[i] != null ? (
+            {filled && !isFolded && (seatHoleDigits[i] != null || seatHolesDealt[i]) ? (
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
                 style={{
@@ -2349,6 +2357,7 @@ function VenueMosaicTableCard({
             winnerSeatIndexes={showFloorShowdownOverlay ? winnerSeatIndexes : null}
             suppressFeltCenter={showFloorShowdownOverlay}
             seatHoleDigits={row.seatHoleDigits}
+            seatHolesDealt={row.seatHolesDealt}
             communityDigits={row.communityDigits}
             betsInPaused={showNoMoreBets}
             seatSubmittedAnswers={row.seatSubmittedAnswers}
@@ -2863,6 +2872,7 @@ export function VenueSingleTableBroadcast({
                 broadcastActingPlayerName={actingPlayerName}
                 broadcastCallAmount={actingCallAmount}
                 seatHoleDigits={tile.seatHoleDigits}
+                seatHolesDealt={tile.seatHolesDealt}
                 communityDigits={tile.communityDigits}
                 betsInPaused={showNoMoreBets}
                 seatSubmittedAnswers={tile.seatSubmittedAnswers}

@@ -607,7 +607,7 @@ export async function handleShowAction(
             lobbyKey,
           )
           g.rooms.set(lobbyKey, emptyLobby)
-          g.io.to(lobbyKey).emit('state', emptyLobby)
+          g.emitStateToSession(lobbyKey, emptyLobby)
 
           const t1Key = g.tableSessionKey(lobbyGs.code, '1')
           const hostSock = g.io.sockets.sockets.get(hostIdSnap)
@@ -618,7 +618,13 @@ export async function handleShowAction(
             g.bindSocketAsVenueHost(hostSock, lobbyGs.code)
             hostSock.emit('hostBoundTable', { tableId: '1' })
             const seatedHostView = g.rooms.get(t1Key)
-            if (seatedHostView) hostSock.emit('state', seatedHostView)
+            if (seatedHostView) {
+              g.emitStateToSocket(hostSock, seatedHostView, {
+                serverNowMs: Date.now(),
+                playerOnline: g.buildPlayerOnlineMap(seatedHostView),
+                turnDeadlineMs: g.syncHumanTurnDeadline(t1Key, seatedHostView),
+              })
+            }
           }
 
           const placedByHost = pins.filter((pin) => roster.some((player) => player.id === pin.playerId)).length

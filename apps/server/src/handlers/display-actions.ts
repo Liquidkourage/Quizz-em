@@ -22,12 +22,10 @@ export async function handleDisplayTransport(
       if (sessionKey) {
         const gs = g.rooms.get(sessionKey) as GameState | undefined
         if (gs) {
-          const turnDeadlineMs = g.syncHumanTurnDeadline(sessionKey, gs)
-          socket.emit('state', {
-            ...gs,
+          g.emitStateToSocket(socket, gs, {
             serverNowMs: Date.now(),
             playerOnline: g.buildPlayerOnlineMap(gs),
-            round: { ...gs.round, turnDeadlineMs },
+            turnDeadlineMs: g.syncHumanTurnDeadline(sessionKey, gs),
           })
         }
       }

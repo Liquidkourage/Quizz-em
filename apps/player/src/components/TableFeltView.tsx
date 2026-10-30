@@ -34,24 +34,29 @@ function seatStatusPillClass(pill: SeatStatusPill): string {
   return `player-game-seat-pill player-game-seat-pill--${pill.action}`
 }
 
+function guessIsLocked(player: PlayerState): boolean {
+  return player.answerLocked === true || player.submittedAnswer != null
+}
+
 function answeringStatus(
   player: PlayerState,
   phase: GameState['phase'],
 ): { pill: SeatStatusPill; locked: boolean } | null {
   if (phase !== 'answering') return null
+  const locked = guessIsLocked(player)
   if (player.pointsOnly === true) {
-    if (player.submittedAnswer != null) {
+    if (locked) {
       return { pill: { kind: 'action', action: 'check', label: 'PTS · LOCKED' }, locked: true }
     }
     return { pill: { kind: 'acting', label: 'PTS · Thinking…' }, locked: false }
   }
   if (player.hasFolded) {
-    if (player.submittedAnswer != null) {
+    if (locked) {
       return { pill: { kind: 'action', action: 'fold', label: 'FOLD · LOCKED' }, locked: false }
     }
     return { pill: { kind: 'action', action: 'fold', label: 'FOLD · PTS' }, locked: false }
   }
-  if (player.submittedAnswer != null) {
+  if (locked) {
     return { pill: { kind: 'action', action: 'check', label: 'LOCKED' }, locked: true }
   }
   return { pill: { kind: 'acting', label: 'Thinking…' }, locked: false }
@@ -132,12 +137,16 @@ export default function TableFeltView({
       const isMe = index === heroIndex
       const isActing = actingIndex === index && !player.hasFolded
       const isAway = playerOnline?.[player.id] === false
-      const hasHand = player.hand.length >= 2
+      const knownDigits: readonly [number, number] | null =
+        player.hand.length >= 2
+          ? ([player.hand[0]!.digit, player.hand[1]!.digit] as const)
+          : null
       const pointsOnly = player.pointsOnly === true
       const foldedChips = player.hasFolded && !pointsOnly
-      const showFaceUp = isMe || revealCards
+      const showFaceUp = (isMe || revealCards) && knownDigits != null
       const holeDigits: readonly [number, number] | null =
-        hasHand && !foldedChips ? ([player.hand[0]!.digit, player.hand[1]!.digit] as const) : null
+        knownDigits != null && !foldedChips ? knownDigits : null
+      const holeBacks = holeDigits == null && !foldedChips && player.holesDealt === true
 
       const lastAction: SeatBettingAction | null | undefined = lastActions?.[index]
       const toCall = seatToCallAmount(player, currentBet, playerBets)
@@ -168,6 +177,7 @@ export default function TableFeltView({
               ? 'acting'
               : 'default',
         holeDigits,
+        holeBacks,
         faceDown: !showFaceUp,
         holeVariant: isMe ? 'gold' : 'purple',
         'aria-label': [

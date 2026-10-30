@@ -18,6 +18,16 @@ export interface PlayerState {
   hasFolded: boolean;
   isAllIn: boolean;
   submittedAnswer?: number;
+  /**
+   * Wire-only. Set when this seat has locked a guess but the number is withheld
+   * from this viewer. The engine does not store it.
+   */
+  answerLocked?: boolean;
+  /**
+   * Wire-only. Two hole cards exist for this seat, but the digits are withheld
+   * from this viewer. The engine does not store it.
+   */
+  holesDealt?: boolean;
   /** Five cards used to build `submittedAnswer`, in tap order. */
   answerComposition?: readonly AnswerCardPick[];
   /** Cumulative trivia score across answered rounds (even when busted off chips). */

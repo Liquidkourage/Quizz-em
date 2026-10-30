@@ -96,14 +96,17 @@ export function embeddedHeroDisplayState(
         const g = tile.seatSubmittedAnswers?.[i]
         if (typeof g === 'number' && Number.isFinite(g)) submittedAnswer = g
       }
+      const hand = folded ? [] : holeHandFromTileSeat(tile, i)
+      const holesDealt = !folded && (hand.length >= 2 || tile.seatHolesDealt?.[i] === true)
 
       players.push({
         id: `venue-wall-seat-${tid}-${i}`,
         name,
         bankroll,
-        hand: folded ? [] : holeHandFromTileSeat(tile, i),
+        hand,
         hasFolded: folded,
         isAllIn: false,
+        ...(holesDealt && hand.length < 2 ? { holesDealt: true } : {}),
         ...(submittedAnswer !== undefined ? { submittedAnswer } : {}),
       })
       physicalSeatByPlayerIdx.push(i)

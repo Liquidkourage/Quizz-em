@@ -28,6 +28,10 @@ export function unregisterPlayerSocket(socketId: string): string | undefined {
   return playerId
 }
 
+export function playerIdForSocket(socketId: string): string | undefined {
+  return socketIdToPlayerId.get(socketId)
+}
+
 export function getSocketForPlayer(playerId: string): Socket | undefined {
   if (!playerId || playerId.startsWith('vp:')) return undefined
   const socketId = playerIdToSocketId.get(playerId)

@@ -139,10 +139,15 @@ export type DisplayVenueTileSnapshot = {
    */
   interestingAction?: boolean
   /**
-   * Per physical seat (parallel `seatNames`): hole card digits when dealt, else null.
-   * Lets the venue hero show cards before the spotlight socket `state` reconnects.
+   * Per physical seat (parallel `seatNames`): hole card digits once the hand is public
+   * (reveal, showdown, payout). Omitted while the cards are still private.
    */
   seatHoleDigits?: (readonly [number, number] | null)[]
+  /**
+   * Per physical seat: a face-down pair is on the felt. Present before the digits
+   * are public so the wall can draw card backs without the numbers.
+   */
+  seatHolesDealt?: boolean[]
   /** Community board digits for this table's current hand. Omitted when empty. */
   communityDigits?: number[]
   /** Trivia answer while this felt is in showdown / reveal (parallel `seatNames`). */

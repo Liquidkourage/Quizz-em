@@ -861,7 +861,7 @@ function DisplayTableLive({
             id: `dealing-${playerIndex}-${cardIndex}`,
             playerIndex,
             cardIndex,
-            digit: Math.floor(Math.random() * 9) + 1,
+            digit: 0,
           })
         }
       })
@@ -1864,7 +1864,8 @@ function DisplayTableLive({
                   !isDealing &&
                   handToShow.length > 0 &&
                   (hasDealtCards || (postDealHoleHands[index]?.length ?? 0) > 0)
-                const hideForDealFlight = isDealing || !showRealHand
+                const showDealtBacks = !isDealing && player.holesDealt === true
+                const hideForDealFlight = isDealing || (!showRealHand && !showDealtBacks)
                 if (hideForDealFlight && !isDealing) return null
                 return (
                   <div
@@ -1881,10 +1882,10 @@ function DisplayTableLive({
                     <FeltHoleCardPair
                       rotateDeg={holeLayout.rotateDeg}
                       scale={stadiumHoleCardScale(HERO_RAIL_W_PX)}
-                      faceDown={!showRealHand || displayGameState.phase !== 'showdown'}
+                      faceDown={player.hand.length < 2 || displayGameState.phase !== 'showdown'}
                       digits={
-                        showRealHand && displayGameState.phase === 'showdown'
-                          ? ([handToShow[0]?.digit ?? 0, handToShow[1]?.digit ?? 0] as const)
+                        player.hand.length >= 2 && displayGameState.phase === 'showdown'
+                          ? ([player.hand[0]!.digit, player.hand[1]!.digit] as const)
                           : null
                       }
                       cardRefs={[

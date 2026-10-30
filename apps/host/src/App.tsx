@@ -164,7 +164,8 @@ function HostApp() {
 
   const viteHostSecret =
     typeof import.meta.env.VITE_HOST_SECRET === 'string' ? import.meta.env.VITE_HOST_SECRET.trim() : ''
-  const effectiveHostSecret = viteHostSecret || undefined
+  /** Matches apps/server LOCAL_DEV_HOST_SECRET. Production builds send only VITE_HOST_SECRET. */
+  const effectiveHostSecret = viteHostSecret || (import.meta.env.DEV ? 'quizzem-local-host' : undefined)
 
   useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
 

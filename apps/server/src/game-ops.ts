@@ -151,16 +151,19 @@ import {
 } from './venue-blind-settings'
 import {
   clearPlayerSocketRegistry,
+  clearPlayerSocketsForIds,
   getSocketForPlayer,
   initPlayerSocketRegistry,
   playerIdForSocket,
   registerPlayerSocket,
   unregisterPlayerSocket,
 } from './player-socket-registry'
+import { requiredHostSecret } from './host-auth'
 import { handSecretsArePublic, redactGameStateForViewer } from './audience-view'
 
 export {
   clearPlayerSocketRegistry,
+  clearPlayerSocketsForIds,
   getSocketForPlayer,
   registerPlayerSocket,
   unregisterPlayerSocket,
@@ -361,7 +364,7 @@ export function applyVenueWageringOrchestration(venueCode: string) {
   venueOrchestrationGuard.add(vn)
   try {
     const seated = allSeatedTableSessionsInVenue(vn)
-    const plan = planVenueWageringOrchestration({
+    let plan = planVenueWageringOrchestration({
       seatedTableKeys: seated,
       getState: (tk) => rooms.get(tk),
       currentShowdownAtMs: venueShowdownAtMs.get(vn),
@@ -370,7 +373,15 @@ export function applyVenueWageringOrchestration(venueCode: string) {
     if (plan.dealCommunityBoard) {
       if (dealCommunityBoardForVenue(vn, { auto: true })) {
         emitDisplayVenueSnapshotNow(vn)
-        return
+        const follow = planVenueWageringOrchestration({
+          seatedTableKeys: allSeatedTableSessionsInVenue(vn),
+          getState: (tk) => rooms.get(tk),
+          currentShowdownAtMs: venueShowdownAtMs.get(vn),
+        })
+        // A points-only table has no second street. Open answering now.
+        // An open round-2 clock, or an all-in runout, stays put until the next action.
+        if (follow.tableUpdates.length === 0) return
+        plan = follow
       }
     }
 
@@ -725,15 +736,19 @@ export function sanitizeSetlistQuestionIds(lib: VenueLibraryData, ids: string[])
   return ids.filter((id) => known.has(id))
 }
 
-/** Authenticated host desk (role + optional HOST_SECRET) — enough for venue library edits. */
+/** Authenticated host desk. A deployed server with no HOST_SECRET fails closed. */
 export function assertHostRole(socket: Socket): boolean {
   const sd = socket.data as { role?: string; hostAuthed?: boolean }
   if (sd.role !== 'host') {
     socket.emit('toast', 'Only the host can perform this action.')
     return false
   }
-  const required = process.env.HOST_SECRET?.trim()
-  if (required && !sd.hostAuthed) {
+  const required = requiredHostSecret()
+  if (!required) {
+    socket.emit('toast', 'Host login is not configured on this server.')
+    return false
+  }
+  if (!sd.hostAuthed) {
     socket.emit('toast', 'Host session is not authenticated (check HOST_SECRET).')
     return false
   }
@@ -893,6 +908,8 @@ export function moveHumanToTableSession(playerId: string, toSessionKey: string, 
   sock.join(toSessionKey)
   ;(sock.data as { sessionKey?: string }).sessionKey = toSessionKey
   sock.emit('seated', { tableId })
+  const arrived = rooms.get(toSessionKey)
+  if (arrived) emitStateToSession(toSessionKey, arrived)
 }
 
 export function runVirtualPlayerSimulation(state: GameState): GameState {

@@ -443,6 +443,12 @@ export async function handleShowAction(
           g.clearVenueRevealBeatTimer(vn)
           const hostIdSnap = gameState.hostId
           const lobbyKey = g.tableSessionKey(vn, g.LOBBY_TABLE_ID)
+          const droppedPlayerIds: string[] = []
+          for (const tk of g.allVenueSessionKeys(vn)) {
+            const seated = g.rooms.get(tk)
+            if (!seated) continue
+            for (const p of seated.players) droppedPlayerIds.push(p.id)
+          }
           for (const tk of g.allTableSessionsInVenue(vn)) {
             g.io.to(tk).emit('toast', 'Venue reset — use the lobby link to rejoin.')
             g.rooms.delete(tk)
@@ -473,7 +479,7 @@ export async function handleShowAction(
           g.venueAudienceWelcomeExpired.delete(vn)
           g.venueSeatingChartPinnedUntilMs.delete(vn)
           g.clearVenueHostLog(vn)
-          g.clearPlayerSocketRegistry()
+          g.clearPlayerSocketsForIds(droppedPlayerIds)
           g.resetVenueShuffleCounter(vn)
           g.emitDisplayVenueSnapshotNow(gameState.code)
           gameState = g.rooms.get(lobbyKey)!
@@ -485,12 +491,12 @@ export async function handleShowAction(
             socket.emit('toast', message)
             socket.emit('ack', { ok: false, message })
           }
-          if (!g.isLobbySessionKey(sessionKey)) {
-            refuseSeat('Run “Assign” from the lobby session only (join host as table LOBBY).')
-            break
-          }
           if (!g.assertVenueHost(socket, gameState)) {
             socket.emit('ack', { ok: false, message: 'Only the host can seat players.' })
+            break
+          }
+          if (!g.isLobbySessionKey(sessionKey)) {
+            refuseSeat('Run “Assign” from the lobby session only (join host as table LOBBY).')
             break
           }
           if (gameState.phase !== 'lobby') {
@@ -702,6 +708,7 @@ export async function handleShowAction(
         }
 
         case 'seedRehearsalVenue': {
+          if (!g.assertVenueHost(socket, gameState)) break
           if (!g.isLobbySessionKey(sessionKey)) {
             socket.emit(
               'toast',
@@ -709,7 +716,6 @@ export async function handleShowAction(
             )
             break
           }
-          if (!g.assertVenueHost(socket, gameState)) break
           const tableCount = g.normalizeRehearsalTableCount(
             (payload as { tableCount?: number })?.tableCount,
           )

@@ -390,7 +390,7 @@ export const ClientHello = z.object({
   name: z.string(),
   roomCode: z.string(),
   tableId: z.string().optional(),
-  /** Sent by host builds when server.env HOST_SECRET is set */
+  /** Host credential. Deployed servers reject a host hello when this does not match HOST_SECRET. */
   hostSecret: z.string().optional(),
   /** Display: URL / bootstrap hint when server has no persisted layout yet */
   displayVenueWall: z.boolean().optional(),

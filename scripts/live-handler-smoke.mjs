@@ -101,7 +101,7 @@ async function main() {
   }
 
   const { socket: host } = await connect(
-    { role: 'host', name: 'Live Host', roomCode: room, tableId: LOBBY },
+    { role: 'host', name: 'Live Host', roomCode: room, tableId: LOBBY, hostSecret: process.env.HOST_SECRET?.trim() || 'quizzem-local-host' },
     { waitForState: true },
   )
   pass('Host hello')

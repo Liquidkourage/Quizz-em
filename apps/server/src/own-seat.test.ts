@@ -1,7 +1,12 @@
 import { createEmptyGame } from '@qhe/core'
 import type { Socket } from 'socket.io'
 import { afterEach, describe, expect, it } from 'vitest'
-import { clearPlayerSocketRegistry, registerPlayerSocket } from './player-socket-registry'
+import {
+  clearPlayerSocketRegistry,
+  clearPlayerSocketsForIds,
+  playerIdForSocket,
+  registerPlayerSocket,
+} from './player-socket-registry'
 import { denyUnlessOwnSeat, foldIsLegalNow } from './own-seat'
 
 afterEach(() => {
@@ -18,6 +23,16 @@ function stubSocket(id: string) {
   } as unknown as Socket
   return { socket, events }
 }
+
+describe('clearPlayerSocketsForIds', () => {
+  it('drops only the seats in the venue that reset', () => {
+    registerPlayerSocket('human:keep', 'sock-keep')
+    registerPlayerSocket('human:wipe', 'sock-wipe')
+    clearPlayerSocketsForIds(['human:wipe'])
+    expect(playerIdForSocket('sock-keep')).toBe('human:keep')
+    expect(playerIdForSocket('sock-wipe')).toBeUndefined()
+  })
+})
 
 describe('denyUnlessOwnSeat', () => {
   it('allows the socket that joined as that player', () => {

@@ -602,6 +602,27 @@ export function openBettingRound1(state: GameState): GameState {
 
   const playersWithHands = state.players;
   const chipSeatCount = playersWithHands.filter((p) => inChipContest(p)).length;
+  /** A busted seat stays for trivia. Do not make the last chip stack bet against itself. */
+  if (chipSeatCount < 2 && playersWithHands.some((p) => p.pointsOnly === true)) {
+    return {
+      ...state,
+      phase: 'betting',
+      players: playersWithHands,
+      round: {
+        ...state.round,
+        communityCards: [],
+        bettingRound: 1,
+        currentBet: 0,
+        currentPlayerIndex: -1,
+        isBettingOpen: false,
+        playerBets: {},
+        handContributions: {},
+        pot: state.round.pot,
+        lastFullRaiseAmount: Math.max(state.bigBlind, 0),
+        lastSeatBettingAction: Array.from({ length: playersWithHands.length }, () => null),
+      },
+    };
+  }
   const nextChipSeat = (fromExclusive: number): number => {
     if (playersWithHands.length === 0 || chipSeatCount === 0) return -1;
     for (let step = 1; step <= playersWithHands.length; step++) {
@@ -910,7 +931,9 @@ export function dealCommunityCards(state: GameState): GameState {
     return -1;
   };
 
-  const currentPlayerIndex = findNextToAct();
+  const contesting = state.players.filter((p) => inChipContest(p) && !p.hasFolded).length;
+  const noChipOpponent = contesting < 2 && state.players.some((p) => p.pointsOnly === true);
+  const currentPlayerIndex = noChipOpponent ? -1 : findNextToAct();
   const isBettingOpen = currentPlayerIndex >= 0;
 
   return {

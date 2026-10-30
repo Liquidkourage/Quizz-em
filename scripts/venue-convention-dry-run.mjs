@@ -209,6 +209,7 @@ async function main() {
     name: 'DryRun Host',
     roomCode: room,
     tableId: LOBBY,
+    hostSecret: process.env.HOST_SECRET?.trim() || 'quizzem-local-host',
   }
 
   const { socket: host } = await connectClient(url, hostHello, { waitForState: true })

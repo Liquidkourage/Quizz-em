@@ -1,18 +1,19 @@
 import type { Socket } from 'socket.io'
 import type { ClientHello, ServerAck } from '@qhe/net'
 import * as g from '../game-ops'
+import { hostHelloFailureMessage } from '../host-auth'
 
 export async function handleHello(socket: Socket, data: ClientHello) {
     const { role, name, roomCode } = data
 
-    const requiredHostSecret = process.env.HOST_SECRET?.trim()
-    if (role === 'host' && requiredHostSecret) {
+    if (role === 'host') {
       const provided =
         typeof (data as { hostSecret?: string }).hostSecret === 'string'
           ? (data as { hostSecret: string }).hostSecret.trim()
           : ''
-      if (provided !== requiredHostSecret) {
-        socket.emit('ack', { ok: false, message: 'Invalid host credentials.' })
+      const rejected = hostHelloFailureMessage(provided)
+      if (rejected) {
+        socket.emit('ack', { ok: false, message: rejected })
         socket.disconnect(true)
         return
       }

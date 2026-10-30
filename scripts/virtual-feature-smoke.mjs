@@ -121,7 +121,7 @@ async function main() {
 
   const { socket: host } = await connectClient(
     url,
-    { role: 'host', name: 'Virtual Host', roomCode: room, tableId: LOBBY },
+    { role: 'host', name: 'Virtual Host', roomCode: room, tableId: LOBBY, hostSecret: process.env.HOST_SECRET?.trim() || 'quizzem-local-host' },
     { waitForState: true },
   )
   host.on('toast', (msg) => console.log(`  [host] ${msg}`))

@@ -43,3 +43,15 @@ export function clearPlayerSocketRegistry(): void {
   playerIdToSocketId.clear()
   socketIdToPlayerId.clear()
 }
+
+/** Drop seat bindings for one venue. Other rooms on this process keep their phones. */
+export function clearPlayerSocketsForIds(playerIds: Iterable<string>): void {
+  for (const playerId of playerIds) {
+    if (!playerId) continue
+    const socketId = playerIdToSocketId.get(playerId)
+    playerIdToSocketId.delete(playerId)
+    if (socketId && socketIdToPlayerId.get(socketId) === playerId) {
+      socketIdToPlayerId.delete(socketId)
+    }
+  }
+}

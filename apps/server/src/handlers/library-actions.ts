@@ -47,7 +47,15 @@ export async function handleLibraryAction(
           }
           const lib = await g.ensureVenueLibrary(gameState.code)
           const id = `sl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
-          lib.setlists.push({ id, name, questionIds: [] })
+          const questionIds = Array.isArray(payload?.questionIds)
+            ? g.sanitizeSetlistQuestionIds(
+                lib,
+                (payload.questionIds as unknown[])
+                  .filter((x): x is string => typeof x === 'string')
+                  .map((x) => x.trim()),
+              )
+            : []
+          lib.setlists.push({ id, name, questionIds })
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
           socket.emit('toast', `Setlist created: ${name}`)

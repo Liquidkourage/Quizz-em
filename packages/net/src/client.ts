@@ -468,9 +468,12 @@ export function nextQuestionFromSetlist() {
   socket.emit('action', { type: 'nextQuestionFromSetlist' })
 }
 
-export function setlistCreate(name: string) {
+export function setlistCreate(name: string, questionIds?: string[]) {
   if (!socket) return
-  socket.emit('action', { type: 'setlistCreate', payload: { name } })
+  socket.emit('action', {
+    type: 'setlistCreate',
+    payload: { name, ...(questionIds != null ? { questionIds } : {}) },
+  })
 }
 
 export function setlistSave(payload: { id: string; name?: string; questionIds?: string[] }) {

@@ -41,6 +41,7 @@ import {
   questionBankAdd,
   questionBankUpdate,
   nextQuestionFromSetlist,
+  selectTriviaSetlist,
   setlistSave,
 } from '@qhe/net'
 import type { GameState, Question } from '@qhe/core'
@@ -134,9 +135,6 @@ function HostApp() {
   const [activeSetlistId, setActiveSetlistId] = useState<string | null>(null)
   const [activeSetlistNextIndex, setActiveSetlistNextIndex] = useState(0)
   const [setlistDraftId, setSetlistDraftId] = useState<string | null>(null)
-  const [setlistRenameDraft, setSetlistRenameDraft] = useState('')
-  const [newSetlistName, setNewSetlistName] = useState('')
-  const [addToSetlistChoice, setAddToSetlistChoice] = useState<string>('')
   const [qbText, setQbText] = useState('')
   const [qbAnswer, setQbAnswer] = useState('')
   const [qbCategory, setQbCategory] = useState('')
@@ -488,9 +486,6 @@ function HostApp() {
       </p>
     ) : null
 
-  const draftSetlist =
-    setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
-
   const activeSetlist = activeSetlistId != null ? setlists.find((s) => s.id === activeSetlistId) : undefined
   const hasActiveSetlist =
     activeSetlist != null &&
@@ -782,15 +777,11 @@ function HostApp() {
             gameState={gameState}
             questionBank={questionBank}
             setlists={setlists}
-            draftSetlist={draftSetlist}
+            activeSetlistId={activeSetlistId}
+            activeSetlistNextIndex={activeSetlistNextIndex}
+            onActivateSetlist={(id) => selectTriviaSetlist(id)}
             setlistDraftId={setlistDraftId}
             setSetlistDraftId={setSetlistDraftId}
-            setlistRenameDraft={setlistRenameDraft}
-            setSetlistRenameDraft={setSetlistRenameDraft}
-            newSetlistName={newSetlistName}
-            setNewSetlistName={setNewSetlistName}
-            addToSetlistChoice={addToSetlistChoice}
-            setAddToSetlistChoice={setAddToSetlistChoice}
             qbText={qbText}
             setQbText={setQbText}
             qbAnswer={qbAnswer}

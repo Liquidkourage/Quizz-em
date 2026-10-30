@@ -134,7 +134,7 @@ export default function AnswerComposer({
                         variant="gold"
                         style="neon"
                         neonVariant={isSelected ? 'pulse' : 'matrix'}
-                        size="normal"
+                        size="small"
                         compact
                       />
                     </motion.div>
@@ -164,7 +164,7 @@ export default function AnswerComposer({
                           variant="gold"
                           style="neon"
                           neonVariant={isSelected ? 'pulse' : 'matrix'}
-                          size="normal"
+                          size="small"
                           compact
                         />
                       </motion.div>

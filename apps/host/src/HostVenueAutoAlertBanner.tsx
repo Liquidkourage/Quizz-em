@@ -24,7 +24,7 @@ export default function HostVenueAutoAlertBanner({ alert }: { alert: HostVenueAu
 
   return (
     <motion.div
-      className="pointer-events-none fixed inset-x-0 top-0 z-[120] flex justify-center px-4 pt-4 sm:pt-5"
+      className="pointer-events-none relative z-20 mb-4 flex justify-center px-1"
       role="status"
       aria-live="assertive"
       initial={reducedMotion ? false : { opacity: 0, y: -24 }}

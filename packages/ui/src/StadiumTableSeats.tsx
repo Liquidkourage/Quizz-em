@@ -17,6 +17,7 @@ import {
 } from './stadiumSeatLayout'
 import {
   MOSAIC_SEAT_COUNT,
+  mosaicFeltCenterPct,
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
   mosaicSeatLabelPct,
@@ -55,6 +56,22 @@ export type StadiumTableSeatsProps = {
   aspectClassName?: string
   /** `player` — display-table mosaic seat anchors + phone-readable sizes. */
   feltLayout?: StadiumFeltLayout
+}
+
+/** Grow a phone seat tag away from the felt so it stays in the gutter, off the cards. */
+function playerSeatLabelTransform(
+  label: { leftPct: number; topPct: number },
+  w: number,
+  h: number
+): string {
+  const center = w > 0 && h > 0 ? mosaicFeltCenterPct(w, h) : { leftPct: 50, topPct: 50 }
+  const dx = label.leftPct - center.leftPct
+  const dy = label.topPct - center.topPct
+  const absDx = Math.abs(dx)
+  const absDy = Math.abs(dy)
+  if (absDx > absDy * 1.05) return dx > 0 ? 'translate(0%, -50%)' : 'translate(-100%, -50%)'
+  if (absDy > absDx * 1.05) return dy > 0 ? 'translate(-50%, 0%)' : 'translate(-50%, -100%)'
+  return `translate(${dx > 0 ? '0%' : '-100%'}, ${dy > 0 ? '0%' : '-100%'})`
 }
 
 function seatByIndex(seats: StadiumTableSeat[]): Map<number, StadiumTableSeat> {
@@ -115,16 +132,20 @@ export function StadiumTableSeats({
   const showCenter =
     centerContent != null || (communityDigits != null && communityDigits.length > 0)
   // Name/stack sit fully outside the rail — must clear hole-card height, not just the cup.
-  const labelOutwardPx = isPlayerLayout
-    ? Math.max(rimW > 0 && rimW < 420 ? 42 : 52, Math.round(cupSizePx * (rimW < 420 ? 1.25 : 1.35)))
-    : 0
+  // Just outside the cup. The tag grows further outward into the phone gutter.
+  const labelOutwardPx = isPlayerLayout ? Math.max(20, Math.round(cupSizePx * 0.95)) : 0
 
   return (
     <div
-      ref={wrapRef}
-      className={clsx('relative mx-auto w-full max-w-full', aspectClassName, className)}
+      className={clsx(
+        'relative mx-auto w-full max-w-full',
+        aspectClassName,
+        className,
+        isPlayerLayout && 'player-felt-frame'
+      )}
       style={style}
     >
+      <div ref={wrapRef} className={isPlayerLayout ? 'player-felt-stage' : 'absolute inset-0'}>
       <PokerTableGraphic className="absolute inset-0 h-full w-full drop-shadow-md" aria-hidden />
 
       {showCenter && rimW > 0 ? (
@@ -164,8 +185,15 @@ export function StadiumTableSeats({
           const cupPt = isPlayerLayout
             ? mosaicSeatDotPct(i, count, rimW, rimH)
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_CUPHOLDER_RADIAL)
+          const holeInward = mosaicSeatPlayerHoleInwardFrac(i)
           const holePt = isPlayerLayout
-            ? mosaicSeatHoleLayout(i, count, rimW, rimH, mosaicSeatPlayerHoleInwardFrac(i))
+            ? mosaicSeatHoleLayout(
+                i,
+                count,
+                rimW,
+                rimH,
+                rimW > 0 && rimW < 280 ? Math.min(0.42, holeInward + 0.1) : holeInward
+              )
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_HOLE_CARDS_RADIAL)
           const labelPt = isPlayerLayout
             ? mosaicSeatLabelPct(i, rimW, rimH, labelOutwardPx)
@@ -227,12 +255,18 @@ export function StadiumTableSeats({
               {seat?.nameTag != null ? (
                 <div
                   className={clsx(
-                    'pointer-events-none absolute z-[22] flex -translate-x-1/2 flex-col items-center text-center leading-tight',
-                    // Center on the outward anchor so multi-line tags don't grow into hole cards.
-                    isPlayerLayout ? '-translate-y-1/2 max-w-[56%] gap-0.5 sm:max-w-[62%]' : 'max-w-[42%]',
+                    'pointer-events-none absolute z-[22] flex flex-col items-center text-center leading-tight',
+                    isPlayerLayout
+                      ? 'player-seat-tag'
+                      : '-translate-x-1/2 max-w-[42%]',
                     seat.nameTagClassName
                   )}
-                  style={{ left: `${labelPt.leftPct}%`, top: `${labelPt.topPct}%` }}
+                  style={{
+                    left: `${labelPt.leftPct}%`,
+                    top: `${labelPt.topPct}%`,
+                    zIndex: isPlayerLayout ? 34 : undefined,
+                    transform: isPlayerLayout ? playerSeatLabelTransform(labelPt, rimW, rimH) : undefined,
+                  }}
                 >
                   {seat.nameTag}
                 </div>
@@ -240,6 +274,7 @@ export function StadiumTableSeats({
             </div>
           )
         })}
+      </div>
     </div>
   )
 }

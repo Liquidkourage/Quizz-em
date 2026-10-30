@@ -102,7 +102,7 @@ export function mosaicSeatHoleInwardFrac(seatIndex: number): number {
 
 /** Player phone — deeper hole inset so outward name tags never cover the pair. */
 export function mosaicSeatPlayerHoleInwardFrac(seatIndex: number): number {
-  return Math.min(0.22, mosaicSeatHoleInwardFrac(seatIndex) + 0.05)
+  return Math.min(0.32, mosaicSeatHoleInwardFrac(seatIndex) + 0.12)
 }
 
 /**

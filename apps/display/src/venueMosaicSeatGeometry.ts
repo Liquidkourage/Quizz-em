@@ -185,14 +185,14 @@ export function broadcastBlindMarkerPct(
 
 export type BroadcastDensity = 'solo' | 'dual'
 
-/** Max rim-name width — dual uses felt width, not viewport, so labels stay in-column. */
+/** Max rim-name width — dual uses the inset felt, so labels stay inside the column gutter. */
 export function broadcastRimLabelMaxWidthPx(rimW: number, density: BroadcastDensity = 'solo'): number {
-  if (!(rimW > 0)) return density === 'dual' ? 180 : 208
-  if (density === 'dual') return Math.round(Math.min(rimW * 0.34, 180))
+  if (!(rimW > 0)) return density === 'dual' ? 148 : 208
+  if (density === 'dual') return Math.round(Math.min(rimW * 0.26, 136))
   return Math.round(Math.min(rimW * 0.38, 208))
 }
 
-/** Dual-table broadcast: anchor rim labels toward felt center so they never spill past the column. */
+/** Dual-table broadcast: grow rim labels outward into the gutter, clear of chip stacks. */
 export function broadcastRimLabelTransform(
   namePos: { leftPct: number; topPct: number },
   rimW: number,
@@ -215,16 +215,16 @@ export function broadcastRimLabelTransform(
   const absDy = Math.abs(dy)
 
   if (absDx > absDy * 0.72) {
-    if (dx > 0) return `translate(-100%, ${y('-50%')})`
-    return `translate(0%, ${y('-50%')})`
+    if (dx > 0) return `translate(0%, ${y('-50%')})`
+    return `translate(-100%, ${y('-50%')})`
   }
 
   if (absDy > absDx * 1.15) {
-    if (dy > 0) return `translate(-50%, ${y('-100%')})`
-    return `translate(-50%, ${y('0%')})`
+    if (dy > 0) return `translate(-50%, ${y('0%')})`
+    return `translate(-50%, ${y('-100%')})`
   }
 
-  const x = dx > 0 ? '-92%' : '-8%'
-  const yCorner = dy > 0 ? y('-92%') : y('-8%')
+  const x = dx > 0 ? '0%' : '-100%'
+  const yCorner = dy > 0 ? y('0%') : y('-100%')
   return `translate(${x}, ${yCorner})`
 }

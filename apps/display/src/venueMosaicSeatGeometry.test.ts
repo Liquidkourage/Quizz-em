@@ -212,19 +212,19 @@ describe('broadcastRimLabel dual density', () => {
   const w = 640
   const h = 360
 
-  it('caps dual max width to felt fraction, not viewport', () => {
-    expect(broadcastRimLabelMaxWidthPx(w, 'dual')).toBe(Math.round(w * 0.34))
-    expect(broadcastRimLabelMaxWidthPx(w, 'solo')).toBe(Math.round(w * 0.38))
+  it('caps dual max width to the inset felt, not the viewport', () => {
+    expect(broadcastRimLabelMaxWidthPx(w, 'dual')).toBe(Math.round(Math.min(w * 0.26, 136)))
+    expect(broadcastRimLabelMaxWidthPx(w, 'solo')).toBe(Math.min(208, Math.round(w * 0.38)))
   })
 
-  it('anchors right-side dual labels inward with translate(-100%)', () => {
+  it('anchors right-side dual labels outward with translate(0%)', () => {
     const name = mosaicSeatLabelPct(2, w, h, 22)
-    expect(broadcastRimLabelTransform(name, w, h, 'dual')).toBe('translate(-100%, -50%)')
+    expect(broadcastRimLabelTransform(name, w, h, 'dual')).toBe('translate(0%, -50%)')
   })
 
-  it('anchors left-side dual labels inward with translate(0%)', () => {
+  it('anchors left-side dual labels outward with translate(-100%)', () => {
     const name = mosaicSeatLabelPct(6, w, h, 22)
-    expect(broadcastRimLabelTransform(name, w, h, 'dual')).toBe('translate(0%, -50%)')
+    expect(broadcastRimLabelTransform(name, w, h, 'dual')).toBe('translate(-100%, -50%)')
   })
 
   it('keeps solo labels centered', () => {

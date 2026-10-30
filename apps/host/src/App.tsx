@@ -587,7 +587,7 @@ function HostApp() {
     displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
 
   return (
-    <div className="host-root min-h-screen bg-casino-gradient relative overflow-hidden">
+    <div className="host-root min-h-screen bg-casino-gradient relative">
       {/* Backdrop — static gradient so the desk stays readable during long hosts */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-zinc-900 to-slate-950" />
@@ -613,7 +613,7 @@ function HostApp() {
         ) : null}
         {toastMessage && (
           <motion.div
-            className="fixed top-4 right-4 z-50 rounded-xl border border-white/20 bg-glass-gradient p-5 text-lg text-white shadow-lg backdrop-blur-md"
+            className="fixed bottom-4 right-4 z-50 max-w-sm rounded-xl border border-white/20 bg-glass-gradient p-5 text-lg text-white shadow-lg backdrop-blur-md"
             initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 100 }}

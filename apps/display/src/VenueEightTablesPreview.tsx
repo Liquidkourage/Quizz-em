@@ -533,7 +533,7 @@ function VenueBroadcastCenterStack({
     textAlign: 'center' as const,
   }
   const potAboveBoardPx = boardHalfPx + communityBoardGapPx
-  const actionBelowBoardPx = boardHalfPx + communityBoardGapPx
+  const actionBelowBoardPx = boardHalfPx + communityBoardGapPx + Math.round(communityCardHeightPx * 0.22)
   const potStackStyle = {
     ...centerAnchorStyle,
     transform: hasCommunityBoard
@@ -1399,12 +1399,15 @@ function SeatRingWithLabels({
       const { w, h } = ringPx
       if (!(w > 0 && h > 0)) return empty
       const cupPx = Math.round(stadiumCupholderSizePx(w) * 1.2)
-      const labelOutwardPx = cupPx * 0.72 + (feltSeatStacks ? 32 : 22)
-      const outwardScale = broadcastDensity === 'dual' ? 0.78 : 1
+      const labelOutwardPx =
+        broadcastDensity === 'dual'
+          ? Math.max(28, Math.round(Math.min(w, h) * 0.14))
+          : cupPx * 0.72 + (feltSeatStacks ? 32 : 22)
       return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         if (!(seatNames[i]?.trim() ?? '')) return null
-        const rimClusterExtra = feltSeatStacks ? Math.round(cupPx * 0.26) : 0
-        return mosaicSeatLabelPct(i, w, h, (labelOutwardPx + rimClusterExtra) * outwardScale)
+        const rimClusterExtra =
+          feltSeatStacks && broadcastDensity !== 'dual' ? Math.round(cupPx * 0.26) : 0
+        return mosaicSeatLabelPct(i, w, h, labelOutwardPx + rimClusterExtra)
       })
     }
     return computeSeatLabelAnchorsPct({
@@ -1475,12 +1478,12 @@ function SeatRingWithLabels({
 
   return (
     <div
-      ref={ringElRef}
       className={`${isMosaic ? '@container' : ''} relative ${
-        isDualBroadcast ? 'overflow-hidden' : 'overflow-visible'
+        isDualBroadcast ? 'venue-broadcast-dual-frame overflow-hidden' : 'overflow-visible'
       } ${wrap}`}
       style={ringWrapStyle}
     >
+      <div ref={ringElRef} className={isDualBroadcast ? 'venue-broadcast-dual-stage' : 'absolute inset-0'}>
       <div className="absolute inset-0" aria-hidden>
         <PokerTableGraphic
           className={`h-full w-full drop-shadow-md ${
@@ -2020,6 +2023,7 @@ function SeatRingWithLabels({
         )
       })}
       {feltOverlay}
+      </div>
     </div>
   )
 }

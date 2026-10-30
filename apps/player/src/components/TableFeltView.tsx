@@ -26,14 +26,6 @@ type TableFeltViewProps = {
   playerOnline?: Record<string, boolean>
 }
 
-function seatStatusPillClass(pill: SeatStatusPill): string {
-  if (pill.kind === 'acting') return 'player-game-seat-pill player-game-seat-pill--acting'
-  if (pill.kind === 'allIn') return 'player-game-seat-pill player-game-seat-pill--allIn'
-  if (pill.kind === 'away') return 'player-game-seat-pill player-game-seat-pill--away'
-  if (pill.kind === 'street') return 'player-game-seat-pill player-game-seat-pill--street'
-  return `player-game-seat-pill player-game-seat-pill--${pill.action}`
-}
-
 function guessIsLocked(player: PlayerState): boolean {
   return player.answerLocked === true || player.submittedAnswer != null
 }
@@ -60,18 +52,6 @@ function answeringStatus(
     return { pill: { kind: 'action', action: 'check', label: 'LOCKED' }, locked: true }
   }
   return { pill: { kind: 'acting', label: 'Thinking…' }, locked: false }
-}
-
-function StatusPillView({ pill, locked }: { pill: SeatStatusPill; locked?: boolean }) {
-  return (
-    <span
-      className={
-        locked ? 'player-game-seat-pill player-game-seat-pill--locked' : seatStatusPillClass(pill)
-      }
-    >
-      {pill.label.includes('$') ? <ChipText text={pill.label} /> : pill.label}
-    </span>
-  )
 }
 
 /** Seated view — the felt, with each player at a chair. */
@@ -163,8 +143,6 @@ export default function TableFeltView({
       const statusPill = quizStatus?.pill ?? bettingPill
       const statusLocked = quizStatus?.locked === true
 
-      const tagText = 'text-sm leading-tight sm:text-base'
-
       return {
         index,
         label: showSeat ? index + 1 : isMe ? 'You' : rosterDisplayName(player.name).slice(0, 2),
@@ -194,18 +172,17 @@ export default function TableFeltView({
           .join(', '),
         nameTag: (
           <>
-            <span className={`max-w-full truncate font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'} ${tagText}`}>
+            <span className={`player-seat-name font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'}`}>
               {rosterDisplayName(player.name)}
               {isMe ? <span className="player-hud-you-badge">You</span> : null}
             </span>
-            <span className={`font-bold tabular-nums text-amber-300 ${tagText}`}>
+            <span className="player-seat-stack font-bold tabular-nums text-amber-300">
               {pointsOnly ? (
                 `${(player.answerPoints ?? 0).toLocaleString()} pts`
               ) : (
                 <ChipText text={`$${player.bankroll.toLocaleString()}`} />
               )}
             </span>
-            {statusPill ? <StatusPillView pill={statusPill} locked={statusLocked} /> : null}
           </>
         ),
       }

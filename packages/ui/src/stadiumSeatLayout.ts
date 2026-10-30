@@ -223,7 +223,8 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
 /** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
 export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
-  // Seat markers must read across a phone — table is layout-capped.
+  // Narrow portrait felts: a 30px cup reaches the name tag. Keep the marker inside the rail.
+  if (w < 280) return Math.max(20, Math.round(w * 0.078))
   const frac = w < 420 ? 0.095 : 0.1
   return Math.max(30, Math.round(w * frac))
 }
@@ -239,8 +240,8 @@ export function stadiumPlayerHoleCardScale(tableWidthPx: number, seatCount = 6):
   // Table is layout-capped on phones — keep hole cards readable without rail overflow.
   const cardWFrac = n <= 2 ? 0.084 : n <= 4 ? 0.07 : n <= 6 ? 0.06 : 0.052
   const targetW = w * cardWFrac
-  const maxScale = w < 420 ? 0.5 : w < 560 ? 0.58 : 0.68
-  const minScale = w < 420 ? 0.3 : 0.32
+  const maxScale = w < 280 ? 0.32 : w < 420 ? 0.5 : w < 560 ? 0.58 : 0.68
+  const minScale = w < 280 ? 0.2 : w < 420 ? 0.3 : 0.32
   return Math.max(minScale, Math.min(maxScale, targetW / 64))
 }
 
@@ -256,6 +257,7 @@ export function stadiumPlayerSeatHoleCardScale(
   const base = stadiumPlayerHoleCardScale(tableWidthPx, seatCount)
   if (!faceUp) return base
   const w = tableWidthPx > 0 ? tableWidthPx : 360
+  if (w < 280) return Math.min(0.3, base * 1.04)
   if (w < 420) {
     // Phone: slight hero bump; layout caps the felt so this stays inside the rail.
     return Math.min(0.52, base * 1.12)

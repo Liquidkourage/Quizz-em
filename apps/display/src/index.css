@@ -597,6 +597,42 @@
     overflow: hidden;
   }
 
+  /* Inset the artwork so names and stacks sit in a gutter instead of on the chips. */
+  .venue-broadcast-dual-stage {
+    position: absolute;
+    inset: 22% 18% 20%;
+  }
+
+  .venue-broadcast-dual-stage .vfd-broadcast-action-stack,
+  .venue-broadcast-dual-stage .vfd-broadcast-pot-stack {
+    max-width: 42%;
+  }
+
+  .venue-broadcast-dual-stage .vfd-broadcast-action-name,
+  .venue-broadcast-dual-stage .vfd-broadcast-action-label,
+  .venue-broadcast-dual-stage .vfd-broadcast-action-message,
+  .venue-broadcast-dual-stage .vfd-broadcast-center-amount {
+    font-size: clamp(11px, 1.35vw, 18px) !important;
+  }
+
+  .venue-broadcast-dual-stage .vfd-broadcast-rim-name,
+  .venue-broadcast-dual-stage .vfd-broadcast-rim-name--acting {
+    font-size: clamp(0.72rem, 1.45vh, 0.95rem) !important;
+  }
+
+  .venue-broadcast-dual-stage .vfd-broadcast-rim-stack {
+    font-size: clamp(0.78rem, 1.6vh, 1.05rem) !important;
+  }
+
+  .venue-broadcast-dual-stage .vfd-broadcast-action-name {
+    display: inline-block;
+    max-width: 7.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+    white-space: nowrap;
+  }
+
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__plaque {
     max-width: min(98%, 34rem);
     max-height: min(92%, 30rem);
@@ -1704,6 +1740,23 @@
     justify-content: stretch;
     width: 100%;
     padding: clamp(2px, 0.35vmin, 4px) clamp(10px, 2.2cqw, 22px) clamp(8px, 1.1vmin, 14px);
+    container-type: size;
+  }
+
+  /* Narrow join columns wrap the steps. Shrink only then so 16:9 walls keep the token size. */
+  @container (max-width: 420px) {
+    .welcome-tips-step {
+      font-size: clamp(0.78rem, 4.4cqh, 1.02rem);
+      line-height: 1.16;
+    }
+
+    .welcome-tips-item {
+      gap: 0.4rem;
+    }
+
+    .welcome-tips-list {
+      gap: 0;
+    }
   }
 
   .welcome-tips-list {
@@ -1786,6 +1839,15 @@
 
   .welcome-room-code-glyphs {
     font-size: clamp(2.75rem, 5.75vmin, 4.35rem);
+    white-space: nowrap;
+  }
+
+  /* Narrow 4:3 columns: keep a 6-character code on one line. Wide TVs stay on the token size. */
+  @container (max-width: 340px) {
+    .welcome-room-code-glyphs {
+      font-size: min(2.75rem, 13.2cqw);
+      letter-spacing: 0.06em;
+    }
   }
 
   .welcome-player-count-glyphs {
@@ -1819,6 +1881,7 @@
   }
 
   .welcome-led-readout-well {
+    container-type: inline-size;
     width: 100%;
     border-radius: clamp(8px, 1.1vmin, 12px);
     border: 1.5px solid rgb(251 191 36 / 0.88);
@@ -3854,9 +3917,11 @@
 
   .seating-roster-name {
     font-family: 'Rajdhani', sans-serif;
-    font-size: clamp(1.05rem, 3.25cqh, 1.42rem);
+    font-size: clamp(0.68rem, 4.6cqw, 1.42rem);
     font-weight: 700;
     letter-spacing: 0.012em;
+    line-height: 1.05;
+    white-space: nowrap;
     color: rgb(255 251 235 / 0.98);
   }
 

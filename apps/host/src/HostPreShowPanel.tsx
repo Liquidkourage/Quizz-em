@@ -145,7 +145,7 @@ export function HostPreShowPanel({
             ) : null}
 
             {lobbyPlayers.length > 0 ? (
-              <ul className="mt-3 space-y-1.5" aria-label="Players in waiting room">
+              <ul className="mt-3 max-h-[min(14rem,28vh)] space-y-1.5 overflow-y-auto" aria-label="Players in waiting room">
                 {lobbyPlayers.map((p) => {
                   const label = hostPlayerLabel(p.name)
                   const picked = picks[p.id]

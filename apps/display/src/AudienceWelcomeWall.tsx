@@ -596,7 +596,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
     `welcome-section-label min-w-0 break-words text-balance font-black uppercase text-amber-50/92 ${DISPLAY_TEXT_WELCOME_DENSE_CQ} [text-shadow:0_0_14px_rgba(253,224,138,0.28),0_2px_8px_rgba(0,0,0,.58)]`
 
   const venueMono =
-    `welcome-room-code-glyphs welcome-led-glyphs welcome-led-glyphs--room max-w-full break-all text-center leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
+    `welcome-room-code-glyphs welcome-led-glyphs welcome-led-glyphs--room max-w-full text-center leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`
 
   const playerCountGlyphs =
     `welcome-player-count-glyphs welcome-led-glyphs welcome-led-glyphs--count tabular-nums leading-none ${DISPLAY_TEXT_WELCOME_PRIMARY_CQ}`

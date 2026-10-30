@@ -160,13 +160,13 @@ function SeatingRosterRow({
         />
       </div>
       {occupied ? (
-        <span className="seating-roster-name min-w-0 flex-1 truncate">
+        <span className="seating-roster-name min-w-0 flex-1">
           {given}
           {suffix ? <span className="seating-roster-suffix"> {suffix}</span> : null}
           {highlight ? <span className="seating-roster-you">You</span> : null}
         </span>
       ) : (
-        <span className="seating-roster-open min-w-0 flex-1 truncate">Open seat</span>
+        <span className="seating-roster-open min-w-0 flex-1">Open seat</span>
       )}
     </li>
   )

@@ -1712,8 +1712,8 @@
     min-height: 0;
     flex: 1 1 0%;
     flex-direction: column;
-    justify-content: stretch;
-    gap: clamp(0.35rem, 1.1cqh, 0.85rem);
+    justify-content: space-evenly;
+    gap: clamp(2px, 0.35cqh, 6px);
     margin: 0;
     padding: 0 0 0 clamp(0.25rem, 0.55vmin, 0.5rem);
     list-style: none;
@@ -1721,20 +1721,22 @@
 
   .welcome-tips-item {
     display: flex;
-    flex: 1 1 0%;
+    flex: 0 0 auto;
     align-items: center;
     gap: clamp(0.65rem, 1.25vmin, 1rem);
     min-height: 0;
-    padding-block: clamp(2px, 0.35cqh, 6px);
+    padding-block: 0;
     text-align: left;
   }
 
   .welcome-tips-step {
+    min-width: 0;
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
     letter-spacing: 0.01em;
+    line-height: 1.15;
     text-transform: none;
-    white-space: nowrap;
+    white-space: normal;
   }
 
   .welcome-section-title--tips {

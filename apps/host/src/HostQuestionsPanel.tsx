@@ -1,4 +1,5 @@
-import { type FormEvent, type RefObject, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, type ReactNode, type RefObject, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { NeonButton } from '@qhe/ui'
 import { formatTriviaNumber, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress, isSetlistTargetLength, type GameState, type Question } from '@qhe/core'
 import {
@@ -49,6 +50,78 @@ export type HostQuestionsPanelProps = {
 const fieldClass =
   'mt-1 w-full rounded-lg border border-white/20 bg-black/40 px-3 py-2 text-white placeholder:text-white/35'
 
+const modalClosers: Array<() => void> = []
+let modalOverflowRestore: string | null = null
+
+function HostModal({
+  title,
+  onClose,
+  children,
+  wide,
+}: {
+  title: string
+  onClose: () => void
+  children: ReactNode
+  wide?: boolean
+}) {
+  const titleId = useId()
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
+  useEffect(() => {
+    const close = () => onCloseRef.current()
+    if (modalClosers.length === 0) {
+      modalOverflowRestore = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+    }
+    modalClosers.push(close)
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return
+      if (modalClosers[modalClosers.length - 1] !== close) return
+      e.preventDefault()
+      close()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      const index = modalClosers.lastIndexOf(close)
+      if (index >= 0) modalClosers.splice(index, 1)
+      if (modalClosers.length === 0 && modalOverflowRestore != null) {
+        document.body.style.overflow = modalOverflowRestore
+        modalOverflowRestore = null
+      }
+    }
+  }, [])
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-8 sm:py-12"
+      onMouseDown={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className={`my-auto flex max-h-[min(85vh,52rem)] w-full flex-col rounded-2xl border border-white/15 bg-zinc-950 p-5 shadow-2xl ${
+          wide ? 'max-w-3xl' : 'max-w-lg'
+        }`}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <h2 id={titleId} className="text-lg font-semibold text-white">
+            {title}
+          </h2>
+          <button type="button" className="text-sm font-semibold text-white/55 hover:text-white" onClick={onClose}>
+            Close
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">{children}</div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
 function matchesQuery(haystack: string, query: string): boolean {
   const q = query.trim().toLowerCase()
   if (!q) return true
@@ -71,6 +144,11 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
   const [createQuestionOpen, setCreateQuestionOpen] = useState(false)
   const [renameDraft, setRenameDraft] = useState('')
   const [addQuery, setAddQuery] = useState('')
+  const [addCueOpen, setAddCueOpen] = useState(false)
+  const [addTarget, setAddTarget] = useState<Question | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<
+    { kind: 'setlist'; id: string; name: string } | { kind: 'question'; id: string; name: string } | null
+  >(null)
   const pendingCreate = useRef<{ name: string; knownIds: Set<string> } | null>(null)
 
   const draft = setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
@@ -141,49 +219,15 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
     setlistCreate(`${sl.name} copy`, sl.questionIds)
   }
 
-  if (setlistDraftId && draft) {
-    return (
-      <SetlistManage
-        draft={draft}
-        questionBank={questionBank}
-        renameDraft={renameDraft}
-        setRenameDraft={setRenameDraft}
-        addQuery={addQuery}
-        setAddQuery={setAddQuery}
-        isActive={activeSetlistId === draft.id}
-        nextIndex={activeSetlistId === draft.id ? activeSetlistNextIndex : 0}
-        onBack={() => setSetlistDraftId(null)}
-        onActivate={() => onActivateSetlist(draft.id)}
-        onRenameBlur={() => {
-          const next = renameDraft.trim()
-          if (!next || next === draft.name) return
-          setlistSave({ id: draft.id, name: next })
-        }}
-        onShuffle={() => shuffleSetlistQuestions(draft.id)}
-        onDelete={() => {
-          if (!confirm('Delete this setlist? Live will no longer step through it.')) return
-          setlistDelete(draft.id)
-          setSetlistDraftId(null)
-        }}
-        onAdd={(questionId) => {
-          appendQuestionToSetlist(draft.id, questionId)
-          setAddQuery('')
-        }}
-        onMove={(index, dir) => moveSetlistQuestion(draft.id, index, dir)}
-        onRemove={(index) => removeSetlistQuestion(draft.id, index)}
-      />
-    )
-  }
-
-  if (setlistDraftId && !draft) {
-    return (
-      <div className="rounded-xl border border-white/15 bg-black/30 p-5">
-        <p className="text-sm text-white/60">That setlist is gone.</p>
-        <NeonButton className="mt-3" variant="purple" size="small" type="button" onClick={() => setSetlistDraftId(null)}>
-          Back to setlists
-        </NeonButton>
-      </div>
-    )
+  function confirmPendingDelete() {
+    if (!pendingDelete) return
+    if (pendingDelete.kind === 'setlist') {
+      setlistDelete(pendingDelete.id)
+      if (setlistDraftId === pendingDelete.id) setSetlistDraftId(null)
+    } else {
+      questionBankDelete(pendingDelete.id)
+    }
+    setPendingDelete(null)
   }
 
   return (
@@ -218,34 +262,17 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
 
       {view === 'setlists' ? (
         <>
-          <div className="flex flex-wrap items-end gap-2">
-            {creatingSetlist ? (
-              <>
-                <label className="block text-sm text-white/80">
-                  Setlist name
-                  <input
-                    value={newSetlistName}
-                    onChange={(e) => setNewSetlistName(e.target.value)}
-                    placeholder="Friday night"
-                    className={fieldClass + ' w-64 max-w-[80vw]'}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') createSetlist()
-                    }}
-                  />
-                </label>
-                <NeonButton variant="emerald" size="small" type="button" onClick={createSetlist}>
-                  Create
-                </NeonButton>
-                <NeonButton variant="purple" size="small" type="button" onClick={() => setCreatingSetlist(false)}>
-                  Cancel
-                </NeonButton>
-              </>
-            ) : (
-              <NeonButton variant="emerald" size="small" type="button" onClick={() => setCreatingSetlist(true)}>
-                Create setlist
-              </NeonButton>
-            )}
-          </div>
+          <NeonButton
+            variant="emerald"
+            size="small"
+            type="button"
+            onClick={() => {
+              setNewSetlistName('')
+              setCreatingSetlist(true)
+            }}
+          >
+            Create setlist
+          </NeonButton>
           {filteredSetlists.length === 0 ? (
             <p className="rounded-xl border border-white/10 bg-black/25 px-4 py-8 text-center text-sm text-white/50">
               {setlists.length === 0 ? 'No setlists yet.' : 'No setlists match that search.'}
@@ -282,10 +309,7 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
                       <button
                         type="button"
                         className="ml-auto text-red-400/90 hover:text-red-300"
-                        onClick={() => {
-                          if (!confirm(`Delete “${sl.name}”?`)) return
-                          setlistDelete(sl.id)
-                        }}
+                        onClick={() => setPendingDelete({ kind: 'setlist', id: sl.id, name: sl.name })}
                       >
                         Delete
                       </button>
@@ -302,30 +326,234 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
           questions={filteredQuestions}
           bankEmpty={questionBank.length === 0}
           setlists={setlists}
-          formOpen={createQuestionOpen || editingBankId != null}
-          editing={editingBankId != null}
-          qbText={qbText}
-          setQbText={setQbText}
-          qbAnswer={qbAnswer}
-          setQbAnswer={setQbAnswer}
-          qbCategory={qbCategory}
-          setQbCategory={setQbCategory}
-          qbDifficulty={qbDifficulty}
-          setQbDifficulty={setQbDifficulty}
           importFileRef={importFileRef}
           importReplaceRef={importReplaceRef}
           onImportError={onImportError}
           onOpenCreate={openCreateQuestion}
-          onCloseForm={closeQuestionForm}
-          onSubmit={submitQuestion}
           onEdit={startEditBankQuestion}
-          onDelete={(id) => {
-            if (confirm('Remove this question from the bank?')) questionBankDelete(id)
-          }}
+          onDelete={(q) => setPendingDelete({ kind: 'question', id: q.id, name: q.text })}
           onPush={handlePushBankQuestion}
-          onAddToSetlist={appendQuestionToSetlist}
+          onAddToSetlist={setAddTarget}
         />
       )}
+
+      {creatingSetlist ? (
+        <HostModal
+          title="Create setlist"
+          onClose={() => {
+            setCreatingSetlist(false)
+            setNewSetlistName('')
+          }}
+        >
+          <label className="block text-sm text-white/80">
+            Name
+            <input
+              autoFocus
+              value={newSetlistName}
+              onChange={(e) => setNewSetlistName(e.target.value)}
+              placeholder="Friday night"
+              className={fieldClass}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') createSetlist()
+              }}
+            />
+          </label>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <NeonButton variant="emerald" size="small" type="button" onClick={createSetlist}>
+              Create
+            </NeonButton>
+            <NeonButton
+              variant="purple"
+              size="small"
+              type="button"
+              onClick={() => {
+                setCreatingSetlist(false)
+                setNewSetlistName('')
+              }}
+            >
+              Cancel
+            </NeonButton>
+          </div>
+        </HostModal>
+      ) : null}
+
+      {createQuestionOpen || editingBankId != null ? (
+        <HostModal title={editingBankId ? 'Edit question' : 'Create question'} onClose={closeQuestionForm}>
+          <form onSubmit={submitQuestion} className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-sm text-white/80">
+                Category
+                <input
+                  autoFocus
+                  value={qbCategory}
+                  onChange={(e) => setQbCategory(e.target.value)}
+                  placeholder="General knowledge"
+                  className={fieldClass}
+                />
+              </label>
+              <label className="block text-sm text-white/80">
+                Difficulty (1–5)
+                <input
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={qbDifficulty}
+                  onChange={(e) => setQbDifficulty(e.target.value)}
+                  placeholder="Optional"
+                  className={fieldClass}
+                />
+              </label>
+              <label className="block text-sm text-white/80 sm:col-span-2">
+                Question
+                <textarea
+                  value={qbText}
+                  onChange={(e) => setQbText(e.target.value)}
+                  rows={3}
+                  className={fieldClass}
+                  placeholder="A prompt with a numeric answer"
+                />
+              </label>
+              <label className="block text-sm text-white/80">
+                Correct answer
+                <input
+                  type="number"
+                  step="any"
+                  value={qbAnswer}
+                  onChange={(e) => setQbAnswer(e.target.value)}
+                  className={fieldClass}
+                />
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <NeonButton variant="emerald" size="small" type="submit">
+                {editingBankId ? 'Save changes' : 'Create question'}
+              </NeonButton>
+              <NeonButton variant="purple" size="small" type="button" onClick={closeQuestionForm}>
+                Cancel
+              </NeonButton>
+            </div>
+          </form>
+        </HostModal>
+      ) : null}
+
+      {setlistDraftId && draft ? (
+        <HostModal
+          wide
+          title="Manage setlist"
+          onClose={() => {
+            setAddCueOpen(false)
+            setSetlistDraftId(null)
+          }}
+        >
+          <SetlistManage
+            draft={draft}
+            questionBank={questionBank}
+            renameDraft={renameDraft}
+            setRenameDraft={setRenameDraft}
+            isActive={activeSetlistId === draft.id}
+            nextIndex={activeSetlistId === draft.id ? activeSetlistNextIndex : 0}
+            onActivate={() => onActivateSetlist(draft.id)}
+            onRenameBlur={() => {
+              const next = renameDraft.trim()
+              if (!next || next === draft.name) return
+              setlistSave({ id: draft.id, name: next })
+            }}
+            onShuffle={() => shuffleSetlistQuestions(draft.id)}
+            onDelete={() => setPendingDelete({ kind: 'setlist', id: draft.id, name: draft.name })}
+            onOpenAdd={() => {
+              setAddQuery('')
+              setAddCueOpen(true)
+            }}
+            onMove={(index, dir) => moveSetlistQuestion(draft.id, index, dir)}
+            onRemove={(index) => removeSetlistQuestion(draft.id, index)}
+          />
+        </HostModal>
+      ) : null}
+
+      {setlistDraftId && !draft ? (
+        <HostModal title="Setlist" onClose={() => setSetlistDraftId(null)}>
+          <p className="text-sm text-white/60">That setlist is gone.</p>
+        </HostModal>
+      ) : null}
+
+      {addCueOpen && draft ? (
+        <HostModal
+          title="Add from bank"
+          onClose={() => {
+            setAddCueOpen(false)
+            setAddQuery('')
+          }}
+        >
+          <label className="block text-sm text-white/80">
+            Search
+            <input
+              autoFocus
+              value={addQuery}
+              onChange={(e) => setAddQuery(e.target.value)}
+              placeholder="Question, category, or answer"
+              className={fieldClass}
+            />
+          </label>
+          <AddCueResults
+            questionBank={questionBank}
+            draft={draft}
+            query={addQuery}
+            onAdd={(questionId) => {
+              appendQuestionToSetlist(draft.id, questionId)
+              setAddQuery('')
+            }}
+          />
+        </HostModal>
+      ) : null}
+
+      {addTarget ? (
+        <HostModal title="Add to setlist" onClose={() => setAddTarget(null)}>
+          <p className="text-sm text-white/70">{addTarget.text}</p>
+          {setlists.length === 0 ? (
+            <p className="mt-3 text-sm text-white/50">Create a setlist first.</p>
+          ) : (
+            <ul className="mt-3 space-y-1">
+              {setlists.map((sl) => {
+                const already = sl.questionIds.includes(addTarget.id)
+                return (
+                  <li key={sl.id}>
+                    <button
+                      type="button"
+                      disabled={already}
+                      className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-left text-sm text-white hover:bg-white/10 disabled:text-white/35 disabled:hover:bg-transparent"
+                      onClick={() => {
+                        appendQuestionToSetlist(sl.id, addTarget.id)
+                        setAddTarget(null)
+                      }}
+                    >
+                      <span>{sl.name}</span>
+                      <span className="text-xs text-white/45">{already ? 'Already in' : formatSetlistProgress(sl.questionIds.length)}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </HostModal>
+      ) : null}
+
+      {pendingDelete ? (
+        <HostModal title={pendingDelete.kind === 'setlist' ? 'Delete setlist' : 'Delete question'} onClose={() => setPendingDelete(null)}>
+          <p className="text-sm leading-relaxed text-white/75">
+            {pendingDelete.kind === 'setlist'
+              ? `Delete “${pendingDelete.name}”? Live will no longer step through it.`
+              : `Remove this question from the bank? “${pendingDelete.name}”`}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <NeonButton variant="red" size="small" type="button" onClick={confirmPendingDelete}>
+              Delete
+            </NeonButton>
+            <NeonButton variant="purple" size="small" type="button" onClick={() => setPendingDelete(null)}>
+              Cancel
+            </NeonButton>
+          </div>
+        </HostModal>
+      ) : null}
     </section>
   )
 }
@@ -335,25 +563,17 @@ function SetlistManage(props: {
   questionBank: Question[]
   renameDraft: string
   setRenameDraft: (v: string) => void
-  addQuery: string
-  setAddQuery: (v: string) => void
   isActive: boolean
   nextIndex: number
-  onBack: () => void
   onActivate: () => void
   onRenameBlur: () => void
   onShuffle: () => void
   onDelete: () => void
-  onAdd: (questionId: string) => void
+  onOpenAdd: () => void
   onMove: (index: number, dir: 'up' | 'down') => void
   onRemove: (index: number) => void
 }) {
   const { draft, questionBank } = props
-  const addable = questionBank.filter(
-    (q) =>
-      !draft.questionIds.includes(q.id) &&
-      matchesQuery(`${q.text} ${q.category ?? ''} ${q.answer}`, props.addQuery),
-  )
   const finished = props.isActive && props.nextIndex >= draft.questionIds.length && draft.questionIds.length > 0
   const liveLabel = !props.isActive
     ? 'Use on Live'
@@ -362,10 +582,7 @@ function SetlistManage(props: {
       : `On Live · cue ${props.nextIndex + 1} of ${draft.questionIds.length}`
 
   return (
-    <section className="space-y-4">
-      <button type="button" className="text-sm font-semibold text-white/60 hover:text-white" onClick={props.onBack}>
-        ← Setlists
-      </button>
+    <div className="space-y-4">
       <div className="flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 flex-1">
           <label className="block text-sm text-white/70">
@@ -405,35 +622,13 @@ function SetlistManage(props: {
         </div>
       </div>
 
-      <label className="block text-sm text-white/70">
+      <NeonButton variant="emerald" size="small" type="button" onClick={props.onOpenAdd}>
         Add from bank
-        <input
-          value={props.addQuery}
-          onChange={(e) => props.setAddQuery(e.target.value)}
-          placeholder="Search questions to add"
-          className={fieldClass}
-        />
-      </label>
-      {props.addQuery.trim() && addable.length > 0 ? (
-        <ul className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-white/10 bg-black/30 p-2">
-          {addable.slice(0, 8).map((q) => (
-            <li key={q.id}>
-              <button
-                type="button"
-                className="flex w-full items-baseline justify-between gap-3 rounded-lg px-2 py-2 text-left text-sm hover:bg-white/10"
-                onClick={() => props.onAdd(q.id)}
-              >
-                <span className="min-w-0 text-white/90">{q.text}</span>
-                <span className="shrink-0 font-mono text-casino-gold">{formatTriviaNumber(q.answer)}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      </NeonButton>
 
       {draft.questionIds.length === 0 ? (
         <p className="rounded-xl border border-white/10 bg-black/25 px-4 py-8 text-center text-sm text-white/50">
-          No cues yet. Search the bank above to add the first one.
+          No cues yet.
         </p>
       ) : (
         <ol className="space-y-2">
@@ -481,7 +676,42 @@ function SetlistManage(props: {
           })}
         </ol>
       )}
-    </section>
+    </div>
+  )
+}
+
+function AddCueResults(props: {
+  questionBank: Question[]
+  draft: SetlistRow
+  query: string
+  onAdd: (questionId: string) => void
+}) {
+  const addable = props.questionBank.filter(
+    (q) =>
+      !props.draft.questionIds.includes(q.id) &&
+      matchesQuery(`${q.text} ${q.category ?? ''} ${q.answer}`, props.query),
+  )
+  if (!props.query.trim()) {
+    return <p className="mt-3 text-sm text-white/45">Type to search the bank.</p>
+  }
+  if (addable.length === 0) {
+    return <p className="mt-3 text-sm text-white/45">Nothing in the bank matches that.</p>
+  }
+  return (
+    <ul className="mt-3 space-y-1">
+      {addable.slice(0, 12).map((q) => (
+        <li key={q.id}>
+          <button
+            type="button"
+            className="flex w-full items-baseline justify-between gap-3 rounded-lg px-2 py-2 text-left text-sm hover:bg-white/10"
+            onClick={() => props.onAdd(q.id)}
+          >
+            <span className="min-w-0 text-white/90">{q.text}</span>
+            <span className="shrink-0 font-mono text-casino-gold">{formatTriviaNumber(q.answer)}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -490,26 +720,14 @@ function QuestionLibrary(props: {
   questions: Question[]
   bankEmpty: boolean
   setlists: SetlistRow[]
-  formOpen: boolean
-  editing: boolean
-  qbText: string
-  setQbText: (v: string) => void
-  qbAnswer: string
-  setQbAnswer: (v: string) => void
-  qbCategory: string
-  setQbCategory: (v: string) => void
-  qbDifficulty: string
-  setQbDifficulty: (v: string) => void
   importFileRef: RefObject<HTMLInputElement | null>
   importReplaceRef: { current: boolean }
   onImportError: (msg: string) => void
   onOpenCreate: () => void
-  onCloseForm: () => void
-  onSubmit: (e: FormEvent) => void
   onEdit: (q: Question) => void
-  onDelete: (id: string) => void
+  onDelete: (q: Question) => void
   onPush: (id: string) => void
-  onAddToSetlist: (setlistId: string, questionId: string) => void
+  onAddToSetlist: (q: Question) => void
 }) {
   return (
     <div className="space-y-4">
@@ -575,63 +793,6 @@ function QuestionLibrary(props: {
         </p>
       </HostCollapsible>
 
-      {props.formOpen ? (
-        <form onSubmit={props.onSubmit} className="space-y-3 rounded-xl border border-white/15 bg-black/35 p-4">
-          <h2 className="text-base font-semibold text-white">{props.editing ? 'Edit question' : 'New question'}</h2>
-          <div className="grid gap-3 md:grid-cols-2">
-            <label className="block text-sm text-white/80">
-              Category
-              <input
-                value={props.qbCategory}
-                onChange={(e) => props.setQbCategory(e.target.value)}
-                placeholder="General knowledge"
-                className={fieldClass}
-              />
-            </label>
-            <label className="block text-sm text-white/80">
-              Difficulty (1–5)
-              <input
-                type="number"
-                min={1}
-                max={5}
-                value={props.qbDifficulty}
-                onChange={(e) => props.setQbDifficulty(e.target.value)}
-                placeholder="Optional"
-                className={fieldClass}
-              />
-            </label>
-            <label className="block text-sm text-white/80 md:col-span-2">
-              Question
-              <textarea
-                value={props.qbText}
-                onChange={(e) => props.setQbText(e.target.value)}
-                rows={3}
-                className={fieldClass}
-                placeholder="A prompt with a numeric answer"
-              />
-            </label>
-            <label className="block text-sm text-white/80">
-              Correct answer
-              <input
-                type="number"
-                step="any"
-                value={props.qbAnswer}
-                onChange={(e) => props.setQbAnswer(e.target.value)}
-                className={fieldClass}
-              />
-            </label>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <NeonButton variant="emerald" size="small" type="submit">
-              {props.editing ? 'Save changes' : 'Create question'}
-            </NeonButton>
-            <NeonButton variant="purple" size="small" type="button" onClick={props.onCloseForm}>
-              Cancel
-            </NeonButton>
-          </div>
-        </form>
-      ) : null}
-
       {props.questions.length === 0 ? (
         <p className="rounded-xl border border-white/10 bg-black/25 px-4 py-8 text-center text-sm text-white/50">
           {props.bankEmpty
@@ -655,36 +816,17 @@ function QuestionLibrary(props: {
                 {memberships.length > 0 ? (
                   <p className="mt-1 text-xs text-white/45">In {memberships.map((sl) => sl.name).join(', ')}</p>
                 ) : null}
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                  <select
-                    className="max-w-[14rem] rounded border border-white/20 bg-zinc-950 px-2 py-1 text-xs text-white [color-scheme:dark]"
-                    value=""
-                    disabled={props.setlists.length === 0}
-                    aria-label={`Add “${q.text.slice(0, 40)}” to a setlist`}
-                    onChange={(e) => {
-                      const setlistId = e.target.value
-                      if (!setlistId) return
-                      props.onAddToSetlist(setlistId, q.id)
-                      e.currentTarget.value = ''
-                    }}
-                  >
-                    <option value="">Add to setlist…</option>
-                    {props.setlists.map((sl) => {
-                      const already = sl.questionIds.includes(q.id)
-                      return (
-                        <option key={sl.id} value={sl.id} disabled={already}>
-                          {already ? `✓ ${sl.name}` : sl.name}
-                        </option>
-                      )
-                    })}
-                  </select>
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                  <button type="button" className="font-semibold text-casino-gold hover:underline" onClick={() => props.onAddToSetlist(q)}>
+                    Add to setlist
+                  </button>
                   <button type="button" className="font-semibold text-casino-emerald hover:underline" onClick={() => props.onPush(q.id)}>
                     To tables
                   </button>
                   <button type="button" className="text-white/65 hover:text-white" onClick={() => props.onEdit(q)}>
                     Edit
                   </button>
-                  <button type="button" className="text-red-400/90 hover:text-red-300" onClick={() => props.onDelete(q.id)}>
+                  <button type="button" className="text-red-400/90 hover:text-red-300" onClick={() => props.onDelete(q)}>
                     Delete
                   </button>
                 </div>

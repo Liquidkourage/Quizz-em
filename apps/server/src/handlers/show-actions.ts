@@ -1,6 +1,7 @@
 import type { Socket } from 'socket.io'
 import type { GameState, Question } from '@qhe/core'
 import * as g from '../game-ops'
+import { denyUnlessOwnSeat } from '../own-seat'
 
 export async function handleShowAction(
   socket: Socket,
@@ -299,6 +300,7 @@ export async function handleShowAction(
 
         case 'submitAnswer': {
           const submitAnswerAction = payload as g.SubmitAnswerAction
+          if (denyUnlessOwnSeat(socket, submitAnswerAction.playerId)) break
           const accepting =
             gameState.phase === 'answering' || g.canPreloadTriviaAnswer(gameState)
           if (!accepting) {
@@ -331,10 +333,7 @@ export async function handleShowAction(
             submitAnswerAction.answer,
             submitAnswerAction.composition
           )
-          g.io.to(sessionKey).emit(
-            'toast',
-            `${who} submitted ${g.formatTriviaNumber(submitAnswerAction.answer)}`,
-          )
+          g.io.to(sessionKey).emit('toast', `${who} locked an answer`)
           socket.emit('ack', { ok: true, message: 'Answer recorded.' })
           break
         }

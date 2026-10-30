@@ -44,6 +44,7 @@ import {
   type SelectedCardRef,
 } from './playerModel/answerComposition'
 import { buildBettingContext, resolveMyPlayerIndex } from './playerModel/bettingModel'
+import { lockedAnswerDisplayText } from './playerModel/lockedAnswerDisplay'
 import { resolvePreAction, type PreAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
@@ -84,6 +85,7 @@ function PlayerApp() {
   const [composedAnswer, setComposedAnswer] = useState<ComposedAnswer>(EMPTY_COMPOSED_ANSWER)
   const [selectedCards, setSelectedCards] = useState<SelectedCardRef[]>([])
   const [submittedAnswerDisplay, setSubmittedAnswerDisplay] = useState<string | null>(null)
+  const [editingAnswer, setEditingAnswer] = useState(false)
   const socket = useSocket()
 
   useEffect(() => {
@@ -185,12 +187,15 @@ function PlayerApp() {
       setComposedAnswer(EMPTY_COMPOSED_ANSWER)
       setSelectedCards([])
       setSubmittedAnswerDisplay(null)
+      setEditingAnswer(false)
     }
   }, [gameState?.phase, gameState?.round.roundId])
 
   useEffect(() => {
-    if (gameState?.phase === 'answering') return
+    const phase = gameState?.phase
+    if (phase === 'answering' || phase === 'betting') return
     setSubmittedAnswerDisplay(null)
+    setEditingAnswer(false)
   }, [gameState?.phase, gameState?.round.roundId])
 
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
@@ -260,8 +265,14 @@ function PlayerApp() {
     else fold()
   }, [bettingCtx, preAction, gameState])
 
+  const lockedAnswerDisplay = lockedAnswerDisplayText({
+    editing: editingAnswer,
+    serverAnswer: currentPlayer?.submittedAnswer,
+    optimistic: submittedAnswerDisplay,
+  })
+
   const handleCardSelect = (type: 'hand' | 'community', index: number) => {
-    if (!gameState || !currentPlayer || submittedAnswerDisplay) return
+    if (!gameState || !currentPlayer || lockedAnswerDisplay) return
     const next = toggleCardInSelection({
       gameState,
       currentPlayer,
@@ -276,7 +287,7 @@ function PlayerApp() {
   }
 
   const handleAnswerBackspace = () => {
-    if (submittedAnswerDisplay) return
+    if (lockedAnswerDisplay) return
     const next = backspaceFromAnswer({ selected: selectedCards, composed: composedAnswer })
     setSelectedCards(next.selected)
     setComposedAnswer(next.composed)
@@ -287,7 +298,7 @@ function PlayerApp() {
       showToast("We'll resume in a moment.", 2500)
       return
     }
-    if (!gameState || submittedAnswerDisplay) return
+    if (!gameState || lockedAnswerDisplay) return
     const err = validateAnswerSubmit(gameState.phase, selectedCards, composedAnswer, {
       preload: canPreloadTriviaAnswer(gameState),
     })
@@ -298,6 +309,7 @@ function PlayerApp() {
     const display = composedAnswer.display
     submitAnswer(composedAnswer.value, selectionToComposition(selectedCards), (ack) => {
       if (ack.ok) {
+        setEditingAnswer(false)
         setSubmittedAnswerDisplay(display)
         showToast(`Answer submitted: ${display}`)
       } else showToast(`Error: ${ack.message}`, 5000)
@@ -609,20 +621,23 @@ function PlayerApp() {
             composed={composedAnswer}
             selectedCards={selectedCards}
             remainingSec={remainingSec}
-            submittedDisplay={submittedAnswerDisplay}
+            submittedDisplay={lockedAnswerDisplay}
             onSelectCard={handleCardSelect}
             onToggleDecimal={() => {
-              if (submittedAnswerDisplay) return
+              if (lockedAnswerDisplay) return
               setComposedAnswer((c) => toggleDecimal(c))
             }}
             onBackspace={handleAnswerBackspace}
             onClear={() => {
-              if (submittedAnswerDisplay) return
+              if (lockedAnswerDisplay) return
               setComposedAnswer(EMPTY_COMPOSED_ANSWER)
               setSelectedCards([])
             }}
             onSubmit={handleSubmitAnswer}
-            onEditSubmitted={() => setSubmittedAnswerDisplay(null)}
+            onEditSubmitted={() => {
+              setEditingAnswer(true)
+              setSubmittedAnswerDisplay(null)
+            }}
             preload={preloadAnswer}
           />
         ) : null}

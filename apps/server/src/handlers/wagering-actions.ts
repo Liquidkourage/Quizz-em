@@ -9,6 +9,7 @@ import type {
   RaiseAction,
 } from '@qhe/net'
 import * as g from '../game-ops'
+import { denyUnlessOwnSeat, foldIsLegalNow } from '../own-seat'
 
 export async function handleWageringAction(
   socket: Socket,
@@ -31,6 +32,16 @@ export async function handleWageringAction(
   if (holdBlocksWager.has(type) && g.isVenueHeld(gameState.code)) {
     socket.emit('toast', 'The room is on hold. Resume to continue.')
     return gameState
+  }
+  const seatActions = new Set(['bet', 'check', 'call', 'raise', 'fold', 'allIn'])
+  if (seatActions.has(type)) {
+    const playerId = payload?.playerId
+    if (denyUnlessOwnSeat(socket, playerId)) return gameState
+    if (type === 'fold' && !foldIsLegalNow(gameState, playerId)) {
+      socket.emit('toast', 'Wait for your turn to fold.')
+      socket.emit('ack', { ok: false, message: 'Wait for your turn to fold.' })
+      return gameState
+    }
   }
   switch (type) {
         case 'bet': {

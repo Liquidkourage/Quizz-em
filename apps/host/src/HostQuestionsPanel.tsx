@@ -145,11 +145,18 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
   const [renameDraft, setRenameDraft] = useState('')
   const [addQuery, setAddQuery] = useState('')
   const [addCueOpen, setAddCueOpen] = useState(false)
+  const [creatingForSetlistId, setCreatingForSetlistId] = useState<string | null>(null)
   const [addTarget, setAddTarget] = useState<Question | null>(null)
   const [pendingDelete, setPendingDelete] = useState<
     { kind: 'setlist'; id: string; name: string } | { kind: 'question'; id: string; name: string } | null
   >(null)
   const pendingCreate = useRef<{ name: string; knownIds: Set<string> } | null>(null)
+  const pendingQuestionAppend = useRef<{
+    setlistId: string
+    text: string
+    answer: number
+    knownIds: Set<string>
+  } | null>(null)
 
   const draft = setlistDraftId != null ? setlists.find((s) => s.id === setlistDraftId) : undefined
 
@@ -173,6 +180,17 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
     setSetlistDraftId(fresh.id)
   }, [setlists, setSetlistDraftId])
 
+  useEffect(() => {
+    const pending = pendingQuestionAppend.current
+    if (!pending) return
+    const fresh = questionBank.find(
+      (q) => !pending.knownIds.has(q.id) && q.text === pending.text && q.answer === pending.answer,
+    )
+    if (!fresh) return
+    pendingQuestionAppend.current = null
+    appendQuestionToSetlist(pending.setlistId, fresh.id)
+  }, [questionBank, appendQuestionToSetlist])
+
   const filteredSetlists = useMemo(
     () => setlists.filter((sl) => matchesQuery(`${sl.name} ${sl.questionIds.length}`, search)),
     [setlists, search],
@@ -188,22 +206,41 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
 
   function openCreateQuestion() {
     resetQuestionDraft()
+    setCreatingForSetlistId(null)
     setCreateQuestionOpen(true)
     setView('questions')
+  }
+
+  function openAddNewToSetlist(setlistId: string) {
+    resetQuestionDraft()
+    setCreatingForSetlistId(setlistId)
+    setCreateQuestionOpen(true)
   }
 
   function closeQuestionForm() {
     resetQuestionDraft()
     setCreateQuestionOpen(false)
+    setCreatingForSetlistId(null)
   }
 
   function submitQuestion(e: FormEvent) {
-    if (!qbText.trim() || Number.isNaN(Number(qbAnswer))) {
+    const text = qbText.trim()
+    const answer = Number(qbAnswer)
+    if (!text || Number.isNaN(answer)) {
       handleSaveBankQuestion(e)
       return
     }
+    if (!editingBankId && creatingForSetlistId) {
+      pendingQuestionAppend.current = {
+        setlistId: creatingForSetlistId,
+        text,
+        answer,
+        knownIds: new Set(questionBank.map((q) => q.id)),
+      }
+    }
     handleSaveBankQuestion(e)
     setCreateQuestionOpen(false)
+    setCreatingForSetlistId(null)
   }
 
   function createSetlist() {
@@ -378,8 +415,14 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
       ) : null}
 
       {createQuestionOpen || editingBankId != null ? (
-        <HostModal title={editingBankId ? 'Edit question' : 'Create question'} onClose={closeQuestionForm}>
+        <HostModal
+          title={editingBankId ? 'Edit question' : creatingForSetlistId ? 'Add new question' : 'Create question'}
+          onClose={closeQuestionForm}
+        >
           <form onSubmit={submitQuestion} className="space-y-3">
+            {creatingForSetlistId && !editingBankId ? (
+              <p className="text-sm text-white/60">Saved to the bank and added to this setlist.</p>
+            ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block text-sm text-white/80">
                 Category
@@ -426,7 +469,7 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
             </div>
             <div className="flex flex-wrap gap-2">
               <NeonButton variant="emerald" size="small" type="submit">
-                {editingBankId ? 'Save changes' : 'Create question'}
+                {editingBankId ? 'Save changes' : creatingForSetlistId ? 'Add to setlist' : 'Create question'}
               </NeonButton>
               <NeonButton variant="purple" size="small" type="button" onClick={closeQuestionForm}>
                 Cancel
@@ -464,6 +507,7 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
               setAddQuery('')
               setAddCueOpen(true)
             }}
+            onOpenCreate={() => openAddNewToSetlist(draft.id)}
             onMove={(index, dir) => moveSetlistQuestion(draft.id, index, dir)}
             onRemove={(index) => removeSetlistQuestion(draft.id, index)}
           />
@@ -559,6 +603,7 @@ function SetlistManage(props: {
   onShuffle: () => void
   onDelete: () => void
   onOpenAdd: () => void
+  onOpenCreate: () => void
   onMove: (index: number, dir: 'up' | 'down') => void
   onRemove: (index: number) => void
 }) {
@@ -611,9 +656,14 @@ function SetlistManage(props: {
         </div>
       </div>
 
-      <NeonButton variant="emerald" size="small" type="button" onClick={props.onOpenAdd}>
-        Add from bank
-      </NeonButton>
+      <div className="flex flex-wrap gap-2">
+        <NeonButton variant="emerald" size="small" type="button" onClick={props.onOpenAdd}>
+          Add from bank
+        </NeonButton>
+        <NeonButton variant="gold" size="small" type="button" onClick={props.onOpenCreate}>
+          Add new question
+        </NeonButton>
+      </div>
 
       {draft.questionIds.length === 0 ? (
         <p className="rounded-xl border border-white/10 bg-black/25 px-4 py-8 text-center text-sm text-white/50">

@@ -1,4 +1,5 @@
 import { Children, useEffect, useState, type ReactNode } from 'react'
+import { HostModal, useHostModalNested } from './HostModal'
 import { ChipText, NeonButton } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
 import type {
@@ -46,20 +47,39 @@ export function HostCollapsible({
   className?: string
   badge?: ReactNode
 }) {
+  const nested = useHostModalNested()
+  const [open, setOpen] = useState(() => forceOpen || (defaultOpen && !nested))
+
+  useEffect(() => {
+    if (forceOpen) setOpen(true)
+  }, [forceOpen])
+
   return (
-    <details
-      className={`group rounded-xl border border-white/10 bg-black/25 open:border-white/[0.14] [&_summary::-webkit-details-marker]:hidden ${className}`}
-      open={forceOpen || defaultOpen || undefined}
-    >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-4 py-3 text-base font-semibold text-white/75 hover:bg-white/[0.04] hover:text-white/88">
+    <div className={className}>
+      <button
+        type="button"
+        className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-left text-base font-semibold text-white/75 hover:bg-white/[0.04] hover:text-white/88"
+        onClick={() => setOpen(true)}
+      >
         <span className="flex min-w-0 items-center gap-2">
           {summary}
           {badge}
         </span>
-        <span className="shrink-0 text-white/35 transition-transform group-open:rotate-180">▼</span>
-      </summary>
-      <div className="border-t border-white/10 px-4 py-4">{children}</div>
-    </details>
+        <span className="shrink-0 text-xs font-bold uppercase tracking-[0.14em] text-sky-200/80">Open</span>
+      </button>
+      <HostModal
+        title={
+          <span className="flex min-w-0 items-center gap-2">
+            {summary}
+            {badge}
+          </span>
+        }
+        open={open}
+        onClose={() => setOpen(false)}
+      >
+        {children}
+      </HostModal>
+    </div>
   )
 }
 

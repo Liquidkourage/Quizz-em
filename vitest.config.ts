@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     projects: [
       'packages/core',
+      'packages/ui',
       'apps/server',
       'apps/host',
       'apps/player',

@@ -1,0 +1,9 @@
+{
+  "path": ["apps/*/src", "packages/*/src"],
+  "format": ["typescript", "tsx"],
+  "minTokens": 70,
+  "minLines": 8,
+  "ignore": ["**/*.test.ts", "**/*.test.tsx", "**/dist/**", "**/node_modules/**"],
+  "reporters": ["console"],
+  "gitignore": true
+}

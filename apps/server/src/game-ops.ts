@@ -951,6 +951,7 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
   const started = venueHoldStartedAtMs.get(vn) ?? Date.now()
   const elapsed = Math.max(0, Date.now() - started)
   venueHeld.delete(vn)
+  venueHeldByRestart.delete(vn)
   venueHoldStartedAtMs.delete(vn)
   for (const { tk, gs } of venuePlayableSnapshots(vn)) {
     const deadline = humanTurnDeadlineMs.get(tk)

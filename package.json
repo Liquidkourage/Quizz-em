@@ -13,14 +13,20 @@
   },
   "scripts": {
     "dev": "concurrently -n server,host,player,display -c cyan,magenta,green,yellow \"npm --workspace apps/server run dev\" \"npm --workspace apps/host run dev\" \"npm --workspace apps/player run dev\" \"npm --workspace apps/display run dev:watch\"",
-    "build": "npm run build --workspace packages/core && npm run build --workspace packages/net && npm run build --workspace packages/ui && npm run build --workspace apps/server && npm run build --workspace apps/host && npm run build --workspace apps/player && npm run build --workspace apps/display",
+    "build:packages": "npm run build --workspace packages/core && npm run build --workspace packages/net && npm run build --workspace packages/ui",
+    "build": "npm run build:packages && npm run build --workspace apps/server && npm run build --workspace apps/host && npm run build --workspace apps/player && npm run build --workspace apps/display",
     "start": "npm start --workspace apps/server",
     "serve": "npm start --workspace apps/server",
     "open": "powershell -Command Start-Process http://localhost:7777",
     "one": "npm run build && powershell -Command Start-Process http://localhost:7777 && npm start --workspace apps/server",
     "lint": "npm run lint --workspace apps/host && npm run lint --workspace apps/player && npm run lint --workspace apps/display",
-    "typecheck": "tsc -b packages/core/tsconfig.json packages/net/tsconfig.json packages/ui/tsconfig.json apps/server/tsconfig.json apps/host/tsconfig.json apps/player/tsconfig.json apps/display/tsconfig.json",
+    "typecheck": "npm run build:packages && tsc -p packages/core/tsconfig.json --noEmit && tsc -p packages/net/tsconfig.json --noEmit && tsc -p packages/ui/tsconfig.json --noEmit && tsc -p apps/server/tsconfig.json --noEmit && tsc -b apps/host/tsconfig.json apps/player/tsconfig.json apps/display/tsconfig.json",
     "test": "npm run test --workspace @qhe/core",
+    "test:all": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "gate:complexity": "eslint -c eslint.gates.config.js apps packages",
+    "gate:dry": "jscpd",
+    "gate:mutate": "stryker run",
     "format": "prettier --write .",
     "trim-logo": "node scripts/trim-quizzem-logo.mjs",
     "sim:lobby": "node scripts/sim-venue-lobby-joiners.mjs",
@@ -28,11 +34,18 @@
     "build:question-packs": "node scripts/build-question-packs.mjs"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "^9.0.0",
+    "@stryker-mutator/typescript-checker": "^9.0.0",
+    "@stryker-mutator/vitest-runner": "^9.0.0",
     "@types/node": "^20.14.11",
+    "@vitest/coverage-v8": "^3.2.4",
     "concurrently": "^9.0.1",
     "eslint": "^9.7.0",
+    "jscpd": "^4.0.5",
     "prettier": "^3.3.3",
     "sharp": "^0.34.2",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.2.4"
   }
 }

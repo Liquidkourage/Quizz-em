@@ -8,3 +8,6 @@ buildCommand = "sh scripts/railway-build.sh"
 
 [deploy]
 startCommand = "npm start"
+# Railway keeps the old deploy serving until the new one answers this, so a bad build cannot replace a working one.
+healthcheckPath = "/health"
+healthcheckTimeout = 120

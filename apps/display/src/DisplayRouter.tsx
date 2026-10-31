@@ -220,8 +220,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       if (venueOverviewFocusOff(next)) setMosaicForcedByHost(true)
     }
 
-    let disconnectSock: () => void
-    disconnectSock = connect('display', 'DISPLAY01', venueCode, tableForHello, {
+    const disconnectSock = connect('display', 'DISPLAY01', venueCode, tableForHello, {
       displayVenueWall: true,
       /** Only explicit host spotlight — never auto-derived hottest table (avoids sticky table 1). */
       displayFocusTable: hostFocus,

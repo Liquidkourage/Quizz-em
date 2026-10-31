@@ -7,11 +7,14 @@ import { fileURLToPath } from 'url'
 import { initPlayerSocketRegistry } from './player-socket-registry'
 import { bindGameIo, prepareVenuePersistence } from './game-ops'
 import { registerGameSockets } from './handlers/register'
+import { installProcessGuards } from './process-guards'
 
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+installProcessGuards()
 
 const app = express()
 app.set('trust proxy', 1)

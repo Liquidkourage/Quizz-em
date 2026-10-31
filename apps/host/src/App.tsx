@@ -799,7 +799,7 @@ function HostApp() {
                         disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
                         className="w-full"
                       >
-                        Force next player
+                        Fold acting player
                       </NeonButton>
                       <NeonButton
                         variant="red"
@@ -1079,8 +1079,8 @@ function HostApp() {
                 hostControlState.phase === 'betting' ? (
                   <p className="text-xs text-white/50">
                     Players bet on their phones. Close the betting round when every table is done — use{' '}
-                    <strong className="text-white/70">Nudge slow player</strong> or{' '}
-                    <strong className="text-rose-200/90">Skip this player</strong> above if someone is stuck.
+                    <strong className="text-white/70">Nudge slow player</strong> if someone is slow, or{' '}
+                    <strong className="text-rose-200/90">Skip this player</strong> to fold whoever should act.
                   </p>
                 ) : null}
                 {currentRunStepId === 'start-answer' ? (

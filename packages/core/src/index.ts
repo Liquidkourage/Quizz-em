@@ -1264,11 +1264,11 @@ export function adminCloseBetting(state: GameState): GameState {
 
 export function adminAdvanceTurn(state: GameState): GameState {
   if (state.phase !== 'betting' || !state.round.isBettingOpen) return state;
-  const nextIdx = advanceToNextPlayer(state);
-  if (nextIdx === -1) {
-    return { ...state, round: { ...state.round, isBettingOpen: false, currentPlayerIndex: -1 } };
-  }
-  return { ...state, round: { ...state.round, currentPlayerIndex: nextIdx } };
+  const idx = state.round.currentPlayerIndex;
+  if (typeof idx !== 'number' || idx < 0 || idx >= state.players.length) return state;
+  const player = state.players[idx];
+  if (!player) return state;
+  return foldPlayer(state, player.id);
 }
 
 export function adminSetBlinds(state: GameState, smallBlind: number, bigBlind: number): GameState {

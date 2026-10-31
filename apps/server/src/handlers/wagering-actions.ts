@@ -120,8 +120,8 @@ export async function handleWageringAction(
           socket.emit(
             'toast',
             advanced > 0
-              ? `Advanced wagering turn on ${advanced} table(s).`
-              : 'No open wagering to advance on any table.',
+              ? `Folded the acting player on ${advanced} table(s).`
+              : 'No open wagering to fold on any table.',
           )
           gameState = g.rooms.get(sessionKey)!
           break

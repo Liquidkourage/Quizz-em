@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   addPlayer,
+  adminAdvanceTurn,
   createEmptyGame,
   endRound,
   openBettingRound1,
@@ -43,6 +44,69 @@ describe('isBettingComplete / BB option', () => {
 
     gs = playerCheck(gs, 'bb')
     expect(gs.round.isBettingOpen).toBe(false)
+  })
+})
+
+describe('adminAdvanceTurn', () => {
+  it('folds the player who must act instead of passing the turn', () => {
+    let gs = createEmptyGame('V', 'h', '1')
+    gs = addPlayer(gs, 'a', 'Ada', 1000)
+    gs = addPlayer(gs, 'b', 'Bea', 1000)
+    gs = {
+      ...gs,
+      phase: 'betting',
+      players: gs.players.map((p) => ({
+        ...p,
+        hand: [{ digit: 1 }, { digit: 2 }],
+        hasFolded: false,
+        isAllIn: false,
+      })),
+      round: {
+        ...gs.round,
+        pot: 30,
+        currentBet: 20,
+        playerBets: { a: 10, b: 20 },
+        isBettingOpen: true,
+        currentPlayerIndex: 0,
+        lastSeatBettingAction: [null, null],
+      },
+    }
+    const pot = gs.round.pot
+    const bank = gs.players[0]!.bankroll
+    gs = adminAdvanceTurn(gs)
+    expect(gs.players[0]!.hasFolded).toBe(true)
+    expect(gs.players[0]!.hand).toEqual([{ digit: 1 }, { digit: 2 }])
+    expect(gs.players[0]!.bankroll).toBe(bank)
+    expect(gs.round.pot).toBe(pot)
+    expect(gs.round.lastSeatBettingAction?.[0]).toBe('fold')
+    expect(gs.round.currentPlayerIndex).toBe(1)
+    expect(gs.round.isBettingOpen).toBe(true)
+    expect(gs.players[1]!.hasFolded).toBe(false)
+  })
+
+  it('closes the street when that fold leaves nobody who can act', () => {
+    let gs = createEmptyGame('V', 'h', '1')
+    gs = addPlayer(gs, 'a', 'Ada', 1000)
+    gs = addPlayer(gs, 'b', 'Bea', 1000)
+    gs = {
+      ...gs,
+      phase: 'betting',
+      players: [
+        { ...gs.players[0]!, hasFolded: false, isAllIn: false },
+        { ...gs.players[1]!, hasFolded: true, isAllIn: false },
+      ],
+      round: {
+        ...gs.round,
+        isBettingOpen: true,
+        currentPlayerIndex: 0,
+        currentBet: 0,
+        lastSeatBettingAction: [null, 'fold'],
+      },
+    }
+    gs = adminAdvanceTurn(gs)
+    expect(gs.players[0]!.hasFolded).toBe(true)
+    expect(gs.round.isBettingOpen).toBe(false)
+    expect(gs.round.currentPlayerIndex).toBe(-1)
   })
 })
 

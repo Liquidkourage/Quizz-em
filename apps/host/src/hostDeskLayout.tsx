@@ -2085,7 +2085,7 @@ export function HostRunBar({
                 disabled={item.disabled}
                 onClick={item.onClick}
                 className="rounded-md border border-rose-400/40 bg-rose-950/40 px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide text-rose-100/90 hover:bg-rose-900/50 disabled:opacity-40"
-                title="Skip the current actor without waiting"
+                title="Fold the player who should act"
               >
                 {item.label}
               </button>

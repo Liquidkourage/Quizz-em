@@ -19,7 +19,8 @@ This describes what the server does now. Items marked **Verify** have not been r
 
 ## What is NOT saved
 
-- Anything the server keeps only while running: the exact turn clocks, the display pairing codes, and who has a phone connected. These rebuild as phones reconnect.
+- Host nudge countdowns (the 30 second auto check or fold). Turn clocks only run after a host nudge, so after a restart no player is on a clock; nudge again if you want one.
+- Display pairing codes and who has a phone connected. These rebuild as phones and TVs reconnect.
 - If no database is configured (`DATABASE_URL` unset) nothing is saved and a restart ends the live games. The boot log says so: `Table snapshots off`.
 
 ## Boot log lines to look for in Railway

@@ -5,7 +5,8 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { initPlayerSocketRegistry } from './player-socket-registry'
-import { bindGameIo, prepareVenuePersistence } from './game-ops'
+import { bindGameIo, prepareVenuePersistence, rooms } from './game-ops'
+import { buildHealthReport } from './health'
 import { registerGameSockets } from './handlers/register'
 import { installProcessGuards } from './process-guards'
 
@@ -47,6 +48,19 @@ function mountSpaStatic(urlPath: string, distRelFromCompiledServer: string) {
 // Lightweight health checks (Railway / load balancers)
 app.get('/health', (_req, res) => {
   res.status(200).type('text').send('ok')
+})
+
+// Counts only (no venue codes or names): is the process up, and how many games does it hold?
+app.get('/health/details', (_req, res) => {
+  res.status(200).json(
+    buildHealthReport({
+      rooms,
+      uptimeMs: process.uptime() * 1000,
+      rssBytes: process.memoryUsage().rss,
+      nodeVersion: process.version,
+      databaseUrl: process.env.DATABASE_URL,
+    })
+  )
 })
 
 // Serve static files for all apps

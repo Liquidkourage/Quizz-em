@@ -70,6 +70,7 @@ import {
 import { suggestHostMode, type HostMode } from './hostMode'
 import { HostModeNav } from './HostModeNav'
 import { HostDeskShell } from './HostDeskShell'
+import { hostDeskFrameStyle } from './hostDeskScale'
 import { HostMoreMenu } from './HostMoreMenu'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
@@ -844,7 +845,10 @@ function HostApp() {
   )
 
   return (
-    <div className="host-root relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-casino-gradient">
+    <div
+      className="host-root relative flex flex-col overflow-hidden bg-casino-gradient"
+      style={hostDeskFrameStyle()}
+    >
       {/* Backdrop — static gradient so the desk stays readable during long hosts */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-zinc-900 to-slate-950" />

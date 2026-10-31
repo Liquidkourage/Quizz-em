@@ -35,10 +35,10 @@ Expect every line to start with `✓`. If anything fails here, fix it before reh
 
 ## 4. Restart gracefully (what a Railway deploy does)
 
-Find the server's process id and send it SIGTERM (not Ctrl-C, which is a different signal):
+Send the process listening on the port a SIGTERM (not Ctrl-C, which is a different signal):
 
 ```
-pkill -TERM -f "apps/server"
+lsof -ti :7788 | xargs kill -TERM
 ```
 
 Expect `[shutdown] SIGTERM received, saving tables before exit`. Start the server again with the same command.
@@ -58,7 +58,7 @@ Expect: `Restored N table(s) for venue(s) ROOM. Frozen until the host reconnects
 
 ## 6. Restart hard (what a crash does)
 
-Repeat steps 3 and 4 but use `pkill -KILL -f "apps/server"`. There is no final save, so the room comes back as it was up to 5 seconds before the kill. Expect to lose, at most, the last action.
+Repeat steps 3 and 4 but use `lsof -ti :7788 | xargs kill -KILL`. There is no final save, so the room comes back as it was up to 5 seconds before the kill. Expect to lose, at most, the last action.
 
 ## 7. The failure cases to try on purpose
 
@@ -68,4 +68,4 @@ Repeat steps 3 and 4 but use `pkill -KILL -f "apps/server"`. There is no final s
 
 ## 8. On Railway
 
-Repeat step 3 against the real service (use a throwaway room code), then restart the service from the Railway dashboard instead of using `pkill`. Check the Railway deploy log for the same lines.
+Repeat step 3 against the real service (use a throwaway room code), then restart the service from the Railway dashboard instead of using `kill`. Check the Railway deploy log for the same lines.

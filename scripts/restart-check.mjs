@@ -2,7 +2,7 @@
  * Two-phase restart check. Proves a live hand survives a server restart.
  *
  *   node scripts/restart-check.mjs setup  --url http://127.0.0.1:7788
- *   (restart the server: pkill -TERM -f apps/server, then start it again)
+ *   (restart the server: lsof -ti :7788 | xargs kill -TERM, then start it again)
  *   node scripts/restart-check.mjs verify --url http://127.0.0.1:7788
  *
  * setup  builds a room with a host and two players mid-hand and saves what it saw.

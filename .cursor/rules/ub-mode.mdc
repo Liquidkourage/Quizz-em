@@ -1,0 +1,23 @@
+---
+description: Apply the ub-mode engineering discipline (TDD, small verified units, quality gates, small commits) to every code change.
+alwaysApply: true
+---
+
+# ub-mode
+
+For every code change, follow the full skill at `.cursor/skills/ub-mode/SKILL.md`:
+**First Make it Work, then Make it Right, then Practice.** Read it at the start of any task that edits code.
+
+The short version:
+
+1. **Test first.** Write the failing test, see it fail for the expected reason, make the smallest change that passes it. Tests call the code the way its user does and check what that user would see.
+2. **Smallest edit, one decision in one place.** Subtract before you add. Fix root causes, not symptoms.
+3. **Run the gates** before you call the work done (see `docs/ub-mode.md` for how they map to this TypeScript repo):
+   - `npm run test:all` — all workspaces pass
+   - `npm run typecheck` and `npm run lint`
+   - `npm run gate:complexity` — no new function above complexity 10
+   - `npm run gate:dry` — no new duplicated blocks
+   - `npm run gate:mutate -- --mutate "<files you changed>"` — kill the survivors in code you touched
+4. **Small, ordered commits** that say why, what changed, and how it was proved.
+
+This rule works alongside the existing rules. Where they overlap, the existing frozen/read-only rules for `apps/display` and the `git-closeout` rule still apply in full.

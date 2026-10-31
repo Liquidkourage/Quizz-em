@@ -140,6 +140,9 @@ export async function handleHello(socket: Socket, data: ClientHello) {
     if (role === 'host') {
       gameState = { ...gameState, hostId: socket.id }
       g.bindSocketAsVenueHost(socket, venueCode)
+      if (g.resumeVenueAfterRestartIfHeld(venueCode)) {
+        console.log(`[restart] host is back, resumed venue ${venueCode}`)
+      }
       // Refresh local snapshot after venue-wide bind (may have rewritten this session).
       gameState = g.rooms.get(emitKey) ?? gameState
     }

@@ -167,8 +167,9 @@ describe('venueMosaicSeatGeometry', () => {
     expect(seat0.leftPct).toBeGreaterThan(seat0Cup.leftPct)
   })
 
-  it('places broadcast rim stack inward from the name toward felt center', () => {
-    for (let i = 0; i < 8; i++) {
+  it('places broadcast rim stack inward from the name toward felt center on pole and arc seats', () => {
+    // Flat side seats (2 and 6) stack straight down instead; the flat side seats test below covers them.
+    for (const i of [0, 1, 3, 4, 5, 7]) {
       const name = mosaicSeatLabelPct(i, w, h, 28)
       const stack = broadcastRimStackPct(i, name, w, h, 36)
       const center = venueMosaicFeltCenterPct(w, h)
@@ -202,8 +203,10 @@ describe('venueMosaicSeatGeometry', () => {
       const name = mosaicSeatLabelPct(i, w, h, 28)
       const offset = broadcastRimStackOffsetPx(i, 34)
       const stack = broadcastRimStackPct(i, name, w, h, offset)
-      expect(Math.abs(stack.topPct - name.topPct)).toBeGreaterThan(0.35)
-      expect(Math.abs(stack.leftPct - name.leftPct)).toBeLessThan(1.5)
+      const dy = Math.abs(stack.topPct - name.topPct)
+      const dx = Math.abs(stack.leftPct - name.leftPct)
+      expect(dy).toBeGreaterThan(0.35)
+      expect(dx).toBeLessThan(dy * 0.1)
     }
   })
 })

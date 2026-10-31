@@ -1,6 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmptyGame, dealCommunityCards, dealInitialCards, setQuestion, startGame, SAMPLE_QUESTIONS } from '@qhe/core'
 import { addVirtualPlayers, advanceVirtualBettingStep, runVirtualPlayerSimulation } from './virtual-players'
+import { seededPassiveRandom } from './test-utils/seeded-random'
+
+beforeEach(() => {
+  vi.spyOn(Math, 'random').mockImplementation(seededPassiveRandom(1))
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe('CPU post-board wagering', () => {
   it('closes round 2 after paced steps (check-around or open-raise)', () => {

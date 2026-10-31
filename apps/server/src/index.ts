@@ -5,17 +5,26 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { initPlayerSocketRegistry } from './player-socket-registry'
-import { bindGameIo, prepareVenuePersistence } from './game-ops'
+import { bindGameIo, prepareVenuePersistence, restoreRoomsFromSnapshot, rooms } from './game-ops'
+import { dropStaleVenues, snapshotMaxAgeMs } from './room-snapshot'
+import { startRoomSnapshotSaver, type RoomSnapshotSaver } from './room-snapshot-saver'
+import { openRoomSnapshotStoreFromEnv } from './room-snapshot-store'
+import { installGracefulShutdown } from './graceful-shutdown'
+import { resolveAllowedOrigins } from './cors-origins'
+import { buildHealthReport } from './health'
 import { registerGameSockets } from './handlers/register'
+import { installProcessGuards } from './process-guards'
 
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+installProcessGuards()
+
 const app = express()
 app.set('trust proxy', 1)
-app.use(cors())
+app.use(cors({ origin: resolveAllowedOrigins() }))
 app.use(express.json())
 
 /** Vite SPAs: never cache `index.html` (avoids stale chunk references after deploy); hashed assets may be immutable. */
@@ -44,6 +53,19 @@ function mountSpaStatic(urlPath: string, distRelFromCompiledServer: string) {
 // Lightweight health checks (Railway / load balancers)
 app.get('/health', (_req, res) => {
   res.status(200).type('text').send('ok')
+})
+
+// Counts only (no venue codes or names): is the process up, and how many games does it hold?
+app.get('/health/details', (_req, res) => {
+  res.status(200).json(
+    buildHealthReport({
+      rooms,
+      uptimeMs: process.uptime() * 1000,
+      rssBytes: process.memoryUsage().rss,
+      nodeVersion: process.version,
+      databaseUrl: process.env.DATABASE_URL,
+    })
+  )
 })
 
 // Serve static files for all apps
@@ -733,7 +755,7 @@ app.get('/', (req, res) => {
 const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: resolveAllowedOrigins(),
     methods: ["GET", "POST"]
   },
   /** Polling is the join backbone; websocket is the upgrade. Both stay enabled. */
@@ -755,8 +777,39 @@ const publicOrigin =
     ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
     : null
 
+let snapshotSaver: RoomSnapshotSaver | null = null
+
+/** Bring saved tables back and start saving. A failure here must never stop the server from starting. */
+async function recoverAndStartSaving(): Promise<void> {
+  try {
+    const store = openRoomSnapshotStoreFromEnv()
+    if (!store) {
+      console.log('💾 Table snapshots off: DATABASE_URL is not set, a restart will end live games.')
+      return
+    }
+    const { fresh, droppedVenues } = dropStaleVenues(await store.loadAll(), Date.now(), snapshotMaxAgeMs())
+    if (droppedVenues.length > 0) {
+      console.log(`🧹 Dropped old saved venue(s) ${droppedVenues.join(', ')} (untouched past the age limit).`)
+    }
+    const restored = restoreRoomsFromSnapshot(fresh)
+    if (restored.tables > 0) {
+      console.log(
+        `♻️ Restored ${restored.tables} table(s) for venue(s) ${restored.venues.join(', ')}. Frozen until the host reconnects.`,
+      )
+    }
+    snapshotSaver = startRoomSnapshotSaver({ rooms, store })
+  } catch (err) {
+    console.error('[snapshot] recovery failed, starting with no saved tables:', err)
+  }
+}
+
 async function bootstrap(): Promise<void> {
   await prepareVenuePersistence()
+  installGracefulShutdown(async () => {
+    snapshotSaver?.stop()
+    await snapshotSaver?.flush()
+  })
+  await recoverAndStartSaving()
 
   httpServer.listen(PORT, HOST, () => {
     console.log(`🎰 Quizz’em server running on ${HOST}:${PORT}`)

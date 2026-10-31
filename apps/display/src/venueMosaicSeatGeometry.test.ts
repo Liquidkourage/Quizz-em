@@ -12,6 +12,7 @@ import {
   mosaicSeatChipInwardFrac,
   mosaicStadiumCupUV,
   broadcastBlindMarkerPct,
+  broadcastFeltAssetAnchors,
   broadcastRimStackPct,
   broadcastRimStackOffsetPx,
   broadcastRimLabelMaxWidthPx,
@@ -207,6 +208,36 @@ describe('venueMosaicSeatGeometry', () => {
       const dx = Math.abs(stack.leftPct - name.leftPct)
       expect(dy).toBeGreaterThan(0.35)
       expect(dx).toBeLessThan(dy * 0.1)
+    }
+  })
+})
+
+describe('broadcast felt assets', () => {
+  const w = 1134
+  const h = 643
+  const marker = 44
+
+  function distPx(
+    a: { leftPct: number; topPct: number },
+    b: { leftPct: number; topPct: number },
+  ): number {
+    return Math.hypot(((a.leftPct - b.leftPct) / 100) * w, ((a.topPct - b.topPct) / 100) * h)
+  }
+
+  it('keeps cards, chips, the button, and the stack apart on every seat', () => {
+    for (let i = 0; i < 8; i++) {
+      const { hole, chip, blind } = broadcastFeltAssetAnchors(i, w, h, marker)
+      const cup = mosaicSeatDotPct(i, 8, w, h)
+      const name = mosaicSeatLabelPct(i, w, h, 70)
+      const stack = broadcastRimStackPct(i, name, w, h, broadcastRimStackOffsetPx(i, 34))
+      const spots = [hole, chip, blind, stack]
+      for (let a = 0; a < spots.length; a++) {
+        for (let b = a + 1; b < spots.length; b++) {
+          expect(distPx(spots[a]!, spots[b]!)).toBeGreaterThan(64)
+        }
+      }
+      expect(distPx(hole, cup)).toBeGreaterThan(60)
+      expect(distPx(blind, cup)).toBeGreaterThan(48)
     }
   })
 })

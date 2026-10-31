@@ -31,8 +31,8 @@ import {
   mosaicSeatLabelPct,
   mosaicSeatChipInwardFrac,
   mosaicSeatHoleInwardFrac,
-  venueMosaicFeltCenterPct,
   broadcastBlindMarkerPct,
+  broadcastFeltAssetAnchors,
   broadcastRimStackPct,
   broadcastRimStackOffsetPx,
   broadcastRimLabelMaxWidthPx,
@@ -395,83 +395,6 @@ function broadcastCommunityCardLayoutPx(
     boardGapPx: Math.round(24 * scale),
     gapPx: Math.max(6, Math.round(widthPx * 0.12)),
   }
-}
-
-/** Push felt assets outward when they fall inside the broadcast center HUD keep-out. */
-function clampPointAwayFromFeltCenter(
-  leftPct: number,
-  topPct: number,
-  rimW: number,
-  rimH: number,
-  minDistPx: number
-): { leftPct: number; topPct: number } {
-  if (!(rimW > 0 && rimH > 0 && minDistPx > 0)) return { leftPct, topPct }
-  const center = venueMosaicFeltCenterPct(rimW, rimH)
-  const x = (leftPct / 100) * rimW
-  const y = (topPct / 100) * rimH
-  const cx = (center.leftPct / 100) * rimW
-  const cy = (center.topPct / 100) * rimH
-  const dx = x - cx
-  const dy = y - cy
-  const dist = Math.hypot(dx, dy)
-  if (dist >= minDistPx || dist < 1) return { leftPct, topPct }
-  const scale = minDistPx / dist
-  return {
-    leftPct: ((cx + dx * scale) / rimW) * 100,
-    topPct: ((cy + dy * scale) / rimH) * 100,
-  }
-}
-
-/** Seats 0 and 4 (12 / 6 o'clock) — keep-out clamp fights their natural inward chip path. */
-function isBroadcastPoleSeat(seatIndex: number): boolean {
-  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
-  return i === 0 || i === 4
-}
-
-function broadcastSeatChipInwardFrac(seatIndex: number): number {
-  if (isBroadcastPoleSeat(seatIndex)) return 0.08
-  return mosaicSeatChipInwardFrac(seatIndex)
-}
-
-function broadcastSeatHoleInwardFrac(seatIndex: number): number {
-  if (isBroadcastPoleSeat(seatIndex)) return 0.1
-  return mosaicSeatHoleInwardFrac(seatIndex)
-}
-
-function broadcastPoleChipTransform(seatIndex: number, rimH: number): string {
-  if (!isBroadcastPoleSeat(seatIndex) || !(rimH > 0)) return 'translate(-50%, -50%)'
-  const nudge = Math.max(6, Math.round(rimH * 0.022))
-  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
-  return i === 0
-    ? `translate(-50%, calc(-50% - ${nudge}px))`
-    : `translate(-50%, calc(-50% + ${nudge}px))`
-}
-
-function broadcastCenterKeepoutRadiusPx(
-  rimW: number,
-  hasBoard: boolean,
-  communityCardHeightPx: number,
-  communityBoardGapPx: number,
-  centerTypo: ReturnType<typeof broadcastCenterTypographyPx>,
-  hasActionLine: boolean
-): number {
-  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
-  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
-  const potBandPx = centerTypo.potAmountPx * 1.02
-  const actionBandPx = hasActionLine
-    ? centerTypo.lineGapPx + Math.max(centerTypo.actionNamePx, centerTypo.messagePx) + 6
-    : 0
-  const padPx = Math.round(12 * scale)
-  const aboveCenterPx = hasBoard
-    ? communityCardHeightPx / 2 + communityBoardGapPx + potBandPx + padPx
-    : potBandPx * 0.5
-  const belowCenterPx = hasBoard
-    ? communityCardHeightPx / 2 + communityBoardGapPx + actionBandPx + padPx
-    : hasActionLine
-      ? potBandPx * 0.55 + actionBandPx + padPx
-      : 0
-  const chipClearancePx = Math.round(42 * scale)
-  return Math.max(aboveCenterPx, belowCenterPx) + chipClearancePx
 }
 
 /** Folded-player OUT badge on broadcast hero felts. */
@@ -1453,18 +1376,6 @@ function SeatRingWithLabels({
     isBroadcast && rimW > 0 ? broadcastCommunityCardLayoutPx(rimW) : null
   const broadcastCommunityCardW = broadcastCommunityLayout?.widthPx ?? 0
   const broadcastCommunityCardH = broadcastCommunityLayout?.heightPx ?? 0
-  const broadcastCenterTypo = isBroadcast && rimW > 0 ? broadcastCenterTypographyPx(rimW) : null
-  const broadcastKeepoutPx =
-    isBroadcast && broadcastCenterTypo && rimW > 0 && rimH > 0
-      ? broadcastCenterKeepoutRadiusPx(
-          rimW,
-          communityDigits.length > 0,
-          broadcastCommunityCardH,
-          broadcastCommunityLayout?.boardGapPx ?? 0,
-          broadcastCenterTypo,
-          broadcastActionKind != null
-        )
-      : 0
 
   const showFeltBoardCenter =
     !suppressFeltCenter &&
@@ -1545,10 +1456,14 @@ function SeatRingWithLabels({
                 )
                 return { leftPct: pt.leftPct, topPct: pt.topPct }
               })()
-        const chipInwardFrac =
-          isBroadcast ? broadcastSeatChipInwardFrac(i) : mosaicSeatChipInwardFrac(i)
-        const holeInwardFrac =
-          isBroadcast ? broadcastSeatHoleInwardFrac(i) : mosaicSeatHoleInwardFrac(i)
+        const chipInwardFrac = mosaicSeatChipInwardFrac(i)
+        const holeInwardFrac = mosaicSeatHoleInwardFrac(i)
+        const broadcastMarkerPx =
+          isBroadcast && rimW > 0 ? venueBlindMarkerSizePx(rimW, 'broadcast') : 0
+        const broadcastAssets =
+          isBroadcast && rimW > 0 && rimH > 0
+            ? broadcastFeltAssetAnchors(i, rimW, rimH, broadcastMarkerPx)
+            : null
         const chipPt =
           isMosaic || isBroadcast
             ? mosaicSeatHoleLayout(
@@ -1560,16 +1475,7 @@ function SeatRingWithLabels({
               )
             : stadiumSeatPointPx(i, seatCountForLayout, rimW, rimH, chipInnerScale)
         const chipPosRaw = { leftPct: chipPt.leftPct, topPct: chipPt.topPct }
-        const chipPos =
-          broadcastKeepoutPx > 0 && !isBroadcastPoleSeat(i)
-            ? clampPointAwayFromFeltCenter(
-                chipPosRaw.leftPct,
-                chipPosRaw.topPct,
-                rimW,
-                rimH,
-                broadcastKeepoutPx
-              )
-            : chipPosRaw
+        const chipPos = broadcastAssets ? broadcastAssets.chip : chipPosRaw
         const holeLayoutRaw =
           isMosaic || isBroadcast
             ? mosaicSeatHoleLayout(
@@ -1593,19 +1499,7 @@ function SeatRingWithLabels({
                   rotateDeg: pt.rotateDeg,
                 }
               })()
-        const holeLayout =
-          broadcastKeepoutPx > 0 && !isBroadcastPoleSeat(i)
-            ? {
-                ...holeLayoutRaw,
-                ...clampPointAwayFromFeltCenter(
-                  holeLayoutRaw.leftPct,
-                  holeLayoutRaw.topPct,
-                  rimW,
-                  rimH,
-                  broadcastKeepoutPx * 0.92
-                ),
-              }
-            : holeLayoutRaw
+        const holeLayout = broadcastAssets ? broadcastAssets.hole : holeLayoutRaw
         const anchored = labelAnchorsPct[i]
         const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && (size === 'lg' || isBroadcast)))
         const fallbackPos = venueSeatRimPct(i, fb, rimW, rimH)
@@ -1788,25 +1682,17 @@ function SeatRingWithLabels({
               )
               const markers = heroSeatBlindMarkerPills(i, blindSeats, 'onFelt', markerSizePx)
               if (markers.length === 0) return null
-              const blindPtRaw = isBroadcast
-                ? broadcastBlindMarkerPct(i, seatCountForLayout, rimW, rimH, markerSizePx)
-                : stadiumSeatPointPx(
-                    i,
-                    seatCountForLayout,
-                    rimW,
-                    rimH,
-                    STADIUM_BLIND_BADGE_RADIAL
-                  )
-              const blindPt =
-                broadcastKeepoutPx > 0 && !isBroadcastPoleSeat(i) && !isBroadcast
-                  ? clampPointAwayFromFeltCenter(
-                      blindPtRaw.leftPct,
-                      blindPtRaw.topPct,
+              const blindPt = broadcastAssets
+                ? broadcastAssets.blind
+                : isBroadcast
+                  ? broadcastBlindMarkerPct(i, seatCountForLayout, rimW, rimH, markerSizePx)
+                  : stadiumSeatPointPx(
+                      i,
+                      seatCountForLayout,
                       rimW,
                       rimH,
-                      broadcastKeepoutPx * 0.88
+                      STADIUM_BLIND_BADGE_RADIAL
                     )
-                  : blindPtRaw
               return (
                 <div
                   className={`pointer-events-none absolute ${SEAT_LAYER_BLIND_OUT} flex flex-col items-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.55)]`}
@@ -1878,9 +1764,7 @@ function SeatRingWithLabels({
                 style={{
                   left: `${chipPos.leftPct}%`,
                   top: `${chipPos.topPct}%`,
-                  transform: isBroadcast
-                    ? broadcastPoleChipTransform(i, rimH)
-                    : 'translate(-50%, -50%)',
+                  transform: 'translate(-50%, -50%)',
                 }}
               >
                 <img

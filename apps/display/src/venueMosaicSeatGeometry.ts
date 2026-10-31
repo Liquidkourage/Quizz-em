@@ -29,6 +29,7 @@ import {
   MOSAIC_SEAT_COUNT,
   mosaicFeltCenterPct,
   mosaicSeatDotPct,
+  mosaicSeatHoleLayout,
   mosaicSeatIndex,
 } from '@qhe/ui'
 
@@ -144,6 +145,62 @@ export function broadcastRimClusterLayout(
   return cup.leftPct > center.leftPct
     ? { flexDirection: 'row-reverse', gapRem: 0.35, stackFirst: true }
     : { flexDirection: 'row', gapRem: 0.35, stackFirst: false }
+}
+
+/**
+ * Broadcast hero: cards sit on the felt, chips sit beside them, and the dealer
+ * button stays on the rail. The stack amount stays with the name, outside this set.
+ */
+export function broadcastFeltAssetAnchors(
+  seatIndex: number,
+  w: number,
+  h: number,
+  markerSizePx: number,
+): {
+  hole: { leftPct: number; topPct: number; rotateDeg: number }
+  chip: { leftPct: number; topPct: number }
+  blind: { leftPct: number; topPct: number }
+} {
+  const holeLayout = mosaicSeatHoleLayout(seatIndex, MOSAIC_SEAT_COUNT, w, h)
+  const cup = mosaicSeatDotPct(seatIndex, MOSAIC_SEAT_COUNT, w, h)
+  const center = mosaicFeltCenterPct(w, h)
+  if (!(w > 0 && h > 0)) {
+    return {
+      hole: { ...cup, rotateDeg: holeLayout.rotateDeg },
+      chip: cup,
+      blind: cup,
+    }
+  }
+  const cupX = (cup.leftPct / 100) * w
+  const cupY = (cup.topPct / 100) * h
+  const cx = (center.leftPct / 100) * w
+  const cy = (center.topPct / 100) * h
+  let ix = cx - cupX
+  let iy = cy - cupY
+  const radius = Math.hypot(ix, iy) || 1
+  ix /= radius
+  iy /= radius
+  const tx = iy
+  const ty = -ix
+  const marker = markerSizePx > 0 ? markerSizePx : 44
+  const cardIn = Math.min(radius * 0.4, Math.max(72, radius * 0.3))
+  const chipSide = Math.min(radius * 0.46, Math.max(96, marker * 2.1))
+  const blindSide = Math.min(radius * 0.44, Math.max(96, marker * 2.2))
+  const at = (x: number, y: number) => ({
+    leftPct: (x / w) * 100,
+    topPct: (y / h) * 100,
+  })
+  return {
+    hole: {
+      ...at(cupX + ix * cardIn, cupY + iy * cardIn),
+      rotateDeg: holeLayout.rotateDeg,
+    },
+    chip: at(
+      cupX + ix * (cardIn + 22) + tx * chipSide,
+      cupY + iy * (cardIn + 22) + ty * chipSide,
+    ),
+    blind: at(cupX + ix * 8 - tx * blindSide, cupY + iy * 8 - ty * blindSide),
+  }
 }
 
 /**

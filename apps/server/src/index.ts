@@ -5,7 +5,10 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { initPlayerSocketRegistry } from './player-socket-registry'
-import { bindGameIo, prepareVenuePersistence, rooms } from './game-ops'
+import { bindGameIo, prepareVenuePersistence, restoreRoomsFromSnapshot, rooms } from './game-ops'
+import { startRoomSnapshotSaver, type RoomSnapshotSaver } from './room-snapshot-saver'
+import { openRoomSnapshotStoreFromEnv } from './room-snapshot-store'
+import { installGracefulShutdown } from './graceful-shutdown'
 import { buildHealthReport } from './health'
 import { registerGameSockets } from './handlers/register'
 import { installProcessGuards } from './process-guards'
@@ -772,8 +775,35 @@ const publicOrigin =
     ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
     : null
 
+let snapshotSaver: RoomSnapshotSaver | null = null
+
+/** Bring saved tables back and start saving. A failure here must never stop the server from starting. */
+async function recoverAndStartSaving(): Promise<void> {
+  try {
+    const store = openRoomSnapshotStoreFromEnv()
+    if (!store) {
+      console.log('💾 Table snapshots off: DATABASE_URL is not set, a restart will end live games.')
+      return
+    }
+    const restored = restoreRoomsFromSnapshot(await store.loadAll())
+    if (restored.tables > 0) {
+      console.log(
+        `♻️ Restored ${restored.tables} table(s) for venue(s) ${restored.venues.join(', ')}. Frozen until the host reconnects.`,
+      )
+    }
+    snapshotSaver = startRoomSnapshotSaver({ rooms, store })
+  } catch (err) {
+    console.error('[snapshot] recovery failed, starting with no saved tables:', err)
+  }
+}
+
 async function bootstrap(): Promise<void> {
   await prepareVenuePersistence()
+  installGracefulShutdown(async () => {
+    snapshotSaver?.stop()
+    await snapshotSaver?.flush()
+  })
+  await recoverAndStartSaving()
 
   httpServer.listen(PORT, HOST, () => {
     console.log(`🎰 Quizz’em server running on ${HOST}:${PORT}`)

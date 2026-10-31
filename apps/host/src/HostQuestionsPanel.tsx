@@ -122,6 +122,12 @@ function HostModal({
   )
 }
 
+function setlistLiveActionLabel(isActive: boolean, nextIndex: number, questionCount: number): string {
+  if (!isActive) return 'Use on Live'
+  if (questionCount > 0 && nextIndex >= questionCount) return 'On Live · finished'
+  return `On Live · cue ${nextIndex + 1} of ${questionCount}`
+}
+
 function matchesQuery(haystack: string, query: string): boolean {
   const q = query.trim().toLowerCase()
   if (!q) return true
@@ -328,7 +334,17 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
                     {onLive ? (
                       <p className="mt-2 text-xs font-bold uppercase tracking-wide text-emerald-300">On Live</p>
                     ) : null}
-                    <div className="mt-4 flex items-center gap-3 text-sm">
+                    <div className="mt-4 flex flex-col gap-3">
+                      <NeonButton
+                        variant="gold"
+                        size="small"
+                        type="button"
+                        disabled={onLive}
+                        onClick={() => onActivateSetlist(sl.id)}
+                      >
+                        {setlistLiveActionLabel(onLive, activeSetlistNextIndex, sl.questionIds.length)}
+                      </NeonButton>
+                      <div className="flex items-center gap-3 text-sm">
                       <button
                         type="button"
                         className="font-semibold text-casino-gold hover:underline"
@@ -350,6 +366,7 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
                       >
                         Delete
                       </button>
+                      </div>
                     </div>
                   </article>
                 )
@@ -608,12 +625,7 @@ function SetlistManage(props: {
   onRemove: (index: number) => void
 }) {
   const { draft, questionBank } = props
-  const finished = props.isActive && props.nextIndex >= draft.questionIds.length && draft.questionIds.length > 0
-  const liveLabel = !props.isActive
-    ? 'Use on Live'
-    : finished
-      ? 'On Live · finished'
-      : `On Live · cue ${props.nextIndex + 1} of ${draft.questionIds.length}`
+  const liveLabel = setlistLiveActionLabel(props.isActive, props.nextIndex, draft.questionIds.length)
 
   return (
     <div className="space-y-4">

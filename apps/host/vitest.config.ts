@@ -6,6 +6,7 @@ export default defineConfig({
     alias: {
       '@qhe/core': path.resolve(__dirname, '../../packages/core/src'),
       '@qhe/net': path.resolve(__dirname, '../../packages/net/src'),
+      '@qhe/ui': path.resolve(__dirname, '../../packages/ui/src'),
     },
   },
   test: {

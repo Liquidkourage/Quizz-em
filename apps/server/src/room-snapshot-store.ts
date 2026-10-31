@@ -32,8 +32,14 @@ export function createPostgresRoomSnapshotStore(db: SqlRunner): RoomSnapshotStor
   return {
     async loadAll() {
       await ready()
-      const { rows } = await db.query('SELECT session_key, state_json FROM room_snapshots ORDER BY session_key')
-      return rows.map((r) => ({ sessionKey: String(r.session_key), stateJson: String(r.state_json) }))
+      const { rows } = await db.query(
+        'SELECT session_key, state_json, (EXTRACT(EPOCH FROM saved_at) * 1000)::bigint AS saved_at_ms FROM room_snapshots ORDER BY session_key',
+      )
+      return rows.map((r) => ({
+        sessionKey: String(r.session_key),
+        stateJson: String(r.state_json),
+        savedAtMs: Number(r.saved_at_ms),
+      }))
     },
     async replaceAll(rows) {
       await ready()

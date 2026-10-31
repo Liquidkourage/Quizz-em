@@ -28,9 +28,9 @@ describe('postgres room snapshot store', () => {
   })
 
   it('maps stored rows back to snapshot rows', async () => {
-    const { db } = fakeDb([{ session_key: 'BAR:1', state_json: '{"v":1}' }])
+    const { db } = fakeDb([{ session_key: 'BAR:1', state_json: '{"v":1}', saved_at_ms: '1700000000000' }])
     const rows = await createPostgresRoomSnapshotStore(db).loadAll()
-    expect(rows).toEqual([{ sessionKey: 'BAR:1', stateJson: '{"v":1}' }])
+    expect(rows).toEqual([{ sessionKey: 'BAR:1', stateJson: '{"v":1}', savedAtMs: 1_700_000_000_000 }])
   })
 
   it('saves all tables in one upsert, then removes tables no longer present', async () => {

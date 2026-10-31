@@ -129,6 +129,7 @@ import {
   type VenueLibraryData,
 } from './venue-library-persist'
 import { loadVenueLibraries, persistVenueLibraries } from './venue-library-db'
+import { fromSnapshotRows, type RoomSnapshotRow } from './room-snapshot'
 import {
   loadVenueAnswerWindowSettingsFromDisk,
   initAnswerWindowEnvDefault,
@@ -863,6 +864,8 @@ export const humanTurnActorKey = new Map<string, string>()
 /** Venue codes whose phones, TVs, and cue bar are frozen until the host resumes. */
 const venueHeld = new Set<string>()
 const venueHoldStartedAtMs = new Map<string, number>()
+/** Venues frozen by a server restart (not by the host); a returning host resumes these. */
+const venueHeldByRestart = new Set<string>()
 
 export function isVenueHeld(venueCode: string): boolean {
   return venueHeld.has(normalizeVenueCode(venueCode))
@@ -921,6 +924,7 @@ export function runVirtualPlayerSimulation(state: GameState): GameState {
 export function clearVenueHold(venueCode: string): void {
   const vn = normalizeVenueCode(venueCode)
   venueHeld.delete(vn)
+  venueHeldByRestart.delete(vn)
   venueHoldStartedAtMs.delete(vn)
   for (const { tk } of venuePlayableSnapshots(vn)) {
     clearHumanTurnTimerHandle(tk)
@@ -962,6 +966,41 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
   }
   emitDisplayVenueSnapshotNow(vn)
   return false
+}
+
+/**
+ * After a restart: refill the rooms map from saved tables and freeze each venue, dated to its
+ * last save, so a later resume pushes answer deadlines back by the whole outage.
+ */
+export function restoreRoomsFromSnapshot(
+  rows: readonly RoomSnapshotRow[],
+  nowMs: number = Date.now(),
+  onSkip: (sessionKey: string, reason: string) => void = (key, reason) =>
+    console.warn(`[snapshot] skipped ${key}: ${reason}`),
+): { tables: number; venues: string[] } {
+  const restored = fromSnapshotRows(rows, onSkip)
+  const lastSavedByVenue = new Map<string, number>()
+  for (const row of rows) {
+    if (!restored.has(row.sessionKey)) continue
+    const vn = normalizeVenueCode(row.sessionKey.split(':')[0] ?? '')
+    const saved = row.savedAtMs ?? nowMs
+    lastSavedByVenue.set(vn, Math.max(lastSavedByVenue.get(vn) ?? 0, saved))
+  }
+  for (const [key, gs] of restored) rooms.set(key, gs)
+  for (const [vn, savedAtMs] of lastSavedByVenue) {
+    venueHeld.add(vn)
+    venueHeldByRestart.add(vn)
+    venueHoldStartedAtMs.set(vn, savedAtMs)
+  }
+  return { tables: restored.size, venues: [...lastSavedByVenue.keys()].sort() }
+}
+
+/** Host came back: resume a venue that was frozen by a restart. Returns false if it was not. */
+export function resumeVenueAfterRestartIfHeld(venueCode: string): boolean {
+  const vn = normalizeVenueCode(venueCode)
+  if (!venueHeldByRestart.has(vn)) return false
+  setVenueRoomHold(vn, false)
+  return true
 }
 
 function withDealerInRange(gs: GameState): GameState {

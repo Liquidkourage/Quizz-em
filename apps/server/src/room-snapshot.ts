@@ -4,6 +4,8 @@ import type { GameState } from '@qhe/core'
 export interface RoomSnapshotRow {
   sessionKey: string
   stateJson: string
+  /** When the row was last saved (epoch ms), if the store knows. */
+  savedAtMs?: number
 }
 
 /** Bump when the saved shape changes, so an old row is skipped instead of misread. */

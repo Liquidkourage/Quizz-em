@@ -148,8 +148,9 @@ export function broadcastRimClusterLayout(
 }
 
 /**
- * Broadcast hero: cards sit on the felt, chips sit beside them, and the dealer
- * button stays on the rail. The stack amount stays with the name, outside this set.
+ * Broadcast hero: cards, chips, and the dealer button sit in one cluster at the
+ * seat, in a row just inside the rail. Chips sit to one side of the cards and
+ * the button sits on the other. The stack amount stays with the name.
  */
 export function broadcastFeltAssetAnchors(
   seatIndex: number,
@@ -177,15 +178,22 @@ export function broadcastFeltAssetAnchors(
   const cy = (center.topPct / 100) * h
   let ix = cx - cupX
   let iy = cy - cupY
-  const radius = Math.hypot(ix, iy) || 1
-  ix /= radius
-  iy /= radius
-  const tx = iy
-  const ty = -ix
+  const inward = Math.hypot(ix, iy) || 1
+  ix /= inward
+  iy /= inward
+  const next = mosaicSeatDotPct((Math.floor(seatIndex) + 1) % MOSAIC_SEAT_COUNT, MOSAIC_SEAT_COUNT, w, h)
+  const towardNextX = (next.leftPct / 100) * w - cupX
+  const towardNextY = (next.topPct / 100) * h - cupY
+  let tx = -iy
+  let ty = ix
+  if (tx * towardNextX + ty * towardNextY < 0) {
+    tx = -tx
+    ty = -ty
+  }
+  const scale = Math.max(0.85, Math.min(1.15, w / 1134))
   const marker = markerSizePx > 0 ? markerSizePx : 44
-  const cardIn = Math.min(radius * 0.4, Math.max(72, radius * 0.3))
-  const chipSide = Math.min(radius * 0.46, Math.max(96, marker * 2.1))
-  const blindSide = Math.min(radius * 0.44, Math.max(96, marker * 2.2))
+  const cardIn = 46 * scale
+  const side = Math.max(50, marker * 1.15) * scale
   const at = (x: number, y: number) => ({
     leftPct: (x / w) * 100,
     topPct: (y / h) * 100,
@@ -195,11 +203,8 @@ export function broadcastFeltAssetAnchors(
       ...at(cupX + ix * cardIn, cupY + iy * cardIn),
       rotateDeg: holeLayout.rotateDeg,
     },
-    chip: at(
-      cupX + ix * (cardIn + 22) + tx * chipSide,
-      cupY + iy * (cardIn + 22) + ty * chipSide,
-    ),
-    blind: at(cupX + ix * 8 - tx * blindSide, cupY + iy * 8 - ty * blindSide),
+    chip: at(cupX + ix * cardIn - tx * side, cupY + iy * cardIn - ty * side),
+    blind: at(cupX + ix * cardIn + tx * side, cupY + iy * cardIn + ty * side),
   }
 }
 

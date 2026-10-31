@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 const HostModalDepth = createContext(0)
 
@@ -33,7 +34,7 @@ export function HostModal({
 
   if (!open) return null
 
-  return (
+  const overlay = (
     <HostModalDepth.Provider value={depth + 1}>
       <div
         className="fixed inset-0 flex items-end justify-center p-3 sm:items-center sm:p-6"
@@ -68,4 +69,7 @@ export function HostModal({
       </div>
     </HostModalDepth.Provider>
   )
+
+  if (typeof document === 'undefined') return overlay
+  return createPortal(overlay, document.body)
 }

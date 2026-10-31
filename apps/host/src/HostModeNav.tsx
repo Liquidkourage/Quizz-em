@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { HOST_MODES, type HostMode } from './hostMode'
 
-/** Pre-show, Live, and Questions, with More pinned to the right of the same bar. */
+/** Pre-show, Live, and Questions, with More docked on Questions' right. */
 export function HostModeNav({
   mode,
   onSelect,
@@ -14,8 +14,8 @@ export function HostModeNav({
   more: ReactNode
 }) {
   return (
-    <div className="mt-2 flex items-stretch gap-1 rounded-xl border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm">
-      <nav className="flex min-w-0 flex-1 flex-wrap gap-1" role="tablist" aria-label="Host modes">
+    <div className="mt-2 flex flex-wrap items-stretch gap-1 rounded-xl border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm">
+      <nav className="flex flex-wrap items-stretch gap-1" role="tablist" aria-label="Host modes">
         {HOST_MODES.map((t) => {
           const active = mode === t.id
           return (
@@ -25,7 +25,7 @@ export function HostModeNav({
               role="tab"
               aria-selected={active}
               title={t.hint}
-              className={`min-h-[52px] flex-1 rounded-lg px-4 py-2.5 text-center text-base font-semibold transition-colors sm:flex-none sm:text-left sm:min-w-[8.5rem] ${
+              className={`min-h-[52px] shrink-0 rounded-lg px-4 py-2.5 text-center text-base font-semibold transition-colors sm:min-w-[8.5rem] sm:text-left ${
                 active
                   ? 'bg-white/14 text-white shadow-inner ring-1 ring-casino-emerald/35'
                   : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'

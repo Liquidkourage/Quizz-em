@@ -34,3 +34,4 @@ This describes what the server does now. Items marked **Verify** have not been r
 - [ ] Rehearse: start a game with a few phones, restart the service from Railway, confirm seats return and play resumes.
 - [ ] Open `/health/details` and confirm `persistence` is `postgres`.
 - [ ] Freeze deploys during the show.
+- [ ] Optional: set `ALLOWED_ORIGINS` on the server service (comma-separated, for example `https://quizzem.example.com,https://www.quizzem.example.com`) to stop other websites from calling the server. Include every address people really use, including any custom domain. Unset keeps it open as before. Test every page after changing it.

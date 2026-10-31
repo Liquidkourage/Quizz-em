@@ -9,6 +9,7 @@ import { bindGameIo, prepareVenuePersistence, restoreRoomsFromSnapshot, rooms } 
 import { startRoomSnapshotSaver, type RoomSnapshotSaver } from './room-snapshot-saver'
 import { openRoomSnapshotStoreFromEnv } from './room-snapshot-store'
 import { installGracefulShutdown } from './graceful-shutdown'
+import { resolveAllowedOrigins } from './cors-origins'
 import { buildHealthReport } from './health'
 import { registerGameSockets } from './handlers/register'
 import { installProcessGuards } from './process-guards'
@@ -22,7 +23,7 @@ installProcessGuards()
 
 const app = express()
 app.set('trust proxy', 1)
-app.use(cors())
+app.use(cors({ origin: resolveAllowedOrigins() }))
 app.use(express.json())
 
 /** Vite SPAs: never cache `index.html` (avoids stale chunk references after deploy); hashed assets may be immutable. */
@@ -753,7 +754,7 @@ app.get('/', (req, res) => {
 const httpServer = createServer(app)
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: resolveAllowedOrigins(),
     methods: ["GET", "POST"]
   },
   /** Polling is the join backbone; websocket is the upgrade. Both stay enabled. */

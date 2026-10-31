@@ -8,6 +8,7 @@ Set these on the Railway server service. Only the first two matter for a normal 
 | `DATABASE_URL` | Strongly recommended | Postgres connection string. Stores question libraries and, with it set, saves live tables every ~5 seconds so a restart can restore them. Unset: libraries use a SQLite file (lost on redeploy without a volume) and nothing is saved for recovery. |
 | `ENFORCE_CORS_ALLOWLIST` | No (off) | Set to exactly `true` to restrict which other websites may call the server. Off or anything else: any origin is allowed, as before. |
 | `ALLOWED_ORIGINS` | Only with the flag above | Comma-separated origins, for example `https://quizzem.example.com,https://www.quizzem.example.com`. Include every address people really use. Ignored unless `ENFORCE_CORS_ALLOWLIST=true`. Pages served by this server are never affected. |
+| `SNAPSHOT_MAX_AGE_HOURS` | No (12) | Saved venues untouched for longer than this are dropped at boot instead of restored. A venue counts as active while any of its tables changed within the limit. |
 | `PORT` | Railway sets it | Port to listen on (default 7777). |
 | `HOST` | No | Address to bind (default `0.0.0.0`). |
 | `PGSSLMODE` | No | `disable` turns off Postgres SSL for the venue library and table snapshots. Local databases are detected automatically. |

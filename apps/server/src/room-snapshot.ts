@@ -58,3 +58,36 @@ export function fromSnapshotRows(
   }
   return restored
 }
+
+/** Saved venues untouched for longer than this are dropped at boot (12 hours). */
+export const DEFAULT_SNAPSHOT_MAX_AGE_MS = 12 * 60 * 60 * 1000
+
+/** SNAPSHOT_MAX_AGE_HOURS overrides the default; anything that is not a positive number is ignored. */
+export function snapshotMaxAgeMs(env: NodeJS.ProcessEnv = process.env): number {
+  const hours = Number(env.SNAPSHOT_MAX_AGE_HOURS)
+  return Number.isFinite(hours) && hours > 0 ? hours * 60 * 60 * 1000 : DEFAULT_SNAPSHOT_MAX_AGE_MS
+}
+
+/**
+ * Keep a venue's tables together: the venue is as fresh as its most recently changed table,
+ * so an idle lobby row never gets dropped while its venue is still in play.
+ * Rows with no save time are kept.
+ */
+export function dropStaleVenues(
+  rows: readonly RoomSnapshotRow[],
+  nowMs: number,
+  maxAgeMs: number,
+): { fresh: RoomSnapshotRow[]; droppedVenues: string[] } {
+  const newestByVenue = new Map<string, number>()
+  for (const row of rows) {
+    const venue = row.sessionKey.split(':')[0] ?? ''
+    const saved = row.savedAtMs ?? nowMs
+    newestByVenue.set(venue, Math.max(newestByVenue.get(venue) ?? 0, saved))
+  }
+  const stale = new Set<string>()
+  for (const [venue, newest] of newestByVenue) if (nowMs - newest > maxAgeMs) stale.add(venue)
+  return {
+    fresh: rows.filter((r) => !stale.has(r.sessionKey.split(':')[0] ?? '')),
+    droppedVenues: [...stale].sort(),
+  }
+}

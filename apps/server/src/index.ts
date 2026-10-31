@@ -6,6 +6,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { initPlayerSocketRegistry } from './player-socket-registry'
 import { bindGameIo, prepareVenuePersistence, restoreRoomsFromSnapshot, rooms } from './game-ops'
+import { dropStaleVenues, snapshotMaxAgeMs } from './room-snapshot'
 import { startRoomSnapshotSaver, type RoomSnapshotSaver } from './room-snapshot-saver'
 import { openRoomSnapshotStoreFromEnv } from './room-snapshot-store'
 import { installGracefulShutdown } from './graceful-shutdown'
@@ -786,7 +787,11 @@ async function recoverAndStartSaving(): Promise<void> {
       console.log('💾 Table snapshots off: DATABASE_URL is not set, a restart will end live games.')
       return
     }
-    const restored = restoreRoomsFromSnapshot(await store.loadAll())
+    const { fresh, droppedVenues } = dropStaleVenues(await store.loadAll(), Date.now(), snapshotMaxAgeMs())
+    if (droppedVenues.length > 0) {
+      console.log(`🧹 Dropped old saved venue(s) ${droppedVenues.join(', ')} (untouched past the age limit).`)
+    }
+    const restored = restoreRoomsFromSnapshot(fresh)
     if (restored.tables > 0) {
       console.log(
         `♻️ Restored ${restored.tables} table(s) for venue(s) ${restored.venues.join(', ')}. Frozen until the host reconnects.`,

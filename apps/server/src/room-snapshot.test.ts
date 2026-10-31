@@ -1,7 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { addPlayer, createEmptyGame } from '@qhe/core'
 import type { GameState } from '@qhe/core'
-import { fromSnapshotRows, SNAPSHOT_VERSION, toSnapshotRows } from './room-snapshot'
+import {
+  DEFAULT_SNAPSHOT_MAX_AGE_MS,
+  dropStaleVenues,
+  fromSnapshotRows,
+  SNAPSHOT_VERSION,
+  snapshotMaxAgeMs,
+  toSnapshotRows,
+} from './room-snapshot'
 
 function sampleRooms(): Map<string, GameState> {
   const rooms = new Map<string, GameState>()
@@ -49,5 +56,46 @@ describe('room snapshots', () => {
 
   it('restores nothing from no rows', () => {
     expect(fromSnapshotRows([]).size).toBe(0)
+  })
+})
+
+const HOUR = 60 * 60 * 1000
+const row = (sessionKey: string, savedAtMs?: number) => ({ sessionKey, stateJson: '{}', savedAtMs })
+
+describe('dropStaleVenues', () => {
+  it('keeps venues saved within the limit and drops older ones', () => {
+    const now = 100 * HOUR
+    const { fresh, droppedVenues } = dropStaleVenues([row('NEW:1', now - HOUR), row('OLD:1', now - 13 * HOUR)], now, 12 * HOUR)
+    expect(fresh.map((r) => r.sessionKey)).toEqual(['NEW:1'])
+    expect(droppedVenues).toEqual(['OLD'])
+  })
+
+  it('keeps a whole venue while any one of its tables is fresh', () => {
+    const now = 100 * HOUR
+    const rows = [row('V:LOBBY', now - 30 * HOUR), row('V:1', now - HOUR)]
+    const { fresh, droppedVenues } = dropStaleVenues(rows, now, 12 * HOUR)
+    expect(fresh).toHaveLength(2)
+    expect(droppedVenues).toEqual([])
+  })
+
+  it('keeps rows that have no save time', () => {
+    expect(dropStaleVenues([row('X:1')], 100 * HOUR, HOUR).fresh).toHaveLength(1)
+  })
+
+  it('treats a row exactly at the limit as fresh', () => {
+    expect(dropStaleVenues([row('X:1', 88 * HOUR)], 100 * HOUR, 12 * HOUR).fresh).toHaveLength(1)
+  })
+})
+
+describe('snapshotMaxAgeMs', () => {
+  it('defaults to 12 hours', () => {
+    expect(snapshotMaxAgeMs({})).toBe(DEFAULT_SNAPSHOT_MAX_AGE_MS)
+    expect(DEFAULT_SNAPSHOT_MAX_AGE_MS).toBe(12 * HOUR)
+  })
+
+  it('reads SNAPSHOT_MAX_AGE_HOURS and ignores bad values', () => {
+    expect(snapshotMaxAgeMs({ SNAPSHOT_MAX_AGE_HOURS: '2' })).toBe(2 * HOUR)
+    expect(snapshotMaxAgeMs({ SNAPSHOT_MAX_AGE_HOURS: '0.5' })).toBe(HOUR / 2)
+    for (const bad of ['0', '-3', 'abc', '']) expect(snapshotMaxAgeMs({ SNAPSHOT_MAX_AGE_HOURS: bad })).toBe(DEFAULT_SNAPSHOT_MAX_AGE_MS)
   })
 })

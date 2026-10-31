@@ -355,7 +355,6 @@ function PlayerApp() {
         onChange={handleJoinPrefsChange}
         onJoin={handleJoin}
         joinError={joinError}
-        isConnecting={joinPhase === 'connecting'}
       />
     )
   }

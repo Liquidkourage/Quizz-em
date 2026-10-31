@@ -25,3 +25,4 @@ apps/server/data/venue-answer-settings.json
 coverage/
 .stryker-tmp/
 reports/
+scripts/.restart-check.json

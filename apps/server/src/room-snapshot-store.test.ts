@@ -41,6 +41,7 @@ describe('postgres room snapshot store', () => {
     ])
     const upsert = calls.find((c) => c.text.includes('ON CONFLICT'))!
     expect(upsert.params).toEqual([['BAR:1', 'BAR:2'], ['a', 'b']])
+    expect(upsert.text).toContain('IS DISTINCT FROM')
     const del = calls.find((c) => c.text.startsWith('DELETE'))!
     expect(del.params).toEqual([['BAR:1', 'BAR:2']])
   })

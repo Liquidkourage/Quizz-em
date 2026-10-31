@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS room_snapshots (
 const UPSERT_SQL = `
 INSERT INTO room_snapshots (session_key, state_json, saved_at)
 SELECT k, s, now() FROM unnest($1::text[], $2::text[]) AS t(k, s)
-ON CONFLICT (session_key) DO UPDATE SET state_json = EXCLUDED.state_json, saved_at = EXCLUDED.saved_at`
+ON CONFLICT (session_key) DO UPDATE SET state_json = EXCLUDED.state_json, saved_at = EXCLUDED.saved_at
+WHERE room_snapshots.state_json IS DISTINCT FROM EXCLUDED.state_json`
 
 export function createPostgresRoomSnapshotStore(db: SqlRunner): RoomSnapshotStore {
   let schemaReady: Promise<unknown> | null = null

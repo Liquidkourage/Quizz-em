@@ -29,6 +29,7 @@ export function HostLivePanel({
   handShow,
   handBody,
   moreBody,
+  floorDetail,
   onGoPreShow,
   attachedDisplays = [],
   onReleaseDisplay,
@@ -49,6 +50,8 @@ export function HostLivePanel({
   handShow: boolean
   handBody: ReactNode
   moreBody: ReactNode
+  /** Beat and Now, already open on the live floor. */
+  floorDetail?: ReactNode
   onGoPreShow: () => void
   attachedDisplays?: HostAttachedDisplay[]
   onReleaseDisplay?: (socketId: string) => void
@@ -109,6 +112,8 @@ export function HostLivePanel({
         brief={venueFloorBrief}
         onSpotlight={onSpotlight}
       />
+
+      {floorDetail}
 
       <HostThisHandPanel title="Right now" show={handShow}>
         {handBody}

@@ -15,6 +15,18 @@ describe('HostCollapsible', () => {
     expect(html).not.toContain('role="dialog"')
   })
 
+  it('shows Beat-style sections on the page when they are expanded', () => {
+    const html = renderToStaticMarkup(
+      <HostCollapsible summary="Venue felts · beat" expanded>
+        <p>Table 1 betting</p>
+      </HostCollapsible>,
+    )
+    expect(html).toContain('Venue felts · beat')
+    expect(html).toContain('Table 1 betting')
+    expect(html).not.toContain('role="dialog"')
+    expect(html).not.toContain('>Open<')
+  })
+
   it('opens the popup immediately when the desk forces it', () => {
     const html = renderToStaticMarkup(
       <HostCollapsible summary="Player actions" forceOpen>

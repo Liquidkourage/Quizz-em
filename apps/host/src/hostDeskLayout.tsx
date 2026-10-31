@@ -39,6 +39,7 @@ export function HostCollapsible({
   children,
   className = '',
   badge,
+  expanded = false,
 }: {
   summary: ReactNode
   defaultOpen?: boolean
@@ -46,6 +47,8 @@ export function HostCollapsible({
   children: ReactNode
   className?: string
   badge?: ReactNode
+  /** Live floor: show the section on the page instead of behind Open. */
+  expanded?: boolean
 }) {
   const nested = useHostModalNested()
   const [open, setOpen] = useState(() => forceOpen || (defaultOpen && !nested))
@@ -53,6 +56,20 @@ export function HostCollapsible({
   useEffect(() => {
     if (forceOpen) setOpen(true)
   }, [forceOpen])
+
+  if (expanded) {
+    return (
+      <section className={`rounded-xl border border-white/10 bg-black/25 ${className}`}>
+        <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3 text-base font-semibold text-white/85">
+          <span className="flex min-w-0 items-center gap-2">
+            {summary}
+            {badge}
+          </span>
+        </div>
+        <div className="px-4 py-4">{children}</div>
+      </section>
+    )
+  }
 
   return (
     <div className={className}>
@@ -1066,7 +1083,7 @@ export function HostVenueFeltBeatStrip({
 
   return (
     <HostCollapsible
-      forceOpen={lockstepMisaligned}
+      expanded
       className="mb-4"
       badge={
         lockstepMisaligned ? (
@@ -1407,12 +1424,11 @@ export function HostVenueFloorBriefPanel({
   hostPlayerLabel: (name: string) => string
   hostTableId: string
 }) {
-  const livelyCount = brief?.actionRows.filter((r) => r.interestingAction).length ?? 0
   const rows = brief?.actionRows ?? []
 
   return (
     <HostCollapsible
-      defaultOpen={livelyCount > 0}
+      expanded
       className="mb-4"
       badge={
         brief != null ? (

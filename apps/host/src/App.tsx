@@ -1161,6 +1161,10 @@ function HostApp() {
                   </div>
                 </HostCollapsible>
 
+              </>
+            }
+            floorDetail={
+              <>
                 <HostVenueFeltBeatStrip rows={venueFeltBeat} hostTableId={hostTableId} />
                 <HostVenueFloorBriefPanel
                   brief={venueFloorBrief}

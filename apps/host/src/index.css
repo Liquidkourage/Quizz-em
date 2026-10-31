@@ -227,3 +227,10 @@
   font-size: 2.125rem;
   line-height: 2.375rem;
 }
+
+/* The desk is one viewport. Mode panels fill the stage; long lists scroll inside a card. */
+.host-desk-stage > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}

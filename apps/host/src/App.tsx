@@ -69,6 +69,7 @@ import {
 } from './hostDeskLayout'
 import { suggestHostMode, type HostMode } from './hostMode'
 import { HostModeNav } from './HostModeNav'
+import { HostDeskShell } from './HostDeskShell'
 import { HostMoreMenu } from './HostMoreMenu'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
@@ -843,7 +844,7 @@ function HostApp() {
   )
 
   return (
-    <div className="host-root min-h-screen bg-casino-gradient relative">
+    <div className="host-root relative flex h-dvh max-h-dvh flex-col overflow-hidden bg-casino-gradient">
       {/* Backdrop — static gradient so the desk stays readable during long hosts */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-zinc-900 to-slate-950" />
@@ -880,9 +881,10 @@ function HostApp() {
         )}
       </AnimatePresence>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+      <HostDeskShell
+        header={
         <motion.header
-          className="mb-4 rounded-xl border border-white/10 bg-black/35 px-4 py-4 shadow-lg shadow-black/20 backdrop-blur-md sm:px-5"
+          className="mb-2 shrink-0 rounded-xl border border-white/10 bg-black/35 px-3 py-2 shadow-lg shadow-black/20 backdrop-blur-md sm:px-4"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
@@ -977,6 +979,8 @@ function HostApp() {
             more={moreMenu}
           />
         </motion.header>
+        }
+      >
 
         {hostMode === 'preshow' ? (
           <HostPreShowPanel
@@ -1134,15 +1138,13 @@ function HostApp() {
                 ) : null}
               </>
             }
-            floorDetail={
-              <>
-                <HostVenueFeltBeatStrip rows={venueFeltBeat} hostTableId={hostTableId} />
-                <HostVenueFloorBriefPanel
-                  brief={venueFloorBrief}
-                  hostPlayerLabel={hostPlayerLabel}
-                  hostTableId={hostTableId}
-                />
-              </>
+            feltBeat={<HostVenueFeltBeatStrip rows={venueFeltBeat} hostTableId={hostTableId} />}
+            floorNow={
+              <HostVenueFloorBriefPanel
+                brief={venueFloorBrief}
+                hostPlayerLabel={hostPlayerLabel}
+                hostTableId={hostTableId}
+              />
             }
             onGoPreShow={() => selectHostMode('preshow')}
             attachedDisplays={attachedDisplays}
@@ -1150,7 +1152,7 @@ function HostApp() {
           />
         ) : null}
 
-      </div>
+      </HostDeskShell>
     </div>
   )
 }

@@ -274,8 +274,8 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
   }
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <section className="flex h-full min-h-0 flex-col gap-3 overflow-hidden">
+      <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
         <div className="flex rounded-xl border border-white/10 bg-black/25 p-1" role="tablist" aria-label="Library">
           {(['setlists', 'questions'] as const).map((id) => (
             <button
@@ -303,6 +303,7 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
         </label>
       </div>
 
+      <div className="min-h-0 flex-1 overflow-y-auto">
       {view === 'setlists' ? (
         <>
           <NeonButton
@@ -390,6 +391,7 @@ export function HostQuestionsPanel(p: HostQuestionsPanelProps) {
           onAddToSetlist={setAddTarget}
         />
       )}
+      </div>
 
       {creatingSetlist ? (
         <HostModal

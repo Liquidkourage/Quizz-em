@@ -59,14 +59,14 @@ export function HostCollapsible({
 
   if (expanded) {
     return (
-      <section className={`rounded-xl border border-white/10 bg-black/25 ${className}`}>
-        <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3 text-base font-semibold text-white/85">
+      <section className={`flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-black/25 ${className}`}>
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2 text-base font-semibold text-white/85">
           <span className="flex min-w-0 items-center gap-2">
             {summary}
             {badge}
           </span>
         </div>
-        <div className="px-4 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">{children}</div>
       </section>
     )
   }
@@ -1084,7 +1084,7 @@ export function HostVenueFeltBeatStrip({
   return (
     <HostCollapsible
       expanded
-      className="mb-4"
+      className="h-full min-h-0"
       badge={
         lockstepMisaligned ? (
           <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-200">
@@ -1429,7 +1429,7 @@ export function HostVenueFloorBriefPanel({
   return (
     <HostCollapsible
       expanded
-      className="mb-4"
+      className="h-full min-h-0"
       badge={
         brief != null ? (
           <span className="text-xs font-normal text-white/40">
@@ -1987,7 +1987,7 @@ export function HostTvBar({
 export function HostLiveQuestionCard({ text, answer }: { text: string; answer: number }) {
   return (
     <section
-      className="mb-3 rounded-xl border border-amber-400/40 bg-black/55 px-4 py-3"
+      className="h-full min-h-0 overflow-y-auto rounded-xl border border-amber-400/40 bg-black/55 px-4 py-3"
       aria-label="Live question"
     >
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">Question</p>
@@ -2034,7 +2034,7 @@ export function HostRunBar({
   const danger = rest.filter((i) => i.role === 'danger')
 
   return (
-    <div className="sticky top-0 z-40 mb-3 rounded-xl border border-casino-emerald/40 bg-black/90 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-4">
+    <div className="rounded-xl border border-casino-emerald/40 bg-black/90 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-3">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
         {headline ? (
           <div className="min-w-0 flex-1">
@@ -2125,7 +2125,7 @@ export function HostFloorStrip({
   if (rows == null && brief == null) return null
 
   return (
-    <div className="mb-3 rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 sm:px-4 sm:py-3">
+    <div className="h-full min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 sm:px-4 sm:py-3">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/40">
           Tables
@@ -2301,9 +2301,9 @@ export function HostThisHandPanel({
   })
   if (!hasContent) return null
   return (
-    <div className="mb-3 rounded-xl border border-white/10 bg-black/25 p-3 sm:p-4">
-      <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
-      <div className="space-y-2">{children}</div>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-black/25 p-3 sm:p-3">
+      <p className="mb-2 shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">{children}</div>
     </div>
   )
 }

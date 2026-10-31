@@ -27,7 +27,8 @@ export function HostLivePanel({
   questionSlot,
   handShow,
   handBody,
-  floorDetail,
+  feltBeat,
+  floorNow,
   onGoPreShow,
   attachedDisplays = [],
   onReleaseDisplay,
@@ -47,8 +48,10 @@ export function HostLivePanel({
   questionSlot?: ReactNode
   handShow: boolean
   handBody: ReactNode
-  /** Beat and Now, already open on the live floor. */
-  floorDetail?: ReactNode
+  /** Venue felts · beat, already open. */
+  feltBeat?: ReactNode
+  /** Venue floor · now, already open. */
+  floorNow?: ReactNode
   onGoPreShow: () => void
   attachedDisplays?: HostAttachedDisplay[]
   onReleaseDisplay?: (socketId: string) => void
@@ -78,42 +81,50 @@ export function HostLivePanel({
   }
 
   return (
-    <>
-      <HostRunBar
-        items={phaseDockItems}
-        headline={runOfShowHeadline}
-        pacingUrgency={pacingUrgency}
-        cueHint={runBarCueHint}
-        tvBar={
-          <>
-            <HostTvBar
-              onVenueFloor={onVenueFloor}
-              onLeaderboard={onLeaderboard}
-              onTriviaLeaderboard={onTriviaLeaderboard}
-              onSeatingRules={onSeatingRules}
-            />
-            <HostConnectedDisplays
-              displays={attachedDisplays}
-              onRelease={(socketId) => onReleaseDisplay?.(socketId)}
-              emptyLabel={false}
-            />
-          </>
-        }
-      />
+    <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,0.7fr)_auto_minmax(0,1fr)] gap-2 overflow-hidden">
+      <div className="min-h-0 overflow-y-auto">
+        <HostRunBar
+          items={phaseDockItems}
+          headline={runOfShowHeadline}
+          pacingUrgency={pacingUrgency}
+          cueHint={runBarCueHint}
+          tvBar={
+            <>
+              <HostTvBar
+                onVenueFloor={onVenueFloor}
+                onLeaderboard={onLeaderboard}
+                onTriviaLeaderboard={onTriviaLeaderboard}
+                onSeatingRules={onSeatingRules}
+              />
+              <HostConnectedDisplays
+                displays={attachedDisplays}
+                onRelease={(socketId) => onReleaseDisplay?.(socketId)}
+                emptyLabel={false}
+              />
+            </>
+          }
+        />
+      </div>
 
-      {questionSlot}
+      <div className={`grid min-h-0 gap-2 overflow-hidden ${questionSlot ? 'lg:grid-cols-2' : ''}`}>
+        {questionSlot ? <div className="min-h-0 overflow-hidden">{questionSlot}</div> : null}
+        <div className="min-h-0 overflow-hidden">
+          <HostFloorStrip
+            rows={venueFeltBeat}
+            brief={venueFloorBrief}
+            onSpotlight={onSpotlight}
+          />
+        </div>
+      </div>
 
-      <HostFloorStrip
-        rows={venueFeltBeat}
-        brief={venueFloorBrief}
-        onSpotlight={onSpotlight}
-      />
+      <div className="max-h-44 min-h-0 overflow-y-auto">{feltBeat}</div>
 
-      {floorDetail}
-
-      <HostThisHandPanel title="Right now" show={handShow}>
-        {handBody}
-      </HostThisHandPanel>
-    </>
+      <div className={`grid min-h-0 gap-2 overflow-hidden ${handShow ? 'lg:grid-cols-2' : ''}`}>
+        {floorNow}
+        <HostThisHandPanel title="Right now" show={handShow}>
+          {handBody}
+        </HostThisHandPanel>
+      </div>
+    </div>
   )
 }

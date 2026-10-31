@@ -63,10 +63,10 @@ export function HostPreShowPanel({
   }, [suggested, countTouched, minTables, maxTables])
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-xl border border-white/10 bg-black/30 p-4 sm:p-5">
-        <div className="grid gap-5 lg:grid-cols-2">
-          <div>
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-white/10 bg-black/30 p-4 sm:p-5">
+        <div className="grid min-h-0 flex-1 gap-4 overflow-hidden lg:grid-cols-2">
+          <div className="min-h-0 overflow-y-auto">
             <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">TV</h3>
             <p className="mt-1 text-sm text-white/50">
               Open <span className="font-mono text-white/70">/display</span>, enter the 4-letter code.
@@ -111,7 +111,7 @@ export function HostPreShowPanel({
             </p>
           </div>
 
-          <div>
+          <div className="flex min-h-0 flex-col overflow-hidden">
             <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">Players</h3>
             {canSeat ? (
               <p className="mt-1 text-sm text-white/60">
@@ -154,7 +154,7 @@ export function HostPreShowPanel({
             ) : null}
 
             {lobbyPlayers.length > 0 ? (
-              <ul className="mt-3 max-h-[min(14rem,28vh)] space-y-1.5 overflow-y-auto" aria-label="Players in waiting room">
+              <ul className="mt-3 min-h-0 flex-1 space-y-1.5 overflow-y-auto" aria-label="Players in waiting room">
                 {lobbyPlayers.map((p) => {
                   const label = hostPlayerLabel(p.name)
                   const picked = picks[p.id]
@@ -222,7 +222,7 @@ export function HostPreShowPanel({
           </div>
         </div>
 
-        <div className="mt-4 border-t border-white/10 pt-3">
+        <div className="mt-3 shrink-0 border-t border-white/10 pt-3">
           <button
             type="button"
             onClick={onGoQuestions}

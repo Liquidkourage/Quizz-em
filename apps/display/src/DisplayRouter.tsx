@@ -21,7 +21,7 @@ import VenueSeatingRulesWall from './VenueSeatingRulesWall.tsx'
 import { buildVenueWallTileRows, venueWallHasLiveTiles, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
-import { venueWallFloorIsLive } from './venueWallAutoView.ts'
+import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import { useVenueSeatingAnnouncement, venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
@@ -152,8 +152,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !venueFloorIsLive))
 
   const autoWallView = useVenueWallAutoView(hostPinnedRules ? null : venueWall)
-  const wallViewBeforeBust =
-    hostWallView === 'rules' ? 'rules' : autoWallView ?? hostWallView
+  const wallViewBeforeBust = resolveAudienceWallView(hostWallView, autoWallView)
   const isLeaderboardView =
     wallViewBeforeBust === 'leaderboard' || wallViewBeforeBust === 'leaderboard-trivia'
   const wouldShowSeatingChart =
@@ -173,7 +172,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   const seatingAnnouncement = useVenueSeatingAnnouncement(venueWall, bustAnnouncement.visible)
   const handOverlayVisible = bustAnnouncement.visible || seatingAnnouncement.visible
   const wallView =
-    handOverlayVisible && hostWallView !== 'rules' ? 'floor' : wallViewBeforeBust
+    handOverlayVisible && !hostPinnedAudienceView(hostWallView) ? 'floor' : wallViewBeforeBust
   const showSeatingChart = wouldShowSeatingChart && !handOverlayVisible
   const showRules =
     onVenueWallLayout && !handOverlayVisible && wallView === 'rules'

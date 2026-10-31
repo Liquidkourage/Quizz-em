@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   INITIAL_VENUE_WALL_AUTO_VIEW_STATE,
+  resolveAudienceWallView,
   stepVenueWallAutoView,
   venueWallFloorIsLive,
 } from './venueWallAutoView'
@@ -43,6 +44,23 @@ describe('stepVenueWallAutoView', () => {
   it('does not auto-leaderboard pre-show lobby', () => {
     const { view } = stepVenueWallAutoView(INITIAL_VENUE_WALL_AUTO_VIEW_STATE, [tile('lobby')], null)
     expect(view).toBe(null)
+  })
+})
+
+describe('resolveAudienceWallView', () => {
+  it('keeps chip and trivia scores on the TVs during a hand', () => {
+    expect(resolveAudienceWallView('leaderboard', 'floor')).toBe('leaderboard')
+    expect(resolveAudienceWallView('leaderboard-trivia', 'floor')).toBe('leaderboard-trivia')
+  })
+
+  it('keeps trivia scores up after the hand, when the automatic board is chips', () => {
+    expect(resolveAudienceWallView('leaderboard-trivia', 'leaderboard')).toBe('leaderboard-trivia')
+  })
+
+  it('lets Tables follow the automatic view', () => {
+    expect(resolveAudienceWallView('floor', 'floor')).toBe('floor')
+    expect(resolveAudienceWallView('floor', 'leaderboard')).toBe('leaderboard')
+    expect(resolveAudienceWallView('rules', 'floor')).toBe('rules')
   })
 })
 

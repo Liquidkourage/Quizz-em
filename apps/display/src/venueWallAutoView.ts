@@ -90,3 +90,21 @@ export function stepVenueWallAutoView(
 
   return { state, view: null }
 }
+
+/** Host asked the TVs to leave the automatic floor / chip-board rotation. */
+export function hostPinnedAudienceView(hostWallView: VenueWallViewMode | undefined): boolean {
+  return hostWallView === 'rules' || hostWallView === 'leaderboard' || hostWallView === 'leaderboard-trivia'
+}
+
+/**
+ * Chip scores, trivia scores, and how-to-play stay up when the host selects them,
+ * including during a hand. Tables still follows the automatic floor and post-hand board.
+ */
+export function resolveAudienceWallView(
+  hostWallView: VenueWallViewMode | undefined,
+  autoWallView: VenueWallViewMode | null,
+): VenueWallViewMode {
+  const host = hostWallView ?? 'floor'
+  if (hostPinnedAudienceView(host)) return host
+  return autoWallView ?? host
+}

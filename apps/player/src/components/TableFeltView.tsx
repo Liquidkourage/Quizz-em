@@ -208,9 +208,16 @@ export default function TableFeltView({
         fillViewport ? 'player-game-felt-panel player-game-felt-panel--fill' : 'player-game-felt-panel'
       }
     >
-      {statusLine ? (
+      {statusLine || typeof turnRemainingSec === 'number' ? (
         <p className="player-game-table-status" aria-live="polite" role="status">
-          <ChipText text={statusLine} />
+          {typeof turnRemainingSec === 'number' ? (
+            <span
+              className={`player-turn-clock${turnRemainingSec <= 10 ? ' player-turn-clock--urgent' : ''}`}
+            >
+              <strong>{turnRemainingSec}</strong>
+            </span>
+          ) : null}
+          {statusLine ? <ChipText text={statusLine} /> : null}
         </p>
       ) : null}
       <StadiumTableSeats

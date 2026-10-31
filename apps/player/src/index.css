@@ -2219,16 +2219,63 @@
 }
 
 .player-game-timer {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 0.1rem 0 0.35rem;
+  padding: 0.15rem 0.85rem 0.35rem;
+  border-radius: 0.85rem;
+  border: 2px solid rgb(253 224 71 / 0.8);
+  background: rgb(66 32 6 / 0.62);
+  box-shadow: 0 0 22px rgb(251 191 36 / 0.32);
   text-align: center;
-  font-size: clamp(0.85rem, 2.8vw, 0.95rem);
-  color: rgb(255 255 255 / 0.65);
+  font-size: clamp(0.78rem, 3vw, 0.95rem);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(254 243 199 / 0.82);
 }
 
 .player-game-timer strong {
-  font-size: clamp(1.35rem, 4.5vw, 1.65rem);
-  font-weight: 800;
+  font-size: clamp(2.65rem, 12vw, 3.5rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
   color: rgb(253 224 71);
+  text-shadow: 0 0 16px rgb(251 191 36 / 0.45);
+}
+
+.player-game-timer--urgent {
+  border-color: rgb(251 113 133 / 0.9);
+  box-shadow: 0 0 22px rgb(244 63 94 / 0.4);
+}
+
+.player-game-timer--urgent strong {
+  color: rgb(254 205 211);
+  text-shadow: 0 0 16px rgb(244 63 94 / 0.55);
+}
+
+.player-turn-clock {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  color: rgb(253 224 71);
+}
+
+.player-turn-clock strong {
+  font-family: ui-monospace, monospace;
+  font-size: clamp(1.85rem, 8vw, 2.45rem);
+  font-weight: 900;
+  line-height: 0.85;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 12px rgb(251 191 36 / 0.4);
+}
+
+.player-turn-clock--urgent strong {
+  color: rgb(254 205 211);
+  text-shadow: 0 0 12px rgb(244 63 94 / 0.55);
 }
 
 .player-game-result {
@@ -2636,7 +2683,12 @@
 }
 
 .player-game-table-status {
+  display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
   margin: 0 0 1.85rem;
   padding: 0.35rem 0.55rem;
   border-radius: 0.4rem;

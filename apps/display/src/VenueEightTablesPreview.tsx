@@ -2705,8 +2705,12 @@ function VenueBroadcastHeadlineStrip({
           aria-live="polite"
           aria-label={`${timerSeconds} seconds remaining to answer`}
         >
-          <div className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight text-cyan-100`}>
-            {timerSeconds}s
+          <div
+            className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight${
+              timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
+            }`}
+          >
+            {timerSeconds}
           </div>
         </div>
       ) : headlineAnsweringUnified || headlineAnswering ? (
@@ -2728,8 +2732,12 @@ function VenueBroadcastHeadlineStrip({
             </span>
           ) : null}
           {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
-            <div className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight text-cyan-100`}>
-              {timerSeconds}s
+            <div
+              className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight${
+                timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
+              }`}
+            >
+              {timerSeconds}
             </div>
           ) : null}
         </div>
@@ -3354,8 +3362,12 @@ export default function VenueEightTablesPreview({
                       aria-live="polite"
                       aria-label={`${timerSeconds} seconds remaining to answer`}
                     >
-                      <div className="venue-headline-answer-timer font-mono font-black tabular-nums tracking-tight text-cyan-100">
-                        {timerSeconds}s
+                      <div
+                        className={`venue-headline-answer-timer font-mono font-black tabular-nums tracking-tight${
+                          timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
+                        }`}
+                      >
+                        {timerSeconds}
                       </div>
                     </div>
                   ) : headlineAnsweringUnified ? (
@@ -3385,8 +3397,12 @@ export default function VenueEightTablesPreview({
                         </div>
                       ) : null}
                       {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
-                        <div className="text-center font-mono text-2xl font-black tabular-nums tracking-tight text-cyan-100 sm:text-4xl md:text-5xl">
-                          {timerSeconds}s
+                        <div
+                          className={`venue-headline-answer-timer text-center font-mono font-black tabular-nums tracking-tight${
+                            timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
+                          }`}
+                        >
+                          {timerSeconds}
                         </div>
                       ) : othersStillWagering ? (
                         <div className={`text-center font-semibold text-cyan-200/80 ${DISPLAY_TEXT_HEADLINE_META}`}>

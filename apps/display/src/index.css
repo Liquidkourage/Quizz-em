@@ -2506,8 +2506,10 @@
   }
 
   .venue-headline-answer-timer {
-    font-size: clamp(1.65rem, 3.85vh, 3rem);
-    line-height: 1;
+    font-size: clamp(3.4rem, 9vh, 7rem);
+    line-height: 0.85;
+    color: rgb(207 250 254);
+    text-shadow: 0 0 28px rgb(34 211 238 / 0.55);
   }
 
   .display-text-headline-question-compact {
@@ -2952,13 +2954,21 @@
   }
 
   .venue-broadcast-answer-timer {
-    font-size: clamp(1.65rem, 3.85vh, 3rem);
-    line-height: 1;
+    font-size: clamp(3.4rem, 9vh, 7rem);
+    line-height: 0.85;
+    color: rgb(207 250 254);
+    text-shadow: 0 0 28px rgb(34 211 238 / 0.55);
   }
 
   .venue-broadcast-answer-timer--hero {
-    font-size: clamp(2.25rem, 5.5vh, 4.25rem);
-    line-height: 1;
+    font-size: clamp(4.75rem, 13vh, 9rem);
+    line-height: 0.82;
+    text-shadow: 0 0 36px rgb(34 211 238 / 0.6);
+  }
+
+  .venue-answer-timer--urgent {
+    color: rgb(254 205 211);
+    text-shadow: 0 0 32px rgb(244 63 94 / 0.7);
   }
 
   /** Venue eagle-eye leaderboard wall — televised tournament presentation. */

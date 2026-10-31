@@ -1128,7 +1128,13 @@ export function HostVenueFeltBeatStrip({
                 <div className="text-xs tabular-nums text-white/45">
                   {row.active ? `${row.seated}p` : '—'}
                   {countdownSec != null ? (
-                    <span className="block font-mono text-casino-gold">{countdownSec}s</span>
+                    <span
+                      className={`block font-mono text-2xl font-black leading-none tabular-nums ${
+                        countdownSec <= 10 ? 'text-rose-300' : 'text-amber-200'
+                      }`}
+                    >
+                      {countdownSec}
+                    </span>
                   ) : null}
                 </div>
               </div>
@@ -2111,6 +2117,38 @@ export function HostFloorStrip({
           No tables yet — players join first, then you seat them.
         </p>
       ) : (
+        <>
+        {(() => {
+          let soonest: number | null = null
+          for (const row of seated) {
+            if (row.phase !== 'answering' || row.answerDeadlineMs == null) continue
+            const sec = Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
+            soonest = soonest == null ? sec : Math.min(soonest, sec)
+          }
+          if (soonest == null) return null
+          return (
+            <div
+              className={`mb-2 flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-2 ${
+                soonest <= 10
+                  ? 'border-rose-400/75 bg-rose-950/45 shadow-[0_0_24px_rgba(244,63,94,0.28)]'
+                  : 'border-amber-300/75 bg-amber-950/45 shadow-[0_0_24px_rgba(251,191,36,0.22)]'
+              }`}
+              aria-live="polite"
+              aria-label={`${soonest} seconds left on the answer clock`}
+            >
+              <span className="text-sm font-bold uppercase tracking-[0.16em] text-amber-100/85">
+                Answer clock
+              </span>
+              <span
+                className={`font-mono text-6xl font-black leading-none tabular-nums ${
+                  soonest <= 10 ? 'text-rose-200' : 'text-amber-200'
+                }`}
+              >
+                {soonest}
+              </span>
+            </div>
+          )
+        })()}
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 overscroll-x-contain">
           {seated.map((row) => {
             const action = actionByTable.get(row.tableNum)
@@ -2138,8 +2176,12 @@ export function HostFloorStrip({
                   <span className="text-xs font-black tabular-nums text-yellow-300/95">T{row.tableNum}</span>
                   <span className="text-xs font-semibold text-white/75">{phaseLabel}</span>
                   {countdownSec != null ? (
-                    <span className="font-mono text-xs font-bold tabular-nums text-casino-gold">
-                      {countdownSec}s
+                    <span
+                      className={`font-mono text-2xl font-black leading-none tabular-nums ${
+                        countdownSec <= 10 ? 'text-rose-300' : 'text-amber-200'
+                      }`}
+                    >
+                      {countdownSec}
                     </span>
                   ) : null}
                 </div>
@@ -2156,6 +2198,7 @@ export function HostFloorStrip({
             )
           })}
         </div>
+        </>
       )}
     </div>
   )

@@ -80,13 +80,16 @@ export default function AnswerComposer({
       ) : null}
 
       {remainingSec != null ? (
-        <p className="player-game-timer">
+        <p
+          className={`player-game-timer${remainingSec <= 10 ? ' player-game-timer--urgent' : ''}`}
+          aria-live="polite"
+        >
           {remainingSec > 0 ? (
             <>
-              Guide: <strong>{remainingSec}s</strong>
+              Time <strong>{remainingSec}</strong>
             </>
           ) : (
-            <>Suggested time is up — keep editing until the host reveals.</>
+            <>Time is up — keep editing until the host reveals.</>
           )}
         </p>
       ) : null}

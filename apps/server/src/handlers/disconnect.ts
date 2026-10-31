@@ -6,6 +6,7 @@ export function handleDisconnect(socket: Socket) {
     console.log('Client disconnected:', socket.id)
 
     g.clearDisplayPairingForSocket(socket.id)
+    g.detachDisplaySocket(socket.id)
     const playerId = g.unregisterPlayerSocket(socket.id)
     if (playerId) {
       const venueCode =

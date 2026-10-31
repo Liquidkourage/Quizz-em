@@ -103,6 +103,7 @@ export async function handleHello(socket: Socket, data: ClientHello) {
     if (role === 'host') {
       socket.join(g.hostVenueRoom(venueCode))
       socket.emit('hostLibrary', await g.buildHostLibraryPayload(venueCode))
+      g.emitHostDisplayRoster(venueCode)
       g.emitDisplayVenueSnapshotNow(venueCode)
     }
 

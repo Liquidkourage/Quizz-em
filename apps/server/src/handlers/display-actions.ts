@@ -151,5 +151,44 @@ export async function handleDisplayTransport(
       socket.emit('toast', 'TV paired — it should join this venue now.')
       return true
     }
+
+    if (type === 'releaseDisplay') {
+      const sessionKey = g.getActiveSessionKey(socket)
+      if (!sessionKey) {
+        socket.emit('toast', 'No room found')
+        return true
+      }
+      const gsCtl = g.rooms.get(sessionKey)
+      if (!gsCtl) {
+        socket.emit('toast', 'Game not found')
+        return true
+      }
+      if (!g.assertVenueHost(socket, gsCtl)) {
+        return true
+      }
+      const socketId = typeof payload?.socketId === 'string' ? payload.socketId.trim() : ''
+      if (!socketId) {
+        socket.emit('toast', 'Choose a TV to disconnect.')
+        return true
+      }
+      const vn = g.normalizeVenueCode(gsCtl.code)
+      const released = g.releaseDisplaySocket(vn, socketId)
+      if (!released) {
+        socket.emit('toast', 'That TV is already offline.')
+        return true
+      }
+      const dSock = g.io.sockets.sockets.get(socketId)
+      if (dSock) {
+        const dsd = dSock.data as g.DisplaySockData
+        dSock.leave(g.displayVenueRoom(vn))
+        if (dsd.sessionKey) dSock.leave(dsd.sessionKey)
+        dsd.sessionKey = undefined
+        dsd.venueCode = undefined
+        dsd.displayAwaitPairing = false
+        dSock.emit('displayReleased')
+      }
+      socket.emit('toast', `${released.name} can pair to another event.`)
+      return true
+    }
   return false
 }

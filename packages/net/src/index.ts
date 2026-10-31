@@ -491,6 +491,10 @@ export const StartAnsweringAction = z.object({
 })
 export type StartAnsweringAction = z.infer<typeof StartAnsweringAction>
 
+export type HostDisplayRoster = {
+  displays: { socketId: string; name: string }[]
+}
+
 // Socket Events
 export interface ServerToClientEvents {
   state: (state: GameState) => void
@@ -519,6 +523,10 @@ export interface ServerToClientEvents {
   displayPairingCode: (payload: { code: string }) => void
   /** Pairing succeeded — UI should reconnect / promote as this venue display */
   displayVenueAssigned: (payload: { venueCode: string }) => void
+  /** Host desk: TVs currently attached to this venue */
+  hostDisplays: (payload: HostDisplayRoster) => void
+  /** Display: host released this screen — return to the pairing code */
+  displayReleased: () => void
 }
 
 export interface ClientToServerEvents {

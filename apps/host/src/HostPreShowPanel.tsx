@@ -10,6 +10,7 @@ import {
   VENUE_NUMBERED_TABLE_MAX,
 } from '@qhe/core'
 import { isHostWaitingForJoiners } from './hostDeskLayout'
+import { HostConnectedDisplays, type HostAttachedDisplay } from './HostConnectedDisplays'
 
 export function HostPreShowPanel({
   gameState,
@@ -19,6 +20,8 @@ export function HostPreShowPanel({
   onSeatPlayers,
   onGoQuestions,
   onPairTv,
+  attachedDisplays = [],
+  onReleaseDisplay,
   floorSeated = false,
   onNewGame,
 }: {
@@ -32,6 +35,8 @@ export function HostPreShowPanel({
   }) => void
   onGoQuestions: () => void
   onPairTv: (code: string) => void
+  attachedDisplays?: HostAttachedDisplay[]
+  onReleaseDisplay?: (socketId: string) => void
   floorSeated?: boolean
   onNewGame?: () => void
 }) {
@@ -100,6 +105,13 @@ export function HostPreShowPanel({
                 Attach TV
               </NeonButton>
             </div>
+            <HostConnectedDisplays
+              displays={attachedDisplays}
+              onRelease={(socketId) => onReleaseDisplay?.(socketId)}
+            />
+            <p className="mt-2 text-xs text-white/40">
+              Disconnect sends that TV back to the pairing code so it can join another event.
+            </p>
           </div>
 
           <div>

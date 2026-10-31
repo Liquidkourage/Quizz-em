@@ -4,6 +4,7 @@ import type { DisplayLayoutPayload, DisplayVenueSeatingAnnouncement, DisplayVenu
 import {
   connect,
   onDisplayLayout,
+  onDisplayReleased,
   onDisplayVenueSnapshot,
   onSocketConnectionStatus,
   getSocketConnectionStatus,
@@ -12,6 +13,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import { displayScreenLabel, persistDisplayVenue } from './displaySession'
 import { readUrlLayoutBootstrap } from './displayUrlParams'
 import AudienceWelcomeWall from './AudienceWelcomeWall.tsx'
 import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
@@ -104,13 +106,19 @@ type DisplayRouterProps = {
   venueCode: string
   /** Pairing already joined DISPLAY:{venue} on this tab's socket — first connect skips teardown */
   pairingBootstrap?: boolean
+  /** Host sent this TV back to the pairing screen. */
+  onReleased?: () => void
 }
 
 /**
  * Host-driven `displayLayout` plus venue snapshot. **`VenueEightTablesPreview`** — aerial floor grid of all
  * populated tables and a stacks leaderboard strip (no single-table hero).
  */
-export default function DisplayRouter({ venueCode, pairingBootstrap = false }: DisplayRouterProps) {
+export default function DisplayRouter({
+  venueCode,
+  pairingBootstrap = false,
+  onReleased,
+}: DisplayRouterProps) {
   const [layout, setLayout] = useState<DisplayLayoutPayload>(() => {
     if (pairingBootstrap) {
       return { layout: 'venueWall', focusTable: null, wallView: 'floor' }
@@ -201,6 +209,15 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
   useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
 
   useEffect(() => {
+    persistDisplayVenue(venueCode)
+  }, [venueCode])
+
+  useEffect(() => {
+    if (!onReleased) return
+    return onDisplayReleased(onReleased)
+  }, [onReleased])
+
+  useEffect(() => {
     const hostFocus = layout.focusTable
     /** Socket table id is legacy; venue wall mode does not pin a felt unless the host spotlighted one. */
     const tableForHello = '1'
@@ -219,7 +236,7 @@ export default function DisplayRouter({ venueCode, pairingBootstrap = false }: D
       if (venueOverviewFocusOff(next)) setMosaicForcedByHost(true)
     }
 
-    const disconnectSock = connect('display', 'DISPLAY01', venueCode, tableForHello, {
+    const disconnectSock = connect('display', displayScreenLabel(), venueCode, tableForHello, {
       displayVenueWall: true,
       /** Only explicit host spotlight — never auto-derived hottest table (avoids sticky table 1). */
       displayFocusTable: hostFocus,

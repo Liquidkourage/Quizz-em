@@ -12,6 +12,7 @@ import type {
   HostVenueGameplayHintsPayload,
   HostVenueFeltBeatPayload,
   HostVenueFloorBriefPayload,
+  HostDisplayRoster,
   PlayerGameStateWire,
   PlayerVenueBrief,
 } from './index'
@@ -819,6 +820,22 @@ export function subscribeDisplayLayoutLocal(
     ch.removeEventListener('message', onMessage)
     ch.close()
   }
+}
+
+export function onHostDisplays(callback: (payload: HostDisplayRoster) => void) {
+  return subscribeSocket('hostDisplays', callback)
+}
+
+export function onDisplayReleased(callback: () => void) {
+  return subscribeSocket('displayReleased', callback)
+}
+
+/** Host-only: send one attached TV back to the pairing screen. */
+export function releaseDisplay(socketId: string) {
+  if (!socket) return
+  const id = socketId.trim()
+  if (!id) return
+  socket.emit('action', { type: 'releaseDisplay', payload: { socketId: id } })
 }
 
 /** Host-only: attach a pairing TV (shows on /display pairing screen) to this venue. Code is 4 characters. */

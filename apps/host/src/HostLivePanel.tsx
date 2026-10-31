@@ -10,6 +10,7 @@ import {
   isHostWaitingForJoiners,
 } from './hostDeskLayout'
 import { HostMoreMenu } from './HostMoreMenu'
+import { HostConnectedDisplays, type HostAttachedDisplay } from './HostConnectedDisplays'
 
 export function HostLivePanel({
   gameState,
@@ -29,6 +30,8 @@ export function HostLivePanel({
   handBody,
   moreBody,
   onGoPreShow,
+  attachedDisplays = [],
+  onReleaseDisplay,
 }: {
   gameState: GameState
   phaseDockItems: HostDockItem[]
@@ -47,6 +50,8 @@ export function HostLivePanel({
   handBody: ReactNode
   moreBody: ReactNode
   onGoPreShow: () => void
+  attachedDisplays?: HostAttachedDisplay[]
+  onReleaseDisplay?: (socketId: string) => void
 }) {
   const waiting = isHostWaitingForJoiners(gameState)
   const hasSeatedFelts =
@@ -81,12 +86,19 @@ export function HostLivePanel({
         pacingUrgency={pacingUrgency}
         cueHint={runBarCueHint}
         tvBar={
-          <HostTvBar
-            onVenueFloor={onVenueFloor}
-            onLeaderboard={onLeaderboard}
-            onTriviaLeaderboard={onTriviaLeaderboard}
-            onSeatingRules={onSeatingRules}
-          />
+          <>
+            <HostTvBar
+              onVenueFloor={onVenueFloor}
+              onLeaderboard={onLeaderboard}
+              onTriviaLeaderboard={onTriviaLeaderboard}
+              onSeatingRules={onSeatingRules}
+            />
+            <HostConnectedDisplays
+              displays={attachedDisplays}
+              onRelease={(socketId) => onReleaseDisplay?.(socketId)}
+              emptyLabel={false}
+            />
+          </>
         }
       />
 

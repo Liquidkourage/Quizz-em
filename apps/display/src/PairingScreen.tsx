@@ -1,4 +1,5 @@
 import { connectDisplayAwaitingPairing } from '@qhe/net'
+import { displayScreenLabel } from './displaySession'
 import { useEffect, useRef, useState } from 'react'
 import {
   DISPLAY_TEXT_PAIRING_BODY,
@@ -14,7 +15,7 @@ export default function PairingScreen({ onPaired }: { onPaired: (venueCode: stri
 
   useEffect(() => {
     keepSock.current = false
-    const teardown = connectDisplayAwaitingPairing("Quizz'em TV", {
+    const teardown = connectDisplayAwaitingPairing(displayScreenLabel(), {
       onPairingCode: setCode,
       onVenueAssigned: (venueCode) => {
         keepSock.current = true

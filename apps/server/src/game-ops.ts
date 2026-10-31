@@ -1,5 +1,11 @@
 import { Server, Socket } from 'socket.io'
 import {
+  forgetConnectedDisplay,
+  listConnectedDisplays,
+  rememberConnectedDisplay,
+  takeConnectedDisplay,
+} from './display-roster'
+import {
   canPreloadTriviaAnswer,
   createEmptyGame,
   addPlayer,
@@ -437,6 +443,35 @@ export function displayVenueRoom(venueCode: string): string {
   return `DISPLAY:${normalizeVenueCode(venueCode)}`
 }
 
+export function emitHostDisplayRoster(venueCode: string) {
+  if (!io) return
+  const vn = normalizeVenueCode(venueCode)
+  io.to(hostVenueRoom(vn)).emit('hostDisplays', { displays: listConnectedDisplays(vn) })
+}
+
+export function attachDisplaySocket(venueCode: string, socketId: string, name: string) {
+  const vn = normalizeVenueCode(venueCode)
+  rememberConnectedDisplay(vn, socketId, name)
+  emitHostDisplayRoster(vn)
+}
+
+export function detachDisplaySocket(socketId: string) {
+  const dropped = forgetConnectedDisplay(socketId)
+  if (!dropped) return
+  displayHeartbeatByVenue.get(dropped.venueCode)?.delete(socketId)
+  emitHostDisplayRoster(dropped.venueCode)
+}
+
+/** Host released this TV. Null when that socket is not attached to the venue. */
+export function releaseDisplaySocket(venueCode: string, socketId: string) {
+  const vn = normalizeVenueCode(venueCode)
+  const row = takeConnectedDisplay(vn, socketId)
+  if (!row) return null
+  displayHeartbeatByVenue.get(vn)?.delete(socketId)
+  emitHostDisplayRoster(vn)
+  return row
+}
+
 export function playerVenueRoom(venueCode: string): string {
   return `PLAYER:${normalizeVenueCode(venueCode)}`
 }
@@ -615,6 +650,7 @@ export function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, d
   sockData.role = 'display'
 
   socket.join(displayVenueRoom(vn))
+  attachDisplaySocket(vn, socket.id, data.name)
   const layout = resolveDisplayLayoutForHello(vn, data)
   socket.emit('displayLayout', layout)
 

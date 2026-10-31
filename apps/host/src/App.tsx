@@ -32,7 +32,9 @@ import {
   setVenueSkipNextShuffle,
   shuffleTablesNow,
   displaySetLayout,
+  onHostDisplays,
   pairDisplayWithHost,
+  releaseDisplay,
   setVenueAnswerWindowSeconds,
   setVenueBlinds,
   setVenueBlindStructure,
@@ -45,7 +47,7 @@ import {
   setlistSave,
 } from '@qhe/net'
 import type { GameState, Question } from '@qhe/core'
-import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
+import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { readHostVenueCode } from './hostVenueCode'
@@ -150,6 +152,7 @@ function HostApp() {
   const importFileRef = useRef<HTMLInputElement>(null)
   const importReplaceRef = useRef(false)
   const [tvPairCode, setTvPairCode] = useState('')
+  const [attachedDisplays, setAttachedDisplays] = useState<HostDisplayRoster['displays']>([])
   const [livelyGameplayTableNums, setLivelyGameplayTableNums] = useState<number[]>([])
   const [answerWindowSeconds, setAnswerWindowSeconds] = useState(45)
   const [venueSmallBlind, setVenueSmallBlind] = useState(10)
@@ -260,6 +263,12 @@ function HostApp() {
       setVenueFloorBrief(p)
     })
     return off
+  }, [])
+
+  useEffect(() => {
+    return onHostDisplays((payload) => {
+      setAttachedDisplays(payload.displays ?? [])
+    })
   }, [])
 
   useEffect(() => {
@@ -768,6 +777,8 @@ function HostApp() {
                 if (ack.ok) setTvPairCode('')
               })
             }}
+            attachedDisplays={attachedDisplays}
+            onReleaseDisplay={releaseDisplay}
             floorSeated={hasVenueFeltBeat}
             onNewGame={handleNewGame}
           />
@@ -1159,6 +1170,8 @@ function HostApp() {
               </>
             }
             onGoPreShow={() => selectHostMode('preshow')}
+            attachedDisplays={attachedDisplays}
+            onReleaseDisplay={releaseDisplay}
           />
         ) : null}
 

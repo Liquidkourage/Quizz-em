@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmptyGame, dealCommunityCards, dealInitialCards, setQuestion, startGame, SAMPLE_QUESTIONS } from '@qhe/core'
 import { addVirtualPlayers, runVirtualPlayerSimulation } from './virtual-players'
 import {
@@ -9,6 +9,15 @@ import {
   venueAllPostBoardWageringComplete,
   venueAllPreBoardWageringComplete,
 } from './venue-wagering-orchestration'
+import { seededPassiveRandom } from './test-utils/seeded-random'
+
+beforeEach(() => {
+  vi.spyOn(Math, 'random').mockImplementation(seededPassiveRandom(1))
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 function allInRunoutPostBoardTable(): { key: string; gs: ReturnType<typeof createEmptyGame> } {
   const closed = postBoardClosedTable()

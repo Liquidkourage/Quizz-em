@@ -1,12 +1,12 @@
 # Host runbook: if the server restarts during the show
 
-This describes what the server does now. Items marked **Verify** have not been rehearsed yet.
+This describes what the server does now. A scripted local rehearsal (`scripts/restart-check.mjs`) has passed for both a clean stop and a hard kill. Items marked **Verify** still need a real phone or the Railway service.
 
 ## What happens on a restart
 
 - The server saves every table to the database about every 5 seconds, but only when something changed.
 - On boot it loads the saved tables and **freezes** each venue. Nobody is folded by a clock while the room is frozen.
-- Players reconnect on their own: their phone sends its saved player id and gets its old seat back. **Verify** on a real phone.
+- Players reconnect on their own: their phone sends its saved player id and gets its old seat back. The script reconnects with the same ids and passes; **Verify** on a real phone.
 - When the **host** reconnects to the venue, the room resumes by itself. Answer countdowns are pushed back by the whole time the server was down.
 - A planned deploy sends the server a shutdown signal first; it saves once more before it exits, so almost nothing is lost.
 

@@ -12,7 +12,7 @@ describe('venue tile wagering display', () => {
       seated: 4,
       isBettingOpen: false,
       currentPlayerIndex: -1,
-      bettingRound: 2,
+      bettingRound: 2 as const,
       communityDigits: [1, 2, 3, 4, 5],
     }
     expect(isVenueTileWageringPaused(row)).toBe(true)
@@ -26,7 +26,7 @@ describe('venue tile wagering display', () => {
       seated: 4,
       isBettingOpen: null,
       currentPlayerIndex: 2,
-      bettingRound: 2,
+      bettingRound: 2 as const,
       communityDigits: [0, 1, 2, 3, 4],
     }
     expect(isVenueTileWageringPaused(row)).toBe(false)
@@ -39,7 +39,7 @@ describe('venue tile wagering display', () => {
       seated: 3,
       isBettingOpen: true,
       currentPlayerIndex: 1,
-      bettingRound: 2,
+      bettingRound: 2 as const,
       communityDigits: [5, 6, 7, 8, 9],
     }
     expect(isVenueTileWageringPaused(row)).toBe(false)

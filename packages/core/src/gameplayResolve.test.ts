@@ -33,7 +33,7 @@ describe('formatTriviaNumber', () => {
 
 describe('inferAnswerComposition', () => {
   it('recovers community indices used in a decimal answer', () => {
-    const hand = [{ digit: 1 }, { digit: 2 }]
+    const hand = [{ digit: 1 }, { digit: 2 }] as const
     const community = [
       { digit: 3 },
       { digit: 4 },
@@ -43,7 +43,7 @@ describe('inferAnswerComposition', () => {
     ] as const
     const comp = inferAnswerComposition([...hand], [...community], 12.345)
     expect(comp).not.toBeNull()
-    expect(communityIndicesFromAnswerComposition(comp)).not.toEqual([])
+    expect(communityIndicesFromAnswerComposition(comp ?? undefined)).not.toEqual([])
   })
 })
 

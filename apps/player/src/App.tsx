@@ -25,6 +25,7 @@ import type { PlayerGameStateWire, PlayerVenueBrief } from '@qhe/net'
 import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, inChipContest, isAllInRunout } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
+  playerSessionCanResume,
   readPlayerJoinPrefs,
   persistPlayerJoinPrefs,
   playerDisplayNameFromPrefs,
@@ -69,11 +70,18 @@ import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './compo
 
 type JoinPhase = 'form' | 'connecting' | 'in_venue'
 
+function bootPlayerJoin(): { prefs: PlayerJoinBootstrap; phase: JoinPhase; nonce: number } {
+  const prefs = readPlayerJoinPrefs()
+  const resume = playerSessionCanResume(prefs)
+  return { prefs, phase: resume ? 'connecting' : 'form', nonce: resume ? 1 : 0 }
+}
+
 function PlayerApp() {
-  const [joinPrefs, setJoinPrefs] = useState<PlayerJoinBootstrap>(() => readPlayerJoinPrefs())
-  const [joinPhase, setJoinPhase] = useState<JoinPhase>('form')
+  const [boot] = useState(bootPlayerJoin)
+  const [joinPrefs, setJoinPrefs] = useState<PlayerJoinBootstrap>(boot.prefs)
+  const [joinPhase, setJoinPhase] = useState<JoinPhase>(boot.phase)
   const [joinError, setJoinError] = useState<string | null>(null)
-  const [joinNonce, setJoinNonce] = useState(0)
+  const [joinNonce, setJoinNonce] = useState(boot.nonce)
   const [gameState, setGameState] = useState<PlayerGameStateWire | null>(null)
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -334,6 +342,10 @@ function PlayerApp() {
         showToast(`Answer submitted: ${display}`)
       } else showToast(`Error: ${ack.message}`, 5000)
     })
+  }
+
+  if (joinPhase === 'connecting') {
+    return <ConnectingScreen />
   }
 
   if (joinPhase !== 'in_venue') {

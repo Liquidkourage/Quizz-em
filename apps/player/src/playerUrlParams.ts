@@ -59,6 +59,18 @@ export function playerDisplayNameFromPrefs(prefs: Pick<PlayerJoinPrefs, 'firstNa
   return composePlayerDisplayName(prefs.firstName, prefs.lastInitial)
 }
 
+/** A refresh can reconnect this phone. A first visit still needs the name screen. */
+export function playerSessionCanResume(
+  prefs: Pick<PlayerJoinPrefs, 'firstName' | 'lastInitial' | 'roomCode' | 'playerId'>,
+): boolean {
+  return (
+    prefs.firstName.trim().length > 0 &&
+    prefs.lastInitial.trim().length > 0 &&
+    prefs.roomCode.trim().length > 0 &&
+    prefs.playerId.trim().length > 0
+  )
+}
+
 export function readPlayerJoinPrefs(): PlayerJoinBootstrap {
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
   const stored = readStoredPrefs()

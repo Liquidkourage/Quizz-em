@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { NeonButton, PokerChip } from '@qhe/ui'
-import { HostMoreMenu } from './HostMoreMenu'
 import type { GameState } from '@qhe/core'
 import {
   computeOptimalTableCount,
@@ -23,7 +22,6 @@ export function HostPreShowPanel({
   attachedDisplays = [],
   onReleaseDisplay,
   floorSeated = false,
-  onNewGame,
 }: {
   gameState: GameState
   hostPlayerLabel: (raw: string) => string
@@ -38,7 +36,6 @@ export function HostPreShowPanel({
   attachedDisplays?: HostAttachedDisplay[]
   onReleaseDisplay?: (socketId: string) => void
   floorSeated?: boolean
-  onNewGame?: () => void
 }) {
   const waiting = isHostWaitingForJoiners(gameState)
   const lobbyPlayers =
@@ -234,13 +231,6 @@ export function HostPreShowPanel({
             Questions & setlists
           </button>
         </div>
-        {onNewGame ? (
-          <HostMoreMenu>
-            <NeonButton variant="gold" size="normal" onClick={onNewGame} className="w-full">
-              New game (hard reset — clears all tables)
-            </NeonButton>
-          </HostMoreMenu>
-        ) : null}
       </div>
     </div>
   )

@@ -9,7 +9,6 @@ import {
   type HostDockItem,
   isHostWaitingForJoiners,
 } from './hostDeskLayout'
-import { HostMoreMenu } from './HostMoreMenu'
 import { HostConnectedDisplays, type HostAttachedDisplay } from './HostConnectedDisplays'
 
 export function HostLivePanel({
@@ -28,7 +27,6 @@ export function HostLivePanel({
   questionSlot,
   handShow,
   handBody,
-  moreBody,
   floorDetail,
   onGoPreShow,
   attachedDisplays = [],
@@ -49,7 +47,6 @@ export function HostLivePanel({
   questionSlot?: ReactNode
   handShow: boolean
   handBody: ReactNode
-  moreBody: ReactNode
   /** Beat and Now, already open on the live floor. */
   floorDetail?: ReactNode
   onGoPreShow: () => void
@@ -76,7 +73,6 @@ export function HostLivePanel({
             Back to Pre-show
           </button>
         </div>
-        <HostMoreMenu>{moreBody}</HostMoreMenu>
       </>
     )
   }
@@ -118,8 +114,6 @@ export function HostLivePanel({
       <HostThisHandPanel title="Right now" show={handShow}>
         {handBody}
       </HostThisHandPanel>
-
-      <HostMoreMenu>{moreBody}</HostMoreMenu>
     </>
   )
 }

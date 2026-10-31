@@ -67,7 +67,9 @@ import {
   hostHeaderPhaseDisplay,
   resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
-import { HOST_MODES, suggestHostMode, type HostMode } from './hostMode'
+import { suggestHostMode, type HostMode } from './hostMode'
+import { HostModeNav } from './HostModeNav'
+import { HostMoreMenu } from './HostMoreMenu'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
 import { HostLivePanel } from './HostLivePanel'
@@ -595,333 +597,8 @@ function HostApp() {
   const spotlightTableOnTvs = (n: number) =>
     displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
 
-  return (
-    <div className="host-root min-h-screen bg-casino-gradient relative">
-      {/* Backdrop — static gradient so the desk stays readable during long hosts */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-zinc-900 to-slate-950" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(0,180,120,0.08),transparent_55%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(100,70,160,0.06),transparent_50%)]" />
-      </div>
-
-      {connectionStatus !== 'connected' ? (
-        <div
-          className="fixed left-1/2 top-3 z-[60] -translate-x-1/2 rounded-lg border border-amber-400/50 bg-amber-950/90 px-4 py-2 text-sm font-semibold text-amber-100 shadow-lg"
-          role="status"
-        >
-          {connectionStatus === 'reconnecting'
-            ? 'Reconnecting to server… desk will resync automatically.'
-            : 'Host disconnected — retrying…'}
-        </div>
-      ) : null}
-
-      {/* Toast Messages */}
-      <AnimatePresence>
-        {venueAutoAlert ? (
-          <HostVenueAutoAlertBanner key={venueAutoAlert.kind + venueAutoAlert.title} alert={venueAutoAlert} />
-        ) : null}
-        {toastMessage && (
-          <motion.div
-            className="fixed bottom-4 right-4 z-50 max-w-sm rounded-xl border border-white/20 bg-glass-gradient p-5 text-lg text-white shadow-lg backdrop-blur-md"
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            transition={{ duration: 0.3 }}
-          >
-            <ChipText text={toastMessage} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-4 sm:px-6 lg:px-8">
-        <motion.header
-          className="mb-4 rounded-xl border border-white/10 bg-black/35 px-4 py-4 shadow-lg shadow-black/20 backdrop-blur-md sm:px-5"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-        >
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <div className="flex items-center gap-2">
-                <PokerChip size="md" className="opacity-95" />
-                <span className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                  {'Quizz\u2019em'} <span className="font-normal text-white/40">·</span>{' '}
-                  <span className="font-semibold text-casino-emerald">Host</span>
-                </span>
-              </div>
-              <span className="hidden h-8 w-px bg-white/15 lg:block" aria-hidden />
-              <div className="flex flex-wrap items-center gap-2 text-base">
-                <span className="text-white/45">Room</span>
-                <span className="rounded-full border border-white/15 bg-black/40 px-3 py-1 font-mono font-semibold text-white/90 tabular-nums">
-                  {gameState.code}
-                </span>
-                <button
-                  type="button"
-                  aria-label="Open public display"
-                  onClick={() => openVenueWindow('display', gameState.code)}
-                  className="rounded-md border border-sky-400/40 bg-sky-950/40 px-3 py-1 text-sm font-bold text-sky-100 hover:bg-sky-900/50"
-                >
-                  Display
-                </button>
-                <button
-                  type="button"
-                  aria-label="Open player"
-                  onClick={() => openVenueWindow('player', gameState.code)}
-                  className="rounded-md border border-emerald-400/40 bg-emerald-950/40 px-3 py-1 text-sm font-bold text-emerald-100 hover:bg-emerald-900/50"
-                >
-                  Player
-                </button>
-                {(gameState.tableId ?? '') !== LOBBY_TABLE_ID ? (
-                  <>
-                    <span className="text-white/45">Your focus</span>
-                    <span className="rounded-full border border-amber-500/35 bg-amber-950/30 px-2.5 py-0.5 font-medium text-casino-gold">
-                      Table {gameState.tableId}
-                    </span>
-                  </>
-                ) : null}
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-              <span className="text-base uppercase tracking-wider text-white/35">Status</span>
-              <div className="flex flex-col items-end gap-0.5">
-                <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3.5 py-1.5 text-lg font-bold text-casino-emerald">
-                  {venueFloorBrief?.venueHeld
-                    ? 'On hold'
-                    : headerPhase.phase === 'lobby'
-                    ? 'Waiting room'
-                    : headerPhase.phase === 'betting'
-                      ? 'Betting'
-                      : headerPhase.phase === 'answering'
-                        ? 'Guessing'
-                        : headerPhase.phase === 'showdown'
-                          ? 'Results'
-                          : headerPhase.phase === 'question'
-                            ? 'Question'
-                            : headerPhase.phase === 'reveal'
-                              ? 'Answer reveal'
-                              : headerPhase.phase}
-                </span>
-                {headerPhase.floorMirrored ? (
-                  <span className="text-xs font-semibold tracking-wide text-white/40">
-                    Watching the floor from the waiting room
-                  </span>
-                ) : null}
-              </div>
-              {(venueFloorBrief?.roster.length ?? 0) > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setVenueHold(!(venueFloorBrief?.venueHeld === true))}
-                  className={`rounded-md px-3.5 py-1.5 text-base font-bold ${
-                    venueFloorBrief?.venueHeld
-                      ? 'border border-amber-300/70 bg-amber-400 text-black'
-                      : 'border border-amber-400/40 bg-amber-950/40 text-amber-100'
-                  }`}
-                >
-                  {venueFloorBrief?.venueHeld ? 'Resume' : 'Hold'}
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-          <nav
-            className="mt-4 rounded-xl border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm"
-            role="tablist"
-            aria-label="Host modes"
-          >
-            <div className="flex flex-wrap gap-1">
-              {HOST_MODES.map((t) => {
-                const active = hostMode === t.id
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    title={t.hint}
-                    className={`min-h-[52px] flex-1 rounded-lg px-4 py-2.5 text-center text-base font-semibold transition-colors sm:flex-none sm:text-left sm:min-w-[8.5rem] ${
-                      active
-                        ? 'bg-white/14 text-white shadow-inner ring-1 ring-casino-emerald/35'
-                        : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'
-                    }`}
-                    onClick={() => selectHostMode(t.id)}
-                  >
-                    <span className="inline-flex items-center justify-center gap-1.5 leading-snug">
-                      <span>{t.label}</span>
-                      {t.id === 'live' && livelyGameplayTableNums.length > 0 ? (
-                        <span
-                          className={`relative flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 px-2 text-xs font-black tabular-nums text-black shadow-[0_0_12px_rgba(251,191,36,0.85)] ${
-                            hostMode !== 'live' ? 'motion-safe:animate-pulse' : ''
-                          }`}
-                        >
-                          {livelyGameplayTableNums.length > 99 ? '99+' : livelyGameplayTableNums.length}
-                        </span>
-                      ) : null}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </nav>
-        </motion.header>
-
-        {hostMode === 'preshow' ? (
-          <HostPreShowPanel
-            gameState={gameState}
-            hostPlayerLabel={hostPlayerLabel}
-            tvPairCode={tvPairCode}
-            setTvPairCode={setTvPairCode}
-            onSeatPlayers={handleSeatPlayers}
-            onGoQuestions={() => selectHostMode('questions')}
-            onPairTv={(code) => {
-              pairDisplayWithHost(code, (ack) => {
-                if (ack.ok) setTvPairCode('')
-              })
-            }}
-            attachedDisplays={attachedDisplays}
-            onReleaseDisplay={releaseDisplay}
-            floorSeated={hasVenueFeltBeat}
-            onNewGame={handleNewGame}
-          />
-        ) : null}
-
-        {hostMode === 'questions' ? (
-          <HostQuestionsPanel
-            gameState={gameState}
-            questionBank={questionBank}
-            setlists={setlists}
-            activeSetlistId={activeSetlistId}
-            activeSetlistNextIndex={activeSetlistNextIndex}
-            onActivateSetlist={(id) => selectTriviaSetlist(id)}
-            setlistDraftId={setlistDraftId}
-            setSetlistDraftId={setSetlistDraftId}
-            qbText={qbText}
-            setQbText={setQbText}
-            qbAnswer={qbAnswer}
-            setQbAnswer={setQbAnswer}
-            qbCategory={qbCategory}
-            setQbCategory={setQbCategory}
-            qbDifficulty={qbDifficulty}
-            setQbDifficulty={setQbDifficulty}
-            editingBankId={editingBankId}
-            importFileRef={importFileRef}
-            importReplaceRef={importReplaceRef}
-            onImportError={(msg) => {
-              setToastMessage(msg)
-              setTimeout(() => setToastMessage(null), 4500)
-            }}
-            handleSaveBankQuestion={handleSaveBankQuestion}
-            resetQuestionDraft={resetQuestionDraft}
-            startEditBankQuestion={startEditBankQuestion}
-            appendQuestionToSetlist={appendQuestionToSetlist}
-            moveSetlistQuestion={moveSetlistQuestion}
-            removeSetlistQuestion={removeSetlistQuestion}
-            shuffleSetlistQuestions={shuffleSetlistQuestions}
-            handlePushBankQuestion={handlePushBankQuestion}
-          />
-        ) : null}
-
-        {hostMode === 'live' ? (
-          <HostLivePanel
-            gameState={gameState}
-            phaseDockItems={phaseDockItems}
-            runOfShowHeadline={runOfShowHeadline}
-            pacingUrgency={pacingSuggestion.urgency}
-            runBarCueHint={runBarCueHint}
-            onVenueFloor={showVenueFloorOnTvs}
-            onLeaderboard={showLeaderboardOnTvs}
-            onTriviaLeaderboard={showTriviaLeaderboardOnTvs}
-            onSeatingRules={showSeatingRulesOnTvs}
-            venueFeltBeat={venueFeltBeat}
-            venueFloorBrief={venueFloorBrief}
-            onSpotlight={spotlightTableOnTvs}
-            questionSlot={
-              hostControlState.round.question ? (
-                <HostLiveQuestionCard
-                  text={hostControlState.round.question.text}
-                  answer={hostControlState.round.question.answer}
-                />
-              ) : null
-            }
-            handShow={
-              hostControlState.round.question != null ||
-              currentRunStepId === 'deal-board' ||
-              currentRunStepId === 'start-answer' ||
-              currentRunStepId === 'close-bet-1' ||
-              currentRunStepId === 'close-bet-2' ||
-              currentRunStepId === 'question' ||
-              currentRunStepId === 'start' ||
-              gameState.phase === 'betting' ||
-              gameState.phase === 'answering' ||
-              gameState.phase === 'showdown' ||
-              gameState.phase === 'reveal'
-            }
-            handBody={
-              <>
-                {currentRunStepId === 'deal-board' ? dealCommunityHostStaleNote : null}
-                {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
-                hostControlState.phase === 'betting' ? (
-                  <p className="text-xs text-white/50">
-                    Players bet on their phones. Close the betting round when every table is done — use{' '}
-                    <strong className="text-white/70">Nudge slow player</strong> or{' '}
-                    <strong className="text-rose-200/90">Skip this player</strong> above if someone is stuck.
-                  </p>
-                ) : null}
-                {currentRunStepId === 'start-answer' ? (
-                  <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
-                    <div className="flex flex-col gap-0.5">
-                      <label
-                        htmlFor="answer-window-sec"
-                        className="text-xs font-semibold uppercase tracking-wide text-white/48"
-                      >
-                        Guide countdown (sec)
-                      </label>
-                      <input
-                        id="answer-window-sec"
-                        type="number"
-                        min={15}
-                        max={300}
-                        step={5}
-                        value={answerWindowSeconds}
-                        onChange={(e) =>
-                          setAnswerWindowSeconds(clampVenueAnswerWindow(Number(e.target.value)))
-                        }
-                        className="w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white"
-                      />
-                    </div>
-                    <NeonButton
-                      variant="blue"
-                      size="small"
-                      type="button"
-                      onClick={() =>
-                        setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
-                      }
-                    >
-                      Save default
-                    </NeonButton>
-                  </div>
-                ) : null}
-                {(currentRunStepId === 'start' || currentRunStepId === 'question') && triviaOptionalNote}
-                <HostContestRoster gameState={gameState} hostPlayerLabel={hostPlayerLabel} />
-                {gameState.phase === 'showdown' || gameState.phase === 'reveal' ? (
-                  <div className="text-center text-white">
-                    <div className="text-xs text-white/70">Correct answer</div>
-                    <div className="text-3xl font-extrabold text-casino-gold">
-                      {formatTriviaNumber(gameState.round.question?.answer)}
-                    </div>
-                    {gameState.phase === 'reveal' ? (
-                      <p className="mt-1 text-xs text-white/50">
-                        Hit <strong className="text-white/70">Pay winners</strong> when you are ready.
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-white/50">
-                        After payout, deal the next hand from the cue above.
-                      </p>
-                    )}
-                  </div>
-                ) : null}
-              </>
-            }
-            moreBody={
+  const moreMenu = (
+    <HostMoreMenu>
               <>
                 <HostRoomControls
                   brief={venueFloorBrief}
@@ -1161,6 +838,300 @@ function HostApp() {
                   </div>
                 </HostCollapsible>
 
+              </>
+    </HostMoreMenu>
+  )
+
+  return (
+    <div className="host-root min-h-screen bg-casino-gradient relative">
+      {/* Backdrop — static gradient so the desk stays readable during long hosts */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-zinc-900 to-slate-950" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(0,180,120,0.08),transparent_55%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(100,70,160,0.06),transparent_50%)]" />
+      </div>
+
+      {connectionStatus !== 'connected' ? (
+        <div
+          className="fixed left-1/2 top-3 z-[60] -translate-x-1/2 rounded-lg border border-amber-400/50 bg-amber-950/90 px-4 py-2 text-sm font-semibold text-amber-100 shadow-lg"
+          role="status"
+        >
+          {connectionStatus === 'reconnecting'
+            ? 'Reconnecting to server… desk will resync automatically.'
+            : 'Host disconnected — retrying…'}
+        </div>
+      ) : null}
+
+      {/* Toast Messages */}
+      <AnimatePresence>
+        {venueAutoAlert ? (
+          <HostVenueAutoAlertBanner key={venueAutoAlert.kind + venueAutoAlert.title} alert={venueAutoAlert} />
+        ) : null}
+        {toastMessage && (
+          <motion.div
+            className="fixed bottom-4 right-4 z-50 max-w-sm rounded-xl border border-white/20 bg-glass-gradient p-5 text-lg text-white shadow-lg backdrop-blur-md"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ChipText text={toastMessage} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+        <motion.header
+          className="mb-4 rounded-xl border border-white/10 bg-black/35 px-4 py-4 shadow-lg shadow-black/20 backdrop-blur-md sm:px-5"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+        >
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <div className="flex items-center gap-2">
+                <PokerChip size="md" className="opacity-95" />
+                <span className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                  {'Quizz\u2019em'} <span className="font-normal text-white/40">·</span>{' '}
+                  <span className="font-semibold text-casino-emerald">Host</span>
+                </span>
+              </div>
+              <span className="hidden h-8 w-px bg-white/15 lg:block" aria-hidden />
+              <div className="flex flex-wrap items-center gap-2 text-base">
+                <span className="text-white/45">Room</span>
+                <span className="rounded-full border border-white/15 bg-black/40 px-3 py-1 font-mono font-semibold text-white/90 tabular-nums">
+                  {gameState.code}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Open public display"
+                  onClick={() => openVenueWindow('display', gameState.code)}
+                  className="rounded-md border border-sky-400/40 bg-sky-950/40 px-3 py-1 text-sm font-bold text-sky-100 hover:bg-sky-900/50"
+                >
+                  Display
+                </button>
+                <button
+                  type="button"
+                  aria-label="Open player"
+                  onClick={() => openVenueWindow('player', gameState.code)}
+                  className="rounded-md border border-emerald-400/40 bg-emerald-950/40 px-3 py-1 text-sm font-bold text-emerald-100 hover:bg-emerald-900/50"
+                >
+                  Player
+                </button>
+                {(gameState.tableId ?? '') !== LOBBY_TABLE_ID ? (
+                  <>
+                    <span className="text-white/45">Your focus</span>
+                    <span className="rounded-full border border-amber-500/35 bg-amber-950/30 px-2.5 py-0.5 font-medium text-casino-gold">
+                      Table {gameState.tableId}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              <span className="text-base uppercase tracking-wider text-white/35">Status</span>
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3.5 py-1.5 text-lg font-bold text-casino-emerald">
+                  {venueFloorBrief?.venueHeld
+                    ? 'On hold'
+                    : headerPhase.phase === 'lobby'
+                    ? 'Waiting room'
+                    : headerPhase.phase === 'betting'
+                      ? 'Betting'
+                      : headerPhase.phase === 'answering'
+                        ? 'Guessing'
+                        : headerPhase.phase === 'showdown'
+                          ? 'Results'
+                          : headerPhase.phase === 'question'
+                            ? 'Question'
+                            : headerPhase.phase === 'reveal'
+                              ? 'Answer reveal'
+                              : headerPhase.phase}
+                </span>
+                {headerPhase.floorMirrored ? (
+                  <span className="text-xs font-semibold tracking-wide text-white/40">
+                    Watching the floor from the waiting room
+                  </span>
+                ) : null}
+              </div>
+              {(venueFloorBrief?.roster.length ?? 0) > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setVenueHold(!(venueFloorBrief?.venueHeld === true))}
+                  className={`rounded-md px-3.5 py-1.5 text-base font-bold ${
+                    venueFloorBrief?.venueHeld
+                      ? 'border border-amber-300/70 bg-amber-400 text-black'
+                      : 'border border-amber-400/40 bg-amber-950/40 text-amber-100'
+                  }`}
+                >
+                  {venueFloorBrief?.venueHeld ? 'Resume' : 'Hold'}
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          <HostModeNav
+            mode={hostMode}
+            onSelect={selectHostMode}
+            liveCount={livelyGameplayTableNums.length}
+            more={moreMenu}
+          />
+        </motion.header>
+
+        {hostMode === 'preshow' ? (
+          <HostPreShowPanel
+            gameState={gameState}
+            hostPlayerLabel={hostPlayerLabel}
+            tvPairCode={tvPairCode}
+            setTvPairCode={setTvPairCode}
+            onSeatPlayers={handleSeatPlayers}
+            onGoQuestions={() => selectHostMode('questions')}
+            onPairTv={(code) => {
+              pairDisplayWithHost(code, (ack) => {
+                if (ack.ok) setTvPairCode('')
+              })
+            }}
+            attachedDisplays={attachedDisplays}
+            onReleaseDisplay={releaseDisplay}
+            floorSeated={hasVenueFeltBeat}
+          />
+        ) : null}
+
+        {hostMode === 'questions' ? (
+          <HostQuestionsPanel
+            gameState={gameState}
+            questionBank={questionBank}
+            setlists={setlists}
+            activeSetlistId={activeSetlistId}
+            activeSetlistNextIndex={activeSetlistNextIndex}
+            onActivateSetlist={(id) => selectTriviaSetlist(id)}
+            setlistDraftId={setlistDraftId}
+            setSetlistDraftId={setSetlistDraftId}
+            qbText={qbText}
+            setQbText={setQbText}
+            qbAnswer={qbAnswer}
+            setQbAnswer={setQbAnswer}
+            qbCategory={qbCategory}
+            setQbCategory={setQbCategory}
+            qbDifficulty={qbDifficulty}
+            setQbDifficulty={setQbDifficulty}
+            editingBankId={editingBankId}
+            importFileRef={importFileRef}
+            importReplaceRef={importReplaceRef}
+            onImportError={(msg) => {
+              setToastMessage(msg)
+              setTimeout(() => setToastMessage(null), 4500)
+            }}
+            handleSaveBankQuestion={handleSaveBankQuestion}
+            resetQuestionDraft={resetQuestionDraft}
+            startEditBankQuestion={startEditBankQuestion}
+            appendQuestionToSetlist={appendQuestionToSetlist}
+            moveSetlistQuestion={moveSetlistQuestion}
+            removeSetlistQuestion={removeSetlistQuestion}
+            shuffleSetlistQuestions={shuffleSetlistQuestions}
+            handlePushBankQuestion={handlePushBankQuestion}
+          />
+        ) : null}
+
+        {hostMode === 'live' ? (
+          <HostLivePanel
+            gameState={gameState}
+            phaseDockItems={phaseDockItems}
+            runOfShowHeadline={runOfShowHeadline}
+            pacingUrgency={pacingSuggestion.urgency}
+            runBarCueHint={runBarCueHint}
+            onVenueFloor={showVenueFloorOnTvs}
+            onLeaderboard={showLeaderboardOnTvs}
+            onTriviaLeaderboard={showTriviaLeaderboardOnTvs}
+            onSeatingRules={showSeatingRulesOnTvs}
+            venueFeltBeat={venueFeltBeat}
+            venueFloorBrief={venueFloorBrief}
+            onSpotlight={spotlightTableOnTvs}
+            questionSlot={
+              hostControlState.round.question ? (
+                <HostLiveQuestionCard
+                  text={hostControlState.round.question.text}
+                  answer={hostControlState.round.question.answer}
+                />
+              ) : null
+            }
+            handShow={
+              hostControlState.round.question != null ||
+              currentRunStepId === 'deal-board' ||
+              currentRunStepId === 'start-answer' ||
+              currentRunStepId === 'close-bet-1' ||
+              currentRunStepId === 'close-bet-2' ||
+              currentRunStepId === 'question' ||
+              currentRunStepId === 'start' ||
+              gameState.phase === 'betting' ||
+              gameState.phase === 'answering' ||
+              gameState.phase === 'showdown' ||
+              gameState.phase === 'reveal'
+            }
+            handBody={
+              <>
+                {currentRunStepId === 'deal-board' ? dealCommunityHostStaleNote : null}
+                {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
+                hostControlState.phase === 'betting' ? (
+                  <p className="text-xs text-white/50">
+                    Players bet on their phones. Close the betting round when every table is done — use{' '}
+                    <strong className="text-white/70">Nudge slow player</strong> or{' '}
+                    <strong className="text-rose-200/90">Skip this player</strong> above if someone is stuck.
+                  </p>
+                ) : null}
+                {currentRunStepId === 'start-answer' ? (
+                  <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
+                    <div className="flex flex-col gap-0.5">
+                      <label
+                        htmlFor="answer-window-sec"
+                        className="text-xs font-semibold uppercase tracking-wide text-white/48"
+                      >
+                        Guide countdown (sec)
+                      </label>
+                      <input
+                        id="answer-window-sec"
+                        type="number"
+                        min={15}
+                        max={300}
+                        step={5}
+                        value={answerWindowSeconds}
+                        onChange={(e) =>
+                          setAnswerWindowSeconds(clampVenueAnswerWindow(Number(e.target.value)))
+                        }
+                        className="w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white"
+                      />
+                    </div>
+                    <NeonButton
+                      variant="blue"
+                      size="small"
+                      type="button"
+                      onClick={() =>
+                        setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
+                      }
+                    >
+                      Save default
+                    </NeonButton>
+                  </div>
+                ) : null}
+                {(currentRunStepId === 'start' || currentRunStepId === 'question') && triviaOptionalNote}
+                <HostContestRoster gameState={gameState} hostPlayerLabel={hostPlayerLabel} />
+                {gameState.phase === 'showdown' || gameState.phase === 'reveal' ? (
+                  <div className="text-center text-white">
+                    <div className="text-xs text-white/70">Correct answer</div>
+                    <div className="text-3xl font-extrabold text-casino-gold">
+                      {formatTriviaNumber(gameState.round.question?.answer)}
+                    </div>
+                    {gameState.phase === 'reveal' ? (
+                      <p className="mt-1 text-xs text-white/50">
+                        Hit <strong className="text-white/70">Pay winners</strong> when you are ready.
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-xs text-white/50">
+                        After payout, deal the next hand from the cue above.
+                      </p>
+                    )}
+                  </div>
+                ) : null}
               </>
             }
             floorDetail={

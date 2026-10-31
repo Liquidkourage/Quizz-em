@@ -1,9 +1,15 @@
+import { formatTriviaPoints } from '@qhe/core'
 import type { HandSummary } from '../playerModel/handSummary'
 import { ChipText } from '@qhe/ui'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type PostHandSummaryCardProps = {
   summary: HandSummary
+}
+
+function formatPointsDelta(n: number): string {
+  const label = formatTriviaPoints(n)
+  return label === '0' ? '0' : `+${label}`
 }
 
 function formatDelta(n: number, prefix: string): string {
@@ -28,7 +34,7 @@ export default function PostHandSummaryCard({ summary }: PostHandSummaryCardProp
         <div className="player-game-delta-cell">
           <div className="player-game-delta-label">Trivia pts</div>
           <div className="player-game-delta-value player-game-delta-value--up">
-            {formatDelta(summary.pointsGained, '')}
+            {formatPointsDelta(summary.pointsGained)}
           </div>
         </div>
       </div>

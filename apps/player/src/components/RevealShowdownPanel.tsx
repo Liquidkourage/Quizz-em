@@ -1,5 +1,5 @@
 import type { GameState, PlayerState } from '@qhe/core'
-import { formatTriviaNumber } from '@qhe/core'
+import { formatTriviaNumber, formatTriviaPoints } from '@qhe/core'
 import { triviaPointsForAnswer } from '../playerModel/handSummary'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
@@ -38,7 +38,7 @@ export default function RevealShowdownPanel({ gameState, currentPlayer }: Reveal
             Correct: <span className="player-game-result-correct">{formatTriviaNumber(correct)}</span>
           </p>
           <p>
-            Trivia score this hand: <strong className="player-game-result-mono">{pts}</strong>
+            Trivia score this hand: <strong className="player-game-result-mono">{formatTriviaPoints(pts)}</strong>
           </p>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { GameState } from '@qhe/core'
 import type { SocketConnectionStatus } from '@qhe/net'
-import { LOBBY_TABLE_ID, displayBettingPhaseLabel, isWageringPaused } from '@qhe/core'
+import { formatTriviaPoints, LOBBY_TABLE_ID, displayBettingPhaseLabel, isWageringPaused } from '@qhe/core'
 import { PlayerReconnectBanner } from './PlayerReconnectBanner'
 
 type PlayerTableHeaderProps = {
@@ -77,7 +77,7 @@ export function PlayerGameStatusBar({
           </>
         ) : null}
         {' · '}
-        Trivia <strong className="player-game-meta-em">{answerPoints}</strong>
+        Trivia <strong className="player-game-meta-em">{formatTriviaPoints(answerPoints)}</strong>
         <span className="player-game-meta-name">{playerName}</span>
       </p>
 

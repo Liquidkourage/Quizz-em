@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
-import { LOBBY_TABLE_ID } from '@qhe/core'
+import { formatTriviaPoints, LOBBY_TABLE_ID } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 import {
   buildPlayerTableStatusLine,
@@ -178,7 +178,7 @@ export default function TableFeltView({
             </span>
             <span className="player-seat-stack font-bold tabular-nums text-amber-300">
               {pointsOnly ? (
-                `${(player.answerPoints ?? 0).toLocaleString()} pts`
+                `${formatTriviaPoints(player.answerPoints ?? 0)} pts`
               ) : (
                 <ChipText text={`$${player.bankroll.toLocaleString()}`} />
               )}

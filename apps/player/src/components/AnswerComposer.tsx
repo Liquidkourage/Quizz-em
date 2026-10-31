@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { NumericPlayingCard } from '@qhe/ui'
-import type { GameState, PlayerState } from '@qhe/core'
+import { formatTriviaPoints, type GameState, type PlayerState } from '@qhe/core'
 import {
   ANSWER_CARD_COUNT,
   communityBoardDealt,
@@ -62,7 +62,7 @@ export default function AnswerComposer({
           <p className="player-game-question-label">Points only</p>
           <p className="player-game-hint">
             Chip contest over — this guess still earns trivia points (
-            <strong>{(currentPlayer.answerPoints ?? 0).toLocaleString()}</strong> so far).
+            <strong>{formatTriviaPoints(currentPlayer.answerPoints ?? 0)}</strong> so far).
           </p>
         </div>
       ) : null}

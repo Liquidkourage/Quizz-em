@@ -1,3 +1,5 @@
+import { formatTriviaPoints } from '@qhe/core'
+
 type PointsOnlyLifeBannerProps = {
   answerPoints: number
   /** Compact strip under sticky question during chip-free hands. */
@@ -12,7 +14,7 @@ export default function PointsOnlyLifeBanner({ answerPoints, compact = false }: 
         <span className="player-points-only-banner-kicker">Second life</span>
         <span className="player-points-only-banner-body">
           Chip contest over — keep answering for trivia pts (
-          <strong>{answerPoints.toLocaleString()}</strong>)
+          <strong>{formatTriviaPoints(answerPoints)}</strong>)
         </span>
       </p>
     )
@@ -26,7 +28,7 @@ export default function PointsOnlyLifeBanner({ answerPoints, compact = false }: 
         wagering, just points.
       </p>
       <p className="player-points-only-banner-score">
-        Trivia score <strong>{answerPoints.toLocaleString()}</strong>
+        Trivia score <strong>{formatTriviaPoints(answerPoints)}</strong>
       </p>
     </div>
   )

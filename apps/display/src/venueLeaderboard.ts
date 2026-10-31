@@ -1,4 +1,4 @@
-import { VENUE_WALL_SEAT_SLOTS } from '@qhe/core'
+import { formatTriviaPoints, VENUE_WALL_SEAT_SLOTS } from '@qhe/core'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 
 export type VenueLeaderboardRow = {
@@ -166,8 +166,7 @@ export function venueTriviaLeaderboardRowsFromTiles(
 }
 
 export function formatVenueTriviaPoints(amount: number): string {
-  const n = Number.isFinite(amount) ? Math.round(amount) : 0
-  return `${Math.max(0, n).toLocaleString()} pts`
+  return `${formatTriviaPoints(amount)} pts`
 }
 
   /** @deprecated Use {@link buildVenueLeaderboardPresentation} — capped at 4 columns via pagination. */

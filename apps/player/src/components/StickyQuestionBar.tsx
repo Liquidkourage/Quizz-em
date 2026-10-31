@@ -1,3 +1,4 @@
+import { formatTriviaPoints } from '@qhe/core'
 import { ChipText } from '@qhe/ui'
 
 type StickyQuestionBarProps = {
@@ -38,7 +39,7 @@ export default function StickyQuestionBar({
         {pointsOnly ? (
           <span className="player-sticky-question-pts">
             {' · Points only · '}
-            {answerPoints.toLocaleString()} pts
+            {formatTriviaPoints(answerPoints)} pts
           </span>
         ) : typeof pot === 'number' ? (
           <span className="player-sticky-question-pot">

@@ -3,6 +3,7 @@ import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   captureVenueHandStackBaselines,
   formatVenueBankroll,
+  formatVenueTriviaPoints,
   formatVenueBankrollDigits,
   formatVenueDisplayPlayerName,
   venueLeaderboardColumns,
@@ -82,6 +83,13 @@ describe('venueLeaderboardFooterStats', () => {
     expect(stats?.topStack).toBe(200)
     expect(stats?.medianStack).toBe(150)
     expect(stats?.liveTables).toBe(3)
+  })
+})
+
+describe('formatVenueTriviaPoints', () => {
+  it('shows the nearest hundredth and keeps a whole score whole', () => {
+    expect(formatVenueTriviaPoints(66.666666)).toBe('66.67 pts')
+    expect(formatVenueTriviaPoints(90)).toBe('90 pts')
   })
 })
 

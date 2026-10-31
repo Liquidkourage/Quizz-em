@@ -1527,7 +1527,18 @@ export function triviaAnswerPoints(submitted: number, correct: number): number {
     return nearlyEqualNumbers(submitted, 0) ? 100 : 0;
   }
   const relativeError = Math.abs(submitted - correct) / Math.abs(correct);
-  return Math.max(0, 100 * (1 - relativeError));
+  return roundTriviaPoints(100 * (1 - relativeError));
+}
+
+/** Nearest hundredth of a trivia point. Non-finite and negative totals become 0. */
+export function roundTriviaPoints(value: number): number {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return Number(value.toFixed(2));
+}
+
+/** Trivia points for screens: hundredths, thousands separators, whole numbers stay whole. */
+export function formatTriviaPoints(value: number): string {
+  return formatTriviaNumber(roundTriviaPoints(value));
 }
 
 function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAnswer'>, correct: number): number {
@@ -1546,7 +1557,7 @@ export function endRound(state: GameState): GameState {
   const clearedPlayers: PlayerState[] = afterPayout.players.map((p) => {
     const snap = snapById.get(p.id);
     const gained = q != null && snap != null ? answerRoundPointsGained(snap, q.answer) : 0;
-    const answerPoints = (p.answerPoints ?? 0) + gained;
+    const answerPoints = roundTriviaPoints((p.answerPoints ?? 0) + gained);
     const busted = p.bankroll <= 0;
     return {
       ...p,

@@ -150,6 +150,30 @@ describe('endRound', () => {
     expect(gs.players.find((p) => p.id === 'a')!.bankroll).toBeGreaterThan(500)
   })
 
+  it('stores the running trivia total at the nearest hundredth', () => {
+    let gs = createEmptyGame('V', 'h')
+    gs = addPlayer(gs, 'a', 'A', 500)
+    gs = {
+      ...gs,
+      phase: 'showdown',
+      round: {
+        ...gs.round,
+        pot: 0,
+        question: { id: 'q', text: '?', answer: 3 },
+      },
+      players: [
+        {
+          ...gs.players[0]!,
+          submittedAnswer: 2,
+          hasFolded: false,
+          answerPoints: 33.333333333,
+        },
+      ],
+    }
+    gs = endRound(gs)
+    expect(gs.players[0]!.answerPoints).toBe(100)
+  })
+
   it('splits the pot across tied trivia winners with whole-dollar conservation', () => {
     let gs = createEmptyGame('V', 'h')
     gs = addPlayer(gs, 'a', 'A')

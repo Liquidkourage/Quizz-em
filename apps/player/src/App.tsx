@@ -44,6 +44,7 @@ import {
   type SelectedCardRef,
 } from './playerModel/answerComposition'
 import { buildBettingContext, resolveMyPlayerIndex } from './playerModel/bettingModel'
+import { nextDealFlash, type DealFlash, type DealSnapshot } from './playerModel/dealFlash'
 import { lockedAnswerDisplayText } from './playerModel/lockedAnswerDisplay'
 import { resolvePreAction, type PreAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
@@ -58,6 +59,7 @@ import GameInfoCard from './components/GameInfoCard'
 import PostHandSummaryCard from './components/PostHandSummaryCard'
 import TableResultsPanel from './components/TableResultsPanel'
 import AnswerComposerModal from './components/AnswerComposerModal'
+import DealFlashModal from './components/DealFlashModal'
 import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
@@ -200,6 +202,24 @@ function PlayerApp() {
 
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
   const currentPlayer = gameState && myIndex >= 0 ? gameState.players[myIndex] : undefined
+  const dealSeenRef = useRef<DealSnapshot | null>(null)
+  const [dealFlash, setDealFlash] = useState<DealFlash | null>(null)
+  const dismissDealFlash = useCallback(() => setDealFlash(null), [])
+  useEffect(() => {
+    if (!gameState || !currentPlayer) return
+    const holeDigits = currentPlayer.hand.map((card) => card.digit)
+    const boardDigits = gameState.round.communityCards.map((card) => card.digit)
+    const next = {
+      roundId: gameState.round.roundId,
+      holeKey: holeDigits.join(','),
+      boardKey: boardDigits.join(','),
+      holeDigits,
+      boardDigits,
+    }
+    const flash = nextDealFlash(dealSeenRef.current, next)
+    dealSeenRef.current = { roundId: next.roundId, holeKey: next.holeKey, boardKey: next.boardKey }
+    if (flash) setDealFlash(flash)
+  }, [gameState, currentPlayer])
   const handSummary = useHandSummary(gameState, currentPlayer)
   const tableResults = useTableResults(gameState, currentPlayer?.id ?? joinPrefs.playerId)
   const remainingSec = useAnswerCountdown(gameState?.round.answerDeadline)
@@ -613,6 +633,7 @@ function PlayerApp() {
       </div>
 
       <AnimatePresence>
+        {dealFlash ? <DealFlashModal key={`${dealFlash.kind}:${dealFlash.digits.join(',')}`} flash={dealFlash} onDone={dismissDealFlash} /> : null}
         {showAnswerModal && currentPlayer ? (
           <AnswerComposerModal
             key={`answer-${gameState.round.roundId}`}

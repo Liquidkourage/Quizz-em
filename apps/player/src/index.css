@@ -2436,6 +2436,56 @@
   padding-bottom: max(0.45rem, env(safe-area-inset-bottom, 0px));
 }
 
+.player-deal-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top, 0px)) 0.75rem max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.player-deal-flash-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(0 0 0 / 0.72);
+}
+
+.player-deal-flash-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  border-radius: 1rem;
+  border: 1px solid rgb(251 191 36 / 0.45);
+  background: rgb(8 12 10 / 0.96);
+  padding: 1rem 0.85rem 1.1rem;
+  text-align: center;
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.45);
+}
+
+.player-deal-flash-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(253 224 71);
+}
+
+.player-deal-flash-cards {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.player-deal-flash-cards--board {
+  gap: 0.2rem;
+  transform: scale(0.78);
+  transform-origin: center center;
+}
+
 .player-game-modal-overlay {
   position: fixed;
   inset: 0;

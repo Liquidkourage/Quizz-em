@@ -33,16 +33,61 @@ export function isHostWaitingForJoiners(gameState: GameState): boolean {
   )
 }
 
+function HostOpenButton({
+  appearance,
+  summary,
+  badge,
+  onOpen,
+}: {
+  appearance: 'bar' | 'button'
+  summary: ReactNode
+  badge?: ReactNode
+  onOpen: () => void
+}) {
+  if (appearance === 'button') {
+    return (
+      <button
+        type="button"
+        className="host-open-button flex min-h-[4.5rem] w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-sky-300/50 bg-sky-950/55 px-2 py-2 text-center text-sm font-bold text-white hover:bg-sky-900/70"
+        onClick={onOpen}
+      >
+        <span className="flex flex-col items-center gap-0.5 leading-tight">
+          {summary}
+          {badge}
+        </span>
+        <span className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-sky-100">Open</span>
+      </button>
+    )
+  }
+  return (
+    <button
+      type="button"
+      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-left text-base font-semibold text-white/75 hover:bg-white/[0.04] hover:text-white/88"
+      onClick={onOpen}
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        {summary}
+        {badge}
+      </span>
+      <span className="shrink-0 text-xs font-bold uppercase tracking-[0.14em] text-sky-200/80">Open</span>
+    </button>
+  )
+}
+
 export function HostCollapsible({
   summary,
+  buttonSummary,
   defaultOpen = false,
   forceOpen = false,
   children,
   className = '',
   badge,
   expanded = false,
+  appearance = 'bar',
 }: {
   summary: ReactNode
+  /** Short face for a live-desk button. The popup title keeps `summary`. */
+  buttonSummary?: ReactNode
   defaultOpen?: boolean
   forceOpen?: boolean
   children: ReactNode
@@ -50,6 +95,8 @@ export function HostCollapsible({
   badge?: ReactNode
   /** Live floor: show the section on the page instead of behind Open. */
   expanded?: boolean
+  /** `button` is a compact control. `bar` is a full-width label row. */
+  appearance?: 'bar' | 'button'
 }) {
   const nested = useHostModalNested()
   const [open, setOpen] = useState(() => forceOpen || (defaultOpen && !nested))
@@ -74,17 +121,12 @@ export function HostCollapsible({
 
   return (
     <div className={className}>
-      <button
-        type="button"
-        className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-left text-base font-semibold text-white/75 hover:bg-white/[0.04] hover:text-white/88"
-        onClick={() => setOpen(true)}
-      >
-        <span className="flex min-w-0 items-center gap-2">
-          {summary}
-          {badge}
-        </span>
-        <span className="shrink-0 text-xs font-bold uppercase tracking-[0.14em] text-sky-200/80">Open</span>
-      </button>
+      <HostOpenButton
+        appearance={appearance}
+        summary={buttonSummary ?? summary}
+        badge={badge}
+        onOpen={() => setOpen(true)}
+      />
       <HostModal
         title={
           <span className="flex min-w-0 items-center gap-2">
@@ -1277,6 +1319,8 @@ export function HostVenueFeltBeatStrip({
   return (
     <HostCollapsible
       forceOpen={forceOpen}
+      appearance="button"
+      buttonSummary={<span>Venue felts · beat</span>}
       badge={
         lockstepMisaligned ? (
           <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-200">
@@ -1399,6 +1443,45 @@ export function HostContestBadge({
   )
 }
 
+function ContestColumn({
+  title,
+  empty,
+  players,
+  tone,
+  hostPlayerLabel,
+}: {
+  title: string
+  empty: string
+  players: GameState['players']
+  tone: string
+  hostPlayerLabel: (name: string) => string
+}) {
+  return (
+    <section className={`min-w-0 rounded-lg border p-2 ${tone}`}>
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">
+        {title}
+        <span className="ml-1.5 tabular-nums text-white/45">{players.length}</span>
+      </p>
+      {players.length === 0 ? (
+        <p className="mt-2 text-sm text-white/40">{empty}</p>
+      ) : (
+        <ul className="mt-2 space-y-1">
+          {players.map((p) => {
+            const status = hostContestStatus(p)
+            const reason = hostContestReasonLabel(status)
+            return (
+              <li key={p.id} className="rounded-md bg-black/30 px-2 py-1.5" title={status.detail}>
+                <p className="text-sm font-semibold leading-tight text-white">{hostPlayerLabel(p.name)}</p>
+                {reason ? <p className="text-xs text-white/55">{reason}</p> : null}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 /** Bound-table roster: who is still in for chips vs trivia points only. */
 export function HostContestRoster({
   gameState,
@@ -1419,53 +1502,28 @@ export function HostContestRoster({
   }
   if (gameState.players.length === 0) return null
 
-  const inPot = gameState.players.filter((p) => hostContestStatus(p).kind === 'pot').length
-  const pointsOnly = gameState.players.length - inPot
+  const potPlayers = gameState.players.filter((p) => hostContestStatus(p).kind === 'pot')
+  const pointsPlayers = gameState.players.filter((p) => hostContestStatus(p).kind !== 'pot')
 
   return (
-    <div className="rounded-lg border border-white/12 bg-black/30 px-3 py-2.5">
-      <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/45">Contest status</p>
-        <p className="text-xs tabular-nums text-white/45">
-          <span className="font-semibold text-emerald-200/90">{inPot} in pot</span>
-          {pointsOnly > 0 ? (
-            <>
-              {' · '}
-              <span className="font-semibold text-amber-200/90">{pointsOnly} points only</span>
-            </>
-          ) : null}
-        </p>
+    <div aria-label="Player contest status">
+      <p className="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-white/45">Contest status</p>
+      <div className="grid grid-cols-2 gap-2">
+        <ContestColumn
+          title="In pot"
+          empty="Nobody in the pot."
+          players={potPlayers}
+          tone="border-emerald-400/35 bg-emerald-950/20"
+          hostPlayerLabel={hostPlayerLabel}
+        />
+        <ContestColumn
+          title="Points only"
+          empty="Everyone is still in."
+          players={pointsPlayers}
+          tone="border-amber-400/30 bg-amber-950/15"
+          hostPlayerLabel={hostPlayerLabel}
+        />
       </div>
-      <p className="mb-2 text-[0.7rem] leading-snug text-white/40">
-        <strong className="text-white/55">In pot</strong> = eligible for the chip pot.{' '}
-        <strong className="text-white/55">Points only</strong> = folded or busted — still answers for trivia pts.
-      </p>
-      <ul className="flex flex-wrap gap-1.5" aria-label="Player contest status">
-        {gameState.players.map((p, i) => {
-          const status = hostContestStatus(p)
-          const reason = hostContestReasonLabel(status)
-          return (
-            <li
-              key={p.id}
-              className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 text-xs ${
-                status.kind === 'pot'
-                  ? 'border-emerald-400/35 bg-emerald-950/25'
-                  : 'border-amber-400/30 bg-amber-950/20'
-              }`}
-              title={status.detail}
-            >
-              <span className="font-mono tabular-nums text-white/40">{i + 1}</span>
-              <span className="font-semibold text-white/90">{hostPlayerLabel(p.name)}</span>
-              <HostContestBadge
-                kind={status.kind}
-                label={status.label}
-                reason={reason}
-                title={status.detail}
-              />
-            </li>
-          )
-        })}
-      </ul>
     </div>
   )
 }
@@ -2494,7 +2552,7 @@ export function HostThisHandPanel({
   return (
     <div className="host-instrument overflow-hidden rounded-xl border border-white/10 px-3 py-2">
       <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
-      <div className="max-h-36 space-y-2 overflow-y-auto">{children}</div>
+      <div className="max-h-[min(46vh,22rem)] space-y-2 overflow-y-auto">{children}</div>
     </div>
   )
 }

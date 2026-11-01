@@ -74,6 +74,8 @@ describe('host desk viewport', () => {
     expect(html).toContain('Deal the cards')
     expect(html).toContain('Audience TVs')
     expect(html).toContain('Venue felts · beat')
+    expect(html).toContain('grid-cols-3')
+    expect(html).toContain('host-open-button')
     expect(html).toContain('Open')
     expect(html).not.toContain('Click a table to set its phase')
     expect(html).toContain('Venue floor · now')

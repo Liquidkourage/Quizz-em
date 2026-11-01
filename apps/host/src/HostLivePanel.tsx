@@ -100,8 +100,8 @@ export function HostLivePanel({
         />
       </div>
 
-      <div className="flex min-w-0 flex-col gap-2 sm:col-start-2 sm:row-start-1">
-        <HostCollapsible summary="Audience TVs">
+      <div className="grid min-w-0 grid-cols-3 items-start gap-2 self-start sm:col-start-2 sm:row-start-1">
+        <HostCollapsible summary="Audience TVs" appearance="button">
           <div className="flex h-full min-h-0 flex-col gap-3">
             <HostTvBar
               onVenueFloor={onVenueFloor}
@@ -118,7 +118,7 @@ export function HostLivePanel({
             />
           </div>
         </HostCollapsible>
-        <HostCollapsible summary="Tables">
+        <HostCollapsible summary="Tables" appearance="button">
           <HostFloorStrip
             rows={venueFeltBeat}
             brief={venueFloorBrief}

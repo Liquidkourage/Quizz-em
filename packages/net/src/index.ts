@@ -553,6 +553,20 @@ export interface ClientToServerEvents {
 }
 
 // Host admin actions
+/** Beats a host can force onto one table. Ids match `phaseStrictSignature`. */
+export const TABLE_PHASE_OVERRIDES = [
+  { id: 'lobby', label: 'Waiting room' },
+  { id: 'question', label: 'Deal / question' },
+  { id: 'bet|1|T|cc0', label: 'Betting, clock open' },
+  { id: 'bet|1|F|cc0', label: 'Betting, clock closed' },
+  { id: 'bet|2|T|cc5', label: 'Board out, betting open' },
+  { id: 'bet|2|F|cc5', label: 'Board out, betting closed' },
+  { id: 'answer', label: 'Guessing' },
+  { id: 'postHand', label: 'Results' },
+] as const
+
+export type TablePhaseOverrideId = (typeof TABLE_PHASE_OVERRIDES)[number]['id']
+
 export const AdminCloseBettingAction = z.object({ type: z.literal('adminCloseBetting') })
 export type AdminCloseBettingAction = z.infer<typeof AdminCloseBettingAction>
 

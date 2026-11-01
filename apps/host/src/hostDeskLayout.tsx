@@ -9,7 +9,7 @@ import type {
   VenueBlindsSnapshot,
 } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards } from '@qhe/core'
-import { adminCloseBetting } from '@qhe/net'
+import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
@@ -2122,15 +2122,87 @@ export function HostRunBar({
   )
 }
 
+/** Set one table's beat, or pull every straggler onto the majority beat. */
+export function HostTablePhaseControls({
+  tableNums,
+  misaligned,
+  onAlignRoom,
+  onSetTablePhase,
+}: {
+  tableNums: number[]
+  misaligned: boolean
+  onAlignRoom: () => void
+  onSetTablePhase: (tableNum: number, signature: string) => void
+}) {
+  const [tableNum, setTableNum] = useState(tableNums[0] ?? 1)
+  const [signature, setSignature] = useState<string>(TABLE_PHASE_OVERRIDES[0].id)
+  const selected = tableNums.includes(tableNum) ? tableNum : (tableNums[0] ?? 1)
+
+  return (
+    <div className="mb-2 flex flex-wrap items-end gap-2">
+      {misaligned ? (
+        <button
+          type="button"
+          onClick={onAlignRoom}
+          className="rounded-md border border-amber-300/60 bg-amber-500/20 px-3 py-1.5 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
+        >
+          Match the room
+        </button>
+      ) : null}
+      <label className="flex flex-col gap-0.5 text-xs font-semibold text-white/55">
+        Table
+        <select
+          aria-label="Table to realign"
+          value={selected}
+          onChange={(e) => setTableNum(Number(e.target.value))}
+          className="rounded-md border border-white/20 bg-zinc-950 px-2 py-1.5 text-sm text-white [color-scheme:dark]"
+        >
+          {tableNums.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-0.5 text-xs font-semibold text-white/55">
+        Phase
+        <select
+          aria-label="Phase to set"
+          value={signature}
+          onChange={(e) => setSignature(e.target.value)}
+          className="max-w-[16rem] rounded-md border border-white/20 bg-zinc-950 px-2 py-1.5 text-sm text-white [color-scheme:dark]"
+        >
+          {TABLE_PHASE_OVERRIDES.map((row) => (
+            <option key={row.id} value={row.id}>
+              {row.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="button"
+        onClick={() => onSetTablePhase(selected, signature)}
+        className="rounded-md border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/15"
+      >
+        Set phase
+      </button>
+    </div>
+  )
+}
+
 /** Compact horizontal floor awareness — tap a table to spotlight it on TVs. */
 export function HostFloorStrip({
   rows,
   brief,
   onSpotlight,
+  onAlignRoom,
+  onSetTablePhase,
 }: {
   rows: HostVenueFeltBeatRow[] | null
   brief: HostVenueFloorBriefPayload | null
   onSpotlight: (tableNum: number) => void
+  onAlignRoom?: () => void
+  onSetTablePhase?: (tableNum: number, signature: string) => void
 }) {
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(rows)
   const actionByTable = new Map((brief?.actionRows ?? []).map((r) => [r.tableNum, r]))
@@ -2170,6 +2242,14 @@ export function HostFloorStrip({
         <p className="mb-2 text-xs font-medium text-amber-100/90">
           Amber tables differ from the majority — align before venue-wide cues.
         </p>
+      ) : null}
+      {lockstepMisaligned && onAlignRoom && onSetTablePhase && seated.length > 0 ? (
+        <HostTablePhaseControls
+          tableNums={seated.map((row) => row.tableNum)}
+          misaligned={lockstepMisaligned}
+          onAlignRoom={onAlignRoom}
+          onSetTablePhase={onSetTablePhase}
+        />
       ) : null}
       {seated.length === 0 ? (
         <p className="text-sm text-white/50">

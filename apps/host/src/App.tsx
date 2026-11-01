@@ -18,6 +18,8 @@ import {
   startAnswering,
   adminAdvanceTurn,
   adminCloseBetting,
+  alignTablesToRoom,
+  setTablePhase,
   nudgeActingPlayers,
   addVirtualPlayers,
   clearVirtualPlayers,
@@ -60,6 +62,7 @@ import {
   HostContestRoster,
   HostContestBadge,
   HostLiveQuestionCard,
+  HostTablePhaseControls,
   buildHostPhaseDockItems,
   formatVenueBlindsSummary,
   hostDeskStateWithLiveQuestion,
@@ -546,6 +549,8 @@ function HostApp() {
   }
   const currentRunStepId = resolveRunOfShowStepForHost(hostControlState, venueFeltBeat)
   const floorLockstepMisaligned = hostFloorLockstepMisaligned(venueFeltBeat)
+  const phaseTableNums =
+    venueFeltBeat?.filter((row) => row.active && row.seated > 0).map((row) => row.tableNum) ?? []
   const primaryDockId = phaseDockItems.find((i) => i.role === 'primary')?.id ?? phaseDockItems[0]?.id
   const runBarCueHint =
     primaryDockId === 'close-bet' && closeBetBlocked
@@ -827,6 +832,14 @@ function HostApp() {
                         Close betting
                       </NeonButton>
                     </div>
+                    {phaseTableNums.length > 0 ? (
+                      <HostTablePhaseControls
+                        tableNums={phaseTableNums}
+                        misaligned={floorLockstepMisaligned}
+                        onAlignRoom={() => alignTablesToRoom()}
+                        onSetTablePhase={(tableNum, signature) => setTablePhase(tableNum, signature)}
+                      />
+                    ) : null}
                     <HostBlindsControls {...hostBlindsControlProps} />
                     <label className="flex flex-wrap items-center gap-2 text-sm text-white/60">
                       <span>Host view table (diagnostics)</span>
@@ -1077,6 +1090,8 @@ function HostApp() {
             venueFeltBeat={venueFeltBeat}
             venueFloorBrief={venueFloorBrief}
             onSpotlight={spotlightTableOnTvs}
+            onAlignRoom={() => alignTablesToRoom()}
+            onSetTablePhase={(tableNum, signature) => setTablePhase(tableNum, signature)}
             questionSlot={
               hostControlState.round.question ? (
                 <HostLiveQuestionCard

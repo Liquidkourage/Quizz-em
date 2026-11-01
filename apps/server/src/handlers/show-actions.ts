@@ -338,6 +338,48 @@ export async function handleShowAction(
           break
         }
           
+        case 'alignTablesToRoom': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const vnAlign = g.normalizeVenueCode(gameState.code)
+          const aligned = g.alignOutlierTablesInRooms(vnAlign)
+          if (!aligned.ok) {
+            socket.emit('toast', aligned.toast)
+            break
+          }
+          const wanted = new Set(aligned.tables)
+          for (const row of g.venuePlayableSnapshots(vnAlign)) {
+            if (!wanted.has(row.n)) continue
+            g.emitVenueTableState(row.tk, row.gs, { skipOrchestration: true })
+          }
+          g.emitDisplayVenueSnapshotNow(vnAlign)
+          socket.emit(
+            'toast',
+            aligned.tables.length === 0
+              ? 'Tables already match.'
+              : `Matched tables ${aligned.tables.join(', ')} to ${g.phaseOverrideLabel(aligned.signature)}.`,
+          )
+          gameState = g.rooms.get(sessionKey)!
+          break
+        }
+
+        case 'setTablePhase': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const tableNum = Number(payload?.tableNum)
+          const signature = typeof payload?.signature === 'string' ? payload.signature : ''
+          const vnSet = g.normalizeVenueCode(gameState.code)
+          const set = g.setOneTablePhase(vnSet, tableNum, signature)
+          if (!set.ok) {
+            socket.emit('toast', set.toast)
+            break
+          }
+          const row = g.venuePlayableSnapshots(vnSet).find((r) => r.n === set.tableNum)
+          if (row) g.emitVenueTableState(row.tk, row.gs, { skipOrchestration: true })
+          g.emitDisplayVenueSnapshotNow(vnSet)
+          socket.emit('toast', `Table ${set.tableNum} set to ${g.phaseOverrideLabel(set.signature)}.`)
+          gameState = g.rooms.get(sessionKey)!
+          break
+        }
+
         case 'revealAnswer': {
           if (!g.assertVenueHost(socket, gameState)) break
           const vnRev = g.normalizeVenueCode(gameState.code)

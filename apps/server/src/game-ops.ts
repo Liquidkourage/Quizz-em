@@ -89,7 +89,7 @@ import type {
   AdminAdvanceTurnAction,
   AdminSetBlindsAction,
 } from '@qhe/net'
-import { normalizeDisplayLayoutPayload } from '@qhe/net'
+import { normalizeDisplayLayoutPayload, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import {
   addVirtualPlayers as spawnVirtualPlayers,
   removeAllVirtualPlayers,
@@ -1593,6 +1593,128 @@ export function requireVenueLockstepTables(
   return rows
 }
 
+function phaseOverrideAllowed(signature: string): boolean {
+  return TABLE_PHASE_OVERRIDES.some((row) => row.id === signature)
+}
+
+export function phaseOverrideLabel(signature: string): string {
+  return TABLE_PHASE_OVERRIDES.find((row) => row.id === signature)?.label ?? signature
+}
+
+function firstContestantIndex(gs: GameState): number {
+  for (let i = 0; i < gs.players.length; i++) {
+    const player = gs.players[i]
+    if (player && inChipContest(player) && !player.hasFolded && !player.isAllIn) return i
+  }
+  return -1
+}
+
+function boardForPhaseOverride(gs: GameState, count: number): GameState {
+  const have = gs.round.communityCards?.length ?? 0
+  if (have === count) return gs
+  if (have > count) {
+    return { ...gs, round: { ...gs.round, communityCards: gs.round.communityCards.slice(0, count) } }
+  }
+  if (count !== 5) return gs
+  const primed: GameState = {
+    ...gs,
+    phase: 'betting',
+    round: { ...gs.round, bettingRound: 1, isBettingOpen: false, communityCards: [] },
+  }
+  const dealt = dealCommunityCards(primed)
+  return dealt.round.communityCards.length === 5 ? dealt : primed
+}
+
+/** Force one felt onto a host phase beat. Null when the beat is not one the host can set. */
+export function forceTablePhase(gs: GameState, signature: string): GameState | null {
+  if (!phaseOverrideAllowed(signature)) return null
+  if (signature === 'answer' || signature === 'postHand' || signature === 'lobby' || signature === 'question') {
+    const phase = signature === 'answer' ? 'answering' : signature === 'postHand' ? 'showdown' : signature
+    return {
+      ...gs,
+      phase,
+      round: { ...gs.round, isBettingOpen: false, currentPlayerIndex: -1 },
+    }
+  }
+  const match = /^bet\|([12])\|([TF])\|cc(\d+)$/.exec(signature)
+  if (!match) return null
+  const bettingRound = Number(match[1]) as 1 | 2
+  const open = match[2] === 'T'
+  const withBoard = boardForPhaseOverride(gs, Number(match[3]))
+  const actor = open ? firstContestantIndex(withBoard) : -1
+  return {
+    ...withBoard,
+    phase: 'betting',
+    round: {
+      ...withBoard.round,
+      bettingRound,
+      isBettingOpen: open && actor >= 0,
+      currentPlayerIndex: actor,
+    },
+  }
+}
+
+function majorityStrictSignature(rows: { gs: GameState }[]): string | null {
+  const counts = new Map<string, number>()
+  for (const row of rows) counts.set(phaseStrictSignature(row.gs), (counts.get(phaseStrictSignature(row.gs)) ?? 0) + 1)
+  let best: string | null = null
+  let bestCount = 0
+  let tied = false
+  for (const [sig, count] of counts) {
+    if (count > bestCount) {
+      best = sig
+      bestCount = count
+      tied = false
+    } else if (count === bestCount) {
+      tied = true
+    }
+  }
+  return best != null && !tied ? best : null
+}
+
+/** Pull every seated felt that differs onto the majority beat. Does not emit. */
+export function alignOutlierTablesInRooms(
+  venueCode: string,
+): { ok: true; tables: number[]; signature: string } | { ok: false; toast: string } {
+  const rows = venuePlayableSnapshots(venueCode)
+  const signature = majorityStrictSignature(rows)
+  if (!signature) {
+    return { ok: false, toast: 'No single beat to match. Set one table phase, then match the room.' }
+  }
+  if (!phaseOverrideAllowed(signature)) {
+    return { ok: false, toast: 'That beat cannot be copied. Set each table phase yourself.' }
+  }
+  const peer = rows.find((row) => phaseStrictSignature(row.gs) === signature)
+  const tables: number[] = []
+  for (const row of rows) {
+    if (phaseStrictSignature(row.gs) === signature) continue
+    const next = forceTablePhase(row.gs, signature)
+    if (!next) continue
+    const stamped =
+      signature === 'answer' && peer?.gs.round.answerDeadline != null
+        ? { ...next, round: { ...next.round, answerDeadline: peer.gs.round.answerDeadline } }
+        : next
+    rooms.set(row.tk, stamped)
+    if (Number.isFinite(row.n)) tables.push(row.n)
+  }
+  return { ok: true, tables, signature }
+}
+
+/** Set one seated table's phase beat. Does not emit. */
+export function setOneTablePhase(
+  venueCode: string,
+  tableNum: number,
+  signature: string,
+): { ok: true; tableNum: number; signature: string } | { ok: false; toast: string } {
+  if (!phaseOverrideAllowed(signature)) return { ok: false, toast: 'That phase cannot be set.' }
+  const row = venuePlayableSnapshots(venueCode).find((r) => r.n === tableNum)
+  if (!row) return { ok: false, toast: `Table ${tableNum} has no seated players.` }
+  const next = forceTablePhase(row.gs, signature)
+  if (!next) return { ok: false, toast: 'That phase cannot be set.' }
+  rooms.set(row.tk, next)
+  return { ok: true, tableNum, signature }
+}
+
 /** Reveal is one venue beat. Returns false, and changes nothing, until every seated table is answering. */
 export function revealVenueAnswersTogether(socket: Socket, venueCode: string): boolean {
   const lock = requireVenueLockstepTables(
@@ -2378,6 +2500,8 @@ export const VENUE_SYNC_ACTION_TYPES = new Set<string>([
   'newGame',
   'adminSetBlinds',
   'adminCloseBetting',
+  'alignTablesToRoom',
+  'setTablePhase',
   'nudgeActingPlayers',
   'assignTablesFromLobby',
   'movePlayerToTable',

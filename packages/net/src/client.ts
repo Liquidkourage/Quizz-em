@@ -674,6 +674,18 @@ export function disconnect() {
 }
 
 // Host admin actions
+export function alignTablesToRoom(callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'alignTablesToRoom' })
+  if (callback) socket.once('ack', callback)
+}
+
+export function setTablePhase(tableNum: number, signature: string, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'setTablePhase', payload: { tableNum, signature } })
+  if (callback) socket.once('ack', callback)
+}
+
 export function adminCloseBetting(callback?: (ack: ServerAck) => void) {
   if (!socket) return
   socket.emit('action', { type: 'adminCloseBetting' })

@@ -119,7 +119,7 @@ export function HostCollapsible({
             {summary}
             {badge}
           </span>
-          {toolbar ? <div className="min-w-0 text-sm font-normal">{toolbar}</div> : null}
+          {toolbar ? <div className="min-w-0 text-base font-normal">{toolbar}</div> : null}
         </div>
         <div className="px-3 py-2">{children}</div>
       </section>

@@ -89,14 +89,14 @@ export function HostBlindCall({
   }
 
   return (
-    <div className="host-blind-call flex flex-wrap items-center gap-x-3 gap-y-1" aria-live="polite">
-      <label className="flex items-center gap-1.5 text-xs text-white/50">
+    <div className="host-blind-call flex flex-wrap items-center gap-x-3 gap-y-1.5" aria-live="polite">
+      <label className="flex items-center gap-2 text-base text-white/60">
         Night
         <select
           aria-label="Night length"
           value={String(goal)}
           onChange={(e) => chooseGoal(Number(e.target.value))}
-          className="rounded-md border border-white/20 bg-zinc-950 py-0.5 pl-1.5 pr-6 text-xs font-semibold text-white [color-scheme:dark]"
+          className="rounded-md border border-white/20 bg-zinc-950 py-1 pl-2 pr-8 text-base font-semibold text-white [color-scheme:dark]"
         >
           {NIGHT_GOAL_MINUTES.map((n) => (
             <option key={n} value={n}>
@@ -106,21 +106,21 @@ export function HostBlindCall({
         </select>
       </label>
       {call == null ? (
-        <p className="text-sm text-white/60">
+        <p className="text-base text-white/60">
           {handsLeft < 1 ? 'That rundown is finished.' : 'Fills in from the seated field, stacks, and blinds.'}
         </p>
       ) : (
         <>
-          <p className="text-sm text-amber-50">
-            <span className="font-semibold">{call.verb}</span>
-            <span className="ml-2 text-white/75">
+          <p className="text-base font-semibold text-amber-50">
+            {call.verb}
+            <span className="ml-2 font-normal text-white/75">
               {callSentence(call, guideSec)} {Math.round(minutesLeft)} min · {players} players
             </span>
           </p>
           {call.verb === 'Hold' ? null : (
             <button
               type="button"
-              className="rounded-md border border-amber-300/50 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
+              className="rounded-md border border-amber-300/50 bg-amber-500/20 px-3 py-1.5 text-base font-bold text-amber-50 hover:bg-amber-500/30"
               onClick={() => onApply(call)}
             >
               Apply

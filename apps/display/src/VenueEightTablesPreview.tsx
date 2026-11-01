@@ -52,6 +52,7 @@ import seatChipStackImg from './assets/seat-chip-stack.png'
 import {
   MosaicSeatStackAmount,
   mosaicSeatInitialFontPx,
+  mosaicSeatStackClearPx,
   mosaicSeatStackFontPx,
   mosaicShowsSeatStacks,
 } from './mosaicSeatStacks'
@@ -1390,6 +1391,12 @@ function SeatRingWithLabels({
           potFromBroadcast != null)))
 
   const layoutReady = rimW > 0 && rimH > 0
+  const mosaicStackSeats = seatNames.reduce(
+    (n, name, i) => n + (name?.trim() && seatPointsOnly[i] !== true ? 1 : 0),
+    0
+  )
+  const mosaicStackFontPx = mosaicSeatStackFontPx(rimW, mosaicStackSeats)
+  const mosaicStackClearPx = mosaicSeatStackClearPx(cupSizePx, mosaicSeatInitialFontPx(rimW))
 
   return (
     <div
@@ -1574,7 +1581,7 @@ function SeatRingWithLabels({
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
         const mosaicStack =
           isMosaic && showMosaicSeatStacks && filled && !isBusted
-            ? mosaicSeatStackLayout(i, rimW, rimH, Math.max(10, Math.round(cupSizePx)))
+            ? mosaicSeatStackLayout(i, rimW, rimH, mosaicStackClearPx)
             : null
         const actingSoftPulse =
           'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden motion-safe:animate-pulse'
@@ -1667,7 +1674,7 @@ function SeatRingWithLabels({
                 <MosaicSeatStackAmount
                   name={raw}
                   amount={chips}
-                  fontPx={mosaicSeatStackFontPx(rimW)}
+                  fontPx={mosaicStackFontPx}
                 />
               </div>
             ) : null}

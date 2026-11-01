@@ -1,5 +1,6 @@
 import { ChipMark } from '@qhe/ui'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
+import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 
 /** Lobby, the question beat, and breaks — felts with no live wagering. */
 export function mosaicShowsSeatStacks(phase: string | null | undefined): boolean {
@@ -17,10 +18,38 @@ export function mosaicSeatInitialFontPx(tableWidthPx: number): number {
   return Math.round(Math.min(52, Math.max(30, w * 0.105)))
 }
 
-/** Stack amount on the green. Large enough to read across the room, short of the pot. */
-export function mosaicSeatStackFontPx(tableWidthPx: number): number {
+/** Em width of a gold amount such as $10,000, including the chip mark. */
+const MOSAIC_STACK_LABEL_EM = 4.6
+
+/** Five or more stacks on one felt — each amount has to fit between its neighbors. */
+const MOSAIC_CROWDED_SEAT_COUNT = 5
+
+function neighborCupGapPx(w: number, h: number): number {
+  let minGap = Infinity
+  for (let i = 0; i < 8; i++) {
+    const a = mosaicSeatDotPct(i, 8, w, h)
+    const b = mosaicSeatDotPct((i + 1) % 8, 8, w, h)
+    const gap = Math.hypot(((a.leftPct - b.leftPct) / 100) * w, ((a.topPct - b.topPct) / 100) * h)
+    if (gap < minGap) minGap = gap
+  }
+  return minGap
+}
+
+/** Stack amount on the green. A full table uses a size that fits the seat gap. */
+export function mosaicSeatStackFontPx(tableWidthPx: number, filledSeats = 0): number {
   const w = feltWidthPx(tableWidthPx)
-  return Math.round(Math.min(36, Math.max(24, w * 0.072)))
+  const room = Math.round(Math.min(36, Math.max(24, w * 0.072)))
+  if (filledSeats < MOSAIC_CROWDED_SEAT_COUNT) return room
+  const gap = neighborCupGapPx(w, Math.round(w * (140 / 264)))
+  const fitted = Math.floor((gap * 0.9) / MOSAIC_STACK_LABEL_EM)
+  return Math.min(room, Math.max(16, fitted))
+}
+
+/** Rail-facing edge of the amount, past the initials that spill off the cup. */
+export function mosaicSeatStackClearPx(cupSizePx: number, initialFontPx: number): number {
+  const cup = Math.max(8, Math.round(cupSizePx))
+  const pastGlyph = Math.round(initialFontPx * 0.72 + 8)
+  return Math.max(cup, pastGlyph)
 }
 
 export function MosaicSeatStackAmount({

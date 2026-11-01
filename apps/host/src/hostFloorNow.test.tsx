@@ -64,6 +64,8 @@ describe('venue floor now', () => {
     expect(html).not.toContain('h-full')
     expect(html).not.toContain('flex-1')
     expect(html).toContain('minmax(7.5rem,9rem)')
+    expect(html).toContain('text-base font-bold text-white/90')
+    expect(html).toContain('text-base text-white/50')
     expect(html).toContain('px-1.5 py-1')
     expect(html).not.toContain('lg:grid-cols-4')
     expect(html).toContain('sm:grid-cols-3')

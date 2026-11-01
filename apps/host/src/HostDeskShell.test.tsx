@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { HostDeskShell } from './HostDeskShell'
 import { HostLivePanel } from './HostLivePanel'
-import { HostVenueFeltBeatStrip } from './hostDeskLayout'
+import { HostLiveQuestionCard, HostVenueFeltBeatStrip } from './hostDeskLayout'
 import { HostQuestionsPanel, type HostQuestionsPanelProps } from './HostQuestionsPanel'
 
 describe('host desk viewport', () => {
@@ -130,7 +130,19 @@ describe('host desk viewport', () => {
       />,
     )
     expect(html).toContain('Answer clock')
+    expect(html).not.toContain('text-6xl')
+    expect(html).toContain('w-24 shrink-0')
+    expect(html).toContain('sm:col-span-2 sm:row-start-2')
+    expect(html).toContain('text-2xl font-bold')
     expect(html).not.toContain('Show table 1 large on the TVs')
+  })
+
+  it('sets the live question larger than the compact clock', () => {
+    const html = renderToStaticMarkup(
+      <HostLiveQuestionCard text="How long was the mission?" answer={195} />,
+    )
+    expect(html).toContain('text-2xl font-semibold')
+    expect(html).toContain('text-4xl font-extrabold')
   })
 })
 

@@ -129,11 +129,8 @@ export function HostLivePanel({
         {feltBeat}
       </div>
 
-      <div className="min-w-0 sm:col-start-1 sm:row-start-2">
-        {questionSlot}
-      </div>
-
-      <div className="min-w-0 sm:col-start-2 sm:row-start-2">
+      <div className="flex min-w-0 items-start gap-2 sm:col-span-2 sm:row-start-2">
+        <div className="min-w-0 flex-1">{questionSlot}</div>
         <HostAnswerClock rows={venueFeltBeat} />
       </div>
 

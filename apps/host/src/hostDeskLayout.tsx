@@ -50,7 +50,7 @@ function HostOpenButton({
     return (
       <button
         type="button"
-        className="host-open-button flex min-h-[4.5rem] w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-sky-300/50 bg-sky-950/55 px-2 py-2 text-center text-sm font-bold text-white hover:bg-sky-900/70"
+        className="host-open-button flex min-h-[4.5rem] w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-sky-300/50 bg-sky-950/55 px-2 py-2 text-center text-base font-bold text-white hover:bg-sky-900/70"
         onClick={onOpen}
       >
         <span className="flex flex-col items-center gap-0.5 leading-tight">
@@ -110,7 +110,7 @@ export function HostCollapsible({
   if (expanded) {
     return (
       <section className={`host-instrument flex flex-col overflow-hidden rounded-xl border border-white/10 ${className}`}>
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2 text-base font-semibold text-white/85">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2 text-lg font-semibold text-white/85">
           <span className="flex min-w-0 items-center gap-2">
             {summary}
             {badge}
@@ -1158,7 +1158,7 @@ export function HostHandBetRank({
       {shown.map((bet, i) => (
         <li
           key={`${bet.tableNum}-${bet.atMs}-${bet.kind}-${bet.name}-${i}`}
-          className="flex items-baseline justify-between gap-2 rounded-md border border-amber-400/30 bg-amber-950/20 px-2 py-1 text-xs"
+          className="flex items-baseline justify-between gap-2 rounded-md border border-amber-400/30 bg-amber-950/20 px-2 py-1 text-sm"
         >
           <span className="min-w-0 truncate font-semibold text-amber-50">
             <span className="mr-1.5 font-mono text-white/40">{i + 1}</span>
@@ -1823,7 +1823,7 @@ export function HostVenueFloorBriefPanel({
       ) : (
         <div className="flex flex-col gap-3">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
               Table action
             </p>
             {rows.length === 0 ? (
@@ -1847,16 +1847,16 @@ export function HostVenueFloorBriefPanel({
                           : 'border-white/10 bg-black/20'
                       } ${watching ? 'ring-1 ring-emerald-400/50' : ''}`}
                     >
-                      <span className="text-sm font-bold text-white/90">
+                      <span className="text-base font-bold text-white/90">
                         T{row.tableNum}
                         {watching ? (
-                          <span className="ml-1.5 text-xs font-semibold uppercase text-emerald-300">
+                          <span className="ml-1.5 text-sm font-semibold uppercase text-emerald-300">
                             You
                           </span>
                         ) : null}
                       </span>
-                      <p className="text-xs text-white/55">{phaseLabel}</p>
-                      <p className="text-xs tabular-nums text-white/50">
+                      <p className="text-sm text-white/55">{phaseLabel}</p>
+                      <p className="text-sm tabular-nums text-white/50">
                         <span className="font-semibold text-emerald-200/85">
                           {row.inPotCount ?? 0} in pot
                         </span>
@@ -1910,17 +1910,17 @@ export function HostVenueFloorBriefPanel({
       ) : (
           <div className="grid gap-3 sm:grid-cols-3">
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
               Busts
             </p>
             {brief.busts.length === 0 ? (
-              <p className="text-sm text-white/50">None this hand.</p>
+              <p className="text-base text-white/50">None this hand.</p>
             ) : (
               <ul className="space-y-1">
                 {brief.busts.map((b, i) => (
                   <li
                     key={`${b.name}-${b.tableNum}-${b.atMs}-${i}`}
-                    className="flex items-baseline justify-between gap-2 rounded-md border border-red-400/25 bg-red-950/20 px-2 py-1.5 text-xs"
+                    className="flex items-baseline justify-between gap-2 rounded-md border border-red-400/25 bg-red-950/20 px-2 py-1.5 text-sm"
                   >
                     <span className="font-semibold text-red-100">{hostPlayerLabel(b.name)}</span>
                     <span className="shrink-0 text-white/45">T{b.tableNum}</span>
@@ -1931,31 +1931,31 @@ export function HostVenueFloorBriefPanel({
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
               Big bets this hand
             </p>
             {(brief.handBets ?? []).length === 0 ? (
-              <p className="text-sm text-white/50">None this hand.</p>
+              <p className="text-base text-white/50">None this hand.</p>
             ) : (
               <HostHandBetRank bets={brief.handBets ?? []} />
             )}
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
               Big wins
               <span className="ml-1 font-normal normal-case text-white/35">
                 (≥ <ChipText text={formatHostFloorMoney(brief.bigWinMinAmount)} />)
               </span>
             </p>
             {brief.bigWinners.length === 0 ? (
-              <p className="text-sm text-white/50">None yet this session.</p>
+              <p className="text-base text-white/50">None yet this session.</p>
             ) : (
               <ul className="space-y-1">
                 {brief.bigWinners.map((w, i) => (
                   <li
                     key={`${w.name}-${w.tableNum}-${w.atMs}-${i}`}
-                    className="flex items-baseline justify-between gap-2 rounded-md border border-emerald-400/30 bg-emerald-950/20 px-2 py-1.5 text-xs"
+                    className="flex items-baseline justify-between gap-2 rounded-md border border-emerald-400/30 bg-emerald-950/20 px-2 py-1.5 text-sm"
                   >
                     <span className="min-w-0 truncate font-semibold text-emerald-100">
                       {hostPlayerLabel(w.name)}
@@ -2343,10 +2343,10 @@ export function HostLiveQuestionCard({ text, answer }: { text: string; answer: n
       className="host-lower-third overflow-y-auto rounded-xl border border-amber-400/40 px-4 py-3"
       aria-label="Live question"
     >
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">Question</p>
-      <p className="mt-1 whitespace-pre-wrap text-lg font-semibold leading-snug text-white">{text}</p>
-      <p className="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-casino-gold/80">Answer</p>
-      <p className="mt-0.5 text-3xl font-extrabold tabular-nums text-casino-gold">
+      <p className="text-sm font-bold uppercase tracking-[0.14em] text-white/45">Question</p>
+      <p className="mt-1 whitespace-pre-wrap text-2xl font-semibold leading-snug text-white">{text}</p>
+      <p className="mt-3 text-sm font-bold uppercase tracking-[0.14em] text-casino-gold/80">Answer</p>
+      <p className="mt-0.5 text-4xl font-extrabold tabular-nums text-casino-gold">
         {formatTriviaNumber(answer)}
       </p>
     </section>
@@ -2400,9 +2400,9 @@ export function HostRunBar({
                   <p className={`host-next-kicker text-xs font-bold uppercase tracking-[0.14em] ${urgencyClass}`}>
                     {urgencyLabel}
                   </p>
-                  <p className="mt-0.5 text-lg font-bold leading-snug text-white">{headline.title}</p>
+                  <p className="mt-0.5 text-2xl font-bold leading-snug text-white">{headline.title}</p>
                   {headline.detail ? (
-                    <p className="mt-0.5 text-xs leading-snug text-white/55">
+                    <p className="mt-0.5 text-sm leading-snug text-white/55">
                       <ChipText text={headline.detail} />
                     </p>
                   ) : null}
@@ -2487,7 +2487,7 @@ export function HostAnswerClock({ rows }: { rows: readonly HostVenueFeltBeatRow[
   const urgent = soonest <= 10
   return (
     <div
-      className={`mb-2 flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-2 ${
+      className={`flex w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 ${
         urgent
           ? 'border-rose-400/75 bg-rose-950/45'
           : 'border-amber-300/75 bg-amber-950/45'
@@ -2495,9 +2495,11 @@ export function HostAnswerClock({ rows }: { rows: readonly HostVenueFeltBeatRow[
       aria-live="polite"
       aria-label={`${soonest} seconds left on the answer clock`}
     >
-      <span className="text-sm font-bold uppercase tracking-[0.16em] text-amber-100/85">Answer clock</span>
+      <span className="text-center text-[0.65rem] font-bold uppercase leading-tight tracking-[0.12em] text-amber-100/85">
+        Answer clock
+      </span>
       <span
-        className={`font-mono text-6xl font-black leading-none tabular-nums ${
+        className={`font-mono text-3xl font-black leading-none tabular-nums ${
           urgent ? 'text-rose-200' : 'text-amber-200'
         }`}
       >
@@ -2684,7 +2686,7 @@ export function HostThisHandPanel({
   if (!hasContent) return null
   return (
     <div className="host-instrument overflow-hidden rounded-xl border border-white/10 px-3 py-2">
-      <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
+      <p className="mb-1 text-sm font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
       <div className="max-h-[min(46vh,22rem)] space-y-2 overflow-y-auto">{children}</div>
     </div>
   )

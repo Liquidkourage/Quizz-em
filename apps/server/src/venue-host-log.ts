@@ -10,6 +10,7 @@ import type {
   DisplayVenueSeatingAnnouncement,
   HostVenueActionRow,
   HostVenueBigWinEntry,
+  HostVenueSeatContest,
   HostVenueBigBetEntry,
   HostVenueBustEntry,
   HostVenueFloorBriefPayload,
@@ -306,20 +307,17 @@ function recentActionsFromTile(tile: DisplayVenueTileSnapshot): HostVenueActionR
   return out.slice(-4)
 }
 
-function contestCountsFromTile(tile: DisplayVenueTileSnapshot): {
-  inPotCount: number
-  pointsOnlyCount: number
-} {
-  let inPotCount = 0
-  let pointsOnlyCount = 0
-  for (let i = 0; i < tile.seatNames.length; i++) {
-    if (!tile.seatNames[i]?.trim()) continue
-    const busted = tile.seatPointsOnly?.[i] === true
-    const folded = tile.seatFolded?.[i] === true
-    if (busted || folded) pointsOnlyCount += 1
-    else inPotCount += 1
+function seatContests(tile: DisplayVenueTileSnapshot): HostVenueSeatContest[] {
+  const seats: HostVenueSeatContest[] = []
+  const names = tile.seatNames ?? []
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i]?.trim()
+    if (!name) continue
+    if (tile.seatPointsOnly?.[i] === true) seats.push({ name, kind: 'points', reason: 'busted' })
+    else if (tile.seatFolded?.[i] === true) seats.push({ name, kind: 'points', reason: 'folded' })
+    else seats.push({ name, kind: 'pot', reason: null })
   }
-  return { inPotCount, pointsOnlyCount }
+  return seats
 }
 
 export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): HostVenueActionRow[] {
@@ -331,7 +329,8 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         idx != null && idx >= 0 && idx < tile.seatNames.length
           ? tile.seatNames[idx]?.trim() || null
           : null
-      const { inPotCount, pointsOnlyCount } = contestCountsFromTile(tile)
+      const seats = seatContests(tile)
+      const inPotCount = seats.filter((seat) => seat.kind === 'pot').length
       return {
         tableNum: tile.tableNum,
         phase: tile.phase,
@@ -343,7 +342,8 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         actingSummary: formatActingSummary(tile),
         recentActions: recentActionsFromTile(tile),
         inPotCount,
-        pointsOnlyCount,
+        pointsOnlyCount: seats.length - inPotCount,
+        seats,
       }
     })
     .sort((a, b) => {

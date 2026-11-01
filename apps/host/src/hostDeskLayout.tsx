@@ -5,6 +5,7 @@ import type { GamePhase, GameState } from '@qhe/core'
 import type {
   HostVenueBigBetEntry,
   HostVenueFeltBeatRow,
+  HostVenueSeatContest,
   HostVenueFloorBriefPayload,
   HostVenueMoveLogEntry,
   VenueBlindsSnapshot,
@@ -1649,6 +1650,80 @@ function relabelMoveSummary(
   return m.summary
 }
 
+function seatReasonLabel(reason: HostVenueSeatContest['reason']): string | null {
+  if (reason === 'folded') return 'Folded'
+  if (reason === 'busted') return 'Busted'
+  return null
+}
+
+function SeatContestColumn({
+  title,
+  empty,
+  seats,
+  tone,
+  hostPlayerLabel,
+}: {
+  title: string
+  empty: string
+  seats: HostVenueSeatContest[]
+  tone: string
+  hostPlayerLabel: (name: string) => string
+}) {
+  return (
+    <section className={`min-w-0 rounded-lg border p-2 ${tone}`}>
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">
+        {title}
+        <span className="ml-1.5 tabular-nums text-white/45">{seats.length}</span>
+      </p>
+      {seats.length === 0 ? (
+        <p className="mt-2 text-sm text-white/40">{empty}</p>
+      ) : (
+        <ul className="mt-2 space-y-1">
+          {seats.map((seat) => {
+            const reason = seatReasonLabel(seat.reason)
+            return (
+              <li key={seat.name} className="rounded-md bg-black/30 px-2 py-1.5">
+                <p className="text-sm font-semibold leading-tight text-white">{hostPlayerLabel(seat.name)}</p>
+                {reason ? <p className="text-xs text-white/55">{reason}</p> : null}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+/** In-pot and points-only players for one opened table. */
+export function HostTableContest({
+  seats,
+  hostPlayerLabel,
+}: {
+  seats: HostVenueSeatContest[]
+  hostPlayerLabel: (name: string) => string
+}) {
+  const pot = seats.filter((seat) => seat.kind === 'pot')
+  const points = seats.filter((seat) => seat.kind !== 'pot')
+  return (
+    <div className="grid grid-cols-2 gap-2" aria-label="Player contest status">
+      <SeatContestColumn
+        title="In pot"
+        empty="Nobody in the pot."
+        seats={pot}
+        tone="border-emerald-400/35 bg-emerald-950/20"
+        hostPlayerLabel={hostPlayerLabel}
+      />
+      <SeatContestColumn
+        title="Points only"
+        empty="Everyone is still in."
+        seats={points}
+        tone="border-amber-400/30 bg-amber-950/15"
+        hostPlayerLabel={hostPlayerLabel}
+      />
+    </div>
+  )
+}
+
 export function HostVenueFloorBriefPanel({
   brief,
   hostPlayerLabel,
@@ -1659,6 +1734,8 @@ export function HostVenueFloorBriefPanel({
   hostTableId: string
 }) {
   const rows = brief?.actionRows ?? []
+  const [openTable, setOpenTable] = useState<number | null>(null)
+  const openRow = rows.find((row) => row.tableNum === openTable)
 
   return (
     <>
@@ -1698,9 +1775,12 @@ export function HostVenueFloorBriefPanel({
                     String(row.tableNum) === hostTableId.trim()
                   const phaseLabel = HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
                   return (
-                    <li
-                      key={row.tableNum}
-                      className={`rounded-lg border px-2.5 py-2 ${
+                    <li key={row.tableNum}>
+                    <button
+                      type="button"
+                      aria-label={`Open table ${row.tableNum}`}
+                      onClick={() => setOpenTable(row.tableNum)}
+                      className={`w-full cursor-pointer rounded-lg border px-2.5 py-2 text-left ${
                         row.interestingAction
                           ? 'border-amber-400/45 bg-amber-950/25'
                           : 'border-white/10 bg-black/20'
@@ -1769,11 +1849,24 @@ export function HostVenueFloorBriefPanel({
                           })}
                         </div>
                       ) : null}
+                      <span className="mt-1 block text-[0.65rem] font-bold uppercase tracking-[0.14em] text-sky-200/80">
+                        Open
+                      </span>
+                    </button>
                     </li>
                   )
                 })}
               </ul>
             )}
+            <HostModal
+              title={openRow ? `Table ${openRow.tableNum}` : 'Table'}
+              open={openRow != null}
+              onClose={() => setOpenTable(null)}
+            >
+              {openRow ? (
+                <HostTableContest seats={openRow.seats ?? []} hostPlayerLabel={hostPlayerLabel} />
+              ) : null}
+            </HostModal>
           </div>
         </div>
       )}

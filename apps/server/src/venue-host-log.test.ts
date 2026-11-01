@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createEmptyGame, type GameState } from '@qhe/core'
 import {
   attachVenueLastHandSeating,
+  buildHostVenueActionRows,
   buildHostVenueFloorBrief,
   clearVenueHostLog,
   getVenueLastHandDisplay,
@@ -318,6 +319,26 @@ describe('buildHostVenueFloorBrief busts', () => {
       bigBlindHint: 20,
     })
     expect(brief.busts.map((b) => b.name)).toEqual(['Bob D.'])
+  })
+})
+
+describe('buildHostVenueActionRows seats', () => {
+  it('names who is in the pot and who is points only', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 3,
+        seated: 2,
+        pot: 0,
+        phase: 'betting',
+        seatNames: ['Ada', '', 'Bo'],
+        seatFolded: [false, false, true],
+        seatPointsOnly: [false, false, false],
+      } as never,
+    ])
+    expect(rows[0]?.seats).toEqual([
+      { name: 'Ada', kind: 'pot', reason: null },
+      { name: 'Bo', kind: 'points', reason: 'folded' },
+    ])
   })
 })
 

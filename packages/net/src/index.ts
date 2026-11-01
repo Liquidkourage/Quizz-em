@@ -343,6 +343,12 @@ export type HostVenueMoveLogEntry = {
 }
 
 /** Host-only: per-table action cue plus venue bust / big-win ledger. */
+export type HostVenueSeatContest = {
+  name: string
+  kind: 'pot' | 'points'
+  reason: 'folded' | 'busted' | null
+}
+
 export type HostVenueActionRow = {
   tableNum: number
   phase: string
@@ -357,6 +363,8 @@ export type HostVenueActionRow = {
   inPotCount: number
   /** Seats answering for trivia points only (folded and/or busted). */
   pointsOnlyCount: number
+  /** Seated players, in chair order, with chip-contest status. */
+  seats: HostVenueSeatContest[]
 }
 
 export type HostVenueBustEntry = {

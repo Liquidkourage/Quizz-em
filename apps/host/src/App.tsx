@@ -61,7 +61,6 @@ import {
   HostVenueFeltBeatStrip,
   HostVenueFloorBriefPanel,
   HostVenueMoveLogPanel,
-  HostContestRoster,
   HostContestBadge,
   HostLiveQuestionCard,
   buildHostPhaseDockItems,
@@ -1166,7 +1165,6 @@ function HostApp() {
                   </div>
                 ) : null}
                 {(currentRunStepId === 'start' || currentRunStepId === 'question') && triviaOptionalNote}
-                <HostContestRoster gameState={gameState} hostPlayerLabel={hostPlayerLabel} />
                 {gameState.phase === 'showdown' || gameState.phase === 'reveal' ? (
                   <div className="text-center text-white">
                     <div className="text-xs text-white/70">Correct answer</div>

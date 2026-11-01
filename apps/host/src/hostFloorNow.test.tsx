@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueActionRow, HostVenueFloorBriefPayload } from '@qhe/net'
-import { HostVenueFloorBriefPanel } from './hostDeskLayout'
+import { HostTableContest, HostVenueFloorBriefPanel } from './hostDeskLayout'
 
 function actionRow(tableNum: number): HostVenueActionRow {
   return {
@@ -16,12 +16,20 @@ function actionRow(tableNum: number): HostVenueActionRow {
     recentActions: [],
     inPotCount: 4,
     pointsOnlyCount: 0,
+    seats: [],
   }
 }
 
 function brief(): HostVenueFloorBriefPayload {
   return {
-    actionRows: [1, 2, 3, 4].map(actionRow),
+    actionRows: [1, 2, 3, 4].map((n) =>
+      n === 1
+        ? {
+            ...actionRow(n),
+            seats: [{ name: 'Ada L.', kind: 'pot' as const, reason: null }],
+          }
+        : actionRow(n),
+    ),
     moveLog: [],
     busts: [],
     bigWinners: [],
@@ -60,5 +68,23 @@ describe('venue floor now', () => {
     expect(html).toContain('None this hand.')
     expect(html.indexOf('This hand')).toBeGreaterThan(html.indexOf('Venue floor'))
     expect(busts).toBeGreaterThan(html.indexOf('This hand'))
+    expect(html).toContain('Open table 1')
+    expect(html).not.toContain('Ada L.')
+  })
+
+  it('opens a table into in-pot and points-only columns', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableContest, {
+        seats: [
+          { name: 'Ada L.', kind: 'pot', reason: null },
+          { name: 'Bo K.', kind: 'points', reason: 'folded' },
+        ],
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    expect(html).toContain('grid-cols-2')
+    expect(html.indexOf('Ada L.')).toBeGreaterThan(html.indexOf('In pot'))
+    expect(html.indexOf('Bo K.')).toBeGreaterThan(html.indexOf('Points only'))
+    expect(html).toContain('Folded')
   })
 })

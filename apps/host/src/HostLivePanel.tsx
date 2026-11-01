@@ -90,7 +90,7 @@ export function HostLivePanel({
   }
 
   return (
-    <div className="host-live-board grid h-full min-h-0 grid-cols-1 gap-2 overflow-hidden sm:grid-cols-2 sm:grid-rows-[auto_auto_minmax(0,1fr)]">
+    <div className="host-live-board grid h-full min-h-0 grid-cols-1 gap-2 overflow-hidden sm:grid-cols-2 sm:grid-rows-[auto_auto_auto_minmax(0,1fr)]">
       <div className="min-w-0 sm:col-start-1 sm:row-start-1">
         <HostRunBar
           items={phaseDockItems}
@@ -137,13 +137,13 @@ export function HostLivePanel({
         <HostAnswerClock rows={venueFeltBeat} />
       </div>
 
-      <div className="h-full min-h-0 overflow-hidden sm:col-start-1 sm:row-start-3">{floorNow}</div>
-
-      <div className="h-full min-h-0 overflow-hidden sm:col-start-2 sm:row-start-3">
+      <div className="min-w-0 sm:col-span-2 sm:row-start-3">
         <HostThisHandPanel title="Right now" show={handShow}>
           {handBody}
         </HostThisHandPanel>
       </div>
+
+      <div className="h-full min-h-0 overflow-hidden sm:col-span-2 sm:row-start-4">{floorNow}</div>
     </div>
   )
 }

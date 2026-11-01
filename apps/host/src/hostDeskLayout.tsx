@@ -1625,15 +1625,15 @@ export function HostVenueFloorBriefPanel({
       {brief == null ? (
         <p className="text-sm text-white/50">Waiting for venue sync…</p>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          <div>
+        <div className="flex h-full min-h-0 flex-col gap-3">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Table action
             </p>
             {rows.length === 0 ? (
               <p className="text-sm text-white/50">No seated tables yet.</p>
             ) : (
-              <ul className="space-y-1.5">
+              <ul className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                 {rows.map((row) => {
                   const watching =
                     hostTableId.trim() !== LOBBY_TABLE_ID &&
@@ -1718,6 +1718,7 @@ export function HostVenueFloorBriefPanel({
             )}
           </div>
 
+          <div className="grid shrink-0 gap-3 sm:grid-cols-3">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Busts
@@ -1776,6 +1777,7 @@ export function HostVenueFloorBriefPanel({
                 ))}
               </ul>
             )}
+          </div>
           </div>
         </div>
       )}
@@ -2490,9 +2492,9 @@ export function HostThisHandPanel({
   })
   if (!hasContent) return null
   return (
-    <div className="host-instrument flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 p-3 sm:p-3">
-      <p className="mb-2 shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">{children}</div>
+    <div className="host-instrument overflow-hidden rounded-xl border border-white/10 px-3 py-2">
+      <p className="mb-1 text-xs font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
+      <div className="max-h-36 space-y-2 overflow-y-auto">{children}</div>
     </div>
   )
 }

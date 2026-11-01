@@ -82,11 +82,14 @@ describe('host desk viewport', () => {
     expect(html).not.toContain('Chip scores')
     expect(html).toContain('host-live-board')
     expect(html).toContain('sm:grid-cols-2')
+    expect(html).toContain('sm:col-span-2')
+    expect(html).toContain('sm:row-start-4')
+    expect(html).not.toContain('sm:col-start-1 sm:row-start-3')
     const beat = html.indexOf('Venue felts · beat')
     const now = html.indexOf('Venue floor · now')
     const hand = html.indexOf('Right now')
-    expect(now).toBeGreaterThan(beat)
-    expect(hand).toBeGreaterThan(now)
+    expect(hand).toBeGreaterThan(beat)
+    expect(now).toBeGreaterThan(hand)
   })
 
   it('leaves the answer clock on the page and the table buttons in a popup', () => {

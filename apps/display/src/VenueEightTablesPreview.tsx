@@ -48,6 +48,7 @@ import {
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAction } from '@qhe/net'
 
 import seatChipStackImg from './assets/seat-chip-stack.png'
+import { MosaicSeatStackAmount, mosaicShowsSeatStacks } from './mosaicSeatStacks'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import {
   buildFloorShowdownPresentation,
@@ -1196,6 +1197,8 @@ function SeatRingWithLabels({
   answeringPhase = false,
   /** Side-by-side broadcast columns use tighter rim label geometry. */
   broadcastDensity = 'solo' as BroadcastDensity,
+  /** Idle mosaic felts: dollar stack outside each occupied cup. */
+  showMosaicSeatStacks = false,
 }: {
   seatedCount: number
   seatNames: string[]
@@ -1246,6 +1249,7 @@ function SeatRingWithLabels({
   seatAnswerLocked?: boolean[]
   answeringPhase?: boolean
   broadcastDensity?: BroadcastDensity
+  showMosaicSeatStacks?: boolean
 }) {
   const seatFolded = padSeatFolded(seatFoldedIn)
   const seatPointsOnly = padSeatPointsOnly(seatPointsOnlyIn)
@@ -1567,6 +1571,10 @@ function SeatRingWithLabels({
         /** Below the name/stack cluster — keeps CHECK / CALL off the felt center. */
         const actionPanelBelowPx =
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
+        const mosaicStackPos =
+          isMosaic && showMosaicSeatStacks && filled && !isBusted
+            ? mosaicSeatLabelPct(i, rimW, rimH, Math.max(8, Math.round(cupSizePx * 0.62)))
+            : null
         const actingSoftPulse =
           'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden motion-safe:animate-pulse'
         const broadcastActingGlow =
@@ -1646,6 +1654,22 @@ function SeatRingWithLabels({
                 }
               />
             </div>
+            {mosaicStackPos != null ? (
+              <div
+                className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} max-w-[34%] text-center`}
+                style={{
+                  left: `${mosaicStackPos.leftPct}%`,
+                  top: `${mosaicStackPos.topPct}%`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+              >
+                <MosaicSeatStackAmount
+                  name={raw}
+                  amount={chips}
+                  fontPx={Math.max(13, Math.round(cupSizePx * 0.46))}
+                />
+              </div>
+            ) : null}
             {filled && !isFolded && (seatHoleDigits[i] != null || seatHolesDealt[i]) ? (
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
@@ -2250,6 +2274,7 @@ function VenueMosaicTableCard({
             seatSubmittedAnswers={row.seatSubmittedAnswers}
             seatAnswerLocked={row.seatAnswerLocked}
             answeringPhase={ph === 'answering'}
+            showMosaicSeatStacks={mosaicShowsSeatStacks(ph)}
           />
         </div>
 

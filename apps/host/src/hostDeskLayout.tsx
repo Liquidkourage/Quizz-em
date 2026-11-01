@@ -1108,6 +1108,10 @@ export function HostFeltPhasePicker({
   )
 }
 
+function byAmountDesc<T extends { amount: number; atMs: number }>(rows: readonly T[]): T[] {
+  return [...rows].sort((a, b) => b.amount - a.amount || b.atMs - a.atMs)
+}
+
 export function HostHandBetRank({
   bets,
   limit,
@@ -1117,7 +1121,8 @@ export function HostHandBetRank({
   limit?: number
   title?: string
 }) {
-  const shown = typeof limit === 'number' ? bets.slice(0, limit) : bets
+  const ranked = byAmountDesc(bets)
+  const shown = typeof limit === 'number' ? ranked.slice(0, limit) : ranked
   if (shown.length === 0) return null
   return (
     <div className="mb-2">
@@ -1953,7 +1958,7 @@ export function HostVenueFloorBriefPanel({
               <p className="text-base text-white/50">None yet this session.</p>
             ) : (
               <ul className="space-y-1">
-                {brief.bigWinners.map((w, i) => (
+                {byAmountDesc(brief.bigWinners).map((w, i) => (
                   <li
                     key={`${w.name}-${w.tableNum}-${w.atMs}-${i}`}
                     className="flex items-baseline justify-between gap-2 rounded-md border border-emerald-400/30 bg-emerald-950/20 px-2 py-1.5 text-sm"
@@ -2317,7 +2322,11 @@ export function HostTvBar({
   modes.push({ id: 'rules', label: 'How to play', onClick: onSeatingRules })
 
   return (
-    <div className="flex flex-wrap justify-end gap-2" role="group" aria-label="What the audience TVs show">
+    <div
+      className="host-tv-modes flex w-full flex-nowrap items-center justify-end gap-1.5 overflow-x-auto rounded-xl border border-white/10 bg-black/30 px-2 py-2"
+      role="group"
+      aria-label="What the audience TVs show"
+    >
       {modes.map((m) => {
         const active = m.id === activeView
         return (
@@ -2328,8 +2337,8 @@ export function HostTvBar({
             onClick={m.onClick}
             className={
               active
-                ? 'host-tv-mode-active min-h-11 rounded-xl border border-sky-300 bg-sky-900/80 px-3 py-2 text-sm font-bold text-white'
-                : 'min-h-11 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white'
+                ? 'host-tv-mode-active min-h-11 shrink-0 rounded-xl border border-sky-300 bg-sky-900/80 px-3 py-2 text-sm font-bold text-white'
+                : 'min-h-11 shrink-0 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white'
             }
           >
             {m.label}

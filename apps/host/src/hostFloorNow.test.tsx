@@ -152,6 +152,23 @@ describe('venue floor now', () => {
     expect(scores).not.toContain('>Focus<')
   })
 
+  it('lists big wins largest first', () => {
+    const night = brief()
+    night.bigWinners = [
+      { name: 'Ned P.', tableNum: 2, amount: 120, atMs: 2 },
+      { name: 'Ada L.', tableNum: 4, amount: 900, atMs: 1 },
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: night,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    expect(html.indexOf('Ada L.')).toBeGreaterThan(html.indexOf('Big wins'))
+    expect(html.indexOf('Ada L.')).toBeLessThan(html.indexOf('Ned P.'))
+  })
+
   it('keeps the blind call on the floor', () => {
     const html = renderToStaticMarkup(
       createElement(HostVenueFloorBriefPanel, {

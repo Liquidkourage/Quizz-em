@@ -52,7 +52,9 @@ describe('host popup space', () => {
         onSeatingRules: () => {},
       }),
     )
-    expect(html).toContain('flex-wrap')
+    expect(html).toContain('host-tv-modes')
+    expect(html).toContain('flex-nowrap')
+    expect(html).not.toContain('flex-wrap')
     expect(html).toContain('Seating')
     expect(html).toMatch(/host-tv-mode-active[^>]*>Seating/)
     expect(html).not.toContain('grid-cols-1')

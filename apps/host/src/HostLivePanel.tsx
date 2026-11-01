@@ -81,7 +81,7 @@ export function HostLivePanel({
         {handBody}
       </div>
 
-      <div className="flex min-w-0 flex-col items-end gap-2 self-start sm:col-start-2 sm:row-start-1">
+      <div className="min-w-0 self-start sm:col-start-2 sm:row-start-1">
         <HostTvBar
           activeView={activeView}
           onVenueFloor={onVenueFloor}

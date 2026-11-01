@@ -130,4 +130,16 @@ describe('Venue floor phase tools', () => {
     expect(html).toContain('Big bets this hand')
     expect(html).toContain('Raise')
   })
+
+  it('sorts big bets by amount when the log is newest-first', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostHandBetRank, {
+        bets: [
+          { name: 'Bo K.', tableNum: 1, amount: 80, kind: 'call', atMs: 3 },
+          { name: 'Ada L.', tableNum: 3, amount: 500, kind: 'raise', atMs: 1 },
+        ],
+      }),
+    )
+    expect(html.indexOf('Ada L.')).toBeLessThan(html.indexOf('Bo K.'))
+  })
 })

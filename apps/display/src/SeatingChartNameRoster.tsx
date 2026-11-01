@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
+  SEATING_CHART_ROSTER_CAPTION_FONT,
+  SEATING_CHART_ROSTER_NAME_FONT,
   SEATING_CHART_ROSTER_PAGE_MS,
   seatingChartRosterPageCount,
   seatingChartRosterPageEntries,
@@ -9,11 +11,17 @@ import {
 
 function SeatingChartRosterRow({ entry }: { entry: SeatingChartPlayerEntry }) {
   return (
-    <li className="seating-chart-sidebar-row flex min-h-0 shrink-0 flex-col justify-center py-1">
-      <p className="truncate text-sm font-semibold leading-tight text-white/92">
+    <li className="seating-chart-sidebar-row flex min-h-0 flex-1 flex-col justify-center py-1">
+      <p
+        className="truncate font-semibold leading-tight text-white/92"
+        style={{ fontSize: SEATING_CHART_ROSTER_NAME_FONT }}
+      >
         {entry.name.trim()}
       </p>
-      <p className="mt-0.5 truncate text-xs font-medium leading-none text-amber-200/55">
+      <p
+        className="mt-0.5 truncate font-medium leading-tight text-amber-200/75"
+        style={{ fontSize: SEATING_CHART_ROSTER_CAPTION_FONT }}
+      >
         Table {entry.tableNum}, Seat {entry.seatNum}
       </p>
     </li>

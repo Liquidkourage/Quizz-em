@@ -3689,7 +3689,7 @@
     --seating-card-width: clamp(17.5rem, 20.5vw, 25rem);
     --seating-card-aspect: 9 / 15.5;
     --seating-card-gap: clamp(0.75rem, 1.45vw, 1.75rem);
-    --seating-sidebar-width: clamp(10.5rem, 12vw, 13.5rem);
+    --seating-sidebar-width: clamp(14rem, 16vw, 18rem);
     --welcome-bracket-size: clamp(2rem, min(11cqw, 9cqh), 3.25rem);
     --welcome-bracket-vx-left: 10%;
     --welcome-bracket-vx-right: 10%;
@@ -3746,7 +3746,7 @@
 
   .seating-chart-sidebar {
     width: var(--seating-sidebar-width);
-    max-width: 14%;
+    max-width: 20%;
     background: linear-gradient(180deg, rgb(0 0 0 / 0.28) 0%, rgb(0 0 0 / 0.42) 100%);
     padding-block: clamp(8px, 1vh, 14px);
   }
@@ -3775,7 +3775,7 @@
 
   .seating-chart-sidebar-row {
     border-bottom: 1px solid rgb(255 255 255 / 0.05);
-    min-height: clamp(2.35rem, 4.2vh, 2.85rem);
+    min-height: 0;
   }
 
   .seating-chart-sidebar-row:last-child {

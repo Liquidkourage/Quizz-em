@@ -1,6 +1,11 @@
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import SeatingChartNameRoster from './SeatingChartNameRoster'
 import type { VenueSeatingChartTable } from './venueWallModel'
 import {
+  SEATING_CHART_ROSTER_CAPTION_FONT,
+  SEATING_CHART_ROSTER_NAME_FONT,
   SEATING_CHART_ROSTER_PAGE_SIZE,
   seatingChartPlayerEntries,
   seatingChartRosterBucket,
@@ -8,6 +13,12 @@ import {
   seatingChartRosterPageCount,
   seatingChartRosterPageEntries,
 } from './venueSeatingChartRoster'
+
+function clampMinRem(value: string): number {
+  const match = /^clamp\(([0-9.]+)rem/.exec(value)
+  if (!match) throw new Error(`expected a rem clamp, got ${value}`)
+  return Number(match[1])
+}
 
 const sampleTables: VenueSeatingChartTable[] = [
   {
@@ -52,6 +63,25 @@ describe('seatingChartRosterHalves', () => {
         { name: 'Zed A.', tableNum: 2, seatNum: 1 },
       ],
     })
+  })
+})
+
+describe('seating chart gutter type', () => {
+  it('renders names and table captions large enough to read on a TV', () => {
+    expect(clampMinRem(SEATING_CHART_ROSTER_NAME_FONT)).toBeGreaterThanOrEqual(1.4)
+    expect(clampMinRem(SEATING_CHART_ROSTER_CAPTION_FONT)).toBeGreaterThanOrEqual(1)
+    expect(SEATING_CHART_ROSTER_PAGE_SIZE).toBeLessThanOrEqual(9)
+
+    const html = renderToStaticMarkup(
+      createElement(SeatingChartNameRoster, {
+        title: 'A–M',
+        entries: [{ name: 'Alice C.', tableNum: 2, seatNum: 1 }],
+      }),
+    )
+    expect(html).toContain('Alice C.')
+    expect(html).toContain('Table 2, Seat 1')
+    expect(html).toContain(SEATING_CHART_ROSTER_NAME_FONT)
+    expect(html).toContain(SEATING_CHART_ROSTER_CAPTION_FONT)
   })
 })
 

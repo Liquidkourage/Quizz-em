@@ -19,6 +19,38 @@ function money(n: number): string {
   return `$${Math.round(n).toLocaleString('en-US')}`
 }
 
+function PaceNumber({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  label: string
+  value: number
+  min: number
+  max?: number
+  step?: number
+  onChange: (n: number) => void
+}) {
+  return (
+    <label className="flex items-center gap-2 text-base text-white/60">
+      {label}
+      <input
+        type="number"
+        aria-label={label}
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-[4.5rem] rounded-md border border-white/20 bg-zinc-950 py-1 text-center text-base font-semibold tabular-nums text-white [color-scheme:dark]"
+      />
+    </label>
+  )
+}
+
 function callSentence(call: BlindCall, guideNow: number): string {
   const blinds = `${money(call.smallBlind)} / ${money(call.bigBlind)}`
   const level = `level every ${call.handsPerLevel} hands`
@@ -36,18 +68,25 @@ export function HostBlindCall({
   players,
   startedWith,
   medianStack,
+  smallBlind,
   bigBlind,
   handsPerLevel,
   guideSec,
   goalMinutes,
   onApply,
   onGoalMinutes,
+  onSmallBlind,
+  onBigBlind,
+  onHandsPerLevel,
+  onGuideSec,
+  onSave,
 }: {
   showStartedAtMs: number | null
   handsLeft: number
   players: number
   startedWith: number
   medianStack: number | null
+  smallBlind?: number
   bigBlind: number
   handsPerLevel: number
   guideSec: number
@@ -55,6 +94,11 @@ export function HostBlindCall({
   goalMinutes?: number
   onApply: (call: BlindCall) => void
   onGoalMinutes?: (minutes: number) => void
+  onSmallBlind?: (n: number) => void
+  onBigBlind?: (n: number) => void
+  onHandsPerLevel?: (n: number) => void
+  onGuideSec?: (n: number) => void
+  onSave?: () => void
 }) {
   const [storedGoal, setStoredGoal] = useState(120)
   const [now, setNow] = useState(() => Date.now())
@@ -87,9 +131,16 @@ export function HostBlindCall({
     if (typeof localStorage !== 'undefined') localStorage.setItem(GOAL_KEY, String(n))
     onGoalMinutes?.(n)
   }
+  const tune =
+    onSave != null &&
+    onSmallBlind != null &&
+    onBigBlind != null &&
+    onHandsPerLevel != null &&
+    onGuideSec != null
 
   return (
-    <div className="host-blind-call flex flex-wrap items-center gap-x-3 gap-y-1.5" aria-live="polite">
+    <div className="host-blind-call flex flex-col gap-2" aria-live="polite">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
       <label className="flex items-center gap-2 text-base text-white/60">
         Night
         <select
@@ -105,6 +156,23 @@ export function HostBlindCall({
           ))}
         </select>
       </label>
+      {tune ? (
+        <>
+          <PaceNumber label="Small blind" value={smallBlind ?? bigBlind} min={1} onChange={(n) => onSmallBlind?.(n)} />
+          <PaceNumber label="Big blind" value={bigBlind} min={1} onChange={(n) => onBigBlind?.(n)} />
+          <PaceNumber label="Level every" value={handsPerLevel} min={1} max={50} onChange={(n) => onHandsPerLevel?.(n)} />
+          <PaceNumber label="Guide" value={guideSec} min={15} max={300} step={5} onChange={(n) => onGuideSec?.(n)} />
+          <button
+            type="button"
+            className="rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-base font-bold text-white hover:bg-white/15"
+            onClick={() => onSave?.()}
+          >
+            Save
+          </button>
+        </>
+      ) : null}
+    </div>
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
       {call == null ? (
         <p className="text-base text-white/60">
           {handsLeft < 1 ? 'That rundown is finished.' : 'Fills in from the seated field, stacks, and blinds.'}
@@ -128,6 +196,7 @@ export function HostBlindCall({
           )}
         </>
       )}
+    </div>
     </div>
   )
 }

@@ -41,6 +41,35 @@ describe('HostBlindCall', () => {
     expect(html).not.toContain('>Blind call<')
   })
 
+  it('tunes blinds, level, and the guessing guide from the pace line', () => {
+    const html = renderToStaticMarkup(
+      <HostBlindCall
+        showStartedAtMs={null}
+        handsLeft={15}
+        players={40}
+        startedWith={40}
+        medianStack={1000}
+        smallBlind={10}
+        bigBlind={20}
+        handsPerLevel={5}
+        guideSec={45}
+        goalMinutes={60}
+        onApply={() => {}}
+        onSmallBlind={() => {}}
+        onBigBlind={() => {}}
+        onHandsPerLevel={() => {}}
+        onGuideSec={() => {}}
+        onSave={() => {}}
+      />,
+    )
+    expect(html).toContain('Small blind')
+    expect(html).toContain('Big blind')
+    expect(html).toContain('Level every')
+    expect(html).toContain('Guide')
+    expect(html).toContain('>Save<')
+    expect(html.indexOf('Small blind')).toBeLessThan(html.indexOf('Speed up'))
+  })
+
   it('waits for seated stacks instead of asking for them', () => {
     const html = renderToStaticMarkup(
       <HostBlindCall

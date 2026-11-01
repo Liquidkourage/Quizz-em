@@ -68,7 +68,6 @@ import {
   hostDeskStateWithLiveQuestion,
   hostFloorLockstepMisaligned,
   hostHeaderPhaseDisplay,
-  resolveRunOfShowStepForHost,
 } from './hostDeskLayout'
 import { suggestHostMode, type HostMode } from './hostMode'
 import { HostModeNav } from './HostModeNav'
@@ -537,7 +536,6 @@ function HostApp() {
     title: pacingSuggestion.title,
     detail: pacingSuggestion.detail,
   }
-  const currentRunStepId = resolveRunOfShowStepForHost(hostControlState, venueFeltBeat)
   const floorLockstepMisaligned = hostFloorLockstepMisaligned(venueFeltBeat)
   const primaryDockId = phaseDockItems.find((i) => i.role === 'primary')?.id ?? phaseDockItems[0]?.id
   const runBarCueHint =
@@ -1080,42 +1078,7 @@ function HostApp() {
                 />
               ) : null
             }
-            handBody={
-              currentRunStepId === 'start-answer' ? (
-                <div className="mt-2 flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
-                  <div className="flex flex-col gap-0.5">
-                    <label
-                      htmlFor="answer-window-sec"
-                      className="text-xs font-semibold uppercase tracking-wide text-white/48"
-                    >
-                      Guide countdown (sec)
-                    </label>
-                    <input
-                      id="answer-window-sec"
-                      type="number"
-                      min={15}
-                      max={300}
-                      step={5}
-                      value={answerWindowSeconds}
-                      onChange={(e) =>
-                        setAnswerWindowSeconds(clampVenueAnswerWindow(Number(e.target.value)))
-                      }
-                      className="w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white"
-                    />
-                  </div>
-                  <NeonButton
-                    variant="blue"
-                    size="small"
-                    type="button"
-                    onClick={() =>
-                      setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
-                    }
-                  >
-                    Save default
-                  </NeonButton>
-                </div>
-              ) : null
-            }
+            handBody={null}
             floorNow={
               <HostVenueFloorBriefPanel
                 brief={venueFloorBrief}
@@ -1132,10 +1095,20 @@ function HostApp() {
                 players={venueFloorBrief?.fieldPlayerCount ?? 0}
                 startedWith={venueFloorBrief?.fieldPeakCount ?? venueFloorBrief?.fieldPlayerCount ?? 0}
                 medianStack={venueFloorBrief?.medianStack ?? null}
+                smallBlind={venueSmallBlind}
                 bigBlind={venueBigBlind}
                 handsPerLevel={handsPerBlindLevel}
                 guideSec={answerWindowSeconds}
                 onApply={applyBlindCall}
+                onSmallBlind={setVenueSmallBlind}
+                onBigBlind={setVenueBigBlind}
+                onHandsPerLevel={setHandsPerBlindLevel}
+                onGuideSec={(n) => setAnswerWindowSeconds(clampVenueAnswerWindow(n))}
+                onSave={() => {
+                  saveVenueBlinds()
+                  saveBlindStructure()
+                  setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
+                }}
               />
                 }
               />

@@ -2132,6 +2132,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       shuffleEveryHands: shuffleDisplay.shuffleEveryHands,
       venueShuffleHeld: isVenueShuffleHeld(vn),
       handsUntilShuffle: shuffleDisplay.handsUntilShuffle,
+      handsCompleted: getVenueHandsCompleted(vn),
+      lastHandBustCount: lastHandDisplay?.busts.length ?? 0,
     }),
   )
 }

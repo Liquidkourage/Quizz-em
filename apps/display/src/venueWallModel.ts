@@ -423,6 +423,7 @@ export function venueWallShowSeatingChart(
 ): boolean {
   if (!venueWallHasLiveTiles(wall)) return false
   if (wall!.showAudienceWelcome !== false) return false
+  if (typeof wall!.lastHandEndMs === 'number' && Number.isFinite(wall!.lastHandEndMs)) return false
   if (tileRows.length === 0) return false
   const tables = seatingChartTablesFromTiles(tileRows)
   if (tables.length === 0) return false

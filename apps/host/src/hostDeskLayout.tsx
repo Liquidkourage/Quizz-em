@@ -519,7 +519,7 @@ export function hostHeaderPhaseDisplay(
 export function hostRunOfShowHeadline(
   gameState: GameState,
   venueBeat?: HostVenueFeltBeatRow[] | null,
-  opts?: { hasActiveSetlist?: boolean; nextQuestionText?: string },
+  opts?: { hasActiveSetlist?: boolean; nextQuestionText?: string; afterPayout?: boolean },
 ): { title: string; detail?: string } {
   const controlState = hostControlGameStateFromBeat(gameState, venueBeat ?? null)
   const stepId = resolveRunOfShowStepForHost(gameState, venueBeat ?? null)
@@ -564,11 +564,13 @@ export function hostRunOfShowHeadline(
       title: 'Show the trivia question',
       detail: holesOut
         ? 'Cards are already out. Show the question so players can bet.'
-        : opts?.nextQuestionText
-          ? `Next up: ${opts.nextQuestionText}`
-          : opts?.hasActiveSetlist === true
-            ? 'Next from the list puts the question on phones and TVs. Dealing stays locked until then.'
-            : 'Put the question on phones and TVs first. Dealing stays locked until it’s up.',
+        : opts?.afterPayout
+          ? 'TVs stay on the tables. Put up chip scores, trivia scores, the seating chart, or eliminations when you want them.'
+          : opts?.nextQuestionText
+            ? `Next up: ${opts.nextQuestionText}`
+            : opts?.hasActiveSetlist === true
+              ? 'Next from the list puts the question on phones and TVs. Dealing stays locked until then.'
+              : 'Put the question on phones and TVs first. Dealing stays locked until it’s up.',
     }
   }
 
@@ -1939,11 +1941,15 @@ export function HostTvBar({
   onVenueFloor,
   onLeaderboard,
   onTriviaLeaderboard,
+  onSeatingChart,
+  onEliminations,
   onSeatingRules,
 }: {
   onVenueFloor: () => void
   onLeaderboard: () => void
   onTriviaLeaderboard?: () => void
+  onSeatingChart?: () => void
+  onEliminations?: () => void
   onSeatingRules: () => void
   /** @deprecated Spotlight via HostFloorStrip — ignored. */
   livelyTableNums?: number[]
@@ -1956,6 +1962,12 @@ export function HostTvBar({
   ]
   if (onTriviaLeaderboard) {
     modes.push({ id: 'trivia-lb', label: 'Trivia scores', onClick: onTriviaLeaderboard })
+  }
+  if (onSeatingChart) {
+    modes.push({ id: 'seating-chart', label: 'Seating', onClick: onSeatingChart })
+  }
+  if (onEliminations) {
+    modes.push({ id: 'busts', label: 'Eliminations', onClick: onEliminations })
   }
   modes.push({ id: 'rules', label: 'How to play', onClick: onSeatingRules })
 

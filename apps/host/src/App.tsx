@@ -532,9 +532,11 @@ function HostApp() {
     hasActiveSetlist && activeSetlist
       ? questionBank.find((q) => q.id === activeSetlist.questionIds[activeSetlistNextIndex])?.text
       : undefined
+  const afterPayout = (venueFloorBrief?.handsCompleted ?? 0) > 0
   const pacingSuggestion = suggestNextHostAction(hostControlState, venueFeltBeat, {
     hasActiveSetlist,
     nextQuestionText,
+    afterPayout,
   })
   const runOfShowHeadline = {
     title: pacingSuggestion.title,
@@ -603,6 +605,10 @@ function HostApp() {
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard-trivia' })
   const showSeatingRulesOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'rules' })
+  const showSeatingChartOnTvs = () =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'seating-chart' })
+  const showEliminationsOnTvs = () =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'busts' })
   const spotlightTableOnTvs = (n: number) =>
     displaySetLayout({ layout: 'venueWall', focusTable: n, wallView: 'floor' })
 
@@ -1058,6 +1064,10 @@ function HostApp() {
             onVenueFloor={showVenueFloorOnTvs}
             onLeaderboard={showLeaderboardOnTvs}
             onTriviaLeaderboard={showTriviaLeaderboardOnTvs}
+            onSeatingChart={showSeatingChartOnTvs}
+            onEliminations={
+              (venueFloorBrief?.lastHandBustCount ?? 0) > 0 ? showEliminationsOnTvs : undefined
+            }
             onSeatingRules={showSeatingRulesOnTvs}
             venueFeltBeat={venueFeltBeat}
             venueFloorBrief={venueFloorBrief}

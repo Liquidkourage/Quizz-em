@@ -24,12 +24,12 @@ describe('stepVenueWallAutoView', () => {
     expect(view).toBe('floor')
   })
 
-  it('latches leaderboard after showdown clears to lobby', () => {
+  it('stays on the tables after showdown clears to lobby', () => {
     let state = INITIAL_VENUE_WALL_AUTO_VIEW_STATE
     ;({ state } = stepVenueWallAutoView(state, [tile('showdown')], 'showdown'))
     const afterPayout = stepVenueWallAutoView(state, [tile('lobby')], null)
-    expect(afterPayout.view).toBe('leaderboard')
-    expect(afterPayout.state.latchedLeaderboard).toBe(true)
+    expect(afterPayout.view).toBe(null)
+    expect(afterPayout.state.latchedLeaderboard).toBe(false)
   })
 
   it('returns to floor when the next question opens', () => {
@@ -55,6 +55,11 @@ describe('resolveAudienceWallView', () => {
 
   it('keeps trivia scores up after the hand, when the automatic board is chips', () => {
     expect(resolveAudienceWallView('leaderboard-trivia', 'leaderboard')).toBe('leaderboard-trivia')
+  })
+
+  it('keeps a host-chosen screen up during a hand', () => {
+    expect(resolveAudienceWallView('seating-chart', 'floor')).toBe('seating-chart')
+    expect(resolveAudienceWallView('busts', 'floor')).toBe('busts')
   })
 
   it('lets Tables follow the automatic view', () => {

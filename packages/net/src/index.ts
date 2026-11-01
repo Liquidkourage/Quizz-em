@@ -33,7 +33,26 @@ export const ClientRole = z.enum(['host', 'player', 'display'])
 export type ClientRole = z.infer<typeof ClientRole>
 
 /** Host-driven `/display` mode: mosaic shell always; `focusTable` spotlights one felt or null for overview. */
-export type VenueWallViewMode = 'floor' | 'leaderboard' | 'leaderboard-trivia' | 'rules'
+export type VenueWallViewMode =
+  | 'floor'
+  | 'leaderboard'
+  | 'leaderboard-trivia'
+  | 'rules'
+  | 'seating-chart'
+  | 'busts'
+
+const VENUE_WALL_VIEWS: readonly VenueWallViewMode[] = [
+  'floor',
+  'leaderboard',
+  'leaderboard-trivia',
+  'rules',
+  'seating-chart',
+  'busts',
+]
+
+export function isVenueWallView(value: unknown): value is VenueWallViewMode {
+  return typeof value === 'string' && (VENUE_WALL_VIEWS as readonly string[]).includes(value)
+}
 
 export type DisplayLayoutPayload = {
   layout: 'venueWall'
@@ -52,14 +71,7 @@ export function normalizeDisplayLayoutPayload(
     focusTable = focusRaw
   }
   const wallViewRaw = raw && typeof raw === 'object' ? (raw as Record<string, unknown>).wallView : undefined
-  const wallView: VenueWallViewMode =
-    wallViewRaw === 'leaderboard'
-      ? 'leaderboard'
-      : wallViewRaw === 'leaderboard-trivia'
-        ? 'leaderboard-trivia'
-        : wallViewRaw === 'rules'
-          ? 'rules'
-          : 'floor'
+  const wallView: VenueWallViewMode = isVenueWallView(wallViewRaw) ? wallViewRaw : 'floor'
   return { layout: 'venueWall', focusTable, wallView }
 }
 
@@ -383,6 +395,10 @@ export type HostVenueFloorBriefPayload = {
   shuffleEveryHands: number
   venueShuffleHeld: boolean
   handsUntilShuffle: number | null
+  /** Venue hands paid out. Zero until the first Pay winners. */
+  handsCompleted?: number
+  /** Players eliminated on the hand that just paid. */
+  lastHandBustCount?: number
 }
 
 export const ClientHello = z.object({

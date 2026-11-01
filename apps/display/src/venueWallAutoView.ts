@@ -14,7 +14,10 @@ const LIVE_FLOOR_PHASES = new Set<string>([
   'payout',
 ])
 
-const POST_HAND_PHASES = new Set<string>(['showdown', 'reveal', 'payout'])
+export const INITIAL_VENUE_WALL_AUTO_VIEW_STATE: VenueWallAutoViewState = {
+  latchedLeaderboard: false,
+  sawPostHandPhase: false,
+}
 
 export function venueHandIsStarting(
   tiles: DisplayVenueTileSnapshot[],
@@ -40,65 +43,35 @@ export function venueWallFloorIsLive(
   return venueWallLiveFloorActive(tiles, headlinePhase)
 }
 
-function venueWallAllLobby(tiles: DisplayVenueTileSnapshot[]): boolean {
-  return tiles.length > 0 && tiles.every((t) => t.phase === 'lobby')
-}
-
-function venueWallAnyPostHand(tiles: DisplayVenueTileSnapshot[]): boolean {
-  return tiles.some((t) => POST_HAND_PHASES.has(t.phase))
-}
-
-export const INITIAL_VENUE_WALL_AUTO_VIEW_STATE: VenueWallAutoViewState = {
-  latchedLeaderboard: false,
-  sawPostHandPhase: false,
-}
-
 /**
- * After showdown clears to lobby, latch the leaderboard until the next question opens.
- * During an active hand, always prefer the floor.
+ * During a hand, the tables stay up. After payout the screen stays put until the host chooses one.
  */
 export function stepVenueWallAutoView(
-  prev: VenueWallAutoViewState,
+  _prev: VenueWallAutoViewState,
   tiles: DisplayVenueTileSnapshot[],
   headlinePhase: string | null | undefined,
 ): { state: VenueWallAutoViewState; view: VenueWallViewMode | null } {
-  let latchedLeaderboard = prev.latchedLeaderboard
-  let sawPostHandPhase = prev.sawPostHandPhase
-
-  if (venueWallAnyPostHand(tiles)) {
-    sawPostHandPhase = true
-  }
-
-  if (sawPostHandPhase && venueWallAllLobby(tiles)) {
-    latchedLeaderboard = true
-    sawPostHandPhase = false
-  }
-
-  if (venueHandIsStarting(tiles, headlinePhase)) {
-    latchedLeaderboard = false
-  }
-
-  const state = { latchedLeaderboard, sawPostHandPhase }
-
+  const state: VenueWallAutoViewState = { latchedLeaderboard: false, sawPostHandPhase: false }
   if (venueWallLiveFloorActive(tiles, headlinePhase)) {
     return { state, view: 'floor' }
   }
-
-  if (latchedLeaderboard && venueWallAllLobby(tiles)) {
-    return { state, view: 'leaderboard' }
-  }
-
   return { state, view: null }
 }
 
-/** Host asked the TVs to leave the automatic floor / chip-board rotation. */
+/** Host asked the TVs to leave the table floor. */
 export function hostPinnedAudienceView(hostWallView: VenueWallViewMode | undefined): boolean {
-  return hostWallView === 'rules' || hostWallView === 'leaderboard' || hostWallView === 'leaderboard-trivia'
+  return (
+    hostWallView === 'rules' ||
+    hostWallView === 'leaderboard' ||
+    hostWallView === 'leaderboard-trivia' ||
+    hostWallView === 'seating-chart' ||
+    hostWallView === 'busts'
+  )
 }
 
 /**
- * Chip scores, trivia scores, and how-to-play stay up when the host selects them,
- * including during a hand. Tables still follows the automatic floor and post-hand board.
+ * Chip scores, trivia scores, seating, eliminations, and how-to-play stay up when the host selects them.
+ * Tables follows the hand. After payout the tables stay until the host picks another screen.
  */
 export function resolveAudienceWallView(
   hostWallView: VenueWallViewMode | undefined,

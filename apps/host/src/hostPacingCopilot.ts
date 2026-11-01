@@ -20,7 +20,7 @@ export type HostPacingSuggestion = {
 export function suggestNextHostAction(
   gameState: GameState,
   venueBeat: HostVenueFeltBeatRow[] | null,
-  opts?: { hasActiveSetlist?: boolean; nextQuestionText?: string },
+  opts?: { hasActiveSetlist?: boolean; nextQuestionText?: string; afterPayout?: boolean },
 ): HostPacingSuggestion {
   const stepId = resolveRunOfShowStepForHost(gameState, venueBeat)
   const headline = hostRunOfShowHeadline(gameState, venueBeat, opts)
@@ -76,7 +76,7 @@ export function suggestNextHostAction(
         gameState.phase === 'reveal'
           ? (headline.detail ??
             'Answer is on the TVs. Pay winners when you are ready.')
-          : 'Pays pots. The leaderboard follows on the TVs.',
+          : 'Pays pots. The TVs stay on the tables until you put up the next screen.',
       urgency: 'now',
     }
   }

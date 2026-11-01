@@ -343,6 +343,8 @@ export function buildHostVenueFloorBrief(args: {
   shuffleEveryHands?: number
   venueShuffleHeld?: boolean
   handsUntilShuffle?: number | null
+  handsCompleted?: number
+  lastHandBustCount?: number
 }): HostVenueFloorBriefPayload {
   const log = logForVenue(args.venueCode)
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
@@ -360,5 +362,7 @@ export function buildHostVenueFloorBrief(args: {
     shuffleEveryHands: args.shuffleEveryHands ?? 5,
     venueShuffleHeld: args.venueShuffleHeld === true,
     handsUntilShuffle: args.handsUntilShuffle ?? null,
+    handsCompleted: Math.max(0, Math.floor(args.handsCompleted ?? 0)),
+    lastHandBustCount: Math.max(0, Math.floor(args.lastHandBustCount ?? 0)),
   }
 }

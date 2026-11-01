@@ -20,6 +20,8 @@ export function HostLivePanel({
   onVenueFloor,
   onLeaderboard,
   onTriviaLeaderboard,
+  onSeatingChart,
+  onEliminations,
   onSeatingRules,
   venueFeltBeat,
   venueFloorBrief,
@@ -41,6 +43,8 @@ export function HostLivePanel({
   onVenueFloor: () => void
   onLeaderboard: () => void
   onTriviaLeaderboard: () => void
+  onSeatingChart?: () => void
+  onEliminations?: () => void
   onSeatingRules: () => void
   venueFeltBeat: HostVenueFeltBeatRow[] | null
   venueFloorBrief: HostVenueFloorBriefPayload | null
@@ -96,6 +100,8 @@ export function HostLivePanel({
           onVenueFloor={onVenueFloor}
           onLeaderboard={onLeaderboard}
           onTriviaLeaderboard={onTriviaLeaderboard}
+          onSeatingChart={onSeatingChart}
+          onEliminations={onEliminations}
           onSeatingRules={onSeatingRules}
         />
         <HostConnectedDisplays

@@ -24,10 +24,7 @@ import { buildVenueWallTileRows, venueWallHasLiveTiles, venueWallShowSeatingChar
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
-import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
-import { useVenueSeatingAnnouncement, venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
-import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -160,38 +157,33 @@ export default function DisplayRouter({
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !venueFloorIsLive))
 
   const autoWallView = useVenueWallAutoView(hostPinnedRules ? null : venueWall)
-  const wallViewBeforeBust = resolveAudienceWallView(hostWallView, autoWallView)
-  const isLeaderboardView =
-    wallViewBeforeBust === 'leaderboard' || wallViewBeforeBust === 'leaderboard-trivia'
-  const wouldShowSeatingChart =
-    onVenueWallLayout &&
-    !audienceBriefing &&
+  const wallView = resolveAudienceWallView(hostWallView, autoWallView)
+  const hostWantsSeatingChart = hostWallView === 'seating-chart'
+  const lastHandBusts = venueWall?.lastHandBusts ?? []
+  const showHostBusts =
+    onVenueWallLayout && hostWallView === 'busts' && lastHandBusts.length > 0
+  const isLeaderboardView = wallView === 'leaderboard' || wallView === 'leaderboard-trivia'
+  const autoSeatingChart =
+    !hostPinnedAudienceView(hostWallView) &&
     !mosaicForcedByHost &&
     !isLeaderboardView &&
-    wallViewBeforeBust !== 'rules' &&
+    wallView !== 'rules' &&
     venueWallShowSeatingChart(venueWall, tileRows, venueWall?.serverNowMs ?? Date.now())
-  const leaderboardRequested =
+  const showSeatingChart =
     onVenueWallLayout &&
     !audienceBriefing &&
-    !wouldShowSeatingChart &&
-    venueWall != null &&
-    isLeaderboardView
-  const bustAnnouncement = useVenueBustAnnouncement(venueWall, leaderboardRequested)
-  const seatingAnnouncement = useVenueSeatingAnnouncement(venueWall, bustAnnouncement.visible)
-  const handOverlayVisible = bustAnnouncement.visible || seatingAnnouncement.visible
-  const wallView =
-    handOverlayVisible && !hostPinnedAudienceView(hostWallView) ? 'floor' : wallViewBeforeBust
-  const showSeatingChart = wouldShowSeatingChart && !handOverlayVisible
-  const showRules =
-    onVenueWallLayout && !handOverlayVisible && wallView === 'rules'
+    !showHostBusts &&
+    hasFloorTables &&
+    (hostWantsSeatingChart || autoSeatingChart)
+  const showRules = onVenueWallLayout && !showHostBusts && wallView === 'rules'
   const showLeaderboard =
     onVenueWallLayout &&
     !audienceBriefing &&
     !showSeatingChart &&
-    !handOverlayVisible &&
+    !showHostBusts &&
     !showRules &&
     hasFloorTables &&
-    (wallView === 'leaderboard' || wallView === 'leaderboard-trivia') &&
+    isLeaderboardView &&
     venueWall != null
   const leaderboardTrophyMode =
     hostWallView === 'leaderboard-trivia'
@@ -476,16 +468,8 @@ export default function DisplayRouter({
       )}
     </AnimatePresence>
     <AnimatePresence>
-      {bustAnnouncement.visible && bustAnnouncement.busts.length > 0 ? (
-        <VenueBustAnnouncement key="venue-bust-announcement" busts={bustAnnouncement.busts} />
-      ) : null}
-      {seatingAnnouncement.visible &&
-      seatingAnnouncement.seating != null &&
-      venueSeatingAnnouncementHasContent(seatingAnnouncement.seating) ? (
-        <VenueSeatingAnnouncement
-          key={`venue-seating-${venueWall?.lastHandEndMs ?? 'x'}`}
-          seating={seatingAnnouncement.seating}
-        />
+      {showHostBusts ? (
+        <VenueBustAnnouncement key="venue-bust-announcement" busts={lastHandBusts} />
       ) : null}
     </AnimatePresence>
     </>

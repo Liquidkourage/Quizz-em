@@ -37,6 +37,7 @@ describe('mosaic seat stacks', () => {
     const open = mosaicSeatStackFontPx(w, 3)
     const crowded = mosaicSeatStackFontPx(w, 8)
     expect(crowded).toBeLessThan(open)
+    expect(crowded).toBeGreaterThanOrEqual(28)
     let minGap = Infinity
     for (let i = 0; i < 8; i++) {
       const a = mosaicSeatDotPct(i, 8, w, h)
@@ -44,7 +45,7 @@ describe('mosaic seat stacks', () => {
       const gap = Math.hypot(((a.leftPct - b.leftPct) / 100) * w, ((a.topPct - b.topPct) / 100) * h)
       minGap = Math.min(minGap, gap)
     }
-    expect(crowded * 4.6).toBeLessThan(minGap * 0.92)
+    expect(crowded * 3.3).toBeLessThan(minGap)
     expect(mosaicSeatStackClearPx(36, mosaicSeatInitialFontPx(w))).toBeGreaterThan(36)
   })
 

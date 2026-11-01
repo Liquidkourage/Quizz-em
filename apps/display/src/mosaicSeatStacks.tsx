@@ -45,8 +45,8 @@ export function mosaicSeatInitialShiftXPx(
   return overflow > 0 ? -Math.ceil(overflow) : 0
 }
 
-/** Em width of a gold amount such as $10,000, including the chip mark. */
-const MOSAIC_STACK_LABEL_EM = 4.6
+/** Em width of a gold amount such as $1,000, including the chip mark. */
+const MOSAIC_STACK_LABEL_EM = 3.3
 
 /** Five or more stacks on one felt — each amount has to fit between its neighbors. */
 const MOSAIC_CROWDED_SEAT_COUNT = 5
@@ -68,8 +68,8 @@ export function mosaicSeatStackFontPx(tableWidthPx: number, filledSeats = 0): nu
   const room = Math.round(Math.min(36, Math.max(24, w * 0.072)))
   if (filledSeats < MOSAIC_CROWDED_SEAT_COUNT) return room
   const gap = neighborCupGapPx(w, Math.round(w * (140 / 264)))
-  const fitted = Math.floor((gap * 0.9) / MOSAIC_STACK_LABEL_EM)
-  return Math.min(room, Math.max(16, fitted))
+  const fitted = Math.floor((gap * 0.92) / MOSAIC_STACK_LABEL_EM)
+  return Math.min(room, Math.max(20, fitted))
 }
 
 /** Rail-facing edge of the amount, past the initials that spill off the cup. */

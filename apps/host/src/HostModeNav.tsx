@@ -14,7 +14,7 @@ export function HostModeNav({
   more: ReactNode
 }) {
   return (
-    <div className="mt-2 flex flex-wrap items-stretch gap-1 rounded-xl border border-white/10 bg-black/25 p-1.5 backdrop-blur-sm">
+    <div className="host-mode-nav mt-2 flex flex-wrap items-stretch gap-1 rounded-xl border border-white/10 p-1.5 backdrop-blur-sm">
       <nav className="flex flex-wrap items-stretch gap-1" role="tablist" aria-label="Host modes">
         {HOST_MODES.map((t) => {
           const active = mode === t.id
@@ -25,7 +25,8 @@ export function HostModeNav({
               role="tab"
               aria-selected={active}
               title={t.hint}
-              className={`min-h-10 shrink-0 rounded-lg px-4 py-1.5 text-center text-base font-semibold transition-colors sm:min-w-[8.5rem] sm:text-left ${
+              data-active={active ? 'true' : 'false'}
+              className={`host-mode-tab min-h-10 shrink-0 rounded-lg px-4 py-1.5 text-center text-base font-semibold transition-colors sm:min-w-[8.5rem] sm:text-left ${
                 active
                   ? 'bg-white/14 text-white shadow-inner ring-1 ring-casino-emerald/35'
                   : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'

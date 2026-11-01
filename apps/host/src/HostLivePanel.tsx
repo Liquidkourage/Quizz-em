@@ -95,7 +95,7 @@ export function HostLivePanel({
         />
       </div>
 
-      <div className="flex min-w-0 flex-col justify-center gap-2 rounded-xl border border-white/10 bg-black/25 px-3 py-2 sm:col-start-2 sm:row-start-1">
+      <div className="host-instrument flex min-w-0 flex-col justify-center gap-2 rounded-xl border border-white/10 px-3 py-2 sm:col-start-2 sm:row-start-1">
         <HostTvBar
           onVenueFloor={onVenueFloor}
           onLeaderboard={onLeaderboard}

@@ -80,8 +80,8 @@ describe('mosaic seat stacks', () => {
   it('fits a full-table stack inside the gap between neighboring cups', () => {
     const w = 480
     const h = 255
-    const open = mosaicSeatStackFontPx(w, 3)
-    const crowded = mosaicSeatStackFontPx(w, 8)
+    const open = mosaicSeatStackFontPx(w, 3, h)
+    const crowded = mosaicSeatStackFontPx(w, 8, h)
     expect(crowded).toBeLessThan(open)
     expect(crowded).toBeGreaterThanOrEqual(20)
     expect(mosaicSeatStackClearPx(36, mosaicSeatInitialFontPx(w))).toBeGreaterThan(36)

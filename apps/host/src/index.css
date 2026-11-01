@@ -234,3 +234,148 @@
   min-height: 0;
   overflow: hidden;
 }
+
+/*
+  Control-room desk. Charcoal instrument panels, gold reserved for the live cue.
+  Broadcast switchers and tournament-director desks light one channel and quiet the rest.
+*/
+.host-root {
+  --host-panel: #1b1b20;
+  --host-gold: #f0c040;
+  background:
+    radial-gradient(ellipse 70% 42% at 8% -12%, rgba(240, 192, 64, 0.09), transparent 52%),
+    radial-gradient(ellipse 55% 38% at 100% 0%, rgba(29, 85, 53, 0.22), transparent 48%),
+    #101014;
+}
+
+.host-root .host-instrument,
+.host-root .host-masthead,
+.host-root .host-mode-nav,
+.host-root .host-next-band {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 34%),
+    var(--host-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.host-root .host-next-band[data-urgency='now'] {
+  border-color: rgba(240, 192, 64, 0.7);
+  box-shadow:
+    inset 3px 0 0 var(--host-gold),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 14px 32px rgba(0, 0, 0, 0.45);
+}
+
+.host-root .host-next-band[data-urgency='ready'] {
+  border-color: rgba(61, 155, 99, 0.55);
+}
+
+.host-root .host-mode-tab {
+  color: rgba(255, 255, 255, 0.62);
+  background: transparent;
+  box-shadow: none;
+}
+
+.host-root .host-mode-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.host-root .host-mode-tab[data-active='true'] {
+  color: #fff;
+  background: #2a2a32;
+  box-shadow: inset 0 -2px 0 var(--host-gold);
+}
+
+.host-root .host-cue-primary {
+  background: linear-gradient(180deg, #ffe58a 0%, #f0c040 48%, #c8922a 100%);
+  color: #1a1204;
+  border-radius: 0.7rem;
+  letter-spacing: 0.01em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 0 rgba(80, 48, 0, 0.38),
+    0 8px 18px rgba(240, 192, 64, 0.28);
+}
+
+.host-root .host-cue-quiet {
+  background: #2a2a32;
+  color: #f6f3ea;
+  border-radius: 0.6rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.host-root .host-cue-quiet:hover {
+  background: #34343e;
+  box-shadow: inset 0 0 0 1px rgba(240, 192, 64, 0.5);
+}
+
+.host-root .host-cue-primary:disabled,
+.host-root .host-cue-quiet:disabled {
+  opacity: 0.42;
+  box-shadow: none;
+}
+
+.host-root .host-phase-pill[data-live='true']::before {
+  content: '';
+  width: 0.45em;
+  height: 0.45em;
+  margin-right: 0.45em;
+  border-radius: 999px;
+  background: #3dff9a;
+  box-shadow: 0 0 0 0 rgba(61, 255, 154, 0.65);
+  animation: host-live-pip 1.6s ease-out infinite;
+}
+
+.host-root .host-lower-third {
+  border-left: 3px solid var(--host-gold);
+  background: linear-gradient(90deg, rgba(240, 192, 64, 0.12), transparent 48%), #141418;
+}
+
+.host-root .host-tv-switch {
+  background: #121216;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.host-root .host-tv-switch button:hover {
+  background: rgba(240, 192, 64, 0.14);
+  color: #fff;
+}
+
+.host-root .host-felt-tile {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.host-root .host-mark {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, #1a1204 0 22%, transparent 23% 34%, #1a1204 35% 42%, #f0c040 43%);
+  box-shadow:
+    inset 0 0 0 2px #c8922a,
+    0 0 0 2px #1a1204;
+}
+
+.host-root :focus-visible {
+  outline: 2px solid var(--host-gold);
+  outline-offset: 2px;
+}
+
+@keyframes host-live-pip {
+  70% {
+    box-shadow: 0 0 0 6px rgba(61, 255, 154, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(61, 255, 154, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .host-root .host-phase-pill[data-live='true']::before {
+    animation: none;
+  }
+}

@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState, useRef, type FormEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChipText, NeonButton, PokerChip } from '@qhe/ui'
+import { ChipText, NeonButton } from '@qhe/ui'
 import {
   connect,
   onState,
@@ -427,19 +427,21 @@ function HostApp() {
 
   if (!gameState) {
     return (
-      <div className="min-h-screen bg-casino-gradient flex items-center justify-center">
-        <div className="text-center">
+      <div className="host-root host-connect flex min-h-screen items-center justify-center">
+        <div className="host-instrument rounded-2xl px-10 py-8 text-center">
           <motion.h1 
-            className="text-6xl font-black text-casino-emerald mb-8"
+            className="mb-2 flex items-center justify-center gap-3 text-5xl font-black tracking-tight text-white"
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            🎰 <PokerChip size="lg" className="mx-1" />
+            <span className="host-mark" aria-hidden />
             {'Quizz\u2019em'}
           </motion.h1>
+          <p className="mb-6 text-sm font-bold uppercase tracking-[0.28em] text-casino-gold">Host</p>
           <motion.div 
-            className="text-2xl text-white"
+            className="host-phase-pill inline-flex items-center text-xl text-white/80"
+            data-live="true"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.8 }}
@@ -901,7 +903,7 @@ function HostApp() {
       <HostDeskShell
         header={
         <motion.header
-          className="mb-2 shrink-0 rounded-xl border border-white/10 bg-black/35 px-3 py-2 shadow-lg shadow-black/20 backdrop-blur-md sm:px-4"
+          className="host-masthead mb-2 shrink-0 rounded-xl border border-white/10 px-3 py-2 shadow-lg shadow-black/20 backdrop-blur-md sm:px-4"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
@@ -909,10 +911,10 @@ function HostApp() {
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <div className="flex items-center gap-2">
-                <PokerChip size="md" className="opacity-95" />
+                <span className="host-mark" aria-hidden />
                 <span className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
                   {'Quizz\u2019em'} <span className="font-normal text-white/40">·</span>{' '}
-                  <span className="font-semibold text-casino-emerald">Host</span>
+                  <span className="font-semibold text-casino-gold">Host</span>
                 </span>
               </div>
               <span className="hidden h-8 w-px bg-white/15 lg:block" aria-hidden />
@@ -950,7 +952,10 @@ function HostApp() {
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
               <span className="text-base uppercase tracking-wider text-white/35">Status</span>
               <div className="flex flex-col items-end gap-0.5">
-                <span className="rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3.5 py-1.5 text-lg font-bold text-casino-emerald">
+                <span
+                  className="host-phase-pill inline-flex items-center rounded-md border border-casino-emerald/40 bg-casino-emerald/15 px-3.5 py-1.5 text-lg font-bold text-casino-emerald"
+                  data-live={venueFloorBrief?.venueHeld ? 'false' : 'true'}
+                >
                   {venueFloorBrief?.venueHeld
                     ? 'On hold'
                     : headerPhase.phase === 'lobby'

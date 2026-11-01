@@ -2,7 +2,7 @@ import { addPlayer, createEmptyGame } from '@qhe/core'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { buildHostPhaseDockItems, hostRunOfShowHeadline, HostTvBar } from './hostDeskLayout'
+import { buildHostPhaseDockItems, hostRunOfShowHeadline, HostRunBar, HostTvBar } from './hostDeskLayout'
 
 const noop = () => {}
 
@@ -43,6 +43,25 @@ describe('next question cue', () => {
     const headline = hostRunOfShowHeadline(gameState, null, { afterPayout: true })
     expect(headline.detail).toContain('chip scores')
     expect(headline.detail).toContain('seating chart')
+  })
+})
+
+describe('host run bar', () => {
+  it('lights the next cue and quiets the other controls', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostRunBar, {
+        pacingUrgency: 'now',
+        headline: { title: 'Close betting' },
+        items: [
+          { id: 'close', label: 'Close betting', onClick: noop, variant: 'gold', role: 'primary' },
+          { id: 'nudge', label: 'Nudge slow player', onClick: noop, variant: 'blue', role: 'secondary' },
+        ],
+      }),
+    )
+    expect(html).toContain('data-urgency="now"')
+    expect(html).toContain('host-cue-primary')
+    expect(html).toContain('host-cue-quiet')
+    expect(html.indexOf('host-cue-primary')).toBeLessThan(html.indexOf('host-cue-quiet'))
   })
 })
 

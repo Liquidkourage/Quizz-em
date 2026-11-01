@@ -59,7 +59,7 @@ export function HostCollapsible({
 
   if (expanded) {
     return (
-      <section className={`flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-black/25 ${className}`}>
+      <section className={`host-instrument flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 ${className}`}>
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2 text-base font-semibold text-white/85">
           <span className="flex min-w-0 items-center gap-2">
             {summary}
@@ -1154,7 +1154,7 @@ export function HostVenueFeltBeatStrip({
                             : `In sync with majority — ${sig}`
                           : undefined
                 }
-                className={`rounded-md border px-2 py-1.5 text-center sm:min-h-[4.5rem] ${
+                className={`host-felt-tile rounded-md border px-2 py-1.5 text-center sm:min-h-[4.5rem] ${
                   row.active
                     ? drift
                       ? 'border-amber-400/85 bg-amber-950/25'
@@ -1978,7 +1978,7 @@ export function HostTvBar({
       aria-label="What the audience TVs show"
     >
       <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/35">Audience TVs</span>
-      <div className="inline-flex flex-wrap overflow-hidden rounded-lg border border-white/20 bg-black/40">
+      <div className="host-tv-switch inline-flex flex-wrap overflow-hidden rounded-lg border border-white/20">
         {modes.map((m, i) => (
           <button
             key={m.id}
@@ -2001,7 +2001,7 @@ export function HostTvBar({
 export function HostLiveQuestionCard({ text, answer }: { text: string; answer: number }) {
   return (
     <section
-      className="overflow-y-auto rounded-xl border border-amber-400/40 bg-black/55 px-4 py-3"
+      className="host-lower-third overflow-y-auto rounded-xl border border-amber-400/40 px-4 py-3"
       aria-label="Live question"
     >
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">Question</p>
@@ -2048,14 +2048,17 @@ export function HostRunBar({
   const danger = rest.filter((i) => i.role === 'danger')
 
   return (
-    <div className="host-next-band rounded-xl border border-casino-emerald/40 bg-black/90 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md">
+    <div
+      className="host-next-band rounded-xl border border-casino-emerald/40 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md"
+      data-urgency={waitingOnly ? 'waiting' : pacingUrgency}
+    >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0 flex-1">
           {headline || statusLine ? (
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               {headline ? (
                 <div className="min-w-0">
-                  <p className={`text-xs font-bold uppercase tracking-[0.14em] ${urgencyClass}`}>
+                  <p className={`host-next-kicker text-xs font-bold uppercase tracking-[0.14em] ${urgencyClass}`}>
                     {urgencyLabel}
                   </p>
                   <p className="mt-0.5 text-lg font-bold leading-snug text-white">{headline.title}</p>
@@ -2079,7 +2082,7 @@ export function HostRunBar({
                     size="normal"
                     disabled={primary.disabled}
                     onClick={primary.onClick}
-                    className="!px-5 !py-2 !text-lg !font-bold"
+                    className="host-cue-primary !px-5 !py-2 !text-lg !font-bold"
                   >
                     {primary.label}
                   </NeonButton>
@@ -2091,7 +2094,7 @@ export function HostRunBar({
                     size="small"
                     disabled={item.disabled}
                     onClick={item.onClick}
-                    className="!px-3 !py-2 !text-sm !font-semibold opacity-90"
+                    className="host-cue-quiet !px-3 !py-2 !text-sm !font-semibold"
                   >
                     {item.label}
                   </NeonButton>
@@ -2145,7 +2148,7 @@ export function HostFloorStrip({
   if (rows == null && brief == null) return null
 
   return (
-    <div className="overflow-y-auto rounded-xl border border-white/10 bg-black/30 px-3 py-2 sm:px-4">
+    <div className="host-instrument overflow-y-auto rounded-xl border border-white/10 px-3 py-2 sm:px-4">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/40">
           Tables
@@ -2321,7 +2324,7 @@ export function HostThisHandPanel({
   })
   if (!hasContent) return null
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-black/25 p-3 sm:p-3">
+    <div className="host-instrument flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 p-3 sm:p-3">
       <p className="mb-2 shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-white/40">{title}</p>
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">{children}</div>
     </div>

@@ -26,6 +26,8 @@ import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import { venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
+import { useVenueAnswerReveal } from './useVenueAnswerReveal'
+import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -270,6 +272,13 @@ export default function DisplayRouter({
       const next: DisplayVenueWallSnapshot = {
         tiles,
         headlineQuestionText: p.headlineQuestionText ?? null,
+        headlineQuestionAnswer:
+          typeof p.headlineQuestionAnswer === 'number' && Number.isFinite(p.headlineQuestionAnswer)
+            ? p.headlineQuestionAnswer
+            : null,
+        headlineAnswerComposition: Array.isArray(p.headlineAnswerComposition)
+          ? p.headlineAnswerComposition
+          : null,
         answerDeadlineMs: p.answerDeadlineMs ?? null,
         answerSubmitCount:
           typeof p.answerSubmitCount === 'number' && Number.isFinite(p.answerSubmitCount)
@@ -367,6 +376,10 @@ export default function DisplayRouter({
     !showSeatingChart &&
     !showLeaderboard &&
     !showRules
+
+  const answerReveal = useVenueAnswerReveal(
+    showVenueMosaicShell && !showHostBusts ? venueWall : null,
+  )
 
   const showConnBadge = connectionStatus !== 'connected'
 
@@ -471,6 +484,12 @@ export default function DisplayRouter({
     <AnimatePresence>
       {showHostBusts ? (
         <VenueBustAnnouncement key="venue-bust-announcement" busts={lastHandBusts} />
+      ) : null}
+      {answerReveal.visible && answerReveal.payload ? (
+        <VenueAnswerRevealOverlay
+          key={`answer-reveal-${answerReveal.payload.answer}`}
+          payload={answerReveal.payload}
+        />
       ) : null}
     </AnimatePresence>
     </>

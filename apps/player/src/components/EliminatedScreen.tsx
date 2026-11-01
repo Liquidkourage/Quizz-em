@@ -2,29 +2,19 @@ import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule, PlayerGoldPanel } from './PlayerGoldChrome'
 
-type EliminatedScreenProps = {
-  playerName: string
-}
-
-export function EliminatedNotice({ playerName }: EliminatedScreenProps) {
+export function EliminatedNotice() {
   return (
-    <>
-      <motion.h1
-        className="player-game-eliminated-title"
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        Eliminated
-      </motion.h1>
-      <p className="player-game-eliminated-text">
-        Your stack hit zero — you&apos;re out of the chip contest. Thanks for playing, {playerName}!
-      </p>
-      <p className="player-game-eliminated-foot">Watch the venue display for the rest of the show.</p>
-    </>
+    <motion.p
+      className="player-game-eliminated-title"
+      initial={{ opacity: 0, y: -12 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      Players who busted this hand
+    </motion.p>
   )
 }
 
-export default function EliminatedScreen({ playerName }: EliminatedScreenProps) {
+export default function EliminatedScreen() {
   return (
     <PlayerGameScreen>
       <div className="player-game-layout player-join-layout">
@@ -38,7 +28,7 @@ export default function EliminatedScreen({ playerName }: EliminatedScreenProps) 
           <PlayerGoldHeaderRule />
           <div className="player-game-eliminated-body">
             <PlayerGoldPanel>
-              <EliminatedNotice playerName={playerName} />
+              <EliminatedNotice />
             </PlayerGoldPanel>
           </div>
         </PlayerGameShell>

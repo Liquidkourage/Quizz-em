@@ -3296,24 +3296,11 @@
 .player-game-eliminated-title {
   margin: 0;
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(2rem, 7vw, 2.75rem);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgb(248 113 113);
-}
-
-.player-game-eliminated-text {
-  margin: 0.85rem 0 0;
-  font-size: clamp(0.95rem, 3.2vw, 1.1rem);
-  line-height: 1.5;
-  color: rgb(255 255 255 / 0.72);
-}
-
-.player-game-eliminated-foot {
-  margin: 0.55rem 0 0;
-  font-size: 0.85rem;
-  color: rgb(255 255 255 / 0.48);
+  font-size: clamp(1.15rem, 4.2vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  color: rgb(244 240 230);
 }
 
 .player-eliminated-popup {

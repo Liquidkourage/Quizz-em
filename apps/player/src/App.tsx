@@ -388,7 +388,7 @@ function PlayerApp() {
     gameState.phase !== 'lobby'
 
   if (isEliminated) {
-    return <EliminatedScreen playerName={playerName} />
+    return <EliminatedScreen />
   }
 
   const inLobbyWaiting =
@@ -666,7 +666,7 @@ function PlayerApp() {
       <AnimatePresence>
         {dealFlash ? <DealFlashModal key={`${dealFlash.kind}:${dealFlash.digits.join(',')}`} flash={dealFlash} onDone={dismissDealFlash} /> : null}
         {eliminationHandKey ? (
-          <EliminatedModal key={eliminationHandKey} playerName={playerName} onDone={dismissElimination} />
+          <EliminatedModal key={eliminationHandKey} onDone={dismissElimination} />
         ) : null}
         {showAnswerModal && currentPlayer ? (
           <AnswerComposerModal

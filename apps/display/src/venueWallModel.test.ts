@@ -3,6 +3,7 @@ import {
   venueAllTablesAnswering,
   venueHeadlineCondenseCaption,
   venueHeadlineCondenseCaptionParts,
+  venuePublicAnswerReleased,
   type VenueCondenseProgressModel,
 } from './venueWallModel'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
@@ -23,6 +24,27 @@ function model(overrides: Partial<VenueCondenseProgressModel>): VenueCondensePro
     ...overrides,
   }
 }
+
+describe('venuePublicAnswerReleased', () => {
+  it('keeps the correct answer off the TV while anyone is still guessing', () => {
+    expect(
+      venuePublicAnswerReleased([
+        tile('answering', 6),
+        { ...tile('showdown', 6), tableNum: 2, showdownAnswer: 1440 },
+      ]),
+    ).toBe(false)
+  })
+
+  it('keeps the correct answer off the TV during the answer window', () => {
+    expect(venuePublicAnswerReleased([tile('answering', 6), { ...tile('answering', 5), tableNum: 2 }])).toBe(
+      false,
+    )
+  })
+
+  it('shows the correct answer once every seated table is in results', () => {
+    expect(venuePublicAnswerReleased([tile('showdown', 6), { ...tile('reveal', 5), tableNum: 2 }])).toBe(true)
+  })
+})
 
 describe('venueAllTablesAnswering', () => {
   it('is true when every populated table is answering', () => {

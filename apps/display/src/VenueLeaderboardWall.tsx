@@ -24,7 +24,7 @@ import {
   venueWallBlindsHeadline,
   buildVenueCondenseProgress,
   venueWallCondenseHeadline,
-  showdownTableNums,
+  venuePublicAnswerReleased,
 } from './venueWallModel'
 import { useVenueHandStackBaselines } from './useVenueHandStackBaselines'
 
@@ -118,10 +118,9 @@ export default function VenueLeaderboardWall({
     () => buildLeaderboardMetaParts(rows.length, wall, blindsHeadline, trophy),
     [rows.length, wall, blindsHeadline, trophy]
   )
-  const inVenueShowdown = useMemo(() => showdownTableNums(tileRows).length > 0, [tileRows])
   const venueShowdownAnswer = useMemo(
-    () => (inVenueShowdown ? resolveVenueShowdownAnswer(wall, tileRows) : undefined),
-    [inVenueShowdown, wall, tileRows]
+    () => (venuePublicAnswerReleased(tileRows) ? resolveVenueShowdownAnswer(wall, tileRows) : undefined),
+    [tileRows, wall]
   )
   const footerStats = useMemo(
     () =>

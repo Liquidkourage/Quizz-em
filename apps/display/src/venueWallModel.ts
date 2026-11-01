@@ -96,6 +96,21 @@ export function showdownTableNums(tileRows: DisplayVenueTileSnapshot[]): number[
   return tileRows.filter((t) => t.phase === 'showdown').map((t) => t.tableNum)
 }
 
+const PUBLIC_ANSWER_PHASES = new Set(['reveal', 'showdown', 'payout'])
+
+/** The correct answer stays off the TV until every seated table has been revealed. */
+export function venuePublicAnswerReleased(tileRows: DisplayVenueTileSnapshot[]): boolean {
+  const active = tileRows.filter((t) => t.seated >= 1)
+  if (active.length === 0) return false
+  return active.every((t) => PUBLIC_ANSWER_PHASES.has(String(t.phase ?? '').trim().toLowerCase()))
+}
+
+/** Drop the correct-answer number from tiles the audience can still be guessing against. */
+export function venueTilesForAudience(tileRows: DisplayVenueTileSnapshot[]): DisplayVenueTileSnapshot[] {
+  if (venuePublicAnswerReleased(tileRows)) return tileRows
+  return tileRows.map((row) => (row.showdownAnswer == null ? row : { ...row, showdownAnswer: null }))
+}
+
 /** Human label for venue-wall headline phase chips. */
 export function venueWallPhaseLabel(ph: string): string {
   if (ph === 'lobby') return 'Lobby'

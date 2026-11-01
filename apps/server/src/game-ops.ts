@@ -1811,6 +1811,16 @@ export function requireAllSeatedTablesSatisfy(
   return rows
 }
 
+/** The correct answer stays off the public wall until every seated table is in reveal, showdown, or payout. */
+export function venueWallAnswerIsPublic(phases: readonly string[]): boolean {
+  if (phases.length === 0) return false
+  return phases.every((phase) => handSecretsArePublic(phase))
+}
+
+function withholdUnreleasedShowdownAnswers(tiles: DisplayVenueTileSnapshot[]): void {
+  for (const tile of tiles) delete tile.showdownAnswer
+}
+
 /** Phases where the current hand’s `round.question` should drive the shared venue-wall headline strip. */
 export const VENUE_WALL_HEADLINE_PHASES = new Set<string>([
   'question',
@@ -2253,6 +2263,12 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     }
     answerSubmitCount = locked
     answerEligibleCount = eligible
+  }
+
+  if (!venueWallAnswerIsPublic(tiles.map((t) => t.phase))) {
+    headlineQuestionAnswer = null
+    headlineAnswerComposition = null
+    withholdUnreleasedShowdownAnswers(tiles)
   }
 
   const payload: DisplayVenueWallSnapshot = {

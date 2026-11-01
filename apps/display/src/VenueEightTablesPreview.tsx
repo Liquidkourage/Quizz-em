@@ -63,7 +63,7 @@ import {
 } from './VenueFloorShowdownOverlay'
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
 import { showdownCorrectAnswerFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
-import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
+import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venuePublicAnswerReleased, venueTilesForAudience, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   buildVenueFloorHeadlineMeta,
   resolveVenueFloorSpec,
@@ -2947,15 +2947,17 @@ export default function VenueEightTablesPreview({
   }, [answerDeadlineMs])
 
   const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
-  const floorTiles = useMemo(() => populatedVenueTiles(tileRows), [tileRows])
+  const audienceTileRows = useMemo(() => venueTilesForAudience(tileRows), [tileRows])
+  const floorTiles = useMemo(() => populatedVenueTiles(audienceTileRows), [audienceTileRows])
   const venueLiveTableCount =
     typeof wall?.venueLiveTableCount === 'number' && Number.isFinite(wall.venueLiveTableCount)
       ? Math.floor(wall.venueLiveTableCount)
       : null
   const inVenueShowdown = useMemo(() => showdownTableNums(tileRows).length > 0, [tileRows])
+  const publicAnswerReleased = useMemo(() => venuePublicAnswerReleased(tileRows), [tileRows])
   const venueShowdownAnswer = useMemo(
-    () => resolveVenueShowdownAnswer(wall, tileRows),
-    [wall, tileRows]
+    () => (publicAnswerReleased ? resolveVenueShowdownAnswer(wall, tileRows) : undefined),
+    [publicAnswerReleased, wall, tileRows]
   )
   const venueShowdownQuestionText = useMemo(
     () => venueShowdownQuestionFromTiles(tileRows, headlineQuestionText),

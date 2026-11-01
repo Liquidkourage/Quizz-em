@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
-import { buildVenueWallTileRows, showdownTableNums } from './venueWallModel'
+import { buildVenueWallTileRows, venuePublicAnswerReleased } from './venueWallModel'
 import {
   resolveVenueAnswerRevealTrigger,
   VENUE_ANSWER_REVEAL_DWELL_MS,
@@ -28,7 +28,7 @@ type OpenedAnswerReveal = RevealedMarks & {
 }
 
 function wallInShowdown(wall: DisplayVenueWallSnapshot): boolean {
-  return showdownTableNums(buildVenueWallTileRows(wall)).length > 0
+  return venuePublicAnswerReleased(buildVenueWallTileRows(wall))
 }
 
 function finiteNumber(value: number | null | undefined): number | null {
@@ -37,7 +37,7 @@ function finiteNumber(value: number | null | undefined): number | null {
 
 function resolveQuestionAnswer(wall: DisplayVenueWallSnapshot, prev: DisplayVenueWallSnapshot | null) {
   const question = wall.headlineQuestionText?.trim() || prev?.headlineQuestionText?.trim() || null
-  const answer = finiteNumber(wall.headlineQuestionAnswer) ?? finiteNumber(prev?.headlineQuestionAnswer)
+  const answer = finiteNumber(wall.headlineQuestionAnswer)
   return { question, answer }
 }
 
@@ -70,6 +70,7 @@ function openAnswerReveal(
   revealed: RevealedMarks,
 ): OpenedAnswerReveal | null {
   if (prev == null) return null
+  if (!venuePublicAnswerReleased(buildVenueWallTileRows(wall))) return null
 
   const { question, answer } = resolveQuestionAnswer(wall, prev)
   const showdownKey = revealShowdownKey(wall, question, answer)

@@ -49,7 +49,12 @@ import {
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAction } from '@qhe/net'
 
 import seatChipStackImg from './assets/seat-chip-stack.png'
-import { MosaicSeatStackAmount, mosaicShowsSeatStacks } from './mosaicSeatStacks'
+import {
+  MosaicSeatStackAmount,
+  mosaicSeatInitialFontPx,
+  mosaicSeatStackFontPx,
+  mosaicShowsSeatStacks,
+} from './mosaicSeatStacks'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import {
   buildFloorShowdownPresentation,
@@ -998,14 +1003,9 @@ function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolea
   return phaseAccent(row.phase)
 }
 
-/** Seat-marker initials on mosaic felts — font size set from cupholder diameter. */
+/** Seat-marker initials on mosaic felts — font size set from the felt width. */
 function mosaicSeatInitialsClass(_density: VenueFloorTableSize | undefined): string {
   return VENUE_FLOOR_MOSAIC_HEADER_TYPE.seatInitials
-}
-
-/** Initials font size tracks cupholder diameter on mosaic felts. */
-function mosaicSeatInitialFontPx(cupSizePx: number): number {
-  return Math.max(10, Math.round(cupSizePx * 0.54))
 }
 
 function mosaicPhaseCornerTypography(
@@ -1625,7 +1625,7 @@ function SeatRingWithLabels({
                 sizePx={cupSizePx}
                 label={isMosaic && filled && mosaicInitials ? mosaicInitials : undefined}
                 labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
-                labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(cupSizePx) : undefined}
+                labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(rimW) : undefined}
                 state={
                   isFolded
                     ? 'folded'
@@ -1667,7 +1667,7 @@ function SeatRingWithLabels({
                 <MosaicSeatStackAmount
                   name={raw}
                   amount={chips}
-                  fontPx={Math.max(13, Math.round(cupSizePx * 0.46))}
+                  fontPx={mosaicSeatStackFontPx(rimW)}
                 />
               </div>
             ) : null}

@@ -2775,6 +2775,22 @@
   .vfd-mosaic-seat-initial {
     line-height: 1;
     font-style: normal;
+    font-weight: 800;
+    color: #fff;
+    -webkit-text-stroke: 0.07em #140c04;
+    paint-order: stroke fill;
+    text-shadow:
+      0 1px 0 #000,
+      0 2px 0 #000,
+      0 0 8px rgba(0, 0, 0, 0.95);
+  }
+
+  .vfd-mosaic-seat-stack .vfd-mosaic-dollar {
+    text-shadow:
+      0 1px 0 #000,
+      1px 2px 0 #000,
+      2px 4px 0 rgba(0, 0, 0, 0.82),
+      0 0 10px rgba(0, 0, 0, 0.95);
   }
 
   .vfd-mosaic-watermark {

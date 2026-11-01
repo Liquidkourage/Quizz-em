@@ -401,6 +401,12 @@ export type HostVenueFloorBriefPayload = {
   handsUntilShuffle: number | null
   /** Venue hands paid out. Zero until the first Pay winners. */
   handsCompleted?: number
+  /** Median chip stack of seated players. Null when the floor is empty. */
+  medianStack?: number | null
+  /** Epoch ms when the first hand left the lobby. Null before the night starts. */
+  showStartedAtMs?: number | null
+  /** Largest seated field seen this night. */
+  fieldPeakCount?: number
   /** Players eliminated on the hand that just paid. */
   lastHandBustCount?: number
 }

@@ -256,3 +256,19 @@ describe('recordVenueMovesBetweenStates', () => {
     expect(brief.handBets.map((b) => `${b.amount}:${b.name}`)).toEqual(['100:Alice C.'])
   })
 })
+
+describe('buildHostVenueFloorBrief stacks', () => {
+  it('sends the median stack of seated players', () => {
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [
+        { seatNames: ['Ada', ''], seatBankrolls: [400, 0] } as never,
+        { seatNames: ['Bea'], seatBankrolls: [800] } as never,
+      ],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(brief.medianStack).toBe(600)
+  })
+})

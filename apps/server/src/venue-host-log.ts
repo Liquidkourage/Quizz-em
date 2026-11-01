@@ -1,4 +1,10 @@
-import { formatTriviaNumber, type GameState, type SeatBettingAction, previewChipPayoutByPlayerId } from '@qhe/core'
+import {
+  formatTriviaNumber,
+  medianSeatedStack,
+  previewChipPayoutByPlayerId,
+  type GameState,
+  type SeatBettingAction,
+} from '@qhe/core'
 import type {
   DisplayVenueTileSnapshot,
   DisplayVenueSeatingAnnouncement,
@@ -396,6 +402,8 @@ export function buildHostVenueFloorBrief(args: {
   handsUntilShuffle?: number | null
   handsCompleted?: number
   lastHandBustCount?: number
+  showStartedAtMs?: number | null
+  fieldPeakCount?: number
 }): HostVenueFloorBriefPayload {
   const log = logForVenue(args.venueCode)
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
@@ -416,5 +424,8 @@ export function buildHostVenueFloorBrief(args: {
     handsUntilShuffle: args.handsUntilShuffle ?? null,
     handsCompleted: Math.max(0, Math.floor(args.handsCompleted ?? 0)),
     lastHandBustCount: Math.max(0, Math.floor(args.lastHandBustCount ?? 0)),
+    medianStack: medianSeatedStack(args.tiles),
+    showStartedAtMs: args.showStartedAtMs ?? null,
+    fieldPeakCount: Math.max(args.fieldPlayerCount, Math.floor(args.fieldPeakCount ?? 0)),
   }
 }

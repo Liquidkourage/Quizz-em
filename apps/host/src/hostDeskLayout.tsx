@@ -2275,10 +2275,12 @@ export function HostFloorStrip({
   rows,
   brief,
   onSpotlight,
+  blindCall,
 }: {
   rows: HostVenueFeltBeatRow[] | null
   brief: HostVenueFloorBriefPayload | null
   onSpotlight: (tableNum: number) => void
+  blindCall?: ReactNode
 }) {
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(rows)
   const actionByTable = new Map((brief?.actionRows ?? []).map((r) => [r.tableNum, r]))
@@ -2314,6 +2316,7 @@ export function HostFloorStrip({
           <span className="text-xs font-semibold text-emerald-300/80">In sync</span>
         ) : null}
       </div>
+      {blindCall}
       {lockstepMisaligned ? (
         <p className="mb-2 text-xs font-medium text-amber-100/90">
           Amber tables differ from the majority — click that table under Venue felts to set its phase.

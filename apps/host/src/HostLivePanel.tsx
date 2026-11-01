@@ -31,6 +31,7 @@ export function HostLivePanel({
   handBody,
   feltBeat,
   floorNow,
+  blindCall,
   onGoPreShow,
   attachedDisplays = [],
   onReleaseDisplay,
@@ -56,6 +57,8 @@ export function HostLivePanel({
   feltBeat?: ReactNode
   /** Venue floor · now, already open. */
   floorNow?: ReactNode
+  /** Blind suggestion for the rest of the night. Sits on the tables strip. */
+  blindCall?: ReactNode
   onGoPreShow: () => void
   attachedDisplays?: HostAttachedDisplay[]
   onReleaseDisplay?: (socketId: string) => void
@@ -120,6 +123,7 @@ export function HostLivePanel({
           rows={venueFeltBeat}
           brief={venueFloorBrief}
           onSpotlight={onSpotlight}
+          blindCall={blindCall}
         />
       </div>
 

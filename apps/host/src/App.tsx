@@ -49,7 +49,8 @@ import {
   selectTriviaSetlist,
   setlistSave,
 } from '@qhe/net'
-import type { GameState, Question } from '@qhe/core'
+import type { BlindCall, GameState, Question } from '@qhe/core'
+import { HostBlindCall } from './HostBlindCall'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
@@ -574,6 +575,22 @@ function HostApp() {
     const n = Number.parseInt(String(raw), 10)
     return Number.isFinite(n) && n >= 1 ? n : 1
   })()
+  const questionTotal = activeSetlist?.questionIds.length || 25
+  const handsLeft = Math.max(0, questionTotal - (venueFloorBrief?.handsCompleted ?? 0))
+  const applyBlindCall = (call: BlindCall) => {
+    if (call.handsPerLevel !== handsPerBlindLevel) {
+      setHandsPerBlindLevel(call.handsPerLevel)
+      setVenueBlindStructure(call.handsPerLevel)
+    }
+    setVenueSmallBlind(call.smallBlind)
+    setVenueBigBlind(call.bigBlind)
+    setVenueBlinds(call.smallBlind, call.bigBlind)
+    if (call.guideSec !== answerWindowSeconds) {
+      const sec = clampVenueAnswerWindow(call.guideSec)
+      setAnswerWindowSeconds(sec)
+      setVenueAnswerWindowSeconds(sec)
+    }
+  }
   const saveVenueBlinds = () => {
     setVenueBlinds(Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
   }
@@ -1182,6 +1199,19 @@ function HostApp() {
                 brief={venueFloorBrief}
                 hostPlayerLabel={hostPlayerLabel}
                 hostTableId={hostTableId}
+              />
+            }
+            blindCall={
+              <HostBlindCall
+                showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}
+                handsLeft={handsLeft}
+                players={venueFloorBrief?.fieldPlayerCount ?? 0}
+                startedWith={venueFloorBrief?.fieldPeakCount ?? venueFloorBrief?.fieldPlayerCount ?? 0}
+                medianStack={venueFloorBrief?.medianStack ?? null}
+                bigBlind={venueBigBlind}
+                handsPerLevel={handsPerBlindLevel}
+                guideSec={answerWindowSeconds}
+                onApply={applyBlindCall}
               />
             }
             onGoPreShow={() => selectHostMode('preshow')}

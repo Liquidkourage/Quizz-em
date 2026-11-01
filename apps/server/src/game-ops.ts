@@ -110,7 +110,10 @@ import {
   getVenueHandsCompleted,
   getVenueShuffleEvery,
   isVenueShuffleHeld,
+  getVenueShowStartedAt,
   loadVenueShuffleSettingsFromDisk,
+  noteVenueFieldPeak,
+  noteVenueShowStarted,
   recordVenueShuffleHandCompleted,
   resetVenueShuffleCounter,
   setVenueShuffleEvery,
@@ -973,10 +976,10 @@ export function markVenueShowStarted(code: string): void {
 /** Drop the join hero once any seated felt leaves lobby (covers setlist/bank paths that skip Start Game). */
 export function syncVenueAudienceWelcomeFromTiles(vnRaw: string, tiles: DisplayVenueTileSnapshot[]): void {
   const vn = normalizeVenueCode(vnRaw)
-  if (venueAudienceWelcomeExpired.has(vn)) return
-  if (tiles.some((t) => t.seated > 0 && t.phase !== 'lobby')) {
-    venueAudienceWelcomeExpired.add(vn)
-  }
+  const playing = tiles.some((t) => t.seated > 0 && t.phase !== 'lobby')
+  if (playing) noteVenueShowStarted(vn)
+  if (venueAudienceWelcomeExpired.has(vn) || !playing) return
+  venueAudienceWelcomeExpired.add(vn)
 }
 
 export function tableNumFromSessionKey(venueCode: string, sessionKey: string): number | null {
@@ -2318,6 +2321,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       tiles,
       fieldPlayerCount: condenseCounts.chipSurvivorCount,
       liveTableCount: condenseCounts.liveTableCount,
+      showStartedAtMs: getVenueShowStartedAt(vn),
+      fieldPeakCount: noteVenueFieldPeak(vn, condenseCounts.chipSurvivorCount),
       bigBlindHint: blindsSnap.bigBlind,
       roster: venueRosterSeats(vn),
       venueHeld: isVenueHeld(vn),

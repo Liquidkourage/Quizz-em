@@ -1,7 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import { formatTriviaNumber } from '@qhe/core'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import type { VenueAnswerRevealPayload } from './useVenueAnswerReveal'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { DisplayFitQuestionText } from './DisplayFitQuestionText'
@@ -12,7 +11,7 @@ export type VenueAnswerRevealOverlayProps = {
 
 export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealOverlayProps) {
   const reducedMotion = useReducedMotion()
-  const { question, answer, answerRow } = payload
+  const { question, answer } = payload
 
   return (
     <motion.div
@@ -32,7 +31,7 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
       />
 
       <motion.div
-        className="relative z-10 flex w-full max-w-5xl flex-col rounded-2xl border border-amber-400/50 bg-gradient-to-b from-amber-950/90 via-[#120a04] to-black/92 px-6 py-8 shadow-[0_0_56px_rgba(251,191,36,0.22)] sm:px-10 sm:py-10"
+        className="relative z-10 flex w-full max-w-7xl flex-col rounded-2xl border border-amber-400/50 bg-gradient-to-b from-amber-950/90 via-[#120a04] to-black/92 px-6 py-8 shadow-[0_0_56px_rgba(251,191,36,0.22)] sm:px-10 sm:py-10"
         initial={reducedMotion ? false : { opacity: 0, y: 20, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={reducedMotion ? undefined : { opacity: 0, y: 12, scale: 0.98 }}
@@ -57,20 +56,13 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
         <DisplayFitQuestionText
           text={question}
           hostClassName="display-fit-question-host-reveal"
-          maxFontVh={0.072}
-          textClassName="venue-headline-question-slot text-balance text-left font-semibold leading-snug tracking-tight text-yellow-300/90 display-text-headline-question-spacious"
+          maxFontVh={0.18}
+          textClassName="venue-headline-question-slot text-balance text-center font-semibold leading-snug tracking-tight text-yellow-300/90 display-text-headline-question-spacious"
         />
 
-        <div className="mt-5 flex flex-col items-center gap-3 sm:mt-7">
-          <p className="font-mono text-[clamp(4.5rem,16vmin,9.5rem)] font-black tabular-nums leading-none tracking-tight text-amber-50 drop-shadow-[0_0_40px_rgba(251,191,36,0.45)]">
-            {formatTriviaNumber(answer)}
-          </p>
-          {answerRow != null && answerRow.answerCards.length > 0 ? (
-            <div className="w-full max-w-3xl px-2">
-              <ShowdownFiveCardsUsed row={answerRow} size="broadcast-hero" />
-            </div>
-          ) : null}
-        </div>
+        <p className="mt-5 text-center font-mono text-[clamp(4.5rem,16vmin,9.5rem)] font-black tabular-nums leading-none tracking-tight text-amber-50 drop-shadow-[0_0_40px_rgba(251,191,36,0.45)] sm:mt-7">
+          {formatTriviaNumber(answer)}
+        </p>
       </motion.div>
     </motion.div>
   )

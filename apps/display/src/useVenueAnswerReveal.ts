@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
-import type { ShowdownResultRow } from './showdownDisplay'
 import { buildVenueWallTileRows, showdownTableNums } from './venueWallModel'
-import { showdownCorrectAnswerRowFromTile } from './showdownDisplay'
 import {
   resolveVenueAnswerRevealTrigger,
   VENUE_ANSWER_REVEAL_DWELL_MS,
@@ -13,7 +11,6 @@ export { VENUE_ANSWER_REVEAL_DWELL_MS }
 export type VenueAnswerRevealPayload = {
   question: string
   answer: number
-  answerRow: ShowdownResultRow | null
 }
 
 export type VenueAnswerRevealState = {
@@ -54,16 +51,6 @@ function revealShowdownKey(
   return handEnd != null ? `hand:${handEnd}` : null
 }
 
-function headlineTileFor(wall: DisplayVenueWallSnapshot, prev: DisplayVenueWallSnapshot | null) {
-  const tiles = buildVenueWallTileRows(wall)
-  const headlineNum = finiteNumber(wall.headlineTableNum ?? prev?.headlineTableNum)
-  if (headlineNum != null) {
-    const match = tiles.find((t) => t.tableNum === Math.floor(headlineNum))
-    if (match) return match
-  }
-  return tiles.find((t) => (t.communityDigits?.length ?? 0) >= 5) ?? null
-}
-
 function nextRevealedMarks(
   trigger: 'deadline' | 'showdown',
   prev: DisplayVenueWallSnapshot,
@@ -97,17 +84,8 @@ function openAnswerReveal(
   })
   if (trigger == null || question == null || answer == null) return null
 
-  const headlineTile = headlineTileFor(wall, prev)
-  const composition = wall.headlineAnswerComposition ?? prev.headlineAnswerComposition ?? null
   return {
-    payload: {
-      question,
-      answer,
-      answerRow:
-        headlineTile != null
-          ? showdownCorrectAnswerRowFromTile(headlineTile, answer, composition)
-          : null,
-    },
+    payload: { question, answer },
     ...nextRevealedMarks(trigger, prev, showdownKey, revealed),
   }
 }

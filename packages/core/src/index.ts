@@ -503,6 +503,55 @@ export function removePlayer(state: GameState, id: string): GameState {
   return { ...state, players: state.players.filter(p => p.id !== id) };
 }
 
+/** Seat index after one player leaves. `-1` when the list is empty or nobody was to act. */
+function seatIndexAfterDrop(index: number, removed: number, remaining: number): number {
+  if (remaining <= 0 || index < 0) return -1
+  if (index > removed) return index - 1
+  if (index === removed) return removed % remaining
+  return index
+}
+
+function openBettorLeaving(state: GameState, player: PlayerState): boolean {
+  return (
+    state.phase === 'betting' &&
+    state.round.isBettingOpen === true &&
+    inChipContest(player) &&
+    !player.hasFolded
+  )
+}
+
+function stateWithoutSeat(state: GameState, playerId: string): GameState {
+  const dropped = state.players.findIndex((p) => p.id === playerId)
+  if (dropped < 0) return state
+  const players = state.players.filter((p) => p.id !== playerId)
+  const acts = state.round.lastSeatBettingAction
+  const current = seatIndexAfterDrop(state.round.currentPlayerIndex ?? -1, dropped, players.length)
+  const dealer = players.length === 0 ? 0 : seatIndexAfterDrop(state.round.dealerIndex, dropped, players.length)
+  return {
+    ...state,
+    players,
+    round: {
+      ...state.round,
+      dealerIndex: dealer < 0 ? 0 : dealer,
+      currentPlayerIndex: current,
+      lastSeatBettingAction: acts == null ? acts : acts.filter((_, index) => index !== dropped),
+      isBettingOpen: players.length === 0 ? false : state.round.isBettingOpen,
+    },
+  }
+}
+
+/**
+ * Take a player out of this felt. An open wager folds first so the street can finish.
+ * Chips already in the pot stay there. The leftover stack leaves with the seat.
+ */
+export function releasePlayer(state: GameState, playerId: string): GameState {
+  const seat = state.players.findIndex((p) => p.id === playerId)
+  if (seat < 0) return state
+  const player = state.players[seat]!
+  const folded = openBettorLeaving(state, player) ? foldPlayer(state, playerId) : state
+  return stateWithoutSeat(folded, playerId)
+}
+
 export function dealCard(): NumericCard {
   const digit = DIGITS[Math.floor(Math.random()*DIGITS.length)];
   return { digit };

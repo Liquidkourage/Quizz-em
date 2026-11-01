@@ -1346,6 +1346,22 @@
   color: rgb(254 226 226);
 }
 
+.player-quit {
+  display: inline-block;
+  margin-top: 0.45rem;
+  border: 0;
+  background: transparent;
+  color: rgb(255 255 255 / 0.45);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.player-quit[data-armed='true'] {
+  color: rgb(254 202 202);
+}
+
 .player-game-answer-question {
   margin-bottom: 0.75rem;
   padding: 0.65rem 0.75rem;

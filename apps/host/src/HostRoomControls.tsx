@@ -7,6 +7,7 @@ export function HostRoomControls({
   brief,
   hostPlayerLabel,
   onMove,
+  onRemove,
   onShuffleEvery,
   onSkipNextShuffle,
   onShuffleNow,
@@ -14,6 +15,7 @@ export function HostRoomControls({
   brief: HostVenueFloorBriefPayload | null
   hostPlayerLabel: (raw: string) => string
   onMove: (playerId: string, toTableNum: number) => void
+  onRemove: (playerId: string) => void
   onShuffleEvery: (every: number) => void
   onSkipNextShuffle: (skip: boolean) => void
   onShuffleNow: () => void
@@ -21,6 +23,7 @@ export function HostRoomControls({
   const roster = brief?.roster ?? []
   const [playerId, setPlayerId] = useState('')
   const [toTable, setToTable] = useState(1)
+  const [removeArmed, setRemoveArmed] = useState(false)
   const [every, setEvery] = useState(brief?.shuffleEveryHands ?? 5)
 
   useEffect(() => {
@@ -33,6 +36,10 @@ export function HostRoomControls({
       setPlayerId(roster[0]!.playerId)
     }
   }, [roster, playerId])
+
+  useEffect(() => {
+    setRemoveArmed(false)
+  }, [playerId])
 
   const selected = roster.find((seat) => seat.playerId === playerId) ?? null
   const counts = new Map<number, number>()
@@ -99,6 +106,22 @@ export function HostRoomControls({
               }}
             >
               Move
+            </NeonButton>
+            <NeonButton
+              variant="red"
+              size="small"
+              disabled={!selected}
+              onClick={() => {
+                if (!selected) return
+                if (!removeArmed) {
+                  setRemoveArmed(true)
+                  return
+                }
+                onRemove(selected.playerId)
+                setRemoveArmed(false)
+              }}
+            >
+              {removeArmed ? 'Remove them' : 'Remove'}
             </NeonButton>
           </div>
         )}

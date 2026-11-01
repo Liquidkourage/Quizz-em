@@ -301,6 +301,10 @@ export function onSeated(callback: (info: { tableId: string }) => void) {
   return subscribeSocket('seated', callback)
 }
 
+export function onEventLeft(callback: (info: { message: string }) => void) {
+  return subscribeSocket('eventLeft', callback)
+}
+
 export function onHostBoundTable(callback: (info: { tableId: string }) => void) {
   return subscribeSocket('hostBoundTable', callback)
 }
@@ -727,6 +731,18 @@ export function assignTablesFromLobby(plan?: LobbySeatPlan, callback?: (ack: Ser
     type: 'assignTablesFromLobby',
     ...(payload ? { payload } : {}),
   })
+  if (callback) socket.once('ack', callback)
+}
+
+export function quitEvent(callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'quitEvent' })
+  if (callback) socket.once('ack', callback)
+}
+
+export function removePlayer(playerId: string, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'removePlayer', payload: { playerId } })
   if (callback) socket.once('ack', callback)
 }
 

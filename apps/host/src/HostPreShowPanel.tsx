@@ -17,6 +17,7 @@ export function HostPreShowPanel({
   tvPairCode,
   setTvPairCode,
   onSeatPlayers,
+  onRemovePlayer,
   onGoQuestions,
   onPairTv,
   attachedDisplays = [],
@@ -31,6 +32,7 @@ export function HostPreShowPanel({
     tableCount: number
     assignments: { playerId: string; tableNum: number }[]
   }) => void
+  onRemovePlayer: (playerId: string) => void
   onGoQuestions: () => void
   onPairTv: (code: string) => void
   attachedDisplays?: HostAttachedDisplay[]
@@ -53,6 +55,7 @@ export function HostPreShowPanel({
   const [tableCount, setTableCount] = useState(suggested)
   const [countTouched, setCountTouched] = useState(false)
   const [picks, setPicks] = useState<Record<string, number>>({})
+  const [removeArmedId, setRemoveArmedId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!countTouched) {
@@ -165,6 +168,20 @@ export function HostPreShowPanel({
                       className="flex items-center justify-between gap-2 rounded-lg border border-white/10 bg-black/25 px-2.5 py-1.5"
                     >
                       <span className="min-w-0 truncate text-sm font-semibold text-emerald-100">{label}</span>
+                      <button
+                        type="button"
+                        className="shrink-0 rounded-md border border-rose-400/40 px-2 py-1 text-xs font-bold text-rose-100/90"
+                        onClick={() => {
+                          if (removeArmedId !== p.id) {
+                            setRemoveArmedId(p.id)
+                            return
+                          }
+                          onRemovePlayer(p.id)
+                          setRemoveArmedId(null)
+                        }}
+                      >
+                        {removeArmedId === p.id ? 'Remove them' : 'Remove'}
+                      </button>
                       <select
                         aria-label={`Table for ${label}`}
                         value={value}

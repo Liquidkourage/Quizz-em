@@ -651,6 +651,33 @@ export async function handleShowAction(
           break
         }
 
+        case 'quitEvent': {
+          const playerId = g.playerIdForSocket(socket.id)
+          if (!playerId) {
+            socket.emit('toast', 'You are not in this event.')
+            socket.emit('ack', { ok: false, message: 'You are not in this event.' })
+            break
+          }
+          const left = g.releaseSeatedPlayer(gameState.code, playerId, 'quit')
+          socket.emit('toast', left.message)
+          socket.emit('ack', { ok: left.ok, message: left.message })
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
+        case 'removePlayer': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const playerId =
+            typeof (payload as { playerId?: unknown })?.playerId === 'string'
+              ? (payload as { playerId: string }).playerId
+              : ''
+          const removed = g.releaseSeatedPlayer(gameState.code, playerId, 'remove')
+          socket.emit('toast', removed.message)
+          socket.emit('ack', { ok: removed.ok, message: removed.message })
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
         case 'movePlayerToTable': {
           if (!g.assertVenueHost(socket, gameState)) break
           const playerId = typeof (payload as { playerId?: unknown })?.playerId === 'string'

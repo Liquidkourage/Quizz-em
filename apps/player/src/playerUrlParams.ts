@@ -17,6 +17,8 @@ export type PlayerJoinPrefs = {
   autoSeat: boolean
   tableId: string
   playerId: string
+  /** Set when this phone quit or was removed, so a refresh does not sit back down. */
+  departed?: boolean
 }
 
 export type PlayerJoinBootstrap = PlayerJoinPrefs & {
@@ -61,8 +63,9 @@ export function playerDisplayNameFromPrefs(prefs: Pick<PlayerJoinPrefs, 'firstNa
 
 /** A refresh can reconnect this phone. A first visit still needs the name screen. */
 export function playerSessionCanResume(
-  prefs: Pick<PlayerJoinPrefs, 'firstName' | 'lastInitial' | 'roomCode' | 'playerId'>,
+  prefs: Pick<PlayerJoinPrefs, 'firstName' | 'lastInitial' | 'roomCode' | 'playerId' | 'departed'>,
 ): boolean {
+  if (prefs.departed) return false
   return (
     prefs.firstName.trim().length > 0 &&
     prefs.lastInitial.trim().length > 0 &&
@@ -91,6 +94,7 @@ export function readPlayerJoinPrefs(): PlayerJoinBootstrap {
     autoSeat: manual ? false : stored.autoSeat !== false,
     tableId: tableFromUrl || stored.tableId || LOBBY_TABLE_ID,
     playerId,
+    departed: stored.departed === true,
     roomFromUrl,
     nameFromUrl,
   }
@@ -108,6 +112,7 @@ export function persistPlayerJoinPrefs(prefs: PlayerJoinPrefs): void {
         autoSeat: prefs.autoSeat,
         tableId: prefs.tableId,
         playerId: prefs.playerId,
+        departed: prefs.departed === true,
       }),
     )
   } catch {

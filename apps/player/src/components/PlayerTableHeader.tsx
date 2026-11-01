@@ -3,6 +3,7 @@ import type { GameState } from '@qhe/core'
 import type { SocketConnectionStatus } from '@qhe/net'
 import { formatTriviaPoints, LOBBY_TABLE_ID, displayBettingPhaseLabel, isWageringPaused } from '@qhe/core'
 import { PlayerReconnectBanner } from './PlayerReconnectBanner'
+import { PlayerQuitButton } from './PlayerQuitButton'
 
 type PlayerTableHeaderProps = {
   disconnected?: boolean
@@ -11,6 +12,7 @@ type PlayerTableHeaderProps = {
   onReconnect?: () => void
   /** Seated live play — shrink brand chrome so roster/dock own the screen. */
   compactLive?: boolean
+  onQuit?: () => void
 }
 
 export function PlayerTableHeader({
@@ -19,6 +21,7 @@ export function PlayerTableHeader({
   lastTableId,
   onReconnect,
   compactLive = false,
+  onQuit,
 }: PlayerTableHeaderProps) {
   return (
     <header
@@ -38,6 +41,7 @@ export function PlayerTableHeader({
           onReconnect={onReconnect}
         />
       ) : null}
+      {onQuit ? <PlayerQuitButton onQuit={onQuit} /> : null}
     </header>
   )
 }

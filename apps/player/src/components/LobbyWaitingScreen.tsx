@@ -8,6 +8,7 @@ import {
   PlayerGoldShellCorners,
 } from './PlayerGoldChrome'
 import { PlayerReconnectBanner } from './PlayerReconnectBanner'
+import { PlayerQuitButton } from './PlayerQuitButton'
 
 type LobbyWaitingScreenProps = {
   playerName: string
@@ -18,6 +19,7 @@ type LobbyWaitingScreenProps = {
   connectionStatus?: SocketConnectionStatus
   lastTableId?: string | null
   onReconnect?: () => void
+  onQuit?: () => void
 }
 
 export default function LobbyWaitingScreen({
@@ -29,6 +31,7 @@ export default function LobbyWaitingScreen({
   connectionStatus,
   lastTableId,
   onReconnect,
+  onQuit,
 }: LobbyWaitingScreenProps) {
   const queueLabel =
     waitingCount === 1 ? '1 player waiting to be seated' : `${waitingCount} players waiting to be seated`
@@ -89,6 +92,7 @@ export default function LobbyWaitingScreen({
                 ) : null}
               </div>
             </div>
+            {onQuit ? <PlayerQuitButton onQuit={onQuit} /> : null}
           </div>
         </motion.div>
       </div>

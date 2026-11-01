@@ -29,6 +29,7 @@ import {
   rehearsalSkipToShowdown,
   assignTablesFromLobby,
   movePlayerToTable,
+  removePlayer as removePlayerFromEvent,
   setVenueHold,
   setVenueShuffleEvery,
   setVenueSkipNextShuffle,
@@ -623,6 +624,7 @@ function HostApp() {
                   brief={venueFloorBrief}
                   hostPlayerLabel={hostPlayerLabel}
                   onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
+                  onRemove={(playerId) => removePlayerFromEvent(playerId)}
                   onShuffleEvery={(every) => setVenueShuffleEvery(every)}
                   onSkipNextShuffle={(skip) => setVenueSkipNextShuffle(skip)}
                   onShuffleNow={() => shuffleTablesNow()}
@@ -1013,6 +1015,7 @@ function HostApp() {
             tvPairCode={tvPairCode}
             setTvPairCode={setTvPairCode}
             onSeatPlayers={handleSeatPlayers}
+            onRemovePlayer={(playerId) => removePlayerFromEvent(playerId)}
             onGoQuestions={() => selectHostMode('questions')}
             onPairTv={(code) => {
               pairDisplayWithHost(code, (ack) => {

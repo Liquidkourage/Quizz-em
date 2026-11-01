@@ -6,7 +6,9 @@ import {
   onState,
   onToast,
   onSeated,
+  onEventLeft,
   onPlayerVenueBrief,
+  quitEvent,
   fold,
   submitAnswer,
   check as checkAction,
@@ -68,6 +70,7 @@ import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
 import StickyQuestionBar from './components/StickyQuestionBar'
 import PointsOnlyLifeBanner from './components/PointsOnlyLifeBanner'
+import { PlayerLeftEvent } from './components/PlayerQuitButton'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './components/PlayerGoldChrome'
 
 type JoinPhase = 'form' | 'connecting' | 'in_venue'
@@ -83,6 +86,8 @@ function PlayerApp() {
   const [joinPrefs, setJoinPrefs] = useState<PlayerJoinBootstrap>(boot.prefs)
   const [joinPhase, setJoinPhase] = useState<JoinPhase>(boot.phase)
   const [joinError, setJoinError] = useState<string | null>(null)
+  const departedRef = useRef(boot.prefs.departed === true)
+  const [leftMessage, setLeftMessage] = useState('You left the event.')
   const [joinNonce, setJoinNonce] = useState(boot.nonce)
   const [gameState, setGameState] = useState<PlayerGameStateWire | null>(null)
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
@@ -120,7 +125,10 @@ function PlayerApp() {
   const handleJoin = () => {
     if (!playerName || !joinPrefs.roomCode.trim()) return
     if (!joinPrefs.firstName.trim() || !joinPrefs.lastInitial.trim()) return
-    persistPlayerJoinPrefs({ ...joinPrefs, autoSeat: true, tableId: LOBBY_TABLE_ID })
+    const joining = { ...joinPrefs, autoSeat: true, tableId: LOBBY_TABLE_ID, departed: false }
+    departedRef.current = false
+    setJoinPrefs(joining)
+    persistPlayerJoinPrefs(joining)
     setJoinError(null)
     setJoinPhase('connecting')
     setJoinNonce((n) => n + 1)
@@ -158,14 +166,27 @@ function PlayerApp() {
     })
 
     const offState = onState((state) => {
-      if (cancelled) return
+      if (cancelled || departedRef.current) return
       recordServerClockSample(state.serverNowMs ?? null)
       setGameState(state)
     })
     const offToast = onToast((message) => showToast(message))
     const offSeated = onSeated(({ tableId }) => {
+      if (departedRef.current) return
       setLastTableId(tableId)
       showToast(`You're at table ${tableId}`, 4500)
+    })
+    const offLeft = onEventLeft((info) => {
+      if (cancelled) return
+      departedRef.current = true
+      if (info.message) setLeftMessage(info.message)
+      setJoinPrefs((prev) => {
+        const next = { ...prev, departed: true }
+        persistPlayerJoinPrefs(next)
+        return next
+      })
+      setJoinPhase('form')
+      disconnect()
     })
     const offBrief = onPlayerVenueBrief(setVenueBrief)
     const stopKeepalive = startConnectionKeepalive({ syncMs: 30_000 })
@@ -176,6 +197,7 @@ function PlayerApp() {
       offState()
       offToast()
       offSeated()
+      offLeft()
       offBrief()
     }
   }, [joinNonce, playerName, joinPrefs.roomCode, joinPrefs.playerId, joinTableId, showToast])
@@ -367,7 +389,12 @@ function PlayerApp() {
     return <ConnectingScreen />
   }
 
+  const leaveEvent = () => quitEvent()
+
   if (joinPhase !== 'in_venue') {
+    if (joinPrefs.departed) {
+      return <PlayerLeftEvent message={leftMessage} onJoinAgain={handleJoin} />
+    }
     return (
       <JoinScreen
         prefs={joinPrefs}
@@ -410,6 +437,7 @@ function PlayerApp() {
           connectionStatus={connectionStatus}
           lastTableId={lastTableId}
           onReconnect={handleForceReconnect}
+          onQuit={leaveEvent}
         />
       </>
     )
@@ -542,6 +570,7 @@ function PlayerApp() {
             connectionStatus={connectionStatus}
             lastTableId={lastTableId ?? gameState.tableId ?? undefined}
             onReconnect={handleForceReconnect}
+            onQuit={leaveEvent}
             compactLive={liveFit}
           />
           {!liveFit ? <PlayerGoldHeaderRule /> : null}

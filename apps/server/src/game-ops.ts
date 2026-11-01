@@ -10,6 +10,7 @@ import {
   createEmptyGame,
   addPlayer,
   removePlayer,
+  releasePlayer,
   isDisplayNameTaken,
   inChipContest,
   startGame,
@@ -174,6 +175,7 @@ export {
   clearPlayerSocketRegistry,
   clearPlayerSocketsForIds,
   getSocketForPlayer,
+  playerIdForSocket,
   registerPlayerSocket,
   unregisterPlayerSocket,
 }
@@ -1099,6 +1101,51 @@ function withDealerInRange(gs: GameState): GameState {
   const dealer = gs.round.dealerIndex
   if (Number.isInteger(dealer) && dealer >= 0 && dealer < n) return gs
   return { ...gs, round: { ...gs.round, dealerIndex: 0 } }
+}
+
+/** Drop one player from whichever felt or the waiting room holds them. Does not emit. */
+export function dropPlayerFromVenue(
+  venueCode: string,
+  playerId: string,
+): { ok: true; name: string; tableLabel: string; sessionKey: string } | { ok: false; message: string } {
+  const id = playerId.trim()
+  if (!id) return { ok: false, message: 'Pick a player to remove.' }
+  const found = findPlayerSessionInVenue(venueCode, id)
+  if (!found) return { ok: false, message: 'That player is not in this event.' }
+  const player = found.gameState.players.find((p) => p.id === id)
+  if (!player) return { ok: false, message: 'That player is not in this event.' }
+  const next = releasePlayer(found.gameState, id)
+  rooms.set(found.sessionKey, next)
+  const tableLabel = isLobbySessionKey(found.sessionKey) ? 'the waiting room' : `table ${found.tableId}`
+  return { ok: true, name: shortPlayerName(player.name), tableLabel, sessionKey: found.sessionKey }
+}
+
+/** Quit or host remove. Chips already in the pot stay. The phone is told the seat is gone. */
+export function releaseSeatedPlayer(
+  venueCode: string,
+  playerId: string,
+  reason: 'quit' | 'remove',
+): { ok: true; message: string } | { ok: false; message: string } {
+  const dropped = dropPlayerFromVenue(venueCode, playerId)
+  if (!dropped.ok) return dropped
+  const message =
+    reason === 'quit'
+      ? `${dropped.name} left ${dropped.tableLabel}.`
+      : `Removed ${dropped.name} from ${dropped.tableLabel}.`
+  const sock = getSocketForPlayer(playerId)
+  clearPlayerSocketsForIds([playerId])
+  if (sock) {
+    sock.emit('eventLeft', {
+      message: reason === 'remove' ? 'The host removed you from the event.' : 'You left the event.',
+    })
+    sock.leave(dropped.sessionKey)
+  }
+  const next = rooms.get(dropped.sessionKey)
+  if (io && next) {
+    emitVenueTableState(dropped.sessionKey, next)
+    emitDisplayVenueSnapshotNow(next.code)
+  }
+  return { ok: true, message }
 }
 
 /** Host: move any seated player to another table. Only while every felt is between hands. */
@@ -2505,6 +2552,8 @@ export const VENUE_SYNC_ACTION_TYPES = new Set<string>([
   'nudgeActingPlayers',
   'assignTablesFromLobby',
   'movePlayerToTable',
+  'quitEvent',
+  'removePlayer',
   'setVenueHold',
   'setVenueShuffleEvery',
   'setVenueSkipNextShuffle',

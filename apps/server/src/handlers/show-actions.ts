@@ -136,7 +136,7 @@ export async function handleShowAction(
           if (!lockSl) break
           const venue = g.normalizeVenueCode(gameState.code)
           const lib = await g.ensureVenueLibrary(gameState.code)
-          let ph = g.getPlayhead(venue)
+          let ph = g.activePlayheadForLibrary(venue, lib)
           if (!ph.setlistId) {
             socket.emit('toast', 'Select a setlist for this game first.')
             break

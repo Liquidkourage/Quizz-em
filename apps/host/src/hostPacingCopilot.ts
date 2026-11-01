@@ -20,7 +20,7 @@ export type HostPacingSuggestion = {
 export function suggestNextHostAction(
   gameState: GameState,
   venueBeat: HostVenueFeltBeatRow[] | null,
-  opts?: { hasActiveSetlist?: boolean },
+  opts?: { hasActiveSetlist?: boolean; nextQuestionText?: string },
 ): HostPacingSuggestion {
   const stepId = resolveRunOfShowStepForHost(gameState, venueBeat)
   const headline = hostRunOfShowHeadline(gameState, venueBeat, opts)

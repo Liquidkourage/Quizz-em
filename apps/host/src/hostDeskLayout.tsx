@@ -519,7 +519,7 @@ export function hostHeaderPhaseDisplay(
 export function hostRunOfShowHeadline(
   gameState: GameState,
   venueBeat?: HostVenueFeltBeatRow[] | null,
-  opts?: { hasActiveSetlist?: boolean },
+  opts?: { hasActiveSetlist?: boolean; nextQuestionText?: string },
 ): { title: string; detail?: string } {
   const controlState = hostControlGameStateFromBeat(gameState, venueBeat ?? null)
   const stepId = resolveRunOfShowStepForHost(gameState, venueBeat ?? null)
@@ -564,9 +564,11 @@ export function hostRunOfShowHeadline(
       title: 'Show the trivia question',
       detail: holesOut
         ? 'Cards are already out. Show the question so players can bet.'
-        : opts?.hasActiveSetlist === true
-          ? 'Next from the setlist puts the question on phones and TVs. Dealing stays locked until then.'
-          : 'Put the question on phones and TVs first. Dealing stays locked until it’s up.',
+        : opts?.nextQuestionText
+          ? `Next up: ${opts.nextQuestionText}`
+          : opts?.hasActiveSetlist === true
+            ? 'Next from the list puts the question on phones and TVs. Dealing stays locked until then.'
+            : 'Put the question on phones and TVs first. Dealing stays locked until it’s up.',
     }
   }
 
@@ -691,7 +693,7 @@ export function buildHostPhaseDockItems(args: {
     } else if (hasActiveSetlist) {
       items.push({
         id: 'setlist',
-        label: 'Next question (setlist)',
+        label: 'Next question',
         onClick: onNextSetlist,
         variant: 'purple',
         role: 'primary',
@@ -762,7 +764,7 @@ export function buildHostPhaseDockItems(args: {
       return withRehearsalSkip([
         {
           id: 'setlist',
-          label: 'Next question (setlist)',
+          label: 'Next question',
           onClick: onNextSetlist,
           variant: 'purple',
           role: 'primary',

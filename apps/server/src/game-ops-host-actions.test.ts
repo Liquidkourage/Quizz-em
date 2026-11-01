@@ -3,13 +3,18 @@ import { addPlayer, createEmptyGame } from '@qhe/core'
 import type { GameState } from '@qhe/core'
 import type { Server } from 'socket.io'
 import {
+  applyQuestionToAllPlayable,
   bindGameIo,
+  buildHostLibraryPayload,
+  ensureVenueLibrary,
   getPlayhead,
   moveSeatedPlayer,
   prepareVenuePersistence,
   rooms,
   setVenueRoomHold,
   tableSessionKey,
+  venueLibraries,
+  venuePlayhead,
 } from './game-ops'
 
 // No real database in unit tests: the venue library store is an empty in-memory map.
@@ -53,6 +58,35 @@ afterEach(() => {
 describe('getPlayhead', () => {
   it('starts at the top with no setlist chosen', () => {
     expect(getPlayhead('nowhere')).toEqual({ setlistId: null, nextIndex: 0 })
+  })
+})
+
+describe('next question in the list', () => {
+  it('offers the starter list when the host has not picked a rundown', async () => {
+    venuePlayhead.delete('HOST01')
+    venueLibraries.delete('HOST01')
+    const payload = await buildHostLibraryPayload('HOST01')
+    expect(payload.activeSetlistId).toBe('starter-set')
+    expect(payload.activeSetlistNextIndex).toBe(0)
+  })
+
+  it('keeps free play when the host cleared the list', async () => {
+    venuePlayhead.set('FREEPLAY', { setlistId: null, nextIndex: 0 })
+    const payload = await buildHostLibraryPayload('FREEPLAY')
+    expect(payload.activeSetlistId).toBeNull()
+  })
+
+  it('moves the list forward after the question on the tables', async () => {
+    venuePlayhead.delete('QNEXT')
+    venueLibraries.delete('QNEXT')
+    const lib = await ensureVenueLibrary('QNEXT')
+    seat('QNEXT', '1', ['p1'])
+    const first = lib.questions.find((q) => q.id === 'q1')
+    expect(first).toBeDefined()
+    applyQuestionToAllPlayable('QNEXT', first!)
+    const payload = await buildHostLibraryPayload('QNEXT')
+    expect(payload.activeSetlistId).toBe('starter-set')
+    expect(payload.activeSetlistNextIndex).toBe(1)
   })
 })
 

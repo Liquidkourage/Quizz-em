@@ -728,10 +728,39 @@ export function getPlayhead(venueCode: string) {
   )
 }
 
+/** Unset playhead uses the starter list. An explicit clear stays free play. */
+export function activePlayheadForLibrary(
+  venueCode: string,
+  lib: VenueLibraryData,
+): { setlistId: string | null; nextIndex: number } {
+  const k = normalizeVenueCode(venueCode)
+  const stored = venuePlayhead.get(k)
+  if (stored) return stored
+  const starter =
+    lib.setlists.find((s) => s.id === STARTER_SETLIST_ID && s.questionIds.length > 0) ??
+    lib.setlists.find((s) => s.questionIds.length > 0)
+  if (!starter) return { setlistId: null, nextIndex: 0 }
+  const ph = { setlistId: starter.id, nextIndex: 0 }
+  venuePlayhead.set(k, ph)
+  return ph
+}
+
+/** After a question is on the tables, the next cue is the following item in the active list. */
+export function noteShownQuestion(venueCode: string, questionId: string, lib: VenueLibraryData) {
+  const ph = activePlayheadForLibrary(venueCode, lib)
+  if (!ph.setlistId) return
+  const sl = lib.setlists.find((s) => s.id === ph.setlistId)
+  if (!sl) return
+  const idx = sl.questionIds.indexOf(questionId)
+  if (idx < 0) return
+  const nextIndex = Math.max(ph.nextIndex, idx + 1)
+  venuePlayhead.set(normalizeVenueCode(venueCode), { setlistId: ph.setlistId, nextIndex })
+}
+
 export async function buildHostLibraryPayload(venueCode: string) {
   const k = normalizeVenueCode(venueCode)
   const lib = await ensureVenueLibrary(k)
-  const ph = getPlayhead(k)
+  const ph = activePlayheadForLibrary(k, lib)
   return {
     questions: lib.questions.map((q) => ({ ...q })),
     setlists: lib.setlists.map((s) => ({
@@ -2259,6 +2288,8 @@ export function drainCpuVpSessionChain(sessionKey: string) {
 
 export function applyQuestionToAllPlayable(venueCode: string, picked: Question): boolean {
   const vn = normalizeVenueCode(venueCode)
+  const lib = venueLibraries?.get(vn)
+  if (lib) noteShownQuestion(vn, picked.id, lib)
   venueSeatingChartPinnedUntilMs.delete(vn)
   const playable = allSeatedTableSessionsInVenue(vn)
   for (const tk of playable) {

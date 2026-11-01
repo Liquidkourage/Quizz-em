@@ -528,7 +528,14 @@ function HostApp() {
     hasActiveSetlist,
   })
 
-  const pacingSuggestion = suggestNextHostAction(hostControlState, venueFeltBeat, { hasActiveSetlist })
+  const nextQuestionText =
+    hasActiveSetlist && activeSetlist
+      ? questionBank.find((q) => q.id === activeSetlist.questionIds[activeSetlistNextIndex])?.text
+      : undefined
+  const pacingSuggestion = suggestNextHostAction(hostControlState, venueFeltBeat, {
+    hasActiveSetlist,
+    nextQuestionText,
+  })
   const runOfShowHeadline = {
     title: pacingSuggestion.title,
     detail: pacingSuggestion.detail,

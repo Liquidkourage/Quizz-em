@@ -81,44 +81,47 @@ export function HostLivePanel({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] gap-2 overflow-hidden">
-      <HostRunBar
-        items={phaseDockItems}
-        headline={runOfShowHeadline}
-        pacingUrgency={pacingUrgency}
-        cueHint={runBarCueHint}
-        tvBar={
-          <>
-            <HostTvBar
-              onVenueFloor={onVenueFloor}
-              onLeaderboard={onLeaderboard}
-              onTriviaLeaderboard={onTriviaLeaderboard}
-              onSeatingRules={onSeatingRules}
-            />
-            <HostConnectedDisplays
-              displays={attachedDisplays}
-              onRelease={(socketId) => onReleaseDisplay?.(socketId)}
-              emptyLabel={false}
-            />
-          </>
-        }
-      />
-
-      <div className={`grid items-start gap-2 ${questionSlot ? 'lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.8fr)]' : ''}`}>
-        {questionSlot ? <div className="min-w-0">{questionSlot}</div> : null}
-        <div className="min-w-0">
-          <HostFloorStrip
-            rows={venueFeltBeat}
-            brief={venueFloorBrief}
-            onSpotlight={onSpotlight}
-          />
-        </div>
+    <div className="host-live-board grid h-full min-h-0 grid-cols-1 gap-2 overflow-hidden sm:grid-cols-2 sm:grid-rows-[auto_auto_auto_minmax(0,1fr)]">
+      <div className="min-w-0 sm:col-start-1 sm:row-start-1">
+        <HostRunBar
+          items={phaseDockItems}
+          headline={runOfShowHeadline}
+          pacingUrgency={pacingUrgency}
+          cueHint={runBarCueHint}
+        />
       </div>
 
-      <div className="h-full min-h-0 overflow-hidden">{feltBeat}</div>
+      <div className="flex min-w-0 flex-col justify-center gap-2 rounded-xl border border-white/10 bg-black/25 px-3 py-2 sm:col-start-2 sm:row-start-1">
+        <HostTvBar
+          onVenueFloor={onVenueFloor}
+          onLeaderboard={onLeaderboard}
+          onTriviaLeaderboard={onTriviaLeaderboard}
+          onSeatingRules={onSeatingRules}
+        />
+        <HostConnectedDisplays
+          displays={attachedDisplays}
+          onRelease={(socketId) => onReleaseDisplay?.(socketId)}
+          emptyLabel={false}
+        />
+      </div>
 
-      <div className={`grid h-full min-h-0 gap-2 overflow-hidden ${handShow ? 'lg:grid-cols-2' : ''}`}>
-        {floorNow}
+      <div className="min-w-0 sm:col-start-1 sm:row-start-2">
+        {questionSlot}
+      </div>
+
+      <div className="min-w-0 sm:col-start-2 sm:row-start-2">
+        <HostFloorStrip
+          rows={venueFeltBeat}
+          brief={venueFloorBrief}
+          onSpotlight={onSpotlight}
+        />
+      </div>
+
+      <div className="min-h-0 overflow-y-auto sm:col-span-2 sm:row-start-3 sm:max-h-56">{feltBeat}</div>
+
+      <div className="h-full min-h-0 overflow-hidden sm:col-start-1 sm:row-start-4">{floorNow}</div>
+
+      <div className="h-full min-h-0 overflow-hidden sm:col-start-2 sm:row-start-4">
         <HostThisHandPanel title="Right now" show={handShow}>
           {handBody}
         </HostThisHandPanel>

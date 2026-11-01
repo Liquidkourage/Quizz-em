@@ -893,7 +893,7 @@ function HostApp() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
         >
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <div className="flex items-center gap-2">
                 <PokerChip size="md" className="opacity-95" />

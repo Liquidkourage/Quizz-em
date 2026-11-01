@@ -25,7 +25,7 @@ export function HostModeNav({
               role="tab"
               aria-selected={active}
               title={t.hint}
-              className={`min-h-[52px] shrink-0 rounded-lg px-4 py-2.5 text-center text-base font-semibold transition-colors sm:min-w-[8.5rem] sm:text-left ${
+              className={`min-h-10 shrink-0 rounded-lg px-4 py-1.5 text-center text-base font-semibold transition-colors sm:min-w-[8.5rem] sm:text-left ${
                 active
                   ? 'bg-white/14 text-white shadow-inner ring-1 ring-casino-emerald/35'
                   : 'text-white/55 hover:bg-white/[0.06] hover:text-white/90'

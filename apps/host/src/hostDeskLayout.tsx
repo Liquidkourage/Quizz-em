@@ -1959,7 +1959,7 @@ export function HostTvBar({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-2 lg:border-l lg:border-white/10 lg:pl-3"
+      className="flex flex-wrap items-center gap-2"
       role="group"
       aria-label="What the audience TVs show"
     >
@@ -1987,7 +1987,7 @@ export function HostTvBar({
 export function HostLiveQuestionCard({ text, answer }: { text: string; answer: number }) {
   return (
     <section
-      className="max-h-40 overflow-y-auto rounded-xl border border-amber-400/40 bg-black/55 px-4 py-3"
+      className="overflow-y-auto rounded-xl border border-amber-400/40 bg-black/55 px-4 py-3"
       aria-label="Live question"
     >
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">Question</p>
@@ -2131,7 +2131,7 @@ export function HostFloorStrip({
   if (rows == null && brief == null) return null
 
   return (
-    <div className="max-h-40 overflow-y-auto rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 sm:px-4 sm:py-3">
+    <div className="overflow-y-auto rounded-xl border border-white/10 bg-black/30 px-3 py-2 sm:px-4">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/40">
           Tables

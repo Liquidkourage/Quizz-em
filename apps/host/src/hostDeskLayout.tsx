@@ -2323,10 +2323,13 @@ export function HostTvBar({
 
   return (
     <div
-      className="host-tv-modes flex w-full flex-nowrap items-center justify-end gap-1.5 overflow-x-auto rounded-xl border border-white/10 bg-black/30 px-2 py-2"
+      className="host-tv-modes flex w-full flex-nowrap items-center gap-1.5 overflow-x-auto rounded-xl border border-white/10 bg-black/30 px-3 py-2"
       role="group"
-      aria-label="What the audience TVs show"
+      aria-label="Public display"
     >
+      <p className="mr-auto shrink-0 text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+        Public display
+      </p>
       {modes.map((m) => {
         const active = m.id === activeView
         return (

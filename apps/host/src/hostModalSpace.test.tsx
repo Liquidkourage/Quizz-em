@@ -53,6 +53,7 @@ describe('host popup space', () => {
       }),
     )
     expect(html).toContain('host-tv-modes')
+    expect(html).toContain('Public display')
     expect(html).toContain('flex-nowrap')
     expect(html).not.toContain('flex-wrap')
     expect(html).toContain('Seating')

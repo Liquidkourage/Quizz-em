@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueActionRow, HostVenueFloorBriefPayload } from '@qhe/net'
-import { HostTableContest, HostVenueFloorBriefPanel } from './hostDeskLayout'
+import { HostTableContest, HostTableOpen, HostVenueFloorBriefPanel } from './hostDeskLayout'
 
 function actionRow(tableNum: number): HostVenueActionRow {
   return {
@@ -27,6 +27,7 @@ function brief(): HostVenueFloorBriefPayload {
         ? {
             ...actionRow(n),
             seats: [{ name: 'Ada L.', kind: 'pot' as const, reason: null }],
+            recentActions: [{ seat: 0, name: 'Ned P.', action: 'call' as const }],
           }
         : actionRow(n),
     ),
@@ -71,6 +72,7 @@ describe('venue floor now', () => {
     expect(busts).toBeGreaterThan(html.indexOf('This hand'))
     expect(html).toContain('Open table 1')
     expect(html).not.toContain('Ada L.')
+    expect(html).not.toContain('Ned P.')
   })
 
   it('opens a table into in-pot and points-only columns', () => {
@@ -87,5 +89,17 @@ describe('venue floor now', () => {
     expect(html.indexOf('Ada L.')).toBeGreaterThan(html.indexOf('In pot'))
     expect(html.indexOf('Bo K.')).toBeGreaterThan(html.indexOf('Points only'))
     expect(html).toContain('Folded')
+  })
+
+  it('puts recent actions on the opened table', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [],
+        recentActions: [{ seat: 1, name: 'Ned P.', action: 'call' }],
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    expect(html).toContain('Ned P.')
+    expect(html).toContain('Call')
   })
 })

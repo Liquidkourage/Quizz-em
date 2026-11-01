@@ -5,6 +5,7 @@ import type { GamePhase, GameState } from '@qhe/core'
 import type {
   HostVenueBigBetEntry,
   HostVenueFeltBeatRow,
+  HostVenueRecentAction,
   HostVenueSeatContest,
   HostVenueFloorBriefPayload,
   HostVenueMoveLogEntry,
@@ -1724,6 +1725,44 @@ export function HostTableContest({
   )
 }
 
+function recentActionLabel(action: string): string {
+  if (action === 'fold') return 'Fold · points'
+  return BET_ACTION_LABEL[action] ?? action
+}
+
+/** Contest columns plus this table's recent actions. */
+export function HostTableOpen({
+  seats,
+  recentActions,
+  hostPlayerLabel,
+}: {
+  seats: HostVenueSeatContest[]
+  recentActions: HostVenueRecentAction[]
+  hostPlayerLabel: (name: string) => string
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <HostTableContest seats={seats} hostPlayerLabel={hostPlayerLabel} />
+      {recentActions.length > 0 ? (
+        <section>
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Recent actions</p>
+          <ul className="mt-2 space-y-1">
+            {recentActions.map((action, index) => (
+              <li
+                key={`${action.seat}-${index}`}
+                className="flex items-baseline justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5 text-sm"
+              >
+                <span className="font-semibold text-white">{hostPlayerLabel(action.name)}</span>
+                <span className="shrink-0 text-xs text-white/55">{recentActionLabel(action.action)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  )
+}
+
 export function HostVenueFloorBriefPanel({
   brief,
   hostPlayerLabel,
@@ -1825,30 +1864,6 @@ export function HostVenueFloorBriefPanel({
                           <ChipText text={row.actingSummary} />
                         </p>
                       ) : null}
-                      {row.recentActions.length > 0 ? (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {row.recentActions.map((a, i) => {
-                            const folded = a.action === 'fold'
-                            return (
-                              <span
-                                key={`${row.tableNum}-${a.seat}-${i}`}
-                                className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
-                                  folded
-                                    ? 'border-amber-400/40 bg-amber-950/35 text-amber-100'
-                                    : 'border-white/15 bg-black/35 text-white/75'
-                                }`}
-                              >
-                                {hostPlayerLabel(a.name)}{' '}
-                                <span className={folded ? 'text-amber-100/70' : 'text-white/45'}>
-                                  {folded
-                                    ? 'Fold · points'
-                                    : (BET_ACTION_LABEL[a.action] ?? a.action)}
-                                </span>
-                              </span>
-                            )
-                          })}
-                        </div>
-                      ) : null}
                       <span className="mt-1 block text-[0.65rem] font-bold uppercase tracking-[0.14em] text-sky-200/80">
                         Open
                       </span>
@@ -1864,7 +1879,11 @@ export function HostVenueFloorBriefPanel({
               onClose={() => setOpenTable(null)}
             >
               {openRow ? (
-                <HostTableContest seats={openRow.seats ?? []} hostPlayerLabel={hostPlayerLabel} />
+                <HostTableOpen
+                  seats={openRow.seats ?? []}
+                  recentActions={openRow.recentActions}
+                  hostPlayerLabel={hostPlayerLabel}
+                />
               ) : null}
             </HostModal>
           </div>

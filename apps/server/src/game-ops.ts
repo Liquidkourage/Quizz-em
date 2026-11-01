@@ -1593,6 +1593,24 @@ export function requireVenueLockstepTables(
   return rows
 }
 
+/** Reveal is one venue beat. Returns false, and changes nothing, until every seated table is answering. */
+export function revealVenueAnswersTogether(socket: Socket, venueCode: string): boolean {
+  const lock = requireVenueLockstepTables(
+    socket,
+    venueCode,
+    (gs) => gs.phase === 'answering',
+    'be in the answer window before revealing',
+  )
+  if (!lock) return false
+  clearVenueWageringOrchestrationState(normalizeVenueCode(venueCode))
+  for (const { tk } of lock) {
+    const gs = rooms.get(tk)
+    if (!gs) continue
+    rooms.set(tk, revealAnswer(gs))
+  }
+  return true
+}
+
 /**
  * Every seated table must satisfy `predicate` (no signature match).
  * Use when the action normalizes per-table differences (e.g. auto-close round 1 before dealing the board).

@@ -341,50 +341,9 @@ export async function handleShowAction(
         case 'revealAnswer': {
           if (!g.assertVenueHost(socket, gameState)) break
           const vnRev = g.normalizeVenueCode(gameState.code)
-          const rowsRev = g.venuePlayableSnapshots(vnRev)
-          if (rowsRev.length === 0) {
-            socket.emit('toast', 'No playable tables yet — assign the lobby first.')
-            break
-          }
-          const answeringRows = rowsRev.filter((r) => r.gs.phase === 'answering')
-          if (answeringRows.length === 0) {
-            const sample = rowsRev[0]!.gs
-            socket.emit(
-              'toast',
-              `No table is in the answer window yet (yours collectively: ${g.humanReadableStrictState(sample)}). Wait for answering or use Host overrides.`,
-            )
-            break
-          }
-          const stragglers = rowsRev.filter(
-            (r) =>
-              r.gs.phase !== 'answering' &&
-              r.gs.phase !== 'showdown' &&
-              r.gs.phase !== 'reveal',
-          )
-          if (stragglers.length > 0) {
-            const nums = stragglers
-              .map((r) => (Number.isFinite(r.n) ? String(r.n) : '?'))
-              .sort()
-              .join(', ')
-            socket.emit(
-              'toast',
-              `Revealing on ${answeringRows.length} table(s) in answering — tables ${nums} are still catching up.`,
-            )
-          }
-          g.clearVenueWageringOrchestrationState(vnRev)
-          for (const { tk } of answeringRows) {
-            let gs = g.rooms.get(tk)
-            if (!gs || gs.phase !== 'answering') continue
-            gs = g.revealAnswer(gs)
-            g.rooms.set(tk, gs)
-          }
+          if (!g.revealVenueAnswersTogether(socket, vnRev)) break
           g.scheduleVenueRevealToShowdown(vnRev)
-          socket.emit(
-            'toast',
-            stragglers.length === 0
-              ? 'Answers revealed.'
-              : `Answers revealed on ${answeringRows.length} table(s).`,
-          )
+          socket.emit('toast', 'Answers revealed.')
           gameState = g.rooms.get(sessionKey)!
           break
         }

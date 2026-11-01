@@ -5,6 +5,7 @@ import type { Socket } from 'socket.io'
 import {
   requireAllSeatedTablesSatisfy,
   requireVenueLockstepTables,
+  revealVenueAnswersTogether,
   rooms,
   tableSessionKey,
   toastVenueMisaligned,
@@ -86,6 +87,32 @@ describe('toastVenueMisaligned', () => {
     const { socket, toasts } = host()
     toastVenueMisaligned(socket, venuePlayableSnapshots('l4'))
     expect(toasts[0]).toContain('(1,2→answer window · 3→lobby between hands)')
+  })
+})
+
+describe('revealVenueAnswersTogether', () => {
+  it('leaves every table untouched while any felt is still betting', () => {
+    seat('L7', '1', 'answering')
+    seat('L7', '2', 'answering')
+    seat('L7', '3', 'betting')
+    const { socket, toasts } = host()
+    expect(revealVenueAnswersTogether(socket, 'l7')).toBe(false)
+    expect(rooms.get(tableSessionKey('L7', '1'))!.phase).toBe('answering')
+    expect(rooms.get(tableSessionKey('L7', '2'))!.phase).toBe('answering')
+    expect(rooms.get(tableSessionKey('L7', '3'))!.phase).toBe('betting')
+    expect(toasts[0]).toContain('out of sync')
+  })
+
+  it('reveals every seated table in one beat when all are answering', () => {
+    seat('L8', '1', 'answering')
+    seat('L8', '2', 'answering')
+    seat('L8', '3', 'answering')
+    const { socket, toasts } = host()
+    expect(revealVenueAnswersTogether(socket, 'l8')).toBe(true)
+    expect(rooms.get(tableSessionKey('L8', '1'))!.phase).toBe('reveal')
+    expect(rooms.get(tableSessionKey('L8', '2'))!.phase).toBe('reveal')
+    expect(rooms.get(tableSessionKey('L8', '3'))!.phase).toBe('reveal')
+    expect(toasts).toEqual([])
   })
 })
 

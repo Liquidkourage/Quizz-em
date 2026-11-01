@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { HostDeskShell } from './HostDeskShell'
 import { HostLivePanel } from './HostLivePanel'
-import { HostLiveQuestionCard, HostVenueFeltBeatStrip } from './hostDeskLayout'
+import { HostLiveQuestionCard } from './hostDeskLayout'
 import { HostQuestionsPanel, type HostQuestionsPanelProps } from './HostQuestionsPanel'
 
 describe('host desk viewport', () => {
@@ -49,32 +49,14 @@ describe('host desk viewport', () => {
         onSpotlight={() => {}}
         handShow
         handBody={<p>Pay winners</p>}
-        feltBeat={
-          <HostVenueFeltBeatStrip
-            rows={[
-              {
-                tableNum: 1,
-                active: true,
-                seated: 2,
-                phase: 'betting',
-                street: 'preflop',
-                clock: '',
-                answerDeadlineMs: null,
-                phaseStrictSig: 'betting',
-              },
-            ]}
-            hostTableId="1"
-            onSetTablePhase={() => {}}
-          />
-        }
         floorNow={<section>Venue floor · now</section>}
         onGoPreShow={() => {}}
       />,
     )
     expect(html).toContain('Deal the cards')
     expect(html).toContain('Audience TVs')
-    expect(html).toContain('Venue felts · beat')
-    expect(html).toContain('grid-cols-3')
+    expect(html).not.toContain('Venue felts')
+    expect(html).toContain('grid-cols-2')
     expect(html).toContain('host-open-button')
     expect(html).toContain('Open')
     expect(html).not.toContain('Click a table to set its phase')
@@ -89,10 +71,10 @@ describe('host desk viewport', () => {
     expect(html).toContain('max-h-full self-start')
     expect(html).not.toContain('h-full min-h-0 overflow-hidden sm:col-span-2')
     expect(html).not.toContain('sm:col-start-1 sm:row-start-3')
-    const beat = html.indexOf('Venue felts · beat')
+    const tvs = html.indexOf('Audience TVs')
     const now = html.indexOf('Venue floor · now')
     const hand = html.indexOf('Right now')
-    expect(hand).toBeGreaterThan(beat)
+    expect(hand).toBeGreaterThan(tvs)
     expect(now).toBeGreaterThan(hand)
   })
 
@@ -124,7 +106,6 @@ describe('host desk viewport', () => {
         onSpotlight={() => {}}
         handShow={false}
         handBody={null}
-        feltBeat={<section>Venue felts · beat</section>}
         floorNow={<section>Venue floor · now</section>}
         onGoPreShow={() => {}}
       />,

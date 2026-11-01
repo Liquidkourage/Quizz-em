@@ -1681,6 +1681,8 @@ export function HostTableOpen({
   phaseLabel,
   pot = 0,
   actingSummary,
+  tableNum,
+  onSetTablePhase,
 }: {
   seats: HostVenueSeatContest[]
   recentActions: HostVenueRecentAction[]
@@ -1688,6 +1690,8 @@ export function HostTableOpen({
   phaseLabel?: string
   pot?: number
   actingSummary?: string | null
+  tableNum?: number
+  onSetTablePhase?: (signature: string) => void
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -1724,6 +1728,9 @@ export function HostTableOpen({
           </ul>
         </section>
       ) : null}
+      {tableNum != null && onSetTablePhase ? (
+        <HostFeltPhasePicker tableNum={tableNum} onPick={onSetTablePhase} />
+      ) : null}
     </div>
   )
 }
@@ -1732,12 +1739,19 @@ export function HostVenueFloorBriefPanel({
   brief,
   hostPlayerLabel,
   hostTableId,
+  feltRows = null,
+  onAlignRoom,
+  onSetTablePhase,
 }: {
   brief: HostVenueFloorBriefPayload | null
   hostPlayerLabel: (name: string) => string
   hostTableId: string
+  feltRows?: HostVenueFeltBeatRow[] | null
+  onAlignRoom?: () => void
+  onSetTablePhase?: (tableNum: number, signature: string) => void
 }) {
   const rows = brief?.actionRows ?? []
+  const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
   const [openTable, setOpenTable] = useState<number | null>(null)
   const openRow = rows.find((row) => row.tableNum === openTable)
 
@@ -1747,8 +1761,15 @@ export function HostVenueFloorBriefPanel({
       expanded
       badge={
         brief != null ? (
-          <span className="text-xs font-normal text-white/40">
-            {brief.liveTableCount} tables · {brief.fieldPlayerCount} in field
+          <span className="flex items-center gap-2">
+            <span className="text-xs font-normal text-white/40">
+              {brief.liveTableCount} tables · {brief.fieldPlayerCount} in field
+            </span>
+            {lockstepMisaligned ? (
+              <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-200">
+                Misaligned
+              </span>
+            ) : null}
           </span>
         ) : null
       }
@@ -1763,6 +1784,15 @@ export function HostVenueFloorBriefPanel({
       ) : (
         <div className="flex flex-col gap-3">
           <div>
+            {lockstepMisaligned && onAlignRoom ? (
+              <button
+                type="button"
+                onClick={onAlignRoom}
+                className="mb-2 rounded-md border border-amber-300/60 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
+              >
+                Match the room
+              </button>
+            ) : null}
             <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
               Table action
             </p>
@@ -1775,6 +1805,7 @@ export function HostVenueFloorBriefPanel({
                     hostTableId.trim() !== LOBBY_TABLE_ID &&
                     String(row.tableNum) === hostTableId.trim()
                   const phaseLabel = HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
+                  const drift = outlierTableNums.has(row.tableNum)
                   return (
                     <li key={row.tableNum}>
                     <button
@@ -1782,7 +1813,7 @@ export function HostVenueFloorBriefPanel({
                       aria-label={`Open table ${row.tableNum}`}
                       onClick={() => setOpenTable(row.tableNum)}
                       className={`w-full cursor-pointer rounded-md border px-1.5 py-1 text-left ${
-                        row.interestingAction
+                        drift || row.interestingAction
                           ? 'border-amber-400/45 bg-amber-950/25'
                           : 'border-white/10 bg-black/20'
                       } ${watching ? 'ring-1 ring-emerald-400/50' : ''}`}
@@ -1825,6 +1856,12 @@ export function HostVenueFloorBriefPanel({
                   phaseLabel={HOST_PHASE_LABEL[openRow.phase as GamePhase] ?? openRow.phase}
                   pot={openRow.pot}
                   actingSummary={openRow.actingSummary}
+                  tableNum={openRow.tableNum}
+                  onSetTablePhase={
+                    onSetTablePhase
+                      ? (signature) => onSetTablePhase(openRow.tableNum, signature)
+                      : undefined
+                  }
                   hostPlayerLabel={hostPlayerLabel}
                 />
               ) : null}

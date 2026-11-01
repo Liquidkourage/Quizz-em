@@ -4,9 +4,9 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { HostLivePanel } from './HostLivePanel'
 import { HostPreShowPanel } from './HostPreShowPanel'
-import { HostFloorStrip, HostTvBar, HostVenueFeltBeatStrip } from './hostDeskLayout'
+import { HostFloorStrip, HostTvBar, HostVenueFloorBriefPanel } from './hostDeskLayout'
+import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { suggestNextHostAction } from './hostPacingCopilot'
-import type { HostVenueFeltBeatRow } from '@qhe/net'
 
 function felt(tableNum: number, sig: string): HostVenueFeltBeatRow {
   return {
@@ -92,11 +92,28 @@ describe('host explanatory copy', () => {
     expect(tables).not.toContain('click that table')
     expect(tables).not.toContain('Show table 1 large')
 
+    const floorBrief: HostVenueFloorBriefPayload = {
+      actionRows: [],
+      moveLog: [],
+      busts: [],
+      bigWinners: [],
+      bigBets: [],
+      handBets: [],
+      bigWinMinAmount: 300,
+      fieldPlayerCount: 4,
+      liveTableCount: 2,
+      roster: [],
+      venueHeld: false,
+      shuffleEveryHands: 5,
+      venueShuffleHeld: false,
+      handsUntilShuffle: 5,
+    }
     const felts = renderToStaticMarkup(
-      createElement(HostVenueFeltBeatStrip, {
-        rows: [felt(1, 'answer'), felt(2, 'bet')],
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floorBrief,
+        feltRows: [felt(1, 'answer'), felt(2, 'bet')],
+        hostPlayerLabel: (name: string) => name,
         hostTableId: '1',
-        forceOpen: true,
         onAlignRoom: () => {},
         onSetTablePhase: () => {},
       }),

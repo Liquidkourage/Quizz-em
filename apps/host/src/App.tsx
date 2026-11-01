@@ -58,7 +58,6 @@ import { readHostVenueCode } from './hostVenueCode'
 import {
   HostCollapsible,
   HostBlindsControls,
-  HostVenueFeltBeatStrip,
   HostVenueFloorBriefPanel,
   HostVenueMoveLogPanel,
   HostContestBadge,
@@ -1130,19 +1129,14 @@ function HostApp() {
                 ) : null}
               </>
             }
-            feltBeat={
-              <HostVenueFeltBeatStrip
-                rows={venueFeltBeat}
-                hostTableId={hostTableId}
-                onAlignRoom={() => alignTablesToRoom()}
-                onSetTablePhase={(tableNum, signature) => setTablePhase(tableNum, signature)}
-              />
-            }
             floorNow={
               <HostVenueFloorBriefPanel
                 brief={venueFloorBrief}
+                feltRows={venueFeltBeat}
                 hostPlayerLabel={hostPlayerLabel}
                 hostTableId={hostTableId}
+                onAlignRoom={() => alignTablesToRoom()}
+                onSetTablePhase={(tableNum, signature) => setTablePhase(tableNum, signature)}
               />
             }
             blindCall={

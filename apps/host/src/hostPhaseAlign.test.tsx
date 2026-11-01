@@ -1,8 +1,8 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import type { HostVenueFeltBeatRow } from '@qhe/net'
-import { HostFeltPhasePicker, HostHandBetRank, HostVenueFeltBeatStrip } from './hostDeskLayout'
+import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
+import { HostFeltPhasePicker, HostHandBetRank, HostTableOpen, HostVenueFloorBriefPanel } from './hostDeskLayout'
 
 function row(tableNum: number, phase: string, sig: string): HostVenueFeltBeatRow {
   return {
@@ -17,22 +17,67 @@ function row(tableNum: number, phase: string, sig: string): HostVenueFeltBeatRow
   }
 }
 
-describe('Venue felts beat phase tools', () => {
-  it('lets the host click a seated table and match the room when beats disagree', () => {
+function floorBrief(): HostVenueFloorBriefPayload {
+  return {
+    actionRows: [1, 2].map((tableNum) => ({
+      tableNum,
+      phase: 'answering',
+      seated: 3,
+      pot: 0,
+      actingSeatIndex: null,
+      actingPlayerName: null,
+      actingSummary: null,
+      recentActions: [],
+      inPotCount: 3,
+      pointsOnlyCount: 0,
+      seats: [],
+    })),
+    moveLog: [],
+    busts: [],
+    bigWinners: [],
+    bigBets: [],
+    handBets: [],
+    bigWinMinAmount: 300,
+    fieldPlayerCount: 6,
+    liveTableCount: 2,
+    roster: [],
+    venueHeld: false,
+    shuffleEveryHands: 5,
+    venueShuffleHeld: false,
+    handsUntilShuffle: 5,
+  }
+}
+
+describe('Venue floor phase tools', () => {
+  it('offers match the room on the floor when beats disagree', () => {
     const html = renderToStaticMarkup(
-      createElement(HostVenueFeltBeatStrip, {
-        rows: [row(1, 'answering', 'answer'), row(2, 'showdown', 'postHand')],
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floorBrief(),
+        feltRows: [row(1, 'answering', 'answer'), row(2, 'showdown', 'postHand')],
+        hostPlayerLabel: (name: string) => name,
         hostTableId: '1',
         onAlignRoom: () => {},
         onSetTablePhase: () => {},
       }),
     )
-    expect(html).toContain('Venue felts · beat')
-    expect(html).toContain('Open')
+    expect(html).toContain('Venue floor')
     expect(html).toContain('Misaligned')
-    expect(html).not.toContain('Match the room')
-    expect(html).not.toContain('Click a table to set its phase')
-    expect(html).not.toContain('aria-label="Table 1"')
+    expect(html).toContain('Match the room')
+    expect(html).not.toContain('Venue felts')
+  })
+
+  it('puts phase choices on the opened table', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [],
+        recentActions: [],
+        hostPlayerLabel: (name: string) => name,
+        tableNum: 2,
+        onSetTablePhase: () => {},
+      }),
+    )
+    expect(html).toContain('Table 2')
+    expect(html).toContain('Results')
   })
 
   it('lists beats for the table that was clicked', () => {

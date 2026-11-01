@@ -31,7 +31,6 @@ export function HostLivePanel({
   questionSlot,
   handShow,
   handBody,
-  feltBeat,
   floorNow,
   blindCall,
   onGoPreShow,
@@ -55,8 +54,6 @@ export function HostLivePanel({
   questionSlot?: ReactNode
   handShow: boolean
   handBody: ReactNode
-  /** Venue felts, opened from the popup row. */
-  feltBeat?: ReactNode
   /** Venue floor · now, already open. */
   floorNow?: ReactNode
   /** Blind suggestion for the rest of the night. Sits on the tables strip. */
@@ -97,7 +94,7 @@ export function HostLivePanel({
         />
       </div>
 
-      <div className="grid min-w-0 grid-cols-3 items-start gap-2 self-start sm:col-start-2 sm:row-start-1">
+      <div className="grid min-w-0 grid-cols-2 items-start gap-2 self-start sm:col-start-2 sm:row-start-1">
         <HostCollapsible summary="Audience TVs" appearance="button">
           <div className="flex h-full min-h-0 flex-col gap-3">
             <HostTvBar
@@ -123,7 +120,6 @@ export function HostLivePanel({
             blindCall={blindCall}
           />
         </HostCollapsible>
-        {feltBeat}
       </div>
 
       <div className="flex min-w-0 items-start gap-2 sm:col-span-2 sm:row-start-2">

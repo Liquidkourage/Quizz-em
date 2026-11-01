@@ -18,7 +18,7 @@ export function HostConnectedDisplays({
   }
 
   return (
-    <ul className="mt-3 space-y-1.5" aria-label="Attached displays">
+    <ul className="mt-1.5 space-y-1" aria-label="Attached displays">
       {displays.map((display) => (
         <li
           key={display.socketId}

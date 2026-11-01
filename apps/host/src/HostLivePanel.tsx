@@ -117,7 +117,7 @@ export function HostLivePanel({
         </div>
       </div>
 
-      <div className="max-h-44 min-h-0 overflow-y-auto">{feltBeat}</div>
+      <div className="max-h-36 min-h-0 overflow-y-auto">{feltBeat}</div>
 
       <div className={`grid min-h-0 gap-2 overflow-hidden ${handShow ? 'lg:grid-cols-2' : ''}`}>
         {floorNow}

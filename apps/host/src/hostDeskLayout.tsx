@@ -2061,7 +2061,7 @@ export function HostRunBar({
                 size="normal"
                 disabled={primary.disabled}
                 onClick={primary.onClick}
-                className="!px-6 !py-3.5 !text-xl !font-bold"
+                className="!px-5 !py-2 !text-lg !font-bold"
               >
                 {primary.label}
               </NeonButton>

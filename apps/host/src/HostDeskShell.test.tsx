@@ -59,6 +59,7 @@ describe('host desk viewport', () => {
     expect(html).toContain('Pay winners')
     expect(html).toContain('h-full')
     expect(html).toContain('overflow-hidden')
+    expect(html).toContain('max-h-36')
     expect(html).toContain('lg:grid-cols-2')
     const beat = html.indexOf('Venue felts · beat')
     const now = html.indexOf('Venue floor · now')

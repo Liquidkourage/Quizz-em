@@ -1768,7 +1768,7 @@ export function HostVenueFloorBriefPanel({
             {rows.length === 0 ? (
               <p className="text-sm text-white/50">No seated tables yet.</p>
             ) : (
-              <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-2">
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,9rem))] justify-start gap-1.5">
                 {rows.map((row) => {
                   const watching =
                     hostTableId.trim() !== LOBBY_TABLE_ID &&
@@ -1780,7 +1780,7 @@ export function HostVenueFloorBriefPanel({
                       type="button"
                       aria-label={`Open table ${row.tableNum}`}
                       onClick={() => setOpenTable(row.tableNum)}
-                      className={`w-full cursor-pointer rounded-lg border px-2.5 py-2 text-left ${
+                      className={`w-full cursor-pointer rounded-md border px-1.5 py-1 text-left ${
                         row.interestingAction
                           ? 'border-amber-400/45 bg-amber-950/25'
                           : 'border-white/10 bg-black/20'

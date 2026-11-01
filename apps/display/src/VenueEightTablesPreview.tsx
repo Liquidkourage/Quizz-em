@@ -29,6 +29,7 @@ import {
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
   mosaicSeatLabelPct,
+  mosaicSeatInwardPct,
   mosaicSeatChipInwardFrac,
   mosaicSeatHoleInwardFrac,
   broadcastBlindMarkerPct,
@@ -1573,7 +1574,7 @@ function SeatRingWithLabels({
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
         const mosaicStackPos =
           isMosaic && showMosaicSeatStacks && filled && !isBusted
-            ? mosaicSeatLabelPct(i, rimW, rimH, Math.max(8, Math.round(cupSizePx * 0.62)))
+            ? mosaicSeatInwardPct(i, rimW, rimH, Math.max(8, Math.round(cupSizePx * 0.62)))
             : null
         const actingSoftPulse =
           'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden motion-safe:animate-pulse'

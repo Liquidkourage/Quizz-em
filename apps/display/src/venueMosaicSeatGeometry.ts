@@ -33,6 +33,30 @@ import {
   mosaicSeatIndex,
 } from '@qhe/ui'
 
+/** Stack amount just inside the cup, toward the felt center. */
+export function mosaicSeatInwardPct(
+  seatIndex: number,
+  w: number,
+  h: number,
+  inwardPx: number
+): { leftPct: number; topPct: number } {
+  const cup = mosaicSeatDotPct(seatIndex, MOSAIC_SEAT_COUNT, w, h)
+  if (!(w > 0 && h > 0) || inwardPx <= 0) return cup
+  const center = mosaicFeltCenterPct(w, h)
+  const cupX = (cup.leftPct / 100) * w
+  const cupY = (cup.topPct / 100) * h
+  const centerX = (center.leftPct / 100) * w
+  const centerY = (center.topPct / 100) * h
+  const dx = centerX - cupX
+  const dy = centerY - cupY
+  const len = Math.hypot(dx, dy) || 1
+  const travel = Math.min(Math.max(0, inwardPx), len * 0.55)
+  return {
+    leftPct: ((cupX + (dx / len) * travel) / w) * 100,
+    topPct: ((cupY + (dy / len) * travel) / h) * 100,
+  }
+}
+
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8
 

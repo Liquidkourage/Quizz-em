@@ -9,6 +9,7 @@ import {
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
   mosaicSeatLabelPct,
+  mosaicSeatInwardPct,
   mosaicSeatChipInwardFrac,
   mosaicStadiumCupUV,
   broadcastBlindMarkerPct,
@@ -110,6 +111,16 @@ describe('venueMosaicSeatGeometry', () => {
       cup.leftPct + (center.leftPct - cup.leftPct) * 0.28,
       5
     )
+  })
+
+  it('places stack amounts inward from the cup toward felt center', () => {
+    for (let i = 0; i < 8; i++) {
+      const cup = mosaicSeatDotPct(i, 8, w, h)
+      const stack = mosaicSeatInwardPct(i, w, h, 24)
+      const cupToCenter = Math.hypot(center.leftPct - cup.leftPct, center.topPct - cup.topPct)
+      const stackToCenter = Math.hypot(center.leftPct - stack.leftPct, center.topPct - stack.topPct)
+      expect(stackToCenter).toBeLessThan(cupToCenter)
+    }
   })
 
   it('places name labels outward from cup through felt center', () => {

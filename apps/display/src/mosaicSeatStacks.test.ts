@@ -12,10 +12,10 @@ import {
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 
 describe('mosaic seat stacks', () => {
-  it('shows stack amounts only while the felt is not in a live hand', () => {
+  it('shows stack amounts in the lobby and on a break, not once a question is up', () => {
     expect(mosaicShowsSeatStacks('lobby')).toBe(true)
-    expect(mosaicShowsSeatStacks('question')).toBe(true)
     expect(mosaicShowsSeatStacks('intermission')).toBe(true)
+    expect(mosaicShowsSeatStacks('question')).toBe(false)
     expect(mosaicShowsSeatStacks('betting')).toBe(false)
     expect(mosaicShowsSeatStacks('answering')).toBe(false)
     expect(mosaicShowsSeatStacks('reveal')).toBe(false)

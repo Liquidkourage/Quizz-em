@@ -2,10 +2,10 @@ import { ChipMark } from '@qhe/ui'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 
-/** Lobby, the question beat, and breaks — felts with no live wagering. */
+/** Lobby and breaks only. The question beat is the felt just before hole cards. */
 export function mosaicShowsSeatStacks(phase: string | null | undefined): boolean {
   const ph = String(phase ?? '').trim().toLowerCase()
-  return ph === 'lobby' || ph === 'question' || ph === 'intermission'
+  return ph === 'lobby' || ph === 'intermission'
 }
 
 function feltWidthPx(tableWidthPx: number): number {

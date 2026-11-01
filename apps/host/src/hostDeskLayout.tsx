@@ -1633,7 +1633,7 @@ export function HostVenueFloorBriefPanel({
             {rows.length === 0 ? (
               <p className="text-sm text-white/50">No seated tables yet.</p>
             ) : (
-              <ul className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-2">
                 {rows.map((row) => {
                   const watching =
                     hostTableId.trim() !== LOBBY_TABLE_ID &&

@@ -25,6 +25,7 @@ import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
+import { venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined

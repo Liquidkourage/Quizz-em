@@ -1,10 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import { dataFile } from './data-dir'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-export const VENUE_ANSWER_SETTINGS_FILE = path.join(__dirname, '..', 'data', 'venue-answer-settings.json')
+export const VENUE_ANSWER_SETTINGS_FILE = dataFile('venue-answer-settings.json')
 
 /** Host / env default for `startAnswering` countdown (seconds). */
 export const ANSWER_WINDOW_MIN_SEC = 15

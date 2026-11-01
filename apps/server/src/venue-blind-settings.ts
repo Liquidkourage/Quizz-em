@@ -1,10 +1,8 @@
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
+import { dataFile } from './data-dir'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-export const VENUE_BLIND_SETTINGS_FILE = path.join(__dirname, '..', 'data', 'venue-blind-settings.json')
+export const VENUE_BLIND_SETTINGS_FILE = dataFile('venue-blind-settings.json')
 
 export const DEFAULT_BLIND_LEVELS: ReadonlyArray<readonly [number, number]> = [
   [10, 20],

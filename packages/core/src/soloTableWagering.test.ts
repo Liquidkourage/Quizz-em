@@ -4,12 +4,11 @@ import {
   dealCommunityCards,
   dealInitialCards,
   openBettingRound1,
-  playerCheck,
   SAMPLE_QUESTIONS,
 } from './index'
 
 describe('solo table wagering', () => {
-  it('closes round 1 after the lone player checks (both blinds on one seat)', () => {
+  it('does not open wagering when only one player can still win the chips', () => {
     let gs = createEmptyGame('HOST01', '', '1')
     gs = {
       ...gs,
@@ -34,14 +33,11 @@ describe('solo table wagering', () => {
     }
 
     gs = openBettingRound1(gs)
-    expect(gs.round.isBettingOpen).toBe(true)
-    expect(gs.round.currentPlayerIndex).toBe(0)
-    expect(gs.round.playerBets?.p1).toBe(30)
-
-    gs = playerCheck(gs, 'p1')
+    expect(gs.phase).toBe('betting')
     expect(gs.round.isBettingOpen).toBe(false)
     expect(gs.round.currentPlayerIndex).toBe(-1)
-    expect(gs.round.lastSeatBettingAction?.[0]).toBe('check')
+    expect(gs.round.pot).toBe(0)
+    expect(gs.players[0]!.bankroll).toBe(1000)
   })
 
   it('does not make the last chip stack bet against a points-only seat', () => {
@@ -89,6 +85,44 @@ describe('solo table wagering', () => {
     gs = dealCommunityCards(gs)
     expect(gs.round.communityCards).toHaveLength(5)
     expect(gs.round.bettingRound).toBe(2)
+    expect(gs.round.isBettingOpen).toBe(false)
+    expect(gs.round.currentPlayerIndex).toBe(-1)
+  })
+
+  it('does not reopen wagering after the board when everyone else has folded', () => {
+    let gs = createEmptyGame('HOST01', '', '1')
+    gs = {
+      ...gs,
+      phase: 'betting',
+      players: [
+        {
+          id: 'winner',
+          name: 'Ada',
+          bankroll: 900,
+          hand: [{ digit: 1 }, { digit: 2 }],
+          hasFolded: false,
+          isAllIn: false,
+        },
+        {
+          id: 'folded',
+          name: 'Bea',
+          bankroll: 800,
+          hand: [{ digit: 3 }, { digit: 4 }],
+          hasFolded: true,
+          isAllIn: false,
+        },
+      ],
+      round: {
+        ...gs.round,
+        question: SAMPLE_QUESTIONS[0]!,
+        bettingRound: 1,
+        isBettingOpen: false,
+        currentPlayerIndex: -1,
+        communityCards: [],
+      },
+    }
+    gs = dealCommunityCards(gs)
+    expect(gs.round.communityCards).toHaveLength(5)
     expect(gs.round.isBettingOpen).toBe(false)
     expect(gs.round.currentPlayerIndex).toBe(-1)
   })

@@ -22,7 +22,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import type { PlayerGameStateWire, PlayerVenueBrief } from '@qhe/net'
-import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, inChipContest, isAllInRunout } from '@qhe/core'
+import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, inChipContest, isAllInRunout } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
   playerSessionCanResume,
@@ -404,8 +404,13 @@ function PlayerApp() {
 
   const seatedAtTable = (gameState.tableId ?? '') !== LOBBY_TABLE_ID
   const isBettingPhase = gameState.phase === 'betting'
+  const chipPotStillContested = chipContestantCount(gameState.players) >= 2
   const needsMobileBetDock =
-    isBettingPhase && !!currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded
+    isBettingPhase &&
+    chipPotStillContested &&
+    !!currentPlayer &&
+    inChipContest(currentPlayer) &&
+    !currentPlayer.hasFolded
 
   const questionText = gameState.round.question?.text ?? ''
   const showStickyQuestion =
@@ -600,11 +605,7 @@ function PlayerApp() {
               <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} />
             ) : null}
 
-            {isBettingPhase &&
-            bettingCtx &&
-            currentPlayer &&
-            inChipContest(currentPlayer) &&
-            !currentPlayer.hasFolded ? (
+            {needsMobileBetDock && bettingCtx && currentPlayer ? (
               <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>
                 <BettingActions
                   currentPlayer={currentPlayer}

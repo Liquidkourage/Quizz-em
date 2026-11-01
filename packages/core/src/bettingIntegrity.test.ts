@@ -79,8 +79,40 @@ describe('adminAdvanceTurn', () => {
     expect(gs.players[0]!.bankroll).toBe(bank)
     expect(gs.round.pot).toBe(pot)
     expect(gs.round.lastSeatBettingAction?.[0]).toBe('fold')
-    expect(gs.round.currentPlayerIndex).toBe(1)
+    expect(gs.round.isBettingOpen).toBe(false)
+    expect(gs.round.currentPlayerIndex).toBe(-1)
+    expect(gs.players[1]!.hasFolded).toBe(false)
+    expect(gs.players[1]!.bankroll).toBe(1000)
+  })
+
+  it('still moves the turn when another player remains in the chips', () => {
+    let gs = createEmptyGame('V', 'h', '1')
+    gs = addPlayer(gs, 'a', 'Ada', 1000)
+    gs = addPlayer(gs, 'b', 'Bea', 1000)
+    gs = addPlayer(gs, 'c', 'Cy', 1000)
+    gs = {
+      ...gs,
+      phase: 'betting',
+      players: gs.players.map((p) => ({
+        ...p,
+        hand: [{ digit: 1 }, { digit: 2 }],
+        hasFolded: false,
+        isAllIn: false,
+      })),
+      round: {
+        ...gs.round,
+        pot: 30,
+        currentBet: 20,
+        playerBets: { a: 10, b: 0, c: 20 },
+        isBettingOpen: true,
+        currentPlayerIndex: 0,
+        lastSeatBettingAction: [null, null, null],
+      },
+    }
+    gs = adminAdvanceTurn(gs)
+    expect(gs.players[0]!.hasFolded).toBe(true)
     expect(gs.round.isBettingOpen).toBe(true)
+    expect(gs.round.currentPlayerIndex).toBe(1)
     expect(gs.players[1]!.hasFolded).toBe(false)
   })
 

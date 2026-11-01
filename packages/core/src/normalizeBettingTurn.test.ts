@@ -10,13 +10,14 @@ describe('normalizeBettingTurn', () => {
       players: [
         { id: 'a', name: 'A', bankroll: 500, hand: [], hasFolded: true, isAllIn: false },
         { id: 'b', name: 'B', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
+        { id: 'c', name: 'C', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
       ],
       round: {
         ...gs.round,
         isBettingOpen: true,
         currentPlayerIndex: 0,
         currentBet: 0,
-        playerBets: { a: 0, b: 0 },
+        playerBets: { a: 0, b: 0, c: 0 },
       },
     }
     const next = normalizeBettingTurn(gs)
@@ -82,7 +83,7 @@ describe('normalizeBettingTurn', () => {
     expect(next.round.currentPlayerIndex).toBeGreaterThanOrEqual(0)
   })
 
-  it('keeps an unopened street open for a lone remaining actor', () => {
+  it('closes wagering when only one player has not folded or busted', () => {
     let gs = createEmptyGame('T', '', '1')
     gs = {
       ...gs,
@@ -102,7 +103,7 @@ describe('normalizeBettingTurn', () => {
       },
     }
     const next = normalizeBettingTurn(gs)
-    expect(next.round.isBettingOpen).toBe(true)
-    expect(next.round.currentPlayerIndex).toBe(1)
+    expect(next.round.isBettingOpen).toBe(false)
+    expect(next.round.currentPlayerIndex).toBe(-1)
   })
 })

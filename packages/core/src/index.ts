@@ -44,6 +44,17 @@ export function inChipContest(p: Pick<PlayerState, 'pointsOnly'>): boolean {
   return !p.pointsOnly;
 }
 
+/** Seats that can still win the chip pot: not folded, and not busted to points-only. */
+export function chipContestantCount(
+  players: readonly Pick<PlayerState, 'pointsOnly' | 'hasFolded'>[],
+): number {
+  let count = 0
+  for (const player of players) {
+    if (inChipContest(player) && !player.hasFolded) count++
+  }
+  return count
+}
+
 export interface Question {
   id: string;
   text: string;
@@ -601,9 +612,9 @@ export function openBettingRound1(state: GameState): GameState {
   if (!playersHaveHoleCards(state)) return state;
 
   const playersWithHands = state.players;
-  const chipSeatCount = playersWithHands.filter((p) => inChipContest(p)).length;
-  /** A busted seat stays for trivia. Do not make the last chip stack bet against itself. */
-  if (chipSeatCount < 2 && playersWithHands.some((p) => p.pointsOnly === true)) {
+  const chipSeatCount = chipContestantCount(playersWithHands);
+  /** One seat left in the chips has already won the pot. Leave them to answer for points. */
+  if (chipSeatCount < 2) {
     return {
       ...state,
       phase: 'betting',
@@ -931,9 +942,8 @@ export function dealCommunityCards(state: GameState): GameState {
     return -1;
   };
 
-  const contesting = state.players.filter((p) => inChipContest(p) && !p.hasFolded).length;
-  const noChipOpponent = contesting < 2 && state.players.some((p) => p.pointsOnly === true);
-  const currentPlayerIndex = noChipOpponent ? -1 : findNextToAct();
+  const contesting = chipContestantCount(state.players);
+  const currentPlayerIndex = contesting < 2 ? -1 : findNextToAct();
   const isBettingOpen = currentPlayerIndex >= 0;
 
   return {
@@ -1047,6 +1057,7 @@ function advanceToNextPlayer(state: GameState): number {
 
 function isBettingComplete(state: GameState): boolean {
   if (!state.round.isBettingOpen) return true;
+  if (chipContestantCount(state.players) < 2) return true;
   const cur = state.round.currentBet || 0;
   const bets = state.round.playerBets || {};
   const lastActions = state.round.lastSeatBettingAction ?? [];

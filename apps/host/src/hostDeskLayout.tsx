@@ -85,6 +85,7 @@ export function HostCollapsible({
   children,
   className = '',
   badge,
+  toolbar,
   expanded = false,
   appearance = 'bar',
 }: {
@@ -96,6 +97,8 @@ export function HostCollapsible({
   children: ReactNode
   className?: string
   badge?: ReactNode
+  /** Sits on the right of an expanded section header. */
+  toolbar?: ReactNode
   /** Live floor: show the section on the page instead of behind Open. */
   expanded?: boolean
   /** `button` is a compact control. `bar` is a full-width label row. */
@@ -111,11 +114,12 @@ export function HostCollapsible({
   if (expanded) {
     return (
       <section className={`host-instrument flex flex-col overflow-hidden rounded-xl border border-white/10 ${className}`}>
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/10 px-3 py-2 text-lg font-semibold text-white/85">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-white/10 px-3 py-2 text-lg font-semibold text-white/85">
           <span className="flex min-w-0 items-center gap-2">
             {summary}
             {badge}
           </span>
+          {toolbar ? <div className="min-w-0 text-sm font-normal">{toolbar}</div> : null}
         </div>
         <div className="px-3 py-2">{children}</div>
       </section>
@@ -1771,6 +1775,9 @@ export function HostVenueFloorBriefPanel({
     <>
     <HostCollapsible
       expanded
+      toolbar={
+        blindCall ? <div className="host-floor-toolbar">{blindCall}</div> : undefined
+      }
       badge={
         brief != null ? (
           <span className="flex items-center gap-2">
@@ -1796,7 +1803,6 @@ export function HostVenueFloorBriefPanel({
       ) : (
         <div className="flex flex-col gap-3">
           <div>
-            {blindCall}
             {lockstepMisaligned && onAlignRoom ? (
               <button
                 type="button"

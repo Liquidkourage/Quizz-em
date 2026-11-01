@@ -130,7 +130,7 @@ describe('venue floor now', () => {
         blindCall: createElement('p', null, 'Raise the blinds'),
       }),
     )
-    expect(html.indexOf('Raise the blinds')).toBeGreaterThan(-1)
-    expect(html.indexOf('Raise the blinds')).toBeLessThan(html.indexOf('Table action'))
+    expect(html).toMatch(/host-floor-toolbar[\s\S]*Raise the blinds/)
+    expect(html.indexOf('host-floor-toolbar')).toBeLessThan(html.indexOf('Table action'))
   })
 })

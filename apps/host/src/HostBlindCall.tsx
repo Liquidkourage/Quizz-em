@@ -89,43 +89,38 @@ export function HostBlindCall({
   }
 
   return (
-    <div className="mb-2 rounded-lg border border-amber-400/30 bg-amber-950/25 px-3 py-2" aria-live="polite">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-100/80">Blind call</p>
-        <label className="flex items-center gap-1.5 text-xs text-white/50">
-          Night
-          <select
-            aria-label="Night length"
-            value={String(goal)}
-            onChange={(e) => chooseGoal(Number(e.target.value))}
-            className="rounded-md border border-white/20 bg-zinc-950 py-0.5 pl-1.5 pr-6 text-xs font-semibold text-white [color-scheme:dark]"
-          >
-            {NIGHT_GOAL_MINUTES.map((n) => (
-              <option key={n} value={n}>
-                {n} min
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+    <div className="host-blind-call flex flex-wrap items-center gap-x-3 gap-y-1" aria-live="polite">
+      <label className="flex items-center gap-1.5 text-xs text-white/50">
+        Night
+        <select
+          aria-label="Night length"
+          value={String(goal)}
+          onChange={(e) => chooseGoal(Number(e.target.value))}
+          className="rounded-md border border-white/20 bg-zinc-950 py-0.5 pl-1.5 pr-6 text-xs font-semibold text-white [color-scheme:dark]"
+        >
+          {NIGHT_GOAL_MINUTES.map((n) => (
+            <option key={n} value={n}>
+              {n} min
+            </option>
+          ))}
+        </select>
+      </label>
       {call == null ? (
-        <p className="mt-1 text-sm text-white/60">
+        <p className="text-sm text-white/60">
           {handsLeft < 1 ? 'That rundown is finished.' : 'Fills in from the seated field, stacks, and blinds.'}
         </p>
       ) : (
         <>
-          <p className="mt-1 text-sm font-semibold text-amber-50">
-            {call.verb}
-            <span className="ml-2 font-normal text-white/70">
-              {Math.round(minutesLeft)} min left · {players} players · median {money(medianStack ?? 0)} (
-              {Math.round(call.depthNowBb)} bb)
+          <p className="text-sm text-amber-50">
+            <span className="font-semibold">{call.verb}</span>
+            <span className="ml-2 text-white/75">
+              {callSentence(call, guideSec)} {Math.round(minutesLeft)} min · {players} players
             </span>
           </p>
-          <p className="mt-0.5 text-sm text-white/75">{callSentence(call, guideSec)}</p>
           {call.verb === 'Hold' ? null : (
             <button
               type="button"
-              className="mt-2 rounded-md border border-amber-300/50 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
+              className="rounded-md border border-amber-300/50 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
               onClick={() => onApply(call)}
             >
               Apply

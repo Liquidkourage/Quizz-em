@@ -33,6 +33,9 @@ describe('HostBlindCall', () => {
     expect(html).toContain('level every 2 hands')
     expect(html).toContain('40 players')
     expect(html).toContain('Apply')
+    expect(html).toContain('host-blind-call')
+    expect(html).not.toContain('border-amber-400/30')
+    expect(html).not.toContain('>Blind call<')
   })
 
   it('waits for seated stacks instead of asking for them', () => {

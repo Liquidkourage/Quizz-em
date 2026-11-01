@@ -19,7 +19,7 @@ export function MosaicSeatStackAmount({
   const label = formatVenueBankroll(amount)
   return (
     <span
-      className="max-w-full truncate font-mono font-extrabold tabular-nums leading-none tracking-tight text-amber-50 [text-shadow:0_1px_2px_rgba(0,0,0,0.95)]"
+      className="whitespace-nowrap font-mono font-extrabold tabular-nums leading-none tracking-tight text-amber-50 [text-shadow:0_1px_2px_rgba(0,0,0,0.95)]"
       style={{ fontSize: `${Math.max(12, Math.round(fontPx))}px` }}
       data-mosaic-seat-stack=""
       aria-label={`${name} stack ${label}`}

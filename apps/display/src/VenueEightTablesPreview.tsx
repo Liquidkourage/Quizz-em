@@ -29,7 +29,7 @@ import {
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
   mosaicSeatLabelPct,
-  mosaicSeatInwardPct,
+  mosaicSeatStackLayout,
   mosaicSeatChipInwardFrac,
   mosaicSeatHoleInwardFrac,
   broadcastBlindMarkerPct,
@@ -1572,9 +1572,9 @@ function SeatRingWithLabels({
         /** Below the name/stack cluster — keeps CHECK / CALL off the felt center. */
         const actionPanelBelowPx =
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
-        const mosaicStackPos =
+        const mosaicStack =
           isMosaic && showMosaicSeatStacks && filled && !isBusted
-            ? mosaicSeatInwardPct(i, rimW, rimH, Math.max(8, Math.round(cupSizePx * 0.62)))
+            ? mosaicSeatStackLayout(i, rimW, rimH, Math.max(10, Math.round(cupSizePx)))
             : null
         const actingSoftPulse =
           'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden motion-safe:animate-pulse'
@@ -1655,13 +1655,13 @@ function SeatRingWithLabels({
                 }
               />
             </div>
-            {mosaicStackPos != null ? (
+            {mosaicStack != null ? (
               <div
-                className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} max-w-[34%] text-center`}
+                className={`pointer-events-none absolute ${SEAT_LAYER_NAME_CLUSTER} whitespace-nowrap`}
                 style={{
-                  left: `${mosaicStackPos.leftPct}%`,
-                  top: `${mosaicStackPos.topPct}%`,
-                  transform: 'translate(-50%, -50%)',
+                  left: `${mosaicStack.leftPct}%`,
+                  top: `${mosaicStack.topPct}%`,
+                  transform: mosaicStack.transform,
                 }}
               >
                 <MosaicSeatStackAmount

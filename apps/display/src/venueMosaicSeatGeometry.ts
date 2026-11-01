@@ -33,27 +33,47 @@ import {
   mosaicSeatIndex,
 } from '@qhe/ui'
 
-/** Stack amount just inside the cup, toward the felt center. */
-export function mosaicSeatInwardPct(
+export type MosaicSeatStackLayout = {
+  leftPct: number
+  topPct: number
+  /** Pins the rail-facing edge so the amount grows toward the felt center. */
+  transform: string
+}
+
+/** Which edge of the amount sits on the rail. Axis-aligned seats center the other axis. */
+function mosaicStackEdgeTransform(ux: number, uy: number): string {
+  const x = Math.abs(ux) < 0.2 ? '-50%' : ux > 0 ? '0' : '-100%'
+  const y = Math.abs(uy) < 0.2 ? '-50%' : uy > 0 ? '0' : '-100%'
+  return `translate(${x}, ${y})`
+}
+
+/**
+ * Stack amount on the green: the edge nearest the cup is `clearPx` inside the
+ * cup center, and the number extends toward the pot instead of back over the initials.
+ */
+export function mosaicSeatStackLayout(
   seatIndex: number,
   w: number,
   h: number,
-  inwardPx: number
-): { leftPct: number; topPct: number } {
+  clearPx: number
+): MosaicSeatStackLayout {
   const cup = mosaicSeatDotPct(seatIndex, MOSAIC_SEAT_COUNT, w, h)
-  if (!(w > 0 && h > 0) || inwardPx <= 0) return cup
+  if (!(w > 0 && h > 0) || clearPx <= 0) {
+    return { ...cup, transform: 'translate(-50%, -50%)' }
+  }
   const center = mosaicFeltCenterPct(w, h)
   const cupX = (cup.leftPct / 100) * w
   const cupY = (cup.topPct / 100) * h
-  const centerX = (center.leftPct / 100) * w
-  const centerY = (center.topPct / 100) * h
-  const dx = centerX - cupX
-  const dy = centerY - cupY
+  const dx = (center.leftPct / 100) * w - cupX
+  const dy = (center.topPct / 100) * h - cupY
   const len = Math.hypot(dx, dy) || 1
-  const travel = Math.min(Math.max(0, inwardPx), len * 0.55)
+  const ux = dx / len
+  const uy = dy / len
+  const travel = Math.min(clearPx, len * 0.42)
   return {
-    leftPct: ((cupX + (dx / len) * travel) / w) * 100,
-    topPct: ((cupY + (dy / len) * travel) / h) * 100,
+    leftPct: ((cupX + ux * travel) / w) * 100,
+    topPct: ((cupY + uy * travel) / h) * 100,
+    transform: mosaicStackEdgeTransform(ux, uy),
   }
 }
 

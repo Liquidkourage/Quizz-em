@@ -9,7 +9,7 @@ import {
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
   mosaicSeatLabelPct,
-  mosaicSeatInwardPct,
+  mosaicSeatStackLayout,
   mosaicSeatChipInwardFrac,
   mosaicStadiumCupUV,
   broadcastBlindMarkerPct,
@@ -20,6 +20,32 @@ import {
   broadcastRimLabelTransform,
   venueMosaicFeltCenterPct,
 } from './venueMosaicSeatGeometry'
+
+/** Corners of a label whose rail-facing edge is pinned by a CSS translate. */
+function stackLabelBox(
+  transform: string,
+  anchorX: number,
+  anchorY: number,
+  labelW: number,
+  labelH: number
+): Array<{ x: number; y: number }> {
+  const xPin = transform.includes('translate(0,')
+    ? 0
+    : transform.includes('translate(-100%')
+      ? -labelW
+      : -labelW / 2
+  const yPin = transform.includes(', 0)')
+    ? 0
+    : transform.includes(', -100%)')
+      ? -labelH
+      : -labelH / 2
+  return [
+    { x: anchorX + xPin, y: anchorY + yPin },
+    { x: anchorX + xPin + labelW, y: anchorY + yPin },
+    { x: anchorX + xPin, y: anchorY + yPin + labelH },
+    { x: anchorX + xPin + labelW, y: anchorY + yPin + labelH },
+  ]
+}
 
 function insetFrac(
   cup: { leftPct: number; topPct: number },
@@ -113,13 +139,32 @@ describe('venueMosaicSeatGeometry', () => {
     )
   })
 
-  it('places stack amounts inward from the cup toward felt center', () => {
+  it('grows stack amounts from inside the cup toward felt center', () => {
+    const clearPx = 18
+    const labelW = 52
+    const labelH = 14
     for (let i = 0; i < 8; i++) {
       const cup = mosaicSeatDotPct(i, 8, w, h)
-      const stack = mosaicSeatInwardPct(i, w, h, 24)
-      const cupToCenter = Math.hypot(center.leftPct - cup.leftPct, center.topPct - cup.topPct)
-      const stackToCenter = Math.hypot(center.leftPct - stack.leftPct, center.topPct - stack.topPct)
-      expect(stackToCenter).toBeLessThan(cupToCenter)
+      const stack = mosaicSeatStackLayout(i, w, h, clearPx)
+      const cupX = (cup.leftPct / 100) * w
+      const cupY = (cup.topPct / 100) * h
+      const centerX = (center.leftPct / 100) * w
+      const centerY = (center.topPct / 100) * h
+      const anchorX = (stack.leftPct / 100) * w
+      const anchorY = (stack.topPct / 100) * h
+      const dx = centerX - cupX
+      const dy = centerY - cupY
+      const len = Math.hypot(dx, dy) || 1
+      const ux = dx / len
+      const uy = dy / len
+      const along = (x: number, y: number) => ((x - cupX) * ux + (y - cupY) * uy)
+      expect(along(anchorX, anchorY)).toBeGreaterThan(clearPx * 0.9)
+      const box = stackLabelBox(stack.transform, anchorX, anchorY, labelW, labelH)
+      const nearest = Math.min(...box.map((p) => along(p.x, p.y)))
+      const furthest = Math.max(...box.map((p) => along(p.x, p.y)))
+      expect(nearest).toBeGreaterThan(clearPx * 0.85)
+      expect(furthest).toBeGreaterThan(nearest + 8)
+      expect(furthest).toBeLessThan(len * 0.85)
     }
   })
 

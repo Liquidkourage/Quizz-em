@@ -185,8 +185,11 @@ function rememberHandBet(
   if (log.handBets.length > LOG_CAP) log.handBets.length = LOG_CAP
 }
 
-function rankedHandBets(bets: HostVenueBigBetEntry[]): HostVenueBigBetEntry[] {
-  return [...bets].sort((a, b) => b.amount - a.amount || b.atMs - a.atMs).slice(0, 8)
+function rankedHandBets(bets: HostVenueBigBetEntry[], bigBlind: number): HostVenueBigBetEntry[] {
+  return [...bets]
+    .filter((bet) => bet.amount >= bigBlind)
+    .sort((a, b) => b.amount - a.amount || b.atMs - a.atMs)
+    .slice(0, 8)
 }
 
 function pushMove(
@@ -413,7 +416,7 @@ export function buildHostVenueFloorBrief(args: {
     busts: log.busts,
     bigWinners: log.bigWinners,
     bigBets: log.bigBets,
-    handBets: rankedHandBets(log.handBets),
+    handBets: rankedHandBets(log.handBets, bb),
     bigWinMinAmount: Math.max(300, bb * 12),
     fieldPlayerCount: args.fieldPlayerCount,
     liveTableCount: args.liveTableCount,

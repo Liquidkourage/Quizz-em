@@ -255,6 +255,33 @@ describe('recordVenueMovesBetweenStates', () => {
     })
     expect(brief.handBets.map((b) => `${b.amount}:${b.name}`)).toEqual(['100:Alice C.'])
   })
+
+  it('hides bets smaller than the big blind from big bets this hand', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const underBlind: GameState = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 990 } : p,
+      ),
+      round: {
+        ...before.round,
+        lastSeatBettingAction: ['call', null],
+        playerBets: { 'human:a': 10 },
+        currentPlayerIndex: 1,
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, before, underBlind)
+
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(brief.handBets).toEqual([])
+  })
 })
 
 describe('buildHostVenueFloorBrief stacks', () => {

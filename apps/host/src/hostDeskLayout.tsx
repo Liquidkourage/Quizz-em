@@ -1735,13 +1735,35 @@ export function HostTableOpen({
   seats,
   recentActions,
   hostPlayerLabel,
+  phaseLabel,
+  pot = 0,
+  actingSummary,
 }: {
   seats: HostVenueSeatContest[]
   recentActions: HostVenueRecentAction[]
   hostPlayerLabel: (name: string) => string
+  phaseLabel?: string
+  pot?: number
+  actingSummary?: string | null
 }) {
   return (
     <div className="flex flex-col gap-3">
+      {phaseLabel || pot > 0 || actingSummary ? (
+        <p className="text-sm text-white/70">
+          {phaseLabel}
+          {pot > 0 ? (
+            <>
+              {phaseLabel ? ' · pot ' : 'Pot '}
+              <ChipText text={formatHostFloorMoney(pot)} />
+            </>
+          ) : null}
+          {actingSummary ? (
+            <span className="mt-0.5 block font-semibold text-amber-100/90">
+              <ChipText text={actingSummary} />
+            </span>
+          ) : null}
+        </p>
+      ) : null}
       <HostTableContest seats={seats} hostPlayerLabel={hostPlayerLabel} />
       {recentActions.length > 0 ? (
         <section>
@@ -1825,48 +1847,26 @@ export function HostVenueFloorBriefPanel({
                           : 'border-white/10 bg-black/20'
                       } ${watching ? 'ring-1 ring-emerald-400/50' : ''}`}
                     >
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
-                        <span className="text-sm font-bold text-white/90">
-                          T{row.tableNum}
-                          {watching ? (
-                            <span className="ml-1.5 text-xs font-semibold uppercase text-emerald-300">
-                              You
-                            </span>
-                          ) : null}
-                        </span>
-                        <span className="text-xs text-white/50">
-                          {phaseLabel}
-                          {row.pot > 0 ? (
-                            <>
-                              {' · pot '}
-                              <ChipText text={formatHostFloorMoney(row.pot)} />
-                            </>
-                          ) : (
-                            ''
-                          )}
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-xs tabular-nums text-white/50">
+                      <span className="text-sm font-bold text-white/90">
+                        T{row.tableNum}
+                        {watching ? (
+                          <span className="ml-1.5 text-xs font-semibold uppercase text-emerald-300">
+                            You
+                          </span>
+                        ) : null}
+                      </span>
+                      <p className="text-xs text-white/55">{phaseLabel}</p>
+                      <p className="text-xs tabular-nums text-white/50">
                         <span className="font-semibold text-emerald-200/85">
                           {row.inPotCount ?? 0} in pot
                         </span>
                         {(row.pointsOnlyCount ?? 0) > 0 ? (
-                          <>
+                          <span className="font-semibold text-amber-200/85">
                             {' · '}
-                            <span className="font-semibold text-amber-200/85">
-                              {row.pointsOnlyCount} points only
-                            </span>
-                          </>
+                            {row.pointsOnlyCount} out
+                          </span>
                         ) : null}
                       </p>
-                      {row.actingSummary ? (
-                        <p className="mt-0.5 text-xs font-semibold text-amber-100/90">
-                          <ChipText text={row.actingSummary} />
-                        </p>
-                      ) : null}
-                      <span className="mt-1 block text-[0.65rem] font-bold uppercase tracking-[0.14em] text-sky-200/80">
-                        Open
-                      </span>
                     </button>
                     </li>
                   )
@@ -1882,6 +1882,9 @@ export function HostVenueFloorBriefPanel({
                 <HostTableOpen
                   seats={openRow.seats ?? []}
                   recentActions={openRow.recentActions}
+                  phaseLabel={HOST_PHASE_LABEL[openRow.phase as GamePhase] ?? openRow.phase}
+                  pot={openRow.pot}
+                  actingSummary={openRow.actingSummary}
                   hostPlayerLabel={hostPlayerLabel}
                 />
               ) : null}

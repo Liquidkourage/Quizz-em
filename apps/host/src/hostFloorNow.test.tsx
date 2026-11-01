@@ -26,6 +26,9 @@ function brief(): HostVenueFloorBriefPayload {
       n === 1
         ? {
             ...actionRow(n),
+            pot: 1020,
+            actingSummary: 'Answering on phones',
+            pointsOnlyCount: 1,
             seats: [{ name: 'Ada L.', kind: 'pot' as const, reason: null }],
             recentActions: [{ seat: 0, name: 'Ned P.', action: 'call' as const }],
           }
@@ -71,6 +74,12 @@ describe('venue floor now', () => {
     expect(html.indexOf('This hand')).toBeGreaterThan(html.indexOf('Venue floor'))
     expect(busts).toBeGreaterThan(html.indexOf('This hand'))
     expect(html).toContain('Open table 1')
+    expect(html).toContain('4 in pot')
+    expect(html).toContain('1 out')
+    expect(html).not.toContain('>Open<')
+    expect(html).not.toContain('points only')
+    expect(html).not.toContain('Answering on phones')
+    expect(html).not.toContain('1,020')
     expect(html).not.toContain('Ada L.')
     expect(html).not.toContain('Ned P.')
   })
@@ -96,10 +105,15 @@ describe('venue floor now', () => {
       createElement(HostTableOpen, {
         seats: [],
         recentActions: [{ seat: 1, name: 'Ned P.', action: 'call' }],
+        phaseLabel: 'Guessing',
+        pot: 1020,
+        actingSummary: 'Answering on phones',
         hostPlayerLabel: (name: string) => name,
       }),
     )
     expect(html).toContain('Ned P.')
     expect(html).toContain('Call')
+    expect(html).toContain('Answering on phones')
+    expect(html).toContain('1,020')
   })
 })

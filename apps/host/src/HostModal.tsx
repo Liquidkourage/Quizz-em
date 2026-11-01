@@ -52,7 +52,7 @@ export function HostModal({
             event.stopPropagation()
             onClose()
           }}
-          className="relative flex max-h-[min(86vh,48rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#0c1014] shadow-[0_24px_80px_rgba(0,0,0,0.7)] outline-none"
+          className="relative flex h-[min(86vh,48rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#0c1014] shadow-[0_24px_80px_rgba(0,0,0,0.7)] outline-none"
         >
           <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-5">
             <div className="min-w-0 text-base font-semibold text-white">{title}</div>
@@ -64,7 +64,7 @@ export function HostModal({
               Close
             </button>
           </div>
-          <div className="min-h-0 overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 py-4 sm:px-5">{children}</div>
         </div>
       </div>
     </HostModalDepth.Provider>

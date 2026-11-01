@@ -102,7 +102,7 @@ export function HostLivePanel({
 
       <div className="flex min-w-0 flex-col gap-2 sm:col-start-2 sm:row-start-1">
         <HostCollapsible summary="Audience TVs">
-          <div className="space-y-3">
+          <div className="flex h-full min-h-0 flex-col gap-3">
             <HostTvBar
               onVenueFloor={onVenueFloor}
               onLeaderboard={onLeaderboard}

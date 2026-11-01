@@ -1078,13 +1078,13 @@ export function HostFeltPhasePicker({
   return (
     <div className="mb-2 rounded-lg border border-white/15 bg-black/40 p-2">
       <p className="mb-1.5 text-xs font-bold text-white/70">Table {tableNum}</p>
-      <div className="flex flex-wrap gap-1">
+      <div className="grid grid-cols-2 gap-2">
         {TABLE_PHASE_OVERRIDES.map((phase) => (
           <button
             key={phase.id}
             type="button"
             onClick={() => onPick(phase.id)}
-            className="rounded-md border border-white/20 bg-white/10 px-2 py-1 text-xs font-semibold text-white hover:bg-white/15"
+            className="rounded-lg border border-white/20 bg-white/10 px-3 py-3 text-sm font-semibold text-white hover:bg-white/15"
           >
             {phase.label}
           </button>
@@ -1161,7 +1161,7 @@ function feltBeatTileClass(active: boolean, drift: boolean, watching: boolean, p
       : 'border-white/20 bg-black/35'
   const watch = watching ? 'ring-1 ring-cyan-400/65' : ''
   const pick = picked ? 'ring-1 ring-amber-300/80' : ''
-  return `host-felt-tile rounded-md border px-2 py-1.5 text-center sm:min-h-[4.5rem] ${tone} ${watch} ${pick}`
+  return `host-felt-tile h-full min-h-[6.5rem] rounded-lg border px-2 py-1.5 text-center ${tone} ${watch} ${pick}`
 }
 
 function HostFeltBeatTileBody({
@@ -1251,11 +1251,13 @@ export function HostVenueFeltBeatStrip({
   hostTableId,
   onAlignRoom,
   onSetTablePhase,
+  forceOpen = false,
 }: {
   rows: HostVenueFeltBeatRow[] | null
   hostTableId: string
   onAlignRoom?: () => void
   onSetTablePhase?: (tableNum: number, signature: string) => void
+  forceOpen?: boolean
 }) {
   const { outlierTableNums, lockstepMisaligned, unanimousSig } = venueFeltBeatLockstep(rows)
   const seatedTableCount = rows?.filter((r) => r.active && r.seated > 0).length ?? 0
@@ -1274,6 +1276,7 @@ export function HostVenueFeltBeatStrip({
 
   return (
     <HostCollapsible
+      forceOpen={forceOpen}
       badge={
         lockstepMisaligned ? (
           <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-200">
@@ -1334,7 +1337,7 @@ export function HostVenueFeltBeatStrip({
       {rows == null ? (
         <p className="text-sm text-white/50">Waiting for first venue sync…</p>
       ) : (
-        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10">
+        <div className="grid min-h-0 flex-1 auto-rows-[minmax(6.5rem,1fr)] grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {rows.map((row) => (
             <HostFeltBeatTile
               key={row.tableNum}
@@ -2118,27 +2121,24 @@ export function HostTvBar({
   modes.push({ id: 'rules', label: 'How to play', onClick: onSeatingRules })
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-2"
-      role="group"
-      aria-label="What the audience TVs show"
-    >
-      <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/35">Audience TVs</span>
-      <div className="host-tv-switch inline-flex flex-wrap overflow-hidden rounded-lg border border-white/20">
-        {modes.map((m, i) => (
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div
+        className="grid min-h-0 flex-1 auto-rows-fr grid-cols-1 gap-2"
+        role="group"
+        aria-label="What the audience TVs show"
+      >
+        {modes.map((m) => (
           <button
             key={m.id}
             type="button"
             onClick={m.onClick}
-            className={`px-3 py-1.5 text-xs font-semibold tracking-wide text-white/75 transition-colors hover:bg-white/10 hover:text-white ${
-              i > 0 ? 'border-l border-white/15' : ''
-            }`}
+            className="h-full min-h-14 rounded-xl border border-white/15 bg-black/35 px-4 py-3 text-left text-lg font-semibold text-white/85 hover:bg-white/10 hover:text-white"
           >
             {m.label}
           </button>
         ))}
       </div>
-      <span className="text-xs text-white/35">Highlight one table: tap it under Tables</span>
+      <p className="shrink-0 text-sm text-white/45">Highlight one table: tap it under Tables</p>
     </div>
   )
 }
@@ -2342,7 +2342,7 @@ export function HostFloorStrip({
   if (rows == null && brief == null) return null
 
   return (
-    <div className="host-instrument overflow-y-auto rounded-xl border border-white/10 px-3 py-2 sm:px-4">
+    <div className="host-instrument flex h-full min-h-0 flex-col overflow-y-auto rounded-xl border border-white/10 px-3 py-2 sm:px-4">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/40">
           Tables
@@ -2374,7 +2374,7 @@ export function HostFloorStrip({
       ) : (
         <>
         <HostAnswerClock rows={seated} />
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5 overscroll-x-contain">
+        <div className="grid min-h-0 flex-1 auto-rows-[minmax(5.5rem,1fr)] grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {seated.map((row) => {
             const action = actionByTable.get(row.tableNum)
             const drift = outlierTableNums.has(row.tableNum)
@@ -2389,7 +2389,7 @@ export function HostFloorStrip({
                 type="button"
                 title={`Show table ${row.tableNum} large on the TVs`}
                 onClick={() => onSpotlight(row.tableNum)}
-                className={`shrink-0 rounded-lg border px-3 py-2 text-left transition-colors hover:border-casino-emerald/50 hover:bg-emerald-950/20 ${
+                className={`h-full min-h-[5.5rem] rounded-lg border px-3 py-2 text-left transition-colors hover:border-casino-emerald/50 hover:bg-emerald-950/20 ${
                   action?.interestingAction
                     ? 'border-amber-400/55 bg-amber-950/30'
                     : drift
@@ -2411,7 +2411,7 @@ export function HostFloorStrip({
                   ) : null}
                 </div>
                 {action?.actingSummary ? (
-                  <p className="mt-0.5 max-w-[12rem] truncate text-xs font-medium text-amber-100/85">
+                  <p className="mt-0.5 text-sm font-medium text-amber-100/85">
                     <ChipText text={action.actingSummary} />
                   </p>
                 ) : action != null && action.pot > 0 ? (

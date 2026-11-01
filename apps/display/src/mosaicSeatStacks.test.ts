@@ -6,11 +6,56 @@ import {
   mosaicSeatInitialFontPx,
   mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
+  mosaicCrowdedStackLayout,
   mosaicSeatStackFontPx,
   mosaicShowsSeatStacks,
   mosaicStreetCardBoxPx,
+  MOSAIC_STACK_LABEL_EM,
 } from './mosaicSeatStacks'
-import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
+import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
+
+type StackRect = { x: number; y: number; width: number; height: number }
+
+function stackRect(transform: string, anchorX: number, anchorY: number, labelW: number, labelH: number): StackRect {
+  const xPin = transform.includes('translate(0,') ? 0 : transform.includes('translate(-100%') ? -labelW : -labelW / 2
+  const yPin = transform.includes(', 0)') ? 0 : transform.includes(', -100%)') ? -labelH : -labelH / 2
+  return { x: anchorX + xPin, y: anchorY + yPin, width: labelW, height: labelH }
+}
+
+function rectsMeet(a: StackRect, b: StackRect, gap: number): boolean {
+  return a.x < b.x + b.width + gap && a.x + a.width + gap > b.x && a.y < b.y + b.height + gap && a.y + a.height + gap > b.y
+}
+
+function stackPocketsClear(w: number, h: number, font: number): boolean {
+  const labelW = font * MOSAIC_STACK_LABEL_EM
+  const boxes = Array.from({ length: 8 }, (_, seat) => {
+    const layout = mosaicCrowdedStackLayout(seat, w, h)
+    return stackRect(layout.transform, (layout.leftPct / 100) * w, (layout.topPct / 100) * h, labelW, font)
+  })
+  const initials = mosaicSeatInitialFontPx(w)
+  for (const box of boxes) {
+    if (box.x < 1 || box.y < 1 || box.x + box.width > w - 1 || box.y + box.height > h - 1) return false
+  }
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      if (rectsMeet(boxes[i]!, boxes[j]!, 2)) return false
+    }
+    const cup = mosaicSeatDotPct(i, 8, w, h)
+    const shift = mosaicSeatInitialShiftXPx(i, w, h, initials)
+    const glyph: StackRect = {
+      x: (cup.leftPct / 100) * w + shift - initials * 0.78,
+      y: (cup.topPct / 100) * h - initials * 0.52,
+      width: initials * 1.56,
+      height: initials * 1.04,
+    }
+    if (rectsMeet(boxes[i]!, glyph, 1)) return false
+  }
+  const center = venueMosaicFeltCenterPct(w, h)
+  const cx = (center.leftPct / 100) * w
+  const cy = (center.topPct / 100) * h
+  const pot: StackRect = { x: cx - 12, y: cy - 10, width: 24, height: 20 }
+  return boxes.every((box) => !rectsMeet(box, pot, 0))
+}
 
 describe('mosaic seat stacks', () => {
   it('shows stack amounts in the lobby and on a break, not once a question is up', () => {
@@ -38,16 +83,20 @@ describe('mosaic seat stacks', () => {
     const open = mosaicSeatStackFontPx(w, 3)
     const crowded = mosaicSeatStackFontPx(w, 8)
     expect(crowded).toBeLessThan(open)
-    expect(crowded).toBeGreaterThanOrEqual(28)
-    let minGap = Infinity
-    for (let i = 0; i < 8; i++) {
-      const a = mosaicSeatDotPct(i, 8, w, h)
-      const b = mosaicSeatDotPct((i + 1) % 8, 8, w, h)
-      const gap = Math.hypot(((a.leftPct - b.leftPct) / 100) * w, ((a.topPct - b.topPct) / 100) * h)
-      minGap = Math.min(minGap, gap)
-    }
-    expect(crowded * 3.3).toBeLessThan(minGap)
+    expect(crowded).toBeGreaterThanOrEqual(20)
     expect(mosaicSeatStackClearPx(36, mosaicSeatInitialFontPx(w))).toBeGreaterThan(36)
+  })
+
+  it('keeps a full table of stacks in separate pockets', () => {
+    for (const w of [340, 420, 520]) {
+      const h = Math.round((w * 10) / 17)
+      const font = mosaicSeatStackFontPx(w, 8, h)
+      const room = mosaicSeatStackFontPx(w, 3, h)
+      expect(font).toBeLessThanOrEqual(room)
+      expect(font).toBeGreaterThanOrEqual(20)
+      expect(stackPocketsClear(w, h, font)).toBe(true)
+      expect(font === room || stackPocketsClear(w, h, font + 1)).toBe(false)
+    }
   })
 
   it('pulls side initials inside the card edge', () => {

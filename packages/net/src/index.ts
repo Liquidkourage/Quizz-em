@@ -389,6 +389,8 @@ export type HostVenueFloorBriefPayload = {
   bigWinners: HostVenueBigWinEntry[]
   /** Newest-first raises, calls, and all-ins at or above {@link bigWinMinAmount}. */
   bigBets: HostVenueBigBetEntry[]
+  /** Largest-first calls, raises, and all-ins on the hand each table is playing now. */
+  handBets: HostVenueBigBetEntry[]
   bigWinMinAmount: number
   fieldPlayerCount: number
   liveTableCount: number

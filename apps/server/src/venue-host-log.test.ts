@@ -196,5 +196,63 @@ describe('recordVenueMovesBetweenStates', () => {
       'allIn:980:Alice C.',
       'raise:500:Bob D.',
     ])
+    expect(brief.handBets.map((b) => `${b.kind}:${b.amount}:${b.name}`)).toEqual([
+      'allIn:980:Alice C.',
+      'raise:500:Bob D.',
+      'call:20:Alice C.',
+    ])
+  })
+
+  it('ranks this hand only and drops a table when its next hand starts', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const raised: GameState = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:b' ? { ...p, bankroll: 600 } : p,
+      ),
+      round: {
+        ...before.round,
+        roundId: 'r1',
+        currentBet: 400,
+        lastSeatBettingAction: [null, 'raise'],
+        playerBets: { 'human:b': 400 },
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, before, raised)
+
+    const nextHandBefore: GameState = {
+      ...raised,
+      players: raised.players.map((p) => ({ ...p, bankroll: 1000 })),
+      round: {
+        ...raised.round,
+        roundId: 'r2',
+        currentBet: 20,
+        lastSeatBettingAction: [null, null],
+        playerBets: {},
+      },
+    }
+    const nextHandRaise: GameState = {
+      ...nextHandBefore,
+      players: nextHandBefore.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 900 } : p,
+      ),
+      round: {
+        ...nextHandBefore.round,
+        currentBet: 100,
+        lastSeatBettingAction: ['raise', null],
+        playerBets: { 'human:a': 100 },
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, nextHandBefore, nextHandRaise)
+
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(brief.handBets.map((b) => `${b.amount}:${b.name}`)).toEqual(['100:Alice C.'])
   })
 })

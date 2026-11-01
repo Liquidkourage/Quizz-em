@@ -3,6 +3,7 @@ import { HostModal, useHostModalNested } from './HostModal'
 import { ChipText, NeonButton } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
 import type {
+  HostVenueBigBetEntry,
   HostVenueFeltBeatRow,
   HostVenueFloorBriefPayload,
   HostVenueMoveLogEntry,
@@ -1066,15 +1067,201 @@ function venueFeltBeatLockstep(rows: HostVenueFeltBeatRow[] | null): {
   }
 }
 
+/** Beats the host can force onto the table they just clicked. */
+export function HostFeltPhasePicker({
+  tableNum,
+  onPick,
+}: {
+  tableNum: number
+  onPick: (signature: string) => void
+}) {
+  return (
+    <div className="mb-2 rounded-lg border border-white/15 bg-black/40 p-2">
+      <p className="mb-1.5 text-xs font-bold text-white/70">Table {tableNum}</p>
+      <div className="flex flex-wrap gap-1">
+        {TABLE_PHASE_OVERRIDES.map((phase) => (
+          <button
+            key={phase.id}
+            type="button"
+            onClick={() => onPick(phase.id)}
+            className="rounded-md border border-white/20 bg-white/10 px-2 py-1 text-xs font-semibold text-white hover:bg-white/15"
+          >
+            {phase.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function HostHandBetRank({
+  bets,
+  limit,
+  title,
+}: {
+  bets: HostVenueBigBetEntry[]
+  limit?: number
+  title?: string
+}) {
+  const shown = typeof limit === 'number' ? bets.slice(0, limit) : bets
+  if (shown.length === 0) return null
+  return (
+    <div className="mb-2">
+      {title ? (
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/45">{title}</p>
+      ) : null}
+      <ol className="space-y-1">
+      {shown.map((bet, i) => (
+        <li
+          key={`${bet.tableNum}-${bet.atMs}-${bet.kind}-${bet.name}-${i}`}
+          className="flex items-baseline justify-between gap-2 rounded-md border border-amber-400/30 bg-amber-950/20 px-2 py-1 text-xs"
+        >
+          <span className="min-w-0 truncate font-semibold text-amber-50">
+            <span className="mr-1.5 font-mono text-white/40">{i + 1}</span>
+            {bet.name}
+            <span className="ml-1.5 font-bold uppercase tracking-wide text-amber-200/70">
+              {BET_ACTION_LABEL[bet.kind] ?? bet.kind}
+            </span>
+          </span>
+          <span className="shrink-0 text-right">
+            <span className="mr-1.5 text-white/40">T{bet.tableNum}</span>
+            <span className="font-mono font-bold tabular-nums text-amber-100">
+              <ChipText text={formatHostFloorMoney(bet.amount)} />
+            </span>
+          </span>
+        </li>
+      ))}
+      </ol>
+    </div>
+  )
+}
+
+function feltBeatTileTitle(args: {
+  watching: boolean
+  seated: number
+  sig: string | null
+  drift: boolean
+  unanimous: boolean
+}): string | undefined {
+  if (args.watching) {
+    return `Your mirrored host table (cyan ring)${args.sig ? ` — ${args.sig}` : ''}`
+  }
+  if (args.seated === 0) return 'Empty felt — not counted for lockstep'
+  if (!args.sig) return undefined
+  if (args.drift) return `Straggler — ${args.sig}`
+  if (args.unanimous) return `In sync — ${args.sig}`
+  return `In sync with majority — ${args.sig}`
+}
+
+function feltBeatTileClass(active: boolean, drift: boolean, watching: boolean, picked: boolean): string {
+  const tone = !active
+    ? 'border-white/10 bg-black/22 opacity-75'
+    : drift
+      ? 'border-amber-400/85 bg-amber-950/25'
+      : 'border-white/20 bg-black/35'
+  const watch = watching ? 'ring-1 ring-cyan-400/65' : ''
+  const pick = picked ? 'ring-1 ring-amber-300/80' : ''
+  return `host-felt-tile rounded-md border px-2 py-1.5 text-center sm:min-h-[4.5rem] ${tone} ${watch} ${pick}`
+}
+
+function HostFeltBeatTileBody({
+  tableNum,
+  phaseLabel,
+  seatedLabel,
+  countdownSec,
+}: {
+  tableNum: number
+  phaseLabel: string
+  seatedLabel: string
+  countdownSec: number | null
+}) {
+  return (
+    <>
+      <div className="text-xs font-bold tabular-nums text-yellow-400/90">{tableNum}</div>
+      <div className="truncate text-xs font-semibold leading-tight text-white/85">{phaseLabel}</div>
+      <div className="text-xs tabular-nums text-white/45">
+        {seatedLabel}
+        {countdownSec != null ? (
+          <span
+            className={`block font-mono text-2xl font-black leading-none tabular-nums ${
+              countdownSec <= 10 ? 'text-rose-300' : 'text-amber-200'
+            }`}
+          >
+            {countdownSec}
+          </span>
+        ) : null}
+      </div>
+    </>
+  )
+}
+
+function HostFeltBeatTile({
+  row,
+  hostTableId,
+  drift,
+  unanimous,
+  picked,
+  onToggle,
+}: {
+  row: HostVenueFeltBeatRow
+  hostTableId: string
+  drift: boolean
+  unanimous: boolean
+  picked: boolean
+  onToggle?: () => void
+}) {
+  const watching = hostTableId.trim() !== LOBBY_TABLE_ID && String(row.tableNum) === hostTableId.trim()
+  const phaseLabel = row.phase === 'inactive' ? '—' : HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
+  const countdownSec =
+    row.phase === 'answering' && row.answerDeadlineMs != null
+      ? Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
+      : null
+  const title = feltBeatTileTitle({
+    watching,
+    seated: row.seated,
+    sig: row.phaseStrictSig ?? null,
+    drift,
+    unanimous,
+  })
+  const className = feltBeatTileClass(row.active, drift, watching, picked)
+  const body = (
+    <HostFeltBeatTileBody
+      tableNum={row.tableNum}
+      phaseLabel={phaseLabel}
+      seatedLabel={row.active ? `${row.seated}p` : '—'}
+      countdownSec={countdownSec}
+    />
+  )
+  if (onToggle == null || row.seated === 0) {
+    return (
+      <div title={title} className={className}>
+        {body}
+      </div>
+    )
+  }
+  return (
+    <button type="button" aria-label={`Table ${row.tableNum}`} title={title} onClick={onToggle} className={className}>
+      {body}
+    </button>
+  )
+}
+
 export function HostVenueFeltBeatStrip({
   rows,
   hostTableId,
+  onAlignRoom,
+  onSetTablePhase,
 }: {
   rows: HostVenueFeltBeatRow[] | null
   hostTableId: string
+  onAlignRoom?: () => void
+  onSetTablePhase?: (tableNum: number, signature: string) => void
 }) {
   const { outlierTableNums, lockstepMisaligned, unanimousSig } = venueFeltBeatLockstep(rows)
   const seatedTableCount = rows?.filter((r) => r.active && r.seated > 0).length ?? 0
+  const [openTable, setOpenTable] = useState<number | null>(null)
+  const openRow =
+    openTable == null ? undefined : rows?.find((row) => row.tableNum === openTable && row.seated > 0)
 
   const hasLiveCountdown =
     rows?.some((r) => r.phase === 'answering' && r.answerDeadlineMs != null) ?? false
@@ -1110,10 +1297,21 @@ export function HostVenueFeltBeatStrip({
       {lockstepMisaligned ? (
         <div
           role="status"
-          className="mb-2 rounded-lg border border-amber-400/55 bg-amber-950/35 px-2.5 py-1.5 text-xs font-semibold text-amber-100"
+          className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-400/55 bg-amber-950/35 px-2.5 py-1.5 text-xs font-semibold text-amber-100"
         >
-          Amber felts differ from the majority — fix before venue-wide cues. Empty felts (0p) are
-          ignored.
+          <span>
+            Amber felts differ from the majority — fix before venue-wide cues. Empty felts (0p) are
+            ignored.
+          </span>
+          {onAlignRoom ? (
+            <button
+              type="button"
+              onClick={onAlignRoom}
+              className="rounded-md border border-amber-300/60 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
+            >
+              Match the room
+            </button>
+          ) : null}
         </div>
       ) : unanimousSig != null && seatedTableCount >= 2 ? (
         <div
@@ -1123,64 +1321,37 @@ export function HostVenueFeltBeatStrip({
           All {seatedTableCount} seated felts in sync ({unanimousSig}) — venue-wide cues OK.
         </div>
       ) : null}
+      {onSetTablePhase ? (
+        <p className="mb-2 text-xs text-white/50">Click a table to set its phase.</p>
+      ) : null}
+      {openRow && onSetTablePhase ? (
+        <HostFeltPhasePicker
+          tableNum={openRow.tableNum}
+          onPick={(signature) => {
+            onSetTablePhase(openRow.tableNum, signature)
+            setOpenTable(null)
+          }}
+        />
+      ) : null}
       {rows == null ? (
         <p className="text-sm text-white/50">Waiting for first venue sync…</p>
       ) : (
         <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10">
-          {rows.map((row) => {
-            const watching =
-              hostTableId.trim() !== LOBBY_TABLE_ID && String(row.tableNum) === hostTableId.trim()
-            const phaseLabel =
-              row.phase === 'inactive' ? '—' : HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
-            const countdownSec =
-              row.phase === 'answering' && row.answerDeadlineMs != null
-                ? Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
-                : null
-            const sig = row.phaseStrictSig ?? null
-            const drift = row.seated > 0 && outlierTableNums.has(row.tableNum)
-            return (
-              <div
-                key={row.tableNum}
-                title={
-                  watching
-                    ? `Your mirrored host table (cyan ring)${sig ? ` — ${sig}` : ''}`
-                    : row.seated === 0
-                      ? 'Empty felt — not counted for lockstep'
-                      : drift && sig
-                        ? `Straggler — ${sig}`
-                        : sig
-                          ? unanimousSig != null
-                            ? `In sync — ${sig}`
-                            : `In sync with majority — ${sig}`
-                          : undefined
-                }
-                className={`host-felt-tile rounded-md border px-2 py-1.5 text-center sm:min-h-[4.5rem] ${
-                  row.active
-                    ? drift
-                      ? 'border-amber-400/85 bg-amber-950/25'
-                      : 'border-white/20 bg-black/35'
-                    : 'border-white/10 bg-black/22 opacity-75'
-                } ${watching ? 'ring-1 ring-cyan-400/65' : ''}`}
-              >
-                <div className="text-xs font-bold tabular-nums text-yellow-400/90">{row.tableNum}</div>
-                <div className="truncate text-xs font-semibold leading-tight text-white/85">
-                  {phaseLabel}
-                </div>
-                <div className="text-xs tabular-nums text-white/45">
-                  {row.active ? `${row.seated}p` : '—'}
-                  {countdownSec != null ? (
-                    <span
-                      className={`block font-mono text-2xl font-black leading-none tabular-nums ${
-                        countdownSec <= 10 ? 'text-rose-300' : 'text-amber-200'
-                      }`}
-                    >
-                      {countdownSec}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            )
-          })}
+          {rows.map((row) => (
+            <HostFeltBeatTile
+              key={row.tableNum}
+              row={row}
+              hostTableId={hostTableId}
+              drift={row.seated > 0 && outlierTableNums.has(row.tableNum)}
+              unanimous={unanimousSig != null}
+              picked={openTable === row.tableNum}
+              onToggle={
+                onSetTablePhase == null
+                  ? undefined
+                  : () => setOpenTable((current) => (current === row.tableNum ? null : row.tableNum))
+              }
+            />
+          ))}
         </div>
       )}
     </HostCollapsible>
@@ -1569,35 +1740,12 @@ export function HostVenueFloorBriefPanel({
 
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
-              Big bets
-              <span className="ml-1 font-normal normal-case text-white/35">
-                (≥ <ChipText text={formatHostFloorMoney(brief.bigWinMinAmount)} />)
-              </span>
+              Big bets this hand
             </p>
-            {(brief.bigBets ?? []).length === 0 ? (
-              <p className="text-sm text-white/50">None yet this session.</p>
+            {(brief.handBets ?? []).length === 0 ? (
+              <p className="text-sm text-white/50">None this hand.</p>
             ) : (
-              <ul className="space-y-1">
-                {(brief.bigBets ?? []).map((bet, i) => (
-                  <li
-                    key={`${bet.name}-${bet.tableNum}-${bet.atMs}-${bet.kind}-${i}`}
-                    className="flex items-baseline justify-between gap-2 rounded-md border border-amber-400/30 bg-amber-950/20 px-2 py-1.5 text-xs"
-                  >
-                    <span className="min-w-0 truncate font-semibold text-amber-50">
-                      {hostPlayerLabel(bet.name)}
-                      <span className="ml-1.5 font-bold uppercase tracking-wide text-amber-200/70">
-                        {BET_ACTION_LABEL[bet.kind] ?? bet.kind}
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-right">
-                      <span className="mr-1.5 text-white/40">T{bet.tableNum}</span>
-                      <span className="font-mono font-bold tabular-nums text-amber-100">
-                        <ChipText text={formatHostFloorMoney(bet.amount)} />
-                      </span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <HostHandBetRank bets={brief.handBets ?? []} />
             )}
           </div>
 
@@ -2122,87 +2270,15 @@ export function HostRunBar({
   )
 }
 
-/** Set one table's beat, or pull every straggler onto the majority beat. */
-export function HostTablePhaseControls({
-  tableNums,
-  misaligned,
-  onAlignRoom,
-  onSetTablePhase,
-}: {
-  tableNums: number[]
-  misaligned: boolean
-  onAlignRoom: () => void
-  onSetTablePhase: (tableNum: number, signature: string) => void
-}) {
-  const [tableNum, setTableNum] = useState(tableNums[0] ?? 1)
-  const [signature, setSignature] = useState<string>(TABLE_PHASE_OVERRIDES[0].id)
-  const selected = tableNums.includes(tableNum) ? tableNum : (tableNums[0] ?? 1)
-
-  return (
-    <div className="mb-2 flex flex-wrap items-end gap-2">
-      {misaligned ? (
-        <button
-          type="button"
-          onClick={onAlignRoom}
-          className="rounded-md border border-amber-300/60 bg-amber-500/20 px-3 py-1.5 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
-        >
-          Match the room
-        </button>
-      ) : null}
-      <label className="flex flex-col gap-0.5 text-xs font-semibold text-white/55">
-        Table
-        <select
-          aria-label="Table to realign"
-          value={selected}
-          onChange={(e) => setTableNum(Number(e.target.value))}
-          className="rounded-md border border-white/20 bg-zinc-950 px-2 py-1.5 text-sm text-white [color-scheme:dark]"
-        >
-          {tableNums.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="flex flex-col gap-0.5 text-xs font-semibold text-white/55">
-        Phase
-        <select
-          aria-label="Phase to set"
-          value={signature}
-          onChange={(e) => setSignature(e.target.value)}
-          className="max-w-[16rem] rounded-md border border-white/20 bg-zinc-950 px-2 py-1.5 text-sm text-white [color-scheme:dark]"
-        >
-          {TABLE_PHASE_OVERRIDES.map((row) => (
-            <option key={row.id} value={row.id}>
-              {row.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <button
-        type="button"
-        onClick={() => onSetTablePhase(selected, signature)}
-        className="rounded-md border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-bold text-white hover:bg-white/15"
-      >
-        Set phase
-      </button>
-    </div>
-  )
-}
-
 /** Compact horizontal floor awareness — tap a table to spotlight it on TVs. */
 export function HostFloorStrip({
   rows,
   brief,
   onSpotlight,
-  onAlignRoom,
-  onSetTablePhase,
 }: {
   rows: HostVenueFeltBeatRow[] | null
   brief: HostVenueFloorBriefPayload | null
   onSpotlight: (tableNum: number) => void
-  onAlignRoom?: () => void
-  onSetTablePhase?: (tableNum: number, signature: string) => void
 }) {
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(rows)
   const actionByTable = new Map((brief?.actionRows ?? []).map((r) => [r.tableNum, r]))
@@ -2240,17 +2316,10 @@ export function HostFloorStrip({
       </div>
       {lockstepMisaligned ? (
         <p className="mb-2 text-xs font-medium text-amber-100/90">
-          Amber tables differ from the majority — align before venue-wide cues.
+          Amber tables differ from the majority — click that table under Venue felts to set its phase.
         </p>
       ) : null}
-      {lockstepMisaligned && onAlignRoom && onSetTablePhase && seated.length > 0 ? (
-        <HostTablePhaseControls
-          tableNums={seated.map((row) => row.tableNum)}
-          misaligned={lockstepMisaligned}
-          onAlignRoom={onAlignRoom}
-          onSetTablePhase={onSetTablePhase}
-        />
-      ) : null}
+      <HostHandBetRank bets={brief?.handBets ?? []} limit={4} title="Big bets this hand" />
       {seated.length === 0 ? (
         <p className="text-sm text-white/50">
           No tables yet — players join first, then you seat them.

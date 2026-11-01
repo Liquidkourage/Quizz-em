@@ -18,6 +18,8 @@ type VenueHostLog = {
   busts: HostVenueBustEntry[]
   bigWinners: HostVenueBigWinEntry[]
   bigBets: HostVenueBigBetEntry[]
+  handBets: HostVenueBigBetEntry[]
+  handRoundByTable: Record<number, string>
   moveLog: HostVenueMoveLogEntry[]
   moveSeq: number
 }
@@ -35,10 +37,20 @@ const venueLastHandDisplay = new Map<string, VenueLastHandDisplay>()
 function logForVenue(vn: string): VenueHostLog {
   let log = venueHostLogs.get(vn)
   if (!log) {
-    log = { busts: [], bigWinners: [], bigBets: [], moveLog: [], moveSeq: 0 }
+    log = {
+      busts: [],
+      bigWinners: [],
+      bigBets: [],
+      handBets: [],
+      handRoundByTable: {},
+      moveLog: [],
+      moveSeq: 0,
+    }
     venueHostLogs.set(vn, log)
   }
   if (!Array.isArray(log.bigBets)) log.bigBets = []
+  if (!Array.isArray(log.handBets)) log.handBets = []
+  if (log.handRoundByTable == null) log.handRoundByTable = {}
   if (!Array.isArray(log.moveLog)) log.moveLog = []
   if (typeof log.moveSeq !== 'number') log.moveSeq = 0
   return log
@@ -153,6 +165,24 @@ function formatBettingMoveSummary(
   }
 }
 
+function rememberHandBet(
+  log: VenueHostLog,
+  tableNum: number,
+  roundId: string,
+  entry: HostVenueBigBetEntry,
+): void {
+  if (log.handRoundByTable[tableNum] !== roundId) {
+    log.handBets = log.handBets.filter((bet) => bet.tableNum !== tableNum)
+    log.handRoundByTable[tableNum] = roundId
+  }
+  log.handBets.unshift(entry)
+  if (log.handBets.length > LOG_CAP) log.handBets.length = LOG_CAP
+}
+
+function rankedHandBets(bets: HostVenueBigBetEntry[]): HostVenueBigBetEntry[] {
+  return [...bets].sort((a, b) => b.amount - a.amount || b.atMs - a.atMs).slice(0, 8)
+}
+
 function pushMove(
   log: VenueHostLog,
   entry: Omit<HostVenueMoveLogEntry, 'id'>,
@@ -200,15 +230,17 @@ export function recordVenueMovesBetweenStates(
       })
       if (
         (nextAct === 'call' || nextAct === 'raise' || nextAct === 'allIn') &&
-        committed >= bigWinThreshold(after)
+        committed > 0
       ) {
-        log.bigBets.unshift({
+        const bet = {
           name,
           tableNum,
           amount: committed,
           kind: nextAct,
           atMs: now,
-        })
+        }
+        rememberHandBet(log, tableNum, after.round.roundId, bet)
+        if (committed >= bigWinThreshold(after)) log.bigBets.unshift(bet)
       }
     }
 
@@ -373,6 +405,7 @@ export function buildHostVenueFloorBrief(args: {
     busts: log.busts,
     bigWinners: log.bigWinners,
     bigBets: log.bigBets,
+    handBets: rankedHandBets(log.handBets),
     bigWinMinAmount: Math.max(300, bb * 12),
     fieldPlayerCount: args.fieldPlayerCount,
     liveTableCount: args.liveTableCount,

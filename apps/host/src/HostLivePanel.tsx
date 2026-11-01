@@ -81,34 +81,32 @@ export function HostLivePanel({
   }
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,0.7fr)_auto_minmax(0,1fr)] gap-2 overflow-hidden">
-      <div className="min-h-0 overflow-y-auto">
-        <HostRunBar
-          items={phaseDockItems}
-          headline={runOfShowHeadline}
-          pacingUrgency={pacingUrgency}
-          cueHint={runBarCueHint}
-          tvBar={
-            <>
-              <HostTvBar
-                onVenueFloor={onVenueFloor}
-                onLeaderboard={onLeaderboard}
-                onTriviaLeaderboard={onTriviaLeaderboard}
-                onSeatingRules={onSeatingRules}
-              />
-              <HostConnectedDisplays
-                displays={attachedDisplays}
-                onRelease={(socketId) => onReleaseDisplay?.(socketId)}
-                emptyLabel={false}
-              />
-            </>
-          }
-        />
-      </div>
+    <div className="grid h-full min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)] gap-2 overflow-hidden">
+      <HostRunBar
+        items={phaseDockItems}
+        headline={runOfShowHeadline}
+        pacingUrgency={pacingUrgency}
+        cueHint={runBarCueHint}
+        tvBar={
+          <>
+            <HostTvBar
+              onVenueFloor={onVenueFloor}
+              onLeaderboard={onLeaderboard}
+              onTriviaLeaderboard={onTriviaLeaderboard}
+              onSeatingRules={onSeatingRules}
+            />
+            <HostConnectedDisplays
+              displays={attachedDisplays}
+              onRelease={(socketId) => onReleaseDisplay?.(socketId)}
+              emptyLabel={false}
+            />
+          </>
+        }
+      />
 
-      <div className={`grid min-h-0 gap-2 overflow-hidden ${questionSlot ? 'lg:grid-cols-2' : ''}`}>
-        {questionSlot ? <div className="min-h-0 overflow-hidden">{questionSlot}</div> : null}
-        <div className="min-h-0 overflow-hidden">
+      <div className={`grid items-start gap-2 ${questionSlot ? 'lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.8fr)]' : ''}`}>
+        {questionSlot ? <div className="min-w-0">{questionSlot}</div> : null}
+        <div className="min-w-0">
           <HostFloorStrip
             rows={venueFeltBeat}
             brief={venueFloorBrief}
@@ -117,9 +115,9 @@ export function HostLivePanel({
         </div>
       </div>
 
-      <div className="max-h-36 min-h-0 overflow-y-auto">{feltBeat}</div>
+      <div className="h-full min-h-0 overflow-hidden">{feltBeat}</div>
 
-      <div className={`grid min-h-0 gap-2 overflow-hidden ${handShow ? 'lg:grid-cols-2' : ''}`}>
+      <div className={`grid h-full min-h-0 gap-2 overflow-hidden ${handShow ? 'lg:grid-cols-2' : ''}`}>
         {floorNow}
         <HostThisHandPanel title="Right now" show={handShow}>
           {handBody}

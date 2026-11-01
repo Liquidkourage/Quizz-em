@@ -1449,7 +1449,7 @@ export function HostVenueFloorBriefPanel({
       {brief == null ? (
         <p className="text-sm text-white/50">Waiting for venue sync…</p>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_repeat(3,minmax(0,0.75fr))]">
+        <div className="grid grid-cols-2 gap-3">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Table action
@@ -1549,7 +1549,7 @@ export function HostVenueFloorBriefPanel({
             {brief.busts.length === 0 ? (
               <p className="text-sm text-white/50">None yet this session.</p>
             ) : (
-              <ul className="max-h-56 space-y-1 overflow-y-auto pr-1">
+              <ul className="space-y-1">
                 {brief.busts.map((b, i) => (
                   <li
                     key={`${b.name}-${b.tableNum}-${b.atMs}-${i}`}
@@ -1573,7 +1573,7 @@ export function HostVenueFloorBriefPanel({
             {(brief.bigBets ?? []).length === 0 ? (
               <p className="text-sm text-white/50">None yet this session.</p>
             ) : (
-              <ul className="max-h-56 space-y-1 overflow-y-auto pr-1">
+              <ul className="space-y-1">
                 {(brief.bigBets ?? []).map((bet, i) => (
                   <li
                     key={`${bet.name}-${bet.tableNum}-${bet.atMs}-${bet.kind}-${i}`}
@@ -1607,7 +1607,7 @@ export function HostVenueFloorBriefPanel({
             {brief.bigWinners.length === 0 ? (
               <p className="text-sm text-white/50">None yet this session.</p>
             ) : (
-              <ul className="max-h-56 space-y-1 overflow-y-auto pr-1">
+              <ul className="space-y-1">
                 {brief.bigWinners.map((w, i) => (
                   <li
                     key={`${w.name}-${w.tableNum}-${w.atMs}-${i}`}
@@ -1959,7 +1959,7 @@ export function HostTvBar({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-2"
+      className="flex flex-wrap items-center gap-2 lg:border-l lg:border-white/10 lg:pl-3"
       role="group"
       aria-label="What the audience TVs show"
     >
@@ -1987,7 +1987,7 @@ export function HostTvBar({
 export function HostLiveQuestionCard({ text, answer }: { text: string; answer: number }) {
   return (
     <section
-      className="h-full min-h-0 overflow-y-auto rounded-xl border border-amber-400/40 bg-black/55 px-4 py-3"
+      className="max-h-40 overflow-y-auto rounded-xl border border-amber-400/40 bg-black/55 px-4 py-3"
       aria-label="Live question"
     >
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/45">Question</p>
@@ -2034,67 +2034,73 @@ export function HostRunBar({
   const danger = rest.filter((i) => i.role === 'danger')
 
   return (
-    <div className="rounded-xl border border-casino-emerald/40 bg-black/90 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md sm:p-3">
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
-        {headline ? (
-          <div className="min-w-0 flex-1">
-            <p className={`text-xs font-bold uppercase tracking-[0.14em] ${urgencyClass}`}>
-              {urgencyLabel}
-            </p>
-            <p className="mt-0.5 text-lg font-bold leading-snug text-white sm:text-xl">{headline.title}</p>
-            {headline.detail ? (
-              <p className="mt-0.5 text-xs leading-snug text-white/55">
-                <ChipText text={headline.detail} />
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-        {statusLine ? <div className="shrink-0 lg:max-w-[min(100%,28rem)]">{statusLine}</div> : null}
-      </div>
-      {primary || quiet.length > 0 || danger.length > 0 ? (
-        <div className="mt-2 space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Show cues">
-            {primary ? (
-              <NeonButton
-                key={primary.id}
-                variant={primary.variant}
-                size="normal"
-                disabled={primary.disabled}
-                onClick={primary.onClick}
-                className="!px-5 !py-2 !text-lg !font-bold"
-              >
-                {primary.label}
-              </NeonButton>
-            ) : null}
-            {quiet.map((item) => (
-              <NeonButton
-                key={item.id}
-                variant={item.variant}
-                size="small"
-                disabled={item.disabled}
-                onClick={item.onClick}
-                className="!px-3 !py-2 !text-sm !font-semibold opacity-90"
-              >
-                {item.label}
-              </NeonButton>
-            ))}
-            {danger.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                disabled={item.disabled}
-                onClick={item.onClick}
-                className="rounded-md border border-rose-400/40 bg-rose-950/40 px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide text-rose-100/90 hover:bg-rose-900/50 disabled:opacity-40"
-                title="Fold the player who should act"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-          {cueHint ? <p className="text-xs font-medium text-amber-200/90">{cueHint}</p> : null}
+    <div className="host-next-band rounded-xl border border-casino-emerald/40 bg-black/90 p-3 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0 flex-1">
+          {headline || statusLine ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              {headline ? (
+                <div className="min-w-0">
+                  <p className={`text-xs font-bold uppercase tracking-[0.14em] ${urgencyClass}`}>
+                    {urgencyLabel}
+                  </p>
+                  <p className="mt-0.5 text-lg font-bold leading-snug text-white">{headline.title}</p>
+                  {headline.detail ? (
+                    <p className="mt-0.5 text-xs leading-snug text-white/55">
+                      <ChipText text={headline.detail} />
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+              {statusLine ? <div className="shrink-0">{statusLine}</div> : null}
+            </div>
+          ) : null}
+          {primary || quiet.length > 0 || danger.length > 0 ? (
+            <div className={headline || statusLine ? 'mt-2' : undefined}>
+              <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Show cues">
+                {primary ? (
+                  <NeonButton
+                    key={primary.id}
+                    variant={primary.variant}
+                    size="normal"
+                    disabled={primary.disabled}
+                    onClick={primary.onClick}
+                    className="!px-5 !py-2 !text-lg !font-bold"
+                  >
+                    {primary.label}
+                  </NeonButton>
+                ) : null}
+                {quiet.map((item) => (
+                  <NeonButton
+                    key={item.id}
+                    variant={item.variant}
+                    size="small"
+                    disabled={item.disabled}
+                    onClick={item.onClick}
+                    className="!px-3 !py-2 !text-sm !font-semibold opacity-90"
+                  >
+                    {item.label}
+                  </NeonButton>
+                ))}
+                {danger.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    disabled={item.disabled}
+                    onClick={item.onClick}
+                    className="rounded-md border border-rose-400/40 bg-rose-950/40 px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide text-rose-100/90 hover:bg-rose-900/50 disabled:opacity-40"
+                    title="Fold the player who should act"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              {cueHint ? <p className="mt-1 text-xs font-medium text-amber-200/90">{cueHint}</p> : null}
+            </div>
+          ) : null}
         </div>
-      ) : null}
-      {tvBar}
+        {tvBar ? <div className="min-w-0 lg:max-w-[46%] lg:shrink-0">{tvBar}</div> : null}
+      </div>
     </div>
   )
 }
@@ -2125,7 +2131,7 @@ export function HostFloorStrip({
   if (rows == null && brief == null) return null
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 sm:px-4 sm:py-3">
+    <div className="max-h-40 overflow-y-auto rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 sm:px-4 sm:py-3">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/40">
           Tables

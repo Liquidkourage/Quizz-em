@@ -85,7 +85,7 @@ import {
   hostDealCommunityGate,
   hostStartAnswerGate,
 } from './hostVenueActionGates'
-import { hostVenueAutoAlertFromToast } from './hostVenueAutoAlerts'
+import { HOST_VENUE_ALERT_MS, hostVenueAutoAlertFromToast } from './hostVenueAutoAlerts'
 import { useHostVenueAutoAlerts } from './useHostVenueAutoAlerts'
 import HostVenueAutoAlertBanner from './HostVenueAutoAlertBanner.tsx'
 import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
@@ -224,7 +224,7 @@ function HostApp() {
       const venueAlert = hostVenueAutoAlertFromToast(message)
       if (venueAlert) {
         setToastVenueAlert(venueAlert)
-        window.setTimeout(() => setToastVenueAlert(null), 7500)
+        window.setTimeout(() => setToastVenueAlert(null), HOST_VENUE_ALERT_MS)
         return
       }
       setToastMessage(message)

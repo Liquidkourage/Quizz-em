@@ -24,24 +24,20 @@ export default function HostVenueAutoAlertBanner({ alert }: { alert: HostVenueAu
 
   return (
     <motion.div
-      className="pointer-events-none relative z-20 mb-4 flex justify-center px-1"
+      className="pointer-events-none fixed left-1/2 top-4 z-[70] w-[min(24rem,calc(100%-1.5rem))] -translate-x-1/2"
       role="status"
-      aria-live="assertive"
-      initial={reducedMotion ? false : { opacity: 0, y: -24 }}
+      aria-live="polite"
+      initial={reducedMotion ? false : { opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={reducedMotion ? undefined : { opacity: 0, y: -16 }}
-      transition={{ duration: reducedMotion ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
+      exit={reducedMotion ? undefined : { opacity: 0, y: -8 }}
+      transition={{ duration: reducedMotion ? 0 : 0.25 }}
     >
-      <div
-        className={`w-full max-w-2xl rounded-2xl border px-5 py-4 backdrop-blur-md sm:px-6 sm:py-5 ${TONE_CLASS[tone]}`}
-      >
-        <p className={`text-xs font-bold uppercase tracking-[0.2em] ${LABEL_CLASS[tone]}`}>
-          Venue auto-update
+      <div className={`rounded-xl border px-4 py-2.5 backdrop-blur-md ${TONE_CLASS[tone]}`}>
+        <p className={`text-[0.65rem] font-bold uppercase tracking-[0.16em] ${LABEL_CLASS[tone]}`}>
+          Update
         </p>
-        <p className="mt-1 text-xl font-bold leading-snug text-white sm:text-2xl">{alert.title}</p>
-        {alert.detail ? (
-          <p className="mt-2 text-sm leading-snug text-white/72 sm:text-base">{alert.detail}</p>
-        ) : null}
+        <p className="text-base font-bold leading-snug text-white">{alert.title}</p>
+        {alert.detail ? <p className="mt-0.5 text-xs leading-snug text-white/70">{alert.detail}</p> : null}
       </div>
     </motion.div>
   )

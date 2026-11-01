@@ -19,6 +19,9 @@ export type HostVenueAutoAlertKind =
   | 'answer-window-started'
   | 'answer-window-ended'
 
+/** How long a state-change notice stays up before the desk is clear again. */
+export const HOST_VENUE_ALERT_MS = 4000
+
 export type HostVenueAutoAlert = {
   kind: HostVenueAutoAlertKind
   title: string

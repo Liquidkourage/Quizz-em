@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
 import {
   detectVenueAutoAlerts,
+  HOST_VENUE_ALERT_MS,
   snapshotVenueFeltBeat,
   type HostVenueAutoAlert,
 } from './hostVenueAutoAlerts'
-
-const AUTO_ALERT_DWELL_MS = 7500
 
 export function useHostVenueAutoAlerts(
   felts: HostVenueFeltBeatRow[] | null,
@@ -26,7 +25,7 @@ export function useHostVenueAutoAlerts(
 
   useEffect(() => {
     if (alert == null) return
-    const timer = window.setTimeout(() => setAlert(null), AUTO_ALERT_DWELL_MS)
+    const timer = window.setTimeout(() => setAlert(null), HOST_VENUE_ALERT_MS)
     return () => window.clearTimeout(timer)
   }, [alert])
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 type LeaderboardFrameProps = {
   children: ReactNode
@@ -10,7 +11,7 @@ type LeaderboardFrameProps = {
 export function LeaderboardFrame({ children, fullField = false }: LeaderboardFrameProps) {
   return (
     <div className="venue-lb-screen fixed inset-0 overflow-hidden text-white">
-      <div className="venue-lb-screen-bg pointer-events-none absolute inset-0" aria-hidden />
+      <DisplayWelcomeBackdrop />
       <div
         className={`venue-lb-bezel relative flex h-full min-h-0 w-full flex-col${
           fullField ? ' venue-lb-bezel--full-field' : ''

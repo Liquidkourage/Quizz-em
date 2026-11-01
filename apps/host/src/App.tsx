@@ -59,6 +59,7 @@ import {
   HostCollapsible,
   HostBlindsControls,
   HostVenueFloorBriefPanel,
+  publicDisplaySoloTable,
   HostVenueMoveLogPanel,
   HostContestBadge,
   HostLiveQuestionCard,
@@ -554,6 +555,7 @@ function HostApp() {
   })()
   const questionTotal = activeSetlist?.questionIds.length || 25
   const handsLeft = Math.max(0, questionTotal - (venueFloorBrief?.handsCompleted ?? 0))
+  const soloPublicTable = publicDisplaySoloTable(venueFloorBrief)
   const applyBlindCall = (call: BlindCall) => {
     if (call.handsPerLevel !== handsPerBlindLevel) {
       setHandsPerBlindLevel(call.handsPerLevel)
@@ -923,7 +925,8 @@ function HostApp() {
                 >
                   Player
                 </button>
-                {(gameState.tableId ?? '') !== LOBBY_TABLE_ID ? (
+                {soloPublicTable != null &&
+                String(soloPublicTable) === (gameState.tableId ?? '').trim() ? (
                   <>
                     <span className="text-white/45">Your focus</span>
                     <span className="rounded-full border border-amber-500/35 bg-amber-950/30 px-2.5 py-0.5 font-medium text-casino-gold">

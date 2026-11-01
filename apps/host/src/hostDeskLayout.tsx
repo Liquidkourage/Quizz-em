@@ -1747,10 +1747,18 @@ export function HostTableOpen({
   )
 }
 
+/** The table filling the public screens by itself, or null while other tables or another mode share the wall. */
+export function publicDisplaySoloTable(brief: HostVenueFloorBriefPayload | null): number | null {
+  if (brief == null) return null
+  if ((brief.wallView ?? 'floor') !== 'floor') return null
+  if (brief.liveTableCount !== 1) return null
+  const live = brief.actionRows.filter((row) => row.seated > 0)
+  return live.length === 1 ? live[0].tableNum : null
+}
+
 export function HostVenueFloorBriefPanel({
   brief,
   hostPlayerLabel,
-  hostTableId,
   feltRows = null,
   onAlignRoom,
   onSetTablePhase,
@@ -1767,6 +1775,7 @@ export function HostVenueFloorBriefPanel({
   blindCall?: ReactNode
 }) {
   const rows = brief?.actionRows ?? []
+  const soloTable = publicDisplaySoloTable(brief)
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
   const [openTable, setOpenTable] = useState<number | null>(null)
   const openRow = rows.find((row) => row.tableNum === openTable)
@@ -1820,9 +1829,7 @@ export function HostVenueFloorBriefPanel({
             ) : (
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,9rem))] justify-start gap-1.5">
                 {rows.map((row) => {
-                  const watching =
-                    hostTableId.trim() !== LOBBY_TABLE_ID &&
-                    String(row.tableNum) === hostTableId.trim()
+                  const onPublicDisplay = soloTable === row.tableNum
                   const phaseLabel = HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
                   const drift = outlierTableNums.has(row.tableNum)
                   return (
@@ -1835,13 +1842,13 @@ export function HostVenueFloorBriefPanel({
                         drift || row.interestingAction
                           ? 'border-amber-400/45 bg-amber-950/25'
                           : 'border-white/10 bg-black/20'
-                      } ${watching ? 'ring-1 ring-emerald-400/50' : ''}`}
+                      } ${onPublicDisplay ? 'ring-1 ring-sky-300/70' : ''}`}
                     >
                       <span className="text-base font-bold text-white/90">
                         T{row.tableNum}
-                        {watching ? (
-                          <span className="ml-1.5 text-sm font-semibold uppercase text-emerald-300">
-                            You
+                        {onPublicDisplay ? (
+                          <span className="ml-1.5 text-sm font-semibold uppercase text-sky-200">
+                            Focus
                           </span>
                         ) : null}
                       </span>

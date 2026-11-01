@@ -86,6 +86,9 @@ describe('venue floor now', () => {
     expect(html).not.toContain('1,020')
     expect(html).not.toContain('Ada L.')
     expect(html).not.toContain('Ned P.')
+    expect(html).not.toContain('>You<')
+    expect(html).not.toContain('>Focus<')
+    expect(html).not.toContain('ring-emerald-400/50')
   })
 
   it('opens a table into in-pot and points-only columns', () => {
@@ -119,6 +122,34 @@ describe('venue floor now', () => {
     expect(html).toContain('Call')
     expect(html).toContain('Answering on phones')
     expect(html).toContain('1,020')
+  })
+
+  it('marks a table only when it is the whole public display', () => {
+    const one = brief()
+    one.liveTableCount = 1
+    one.actionRows = [{ ...actionRow(3), seated: 4 }]
+    one.wallView = 'floor'
+    const alone = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: one,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    expect(alone).toContain('>Focus<')
+    expect(alone).toContain('ring-sky-300/70')
+    expect(alone.indexOf('>Focus<')).toBeGreaterThan(alone.indexOf('T3'))
+    expect(alone.indexOf('>Focus<')).toBeLessThan(alone.indexOf('T3') + 400)
+
+    one.wallView = 'leaderboard'
+    const scores = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: one,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '3',
+      }),
+    )
+    expect(scores).not.toContain('>Focus<')
   })
 
   it('keeps the blind call on the floor', () => {

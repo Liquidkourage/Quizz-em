@@ -385,6 +385,7 @@ export type HostVenueFloorBriefPayload = {
   actionRows: HostVenueActionRow[]
   /** Newest-first log of every player move across seated tables. */
   moveLog: HostVenueMoveLogEntry[]
+  /** Players eliminated on the hand that just paid. */
   busts: HostVenueBustEntry[]
   bigWinners: HostVenueBigWinEntry[]
   /** Newest-first raises, calls, and all-ins at or above {@link bigWinMinAmount}. */

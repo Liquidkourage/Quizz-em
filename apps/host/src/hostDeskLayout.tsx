@@ -1661,6 +1661,7 @@ export function HostVenueFloorBriefPanel({
   const rows = brief?.actionRows ?? []
 
   return (
+    <>
     <HostCollapsible
       expanded
       badge={
@@ -1674,7 +1675,7 @@ export function HostVenueFloorBriefPanel({
         <span>
           Venue floor · now
           <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
-            — who&apos;s acting, busts, big bets, big wins
+            — who&apos;s acting
           </span>
         </span>
       }
@@ -1774,14 +1775,31 @@ export function HostVenueFloorBriefPanel({
               </ul>
             )}
           </div>
-
-          <div className="grid shrink-0 gap-3 sm:grid-cols-3">
+        </div>
+      )}
+    </HostCollapsible>
+    <div className="mt-2">
+    <HostCollapsible
+      expanded
+      summary={
+        <span>
+          This hand
+          <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
+            — busts, big bets, big wins
+          </span>
+        </span>
+      }
+    >
+      {brief == null ? (
+        <p className="text-sm text-white/50">Waiting for venue sync…</p>
+      ) : (
+          <div className="grid gap-3 sm:grid-cols-3">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">
               Busts
             </p>
             {brief.busts.length === 0 ? (
-              <p className="text-sm text-white/50">None yet this session.</p>
+              <p className="text-sm text-white/50">None this hand.</p>
             ) : (
               <ul className="space-y-1">
                 {brief.busts.map((b, i) => (
@@ -1836,9 +1854,10 @@ export function HostVenueFloorBriefPanel({
             )}
           </div>
           </div>
-        </div>
       )}
     </HostCollapsible>
+    </div>
+    </>
   )
 }
 

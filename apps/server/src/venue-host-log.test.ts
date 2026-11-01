@@ -5,6 +5,7 @@ import {
   buildHostVenueFloorBrief,
   clearVenueHostLog,
   getVenueLastHandDisplay,
+  recordVenueHostHandResults,
   recordVenueMovesBetweenStates,
   setVenueLastHandDisplay,
   shortPlayerName,
@@ -281,6 +282,42 @@ describe('recordVenueMovesBetweenStates', () => {
       bigBlindHint: 20,
     })
     expect(brief.handBets).toEqual([])
+  })
+})
+
+describe('buildHostVenueFloorBrief busts', () => {
+  it('sends only the busts from the hand that just paid', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const aliceOut = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 0, pointsOnly: true } : p,
+      ),
+    }
+    setVenueLastHandDisplay(
+      'LOG',
+      recordVenueHostHandResults('LOG', [{ tableNum: 1, before, after: aliceOut }]),
+    )
+    const bobOut = {
+      ...aliceOut,
+      players: aliceOut.players.map((p) =>
+        p.id === 'human:b' ? { ...p, bankroll: 0, pointsOnly: true } : p,
+      ),
+    }
+    setVenueLastHandDisplay(
+      'LOG',
+      recordVenueHostHandResults('LOG', [{ tableNum: 2, before: aliceOut, after: bobOut }]),
+    )
+
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [],
+      fieldPlayerCount: 0,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(brief.busts.map((b) => b.name)).toEqual(['Bob D.'])
   })
 })
 

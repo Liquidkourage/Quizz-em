@@ -413,7 +413,7 @@ export function buildHostVenueFloorBrief(args: {
   return {
     actionRows: buildHostVenueActionRows(args.tiles),
     moveLog: log.moveLog.slice(0, MOVE_LOG_CAP),
-    busts: log.busts,
+    busts: getVenueLastHandDisplay(args.venueCode)?.busts ?? [],
     bigWinners: log.bigWinners,
     bigBets: log.bigBets,
     handBets: rankedHandBets(log.handBets, bb),

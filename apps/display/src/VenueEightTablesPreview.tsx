@@ -19,8 +19,6 @@ import {
   stadiumMosaicHoleCardWidthPx,
   stadiumMosaicHoleCardHeightPx,
   stadiumMosaicHoleCardOverlapPx,
-  stadiumMosaicCommunityCardWidthPx,
-  stadiumMosaicCommunityCardHeightPx,
   stadiumSeatPointPx,
   STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumMosaicDensity,
@@ -56,6 +54,7 @@ import {
   mosaicSeatStackClearPx,
   mosaicSeatStackFontPx,
   mosaicShowsSeatStacks,
+  mosaicStreetCardBoxPx,
 } from './mosaicSeatStacks'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import {
@@ -1368,12 +1367,9 @@ function SeatRingWithLabels({
   const mosaicHoleCardOverlap = isMosaic
     ? stadiumMosaicHoleCardOverlapPx(mosaicHoleCardW)
     : 0
-  const mosaicCommunityCardW = isMosaic
-    ? stadiumMosaicCommunityCardWidthPx(rimW, mosaicDensityTier)
-    : 0
-  const mosaicCommunityCardH = isMosaic
-    ? stadiumMosaicCommunityCardHeightPx(rimW, mosaicDensityTier)
-    : 0
+  const mosaicStreetCard = isMosaic ? mosaicStreetCardBoxPx(rimW, mosaicDensityTier) : null
+  const mosaicCommunityCardW = mosaicStreetCard?.widthPx ?? 0
+  const mosaicCommunityCardH = mosaicStreetCard?.heightPx ?? 0
   /** Physical seat slots (0–7) on the stadium artwork. */
   const seatCountForLayout = VENUE_SEAT_SLOTS
 

@@ -8,6 +8,7 @@ import {
   mosaicSeatStackClearPx,
   mosaicSeatStackFontPx,
   mosaicShowsSeatStacks,
+  mosaicStreetCardBoxPx,
 } from './mosaicSeatStacks'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 
@@ -65,6 +66,15 @@ describe('mosaic seat stacks', () => {
     }
     expect(mosaicSeatInitialShiftXPx(6, w, h, font)).toBeGreaterThan(0)
     expect(mosaicSeatInitialShiftXPx(2, w, h, font)).toBeLessThan(0)
+  })
+
+  it('sizes street cards at least as large as the initials', () => {
+    for (const w of [280, 400, 520]) {
+      const initials = mosaicSeatInitialFontPx(w)
+      const card = mosaicStreetCardBoxPx(w, 'compact')
+      expect(card.widthPx).toBeGreaterThanOrEqual(initials)
+      expect(card.heightPx).toBeGreaterThanOrEqual(initials)
+    }
   })
 
   it('prints the seat stack as a chip amount', () => {

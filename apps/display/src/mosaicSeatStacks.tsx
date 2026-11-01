@@ -1,4 +1,9 @@
-import { ChipMark } from '@qhe/ui'
+import {
+  ChipMark,
+  stadiumMosaicCommunityCardHeightPx,
+  stadiumMosaicCommunityCardWidthPx,
+  type StadiumMosaicDensity,
+} from '@qhe/ui'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import { mosaicSeatDotPct } from './venueMosaicSeatGeometry'
 
@@ -16,6 +21,20 @@ function feltWidthPx(tableWidthPx: number): number {
 export function mosaicSeatInitialFontPx(tableWidthPx: number): number {
   const w = feltWidthPx(tableWidthPx)
   return Math.round(Math.min(52, Math.max(30, w * 0.105)))
+}
+
+/** Street cards on the mosaic felt, at least as wide and tall as the initials. */
+export function mosaicStreetCardBoxPx(
+  tableWidthPx: number,
+  density?: StadiumMosaicDensity,
+): { widthPx: number; heightPx: number } {
+  const initials = mosaicSeatInitialFontPx(tableWidthPx)
+  const widthPx = Math.max(stadiumMosaicCommunityCardWidthPx(tableWidthPx, density), initials)
+  const heightPx = Math.max(
+    stadiumMosaicCommunityCardHeightPx(tableWidthPx, density),
+    Math.round((widthPx * 7) / 5),
+  )
+  return { widthPx, heightPx }
 }
 
 /** Half-width of a two-letter initial, including the dark stroke, in em. */

@@ -71,9 +71,6 @@ export function HostPreShowPanel({
         <div className="grid min-h-0 flex-1 gap-4 overflow-hidden lg:grid-cols-2">
           <div className="min-h-0 overflow-y-auto">
             <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">TV</h3>
-            <p className="mt-1 text-sm text-white/50">
-              Open <span className="font-mono text-white/70">/display</span>, enter the 4-letter code.
-            </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <input
                 type="text"
@@ -109,27 +106,18 @@ export function HostPreShowPanel({
               displays={attachedDisplays}
               onRelease={(socketId) => onReleaseDisplay?.(socketId)}
             />
-            <p className="mt-2 text-xs text-white/40">
-              Disconnect sends that TV back to the pairing code so it can join another event.
-            </p>
           </div>
 
           <div className="flex min-h-0 flex-col overflow-hidden">
             <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">Players</h3>
             {canSeat ? (
-              <p className="mt-1 text-sm text-white/60">
-                {lobbyPlayers.length} waiting — set the tables, then seat.
-              </p>
+              <p className="mt-1 text-sm text-white/60">{lobbyPlayers.length} waiting</p>
             ) : waiting && floorSeated ? (
-              <p className="mt-1 text-sm text-white/60">
-                Players are already seated. Open Live for the hand, or hard reset from More.
-              </p>
+              <p className="mt-1 text-sm text-white/60">Players are already seated.</p>
             ) : waiting ? (
               <p className="mt-1 text-sm text-white/50">Waiting for players…</p>
             ) : (
-              <p className="mt-1 text-sm text-white/55">
-                Seated. The hand is on Live. Hard reset is under More.
-              </p>
+              <p className="mt-1 text-sm text-white/55">Seated.</p>
             )}
 
             {canSeat ? (
@@ -216,9 +204,6 @@ export function HostPreShowPanel({
 
             {canSeat ? (
               <>
-                <p className="mt-2 text-xs text-white/40">
-                  Auto fills open seats. Each table needs at least one player.
-                </p>
                 <NeonButton
                   variant="blue"
                   size="normal"

@@ -56,7 +56,6 @@ export function HostRoomControls({
     <section className="space-y-4">
       <div>
         <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">Move a player</h3>
-        <p className="mt-1 text-xs text-white/50">Any seated player. Between hands, when every table is waiting.</p>
         {roster.length === 0 ? (
           <p className="mt-2 text-sm text-white/45">No one is seated yet.</p>
         ) : (

@@ -72,6 +72,8 @@ describe('venue floor now', () => {
     expect(html).not.toContain('grid grid-cols-2 gap-3')
     expect(tables).toBeGreaterThan(-1)
     expect(html).toContain('This hand')
+    expect(html).not.toContain('acting')
+    expect(html).not.toContain('busts, big bets')
     expect(html).toContain('None this hand.')
     expect(html.indexOf('This hand')).toBeGreaterThan(html.indexOf('Venue floor'))
     expect(busts).toBeGreaterThan(html.indexOf('This hand'))

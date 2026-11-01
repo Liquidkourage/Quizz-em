@@ -456,7 +456,6 @@ function HostApp() {
     )
   }
 
-  const virtualSeatCount = gameState.players.filter(p => p.id.startsWith('vp:')).length
   const rehearsalCpuOnly =
     gameState.players.length > 0 && gameState.players.every((p) => p.id.startsWith('vp:'))
   const inVenueRehearsalLobby =
@@ -494,16 +493,6 @@ function HostApp() {
   const closeBetHint = closeBettingGate.hint
   const startAnswerBlocked = startAnswerGate.blocked
   const startAnswerHint = startAnswerGate.hint
-
-  const hostPreBoardReady =
-    hostControlState.phase === 'betting' && controlBettingRound === 1 && controlCommunityLen < 5
-  const dealCommunityHostStaleNote =
-    hasVenueFeltBeat && dealCommunityHint == null && !hostPreBoardReady ? (
-      <p className="text-sm text-cyan-200/85">
-        Venue felts are ready for the board. Your control table ({gameState.tableId ?? '1'}) may be
-        behind the mosaic — deal still runs on every seated table.
-      </p>
-    ) : null
 
   const activeSetlist = activeSetlistId != null ? setlists.find((s) => s.id === activeSetlistId) : undefined
   const hasActiveSetlist =
@@ -558,16 +547,6 @@ function HostApp() {
         : primaryDockId === 'start-answer' && startAnswerBlocked
           ? startAnswerHint
           : null
-  const triviaOptionalNote =
-    currentRunStepId === 'question' && !controlRound?.question ? (
-      <p className="text-sm text-amber-200/80">
-        Show the question before dealing. Cards stay in the deck until it’s on the tables.
-      </p>
-    ) : currentRunStepId === 'start' && controlRound?.question ? (
-      <p className="text-sm text-violet-200/85">
-        Question is up. <strong>Deal cards</strong> gives everyone two private cards and opens betting.
-      </p>
-    ) : null
   const hostTableNum = (() => {
     const raw = gameState.tableId ?? '1'
     if (raw === LOBBY_TABLE_ID) return 1
@@ -721,23 +700,9 @@ function HostApp() {
 
                 <HostCollapsible summary="Practice bots & rehearsal" className="mb-0">
                   <section className="space-y-3">
-                    <p className="text-xs text-white/60 leading-relaxed">
-                      Bot players for dry runs. Cap {gameState.maxPlayers} · roster {gameState.players.length} (
-                      {virtualSeatCount} CPU).
-                    </p>
                     {showVenueRehearsalPreview ? (
                       <div className="rounded-lg border border-amber-500/35 bg-amber-950/25 px-3 py-3">
-                        {inVenueRehearsalLobby ? (
-                          <p className="text-sm text-amber-100/90 leading-relaxed">
-                            <strong className="text-amber-50">Venue rehearsal</strong> seeds each table with
-                            CPUs. Use Preview winner screen to jump the mosaic overlay.
-                          </p>
-                        ) : (
-                          <p className="text-sm text-amber-100/90 leading-relaxed">
-                            Change table count and preview the winner screen again to cycle layouts.
-                          </p>
-                        )}
-                        <div className="mt-3 flex flex-wrap items-end gap-3">
+                        <div className="flex flex-wrap items-end gap-3">
                           <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-amber-200/80">
                             Table count
                             <input
@@ -1121,15 +1086,6 @@ function HostApp() {
             }
             handBody={
               <>
-                {currentRunStepId === 'deal-board' ? dealCommunityHostStaleNote : null}
-                {(currentRunStepId === 'close-bet-1' || currentRunStepId === 'close-bet-2') &&
-                hostControlState.phase === 'betting' ? (
-                  <p className="text-xs text-white/50">
-                    Players bet on their phones. Close the betting round when every table is done — use{' '}
-                    <strong className="text-white/70">Nudge slow player</strong> if someone is slow, or{' '}
-                    <strong className="text-rose-200/90">Skip this player</strong> to fold whoever should act.
-                  </p>
-                ) : null}
                 {currentRunStepId === 'start-answer' ? (
                   <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
                     <div className="flex flex-col gap-0.5">
@@ -1164,22 +1120,12 @@ function HostApp() {
                     </NeonButton>
                   </div>
                 ) : null}
-                {(currentRunStepId === 'start' || currentRunStepId === 'question') && triviaOptionalNote}
                 {gameState.phase === 'showdown' || gameState.phase === 'reveal' ? (
                   <div className="text-center text-white">
                     <div className="text-xs text-white/70">Correct answer</div>
                     <div className="text-3xl font-extrabold text-casino-gold">
                       {formatTriviaNumber(gameState.round.question?.answer)}
                     </div>
-                    {gameState.phase === 'reveal' ? (
-                      <p className="mt-1 text-xs text-white/50">
-                        Hit <strong className="text-white/70">Pay winners</strong> when you are ready.
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-white/50">
-                        After payout, deal the next hand from the cue above.
-                      </p>
-                    )}
                   </div>
                 ) : null}
               </>

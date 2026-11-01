@@ -74,9 +74,6 @@ export function HostLivePanel({
       <>
         <div className="rounded-xl border border-amber-400/30 bg-amber-950/20 p-5 sm:p-6">
           <h2 className="text-xl font-bold text-amber-50">Seat players first</h2>
-          <p className="mt-2 max-w-lg text-sm text-amber-100/80">
-            Live cues appear after Pre-show seating. More stays open if you need a hard reset.
-          </p>
           <button
             type="button"
             onClick={onGoPreShow}

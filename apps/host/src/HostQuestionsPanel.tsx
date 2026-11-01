@@ -916,7 +916,7 @@ function QuestionLibrary(props: {
       {props.questions.length === 0 ? (
         <p className="rounded-xl border border-white/10 bg-black/25 px-4 py-8 text-center text-sm text-white/50">
           {props.bankEmpty
-            ? `The bank is empty. Create a question, import a file, or restore the ${VENUE_QUESTION_SET_LENGTH}-question starter.`
+            ? 'The bank is empty.'
             : 'No questions match that search.'}
         </p>
       ) : (

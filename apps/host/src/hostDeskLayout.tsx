@@ -573,8 +573,6 @@ export function hostRunOfShowHeadline(
   if (!current) return { title: 'Run the show' }
 
   const phase = controlState.phase
-  const bettingRound = controlState.round.bettingRound ?? 0
-  const bettingOpen = controlState.round.isBettingOpen !== false
 
   if (stepId === 'close-bet-1' || stepId === 'close-bet-2') {
     const idx = controlState.round.currentPlayerIndex
@@ -582,79 +580,46 @@ export function hostRunOfShowHeadline(
       typeof idx === 'number' && idx >= 0 ? controlState.players[idx]?.name : undefined
     return {
       title: current.label,
-      detail: bettingOpen
-        ? `Wagering round ${bettingRound} is live${actor ? ` — waiting on ${actor}` : ''}. Close when every table is done.`
-        : current.hint,
+      detail: actor ? `Waiting on ${actor}` : undefined,
     }
   }
 
   if (isHostWaitingForJoiners(gameState)) {
-    return {
-      title: 'Waiting for players to join',
-      detail: `Share room code ${gameState.code}. Players open the join link on their phones. When names appear, you’ll seat them at tables.`,
-    }
+    return { title: 'Waiting for players to join' }
   }
 
   if (stepId === 'assign') {
-    const n = gameState.players.length
-    return {
-      title: 'Seat everyone at tables',
-      detail: `${n} player${n === 1 ? '' : 's'} waiting — tap Seat players to split them onto tables and start the show.`,
-    }
+    return { title: 'Seat everyone at tables' }
   }
 
   if (stepId === 'question' && !controlState.round.question) {
-    const holesOut = playersHaveHoleCards(controlState)
     return {
       title: 'Show the trivia question',
-      detail: holesOut
-        ? 'Cards are already out. Show the question so players can bet.'
-        : opts?.afterPayout
-          ? 'TVs stay on the tables. Put up chip scores, trivia scores, the seating chart, or eliminations when you want them.'
-          : opts?.nextQuestionText
-            ? `Next up: ${opts.nextQuestionText}`
-            : opts?.hasActiveSetlist === true
-              ? 'Next from the list puts the question on phones and TVs. Dealing stays locked until then.'
-              : 'Put the question on phones and TVs first. Dealing stays locked until it’s up.',
+      detail: opts?.nextQuestionText ? `Next up: ${opts.nextQuestionText}` : undefined,
     }
   }
 
   if (stepId === 'start' && controlState.round.question != null && !playersHaveHoleCards(controlState)) {
-    return {
-      title: 'Deal cards',
-      detail: 'The question is on the tables. Dealing gives everyone two private cards and opens the first betting round.',
-    }
+    return { title: 'Deal cards' }
   }
 
   if (stepId === 'question' && controlState.round.question) {
-    return {
-      title: 'Question is live',
-      detail: 'Betting should open on its own. If tables stall, use the cue below.',
-    }
+    return { title: 'Question is live' }
   }
 
   if (stepId === 'end-round' && phase === 'reveal') {
-    return {
-      title: 'Answer is on the TVs',
-      detail: 'Pay winners when you are ready.',
-    }
+    return { title: 'Answer is on the TVs' }
   }
 
   if (stepId === 'end-round' && phase === 'showdown') {
-    return {
-      title: 'Pay winners & clear the hand',
-      detail: 'Pays chip pots and trivia points, then gets ready for the next hand.',
-    }
+    return { title: 'Pay winners & clear the hand' }
   }
 
   if (stepId === 'start' && phase === 'question') {
-    return {
-      title: 'Open betting',
-      detail: `Cards and the question are ready. Opening the round posts blinds $${gameState.smallBlind} / $${gameState.bigBlind}.`,
-    }
+    return { title: 'Open betting' }
   }
 
-  return { title: current.label, detail: current.hint }
+  return { title: current.label }
 }
 
 export function buildHostPhaseDockItems(args: {
@@ -1335,41 +1300,19 @@ export function HostVenueFeltBeatStrip({
       summary={
         <span>
           Venue felts · beat
-          <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
-            — lockstep diagnostic
-          </span>
         </span>
       }
     >
-      {lockstepMisaligned ? (
-        <div
-          role="status"
-          className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-400/55 bg-amber-950/35 px-2.5 py-1.5 text-xs font-semibold text-amber-100"
-        >
-          <span>
-            Amber felts differ from the majority — fix before venue-wide cues. Empty felts (0p) are
-            ignored.
-          </span>
-          {onAlignRoom ? (
-            <button
-              type="button"
-              onClick={onAlignRoom}
-              className="rounded-md border border-amber-300/60 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
-            >
-              Match the room
-            </button>
-          ) : null}
+      {lockstepMisaligned && onAlignRoom ? (
+        <div className="mb-2">
+          <button
+            type="button"
+            onClick={onAlignRoom}
+            className="rounded-md border border-amber-300/60 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
+          >
+            Match the room
+          </button>
         </div>
-      ) : unanimousSig != null && seatedTableCount >= 2 ? (
-        <div
-          role="status"
-          className="mb-2 rounded-lg border border-emerald-500/40 bg-emerald-950/25 px-2.5 py-1.5 text-xs font-semibold text-emerald-100"
-        >
-          All {seatedTableCount} seated felts in sync ({unanimousSig}) — venue-wide cues OK.
-        </div>
-      ) : null}
-      {onSetTablePhase ? (
-        <p className="mb-2 text-xs text-white/50">Click a table to set its phase.</p>
       ) : null}
       {openRow && onSetTablePhase ? (
         <HostFeltPhasePicker
@@ -1812,9 +1755,6 @@ export function HostVenueFloorBriefPanel({
       summary={
         <span>
           Venue floor · now
-          <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
-            — who&apos;s acting
-          </span>
         </span>
       }
     >
@@ -1899,9 +1839,6 @@ export function HostVenueFloorBriefPanel({
       summary={
         <span>
           This hand
-          <span className="ml-1.5 hidden font-normal text-white/45 sm:inline">
-            — busts, big bets, big wins
-          </span>
         </span>
       }
     >
@@ -2331,7 +2268,6 @@ export function HostTvBar({
           </button>
         ))}
       </div>
-      <p className="shrink-0 text-sm text-white/45">Highlight one table: tap it under Tables</p>
     </div>
   )
 }
@@ -2556,16 +2492,9 @@ export function HostFloorStrip({
         ) : null}
       </div>
       {blindCall}
-      {lockstepMisaligned ? (
-        <p className="mb-2 text-xs font-medium text-amber-100/90">
-          Amber tables differ from the majority — click that table under Venue felts to set its phase.
-        </p>
-      ) : null}
       <HostHandBetRank bets={brief?.handBets ?? []} limit={4} title="Big bets this hand" />
       {seated.length === 0 ? (
-        <p className="text-sm text-white/50">
-          No tables yet — players join first, then you seat them.
-        </p>
+        <p className="text-sm text-white/50">No tables yet.</p>
       ) : (
         <>
         <HostAnswerClock rows={seated} />
@@ -2582,7 +2511,6 @@ export function HostFloorStrip({
               <button
                 key={row.tableNum}
                 type="button"
-                title={`Show table ${row.tableNum} large on the TVs`}
                 onClick={() => onSpotlight(row.tableNum)}
                 className={`h-full min-h-[5.5rem] rounded-lg border px-3 py-2 text-left transition-colors hover:border-casino-emerald/50 hover:bg-emerald-950/20 ${
                   action?.interestingAction

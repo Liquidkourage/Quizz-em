@@ -32,5 +32,6 @@ describe('Host remove', () => {
       }),
     )
     expect(html).toContain('Remove')
+    expect(html).not.toContain('Between hands')
   })
 })

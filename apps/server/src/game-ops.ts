@@ -2331,6 +2331,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       handsUntilShuffle: shuffleDisplay.handsUntilShuffle,
       handsCompleted: getVenueHandsCompleted(vn),
       lastHandBustCount: lastHandDisplay?.busts.length ?? 0,
+      wallView: venueDisplayLayouts.get(vn)?.wallView ?? 'floor',
     }),
   )
 }

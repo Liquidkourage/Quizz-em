@@ -138,6 +138,19 @@ describe('recordVenueMovesBetweenStates', () => {
     expect(brief.moveLog.some((m) => m.kind === 'submit' && m.summary.includes('42'))).toBe(true)
     expect(brief.moveLog.every((m) => m.tableNum === 1)).toBe(true)
     expect(brief.bigBets).toHaveLength(0)
+    expect(brief.wallView).toBe('floor')
+  })
+
+  it('reports the public display mode the TVs are on', () => {
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'TV',
+      tiles: [],
+      fieldPlayerCount: 0,
+      liveTableCount: 0,
+      bigBlindHint: 20,
+      wallView: 'leaderboard',
+    })
+    expect(brief.wallView).toBe('leaderboard')
   })
 
   it('keeps raises, calls, and all-ins that clear the big-win bar', () => {

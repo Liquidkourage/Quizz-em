@@ -40,9 +40,10 @@ describe('host popup space', () => {
     expect(html).not.toContain('overflow-x-auto')
   })
 
-  it('stacks audience TV modes down the dialog', () => {
+  it('lays audience TV modes as separate buttons and marks the active one', () => {
     const html = renderToStaticMarkup(
       createElement(HostTvBar, {
+        activeView: 'seating-chart',
         onVenueFloor: () => {},
         onLeaderboard: () => {},
         onTriviaLeaderboard: () => {},
@@ -51,9 +52,10 @@ describe('host popup space', () => {
         onSeatingRules: () => {},
       }),
     )
-    expect(html).toContain('grid-cols-1')
+    expect(html).toContain('flex-wrap')
     expect(html).toContain('Seating')
-    expect(html).not.toContain('inline-flex')
+    expect(html).toMatch(/host-tv-mode-active[^>]*>Seating/)
+    expect(html).not.toContain('grid-cols-1')
   })
 
   it('lays venue felts in growing rows', () => {

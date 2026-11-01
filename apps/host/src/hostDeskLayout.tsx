@@ -10,6 +10,7 @@ import type {
   HostVenueFloorBriefPayload,
   HostVenueMoveLogEntry,
   VenueBlindsSnapshot,
+  VenueWallViewMode,
 } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards } from '@qhe/core'
 import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
@@ -2265,8 +2266,9 @@ const RUN_STEP_SHORT: Partial<Record<RunOfShowStepId, string>> = {
   'end-round': 'Pay',
 }
 
-/** Compact TV mode switcher — spotlight lives on the floor strip only. */
+/** Public display modes as separate buttons. The mode on the TVs stays highlighted. */
 export function HostTvBar({
+  activeView = 'floor',
   onVenueFloor,
   onLeaderboard,
   onTriviaLeaderboard,
@@ -2274,6 +2276,7 @@ export function HostTvBar({
   onEliminations,
   onSeatingRules,
 }: {
+  activeView?: VenueWallViewMode
   onVenueFloor: () => void
   onLeaderboard: () => void
   onTriviaLeaderboard?: () => void
@@ -2285,12 +2288,12 @@ export function HostTvBar({
   tableMax?: number
   onSpotlight?: (n: number) => void
 }) {
-  const modes: Array<{ id: string; label: string; onClick: () => void }> = [
+  const modes: Array<{ id: VenueWallViewMode; label: string; onClick: () => void }> = [
     { id: 'floor', label: 'Tables', onClick: onVenueFloor },
-    { id: 'chip-lb', label: 'Chip scores', onClick: onLeaderboard },
+    { id: 'leaderboard', label: 'Chip scores', onClick: onLeaderboard },
   ]
   if (onTriviaLeaderboard) {
-    modes.push({ id: 'trivia-lb', label: 'Trivia scores', onClick: onTriviaLeaderboard })
+    modes.push({ id: 'leaderboard-trivia', label: 'Trivia scores', onClick: onTriviaLeaderboard })
   }
   if (onSeatingChart) {
     modes.push({ id: 'seating-chart', label: 'Seating', onClick: onSeatingChart })
@@ -2301,23 +2304,25 @@ export function HostTvBar({
   modes.push({ id: 'rules', label: 'How to play', onClick: onSeatingRules })
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
-      <div
-        className="grid min-h-0 flex-1 auto-rows-fr grid-cols-1 gap-2"
-        role="group"
-        aria-label="What the audience TVs show"
-      >
-        {modes.map((m) => (
+    <div className="flex flex-wrap justify-end gap-2" role="group" aria-label="What the audience TVs show">
+      {modes.map((m) => {
+        const active = m.id === activeView
+        return (
           <button
             key={m.id}
             type="button"
+            aria-pressed={active}
             onClick={m.onClick}
-            className="h-full min-h-14 rounded-xl border border-white/15 bg-black/35 px-4 py-3 text-left text-lg font-semibold text-white/85 hover:bg-white/10 hover:text-white"
+            className={
+              active
+                ? 'host-tv-mode-active min-h-11 rounded-xl border border-sky-300 bg-sky-900/80 px-3 py-2 text-sm font-bold text-white'
+                : 'min-h-11 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white'
+            }
           >
             {m.label}
           </button>
-        ))}
-      </div>
+        )
+      })}
     </div>
   )
 }

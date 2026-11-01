@@ -1,11 +1,9 @@
 import type { ReactNode } from 'react'
 import type { GameState } from '@qhe/core'
-import type { HostVenueFeltBeatRow } from '@qhe/net'
+import type { HostVenueFeltBeatRow, VenueWallViewMode } from '@qhe/net'
 import {
   HostAnswerClock,
-  HostCollapsible,
   HostRunBar,
-  HostThisHandPanel,
   HostTvBar,
   type HostDockItem,
   isHostWaitingForJoiners,
@@ -24,9 +22,9 @@ export function HostLivePanel({
   onSeatingChart,
   onEliminations,
   onSeatingRules,
+  activeView = 'floor',
   venueFeltBeat,
   questionSlot,
-  handShow,
   handBody,
   floorNow,
   onGoPreShow,
@@ -44,9 +42,10 @@ export function HostLivePanel({
   onSeatingChart?: () => void
   onEliminations?: () => void
   onSeatingRules: () => void
+  /** Public display mode currently on the audience TVs. */
+  activeView?: VenueWallViewMode
   venueFeltBeat: HostVenueFeltBeatRow[] | null
   questionSlot?: ReactNode
-  handShow: boolean
   handBody: ReactNode
   /** Venue floor · now, already open. */
   floorNow?: ReactNode
@@ -76,7 +75,7 @@ export function HostLivePanel({
   }
 
   return (
-    <div className="host-live-board grid h-full min-h-0 grid-cols-1 gap-2 overflow-hidden sm:grid-cols-2 sm:grid-rows-[auto_auto_auto_minmax(0,1fr)]">
+    <div className="host-live-board grid h-full min-h-0 grid-cols-1 gap-2 overflow-hidden sm:grid-cols-2 sm:grid-rows-[auto_auto_minmax(0,1fr)]">
       <div className="min-w-0 sm:col-start-1 sm:row-start-1">
         <HostRunBar
           items={phaseDockItems}
@@ -84,28 +83,24 @@ export function HostLivePanel({
           pacingUrgency={pacingUrgency}
           cueHint={runBarCueHint}
         />
+        {handBody}
       </div>
 
-      <div className="flex items-start self-start sm:col-start-2 sm:row-start-1">
-        <div className="w-full max-w-[16rem]">
-        <HostCollapsible summary="Audience TVs" appearance="button">
-          <div className="flex h-full min-h-0 flex-col gap-3">
-            <HostTvBar
-              onVenueFloor={onVenueFloor}
-              onLeaderboard={onLeaderboard}
-              onTriviaLeaderboard={onTriviaLeaderboard}
-              onSeatingChart={onSeatingChart}
-              onEliminations={onEliminations}
-              onSeatingRules={onSeatingRules}
-            />
-            <HostConnectedDisplays
-              displays={attachedDisplays}
-              onRelease={(socketId) => onReleaseDisplay?.(socketId)}
-              emptyLabel={false}
-            />
-          </div>
-        </HostCollapsible>
-        </div>
+      <div className="flex min-w-0 flex-col items-end gap-2 self-start sm:col-start-2 sm:row-start-1">
+        <HostTvBar
+          activeView={activeView}
+          onVenueFloor={onVenueFloor}
+          onLeaderboard={onLeaderboard}
+          onTriviaLeaderboard={onTriviaLeaderboard}
+          onSeatingChart={onSeatingChart}
+          onEliminations={onEliminations}
+          onSeatingRules={onSeatingRules}
+        />
+        <HostConnectedDisplays
+          displays={attachedDisplays}
+          onRelease={(socketId) => onReleaseDisplay?.(socketId)}
+          emptyLabel={false}
+        />
       </div>
 
       <div className="flex min-w-0 items-start gap-2 sm:col-span-2 sm:row-start-2">
@@ -113,13 +108,7 @@ export function HostLivePanel({
         <HostAnswerClock rows={venueFeltBeat} />
       </div>
 
-      <div className="min-w-0 sm:col-span-2 sm:row-start-3">
-        <HostThisHandPanel title="Right now" show={handShow}>
-          {handBody}
-        </HostThisHandPanel>
-      </div>
-
-      <div className="min-h-0 max-h-full self-start overflow-y-auto sm:col-span-2 sm:row-start-4">{floorNow}</div>
+      <div className="min-h-0 max-h-full self-start overflow-y-auto sm:col-span-2 sm:row-start-3">{floorNow}</div>
     </div>
   )
 }

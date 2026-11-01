@@ -418,6 +418,8 @@ export type HostVenueFloorBriefPayload = {
   fieldPeakCount?: number
   /** Players eliminated on the hand that just paid. */
   lastHandBustCount?: number
+  /** Mode the audience TVs are showing. */
+  wallView?: VenueWallViewMode
 }
 
 export const ClientHello = z.object({

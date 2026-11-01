@@ -45,36 +45,34 @@ describe('host desk viewport', () => {
             phaseStrictSig: 'betting',
           },
         ]}
-        handShow
+        activeView="leaderboard"
         handBody={<p>Pay winners</p>}
         floorNow={<section>Venue floor · now</section>}
         onGoPreShow={() => {}}
       />,
     )
     expect(html).toContain('Deal the cards')
-    expect(html).toContain('Audience TVs')
-    expect(html).not.toContain('>Tables<')
+    expect(html).not.toContain('Audience TVs')
+    expect(html).toContain('>Tables<')
+    expect(html).toContain('Chip scores')
+    expect(html).toMatch(/host-tv-mode-active[^>]*>Chip scores/)
     expect(html).not.toContain('Venue felts')
     expect(html).toContain('grid-cols-2')
-    expect(html).toContain('host-open-button')
-    expect(html).toContain('Open')
+    expect(html).not.toContain('host-open-button')
     expect(html).not.toContain('Click a table to set its phase')
     expect(html).toContain('Venue floor · now')
-    expect(html).toContain('Right now')
+    expect(html).not.toContain('Right now')
     expect(html).toContain('Pay winners')
-    expect(html).not.toContain('Chip scores')
     expect(html).toContain('host-live-board')
     expect(html).toContain('sm:grid-cols-2')
     expect(html).toContain('sm:col-span-2')
-    expect(html).toContain('sm:row-start-4')
+    expect(html).toContain('sm:row-start-3')
+    expect(html).not.toContain('sm:row-start-4')
     expect(html).toContain('max-h-full self-start')
     expect(html).not.toContain('h-full min-h-0 overflow-hidden sm:col-span-2')
-    expect(html).not.toContain('sm:col-start-1 sm:row-start-3')
-    const tvs = html.indexOf('Audience TVs')
+    const modes = html.indexOf('Chip scores')
     const now = html.indexOf('Venue floor · now')
-    const hand = html.indexOf('Right now')
-    expect(hand).toBeGreaterThan(tvs)
-    expect(now).toBeGreaterThan(hand)
+    expect(now).toBeGreaterThan(modes)
   })
 
   it('leaves the answer clock on the page and the table buttons in a popup', () => {
@@ -101,7 +99,6 @@ describe('host desk viewport', () => {
             phaseStrictSig: 'answer',
           },
         ]}
-        handShow={false}
         handBody={null}
         floorNow={<section>Venue floor · now</section>}
         onGoPreShow={() => {}}

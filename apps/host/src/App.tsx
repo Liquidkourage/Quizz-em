@@ -1059,6 +1059,7 @@ function HostApp() {
               (venueFloorBrief?.lastHandBustCount ?? 0) > 0 ? showEliminationsOnTvs : undefined
             }
             onSeatingRules={showSeatingRulesOnTvs}
+            activeView={venueFloorBrief?.wallView ?? 'floor'}
             venueFeltBeat={venueFeltBeat}
             questionSlot={
               hostControlState.round.question ? (
@@ -1068,64 +1069,41 @@ function HostApp() {
                 />
               ) : null
             }
-            handShow={
-              hostControlState.round.question != null ||
-              currentRunStepId === 'deal-board' ||
-              currentRunStepId === 'start-answer' ||
-              currentRunStepId === 'close-bet-1' ||
-              currentRunStepId === 'close-bet-2' ||
-              currentRunStepId === 'question' ||
-              currentRunStepId === 'start' ||
-              gameState.phase === 'betting' ||
-              gameState.phase === 'answering' ||
-              gameState.phase === 'showdown' ||
-              gameState.phase === 'reveal'
-            }
             handBody={
-              <>
-                {currentRunStepId === 'start-answer' ? (
-                  <div className="flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
-                    <div className="flex flex-col gap-0.5">
-                      <label
-                        htmlFor="answer-window-sec"
-                        className="text-xs font-semibold uppercase tracking-wide text-white/48"
-                      >
-                        Guide countdown (sec)
-                      </label>
-                      <input
-                        id="answer-window-sec"
-                        type="number"
-                        min={15}
-                        max={300}
-                        step={5}
-                        value={answerWindowSeconds}
-                        onChange={(e) =>
-                          setAnswerWindowSeconds(clampVenueAnswerWindow(Number(e.target.value)))
-                        }
-                        className="w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white"
-                      />
-                    </div>
-                    <NeonButton
-                      variant="blue"
-                      size="small"
-                      type="button"
-                      onClick={() =>
-                        setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
-                      }
+              currentRunStepId === 'start-answer' ? (
+                <div className="mt-2 flex flex-wrap items-end gap-2 rounded-lg border border-purple-400/30 bg-purple-950/25 px-3 py-2">
+                  <div className="flex flex-col gap-0.5">
+                    <label
+                      htmlFor="answer-window-sec"
+                      className="text-xs font-semibold uppercase tracking-wide text-white/48"
                     >
-                      Save default
-                    </NeonButton>
+                      Guide countdown (sec)
+                    </label>
+                    <input
+                      id="answer-window-sec"
+                      type="number"
+                      min={15}
+                      max={300}
+                      step={5}
+                      value={answerWindowSeconds}
+                      onChange={(e) =>
+                        setAnswerWindowSeconds(clampVenueAnswerWindow(Number(e.target.value)))
+                      }
+                      className="w-[4.5rem] rounded-md border border-white/25 bg-black/50 px-2 py-1.5 text-center text-base font-bold tabular-nums text-white"
+                    />
                   </div>
-                ) : null}
-                {gameState.phase === 'showdown' || gameState.phase === 'reveal' ? (
-                  <div className="text-center text-white">
-                    <div className="text-xs text-white/70">Correct answer</div>
-                    <div className="text-3xl font-extrabold text-casino-gold">
-                      {formatTriviaNumber(gameState.round.question?.answer)}
-                    </div>
-                  </div>
-                ) : null}
-              </>
+                  <NeonButton
+                    variant="blue"
+                    size="small"
+                    type="button"
+                    onClick={() =>
+                      setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
+                    }
+                  >
+                    Save default
+                  </NeonButton>
+                </div>
+              ) : null
             }
             floorNow={
               <HostVenueFloorBriefPanel

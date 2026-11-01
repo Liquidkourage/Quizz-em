@@ -16,6 +16,7 @@ import type {
   HostVenueFloorBriefPayload,
   HostVenueMoveLogEntry,
   HostVenueMoveLogKind,
+  VenueWallViewMode,
 } from '@qhe/net'
 
 const LOG_CAP = 48
@@ -407,6 +408,7 @@ export function buildHostVenueFloorBrief(args: {
   lastHandBustCount?: number
   showStartedAtMs?: number | null
   fieldPeakCount?: number
+  wallView?: VenueWallViewMode
 }): HostVenueFloorBriefPayload {
   const log = logForVenue(args.venueCode)
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
@@ -430,5 +432,6 @@ export function buildHostVenueFloorBrief(args: {
     medianStack: medianSeatedStack(args.tiles),
     showStartedAtMs: args.showStartedAtMs ?? null,
     fieldPeakCount: Math.max(args.fieldPlayerCount, Math.floor(args.fieldPeakCount ?? 0)),
+    wallView: args.wallView ?? 'floor',
   }
 }

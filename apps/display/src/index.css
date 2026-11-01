@@ -2502,7 +2502,8 @@
   }
 
   .display-fit-question-host-reveal {
-    max-height: min(50vh, 28rem);
+    height: min(48vh, 30rem);
+    max-height: min(48vh, 30rem);
   }
 
   .venue-headline-answer-timer {

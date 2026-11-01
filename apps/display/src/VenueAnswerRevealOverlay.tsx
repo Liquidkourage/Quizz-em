@@ -5,6 +5,9 @@ import type { VenueAnswerRevealPayload } from './useVenueAnswerReveal'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { DisplayFitQuestionText } from './DisplayFitQuestionText'
 
+/** One line of the question starts well above the answer number, then shrinks only if the full question would not fit. */
+export const REVEAL_QUESTION_MAX_FONT_VH = 0.36
+
 export type VenueAnswerRevealOverlayProps = {
   payload: VenueAnswerRevealPayload
 }
@@ -56,8 +59,8 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
         <DisplayFitQuestionText
           text={question}
           hostClassName="display-fit-question-host-reveal"
-          maxFontVh={0.18}
-          textClassName="venue-headline-question-slot text-balance text-center font-semibold leading-snug tracking-tight text-yellow-300/90 display-text-headline-question-spacious"
+          maxFontVh={REVEAL_QUESTION_MAX_FONT_VH}
+          textClassName="venue-headline-question-slot text-balance text-center font-black leading-tight tracking-tight text-yellow-300 display-text-headline-question-spacious"
         />
 
         <p className="mt-5 text-center font-mono text-[clamp(4.5rem,16vmin,9.5rem)] font-black tabular-nums leading-none tracking-tight text-amber-50 drop-shadow-[0_0_40px_rgba(251,191,36,0.45)] sm:mt-7">

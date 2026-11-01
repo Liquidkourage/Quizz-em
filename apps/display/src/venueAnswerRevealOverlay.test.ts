@@ -2,13 +2,12 @@ import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay'
+import VenueAnswerRevealOverlay, { REVEAL_QUESTION_MAX_FONT_VH } from './VenueAnswerRevealOverlay'
 
-function revealQuestionMaxHeight(): string {
+function revealQuestionRule(): string {
   const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
   const blocks = [...css.matchAll(/\.display-fit-question-host-reveal\s*\{([^}]*)\}/g)]
-  const sized = blocks.map((match) => match[1] ?? '').find((body) => body.includes('max-height'))
-  return sized?.match(/max-height:\s*([^;]+)/)?.[1]?.trim() ?? ''
+  return blocks.map((match) => match[1] ?? '').find((body) => body.includes('max-height')) ?? ''
 }
 
 describe('answer reveal popup', () => {
@@ -25,6 +24,7 @@ describe('answer reveal popup', () => {
     expect(html).toContain('How many feet are in a mile?')
     expect(html).toContain('display-fit-question-host-reveal')
     expect(html).not.toContain('data-showdown-winner-cards')
-    expect(revealQuestionMaxHeight()).toBe('min(50vh, 28rem)')
+    expect(revealQuestionRule()).toContain('height: min(48vh, 30rem)')
+    expect(REVEAL_QUESTION_MAX_FONT_VH).toBeGreaterThanOrEqual(0.34)
   })
 })

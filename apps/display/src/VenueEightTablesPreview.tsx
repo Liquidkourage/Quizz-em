@@ -52,6 +52,7 @@ import seatChipStackImg from './assets/seat-chip-stack.png'
 import {
   MosaicSeatStackAmount,
   mosaicSeatInitialFontPx,
+  mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
   mosaicSeatStackFontPx,
   mosaicShowsSeatStacks,
@@ -1633,6 +1634,11 @@ function SeatRingWithLabels({
                 label={isMosaic && filled && mosaicInitials ? mosaicInitials : undefined}
                 labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
                 labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(rimW) : undefined}
+                labelShiftXPx={
+                  isMosaic
+                    ? mosaicSeatInitialShiftXPx(i, rimW, rimH, mosaicSeatInitialFontPx(rimW))
+                    : undefined
+                }
                 state={
                   isFolded
                     ? 'folded'

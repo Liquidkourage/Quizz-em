@@ -74,6 +74,7 @@ export function SeatCupholderMarker({
   label,
   labelClassName,
   labelFontSizePx,
+  labelShiftXPx,
   sizePx,
   sizeClassName,
   className,
@@ -86,6 +87,8 @@ export function SeatCupholderMarker({
   labelClassName?: string
   /** Mosaic felts — scale initials with cupholder diameter. */
   labelFontSizePx?: number
+  /** Horizontal nudge so side-seat initials stay inside the card. */
+  labelShiftXPx?: number
   /** Fixed square size in px — preferred for mosaic / hero felts. */
   sizePx?: number
   /** Tailwind size classes when px sizing is not used (e.g. spotlight hero). */
@@ -119,7 +122,12 @@ export function SeatCupholderMarker({
             'absolute inset-0 flex items-center justify-center px-0.5 text-center font-black leading-none tracking-tight text-amber-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95),0_0_6px_rgba(0,0,0,0.85)]',
             labelClassName
           )}
-          style={labelFontSizePx != null ? { fontSize: labelFontSizePx } : undefined}
+          style={{
+            ...(labelFontSizePx != null ? { fontSize: labelFontSizePx } : undefined),
+            ...(labelShiftXPx != null && labelShiftXPx !== 0
+              ? { transform: `translateX(${labelShiftXPx}px)` }
+              : undefined),
+          }}
         >
           {label}
         </span>

@@ -18,6 +18,33 @@ export function mosaicSeatInitialFontPx(tableWidthPx: number): number {
   return Math.round(Math.min(52, Math.max(30, w * 0.105)))
 }
 
+/** Half-width of a two-letter initial, including the dark stroke, in em. */
+const MOSAIC_INITIAL_HALF_EM = 0.78
+
+/**
+ * Side chairs sit on the card edge. Shift their initials toward the felt
+ * just enough that the letters stay inside the card.
+ */
+export function mosaicSeatInitialShiftXPx(
+  seatIndex: number,
+  ringW: number,
+  ringH: number,
+  fontPx: number,
+): number {
+  const i = ((Math.floor(seatIndex) % 8) + 8) % 8
+  if ((i !== 2 && i !== 6) || !(ringW > 0) || !(fontPx > 0)) return 0
+  const cup = mosaicSeatDotPct(i, 8, ringW, ringH > 0 ? ringH : ringW)
+  const cupX = (cup.leftPct / 100) * ringW
+  const half = fontPx * MOSAIC_INITIAL_HALF_EM
+  const pad = 2
+  if (i === 6) {
+    const overflow = pad + half - cupX
+    return overflow > 0 ? Math.ceil(overflow) : 0
+  }
+  const overflow = cupX + half + pad - ringW
+  return overflow > 0 ? -Math.ceil(overflow) : 0
+}
+
 /** Em width of a gold amount such as $10,000, including the chip mark. */
 const MOSAIC_STACK_LABEL_EM = 4.6
 

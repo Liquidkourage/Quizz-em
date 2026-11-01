@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
   MosaicSeatStackAmount,
   mosaicSeatInitialFontPx,
+  mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
   mosaicSeatStackFontPx,
   mosaicShowsSeatStacks,
@@ -45,6 +46,24 @@ describe('mosaic seat stacks', () => {
     }
     expect(crowded * 4.6).toBeLessThan(minGap * 0.92)
     expect(mosaicSeatStackClearPx(36, mosaicSeatInitialFontPx(w))).toBeGreaterThan(36)
+  })
+
+  it('pulls side initials inside the card edge', () => {
+    const w = 480
+    const h = 255
+    const font = mosaicSeatInitialFontPx(w)
+    const half = font * 0.78
+    expect(mosaicSeatInitialShiftXPx(0, w, h, font)).toBe(0)
+    expect(mosaicSeatInitialShiftXPx(4, w, h, font)).toBe(0)
+    for (const seat of [2, 6]) {
+      const cup = mosaicSeatDotPct(seat, 8, w, h)
+      const shift = mosaicSeatInitialShiftXPx(seat, w, h, font)
+      const center = (cup.leftPct / 100) * w + shift
+      expect(center - half).toBeGreaterThanOrEqual(2)
+      expect(center + half).toBeLessThanOrEqual(w - 2)
+    }
+    expect(mosaicSeatInitialShiftXPx(6, w, h, font)).toBeGreaterThan(0)
+    expect(mosaicSeatInitialShiftXPx(2, w, h, font)).toBeLessThan(0)
   })
 
   it('prints the seat stack as a chip amount', () => {

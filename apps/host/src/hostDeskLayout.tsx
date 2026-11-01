@@ -1274,8 +1274,6 @@ export function HostVenueFeltBeatStrip({
 
   return (
     <HostCollapsible
-      expanded
-      className="h-full min-h-0"
       badge={
         lockstepMisaligned ? (
           <span className="rounded-full bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-200">

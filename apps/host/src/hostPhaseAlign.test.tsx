@@ -27,10 +27,12 @@ describe('Venue felts beat phase tools', () => {
         onSetTablePhase: () => {},
       }),
     )
-    expect(html).toContain('Match the room')
-    expect(html).toContain('Click a table to set its phase')
-    expect(html).toContain('aria-label="Table 1"')
-    expect(html).toContain('aria-label="Table 2"')
+    expect(html).toContain('Venue felts · beat')
+    expect(html).toContain('Open')
+    expect(html).toContain('Misaligned')
+    expect(html).not.toContain('Match the room')
+    expect(html).not.toContain('Click a table to set its phase')
+    expect(html).not.toContain('aria-label="Table 1"')
   })
 
   it('lists beats for the table that was clicked', () => {

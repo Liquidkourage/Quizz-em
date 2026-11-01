@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { HostDeskShell } from './HostDeskShell'
 import { HostLivePanel } from './HostLivePanel'
+import { HostVenueFeltBeatStrip } from './hostDeskLayout'
 import { HostQuestionsPanel, type HostQuestionsPanelProps } from './HostQuestionsPanel'
 
 describe('host desk viewport', () => {
@@ -48,7 +49,24 @@ describe('host desk viewport', () => {
         onSpotlight={() => {}}
         handShow
         handBody={<p>Pay winners</p>}
-        feltBeat={<section>Venue felts · beat</section>}
+        feltBeat={
+          <HostVenueFeltBeatStrip
+            rows={[
+              {
+                tableNum: 1,
+                active: true,
+                seated: 2,
+                phase: 'betting',
+                street: 'preflop',
+                clock: '',
+                answerDeadlineMs: null,
+                phaseStrictSig: 'betting',
+              },
+            ]}
+            hostTableId="1"
+            onSetTablePhase={() => {}}
+          />
+        }
         floorNow={<section>Venue floor · now</section>}
         onGoPreShow={() => {}}
       />,
@@ -56,13 +74,14 @@ describe('host desk viewport', () => {
     expect(html).toContain('Deal the cards')
     expect(html).toContain('Audience TVs')
     expect(html).toContain('Venue felts · beat')
+    expect(html).toContain('Open')
+    expect(html).not.toContain('Click a table to set its phase')
     expect(html).toContain('Venue floor · now')
     expect(html).toContain('Right now')
     expect(html).toContain('Pay winners')
     expect(html).not.toContain('Chip scores')
     expect(html).toContain('host-live-board')
     expect(html).toContain('sm:grid-cols-2')
-    expect(html).toContain('sm:col-span-2')
     const beat = html.indexOf('Venue felts · beat')
     const now = html.indexOf('Venue floor · now')
     const hand = html.indexOf('Right now')

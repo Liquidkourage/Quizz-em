@@ -2322,14 +2322,9 @@ export function HostTvBar({
   modes.push({ id: 'rules', label: 'How to play', onClick: onSeatingRules })
 
   return (
-    <div
-      className="host-tv-modes flex w-full flex-nowrap items-center gap-1.5 overflow-x-auto rounded-xl border border-white/10 bg-black/30 px-3 py-2"
-      role="group"
-      aria-label="Public display"
-    >
-      <p className="mr-auto shrink-0 text-xs font-bold uppercase tracking-[0.14em] text-white/45">
-        Public display
-      </p>
+    <div className="host-tv-modes w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2">
+      <p className="mb-1.5 text-xs font-bold uppercase tracking-[0.14em] text-white/45">Public display</p>
+      <div className="flex flex-wrap items-center justify-end gap-1.5" role="group" aria-label="Public display">
       {modes.map((m) => {
         const active = m.id === activeView
         return (
@@ -2348,6 +2343,7 @@ export function HostTvBar({
           </button>
         )
       })}
+      </div>
     </div>
   )
 }

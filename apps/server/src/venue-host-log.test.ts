@@ -1,11 +1,45 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptyGame, type GameState } from '@qhe/core'
 import {
+  attachVenueLastHandSeating,
   buildHostVenueFloorBrief,
   clearVenueHostLog,
+  getVenueLastHandDisplay,
   recordVenueMovesBetweenStates,
+  setVenueLastHandDisplay,
   shortPlayerName,
+  venueWallLastHandFields,
 } from './venue-host-log'
+
+describe('venueWallLastHandFields', () => {
+  it('marks a paid hand when nobody busted and nobody moved', () => {
+    clearVenueHostLog('QUIET')
+    setVenueLastHandDisplay('QUIET', [])
+    attachVenueLastHandSeating('QUIET', null)
+    const fields = venueWallLastHandFields(getVenueLastHandDisplay('QUIET'))
+    expect(typeof fields.lastHandEndMs).toBe('number')
+    expect(fields.lastHandBusts).toBeUndefined()
+    expect(fields.lastHandSeating).toBeUndefined()
+  })
+
+  it('still includes busts and seat moves when they happened', () => {
+    clearVenueHostLog('LOUD')
+    setVenueLastHandDisplay('LOUD', [{ name: 'Ada', tableNum: 2, atMs: 1 }])
+    attachVenueLastHandSeating('LOUD', {
+      moves: [{ name: 'Ada', fromTableNum: 2, toTableNum: 1 }],
+      closedTableNums: [2],
+      shuffled: false,
+      tablesBefore: 2,
+      tablesAfter: 1,
+      playerCount: 3,
+    })
+    const fields = venueWallLastHandFields(getVenueLastHandDisplay('LOUD'))
+    expect(fields.lastHandBusts).toEqual([{ name: 'Ada', tableNum: 2 }])
+    expect(fields.lastHandSeating?.moves).toEqual([
+      { name: 'Ada', fromTableNum: 2, toTableNum: 1 },
+    ])
+  })
+})
 
 describe('shortPlayerName', () => {
   it('formats First L.', () => {

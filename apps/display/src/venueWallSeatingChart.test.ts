@@ -54,6 +54,11 @@ describe('venueWallShowSeatingChart', () => {
     expect(venueWallShowSeatingChart(w, w.tiles, Date.now())).toBe(false)
   })
 
+  it('does not return when the venue has already completed a hand', () => {
+    const w = wall({ venueHandsCompleted: 1 })
+    expect(venueWallShowSeatingChart(w, w.tiles, Date.now())).toBe(false)
+  })
+
   it('hides as soon as a question is up, even while the seating pin timer is running', () => {
     const w = wall({
       seatingChartPinnedUntilMs: Date.now() + 60_000,

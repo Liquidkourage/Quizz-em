@@ -128,6 +128,7 @@ import {
   attachVenueLastHandSeating,
   clearVenueLastHandDisplay,
   shortPlayerName,
+  venueWallLastHandFields,
 } from './venue-host-log'
 import {
   coerceImportQuestions,
@@ -2091,25 +2092,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     venueShuffleEveryHands: shuffleDisplay.shuffleEveryHands,
     venueHeld: isVenueHeld(vn),
     venueShuffleHeld: isVenueShuffleHeld(vn),
-    ...(lastHandDisplay != null &&
-    (lastHandDisplay.busts.length > 0 ||
-      (lastHandDisplay.seating != null &&
-        (lastHandDisplay.seating.shuffled ||
-          lastHandDisplay.seating.moves.length > 0 ||
-          lastHandDisplay.seating.closedTableNums.length > 0)))
-      ? {
-          lastHandEndMs: lastHandDisplay.endMs,
-          ...(lastHandDisplay.busts.length > 0
-            ? {
-                lastHandBusts: lastHandDisplay.busts.map((b) => ({
-                  name: b.name,
-                  tableNum: b.tableNum,
-                })),
-              }
-            : {}),
-          ...(lastHandDisplay.seating != null ? { lastHandSeating: lastHandDisplay.seating } : {}),
-        }
-      : {}),
+    venueHandsCompleted: getVenueHandsCompleted(vn),
+    ...venueWallLastHandFields(lastHandDisplay),
   }
   io.to(displayVenueRoom(vn)).emit('displayVenueSnapshot', payload)
   emitPlayerVenueBriefNow(vn)

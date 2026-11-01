@@ -412,6 +412,12 @@ export function seatingChartTablesFromTiles(
   return out
 }
 
+function handAlreadyPaid(wall: DisplayVenueWallSnapshot): boolean {
+  const ended = typeof wall.lastHandEndMs === 'number' && Number.isFinite(wall.lastHandEndMs)
+  const completed = typeof wall.venueHandsCompleted === 'number' && wall.venueHandsCompleted > 0
+  return ended || completed
+}
+
 /**
  * Post–assign-from-lobby, pre–start-round: everyone is seated but every felt is still `lobby`.
  * Replaces the empty mosaic + spotlight until the host starts the round.
@@ -423,7 +429,7 @@ export function venueWallShowSeatingChart(
 ): boolean {
   if (!venueWallHasLiveTiles(wall)) return false
   if (wall!.showAudienceWelcome !== false) return false
-  if (typeof wall!.lastHandEndMs === 'number' && Number.isFinite(wall!.lastHandEndMs)) return false
+  if (handAlreadyPaid(wall!)) return false
   if (tileRows.length === 0) return false
   const tables = seatingChartTablesFromTiles(tileRows)
   if (tables.length === 0) return false

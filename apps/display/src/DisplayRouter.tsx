@@ -355,6 +355,10 @@ export default function DisplayRouter({
           typeof p.lastHandEndMs === 'number' && Number.isFinite(p.lastHandEndMs)
             ? Math.floor(p.lastHandEndMs)
             : null,
+        venueHandsCompleted:
+          typeof p.venueHandsCompleted === 'number' && Number.isFinite(p.venueHandsCompleted)
+            ? Math.max(0, Math.floor(p.venueHandsCompleted))
+            : null,
         lastHandSeating: normalizeLastHandSeating(p.lastHandSeating),
       }
       setVenueWall(next)

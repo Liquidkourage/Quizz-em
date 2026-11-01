@@ -69,6 +69,25 @@ export function getVenueLastHandDisplay(vn: string): VenueLastHandDisplay | null
   return venueLastHandDisplay.get(vn) ?? null
 }
 
+/** Public-TV fields for the hand that just paid. Always includes the end time so a quiet lobby is not the pre-show seating chart. */
+export function venueWallLastHandFields(display: VenueLastHandDisplay | null): {
+  lastHandEndMs?: number
+  lastHandBusts?: { name: string; tableNum: number }[]
+  lastHandSeating?: DisplayVenueSeatingAnnouncement
+} {
+  if (display == null) return {}
+  const fields: {
+    lastHandEndMs: number
+    lastHandBusts?: { name: string; tableNum: number }[]
+    lastHandSeating?: DisplayVenueSeatingAnnouncement
+  } = { lastHandEndMs: display.endMs }
+  if (display.busts.length > 0) {
+    fields.lastHandBusts = display.busts.map((b) => ({ name: b.name, tableNum: b.tableNum }))
+  }
+  if (display.seating != null) fields.lastHandSeating = display.seating
+  return fields
+}
+
 export function clearVenueLastHandDisplay(vn: string): void {
   venueLastHandDisplay.delete(vn)
 }

@@ -259,6 +259,8 @@ export type DisplayVenueWallSnapshot = {
   lastHandBusts?: DisplayVenueBustEntry[]
   /** Server epoch ms when that hand ended; pairs with {@link lastHandBusts} / {@link lastHandSeating}. */
   lastHandEndMs?: number | null
+  /** Paid hands at this venue. Survives a server restart, unlike {@link lastHandEndMs}. */
+  venueHandsCompleted?: number | null
   /** Table moves / closures / shuffle from the most recent End Round seating pass. */
   lastHandSeating?: DisplayVenueSeatingAnnouncement | null
 }

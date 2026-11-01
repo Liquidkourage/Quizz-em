@@ -80,6 +80,18 @@ describe('Venue floor phase tools', () => {
     expect(html).toContain('Results')
   })
 
+  it('shows the opened table on the TVs', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [],
+        recentActions: [],
+        hostPlayerLabel: (name: string) => name,
+        onSpotlight: () => {},
+      }),
+    )
+    expect(html).toContain('Show on TVs')
+  })
+
   it('lists beats for the table that was clicked', () => {
     const html = renderToStaticMarkup(
       createElement(HostFeltPhasePicker, {

@@ -120,4 +120,17 @@ describe('venue floor now', () => {
     expect(html).toContain('Answering on phones')
     expect(html).toContain('1,020')
   })
+
+  it('keeps the blind call on the floor', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: brief(),
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+        blindCall: createElement('p', null, 'Raise the blinds'),
+      }),
+    )
+    expect(html.indexOf('Raise the blinds')).toBeGreaterThan(-1)
+    expect(html.indexOf('Raise the blinds')).toBeLessThan(html.indexOf('Table action'))
+  })
 })

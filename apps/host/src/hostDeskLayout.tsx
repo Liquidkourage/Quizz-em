@@ -1683,6 +1683,7 @@ export function HostTableOpen({
   actingSummary,
   tableNum,
   onSetTablePhase,
+  onSpotlight,
 }: {
   seats: HostVenueSeatContest[]
   recentActions: HostVenueRecentAction[]
@@ -1692,6 +1693,7 @@ export function HostTableOpen({
   actingSummary?: string | null
   tableNum?: number
   onSetTablePhase?: (signature: string) => void
+  onSpotlight?: () => void
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -1731,6 +1733,11 @@ export function HostTableOpen({
       {tableNum != null && onSetTablePhase ? (
         <HostFeltPhasePicker tableNum={tableNum} onPick={onSetTablePhase} />
       ) : null}
+      {onSpotlight ? (
+        <NeonButton variant="gold" size="small" type="button" onClick={onSpotlight}>
+          Show on TVs
+        </NeonButton>
+      ) : null}
     </div>
   )
 }
@@ -1742,6 +1749,8 @@ export function HostVenueFloorBriefPanel({
   feltRows = null,
   onAlignRoom,
   onSetTablePhase,
+  onSpotlight,
+  blindCall,
 }: {
   brief: HostVenueFloorBriefPayload | null
   hostPlayerLabel: (name: string) => string
@@ -1749,6 +1758,8 @@ export function HostVenueFloorBriefPanel({
   feltRows?: HostVenueFeltBeatRow[] | null
   onAlignRoom?: () => void
   onSetTablePhase?: (tableNum: number, signature: string) => void
+  onSpotlight?: (tableNum: number) => void
+  blindCall?: ReactNode
 }) {
   const rows = brief?.actionRows ?? []
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
@@ -1784,6 +1795,7 @@ export function HostVenueFloorBriefPanel({
       ) : (
         <div className="flex flex-col gap-3">
           <div>
+            {blindCall}
             {lockstepMisaligned && onAlignRoom ? (
               <button
                 type="button"
@@ -1862,6 +1874,7 @@ export function HostVenueFloorBriefPanel({
                       ? (signature) => onSetTablePhase(openRow.tableNum, signature)
                       : undefined
                   }
+                  onSpotlight={onSpotlight ? () => onSpotlight(openRow.tableNum) : undefined}
                   hostPlayerLabel={hostPlayerLabel}
                 />
               ) : null}

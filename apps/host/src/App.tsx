@@ -1060,8 +1060,6 @@ function HostApp() {
             }
             onSeatingRules={showSeatingRulesOnTvs}
             venueFeltBeat={venueFeltBeat}
-            venueFloorBrief={venueFloorBrief}
-            onSpotlight={spotlightTableOnTvs}
             questionSlot={
               hostControlState.round.question ? (
                 <HostLiveQuestionCard
@@ -1137,9 +1135,8 @@ function HostApp() {
                 hostTableId={hostTableId}
                 onAlignRoom={() => alignTablesToRoom()}
                 onSetTablePhase={(tableNum, signature) => setTablePhase(tableNum, signature)}
-              />
-            }
-            blindCall={
+                onSpotlight={spotlightTableOnTvs}
+                blindCall={
               <HostBlindCall
                 showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}
                 handsLeft={handsLeft}
@@ -1150,6 +1147,8 @@ function HostApp() {
                 handsPerLevel={handsPerBlindLevel}
                 guideSec={answerWindowSeconds}
                 onApply={applyBlindCall}
+              />
+                }
               />
             }
             onGoPreShow={() => selectHostMode('preshow')}

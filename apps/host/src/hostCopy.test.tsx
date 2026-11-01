@@ -63,8 +63,6 @@ describe('host explanatory copy', () => {
         onTriviaLeaderboard: () => {},
         onSeatingRules: () => {},
         venueFeltBeat: null,
-        venueFloorBrief: null,
-        onSpotlight: () => {},
         handShow: false,
         handBody: null,
         onGoPreShow: () => {},

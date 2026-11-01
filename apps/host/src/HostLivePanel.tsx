@@ -1,10 +1,9 @@
 import type { ReactNode } from 'react'
 import type { GameState } from '@qhe/core'
-import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
+import type { HostVenueFeltBeatRow } from '@qhe/net'
 import {
   HostAnswerClock,
   HostCollapsible,
-  HostFloorStrip,
   HostRunBar,
   HostThisHandPanel,
   HostTvBar,
@@ -26,13 +25,10 @@ export function HostLivePanel({
   onEliminations,
   onSeatingRules,
   venueFeltBeat,
-  venueFloorBrief,
-  onSpotlight,
   questionSlot,
   handShow,
   handBody,
   floorNow,
-  blindCall,
   onGoPreShow,
   attachedDisplays = [],
   onReleaseDisplay,
@@ -49,15 +45,11 @@ export function HostLivePanel({
   onEliminations?: () => void
   onSeatingRules: () => void
   venueFeltBeat: HostVenueFeltBeatRow[] | null
-  venueFloorBrief: HostVenueFloorBriefPayload | null
-  onSpotlight: (n: number) => void
   questionSlot?: ReactNode
   handShow: boolean
   handBody: ReactNode
   /** Venue floor · now, already open. */
   floorNow?: ReactNode
-  /** Blind suggestion for the rest of the night. Sits on the tables strip. */
-  blindCall?: ReactNode
   onGoPreShow: () => void
   attachedDisplays?: HostAttachedDisplay[]
   onReleaseDisplay?: (socketId: string) => void
@@ -94,7 +86,8 @@ export function HostLivePanel({
         />
       </div>
 
-      <div className="grid min-w-0 grid-cols-2 items-start gap-2 self-start sm:col-start-2 sm:row-start-1">
+      <div className="flex items-start self-start sm:col-start-2 sm:row-start-1">
+        <div className="w-full max-w-[16rem]">
         <HostCollapsible summary="Audience TVs" appearance="button">
           <div className="flex h-full min-h-0 flex-col gap-3">
             <HostTvBar
@@ -112,14 +105,7 @@ export function HostLivePanel({
             />
           </div>
         </HostCollapsible>
-        <HostCollapsible summary="Tables" appearance="button">
-          <HostFloorStrip
-            rows={venueFeltBeat}
-            brief={venueFloorBrief}
-            onSpotlight={onSpotlight}
-            blindCall={blindCall}
-          />
-        </HostCollapsible>
+        </div>
       </div>
 
       <div className="flex min-w-0 items-start gap-2 sm:col-span-2 sm:row-start-2">

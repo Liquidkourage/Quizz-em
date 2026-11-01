@@ -45,8 +45,6 @@ describe('host desk viewport', () => {
             phaseStrictSig: 'betting',
           },
         ]}
-        venueFloorBrief={null}
-        onSpotlight={() => {}}
         handShow
         handBody={<p>Pay winners</p>}
         floorNow={<section>Venue floor · now</section>}
@@ -55,6 +53,7 @@ describe('host desk viewport', () => {
     )
     expect(html).toContain('Deal the cards')
     expect(html).toContain('Audience TVs')
+    expect(html).not.toContain('>Tables<')
     expect(html).not.toContain('Venue felts')
     expect(html).toContain('grid-cols-2')
     expect(html).toContain('host-open-button')
@@ -102,8 +101,6 @@ describe('host desk viewport', () => {
             phaseStrictSig: 'answer',
           },
         ]}
-        venueFloorBrief={null}
-        onSpotlight={() => {}}
         handShow={false}
         handBody={null}
         floorNow={<section>Venue floor · now</section>}

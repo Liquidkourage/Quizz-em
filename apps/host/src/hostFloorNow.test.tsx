@@ -49,6 +49,8 @@ describe('venue floor now', () => {
     )
     const tables = html.indexOf('T1')
     const busts = html.indexOf('Busts')
+    expect(html).not.toContain('h-full')
+    expect(html).not.toContain('flex-1')
     expect(html).toContain('minmax(11rem,13rem)')
     expect(html).not.toContain('lg:grid-cols-4')
     expect(html).toContain('sm:grid-cols-3')

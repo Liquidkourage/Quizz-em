@@ -811,17 +811,23 @@ async function bootstrap(): Promise<void> {
   })
   await recoverAndStartSaving()
 
-  httpServer.listen(PORT, HOST, () => {
-    console.log(`🎰 Quizz’em server running on ${HOST}:${PORT}`)
-    console.log(`🌐 WebSocket server ready for connections`)
-    const base = publicOrigin ?? `http://localhost:${PORT}`
-    console.log(`📱 Host: ${base}/host`)
-    console.log(`👤 Player: ${base}/player`)
-    console.log(`📺 Display: ${base}/display`)
+  await new Promise<void>((resolve) => {
+    httpServer.listen(PORT, HOST, () => {
+      resolve()
+      console.log(`🎰 Quizz’em server running on ${HOST}:${PORT}`)
+      console.log(`🌐 WebSocket server ready for connections`)
+      const base = publicOrigin ?? `http://localhost:${PORT}`
+      console.log(`📱 Host: ${base}/host`)
+      console.log(`👤 Player: ${base}/player`)
+      console.log(`📺 Display: ${base}/display`)
+    })
   })
 }
 
-bootstrap().catch((err) => {
+/** Resolves once the server is listening. Tests use it to start the real server in-process. */
+export const serverReady = bootstrap().then(() => ({ httpServer, io }))
+
+serverReady.catch((err) => {
   console.error('Fatal: failed to start server (venue library load):', err)
   process.exit(1)
 })

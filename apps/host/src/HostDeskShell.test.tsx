@@ -104,9 +104,12 @@ describe('host desk viewport', () => {
         onGoPreShow={() => {}}
       />,
     )
+    expect(html).not.toContain('Disconnect')
     expect(html).toContain('Answer clock')
     expect(html).not.toContain('text-6xl')
-    expect(html).toContain('w-24 shrink-0')
+    expect(html).toContain('w-32 shrink-0')
+    expect(html).toContain('text-4xl')
+    expect(html).not.toContain('w-24 shrink-0')
     expect(html).toContain('sm:col-span-2 sm:row-start-2')
     expect(html).toContain('text-2xl font-bold')
     expect(html).not.toContain('Show table 1 large on the TVs')

@@ -8,7 +8,6 @@ import {
   type HostDockItem,
   isHostWaitingForJoiners,
 } from './hostDeskLayout'
-import { HostConnectedDisplays, type HostAttachedDisplay } from './HostConnectedDisplays'
 
 export function HostLivePanel({
   gameState,
@@ -28,8 +27,6 @@ export function HostLivePanel({
   handBody,
   floorNow,
   onGoPreShow,
-  attachedDisplays = [],
-  onReleaseDisplay,
 }: {
   gameState: GameState
   phaseDockItems: HostDockItem[]
@@ -50,8 +47,6 @@ export function HostLivePanel({
   /** Venue floor · now, already open. */
   floorNow?: ReactNode
   onGoPreShow: () => void
-  attachedDisplays?: HostAttachedDisplay[]
-  onReleaseDisplay?: (socketId: string) => void
 }) {
   const waiting = isHostWaitingForJoiners(gameState)
   const hasSeatedFelts =
@@ -95,11 +90,6 @@ export function HostLivePanel({
           onSeatingChart={onSeatingChart}
           onEliminations={onEliminations}
           onSeatingRules={onSeatingRules}
-        />
-        <HostConnectedDisplays
-          displays={attachedDisplays}
-          onRelease={(socketId) => onReleaseDisplay?.(socketId)}
-          emptyLabel={false}
         />
       </div>
 

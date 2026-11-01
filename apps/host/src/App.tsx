@@ -75,6 +75,7 @@ import { HostModeNav } from './HostModeNav'
 import { HostDeskShell } from './HostDeskShell'
 import { hostDeskFrameStyle } from './hostDeskScale'
 import { HostMoreMenu } from './HostMoreMenu'
+import { HostConnectedDisplays } from './HostConnectedDisplays'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
 import { HostLivePanel } from './HostLivePanel'
@@ -616,6 +617,13 @@ function HostApp() {
   const moreMenu = (
     <HostMoreMenu>
               <>
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-wide text-white/45">Displays</p>
+                  <HostConnectedDisplays
+                    displays={attachedDisplays}
+                    onRelease={(socketId) => releaseDisplay(socketId)}
+                  />
+                </div>
                 <HostRoomControls
                   brief={venueFloorBrief}
                   hostPlayerLabel={hostPlayerLabel}
@@ -1133,8 +1141,6 @@ function HostApp() {
               />
             }
             onGoPreShow={() => selectHostMode('preshow')}
-            attachedDisplays={attachedDisplays}
-            onReleaseDisplay={releaseDisplay}
           />
         ) : null}
 

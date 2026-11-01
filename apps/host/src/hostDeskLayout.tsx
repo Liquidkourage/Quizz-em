@@ -2491,7 +2491,7 @@ export function HostAnswerClock({ rows }: { rows: readonly HostVenueFeltBeatRow[
   const urgent = soonest <= 10
   return (
     <div
-      className={`flex w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 ${
+      className={`flex w-32 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 ${
         urgent
           ? 'border-rose-400/75 bg-rose-950/45'
           : 'border-amber-300/75 bg-amber-950/45'
@@ -2503,7 +2503,7 @@ export function HostAnswerClock({ rows }: { rows: readonly HostVenueFeltBeatRow[
         Answer clock
       </span>
       <span
-        className={`font-mono text-3xl font-black leading-none tabular-nums ${
+        className={`font-mono text-4xl font-black leading-none tabular-nums ${
           urgent ? 'text-rose-200' : 'text-amber-200'
         }`}
       >

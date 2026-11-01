@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import type { GameState } from '@qhe/core'
 import type { HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import {
+  HostAnswerClock,
+  HostCollapsible,
   HostFloorStrip,
   HostRunBar,
   HostThisHandPanel,
@@ -98,20 +100,32 @@ export function HostLivePanel({
         />
       </div>
 
-      <div className="host-instrument flex min-w-0 flex-col justify-center gap-2 rounded-xl border border-white/10 px-3 py-2 sm:col-start-2 sm:row-start-1">
-        <HostTvBar
-          onVenueFloor={onVenueFloor}
-          onLeaderboard={onLeaderboard}
-          onTriviaLeaderboard={onTriviaLeaderboard}
-          onSeatingChart={onSeatingChart}
-          onEliminations={onEliminations}
-          onSeatingRules={onSeatingRules}
-        />
-        <HostConnectedDisplays
-          displays={attachedDisplays}
-          onRelease={(socketId) => onReleaseDisplay?.(socketId)}
-          emptyLabel={false}
-        />
+      <div className="flex min-w-0 flex-col gap-2 sm:col-start-2 sm:row-start-1">
+        <HostCollapsible summary="Audience TVs">
+          <div className="space-y-3">
+            <HostTvBar
+              onVenueFloor={onVenueFloor}
+              onLeaderboard={onLeaderboard}
+              onTriviaLeaderboard={onTriviaLeaderboard}
+              onSeatingChart={onSeatingChart}
+              onEliminations={onEliminations}
+              onSeatingRules={onSeatingRules}
+            />
+            <HostConnectedDisplays
+              displays={attachedDisplays}
+              onRelease={(socketId) => onReleaseDisplay?.(socketId)}
+              emptyLabel={false}
+            />
+          </div>
+        </HostCollapsible>
+        <HostCollapsible summary="Tables">
+          <HostFloorStrip
+            rows={venueFeltBeat}
+            brief={venueFloorBrief}
+            onSpotlight={onSpotlight}
+            blindCall={blindCall}
+          />
+        </HostCollapsible>
       </div>
 
       <div className="min-w-0 sm:col-start-1 sm:row-start-2">
@@ -119,12 +133,7 @@ export function HostLivePanel({
       </div>
 
       <div className="min-w-0 sm:col-start-2 sm:row-start-2">
-        <HostFloorStrip
-          rows={venueFeltBeat}
-          brief={venueFloorBrief}
-          onSpotlight={onSpotlight}
-          blindCall={blindCall}
-        />
+        <HostAnswerClock rows={venueFeltBeat} />
       </div>
 
       <div className="min-h-0 overflow-y-auto sm:col-span-2 sm:row-start-3 sm:max-h-56">{feltBeat}</div>

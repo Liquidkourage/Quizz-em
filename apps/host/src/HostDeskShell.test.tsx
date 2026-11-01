@@ -57,7 +57,9 @@ describe('host desk viewport', () => {
     expect(html).toContain('Audience TVs')
     expect(html).toContain('Venue felts · beat')
     expect(html).toContain('Venue floor · now')
+    expect(html).toContain('Right now')
     expect(html).toContain('Pay winners')
+    expect(html).not.toContain('Chip scores')
     expect(html).toContain('host-live-board')
     expect(html).toContain('sm:grid-cols-2')
     expect(html).toContain('sm:col-span-2')
@@ -66,6 +68,43 @@ describe('host desk viewport', () => {
     const hand = html.indexOf('Right now')
     expect(now).toBeGreaterThan(beat)
     expect(hand).toBeGreaterThan(now)
+  })
+
+  it('leaves the answer clock on the page and the table buttons in a popup', () => {
+    const html = renderToStaticMarkup(
+      <HostLivePanel
+        gameState={createEmptyGame('HOST01', 'host', '1')}
+        phaseDockItems={[]}
+        runOfShowHeadline={{ title: 'Reveal the answer' }}
+        pacingUrgency="now"
+        runBarCueHint={null}
+        onVenueFloor={() => {}}
+        onLeaderboard={() => {}}
+        onTriviaLeaderboard={() => {}}
+        onSeatingRules={() => {}}
+        venueFeltBeat={[
+          {
+            tableNum: 1,
+            active: true,
+            seated: 2,
+            phase: 'answering',
+            street: 'board',
+            clock: '',
+            answerDeadlineMs: Date.now() + 20_000,
+            phaseStrictSig: 'answer',
+          },
+        ]}
+        venueFloorBrief={null}
+        onSpotlight={() => {}}
+        handShow={false}
+        handBody={null}
+        feltBeat={<section>Venue felts · beat</section>}
+        floorNow={<section>Venue floor · now</section>}
+        onGoPreShow={() => {}}
+      />,
+    )
+    expect(html).toContain('Answer clock')
+    expect(html).not.toContain('Show table 1 large on the TVs')
   })
 })
 

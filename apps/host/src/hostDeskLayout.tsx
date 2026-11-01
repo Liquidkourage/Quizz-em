@@ -2270,6 +2270,52 @@ export function HostRunBar({
   )
 }
 
+export function soonestAnswerSeconds(
+  rows: readonly HostVenueFeltBeatRow[] | null,
+  nowMs: number,
+): number | null {
+  let soonest: number | null = null
+  for (const row of rows ?? []) {
+    if (!row.active || row.seated < 1 || row.phase !== 'answering' || row.answerDeadlineMs == null) continue
+    const sec = Math.max(0, Math.ceil((row.answerDeadlineMs - nowMs) / 1000))
+    soonest = soonest == null ? sec : Math.min(soonest, sec)
+  }
+  return soonest
+}
+
+/** Live guessing countdown. Stays on the desk while the other table controls sit in a popup. */
+export function HostAnswerClock({ rows }: { rows: readonly HostVenueFeltBeatRow[] | null }) {
+  const [, setTick] = useState(0)
+  const soonest = soonestAnswerSeconds(rows, Date.now())
+  useEffect(() => {
+    if (soonest == null) return
+    const id = window.setInterval(() => setTick((n) => n + 1), 1000)
+    return () => window.clearInterval(id)
+  }, [soonest])
+  if (soonest == null) return null
+  const urgent = soonest <= 10
+  return (
+    <div
+      className={`mb-2 flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-2 ${
+        urgent
+          ? 'border-rose-400/75 bg-rose-950/45'
+          : 'border-amber-300/75 bg-amber-950/45'
+      }`}
+      aria-live="polite"
+      aria-label={`${soonest} seconds left on the answer clock`}
+    >
+      <span className="text-sm font-bold uppercase tracking-[0.16em] text-amber-100/85">Answer clock</span>
+      <span
+        className={`font-mono text-6xl font-black leading-none tabular-nums ${
+          urgent ? 'text-rose-200' : 'text-amber-200'
+        }`}
+      >
+        {soonest}
+      </span>
+    </div>
+  )
+}
+
 /** Compact horizontal floor awareness — tap a table to spotlight it on TVs. */
 export function HostFloorStrip({
   rows,
@@ -2329,37 +2375,7 @@ export function HostFloorStrip({
         </p>
       ) : (
         <>
-        {(() => {
-          let soonest: number | null = null
-          for (const row of seated) {
-            if (row.phase !== 'answering' || row.answerDeadlineMs == null) continue
-            const sec = Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
-            soonest = soonest == null ? sec : Math.min(soonest, sec)
-          }
-          if (soonest == null) return null
-          return (
-            <div
-              className={`mb-2 flex items-center justify-between gap-3 rounded-xl border-2 px-4 py-2 ${
-                soonest <= 10
-                  ? 'border-rose-400/75 bg-rose-950/45 shadow-[0_0_24px_rgba(244,63,94,0.28)]'
-                  : 'border-amber-300/75 bg-amber-950/45 shadow-[0_0_24px_rgba(251,191,36,0.22)]'
-              }`}
-              aria-live="polite"
-              aria-label={`${soonest} seconds left on the answer clock`}
-            >
-              <span className="text-sm font-bold uppercase tracking-[0.16em] text-amber-100/85">
-                Answer clock
-              </span>
-              <span
-                className={`font-mono text-6xl font-black leading-none tabular-nums ${
-                  soonest <= 10 ? 'text-rose-200' : 'text-amber-200'
-                }`}
-              >
-                {soonest}
-              </span>
-            </div>
-          )
-        })()}
+        <HostAnswerClock rows={seated} />
         <div className="flex gap-1.5 overflow-x-auto pb-0.5 overscroll-x-contain">
           {seated.map((row) => {
             const action = actionByTable.get(row.tableNum)

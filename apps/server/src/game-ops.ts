@@ -54,6 +54,7 @@ import {
   rehearsalVenueTableRosterSizes,
   displayActingSeatIndex,
   displayBlindSeatIndices,
+  balancedPhysicalSeats,
   chipsRequiredToCall,
   pctOfStackToCall,
   normalizeBettingTurn,
@@ -912,6 +913,28 @@ export function welcomeWallSeatCount(gs: GameState): number {
   return gs.players.length
 }
 
+/** Place a dense roster onto the 8 chairs with as even a ring as the count allows. */
+function scatterRosterToChairs<T>(
+  players: GameState['players'],
+  empty: T,
+  pick: (player: GameState['players'][number], rosterIndex: number) => T,
+): T[] {
+  const seats = balancedPhysicalSeats(players.length, VENUE_WALL_SEAT_COUNT)
+  const out = Array.from({ length: VENUE_WALL_SEAT_COUNT }, () => empty)
+  for (let i = 0; i < players.length; i++) {
+    const player = players[i]
+    const seat = seats[i]
+    if (player == null || seat == null) continue
+    out[seat] = pick(player, i)
+  }
+  return out
+}
+
+function chairForRosterIndex(rosterIndex: number, rosterCount: number): number {
+  if (rosterIndex < 0 || rosterIndex >= rosterCount) return rosterIndex
+  return balancedPhysicalSeats(rosterCount, VENUE_WALL_SEAT_COUNT)[rosterIndex] ?? rosterIndex
+}
+
 /** Hidden on displays after venue-wide Start Game until New Game resets the venue. */
 export const venueAudienceWelcomeExpired = new Set<string>()
 
@@ -1758,33 +1781,20 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     const seated = welcomeWallSeatCount(gs)
     if (seated === 0) continue
     totalSeatedAtTables += seated
-    const seatNames = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-      const p = gs.players[i]
-      if (p == null) return ''
-      const nm = typeof p.name === 'string' ? p.name.trim() : ''
-      return nm
-    })
-    const seatBankrolls = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-      const p = gs.players[i]
-      if (p == null) return 0
+    const seatNames = scatterRosterToChairs(gs.players, '', (p) =>
+      typeof p.name === 'string' ? p.name.trim() : '',
+    )
+    const seatBankrolls = scatterRosterToChairs(gs.players, 0, (p) => {
       const br = p.bankroll
       return typeof br === 'number' && Number.isFinite(br) ? br : 0
     })
-    const seatFolded = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-      const p = gs.players[i]
-      return p != null && p.hasFolded === true
-    })
-    const seatPointsOnly = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-      const p = gs.players[i]
-      return p != null && p.pointsOnly === true
-    })
-    const seatAnswerPoints = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-      const p = gs.players[i]
-      if (p == null) return 0
+    const seatFolded = scatterRosterToChairs(gs.players, false, (p) => p.hasFolded === true)
+    const seatPointsOnly = scatterRosterToChairs(gs.players, false, (p) => p.pointsOnly === true)
+    const seatAnswerPoints = scatterRosterToChairs(gs.players, 0, (p) => {
       const pts = p.answerPoints
       return typeof pts === 'number' && Number.isFinite(pts) ? Math.max(0, Math.floor(pts)) : 0
     })
-    const seatLastBettingAction = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
+    const seatLastBettingAction = scatterRosterToChairs(gs.players, null, (_p, i) => {
       const arr = gs.round.lastSeatBettingAction
       if (arr != null && i < arr.length) {
         const v = arr[i]
@@ -1815,39 +1825,30 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
         gs.phase === 'showdown')
     const blindEff = effectiveBlindsForSessionKey(vn, key)
     const secretsPublic = handSecretsArePublic(gs.phase)
-    const seatHolesDealt = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-      const p = gs.players[i]
-      if (p == null || p.hand.length < 2) return false
+    const seatHolesDealt = scatterRosterToChairs(gs.players, false, (p) => {
+      if (p.hand.length < 2) return false
       if (p.hasFolded && !secretsPublic) return false
       return true
     })
     const seatHoleDigits = secretsPublic
-      ? Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-      const p = gs.players[i]
-      // Hide folded holes until the hand is public so mucked cards stay private during betting.
-      if (
-        p == null ||
-        p.hand.length < 2 ||
-        (p.hasFolded && !secretsPublic)
-      ) {
-        return null
-      }
-      const d0 = p.hand[0]?.digit
-      const d1 = p.hand[1]?.digit
-      if (
-        typeof d0 !== 'number' ||
-        typeof d1 !== 'number' ||
-        !Number.isInteger(d0) ||
-        !Number.isInteger(d1) ||
-        d0 < 0 ||
-        d0 > 9 ||
-        d1 < 0 ||
-        d1 > 9
-      ) {
-        return null
-      }
-      return [d0, d1] as [number, number]
-    })
+      ? scatterRosterToChairs(gs.players, null, (p) => {
+          if (p.hand.length < 2 || (p.hasFolded && !secretsPublic)) return null
+          const d0 = p.hand[0]?.digit
+          const d1 = p.hand[1]?.digit
+          if (
+            typeof d0 !== 'number' ||
+            typeof d1 !== 'number' ||
+            !Number.isInteger(d0) ||
+            !Number.isInteger(d1) ||
+            d0 < 0 ||
+            d0 > 9 ||
+            d1 < 0 ||
+            d1 > 9
+          ) {
+            return null
+          }
+          return [d0, d1] as [number, number]
+        })
       : Array.from({ length: VENUE_WALL_SEAT_COUNT }, () => null)
     const communityDigits =
       gs.round.communityCards.length > 0
@@ -1864,15 +1865,14 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     let seatChipPayout: (number | null)[] | undefined
     if (gs.phase === 'answering') {
       // Privacy: never leak numeric guesses on the public wire during answering.
-      seatAnswerLocked = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-        const p = gs.players[i]
-        return p != null && typeof p.submittedAnswer === 'number' && Number.isFinite(p.submittedAnswer)
-      })
+      seatAnswerLocked = scatterRosterToChairs(
+        gs.players,
+        false,
+        (p) => typeof p.submittedAnswer === 'number' && Number.isFinite(p.submittedAnswer),
+      )
     }
     if (gs.phase === 'showdown' || gs.phase === 'reveal') {
-      seatSubmittedAnswers = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-        const p = gs.players[i]
-        if (p == null) return null
+      seatSubmittedAnswers = scatterRosterToChairs(gs.players, null, (p) => {
         const sa = p.submittedAnswer
         return typeof sa === 'number' && Number.isFinite(sa) ? sa : null
       })
@@ -1884,24 +1884,20 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
         const qt = q.text
         showdownQuestionText = typeof qt === 'string' && qt.trim() !== '' ? qt.trim() : null
       }
-      seatAnswerCommunityIndices = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-        const p = gs.players[i]
-        if (p == null || typeof p.submittedAnswer !== 'number') return null
+      seatAnswerCommunityIndices = scatterRosterToChairs(gs.players, null, (p) => {
+        if (typeof p.submittedAnswer !== 'number') return null
         const comp = answerCompositionForPlayer(p, gs.round.communityCards)
         if (comp == null) return null
         const idx = communityIndicesFromAnswerComposition(comp)
         return idx.length > 0 ? idx : null
       })
-      seatAnswerCompositions = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-        const p = gs.players[i]
-        if (p == null || typeof p.submittedAnswer !== 'number') return null
+      seatAnswerCompositions = scatterRosterToChairs(gs.players, null, (p) => {
+        if (typeof p.submittedAnswer !== 'number') return null
         const comp = answerCompositionForPlayer(p, gs.round.communityCards)
         return comp != null && comp.length === PLAYER_ANSWER_DIGIT_CARD_COUNT ? comp : null
       })
       const payoutById = previewChipPayoutByPlayerId(gs)
-      seatChipPayout = Array.from({ length: VENUE_WALL_SEAT_COUNT }, (_, i) => {
-        const p = gs.players[i]
-        if (p == null) return null
+      seatChipPayout = scatterRosterToChairs(gs.players, null, (p) => {
         const amt = payoutById[p.id]
         return typeof amt === 'number' && Number.isFinite(amt) && amt > 0 ? Math.round(amt) : null
       })
@@ -1936,20 +1932,29 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       ...(seatChipPayout != null && seatChipPayout.some((x) => x != null && x > 0)
         ? { seatChipPayout }
         : {}),
-      ...displayBlindSeatIndices(seated, gs.round.dealerIndex),
+      ...(() => {
+        const blinds = displayBlindSeatIndices(seated, gs.round.dealerIndex)
+        const toChair = (idx: number | null) => (idx == null ? null : chairForRosterIndex(idx, seated))
+        return {
+          dealerSeatIndex: toChair(blinds.dealerSeatIndex),
+          smallBlindSeatIndex: toChair(blinds.smallBlindSeatIndex),
+          bigBlindSeatIndex: toChair(blinds.bigBlindSeatIndex),
+        }
+      })(),
       currentPlayerIndex:
         typeof gs.round.currentPlayerIndex === 'number' && Number.isFinite(gs.round.currentPlayerIndex)
-          ? Math.floor(gs.round.currentPlayerIndex)
+          ? chairForRosterIndex(Math.floor(gs.round.currentPlayerIndex), seated)
           : null,
       isBettingOpen: gs.phase === 'betting' ? gs.round.isBettingOpen === true : null,
       bettingRound:
         gs.phase === 'betting' && typeof gs.round.bettingRound === 'number' && Number.isFinite(gs.round.bettingRound)
           ? Math.floor(gs.round.bettingRound)
           : null,
-      actingSeatIndex:
-        gs.phase === 'betting' && gs.round.isBettingOpen === true
-          ? displayActingSeatIndex(gs.phase, seated, gs.round)
-          : null,
+      actingSeatIndex: (() => {
+        if (!(gs.phase === 'betting' && gs.round.isBettingOpen === true)) return null
+        const roster = displayActingSeatIndex(gs.phase, seated, gs.round)
+        return roster == null ? null : chairForRosterIndex(roster, seated)
+      })(),
       smallBlind: blindEff.smallBlind,
       bigBlind: blindEff.bigBlind,
       ...(blindEff.isTableOverride ? { blindsTableOverride: true } : {}),

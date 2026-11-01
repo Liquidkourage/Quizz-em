@@ -1622,6 +1622,7 @@ export {
   rehearsalVenueTableRosterSizes,
 } from './displayPreviewFixture'
 export { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
+export { balancedPhysicalSeats } from './balancedSeats'
 export {
   VENUE_CONDENSE_MAX_SEATS,
   VENUE_CONDENSE_MIN_SEATS,

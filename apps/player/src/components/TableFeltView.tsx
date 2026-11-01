@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
-import { formatTriviaPoints, LOBBY_TABLE_ID } from '@qhe/core'
+import { balancedPhysicalSeats, formatTriviaPoints, LOBBY_TABLE_ID } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 import {
   buildPlayerTableStatusLine,
@@ -113,7 +113,9 @@ export default function TableFeltView({
   )
 
   const seats = useMemo((): StadiumTableSeat[] => {
+    const seatOf = balancedPhysicalSeats(players.length)
     return players.map((player, index) => {
+      const chair = seatOf[index] ?? index
       const isMe = index === heroIndex
       const isActing = actingIndex === index && !player.hasFolded
       const isAway = playerOnline?.[player.id] === false
@@ -144,8 +146,8 @@ export default function TableFeltView({
       const statusLocked = quizStatus?.locked === true
 
       return {
-        index,
-        label: showSeat ? index + 1 : isMe ? 'You' : rosterDisplayName(player.name).slice(0, 2),
+        index: chair,
+        label: showSeat ? chair + 1 : isMe ? 'You' : rosterDisplayName(player.name).slice(0, 2),
         labelClassName: 'font-mono text-sm tabular-nums sm:text-base font-bold',
         state: foldedChips
           ? 'folded'
@@ -161,7 +163,7 @@ export default function TableFeltView({
         'aria-label': [
           player.name,
           isMe ? 'you' : null,
-          `seat ${index + 1}`,
+          `seat ${chair + 1}`,
           pointsOnly ? 'points only' : null,
           foldedChips ? 'folded' : null,
           isAway ? 'away' : null,

@@ -54,8 +54,7 @@ import {
   resolveShowdownDisplayPot,
 } from './VenueFloorShowdownOverlay'
 import { VenueFloorShowdownByVariant } from './venueFloorShowdownVariants'
-import { showdownCorrectAnswerFromTile, showdownCorrectAnswerRowFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
+import { showdownCorrectAnswerFromTile, showdownRowsFromTile, resolveVenueShowdownAnswer } from './showdownDisplay'
 import { buildVenueWallTileRows, buildVenueCondenseProgress, resolveVenueHeadlineSource, showdownTableNums, venueAllTablesAnswering, venueHasOpenWagering, venueHeadlineDivergenceNote, venueHeadlinePhaseBadge, venueWallBlindsHeadline, venueWallCondenseHeadline, VENUE_WALL_SEAT_SLOTS } from './venueWallModel'
 import {
   buildVenueFloorHeadlineMeta,
@@ -2471,7 +2470,6 @@ function VenueBroadcastHeadlineStrip({
   venueBlindsHeadline,
   inVenueShowdown,
   venueShowdownAnswer,
-  venueShowdownAnswerRow,
   headlineTimerOnly,
   headlineAnsweringUnified,
   headlineAnswering,
@@ -2491,7 +2489,6 @@ function VenueBroadcastHeadlineStrip({
   venueBlindsHeadline: { amount: string; meta: string | null } | null
   inVenueShowdown: boolean
   venueShowdownAnswer: number | null | undefined
-  venueShowdownAnswerRow: ReturnType<typeof showdownCorrectAnswerRowFromTile> | null
   headlineTimerOnly: boolean
   headlineAnsweringUnified: boolean
   headlineAnswering: boolean
@@ -2575,9 +2572,6 @@ function VenueBroadcastHeadlineStrip({
           <div className="font-mono text-[clamp(2.5rem,6vw,4rem)] font-black tabular-nums tracking-tight text-amber-50">
             {formatTriviaNumber(venueShowdownAnswer)}
           </div>
-          {venueShowdownAnswerRow != null && venueShowdownAnswerRow.answerCards.length > 0 ? (
-            <ShowdownFiveCardsUsed row={venueShowdownAnswerRow} size="sm" />
-          ) : null}
         </div>
       ) : headlineTimerOnly && typeof timerSeconds === 'number' ? (
         <div
@@ -2928,21 +2922,6 @@ export default function VenueEightTablesPreview({
     () => resolveVenueShowdownAnswer(wall, tileRows),
     [wall, tileRows]
   )
-  const headlineShowdownTile = useMemo(() => {
-    if (wall?.headlineTableNum != null && Number.isFinite(wall.headlineTableNum)) {
-      const n = Math.floor(wall.headlineTableNum)
-      return tileRows.find((t) => t.tableNum === n && t.phase === 'showdown') ?? null
-    }
-    return tileRows.find((t) => t.phase === 'showdown') ?? null
-  }, [wall?.headlineTableNum, tileRows])
-  const venueShowdownAnswerRow = useMemo(() => {
-    if (headlineShowdownTile == null || venueShowdownAnswer == null) return null
-    return showdownCorrectAnswerRowFromTile(
-      headlineShowdownTile,
-      venueShowdownAnswer,
-      wall?.headlineAnswerComposition ?? null
-    )
-  }, [headlineShowdownTile, venueShowdownAnswer, wall?.headlineAnswerComposition])
   const venueShowdownQuestionText = useMemo(
     () => venueShowdownQuestionFromTiles(tileRows, headlineQuestionText),
     [tileRows, headlineQuestionText]
@@ -3099,7 +3078,6 @@ export default function VenueEightTablesPreview({
                   venueBlindsHeadline={venueBlindsHeadline}
                   inVenueShowdown={inVenueShowdown}
                   venueShowdownAnswer={venueShowdownAnswer}
-                  venueShowdownAnswerRow={venueShowdownAnswerRow}
                   headlineTimerOnly={headlineTimerOnly}
                   headlineAnsweringUnified={headlineAnsweringUnified}
                   headlineAnswering={headlineAnswering}
@@ -3232,9 +3210,6 @@ export default function VenueEightTablesPreview({
                       <div className="font-mono text-[clamp(2.25rem,5.5vw,4.25rem)] font-black tabular-nums leading-none tracking-tight text-amber-50">
                         {formatTriviaNumber(venueShowdownAnswer)}
                       </div>
-                      {venueShowdownAnswerRow != null && venueShowdownAnswerRow.answerCards.length > 0 ? (
-                        <ShowdownFiveCardsUsed row={venueShowdownAnswerRow} size="sm" />
-                      ) : null}
                     </div>
                   ) : headlineTimerOnly ? (
                     <div

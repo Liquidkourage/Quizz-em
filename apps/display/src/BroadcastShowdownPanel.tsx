@@ -5,7 +5,6 @@ import flourishLineArt from './assets/showdown/flourish-line.png'
 import laurelLeftArt from './assets/showdown/laurel-left.png'
 import laurelRightArt from './assets/showdown/laurel-right.png'
 import nameplateArt from './assets/showdown/nameplate.png'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankroll } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
@@ -115,8 +114,6 @@ export function BroadcastShowdownPanel({
   const names = winners.map((w) => w.name).filter(Boolean)
   const difference = formatDifference(chipRow, correctAnswer)
 
-  const cardSize = variant === 'split' || variant === 'side' ? 'broadcast' : 'broadcast-hero'
-
   return (
     <div
       className="vfd-broadcast-showdown-reveal"
@@ -168,18 +165,6 @@ export function BroadcastShowdownPanel({
                     </p>
                   ) : null}
                 </div>
-              ) : null}
-
-              {chipRow != null ? (
-                <section
-                  className="vfd-broadcast-showdown-reveal__answer"
-                  aria-label={`Winning answer ${chipRow.submitted != null ? formatTriviaNumber(chipRow.submitted) : ''}`}
-                >
-                  <h3 className="vfd-broadcast-showdown-reveal__section-label">Winning Answer</h3>
-                  <div className="vfd-broadcast-showdown-reveal__cards">
-                    <ShowdownFiveCardsUsed row={chipRow} size={cardSize} />
-                  </div>
-                </section>
               ) : null}
 
               {difference != null ? (

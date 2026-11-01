@@ -1,7 +1,6 @@
 import { Fragment } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
 import { ChipMark, ChipText } from '@qhe/ui'
-import { ShowdownFiveCardsUsed } from './showdownCardChips'
 import { ShowdownStageChrome } from './ShowdownStageChrome'
 import type { ShowdownStageDensityTier } from './showdownStageArtLayout'
 import type { ShowdownResultRow } from './showdownDisplay'
@@ -239,13 +238,6 @@ function ShowdownStageTemplate({
     >
       <div className="vfd-showdown-stage-well">
         <div className="vfd-showdown-stage-upper">{upperBlock}</div>
-        <div className="vfd-showdown-stage-cards-row">
-          {chipRow != null ? (
-            <ShowdownFiveCardsUsed row={chipRow} size="stage" />
-          ) : (
-            <span className="text-[0.5rem] text-white/30">—</span>
-          )}
-        </div>
       </div>
     </ShowdownStageChrome>
   )

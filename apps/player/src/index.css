@@ -3315,3 +3315,23 @@
   font-size: 0.85rem;
   color: rgb(255 255 255 / 0.48);
 }
+
+.player-eliminated-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(1rem, env(safe-area-inset-top, 0px))
+    0.75rem
+    max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.player-eliminated-popup-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  text-align: center;
+}

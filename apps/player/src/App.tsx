@@ -46,12 +46,14 @@ import {
 } from './playerModel/answerComposition'
 import { buildBettingContext, resolveMyPlayerIndex } from './playerModel/bettingModel'
 import { nextDealFlash, type DealFlash, type DealSnapshot } from './playerModel/dealFlash'
+import { eliminationPopupHandKey, type EliminationWatch } from './playerModel/eliminationPopup'
 import { lockedAnswerDisplayText } from './playerModel/lockedAnswerDisplay'
 import { resolvePreAction, type PreAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
 import EliminatedScreen from './components/EliminatedScreen'
+import EliminatedModal from './components/EliminatedModal'
 import PlayerToast from './components/PlayerToast'
 import { PlayerTableHeader, PlayerGameStatusBar } from './components/PlayerTableHeader'
 import VenueStatusStrip from './components/VenueStatusStrip'
@@ -213,6 +215,9 @@ function PlayerApp() {
   const dealSeenRef = useRef<DealSnapshot | null>(null)
   const [dealFlash, setDealFlash] = useState<DealFlash | null>(null)
   const dismissDealFlash = useCallback(() => setDealFlash(null), [])
+  const eliminationSeenRef = useRef<EliminationWatch | null>(null)
+  const [eliminationHandKey, setEliminationHandKey] = useState<string | null>(null)
+  const dismissElimination = useCallback(() => setEliminationHandKey(null), [])
   useEffect(() => {
     if (!gameState || !currentPlayer) return
     const holeDigits = currentPlayer.hand.map((card) => card.digit)
@@ -227,6 +232,20 @@ function PlayerApp() {
     const flash = nextDealFlash(dealSeenRef.current, next)
     dealSeenRef.current = { roundId: next.roundId, holeKey: next.holeKey, boardKey: next.boardKey }
     if (flash) setDealFlash(flash)
+  }, [gameState, currentPlayer])
+  useEffect(() => {
+    if (!gameState || !currentPlayer) {
+      eliminationSeenRef.current = null
+      return
+    }
+    const next = {
+      pointsOnly: currentPlayer.pointsOnly === true,
+      phase: gameState.phase,
+      roundId: gameState.round.roundId,
+    }
+    const handKey = eliminationPopupHandKey(eliminationSeenRef.current, next)
+    eliminationSeenRef.current = { pointsOnly: next.pointsOnly, roundId: next.roundId }
+    if (handKey) setEliminationHandKey(handKey)
   }, [gameState, currentPlayer])
   const handSummary = useHandSummary(gameState, currentPlayer)
   const tableResults = useTableResults(gameState, currentPlayer?.id ?? joinPrefs.playerId)
@@ -646,6 +665,9 @@ function PlayerApp() {
 
       <AnimatePresence>
         {dealFlash ? <DealFlashModal key={`${dealFlash.kind}:${dealFlash.digits.join(',')}`} flash={dealFlash} onDone={dismissDealFlash} /> : null}
+        {eliminationHandKey ? (
+          <EliminatedModal key={eliminationHandKey} playerName={playerName} onDone={dismissElimination} />
+        ) : null}
         {showAnswerModal && currentPlayer ? (
           <AnswerComposerModal
             key={`answer-${gameState.round.roundId}`}

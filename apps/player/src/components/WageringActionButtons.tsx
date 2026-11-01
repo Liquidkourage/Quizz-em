@@ -99,6 +99,7 @@ export default function WageringActionButtons({
       variant="fold"
       size={btnSize}
       className={soloBtnClass}
+      data-armed={foldConfirmPending ? 'true' : 'false'}
       disabled={!live}
       onClick={() => {
         if (!live) return
@@ -121,6 +122,7 @@ export default function WageringActionButtons({
         variant="allin"
         size={btnSize}
         className={soloBtnClass}
+        data-armed={allInConfirmPending ? 'true' : 'false'}
         disabled={!live}
         onClick={() => {
           if (!live) return
@@ -164,7 +166,7 @@ export default function WageringActionButtons({
       </PlayerGameButton>
     ) : shortAllInCall ? (
       <PlayerGameButton
-        variant="allin"
+        variant="gold"
         size={btnSize}
         className={soloBtnClass}
         disabled={!live}
@@ -333,7 +335,7 @@ export default function WageringActionButtons({
           ) : null}
           {shortAllInCall ? (
             <PlayerGameButton
-              variant="allin"
+              variant="gold"
               size={btnSize}
               className={soloBtnClass}
               disabled={!live}

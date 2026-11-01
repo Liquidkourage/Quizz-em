@@ -9,6 +9,7 @@ export default defineConfig({
   cacheDir,
   plugins: [react()],
   resolve: {
+    extensions: ['.tsx', '.ts', '.mts', '.mjs', '.jsx', '.js', '.json'],
     alias: {
       '@qhe/core': path.resolve(__dirname, '../../packages/core/src'),
       '@qhe/net': path.resolve(__dirname, '../../packages/net/src'),

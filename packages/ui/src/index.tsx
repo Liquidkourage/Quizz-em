@@ -29,11 +29,11 @@ export function NeonButton({
   size?: 'small' | 'normal' | 'large';
 }) {
   const variants = {
-    emerald: 'bg-gradient-to-r from-emerald-400 to-cyan-400 text-black shadow-[0_0_20px_rgba(0,255,180,0.6)] hover:shadow-[0_0_30px_rgba(0,255,180,0.8)]',
-    gold: 'bg-gradient-to-r from-yellow-400 to-orange-400 text-black shadow-[0_0_20px_rgba(255,215,0,0.6)] hover:shadow-[0_0_30px_rgba(255,215,0,0.8)]',
-    purple: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-[0_0_20px_rgba(139,92,246,0.6)] hover:shadow-[0_0_30px_rgba(139,92,246,0.8)]',
-    red: 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-[0_0_20px_rgba(255,68,68,0.6)] hover:shadow-[0_0_30px_rgba(255,68,68,0.8)]',
-    blue: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:shadow-[0_0_30px_rgba(59,130,246,0.8)]',
+    emerald: 'bg-gradient-to-r from-emerald-400 to-cyan-400 text-black',
+    gold: 'bg-gradient-to-r from-yellow-400 to-orange-400 text-black',
+    purple: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white',
+    red: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
+    blue: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white',
   };
 
   const sizes = {
@@ -44,11 +44,7 @@ export function NeonButton({
 
   return (
     <motion.button
-      whileHover={{ 
-        scale: 1.05, 
-        boxShadow: '0 0 30px currentColor, 0 0 60px currentColor, 0 0 90px currentColor',
-        filter: 'brightness(1.2)'
-      }}
+      whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className={clsx(
         'relative overflow-hidden transition-all duration-300 font-bold tracking-wide',

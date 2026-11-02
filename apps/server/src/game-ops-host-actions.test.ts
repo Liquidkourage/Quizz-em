@@ -13,6 +13,7 @@ import {
   rooms,
   setVenueRoomHold,
   tableSessionKey,
+  venueDisplayLayouts,
   venueLibraries,
   venuePlayhead,
 } from './game-ops'
@@ -87,6 +88,21 @@ describe('next question in the list', () => {
     const payload = await buildHostLibraryPayload('QNEXT')
     expect(payload.activeSetlistId).toBe('starter-set')
     expect(payload.activeSetlistNextIndex).toBe(1)
+  })
+
+  it('returns the public display to the tables when a question starts', async () => {
+    venuePlayhead.delete('TVBACK')
+    venueLibraries.delete('TVBACK')
+    venueDisplayLayouts.set('TVBACK', {
+      layout: 'venueWall',
+      focusTable: null,
+      wallView: 'seating-chart',
+    })
+    const lib = await ensureVenueLibrary('TVBACK')
+    seat('TVBACK', '1', ['p1'])
+    const first = lib.questions.find((q) => q.id === 'q1')
+    applyQuestionToAllPlayable('TVBACK', first!)
+    expect(venueDisplayLayouts.get('TVBACK')?.wallView).toBe('floor')
   })
 })
 

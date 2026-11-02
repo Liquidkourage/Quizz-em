@@ -548,6 +548,19 @@ export function normalizeDisplayFocusTable(raw: unknown): number | null {
   return null
 }
 
+/** A new question puts the public TVs back on the table floor. */
+export function showTablesOnQuestionStart(venueCode: string): void {
+  const vn = normalizeVenueCode(venueCode)
+  const current = venueDisplayLayouts.get(vn)
+  const next: DisplayLayoutPayload = {
+    layout: 'venueWall',
+    focusTable: current?.focusTable ?? null,
+    wallView: 'floor',
+  }
+  venueDisplayLayouts.set(vn, next)
+  io.to(displayVenueRoom(vn)).emit('displayLayout', next)
+}
+
 export function parseDisplaySetLayoutPayload(payload: unknown): DisplayLayoutPayload | null {
   if (!payload || typeof payload !== 'object') return null
   const p = payload as Record<string, unknown>
@@ -2491,6 +2504,7 @@ export function applyQuestionToAllPlayable(venueCode: string, picked: Question):
   const lib = venueLibraries?.get(vn)
   if (lib) noteShownQuestion(vn, picked.id, lib)
   venueSeatingChartPinnedUntilMs.delete(vn)
+  showTablesOnQuestionStart(vn)
   const playable = allSeatedTableSessionsInVenue(vn)
   for (const tk of playable) {
     let gs = rooms.get(tk)!

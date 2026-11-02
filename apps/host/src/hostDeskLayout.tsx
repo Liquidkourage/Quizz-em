@@ -52,22 +52,14 @@ export function actingNudgeName(row: {
   return name ? name : null
 }
 
-/** No per-table clock once nobody at that table still has to act. */
+/** The table clock is how long the player on action has been sitting. */
 function tableActionClockHidden(row: {
   phase: string
   betsClosed?: boolean
-  answersSubmitted?: number
-  answersExpected?: number
+  actingPlayerName?: string | null
 }): boolean {
-  if (row.phase === 'lobby' || row.phase === 'inactive') return true
-  if (row.phase === 'betting') return row.betsClosed === true
-  if (row.phase === 'answering') {
-    const expected = row.answersExpected
-    if (expected == null || expected <= 0) return false
-    return (row.answersSubmitted ?? 0) >= expected
-  }
-  if (row.phase === 'question') return false
-  return true
+  if (row.phase !== 'betting' || row.betsClosed === true) return true
+  return !row.actingPlayerName?.trim()
 }
 
 function tableActionCue(row: {

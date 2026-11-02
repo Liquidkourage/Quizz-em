@@ -230,8 +230,8 @@ describe('venue floor now', () => {
     const floor = brief()
     floor.handStartedAtMs = hand
     floor.actionRows = [
-      { ...actionRow(1), phase: 'betting' },
-      { ...actionRow(2), phase: 'betting' },
+      { ...actionRow(1), phase: 'betting', actingPlayerName: 'Ada' },
+      { ...actionRow(2), phase: 'betting', actingPlayerName: 'Bo' },
       { ...actionRow(3), phase: 'lobby' },
     ]
     floor.moveLog = [
@@ -269,7 +269,7 @@ describe('venue floor now', () => {
     const now = Date.now()
     const floor = brief()
     floor.handStartedAtMs = null
-    floor.actionRows = [{ ...actionRow(1), phase: 'betting' }]
+    floor.actionRows = [{ ...actionRow(1), phase: 'betting', actingPlayerName: 'Ada' }]
     floor.moveLog = [
       {
         id: 'a',
@@ -296,10 +296,10 @@ describe('venue floor now', () => {
     const floor = brief()
     floor.handStartedAtMs = now - 40_000
     floor.actionRows = [
-      { ...actionRow(1), phase: 'betting' },
-      { ...actionRow(2), phase: 'betting', betsClosed: true },
+      { ...actionRow(1), phase: 'betting', actingPlayerName: 'Ada' },
+      { ...actionRow(2), phase: 'betting', betsClosed: true, actingPlayerName: 'Bo' },
       { ...actionRow(3), phase: 'answering', answersSubmitted: 5, answersExpected: 5 },
-      { ...actionRow(4), phase: 'answering', answersSubmitted: 2, answersExpected: 5 },
+      { ...actionRow(4), phase: 'answering', answersSubmitted: 2, answersExpected: 5, actingPlayerName: 'Cy' },
       { ...actionRow(5), phase: 'reveal' },
     ]
     const felt = (tableNum: number): HostVenueFeltBeatRow => ({
@@ -331,7 +331,7 @@ describe('venue floor now', () => {
     expect(closed).not.toContain('Last action')
     expect(closed).not.toContain('Nudge clock')
     expect(guessed).not.toContain('Last action')
-    expect(guessing).toContain('Last action')
+    expect(guessing).not.toContain('Last action')
     expect(reveal).not.toContain('Last action')
   })
 

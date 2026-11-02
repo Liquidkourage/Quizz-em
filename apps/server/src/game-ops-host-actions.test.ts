@@ -4,6 +4,7 @@ import type { GameState } from '@qhe/core'
 import {
   buildHostVenueFloorBrief,
   clearVenueHostLog,
+  getVenueLastHandDisplay,
   recordVenueHostHandResults,
   recordVenueMovesBetweenStates,
   setVenueLastHandDisplay,
@@ -236,6 +237,9 @@ describe('moveSeatedPlayer success', () => {
     expect(result).toEqual({ ok: true, message: 'Moved p1 from table 1 to table 3.' })
     expect(rooms.get('BAR:1')?.players.map((p) => p.id)).toEqual(['p2'])
     expect(rooms.get('BAR:3')?.players.map((p) => p.id)).toEqual(['p1'])
+    expect(getVenueLastHandDisplay('BAR')?.seating?.moves).toEqual([
+      { name: 'p1', fromTableNum: 1, toTableNum: 3, byline: 'HOST DISCRETION' },
+    ])
   })
 })
 

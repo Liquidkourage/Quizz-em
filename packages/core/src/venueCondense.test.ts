@@ -98,8 +98,19 @@ describe('planVenueCondense', () => {
     const tables = [roster(1, 2), roster(4, 1)]
     const plan = planVenueCondense(tables, { rng: () => 0 })
     expect(plan.playerMoves).toHaveLength(1)
-    expect(plan.playerMoves[0]).toMatchObject({ playerId: 't4p1', fromTableNum: 4, toTableNum: 1, reason: 'break' })
-    expect(plan.playerMoves[0]!.byline).toBe('Table 4 closed. Its players drew new seats.')
+    expect(plan.playerMoves[0]).toMatchObject({ playerId: 't4p1', fromTableNum: 4, toTableNum: 1, reason: 'winner' })
+    expect(plan.playerMoves[0]!.byline).toBe('TABLE WINNER')
+  })
+
+  it('labels a spare table TABLE REDUCTION', () => {
+    const tables = [roster(1, 5), roster(2, 1)]
+    const plan = planVenueCondense(tables, { rng: () => 0 })
+    expect(plan.playerMoves[0]).toMatchObject({
+      fromTableNum: 2,
+      toTableNum: 1,
+      reason: 'reduction',
+      byline: 'TABLE REDUCTION',
+    })
   })
 
   it('breaks extra tables down to the count the field can fill', () => {

@@ -68,16 +68,11 @@ export type VenueTableRoster = {
   nextBigBlindIndex?: number
 }
 
-export type VenueCondenseMoveReason = 'balance' | 'break'
+export type VenueCondenseMoveReason = 'balance' | 'reduction' | 'winner'
 
-export function seatingMoveByline(args: {
-  reason: VenueCondenseMoveReason
-  fromTableNum: number
-  toTableNum: number
-}): string {
-  if (args.reason === 'break') {
-    return `Table ${args.fromTableNum} closed. Its players drew new seats.`
-  }
+export function seatingMoveByline(reason: VenueCondenseMoveReason): string {
+  if (reason === 'reduction') return 'TABLE REDUCTION'
+  if (reason === 'winner') return 'TABLE WINNER'
   return 'TABLE BALANCE'
 }
 
@@ -205,24 +200,34 @@ function tableToBreak(tables: VenueTableRoster[]): VenueTableRoster | null {
   )
 }
 
-function breakMove(from: VenueTableRoster, to: VenueTableRoster, player: PlayerState): VenueCondensePlayerMove {
+function seatChange(
+  from: VenueTableRoster,
+  to: VenueTableRoster,
+  player: PlayerState,
+  reason: VenueCondenseMoveReason,
+): VenueCondensePlayerMove {
   return {
     playerId: player.id,
     fromTableNum: from.tableNum,
     toTableNum: to.tableNum,
-    reason: 'break',
-    byline: seatingMoveByline({ reason: 'break', fromTableNum: from.tableNum, toTableNum: to.tableNum }),
+    reason,
+    byline: seatingMoveByline(reason),
   }
 }
 
+function tablesAreShort(tables: VenueTableRoster[]): boolean {
+  return tables.length > 0 && tables.every((table) => table.players.length < 3)
+}
+
 function pickBreakMove(tables: VenueTableRoster[], maxSeats: number, lockedFrom?: number): VenueCondensePlayerMove | null {
+  if (tablesAreShort(tables)) return null
   const from =
     lockedFrom != null ? tables.find((table) => table.tableNum === lockedFrom) ?? null : tableToBreak(tables)
   if (from == null || from.players.length === 0) return null
   const to = shortestOther(tables, from.tableNum, maxSeats)
   const player = from.players[0]
   if (to == null || player == null) return null
-  return breakMove(from, to, player)
+  return seatChange(from, to, player, 'reduction')
 }
 
 function pickBalanceMove(tables: VenueTableRoster[], maxSeats: number): VenueCondensePlayerMove | null {
@@ -239,11 +244,7 @@ function pickBalanceMove(tables: VenueTableRoster[], maxSeats: number): VenueCon
     fromTableNum: big.tableNum,
     toTableNum: small.tableNum,
     reason: 'balance',
-    byline: seatingMoveByline({
-      reason: 'balance',
-      fromTableNum: big.tableNum,
-      toTableNum: small.tableNum,
-    }),
+    byline: seatingMoveByline('balance'),
   }
 }
 
@@ -257,7 +258,7 @@ function pickDeadTableMove(tables: VenueTableRoster[], maxSeats: number): VenueC
   const to = shortestOther(tables, from.tableNum, maxSeats)
   const player = from.players[0]
   if (to == null || player == null) return null
-  return breakMove(from, to, player)
+  return seatChange(from, to, player, 'winner')
 }
 
 function applyPlayerMove(tables: VenueTableRoster[], move: VenueCondensePlayerMove): VenueTableRoster[] {

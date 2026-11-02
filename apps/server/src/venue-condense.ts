@@ -112,7 +112,7 @@ function applyPlayerMoveToRooms(
 
   deps.io.to(toKey).emit(
     'toast',
-    `Table ${move.fromTableNum} closed — ${player.name} moved to Table ${move.toTableNum}.`,
+    `${move.byline} — ${player.name} to Table ${move.toTableNum}.`,
   )
   return { name: player.name.trim() || move.playerId }
 }

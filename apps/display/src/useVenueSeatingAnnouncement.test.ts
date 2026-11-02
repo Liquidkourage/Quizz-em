@@ -104,7 +104,7 @@ describe('payout announcements', () => {
           name: 'Elena G.',
           fromTableNum: 1,
           toTableNum: 2,
-          byline: 'Table 1 closed. Its players drew new seats.',
+          byline: 'TABLE REDUCTION',
         },
       ],
       closedTableNums: [1],
@@ -113,6 +113,6 @@ describe('payout announcements', () => {
       tablesAfter: 5,
       playerCount: 20,
     })
-    expect(seating?.moves[0]?.byline).toBe('Table 1 closed. Its players drew new seats.')
+    expect(seating?.moves[0]?.byline).toBe('TABLE REDUCTION')
   })
 })

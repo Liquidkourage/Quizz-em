@@ -1207,6 +1207,7 @@ export function moveSeatedPlayer(
   if (busy) {
     return { ok: false, message: 'Move players between hands, when every table is waiting.' }
   }
+  const tablesBefore = venuePlayableSnapshots(vn).length
 
   const toKey = tableSessionKey(vn, String(toNum))
   const existingDest = rooms.get(toKey)
@@ -1237,6 +1238,15 @@ export function moveSeatedPlayer(
   if (!player.id.startsWith('vp:')) moveHumanToTableSession(player.id, toKey, String(toNum))
   emitVenueTableState(found.sessionKey, nextFrom)
   emitVenueTableState(toKey, nextTo)
+  const seatedAfter = venuePlayableSnapshots(vn)
+  attachVenueLastHandSeating(vn, {
+    moves: [{ name: player.name, fromTableNum: fromNum, toTableNum: toNum, byline: 'HOST DISCRETION' }],
+    closedTableNums: nextFrom.players.length === 0 ? [fromNum] : [],
+    shuffled: false,
+    tablesBefore,
+    tablesAfter: seatedAfter.length,
+    playerCount: seatedAfter.reduce((n, row) => n + row.gs.players.length, 0),
+  })
   emitDisplayVenueSnapshotNow(vn)
   return { ok: true, message: `Moved ${name} from table ${fromNum} to table ${toNum}.` }
 }

@@ -88,8 +88,18 @@ describe('still guessing notice', () => {
     expect(html).toContain('Table 2')
     expect(html).toContain('Cy')
     expect(html).toContain('fixed')
+    expect(html).not.toContain('max-h-64')
+    expect(html).not.toContain('grid-cols-2')
     expect(html).toContain('Nudge')
     expect(html).toContain('scores 0')
     expect(html).toContain('cannot win the pot')
+  })
+
+  it('uses two columns when many players are still guessing', () => {
+    const players = Array.from({ length: 8 }, (_, i) => ({ name: `Player ${i}`, tableNum: i + 1 }))
+    const html = renderToStaticMarkup(createElement(HostStillGuessingNotice, { players }))
+    expect(html).toContain('grid-cols-2')
+    expect(html).toContain('Player 7')
+    expect(html).not.toContain('max-h-64')
   })
 })

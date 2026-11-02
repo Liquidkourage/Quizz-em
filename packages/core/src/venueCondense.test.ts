@@ -5,6 +5,7 @@ import {
   resolveVenueShuffleTick,
   mergeTargetTableCount,
   optimalVenueTableCount,
+  compactTableNumbers,
   planVenueCondense,
   VENUE_SHUFFLE_EVERY_HANDS,
   venueShuffleDisplayFields,
@@ -28,6 +29,24 @@ function roster(tableNum: number, count: number) {
     players: Array.from({ length: count }, (_, i) => p(`t${tableNum}p${i + 1}`, 500)),
   }
 }
+
+describe('compactTableNumbers', () => {
+  it('packs a gap so a closed table does not leave a missing number', () => {
+    const map = compactTableNumbers([1, 3, 4, 5])
+    expect(map.get(1)).toBe(1)
+    expect(map.get(3)).toBe(2)
+    expect(map.get(4)).toBe(3)
+    expect(map.get(5)).toBe(4)
+    expect([...map.values()]).toEqual([1, 2, 3, 4])
+  })
+
+  it('leaves an already packed set where it is', () => {
+    const map = compactTableNumbers([1, 2, 3])
+    expect(map.get(1)).toBe(1)
+    expect(map.get(2)).toBe(2)
+    expect(map.get(3)).toBe(3)
+  })
+})
 
 describe('venue shuffle schedule', () => {
   it('every 5 hands', () => {

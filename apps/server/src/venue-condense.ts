@@ -5,6 +5,7 @@ import {
   VENUE_NUMBERED_TABLE_MAX,
   createEmptyGame,
   nextBigBlindChipIndex,
+  compactTableNumbers,
   planVenueCondense,
   type VenueCondensePlayerMove,
   type VenueCondenseScheduledMerge,
@@ -191,6 +192,82 @@ function applyScheduledMerge(
   }
 }
 
+type PackedTableSnap = { oldNum: number; gs: GameState | undefined }
+
+function snapshotLiveTables(deps: VenueCondenseApplyDeps, live: VenueTableRoster[]): PackedTableSnap[] {
+  const vn = deps.venueCode
+  return live.map((table) => {
+    const key = deps.tableSessionKey(vn, String(table.tableNum))
+    return { oldNum: table.tableNum, gs: deps.getState(key) }
+  })
+}
+
+function writePackedTable(
+  deps: VenueCondenseApplyDeps,
+  snap: PackedTableSnap,
+  nextNum: number,
+  hostId: string,
+): void {
+  if (!snap.gs) return
+  const vn = deps.venueCode
+  const tk = deps.tableSessionKey(vn, String(nextNum))
+  const shell = deps.getState(tk) ?? createEmptyGame(vn, hostId, String(nextNum))
+  const next = deps.applyEffectiveBlinds(
+    { ...snap.gs, tableId: String(nextNum), players: snap.gs.players },
+    vn,
+    tk,
+  )
+  deps.setState(tk, { ...shell, ...next, tableId: String(nextNum) })
+  for (const player of snap.gs.players) {
+    if (player.id.startsWith('vp:')) continue
+    deps.moveHumanSocket(player.id, tk, String(nextNum))
+  }
+}
+
+function clearPackedGaps(deps: VenueCondenseApplyDeps, snapshots: PackedTableSnap[], nextNums: Set<number>): void {
+  const vn = deps.venueCode
+  for (const snap of snapshots) {
+    if (nextNums.has(snap.oldNum)) continue
+    const tk = deps.tableSessionKey(vn, String(snap.oldNum))
+    const gs = deps.getState(tk)
+    if (!gs) continue
+    deps.setState(tk, { ...gs, players: [] })
+  }
+}
+
+function emitPackedTables(deps: VenueCondenseApplyDeps, snapshots: PackedTableSnap[], nextNums: Set<number>): void {
+  const vn = deps.venueCode
+  for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
+    const touched = nextNums.has(n) || snapshots.some((snap) => snap.oldNum === n)
+    if (!touched) continue
+    const tk = deps.tableSessionKey(vn, String(n))
+    const gs = deps.getState(tk)
+    if (gs) deps.emitTableState(tk, gs)
+  }
+}
+
+/**
+ * After a table closes, pack the survivors into table 1..n so the floor
+ * does not keep a missing number.
+ */
+export function compactVenueTableNumbers(deps: VenueCondenseApplyDeps): Map<number, number> {
+  const live = collectRosters(deps)
+  const map = compactTableNumbers(live.map((table) => table.tableNum))
+  if (live.every((table) => map.get(table.tableNum) === table.tableNum)) return map
+
+  const snapshots = snapshotLiveTables(deps, live)
+  const hostId = snapshots.find((snap) => snap.gs)?.gs?.hostId ?? deps.hostId
+  const nextNums = new Set(map.values())
+  for (const snap of snapshots) {
+    const nextNum = map.get(snap.oldNum)
+    if (nextNum == null) continue
+    writePackedTable(deps, snap, nextNum, hostId)
+  }
+  clearPackedGaps(deps, snapshots, nextNums)
+  emitPackedTables(deps, snapshots, nextNums)
+  return map
+}
+
 export function applyVenueCondenseAfterRound(
   deps: VenueCondenseApplyDeps,
   options: { shuffle: boolean },
@@ -233,6 +310,14 @@ export function applyVenueCondenseAfterRound(
   const closedTableNums = [...tablesBeforeSet]
     .filter((n) => !tablesAfterSet.has(n))
     .sort((a, b) => a - b)
+
+  if (!shuffled) {
+    const packed = compactVenueTableNumbers(deps)
+    for (const move of seatingMoves) {
+      const nextTable = packed.get(move.toTableNum)
+      if (nextTable != null) move.toTableNum = nextTable
+    }
+  }
 
   return {
     soloRescues,

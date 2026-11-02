@@ -1838,6 +1838,7 @@ export {
   mergeTargetTableCount,
   optimalVenueTableCount,
   nextBigBlindChipIndex,
+  compactTableNumbers,
   planVenueCondense,
   seatingMoveByline,
   venueShuffleDisplayFields,

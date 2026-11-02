@@ -274,6 +274,17 @@ function applyPlayerMove(tables: VenueTableRoster[], move: VenueCondensePlayerMo
   return liveTablesWithChipSurvivors(next)
 }
 
+/**
+ * Live tables after a break, packed to 1..n in their current order.
+ * Table 1, 3, 4, 5 becomes 1, 2, 3, 4.
+ */
+export function compactTableNumbers(tableNums: readonly number[]): Map<number, number> {
+  const sorted = [...new Set(tableNums.filter((n) => Number.isInteger(n) && n > 0))].sort((a, b) => a - b)
+  const map = new Map<number, number>()
+  sorted.forEach((n, i) => map.set(n, i + 1))
+  return map
+}
+
 function buildScheduledMerge(
   tables: VenueTableRoster[],
   rng: () => number,

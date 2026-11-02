@@ -35,6 +35,8 @@ import {
 } from './useVenueSeatingAnnouncement'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
+import VenueEndgameCard from './VenueEndgameCard.tsx'
+import { endgameCoversFloor, venueEndgameWinner } from './venueEndgame'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -350,6 +352,11 @@ export default function DisplayRouter({
     audienceWall,
     payoutBustsShareTheSeatingCard(audienceWall?.lastHandSeating),
   )
+  const endgameWinner = venueEndgameWinner(audienceWall)
+  const showEndgame = endgameCoversFloor(endgameWinner, {
+    elimination: showHostBusts || payoutBusts.visible || payoutMoves.visible,
+    answer: answerReveal.visible,
+  })
 
   const showConnBadge = connectionStatus !== 'connected'
 
@@ -374,6 +381,9 @@ export default function DisplayRouter({
           key={`answer-reveal-${answerReveal.payload.answer}`}
           payload={answerReveal.payload}
         />
+      ) : null}
+      {showEndgame && endgameWinner ? (
+        <VenueEndgameCard key="venue-endgame" winner={endgameWinner} />
       ) : null}
     </AnimatePresence>
     {showConnBadge ? (

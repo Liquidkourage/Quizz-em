@@ -4314,6 +4314,46 @@
     color: rgb(255 255 255 / 0.98);
   }
 
+  .venue-endgame .venue-bust-overlay-panel {
+    border-color: rgb(250 204 21 / 0.62);
+    background: linear-gradient(
+      180deg,
+      rgb(42 28 6 / 0.97) 0%,
+      rgb(16 10 2 / 0.98) 48%,
+      rgb(5 3 1 / 0.99) 100%
+    );
+    box-shadow:
+      0 0 0 1px rgb(253 230 138 / 0.12),
+      0 0 64px rgb(245 158 11 / 0.28),
+      0 28px 72px rgb(0 0 0 / 0.58);
+  }
+
+  .venue-endgame .venue-bust-overlay-eyebrow {
+    color: rgb(253 224 71 / 0.92);
+  }
+
+  .venue-endgame .venue-bust-overlay-title {
+    color: rgb(254 240 138);
+  }
+
+  .venue-endgame-name {
+    min-width: 0;
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(4.5rem, 12vh, 8rem);
+    font-weight: 700;
+    line-height: 1;
+    color: rgb(255 255 255 / 0.98);
+  }
+
+  .venue-endgame-stack {
+    margin: 0;
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(2.2rem, 5vh, 3.6rem);
+    font-weight: 700;
+    line-height: 1;
+    color: rgb(253 230 138 / 0.96);
+  }
+
   .venue-bust-overlay-name--compact {
     font-size: clamp(0.92rem, 1.45vw, 1.2rem);
   }

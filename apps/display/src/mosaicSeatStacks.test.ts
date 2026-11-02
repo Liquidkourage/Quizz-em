@@ -7,6 +7,7 @@ import {
   MOSAIC_SEAT_INITIAL_LAYER,
   mosaicHoleClearOfInitialsFrac,
   mosaicSeatInitialFontPx,
+  mosaicSeatInitialLabel,
   mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
   mosaicCrowdedStackLayout,
@@ -86,6 +87,13 @@ function stackPocketsClear(w: number, h: number, font: number): boolean {
   const pot: StackRect = { x: cx - 12, y: cy - 10, width: 24, height: 20 }
   return boxes.every((box) => !rectsMeet(box, pot, 0))
 }
+
+describe('public table initials', () => {
+  it('hides the letters when that seat is playing for points', () => {
+    expect(mosaicSeatInitialLabel('Ada Lane', false)).toBe('AL')
+    expect(mosaicSeatInitialLabel('Bo Kent', true)).toBe('')
+  })
+})
 
 describe('mosaic seat stacks', () => {
   it('shows stack amounts in the lobby and on a break, not once a question is up', () => {

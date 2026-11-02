@@ -23,6 +23,19 @@ function feltWidthPx(tableWidthPx: number): number {
   return tableWidthPx > 0 ? tableWidthPx : 220
 }
 
+/** Two-letter seat mark. Empty when that player is out of chips. */
+export function mosaicSeatInitialLabel(name: string, pointsOnly: boolean): string {
+  if (pointsOnly) return ''
+  const raw = name.trim()
+  if (!raw) return ''
+  return raw
+    .split(/\s+/)
+    .map((part) => part[0] ?? '')
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
 /** Two-letter seat mark, sized from the felt so it reads across the room. */
 export function mosaicSeatInitialFontPx(tableWidthPx: number): number {
   const w = feltWidthPx(tableWidthPx)

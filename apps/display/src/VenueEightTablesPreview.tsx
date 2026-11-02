@@ -52,6 +52,7 @@ import {
   MOSAIC_SEAT_INITIAL_LAYER,
   mosaicHoleClearOfInitialsFrac,
   mosaicSeatInitialFontPx,
+  mosaicSeatInitialLabel,
   mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
   mosaicSeatStackFontForAmount,
@@ -1480,18 +1481,10 @@ function SeatRingWithLabels({
         const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && (size === 'lg' || isBroadcast)))
         const fallbackPos = venueSeatRimPct(i, fb, rimW, rimH)
         const labelPos = anchored ?? fallbackPos
-        const mosaicInitials =
-          isMosaic && raw.length > 0
-            ? raw
-                .split(/\s+/)
-                .map((p) => p[0])
-                .join('')
-                .slice(0, 2)
-                .toUpperCase()
-            : ''
         const chips = seatBankrolls[i] ?? 0
         const isFolded = filled && seatFolded[i] === true
         const isBusted = filled && seatPointsOnly[i] === true
+        const mosaicInitials = isMosaic ? mosaicSeatInitialLabel(raw, isBusted) : ''
         const isActing =
           filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded && !isBusted
         const showFeltStack = Boolean(

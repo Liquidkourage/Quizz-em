@@ -320,7 +320,8 @@ describe('venue floor now', () => {
         hostTableId: '1',
       }),
     )
-    expect(html.indexOf('Ada L.')).toBeGreaterThan(html.indexOf('Big wins'))
+    expect(html).toContain('Big wins this session')
+    expect(html.indexOf('Ada L.')).toBeGreaterThan(html.indexOf('Big wins this session'))
     expect(html.indexOf('Ada L.')).toBeLessThan(html.indexOf('Ned P.'))
   })
 

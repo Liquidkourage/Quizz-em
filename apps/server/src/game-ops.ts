@@ -125,6 +125,7 @@ import {
 } from './rehearsal-fast-forward'
 import {
   buildHostVenueFloorBrief,
+  clearVenueHostHandOnNewQuestion,
   clearVenueHostLog,
   getVenueLastHandDisplay,
   recordVenueHostHandResults,
@@ -2498,6 +2499,7 @@ export function drainCpuVpSessionChain(sessionKey: string) {
 
 export function applyQuestionToAllPlayable(venueCode: string, picked: Question): boolean {
   const vn = normalizeVenueCode(venueCode)
+  clearVenueHostHandOnNewQuestion(vn)
   const lib = venueLibraries?.get(vn)
   if (lib) noteShownQuestion(vn, picked.id, lib)
   venueSeatingChartPinnedUntilMs.delete(vn)

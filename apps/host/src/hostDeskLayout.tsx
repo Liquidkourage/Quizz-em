@@ -2193,7 +2193,7 @@ export function HostVenueFloorBriefPanel({
 
           <div>
             <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
-              Big wins
+              Big wins this session
               <span className="ml-1 font-normal normal-case text-white/35">
                 (≥ <ChipText text={formatHostFloorMoney(brief.bigWinMinAmount)} />)
               </span>

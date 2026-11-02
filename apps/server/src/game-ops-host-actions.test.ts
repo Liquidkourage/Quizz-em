@@ -1,6 +1,13 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { addPlayer, createEmptyGame } from '@qhe/core'
 import type { GameState } from '@qhe/core'
+import {
+  buildHostVenueFloorBrief,
+  clearVenueHostLog,
+  recordVenueHostHandResults,
+  recordVenueMovesBetweenStates,
+  setVenueLastHandDisplay,
+} from './venue-host-log'
 import type { Server } from 'socket.io'
 import {
   applyQuestionToAllPlayable,
@@ -104,6 +111,65 @@ describe('next question in the list', () => {
     const first = lib.questions.find((q) => q.id === 'q1')
     applyQuestionToAllPlayable('TVBACK', first!)
     expect(venueDisplayLayouts.get('TVBACK')?.wallView).toBe('floor')
+  })
+
+  it('clears this hand’s busts and bets when a question starts and keeps session wins', async () => {
+    venuePlayhead.delete('NEWHAND')
+    venueLibraries.delete('NEWHAND')
+    clearVenueHostLog('NEWHAND')
+    const lib = await ensureVenueLibrary('NEWHAND')
+    seat('NEWHAND', '1', ['p1'])
+    let paid = createEmptyGame('NEWHAND', 'host', '1')
+    paid = {
+      ...paid,
+      phase: 'showdown',
+      players: [
+        { id: 'human:a', name: 'Ada L.', bankroll: 1000, hand: [], hasFolded: false, isAllIn: false },
+        { id: 'human:b', name: 'Bob D.', bankroll: 1000, hand: [], hasFolded: true, isAllIn: false },
+      ],
+      round: { ...paid.round, pot: 400 },
+    }
+    recordVenueHostHandResults('NEWHAND', [{ tableNum: 1, before: paid, after: paid }])
+    const betting = {
+      ...paid,
+      phase: 'betting' as const,
+      round: { ...paid.round, isBettingOpen: true, lastSeatBettingAction: [null, null] as (null)[], playerBets: {} },
+    }
+    const raised = {
+      ...betting,
+      players: betting.players.map((p) => (p.id === 'human:a' ? { ...p, bankroll: 600 } : p)),
+      round: {
+        ...betting.round,
+        currentBet: 400,
+        lastSeatBettingAction: ['raise' as const, null],
+        playerBets: { 'human:a': 400 },
+      },
+    }
+    recordVenueMovesBetweenStates('NEWHAND', 1, betting, raised)
+    setVenueLastHandDisplay('NEWHAND', [{ name: 'Bob D.', tableNum: 1, atMs: 1 }])
+    const before = buildHostVenueFloorBrief({
+      venueCode: 'NEWHAND',
+      tiles: [],
+      fieldPlayerCount: 1,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(before.busts.map((b) => b.name)).toEqual(['Bob D.'])
+    expect(before.handBets.length).toBeGreaterThan(0)
+    expect(before.bigWinners.map((w) => w.name)).toContain('Ada L.')
+
+    const first = lib.questions.find((q) => q.id === 'q1')
+    applyQuestionToAllPlayable('NEWHAND', first!)
+    const after = buildHostVenueFloorBrief({
+      venueCode: 'NEWHAND',
+      tiles: [],
+      fieldPlayerCount: 1,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(after.busts).toEqual([])
+    expect(after.handBets).toEqual([])
+    expect(after.bigWinners.map((w) => w.name)).toContain('Ada L.')
   })
 })
 

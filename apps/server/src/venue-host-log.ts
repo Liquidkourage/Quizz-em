@@ -113,6 +113,16 @@ export function clearVenueLastHandDisplay(vn: string): void {
   venueLastHandDisplay.delete(vn)
 }
 
+/** A new question starts the hand. Drop that hand's busts and bets. Session wins stay. */
+export function clearVenueHostHandOnNewQuestion(vn: string): void {
+  const code = vn.trim().toUpperCase()
+  const log = logForVenue(code)
+  log.handBets = []
+  log.handRoundByTable = {}
+  const display = venueLastHandDisplay.get(code)
+  if (display) display.busts = []
+}
+
 function bigWinThreshold(gs: GameState): number {
   const bb = typeof gs.bigBlind === 'number' && gs.bigBlind > 0 ? gs.bigBlind : 100
   return Math.max(300, bb * 12)

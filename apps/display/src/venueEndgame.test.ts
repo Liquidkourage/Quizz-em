@@ -68,26 +68,27 @@ describe('endgame card', () => {
     expect(endgameCoversFloor(winner, { elimination: true, answer: false, scores: false })).toBe(false)
     expect(endgameCoversFloor(winner, { elimination: false, answer: false, scores: false })).toBe(true)
     expect(endgameCoversFloor(winner, { elimination: false, answer: false, scores: true })).toBe(false)
-    const scores = venueEndgameTriviaTop([
+    const ranked = [
       { name: 'Bo Kent', answerPoints: 90 },
-      { name: 'Ada Lane', answerPoints: 70 },
-      { name: 'Cy Diaz', answerPoints: 40 },
-      { name: 'Di Ellis', answerPoints: 30 },
-      { name: 'Eve Fox', answerPoints: 20 },
-      { name: 'Fay Gill', answerPoints: 10 },
-    ])
-    expect(scores.map((row) => row.name)).toEqual(['Bo Kent', 'Ada Lane', 'Cy Diaz', 'Di Ellis', 'Eve Fox'])
+      ...Array.from({ length: 20 }, (_, index) => ({
+        name: `Player ${index + 1}`,
+        answerPoints: 80 - index,
+      })),
+    ]
+    const scores = venueEndgameTriviaTop(ranked)
+    expect(scores).toHaveLength(20)
+    expect(scores[0]?.name).toBe('Bo Kent')
+    expect(scores.map((row) => row.name)).not.toContain('Player 20')
     const html = renderToStaticMarkup(
       createElement(VenueEndgameCard, { winner: winner!, scores }),
     )
     expect(html).toContain('Winner')
     expect(html).toContain('Ada L.')
-    expect(html).toContain('Table 2')
+    expect(html).not.toContain('Table ')
     expect(html).toContain(formatVenueBankroll(4800))
     expect(html).toContain('Trivia scores')
     expect(html).toContain('Bo K.')
-    expect(html).toContain('Eve F.')
-    expect(html).not.toContain('Fay')
+    expect(html).toContain('>20<')
     expect(html).toContain('venue-endgame')
     expect(html).not.toContain('opacity:0')
   })

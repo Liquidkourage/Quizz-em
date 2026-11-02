@@ -14,7 +14,7 @@ export default function VenueEndgameCard({
   const name = formatVenueDisplayPlayerName(winner.name) || winner.name
   return (
     <motion.div
-      className="venue-endgame fixed inset-0 z-[210] flex items-center justify-center overflow-hidden bg-black/78 p-6 backdrop-blur-md"
+      className="venue-endgame fixed inset-0 z-[210] flex items-center justify-center overflow-hidden bg-black/78 p-[clamp(12px,2vh,28px)] backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label={`Winner, ${name}`}
@@ -27,7 +27,7 @@ export default function VenueEndgameCard({
         aria-hidden
       />
       <motion.div
-        className="venue-bust-overlay-panel relative z-10 flex w-[min(56rem,88vw)] flex-col items-stretch"
+        className="venue-bust-overlay-panel venue-endgame-panel relative z-10 flex h-[94vh] w-[min(120rem,96vw)] flex-col items-stretch overflow-hidden"
         initial={false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
       >
@@ -46,12 +46,11 @@ export default function VenueEndgameCard({
         <div className="venue-bust-overlay-row venue-bust-overlay-row--closed">
           <div className="venue-bust-overlay-row-line">
             <span className="venue-endgame-name">{name}</span>
-            <span className="venue-bust-overlay-table-well">Table {winner.tableNum}</span>
+            <p className="venue-endgame-stack">{formatVenueBankroll(winner.bankroll)}</p>
           </div>
-          <p className="venue-endgame-stack">{formatVenueBankroll(winner.bankroll)}</p>
         </div>
         {scores.length > 0 ? (
-          <div className="venue-endgame-scores">
+          <div className="venue-endgame-scores min-h-0 flex-1">
             <p className="venue-endgame-scores-title">Trivia scores</p>
             <ol className="venue-endgame-score-list">
               {scores.map((score, index) => (

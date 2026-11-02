@@ -49,7 +49,9 @@ export type VenueEndgameScore = {
   answerPoints: number
 }
 
-/** First five of an already ranked trivia list. */
+const VENUE_ENDGAME_TRIVIA_LIMIT = 20
+
+/** First twenty of an already ranked trivia list. */
 export function venueEndgameTriviaTop(
   rows: readonly { name: string; answerPoints?: number | null }[],
 ): VenueEndgameScore[] {
@@ -62,7 +64,7 @@ export function venueEndgameTriviaTop(
       name,
       answerPoints: typeof points === 'number' && Number.isFinite(points) ? Math.max(0, Math.floor(points)) : 0,
     })
-    if (scores.length === 5) break
+    if (scores.length === VENUE_ENDGAME_TRIVIA_LIMIT) break
   }
   return scores
 }

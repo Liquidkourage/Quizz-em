@@ -416,7 +416,7 @@ export async function handleShowAction(
           for (let i = 0; i < handResultRows.length; i++) {
             const tk = lockEnd[i]!.tk
             g.rooms.set(tk, handResultRows[i]!.after)
-            g.emitVenueTableState(tk, handResultRows[i]!.after)
+            g.emitVenueTableState(tk, handResultRows[i]!.after, { skipWall: true, skipOrchestration: true })
           }
           const levelMsg = g.recordVenueHandCompleted(vnEnd)
           g.syncVenueBlindsToAllSessions(vnEnd)

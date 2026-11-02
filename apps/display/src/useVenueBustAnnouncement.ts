@@ -13,6 +13,11 @@ export function bustOverlayDurationMs(bustCount: number, reducedMotion: boolean)
   return Math.min(BUST_OVERLAY_MAX_MS, scaled)
 }
 
+/** Seating waits so the elimination card can finish before the move list covers it. */
+export function seatingHoldForBustsMs(bustCount: number, reducedMotion: boolean): number {
+  return bustOverlayDurationMs(bustCount, reducedMotion)
+}
+
 export type VenueBustAnnouncementState = {
   visible: boolean
   busts: DisplayVenueBustEntry[]
@@ -32,7 +37,6 @@ export function handHasPayoutBusts(
  */
 export function useVenueBustAnnouncement(
   wall: DisplayVenueWallSnapshot | null,
-  shareTheSeatingCard = false,
 ): VenueBustAnnouncementState {
   const dismissedHandEndMsRef = useRef<number | null>(null)
   const [visible, setVisible] = useState(false)
@@ -46,7 +50,7 @@ export function useVenueBustAnnouncement(
       : `${handEndMs}:${busts.map((b) => `${b.name}@${b.tableNum}`).join('|')}`
 
   useEffect(() => {
-    if (shareTheSeatingCard || !handHasPayoutBusts(wall) || handEndMs == null) {
+    if (!handHasPayoutBusts(wall) || handEndMs == null) {
       setVisible(false)
       return
     }
@@ -69,7 +73,7 @@ export function useVenueBustAnnouncement(
     }, bustOverlayDurationMs(busts.length, reducedMotion))
 
     return () => window.clearTimeout(timer)
-  }, [signature, handEndMs, shareTheSeatingCard])
+  }, [signature, handEndMs])
 
   return { visible, busts: shownBusts }
 }

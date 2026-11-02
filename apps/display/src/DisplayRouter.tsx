@@ -28,11 +28,7 @@ import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import { normalizeVenuePointsStandings } from './venueLeaderboard'
-import {
-  normalizeLastHandSeating,
-  payoutBustsShareTheSeatingCard,
-  useVenueSeatingAnnouncement,
-} from './useVenueSeatingAnnouncement'
+import { normalizeLastHandSeating, useVenueSeatingAnnouncement } from './useVenueSeatingAnnouncement'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 
@@ -346,10 +342,7 @@ export default function DisplayRouter({
   )
   const audienceWall = audienceBriefing ? null : venueWall
   const payoutMoves = useVenueSeatingAnnouncement(audienceWall)
-  const payoutBusts = useVenueBustAnnouncement(
-    audienceWall,
-    payoutBustsShareTheSeatingCard(audienceWall?.lastHandSeating),
-  )
+  const payoutBusts = useVenueBustAnnouncement(audienceWall)
 
   const showConnBadge = connectionStatus !== 'connected'
 

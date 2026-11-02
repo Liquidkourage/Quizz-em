@@ -2583,11 +2583,11 @@ export function emitStateToSession(sessionKey: string, gs: GameState): void {
 export function emitVenueTableState(
   sessionKey: string,
   gs: GameState,
-  opts?: { skipOrchestration?: boolean }
+  opts?: { skipOrchestration?: boolean; skipWall?: boolean }
 ) {
   emitStateToSession(sessionKey, gs)
   scheduleHumanTurnTimeout(sessionKey, gs)
-  afterTableStateBroadcast(gs, sessionKey)
+  if (!opts?.skipWall) afterTableStateBroadcast(gs, sessionKey)
   if (!opts?.skipOrchestration) {
     applyVenueWageringOrchestration(gs.code)
   }

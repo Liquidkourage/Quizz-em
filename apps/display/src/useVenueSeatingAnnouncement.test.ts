@@ -6,7 +6,7 @@ import {
   seatingOverlayDurationMs,
   venueSeatingAnnouncementHasContent,
 } from './useVenueSeatingAnnouncement'
-import { handHasPayoutBusts } from './useVenueBustAnnouncement'
+import { bustOverlayDurationMs, handHasPayoutBusts, seatingHoldForBustsMs } from './useVenueBustAnnouncement'
 
 describe('venueSeatingAnnouncementHasContent', () => {
   it('is false for empty payloads', () => {
@@ -133,5 +133,11 @@ describe('payout announcements', () => {
       seatingOverlayDurationMs(seating, false, 1),
     ).toBe(5210)
     expect(seatingOverlayDurationMs(seating, false, 0)).toBe(4600)
+  })
+
+  it('holds the seating card until the elimination card has finished', () => {
+    expect(seatingHoldForBustsMs(0, false)).toBe(0)
+    expect(seatingHoldForBustsMs(1, false)).toBe(bustOverlayDurationMs(1, false))
+    expect(seatingHoldForBustsMs(3, false)).toBe(bustOverlayDurationMs(3, false))
   })
 })

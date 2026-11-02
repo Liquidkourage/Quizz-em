@@ -46,6 +46,11 @@ export function publicSeatShowsHoleCards(
   return filled && !folded && !pointsOnly && holesVisible
 }
 
+/** Points-only players stay off the public felt: no cup, glow, name, or cards. */
+export function publicFeltDrawsSeat(pointsOnly: boolean): boolean {
+  return !pointsOnly
+}
+
 /** Two-letter seat mark, sized from the felt so it reads across the room. */
 export function mosaicSeatInitialFontPx(tableWidthPx: number): number {
   const w = feltWidthPx(tableWidthPx)

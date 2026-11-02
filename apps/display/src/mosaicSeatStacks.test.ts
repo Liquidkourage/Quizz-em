@@ -8,6 +8,7 @@ import {
   mosaicHoleClearOfInitialsFrac,
   mosaicSeatInitialFontPx,
   mosaicSeatInitialLabel,
+  publicFeltDrawsSeat,
   publicSeatShowsHoleCards,
   mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
@@ -99,6 +100,11 @@ describe('public table initials', () => {
     expect(publicSeatShowsHoleCards(true, false, false, true)).toBe(true)
     expect(publicSeatShowsHoleCards(true, false, true, true)).toBe(false)
     expect(publicSeatShowsHoleCards(true, true, false, true)).toBe(false)
+  })
+
+  it('draws no seat chrome when that player is points only', () => {
+    expect(publicFeltDrawsSeat(false)).toBe(true)
+    expect(publicFeltDrawsSeat(true)).toBe(false)
   })
 })
 

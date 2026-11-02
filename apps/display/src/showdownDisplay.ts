@@ -259,7 +259,7 @@ export function showdownRowsFromTile(tile: DisplayVenueTileSnapshot): ShowdownRe
 
   for (let i = 0; i < names.length; i++) {
     const name = typeof names[i] === 'string' ? names[i]!.trim() : ''
-    if (!name) continue
+    if (!name || tile.seatPointsOnly?.[i] === true) continue
     const hasFolded = folded[i] === true
     let holePair: readonly [number, number] | null = null
     const h = holes?.[i]

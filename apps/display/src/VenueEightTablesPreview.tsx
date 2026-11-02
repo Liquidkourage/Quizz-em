@@ -54,6 +54,7 @@ import {
   mosaicSeatInitialFontPx,
   mosaicSeatInitialLabel,
   mosaicSeatInitialShiftXPx,
+  publicFeltDrawsSeat,
   publicSeatShowsHoleCards,
   mosaicSeatStackClearPx,
   mosaicSeatStackFontForAmount,
@@ -1417,6 +1418,7 @@ function SeatRingWithLabels({
         const raw = seatNames[i]?.trim() ?? ''
         const filled = raw.length > 0
         if ((isMosaic || isBroadcast) && !filled) return null
+        if (!publicFeltDrawsSeat(seatPointsOnly[i] === true)) return null
         if (suppressSeatChrome && isBroadcast) return null
 
         const seatRimPt =

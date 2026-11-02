@@ -29,6 +29,18 @@ describe('venueLeaderboardRowsFromTiles', () => {
     expect(rows[0]!.bankroll).toBeGreaterThanOrEqual(rows[1]!.bankroll)
   })
 
+  it('leaves a points-only player off the chip scores', () => {
+    const rows = venueLeaderboardRowsFromTiles([
+      tile({
+        tableNum: 1,
+        seatNames: ['Ada Lane', 'Bo Kent', '', '', '', '', '', ''],
+        seatBankrolls: [500, 0, 0, 0, 0, 0, 0, 0],
+        seatPointsOnly: [false, true, false, false, false, false, false, false],
+      }),
+    ])
+    expect(rows.map((row) => row.name)).toEqual(['Ada Lane'])
+  })
+
   it('sorts by bankroll pre-round (all lobby)', () => {
     const rows = venueLeaderboardRowsFromTiles([
       tile({

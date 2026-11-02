@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { BroadcastShowdownPanel } from './BroadcastShowdownPanel'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { ShowdownWinnerCompPanel } from './ShowdownWinnerCompPanel'
+import { showdownRowsFromTile } from './showdownDisplay'
 
 const winner: ShowdownResultRow = {
   seat: 0,
@@ -54,5 +55,20 @@ describe('winner screen cards', () => {
     expect(html).toContain('Ada')
     expect(html).not.toContain('data-showdown-winner-cards')
     expect(html).not.toContain('Winning Answer')
+  })
+})
+
+describe('showdown rows on the public table', () => {
+  it('leaves a points-only player off the table', () => {
+    const rows = showdownRowsFromTile({
+      tableNum: 1,
+      seated: 2,
+      pot: 100,
+      phase: 'showdown',
+      seatNames: ['Ada Lane', 'Bo Kent'],
+      seatPointsOnly: [false, true],
+      seatSubmittedAnswers: [10, 12],
+    })
+    expect(rows.map((row) => row.name)).toEqual(['Ada Lane'])
   })
 })

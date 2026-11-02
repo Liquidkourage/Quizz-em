@@ -107,7 +107,7 @@ export function venueLeaderboardRowsFromTiles(
     if (sn == null || sn.length === 0) continue
     for (let i = 0; i < sn.length; i++) {
       const raw = sn[i]?.trim()
-      if (!raw) continue
+      if (!raw || t.seatPointsOnly?.[i] === true) continue
       const bankroll = br[i] ?? 0
       const key = venueLeaderboardPlayerKey(t.tableNum, i + 1, raw)
       const baseline = handStartBaselines?.get(key)

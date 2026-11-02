@@ -1277,7 +1277,7 @@ export function shuffleVenueTablesNow(
   alignVenueShuffleCounterAfterManualShuffle(vn)
   emitDisplayVenueSnapshotNow(vn)
   const message = result.shuffled
-    ? `Tables shuffled — ${result.tablesBefore} → ${result.tablesAfter}.`
+    ? `TABLE SHUFFLE — ${result.tablesBefore} → ${result.tablesAfter}.`
     : 'Tables stayed as they are.'
   return { ok: result.shuffled, message }
 }

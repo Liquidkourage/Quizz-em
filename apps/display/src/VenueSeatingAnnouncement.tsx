@@ -20,7 +20,7 @@ function displayPlayerName(raw: string): string {
 }
 
 function seatingTitle(seating: DisplayVenueSeatingAnnouncement): string {
-  if (seating.shuffled) return 'Tables shuffled'
+  if (seating.shuffled) return 'TABLE SHUFFLE'
   if (seating.moves.length > 0 && seating.closedTableNums.length > 0) return 'Seating update'
   if (seating.moves.length > 1) return 'Players moved'
   if (seating.moves.length === 1) return 'Player moved'
@@ -37,7 +37,6 @@ function seatingRowClass(closed: boolean, compact: boolean): string {
 
 function seatingEyebrow(seating: DisplayVenueSeatingAnnouncement): string {
   const parts: string[] = []
-  if (seating.shuffled) parts.push('Full shuffle')
   if (seating.moves.length > 0) {
     parts.push(`${seating.moves.length} move${seating.moves.length === 1 ? '' : 's'}`)
   }

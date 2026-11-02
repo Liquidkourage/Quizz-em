@@ -29,8 +29,8 @@ describe('Host remove', () => {
       }),
     )
     expect(html).not.toContain('>Move<')
-    expect(html).toContain('Re-seat now')
-    expect(html).not.toContain('Shuffle')
+    expect(html).toContain('TABLE SHUFFLE')
+    expect(html).not.toContain('Re-seat now')
     expect(html).not.toContain('Between hands')
   })
 })

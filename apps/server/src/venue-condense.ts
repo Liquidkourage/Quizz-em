@@ -225,7 +225,7 @@ export function applyVenueCondenseAfterRound(
     const to = plan.scheduledMerge.targetTableCount
     applyScheduledMerge(deps, plan.scheduledMerge)
     shuffled = true
-    hostToasts.push(`Tables shuffled — ${from} → ${to} (${survivorsBefore} players remaining).`)
+    hostToasts.push(`TABLE SHUFFLE — ${from} → ${to} (${survivorsBefore} players remaining).`)
   }
 
   rosters = collectRosters(deps)

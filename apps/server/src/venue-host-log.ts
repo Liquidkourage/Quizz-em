@@ -201,12 +201,22 @@ function rememberHandBet(
 /** A big bet is five big blinds or more. At a $20 blind that is $100. */
 const BIG_BET_BLIND_MULTIPLE = 5
 
+function countsAsThisHandBigBet(bet: HostVenueBigBetEntry, bigBlind: number): boolean {
+  if (bet.kind === 'allIn') return bet.amount > 0
+  return bet.amount >= bigBlind * BIG_BET_BLIND_MULTIPLE
+}
+
 function rankedHandBets(bets: HostVenueBigBetEntry[], bigBlind: number): HostVenueBigBetEntry[] {
-  const min = bigBlind * BIG_BET_BLIND_MULTIPLE
   return [...bets]
-    .filter((bet) => bet.amount >= min)
+    .filter((bet) => countsAsThisHandBigBet(bet, bigBlind))
     .sort((a, b) => b.amount - a.amount || b.atMs - a.atMs)
     .slice(0, 8)
+}
+
+function wentAllIn(before: GameState, after: GameState, playerId: string): boolean {
+  const prev = before.players.find((p) => p.id === playerId)
+  const next = after.players.find((p) => p.id === playerId)
+  return prev != null && next != null && prev.isAllIn !== true && next.isAllIn === true
 }
 
 function pushMove(
@@ -238,6 +248,7 @@ export function recordVenueMovesBetweenStates(
   const beforeActs = before.round.lastSeatBettingAction ?? []
   const afterActs = after.round.lastSeatBettingAction ?? []
   const beforeById = new Map(before.players.map((p) => [p.id, p]))
+  const notedBets = new Set<string>()
 
   for (let i = 0; i < after.players.length; i++) {
     const p = after.players[i]
@@ -245,29 +256,7 @@ export function recordVenueMovesBetweenStates(
     const nextAct = afterActs[i] ?? null
     const prevAct = beforeActs[i] ?? null
     if (nextAct != null && nextAct !== prevAct) {
-      const name = shortPlayerName(p.name)
-      const committed = chipsJustCommitted(before, after, p.id)
-      pushMove(log, {
-        atMs: now,
-        tableNum,
-        playerName: name,
-        kind: nextAct as HostVenueMoveLogKind,
-        summary: formatBettingMoveSummary(after, nextAct, name, committed),
-      })
-      if (
-        (nextAct === 'call' || nextAct === 'raise' || nextAct === 'allIn') &&
-        committed > 0
-      ) {
-        const bet = {
-          name,
-          tableNum,
-          amount: committed,
-          kind: nextAct,
-          atMs: now,
-        }
-        rememberHandBet(log, tableNum, after.round.roundId, bet)
-        if (committed >= bigWinThreshold(after)) log.bigBets.unshift(bet)
-      }
+      noteSeatAction(log, tableNum, before, after, p, nextAct, now, notedBets)
     }
 
     const prev = beforeById.get(p.id)
@@ -286,7 +275,66 @@ export function recordVenueMovesBetweenStates(
       })
     }
   }
+  noteClearedAllIns(log, tableNum, before, after, now, notedBets)
   log.bigBets = log.bigBets.slice(0, LOG_CAP)
+}
+
+function noteSeatAction(
+  log: VenueHostLog,
+  tableNum: number,
+  before: GameState,
+  after: GameState,
+  player: GameState['players'][number],
+  nextAct: SeatBettingAction,
+  now: number,
+  notedBets: Set<string>,
+): void {
+  const name = shortPlayerName(player.name)
+  const committed = chipsJustCommitted(before, after, player.id)
+  pushMove(log, {
+    atMs: now,
+    tableNum,
+    playerName: name,
+    kind: nextAct as HostVenueMoveLogKind,
+    summary: formatBettingMoveSummary(after, nextAct, name, committed),
+  })
+  const betKind = wentAllIn(before, after, player.id) ? 'allIn' : nextAct
+  if (betKind !== 'call' && betKind !== 'raise' && betKind !== 'allIn') return
+  if (committed <= 0) return
+  notedBets.add(player.id)
+  const bet = {
+    name,
+    tableNum,
+    amount: committed,
+    kind: betKind,
+    atMs: now,
+  }
+  rememberHandBet(log, tableNum, after.round.roundId, bet)
+  if (committed >= bigWinThreshold(after)) log.bigBets.unshift(bet)
+}
+
+function noteClearedAllIns(
+  log: VenueHostLog,
+  tableNum: number,
+  before: GameState,
+  after: GameState,
+  now: number,
+  notedBets: ReadonlySet<string>,
+): void {
+  for (const p of after.players) {
+    if (notedBets.has(p.id) || !wentAllIn(before, after, p.id)) continue
+    const committed = chipsJustCommitted(before, after, p.id)
+    if (committed <= 0) continue
+    const bet = {
+      name: shortPlayerName(p.name),
+      tableNum,
+      amount: committed,
+      kind: 'allIn' as const,
+      atMs: now,
+    }
+    rememberHandBet(log, tableNum, after.round.roundId, bet)
+    if (committed >= bigWinThreshold(after)) log.bigBets.unshift(bet)
+  }
 }
 
 function formatActingSummary(tile: DisplayVenueTileSnapshot): string | null {

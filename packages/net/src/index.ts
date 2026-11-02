@@ -410,7 +410,7 @@ export type HostVenueFloorBriefPayload = {
   bigWinners: HostVenueBigWinEntry[]
   /** Newest-first raises, calls, and all-ins at or above {@link bigWinMinAmount}. */
   bigBets: HostVenueBigBetEntry[]
-  /** Largest-first calls, raises, and all-ins on the current hand, at least the big blind. */
+  /** Largest-first calls and raises of at least five big blinds, plus every all-in, on the current hand. */
   handBets: HostVenueBigBetEntry[]
   bigWinMinAmount: number
   fieldPlayerCount: number

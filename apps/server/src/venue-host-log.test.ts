@@ -310,6 +310,78 @@ describe('recordVenueMovesBetweenStates', () => {
     })
     expect(brief.handBets.map((b) => `${b.amount}:${b.name}`)).toEqual(['100:Bob D.'])
   })
+
+  function handBetLines() {
+    return buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    }).handBets.map((b) => `${b.kind}:${b.amount}:${b.name}`)
+  }
+
+  it('lists a short all-in under five big blinds', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const short = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 40 } : p,
+      ),
+    }
+    const shove: GameState = {
+      ...short,
+      players: short.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 0, isAllIn: true } : p,
+      ),
+      round: {
+        ...short.round,
+        lastSeatBettingAction: ['allIn', null],
+        playerBets: { 'human:a': 40 },
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, short, shove)
+    expect(handBetLines()).toEqual(['allIn:40:Alice C.'])
+  })
+
+  it('lists a call that takes the last chip as an all-in', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const callOff: GameState = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 0, isAllIn: true } : p,
+      ),
+      round: {
+        ...before.round,
+        lastSeatBettingAction: ['call', null],
+        playerBets: { 'human:a': 1000 },
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, before, callOff)
+    expect(handBetLines()).toEqual(['allIn:1000:Alice C.'])
+  })
+
+  it('lists an all-in after the street action was cleared', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const covered: GameState = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 0, isAllIn: true } : p,
+      ),
+      round: {
+        ...before.round,
+        bettingRound: 2,
+        currentBet: 0,
+        playerBets: {},
+        lastSeatBettingAction: [null, null],
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, before, covered)
+    expect(handBetLines()).toEqual(['allIn:1000:Alice C.'])
+  })
 })
 
 describe('buildHostVenueFloorBrief busts', () => {

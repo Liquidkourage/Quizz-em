@@ -59,9 +59,11 @@ describe('reveal while someone is betting', () => {
   it('blocks Reveal the answer while any player is still betting', () => {
     const hint = venueRevealAnswerBlockedHint([
       felt(1, 'answering', 'answer'),
-      felt(2, 'betting', 'bet|2|T|cc5'),
+      felt(2, 'betting', 'bet|2|T|cc5', { playersToAct: 3 }),
+      felt(6, 'betting', 'bet|2|T|cc5', { playersToAct: 1 }),
     ])
-    expect(hint).toContain('2')
+    expect(hint).toContain('2 (3)')
+    expect(hint).toContain('6 (1)')
     const gameState = { ...createEmptyGame('HOST', 'host', '1'), phase: 'answering' as const }
     const items = buildHostPhaseDockItems({
       gameState,

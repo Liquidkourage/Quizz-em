@@ -9,6 +9,7 @@ import {
   placeBet,
   playerCall,
   playerCheck,
+  playersHoldingBetting,
   SAMPLE_QUESTIONS,
 } from './index'
 
@@ -45,6 +46,28 @@ describe('isBettingComplete / BB option', () => {
 
     gs = playerCheck(gs, 'bb')
     expect(gs.round.isBettingOpen).toBe(false)
+  })
+
+  it('counts the players who still have to act on an open street', () => {
+    let gs = createEmptyGame('V', 'h', '1')
+    gs = {
+      ...gs,
+      smallBlind: 10,
+      bigBlind: 20,
+      phase: 'question',
+      players: [
+        { id: 'btn', name: 'Btn', bankroll: 1000, hand: [{ digit: 1 }, { digit: 2 }], hasFolded: false, isAllIn: false },
+        { id: 'sb', name: 'Sb', bankroll: 1000, hand: [{ digit: 3 }, { digit: 4 }], hasFolded: false, isAllIn: false },
+        { id: 'bb', name: 'Bb', bankroll: 1000, hand: [{ digit: 5 }, { digit: 6 }], hasFolded: false, isAllIn: false },
+      ],
+      round: { ...gs.round, question: SAMPLE_QUESTIONS[0]!, dealerIndex: 0 },
+    }
+    gs = openBettingRound1(gs)
+    gs = playerCall(gs, 'btn')
+    gs = playerCall(gs, 'sb')
+    expect(playersHoldingBetting(gs)).toBe(1)
+    gs = playerCheck(gs, 'bb')
+    expect(playersHoldingBetting(gs)).toBe(0)
   })
 })
 

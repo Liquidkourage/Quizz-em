@@ -315,6 +315,8 @@ export type HostVenueFeltBeatRow = {
    * Host compares across active felts to flag drift.
    */
   phaseStrictSig: string | null
+  /** Players who still have to act before this betting street can close. */
+  playersToAct?: number
   /** Live trivia on this felt. Null between hands. */
   questionText?: string | null
   /** Host-only answer for {@link questionText}. */

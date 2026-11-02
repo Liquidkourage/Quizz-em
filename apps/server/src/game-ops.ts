@@ -17,6 +17,7 @@ import {
   setQuestion,
   dealHoleCards,
   openBettingRound1,
+  playersHoldingBetting,
   playersHaveHoleCards,
   dealInitialCards,
   dealCommunityCards,
@@ -2121,6 +2122,7 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
       answerDeadlineMs,
       turnDeadlineMs: feltTurnDeadlineMs(phase, key),
       phaseStrictSig: phaseStrictSignature(gs),
+      playersToAct: phase === 'betting' ? playersHoldingBetting(gs) : undefined,
       questionText: gs.round.question?.text?.trim() || null,
       questionAnswer:
         gs.round.question != null && Number.isFinite(gs.round.question.answer)

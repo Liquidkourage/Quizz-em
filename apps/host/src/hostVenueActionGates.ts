@@ -159,16 +159,28 @@ export function venueRevealAnswerBlockedHint(
   const stillBetting = seated.filter(
     (row) => row.phase === 'betting' && !wageringClockClosed(row.phaseStrictSig),
   )
-  if (stillBetting.length > 0) {
-    const nums = stillBetting
-      .map((row) => row.tableNum)
-      .sort((a, b) => a - b)
-      .join(', ')
-    return `Tables ${nums} still have a player betting.`
-  }
+  if (stillBetting.length > 0) return bettingHoldPhrase(stillBetting)
   const waiting = guessingTablesStillOpen(seated, guesses, nowMs)
   if (waiting.length === 0) return null
   return answerRevealWaitLabel(waiting.map((row) => row.tableNum))
+}
+
+function bettingHoldPhrase(rows: HostVenueFeltBeatRow[]): string {
+  const sorted = [...rows].sort((a, b) => a.tableNum - b.tableNum)
+  if (sorted.length === 1) {
+    const row = sorted[0]!
+    const n = row.playersToAct
+    if (n != null && n > 0) {
+      const word = n === 1 ? 'player' : 'players'
+      return `Table ${row.tableNum} still has ${n} ${word} betting.`
+    }
+    return `Table ${row.tableNum} still has a player betting.`
+  }
+  const parts = sorted.map((row) => {
+    const n = row.playersToAct
+    return n != null && n > 0 ? `${row.tableNum} (${n})` : String(row.tableNum)
+  })
+  return `Tables ${parts.join(', ')} still have players betting.`
 }
 
 function guessingTablesStillOpen(

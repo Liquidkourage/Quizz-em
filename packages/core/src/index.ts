@@ -1154,6 +1154,32 @@ function isBettingComplete(state: GameState): boolean {
   return actedCount >= activeCount;
 }
 
+/** Seats that still have to act before this open betting street can close. */
+export function playersHoldingBetting(state: GameState): number {
+  if (state.phase !== 'betting' || state.round.isBettingOpen !== true) return 0
+  if (chipContestantCount(state.players) < 2) return 0
+  const cur = state.round.currentBet || 0
+  const bets = state.round.playerBets || {}
+  const lastActions = state.round.lastSeatBettingAction ?? []
+  const active: number[] = []
+  for (let i = 0; i < state.players.length; i++) {
+    const p = state.players[i]!
+    if (p.hasFolded || p.isAllIn || !inChipContest(p)) continue
+    active.push(i)
+  }
+  if (active.length === 0) return 0
+  if (active.length === 1 && cur === 0) return lastActions[active[0]!] == null ? 1 : 0
+  let holding = 0
+  for (const i of active) {
+    const p = state.players[i]!
+    const contributed = bets[p.id] || 0
+    const acted = lastActions[i] != null
+    if (contributed < cur || (contributed === cur && !acted)) holding++
+    else if (contributed > cur && active.length === 1 && !acted) holding++
+  }
+  return holding
+}
+
 /** No one left who can act — every chip-eligible player still in the hand is all-in (or folded). */
 export function isAllInRunout(state: GameState): boolean {
   if (state.phase !== 'betting') return false;

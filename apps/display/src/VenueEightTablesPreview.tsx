@@ -48,6 +48,7 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAct
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import {
   MosaicSeatStackAmount,
+  mosaicHoleClearOfInitialsFrac,
   mosaicSeatInitialFontPx,
   mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
@@ -754,7 +755,8 @@ function padSeatHolesDealt(raw: readonly boolean[] | undefined): boolean[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => raw?.[i] === true)
 }
 
-const SEAT_LAYER_FELT_HOLE = 'z-[19]'
+/** Above the seat initials (z-20). Letters spill past the cup; the pair has to stay visible. */
+const SEAT_LAYER_FELT_HOLE = 'z-[22]'
 
 /** Community / center board card — fixed px from measured ring (same pattern as hole cards). */
 function MosaicDigitCard({
@@ -1476,7 +1478,9 @@ function SeatRingWithLabels({
                 return { leftPct: pt.leftPct, topPct: pt.topPct }
               })()
         const chipInwardFrac = mosaicSeatChipInwardFrac(i)
-        const holeInwardFrac = mosaicSeatHoleInwardFrac(i)
+        const holeInwardFrac = isMosaic
+          ? mosaicHoleClearOfInitialsFrac(i, rimW, rimH)
+          : mosaicSeatHoleInwardFrac(i)
         const broadcastMarkerPx =
           isBroadcast && rimW > 0 ? venueBlindMarkerSizePx(rimW, 'broadcast') : 0
         const broadcastAssets =

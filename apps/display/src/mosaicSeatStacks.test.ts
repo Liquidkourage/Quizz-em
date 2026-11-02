@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import {
   MosaicSeatStackAmount,
+  mosaicHoleClearOfInitialsFrac,
   mosaicSeatInitialFontPx,
   mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
@@ -12,7 +13,12 @@ import {
   mosaicStreetCardBoxPx,
   MOSAIC_STACK_LABEL_EM,
 } from './mosaicSeatStacks'
-import { mosaicSeatDotPct, venueMosaicFeltCenterPct } from './venueMosaicSeatGeometry'
+import {
+  mosaicSeatDotPct,
+  mosaicSeatHoleInwardFrac,
+  mosaicSeatHoleLayout,
+  venueMosaicFeltCenterPct,
+} from './venueMosaicSeatGeometry'
 
 type StackRect = { x: number; y: number; width: number; height: number }
 
@@ -20,6 +26,26 @@ function stackRect(transform: string, anchorX: number, anchorY: number, labelW: 
   const xPin = transform.includes('translate(0,') ? 0 : transform.includes('translate(-100%') ? -labelW : -labelW / 2
   const yPin = transform.includes(', 0)') ? 0 : transform.includes(', -100%)') ? -labelH : -labelH / 2
   return { x: anchorX + xPin, y: anchorY + yPin, width: labelW, height: labelH }
+}
+
+/** How many pixels the hole-card anchor sits past the inward edge of the initials. */
+function holeGapPastInitials(seat: number, w: number, h: number, font: number, frac: number): number {
+  const cup = mosaicSeatDotPct(seat, 8, w, h)
+  const center = venueMosaicFeltCenterPct(w, h)
+  const hole = mosaicSeatHoleLayout(seat, 8, w, h, frac)
+  const cupX = (cup.leftPct / 100) * w
+  const cupY = (cup.topPct / 100) * h
+  const dx = (center.leftPct / 100) * w - cupX
+  const dy = (center.topPct / 100) * h - cupY
+  const dist = Math.hypot(dx, dy) || 1
+  const ux = dx / dist
+  const uy = dy / dist
+  const shiftX = mosaicSeatInitialShiftXPx(seat, w, h, font)
+  const hw = font * 0.78
+  const hh = font * 0.52
+  const inwardMost = shiftX * ux + Math.abs(ux) * hw + Math.abs(uy) * hh
+  const holeDist = Math.hypot((hole.leftPct / 100) * w - cupX, (hole.topPct / 100) * h - cupY)
+  return holeDist - inwardMost
 }
 
 function rectsMeet(a: StackRect, b: StackRect, gap: number): boolean {
@@ -115,6 +141,20 @@ describe('mosaic seat stacks', () => {
     }
     expect(mosaicSeatInitialShiftXPx(6, w, h, font)).toBeGreaterThan(0)
     expect(mosaicSeatInitialShiftXPx(2, w, h, font)).toBeLessThan(0)
+  })
+
+  it('sets the hole cards past the initials on a large felt', () => {
+    for (const w of [560, 640, 880]) {
+      const h = Math.round(w / (1262 / 643))
+      const font = mosaicSeatInitialFontPx(w)
+      for (let seat = 0; seat < 8; seat++) {
+        const frac = mosaicHoleClearOfInitialsFrac(seat, w, h)
+        expect(frac).toBeGreaterThanOrEqual(mosaicSeatHoleInwardFrac(seat))
+        expect(frac).toBeLessThanOrEqual(0.38)
+        const gap = holeGapPastInitials(seat, w, h, font, frac)
+        expect(gap, `${w} seat ${seat}`).toBeGreaterThanOrEqual(4)
+      }
+    }
   })
 
   it('sizes street cards at least as large as the initials', () => {

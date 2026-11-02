@@ -7,6 +7,7 @@ import {
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
 import {
   mosaicSeatDotPct,
+  mosaicSeatHoleInwardFrac,
   mosaicSeatStackLayout,
   venueMosaicFeltCenterPct,
   type MosaicSeatStackLayout,
@@ -67,6 +68,33 @@ export function mosaicSeatInitialShiftXPx(
   }
   const overflow = cupX + half + pad - ringW
   return overflow > 0 ? -Math.ceil(overflow) : 0
+}
+
+/** Hole cards stay outside the center board, and past the initials when the felt allows. */
+const MOSAIC_HOLE_CLEAR_FRAC_CAP = 0.38
+
+/**
+ * Hole-card inset that starts the pair past the initials.
+ * The largest letters spill inward from the cup and would cover a pair parked on the rail.
+ */
+export function mosaicHoleClearOfInitialsFrac(seatIndex: number, ringW: number, ringH: number): number {
+  const base = mosaicSeatHoleInwardFrac(seatIndex)
+  if (!(ringW > 0) || !(ringH > 0)) return base
+  const font = mosaicSeatInitialFontPx(ringW)
+  const cup = mosaicSeatDotPct(seatIndex, 8, ringW, ringH)
+  const center = venueMosaicFeltCenterPct(ringW, ringH)
+  const cupX = (cup.leftPct / 100) * ringW
+  const cupY = (cup.topPct / 100) * ringH
+  const dx = (center.leftPct / 100) * ringW - cupX
+  const dy = (center.topPct / 100) * ringH - cupY
+  const dist = Math.hypot(dx, dy)
+  if (!(dist > 0)) return base
+  const ux = dx / dist
+  const uy = dy / dist
+  const shiftX = mosaicSeatInitialShiftXPx(seatIndex, ringW, ringH, font)
+  const inwardMost = shiftX * ux + Math.abs(ux) * font * MOSAIC_INITIAL_HALF_EM + Math.abs(uy) * font * 0.52
+  const needed = (inwardMost + 8) / dist
+  return Math.min(MOSAIC_HOLE_CLEAR_FRAC_CAP, Math.max(base, needed))
 }
 
 /** Em width of a gold amount such as $1,000, including the chip mark. */

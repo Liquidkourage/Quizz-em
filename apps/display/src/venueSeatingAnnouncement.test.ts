@@ -115,7 +115,8 @@ describe('seating update', () => {
     expect(line).toContain('TABLE BALANCE')
     expect(html).toContain('venue-seating-update')
     expect(html).toContain('repeat(1, minmax(0, 1fr))')
-    expect(html).toContain('max-width:none')
+    expect(html).toContain('max-w-[min(72rem,92vw)]')
+    expect(html).not.toContain('max-width:none')
   })
 
   it('splits a crowded seating update across more columns', () => {

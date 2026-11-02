@@ -6,6 +6,7 @@ import {
   submitAnswer,
   foldPlayer,
   playerCheck,
+  forcedTurnAction,
   playerCall,
   playerRaise,
   playerAllIn,
@@ -176,7 +177,9 @@ function stepVirtualSimulation(state: GameState): GameState {
 
   const pid = seat.id
 
-  return actVirtualBetting(state, pid)
+  const chosen = actVirtualBetting(state, pid)
+  if (chosen !== state) return chosen
+  return forcedTurnAction(state, pid)
 }
 
 /** Large tables may need hundreds of sequential CPU actions across two wagering waves. */

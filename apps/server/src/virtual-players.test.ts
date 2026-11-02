@@ -11,6 +11,33 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+describe('CPU forced action', () => {
+  it('folds a cpu who has no chips facing a bet, the same way a player times out', () => {
+    let gs = createEmptyGame('V', 'h', '1')
+    gs = addVirtualPlayers(gs, 2)
+    const [a, b] = gs.players
+    gs = {
+      ...gs,
+      phase: 'betting',
+      players: [
+        { ...a!, bankroll: 0, isAllIn: false, hasFolded: false, hand: [{ digit: 1 }, { digit: 2 }] },
+        { ...b!, bankroll: 1000, isAllIn: false, hasFolded: false, hand: [{ digit: 3 }, { digit: 4 }] },
+      ],
+      round: {
+        ...gs.round,
+        isBettingOpen: true,
+        currentBet: 100,
+        currentPlayerIndex: 0,
+        playerBets: { [a!.id]: 0, [b!.id]: 100 },
+        lastSeatBettingAction: [null, null],
+      },
+    }
+    const next = advanceVirtualBettingStep(gs)
+    expect(next.players[0]!.hasFolded).toBe(true)
+    expect(next.round.currentPlayerIndex).not.toBe(0)
+  })
+})
+
 describe('CPU post-board wagering', () => {
   it('closes round 2 after paced steps (check-around or open-raise)', () => {
     let gs = createEmptyGame('V', '', '1')

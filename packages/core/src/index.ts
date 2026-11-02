@@ -1375,6 +1375,13 @@ export function foldPlayer(state: GameState, playerId: string): GameState {
   return isBettingComplete(newState) ? { ...newState, round: { ...newState.round, isBettingOpen: false, currentPlayerIndex: -1 } } : newState;
 }
 
+/** Nothing owed: check. A bet is owed: fold. The action a seat is forced into when it does not choose. */
+export function forcedTurnAction(state: GameState, playerId: string): GameState {
+  const contrib = state.round.playerBets?.[playerId] ?? 0;
+  const toCall = Math.max(0, (state.round.currentBet || 0) - contrib);
+  return toCall === 0 ? playerCheck(state, playerId) : foldPlayer(state, playerId);
+}
+
 export function submitAnswer(
   state: GameState,
   playerId: string,

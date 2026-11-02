@@ -3,6 +3,7 @@ import {
   addPlayer,
   adminAdvanceTurn,
   createEmptyGame,
+  forcedTurnAction,
   endRound,
   openBettingRound1,
   placeBet,
@@ -44,6 +45,43 @@ describe('isBettingComplete / BB option', () => {
 
     gs = playerCheck(gs, 'bb')
     expect(gs.round.isBettingOpen).toBe(false)
+  })
+})
+
+describe('forcedTurnAction', () => {
+  it('checks when nothing is owed and folds when a bet is owed', () => {
+    let gs = createEmptyGame('V', 'h', '1')
+    gs = addPlayer(gs, 'a', 'Ada', 1000)
+    gs = addPlayer(gs, 'b', 'Bea', 1000)
+    gs = {
+      ...gs,
+      phase: 'betting',
+      round: {
+        ...gs.round,
+        isBettingOpen: true,
+        currentBet: 0,
+        currentPlayerIndex: 0,
+        playerBets: {},
+        lastSeatBettingAction: [null, null],
+      },
+    }
+    gs = forcedTurnAction(gs, 'a')
+    expect(gs.players[0]!.hasFolded).toBe(false)
+    expect(gs.round.lastSeatBettingAction?.[0]).toBe('check')
+
+    gs = {
+      ...gs,
+      round: {
+        ...gs.round,
+        currentBet: 40,
+        currentPlayerIndex: 1,
+        playerBets: { a: 0, b: 0 },
+        lastSeatBettingAction: ['check', null],
+      },
+    }
+    gs = forcedTurnAction(gs, 'b')
+    expect(gs.players[1]!.hasFolded).toBe(true)
+    expect(gs.players[1]!.bankroll).toBe(1000)
   })
 })
 

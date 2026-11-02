@@ -46,6 +46,7 @@ import {
   LOBBY_TABLE_ID,
   pickRandomQuestion,
   playerCheck,
+  forcedTurnAction,
   playerCall,
   playerRaise,
   playerAllIn,
@@ -1430,7 +1431,7 @@ export function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): voi
     const contrib = cur.round.playerBets?.[acting.id] ?? 0
     const toCall = Math.max(0, (cur.round.currentBet ?? 0) - contrib)
     const beforeTimeout = cur
-    cur = toCall === 0 ? playerCheck(cur, acting.id) : foldPlayer(cur, acting.id)
+    cur = forcedTurnAction(cur, acting.id)
     cur = runVirtualPlayerSimulation(cur)
     clearHumanTurnClock(sessionKey)
     commitTableAdvance(sessionKey, beforeTimeout, cur)

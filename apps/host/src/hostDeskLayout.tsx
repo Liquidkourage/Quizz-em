@@ -2048,11 +2048,10 @@ export function HostVenueFloorBriefPanel({
   const openRow = rows.find((row) => row.tableNum === openTable)
 
   return (
-    <div className="host-live-floor flex h-full min-h-0 flex-col gap-2">
+    <div className="host-live-floor flex h-full min-h-0 flex-col gap-2 overflow-y-auto">
     <HostCollapsible
       expanded
-      className="min-h-0 flex-1"
-      bodyClassName="flex-1 overflow-y-auto"
+      className="shrink-0"
       toolbar={
         blindCall ? <div className="host-floor-toolbar">{blindCall}</div> : undefined
       }
@@ -2217,8 +2216,7 @@ export function HostVenueFloorBriefPanel({
     </HostCollapsible>
     <HostCollapsible
       expanded
-      className="host-hand-lists order-first max-h-[40%] shrink-0"
-      bodyClassName="min-h-0 flex-1 overflow-y-auto"
+      className="host-hand-lists order-first shrink-0"
       summary={
         <span>
           This hand

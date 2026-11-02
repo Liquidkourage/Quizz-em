@@ -8,8 +8,34 @@ import {
   seatingChartRosterPageEntries,
   type SeatingChartPlayerEntry,
 } from './venueSeatingChartRoster'
-import { seatingChartDwellSeconds } from './venueSeatingChartCarousel'
 import { usePagingCountdown } from './useSeatingChartPaging'
+
+/** Ring that drains once per page, then the next page appears. */
+export function SeatingChartPageClock({
+  durationMs,
+  cycleKey,
+  sizeClass,
+}: {
+  durationMs: number
+  cycleKey: number
+  sizeClass: string
+}) {
+  return (
+    <span className={`seating-chart-clock ${sizeClass}`} aria-hidden>
+      <svg viewBox="0 0 36 36" key={cycleKey}>
+        <circle className="seating-chart-clock-track" cx="18" cy="18" r="15" />
+        <circle
+          className="seating-chart-clock-value"
+          cx="18"
+          cy="18"
+          r="15"
+          pathLength={100}
+          style={{ animationDuration: `${durationMs}ms` }}
+        />
+      </svg>
+    </span>
+  )
+}
 
 function SeatingChartRosterRow({ entry }: { entry: SeatingChartPlayerEntry }) {
   return (
@@ -40,8 +66,7 @@ export default function SeatingChartNameRoster({
   align?: 'left' | 'right'
 }) {
   const pageCount = seatingChartRosterPageCount(entries.length)
-  const dwellSeconds = seatingChartDwellSeconds(SEATING_CHART_ROSTER_PAGE_MS)
-  const { pageIndex, secondsLeft } = usePagingCountdown(pageCount, SEATING_CHART_ROSTER_PAGE_MS, entries.length)
+  const pageIndex = usePagingCountdown(pageCount, SEATING_CHART_ROSTER_PAGE_MS, entries.length)
 
   const pageEntries = useMemo(
     () => seatingChartRosterPageEntries(entries, pageIndex),
@@ -87,16 +112,13 @@ export default function SeatingChartNameRoster({
 
       {pageCount > 1 ? (
         <div
-          className={`mt-1 flex shrink-0 flex-col gap-1 ${align === 'right' ? 'items-end' : 'items-start'}`}
-          aria-label={`${title} roster, ${secondsLeft} seconds`}
+          className={`mt-1 flex shrink-0 items-center gap-2 ${align === 'right' ? 'flex-row-reverse' : ''}`}
         >
-          <p className="text-lg font-black tabular-nums leading-none text-amber-200">{secondsLeft}s</p>
-          <div className="h-1 w-16 overflow-hidden rounded-full bg-white/15" aria-hidden>
-            <div
-              className="h-full rounded-full bg-amber-300/80"
-              style={{ width: `${dwellSeconds > 0 ? (secondsLeft / dwellSeconds) * 100 : 0}%` }}
-            />
-          </div>
+          <SeatingChartPageClock
+            durationMs={SEATING_CHART_ROSTER_PAGE_MS}
+            cycleKey={pageIndex}
+            sizeClass="seating-chart-clock--roster"
+          />
           <div className={`flex items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`} aria-hidden>
             {Array.from({ length: pageCount }, (_, i) => (
               <span

@@ -3790,6 +3790,61 @@
     padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
   }
 
+  .seating-chart-clock {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .seating-chart-clock svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .seating-chart-clock--table {
+    width: 2.35rem;
+    height: 2.35rem;
+  }
+
+  .seating-chart-clock--roster {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .seating-chart-clock-track,
+  .seating-chart-clock-value {
+    fill: none;
+    stroke-width: 3.25;
+  }
+
+  .seating-chart-clock-track {
+    stroke: rgb(255 255 255 / 0.16);
+  }
+
+  .seating-chart-clock-value {
+    stroke: rgb(252 211 77 / 0.95);
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0;
+    transform: rotate(-90deg);
+    transform-origin: center;
+    animation-name: seating-chart-clock-drain;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+
+  @keyframes seating-chart-clock-drain {
+    to {
+      stroke-dashoffset: 100;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .seating-chart-clock-value {
+      animation: none;
+    }
+  }
+
   .seating-chart-sidebar {
     width: var(--seating-sidebar-width);
     max-width: 20%;

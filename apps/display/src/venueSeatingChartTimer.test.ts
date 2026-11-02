@@ -27,11 +27,12 @@ function wall(): DisplayVenueWallSnapshot {
 }
 
 describe('seating chart clocks', () => {
-  it('shows the table page clock at 10 seconds and the name list clock at 8', () => {
+  it('shows a circle draining until the next page, without spelling the seconds', () => {
     const html = renderToStaticMarkup(createElement(VenueSeatingChart, { wall: wall(), skipMountIntro: true }))
-    expect(html).toContain('>10s<')
-    expect(html).toContain('>8s<')
-    expect(html).toContain('10 seconds')
-    expect(html).toContain('8 seconds')
+    expect(html).not.toContain('>10s<')
+    expect(html).not.toContain('>8s<')
+    expect(html).toContain('seating-chart-clock-value')
+    expect(html).toContain('animation-duration:10000ms')
+    expect(html).toContain('animation-duration:8000ms')
   })
 })

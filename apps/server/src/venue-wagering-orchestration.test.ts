@@ -61,7 +61,7 @@ function preBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<typ
 }
 
 describe('venue wagering orchestration', () => {
-  it('requests community board when every seated table finished round 1', () => {
+  it('marks the board ready for the host when every seated table finished round 1', () => {
     const t1 = preBoardClosedTable()
     const plan = planVenueWageringOrchestration({
       seatedTableKeys: [t1.key],

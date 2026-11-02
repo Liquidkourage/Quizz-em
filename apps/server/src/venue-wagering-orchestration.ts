@@ -148,7 +148,7 @@ export type VenueWageringOrchestrationPlan = {
   tableUpdates: { sessionKey: string; gameState: GameState; answerDeadlineMs: number | null }[]
   scheduleShowdownAtMs: number | null
   cancelShowdown: boolean
-  /** Every seated felt finished round 1 — deal the five community cards venue-wide. */
+  /** Every seated felt finished round 1. The host deals the five community cards. */
   dealCommunityBoard: boolean
 }
 

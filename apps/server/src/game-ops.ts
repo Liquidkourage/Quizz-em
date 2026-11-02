@@ -402,8 +402,10 @@ export function dealCommunityBoardForVenue(vnRaw: string): boolean {
       emitVenueTableState(tk, gs, { skipOrchestration: true })
     }
   }
-  if (anyDealt) return true
-  return false
+  if (!anyDealt) return false
+  // The host dealt the street. Open guessing only when that street has nobody left to bet.
+  applyVenueWageringOrchestration(vn)
+  return true
 }
 
 export function applyVenueWageringOrchestration(venueCode: string) {
@@ -412,26 +414,11 @@ export function applyVenueWageringOrchestration(venueCode: string) {
   venueOrchestrationGuard.add(vn)
   try {
     const seated = allSeatedTableSessionsInVenue(vn)
-    let plan = planVenueWageringOrchestration({
+    const plan = planVenueWageringOrchestration({
       seatedTableKeys: seated,
       getState: (tk) => rooms.get(tk),
       currentShowdownAtMs: venueShowdownAtMs.get(vn),
     })
-
-    if (plan.dealCommunityBoard) {
-      if (dealCommunityBoardForVenue(vn)) {
-        emitDisplayVenueSnapshotNow(vn)
-        const follow = planVenueWageringOrchestration({
-          seatedTableKeys: allSeatedTableSessionsInVenue(vn),
-          getState: (tk) => rooms.get(tk),
-          currentShowdownAtMs: venueShowdownAtMs.get(vn),
-        })
-        // A points-only table has no second street. Open answering now.
-        // An open round-2 clock, or an all-in runout, stays put until the next action.
-        if (follow.tableUpdates.length === 0) return
-        plan = follow
-      }
-    }
 
     if (plan.cancelShowdown) {
       clearVenueWageringOrchestrationState(vn)

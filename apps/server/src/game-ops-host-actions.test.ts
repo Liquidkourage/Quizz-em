@@ -16,6 +16,7 @@ import {
   noteVenueWinnerScreens,
   venueWinnerScreensBlockPayout,
   buildHostLibraryPayload,
+  applyVenueWageringOrchestration,
   dealCommunityBoardForVenue,
   ensureVenueLibrary,
   getPlayhead,
@@ -257,6 +258,47 @@ describe('dealCommunityBoardForVenue', () => {
     const after = rooms.get(tableSessionKey('STILLBET', '1'))
     expect(after?.round.isBettingOpen).toBe(true)
     expect(after?.round.communityCards).toEqual([])
+  })
+
+  it('leaves the five community cards for the host when round 1 is already closed', () => {
+    let gs = seat('HOLDBOARD', '1', ['p1', 'p2'])
+    gs = {
+      ...gs,
+      phase: 'betting',
+      round: {
+        ...gs.round,
+        bettingRound: 1,
+        isBettingOpen: false,
+        currentPlayerIndex: -1,
+        communityCards: [],
+      },
+    }
+    rooms.set(tableSessionKey('HOLDBOARD', '1'), gs)
+    applyVenueWageringOrchestration('HOLDBOARD')
+    const after = rooms.get(tableSessionKey('HOLDBOARD', '1'))
+    expect(after?.round.communityCards).toEqual([])
+    expect(after?.round.bettingRound).toBe(1)
+  })
+
+  it('deals the five community cards when the host asks after round 1', () => {
+    let gs = seat('HOSTDEAL', '1', ['p1', 'p2'])
+    gs = {
+      ...gs,
+      phase: 'betting',
+      round: {
+        ...gs.round,
+        bettingRound: 1,
+        isBettingOpen: false,
+        currentPlayerIndex: -1,
+        communityCards: [],
+      },
+    }
+    rooms.set(tableSessionKey('HOSTDEAL', '1'), gs)
+    expect(dealCommunityBoardForVenue('HOSTDEAL')).toBe(true)
+    const after = rooms.get(tableSessionKey('HOSTDEAL', '1'))
+    expect(after?.round.communityCards).toHaveLength(5)
+    expect(after?.round.bettingRound).toBe(2)
+    expect(after?.phase).toBe('betting')
   })
 })
 

@@ -38,7 +38,7 @@ describe('seating update', () => {
               name: 'Ada Lane',
               fromTableNum: 9,
               toTableNum: 4,
-              byline: 'Table 9 was two players ahead, so its next big blind moved to table 4.',
+              byline: 'TABLE BALANCE',
             },
           ],
           closedTableNums: [],
@@ -46,7 +46,7 @@ describe('seating update', () => {
       }),
     )
     expect(html).toContain('venue-bust-overlay-byline')
-    expect(html).toContain('Table 9 was two players ahead, so its next big blind moved to table 4.')
+    expect(html).toContain('TABLE BALANCE')
   })
 
   it('shows a circle for how long the seating update stays up', () => {

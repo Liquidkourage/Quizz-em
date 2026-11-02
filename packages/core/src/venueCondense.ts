@@ -74,14 +74,11 @@ export function seatingMoveByline(args: {
   reason: VenueCondenseMoveReason
   fromTableNum: number
   toTableNum: number
-  aheadBy?: number
 }): string {
   if (args.reason === 'break') {
     return `Table ${args.fromTableNum} closed. Its players drew new seats.`
   }
-  const ahead = Math.max(2, Math.floor(args.aheadBy ?? 2))
-  const count = ahead === 2 ? 'two' : String(ahead)
-  return `Table ${args.fromTableNum} was ${count} players ahead, so its next big blind moved to table ${args.toTableNum}.`
+  return 'TABLE BALANCE'
 }
 
 /** Chip-survivor index of the player who posts the next big blind. */
@@ -246,7 +243,6 @@ function pickBalanceMove(tables: VenueTableRoster[], maxSeats: number): VenueCon
       reason: 'balance',
       fromTableNum: big.tableNum,
       toTableNum: small.tableNum,
-      aheadBy: gap,
     }),
   }
 }

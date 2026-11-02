@@ -91,9 +91,7 @@ describe('planVenueCondense', () => {
       toTableNum: 4,
       reason: 'balance',
     })
-    expect(plan.playerMoves[0]!.byline).toBe(
-      'Table 9 was two players ahead, so its next big blind moved to table 4.',
-    )
+    expect(plan.playerMoves[0]!.byline).toBe('TABLE BALANCE')
   })
 
   it('closes a one-player table when the others are only one seat larger', () => {

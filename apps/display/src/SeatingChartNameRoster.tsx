@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   SEATING_CHART_ROSTER_CAPTION_FONT,
@@ -8,6 +8,8 @@ import {
   seatingChartRosterPageEntries,
   type SeatingChartPlayerEntry,
 } from './venueSeatingChartRoster'
+import { seatingChartDwellSeconds } from './venueSeatingChartCarousel'
+import { usePagingCountdown } from './useSeatingChartPaging'
 
 function SeatingChartRosterRow({ entry }: { entry: SeatingChartPlayerEntry }) {
   return (
@@ -38,19 +40,8 @@ export default function SeatingChartNameRoster({
   align?: 'left' | 'right'
 }) {
   const pageCount = seatingChartRosterPageCount(entries.length)
-  const [pageIndex, setPageIndex] = useState(0)
-
-  useEffect(() => {
-    setPageIndex(0)
-  }, [entries.length])
-
-  useEffect(() => {
-    if (pageCount <= 1) return
-    const id = window.setInterval(() => {
-      setPageIndex((current) => (current + 1) % pageCount)
-    }, SEATING_CHART_ROSTER_PAGE_MS)
-    return () => window.clearInterval(id)
-  }, [pageCount])
+  const dwellSeconds = seatingChartDwellSeconds(SEATING_CHART_ROSTER_PAGE_MS)
+  const { pageIndex, secondsLeft } = usePagingCountdown(pageCount, SEATING_CHART_ROSTER_PAGE_MS, entries.length)
 
   const pageEntries = useMemo(
     () => seatingChartRosterPageEntries(entries, pageIndex),
@@ -96,17 +87,26 @@ export default function SeatingChartNameRoster({
 
       {pageCount > 1 ? (
         <div
-          className={`mt-1 flex shrink-0 items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`}
-          aria-hidden
+          className={`mt-1 flex shrink-0 flex-col gap-1 ${align === 'right' ? 'items-end' : 'items-start'}`}
+          aria-label={`${title} roster, ${secondsLeft} seconds`}
         >
-          {Array.from({ length: pageCount }, (_, i) => (
-            <span
-              key={i}
-              className={`block rounded-full transition-all duration-300 ${
-                i === pageIndex ? 'h-1 w-5 bg-amber-300/70' : 'h-1 w-1 bg-white/20'
-              }`}
+          <p className="text-lg font-black tabular-nums leading-none text-amber-200">{secondsLeft}s</p>
+          <div className="h-1 w-16 overflow-hidden rounded-full bg-white/15" aria-hidden>
+            <div
+              className="h-full rounded-full bg-amber-300/80"
+              style={{ width: `${dwellSeconds > 0 ? (secondsLeft / dwellSeconds) * 100 : 0}%` }}
             />
-          ))}
+          </div>
+          <div className={`flex items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`} aria-hidden>
+            {Array.from({ length: pageCount }, (_, i) => (
+              <span
+                key={i}
+                className={`block rounded-full transition-all duration-300 ${
+                  i === pageIndex ? 'h-1 w-5 bg-amber-300/70' : 'h-1 w-1 bg-white/20'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       ) : null}
     </aside>

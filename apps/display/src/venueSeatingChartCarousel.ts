@@ -7,8 +7,24 @@ export const SEATING_CHART_PAGE_TABLES_NARROW = 2
 /** Viewport width at or above which three portrait cards fit comfortably. */
 export const SEATING_CHART_WIDE_VIEWPORT_PX = 1600
 
-/** Dwell time on each page (ms) — long enough to scan a page from the back of the room. */
-export const SEATING_CHART_PAGE_MS = 18_000
+/** Dwell time on each table-card page (ms). */
+export const SEATING_CHART_PAGE_MS = 10_000
+
+export function seatingChartDwellSeconds(durationMs: number): number {
+  return Math.max(1, Math.round(durationMs / 1000))
+}
+
+/** One second of a paging clock. At 1 the next page starts and the clock refills. */
+export function pagedCountdownTick(
+  paging: { pageIndex: number; secondsLeft: number },
+  pageCount: number,
+  dwellSeconds: number,
+): { pageIndex: number; secondsLeft: number } {
+  if (pageCount <= 1) return { pageIndex: 0, secondsLeft: 0 }
+  if (paging.secondsLeft > 1) return { pageIndex: paging.pageIndex, secondsLeft: paging.secondsLeft - 1 }
+  const pages = Math.max(1, pageCount)
+  return { pageIndex: (paging.pageIndex + 1) % pages, secondsLeft: dwellSeconds }
+}
 
 export function seatingChartPageSizeForViewport(viewportWidth: number): number {
   return viewportWidth >= SEATING_CHART_WIDE_VIEWPORT_PX

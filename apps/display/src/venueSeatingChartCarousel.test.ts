@@ -1,12 +1,27 @@
 import { describe, expect, it } from 'vitest'
 import {
+  SEATING_CHART_PAGE_MS,
   SEATING_CHART_PAGE_TABLES,
   SEATING_CHART_PAGE_TABLES_NARROW,
+  pagedCountdownTick,
+  seatingChartDwellSeconds,
   seatingChartPageCount,
   seatingChartPageLabel,
   seatingChartPageSizeForViewport,
   seatingChartPageTables,
 } from './venueSeatingChartCarousel'
+
+describe('seating chart page timer', () => {
+  it('counts a table page down for 10 seconds, then advances', () => {
+    expect(SEATING_CHART_PAGE_MS).toBe(10_000)
+    const dwell = seatingChartDwellSeconds(SEATING_CHART_PAGE_MS)
+    expect(dwell).toBe(10)
+    let state = { pageIndex: 0, secondsLeft: dwell }
+    for (let i = 0; i < dwell - 1; i++) state = pagedCountdownTick(state, 2, dwell)
+    expect(state).toEqual({ pageIndex: 0, secondsLeft: 1 })
+    expect(pagedCountdownTick(state, 2, dwell)).toEqual({ pageIndex: 1, secondsLeft: dwell })
+  })
+})
 
 describe('seatingChartPageSizeForViewport', () => {
   it('shows three placards on wide displays', () => {

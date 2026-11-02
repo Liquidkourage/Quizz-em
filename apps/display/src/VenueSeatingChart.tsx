@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
@@ -8,10 +8,12 @@ import { SeatingTableCard } from './SeatingTableCard'
 import { seatingChartPlayerEntries, seatingChartRosterHalves } from './venueSeatingChartRoster'
 import {
   SEATING_CHART_PAGE_MS,
+  seatingChartDwellSeconds,
   seatingChartPageCount,
   seatingChartPageTables,
 } from './venueSeatingChartCarousel'
 import { useSeatingChartPageSize } from './useSeatingChartPageSize'
+import { usePagingCountdown } from './useSeatingChartPaging'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 
 function SeatingChartCardSlot({
@@ -44,16 +46,25 @@ function SeatingChartRowPage({
 function SeatingChartPager({
   pageIndex,
   pageCount,
+  secondsLeft,
+  dwellSeconds,
 }: {
   pageIndex: number
   pageCount: number
+  secondsLeft: number
+  dwellSeconds: number
 }) {
+  const filled = dwellSeconds > 0 ? Math.max(0, Math.min(1, secondsLeft / dwellSeconds)) : 0
   return (
     <div
       className="seating-chart-pager flex flex-col items-center gap-2.5"
       aria-live="polite"
-      aria-label={`Table page ${pageIndex + 1} of ${pageCount}`}
+      aria-label={`Table page ${pageIndex + 1} of ${pageCount}, ${secondsLeft} seconds`}
     >
+      <p className="text-2xl font-black tabular-nums leading-none text-amber-200">{secondsLeft}s</p>
+      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-white/15" aria-hidden>
+        <div className="h-full rounded-full bg-amber-300/90" style={{ width: `${filled * 100}%` }} />
+      </div>
       <div className="flex items-center gap-2.5" aria-hidden>
         {Array.from({ length: pageCount }, (_, i) => (
           <span
@@ -83,19 +94,12 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
 
   const pageSize = useSeatingChartPageSize()
   const pageCount = seatingChartPageCount(tables.length, pageSize)
-  const [pageIndex, setPageIndex] = useState(0)
-
-  useEffect(() => {
-    setPageIndex(0)
-  }, [tables.length, pageSize])
-
-  useEffect(() => {
-    if (pageCount <= 1) return
-    const id = window.setInterval(() => {
-      setPageIndex((current) => (current + 1) % pageCount)
-    }, SEATING_CHART_PAGE_MS)
-    return () => window.clearInterval(id)
-  }, [pageCount])
+  const dwellSeconds = seatingChartDwellSeconds(SEATING_CHART_PAGE_MS)
+  const { pageIndex, secondsLeft } = usePagingCountdown(
+    pageCount,
+    SEATING_CHART_PAGE_MS,
+    `${tables.length}:${pageSize}`,
+  )
 
   const pageTables = useMemo(
     () => seatingChartPageTables(tables, pageIndex, pageSize),
@@ -163,7 +167,12 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
 
             {showPager ? (
               <div className="seating-chart-pager-wrap shrink-0 pb-3 pt-1 sm:pb-4">
-                <SeatingChartPager pageIndex={pageIndex} pageCount={pageCount} />
+                <SeatingChartPager
+                  pageIndex={pageIndex}
+                  pageCount={pageCount}
+                  secondsLeft={secondsLeft}
+                  dwellSeconds={dwellSeconds}
+                />
               </div>
             ) : null}
           </div>

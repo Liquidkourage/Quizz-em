@@ -198,9 +198,13 @@ function rememberHandBet(
   if (log.handBets.length > LOG_CAP) log.handBets.length = LOG_CAP
 }
 
+/** A big bet is five big blinds or more. At a $20 blind that is $100. */
+const BIG_BET_BLIND_MULTIPLE = 5
+
 function rankedHandBets(bets: HostVenueBigBetEntry[], bigBlind: number): HostVenueBigBetEntry[] {
+  const min = bigBlind * BIG_BET_BLIND_MULTIPLE
   return [...bets]
-    .filter((bet) => bet.amount >= bigBlind)
+    .filter((bet) => bet.amount >= min)
     .sort((a, b) => b.amount - a.amount || b.atMs - a.atMs)
     .slice(0, 8)
 }

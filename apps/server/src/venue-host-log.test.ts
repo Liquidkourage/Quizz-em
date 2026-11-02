@@ -214,7 +214,6 @@ describe('recordVenueMovesBetweenStates', () => {
     expect(brief.handBets.map((b) => `${b.kind}:${b.amount}:${b.name}`)).toEqual([
       'allIn:980:Alice C.',
       'raise:500:Bob D.',
-      'call:20:Alice C.',
     ])
   })
 
@@ -271,22 +270,36 @@ describe('recordVenueMovesBetweenStates', () => {
     expect(brief.handBets.map((b) => `${b.amount}:${b.name}`)).toEqual(['100:Alice C.'])
   })
 
-  it('hides bets smaller than the big blind from big bets this hand', () => {
+  it('keeps a bet on this hand only when it is at least five big blinds', () => {
     clearVenueHostLog('LOG')
     const before = baseTable()
-    const underBlind: GameState = {
+    const fourBlinds: GameState = {
       ...before,
       players: before.players.map((p) =>
-        p.id === 'human:a' ? { ...p, bankroll: 990 } : p,
+        p.id === 'human:a' ? { ...p, bankroll: 920 } : p,
       ),
       round: {
         ...before.round,
         lastSeatBettingAction: ['call', null],
-        playerBets: { 'human:a': 10 },
+        playerBets: { 'human:a': 80 },
         currentPlayerIndex: 1,
       },
     }
-    recordVenueMovesBetweenStates('LOG', 1, before, underBlind)
+    recordVenueMovesBetweenStates('LOG', 1, before, fourBlinds)
+
+    const fiveBlinds: GameState = {
+      ...fourBlinds,
+      players: fourBlinds.players.map((p) =>
+        p.id === 'human:b' ? { ...p, bankroll: 900 } : p,
+      ),
+      round: {
+        ...fourBlinds.round,
+        currentBet: 100,
+        lastSeatBettingAction: ['call', 'raise'],
+        playerBets: { 'human:a': 80, 'human:b': 100 },
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, fourBlinds, fiveBlinds)
 
     const brief = buildHostVenueFloorBrief({
       venueCode: 'LOG',
@@ -295,7 +308,7 @@ describe('recordVenueMovesBetweenStates', () => {
       liveTableCount: 1,
       bigBlindHint: 20,
     })
-    expect(brief.handBets).toEqual([])
+    expect(brief.handBets.map((b) => `${b.amount}:${b.name}`)).toEqual(['100:Bob D.'])
   })
 })
 

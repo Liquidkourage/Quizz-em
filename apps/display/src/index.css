@@ -2747,10 +2747,18 @@
     color: rgb(255 255 255 / 0.72);
   }
 
-  .vfd-mosaic-status-band-amount.vfd-mosaic-dollar {
+  .vfd-mosaic-status-band-amount {
     flex-shrink: 0;
-    font-size: clamp(1.05rem, 5.8cqw, 3.75rem);
+    font-family: 'Bungee', system-ui, sans-serif;
+    font-size: clamp(0.95rem, 5.2cqw, 3.35rem);
+    font-weight: 400;
+    font-style: normal;
     line-height: 1;
+  }
+
+  .vfd-mosaic-status-band-amount .vfd-mosaic-dollar-sign {
+    font-size: 1em;
+    vertical-align: -0.08em;
   }
 
   .vfd-mosaic-status-band-message {

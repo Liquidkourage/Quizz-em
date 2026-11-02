@@ -59,12 +59,15 @@ describe('HostBlindCall', () => {
         onBigBlind={() => {}}
         onHandsPerLevel={() => {}}
         onGuideSec={() => {}}
+        onShuffleEvery={() => {}}
+        shuffleEvery={5}
         onSave={() => {}}
       />,
     )
     expect(html).toContain('Small blind')
     expect(html).toContain('Big blind')
     expect(html).toContain('Level every')
+    expect(html).toContain('Shuffle every')
     expect(html).toContain('Guide')
     expect(html).toContain('>Save<')
     expect(html.indexOf('Small blind')).toBeLessThan(html.indexOf('Speed up'))

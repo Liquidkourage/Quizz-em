@@ -165,6 +165,7 @@ function HostApp() {
   const [venueSmallBlind, setVenueSmallBlind] = useState(10)
   const [venueBigBlind, setVenueBigBlind] = useState(20)
   const [handsPerBlindLevel, setHandsPerBlindLevel] = useState(3)
+  const [shuffleEvery, setShuffleEvery] = useState(5)
   const [blindLevelSummary, setBlindLevelSummary] = useState<string | null>(null)
   const [venueFeltBeat, setVenueFeltBeat] = useState<HostVenueFeltBeatRow[] | null>(null)
   const [venueFloorBrief, setVenueFloorBrief] = useState<HostVenueFloorBriefPayload | null>(null)
@@ -265,9 +266,14 @@ function HostApp() {
     return off
   }, [])
 
+  const shuffleFromServer = useRef<number | null>(null)
   useEffect(() => {
     const off = onHostVenueFloorBrief((p) => {
       setVenueFloorBrief(p)
+      const n = p.shuffleEveryHands
+      if (typeof n !== 'number' || n <= 0 || shuffleFromServer.current === n) return
+      shuffleFromServer.current = n
+      setShuffleEvery(n)
     })
     return off
   }, [])
@@ -1103,11 +1109,14 @@ function HostApp() {
                 onSmallBlind={setVenueSmallBlind}
                 onBigBlind={setVenueBigBlind}
                 onHandsPerLevel={setHandsPerBlindLevel}
+                shuffleEvery={shuffleEvery}
                 onGuideSec={(n) => setAnswerWindowSeconds(clampVenueAnswerWindow(n))}
+                onShuffleEvery={setShuffleEvery}
                 onSave={() => {
                   saveVenueBlinds()
                   saveBlindStructure()
                   setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
+                  setVenueShuffleEvery(Math.min(20, Math.max(1, Math.floor(shuffleEvery) || 5)))
                 }}
               />
                 }

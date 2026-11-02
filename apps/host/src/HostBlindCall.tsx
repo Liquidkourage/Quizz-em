@@ -72,6 +72,7 @@ export function HostBlindCall({
   bigBlind,
   handsPerLevel,
   guideSec,
+  shuffleEvery,
   goalMinutes,
   onApply,
   onGoalMinutes,
@@ -79,6 +80,7 @@ export function HostBlindCall({
   onBigBlind,
   onHandsPerLevel,
   onGuideSec,
+  onShuffleEvery,
   onSave,
 }: {
   showStartedAtMs: number | null
@@ -90,6 +92,8 @@ export function HostBlindCall({
   bigBlind: number
   handsPerLevel: number
   guideSec: number
+  /** Hands between table shuffles. Omitted until the desk is ready to edit it. */
+  shuffleEvery?: number
   /** Overrides the remembered night length. The desk leaves this unset and uses local storage. */
   goalMinutes?: number
   onApply: (call: BlindCall) => void
@@ -98,6 +102,7 @@ export function HostBlindCall({
   onBigBlind?: (n: number) => void
   onHandsPerLevel?: (n: number) => void
   onGuideSec?: (n: number) => void
+  onShuffleEvery?: (n: number) => void
   onSave?: () => void
 }) {
   const [storedGoal, setStoredGoal] = useState(120)
@@ -161,6 +166,15 @@ export function HostBlindCall({
           <PaceNumber label="Small blind" value={smallBlind ?? bigBlind} min={1} onChange={(n) => onSmallBlind?.(n)} />
           <PaceNumber label="Big blind" value={bigBlind} min={1} onChange={(n) => onBigBlind?.(n)} />
           <PaceNumber label="Level every" value={handsPerLevel} min={1} max={50} onChange={(n) => onHandsPerLevel?.(n)} />
+          {onShuffleEvery ? (
+            <PaceNumber
+              label="Shuffle every"
+              value={shuffleEvery ?? 5}
+              min={1}
+              max={20}
+              onChange={(n) => onShuffleEvery(Math.min(20, Math.max(1, Math.floor(n) || 1)))}
+            />
+          ) : null}
           <PaceNumber label="Guide" value={guideSec} min={15} max={300} step={5} onChange={(n) => onGuideSec?.(n)} />
           <button
             type="button"

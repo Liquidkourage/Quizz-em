@@ -80,6 +80,7 @@ export async function handleDisplayTransport(
         return true
       }
       g.venueDisplayLayouts.set(g.normalizeVenueCode(gsCtl.code), nextLayout)
+      g.noteVenuePublicScores(g.normalizeVenueCode(gsCtl.code), nextLayout.wallView ?? 'floor')
       g.io.to(g.displayVenueRoom(gsCtl.code)).emit('displayLayout', nextLayout)
       g.emitDisplayVenueSnapshotNow(gsCtl.code)
       return true

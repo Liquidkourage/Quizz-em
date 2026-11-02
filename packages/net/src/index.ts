@@ -430,6 +430,10 @@ export type HostVenueFloorBriefPayload = {
   wallView?: VenueWallViewMode
   /** Epoch ms when Pay winners unlocks. Null once the winner screens have finished a pass. */
   winnerScreensReadyAtMs?: number | null
+  /** Quiet reminder to put chip scores or trivia scores on the TVs. */
+  scoresHint?: string | null
+  /** Next question waits until chip scores or trivia scores have been shown. */
+  scoresBlockNextQuestion?: boolean
 }
 
 export const ClientHello = z.object({

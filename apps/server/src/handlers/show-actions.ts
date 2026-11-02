@@ -90,6 +90,11 @@ export async function handleShowAction(
             'stay together in lobby or deal setup before changing the question'
           )
           if (!lockQ) break
+          const scoresBlock = g.venueScoresCue(g.normalizeVenueCode(gameState.code))
+          if (scoresBlock.blocked && scoresBlock.hint) {
+            socket.emit('toast', scoresBlock.hint)
+            break
+          }
           const lib = await g.ensureVenueLibrary(gameState.code)
           const bank = lib.questions
           const questionIdRaw = payload?.questionId
@@ -134,6 +139,11 @@ export async function handleShowAction(
             'stay together in lobby or deal setup before the next setlist cue'
           )
           if (!lockSl) break
+          const scoresBlockSl = g.venueScoresCue(g.normalizeVenueCode(gameState.code))
+          if (scoresBlockSl.blocked && scoresBlockSl.hint) {
+            socket.emit('toast', scoresBlockSl.hint)
+            break
+          }
           const venue = g.normalizeVenueCode(gameState.code)
           const lib = await g.ensureVenueLibrary(gameState.code)
           let ph = g.activePlayheadForLibrary(venue, lib)
@@ -432,6 +442,7 @@ export async function handleShowAction(
           g.clearVenueWageringOrchestrationState(vn)
           g.clearVenueRevealBeatTimer(vn)
           g.clearVenueWinnerScreens(vn)
+          g.clearVenueScoresWatch(vn)
           const hostIdSnap = gameState.hostId
           const lobbyKey = g.tableSessionKey(vn, g.LOBBY_TABLE_ID)
           const droppedPlayerIds: string[] = []

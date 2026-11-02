@@ -178,6 +178,19 @@ import {
 } from './player-socket-registry'
 import { requiredHostSecret } from './host-auth'
 import { handSecretsArePublic, redactGameStateForViewer } from './audience-view'
+import {
+  clearVenueScoresWatch,
+  commitVenueScoresOnQuestion,
+  noteVenuePublicScores,
+  venueScoresCue,
+} from './venue-scores-watch'
+
+export {
+  clearVenueScoresWatch,
+  commitVenueScoresOnQuestion,
+  noteVenuePublicScores,
+  venueScoresCue,
+}
 
 export {
   clearPlayerSocketRegistry,
@@ -2382,6 +2395,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       handsCompleted: getVenueHandsCompleted(vn),
       lastHandBustCount: lastHandDisplay?.busts.length ?? 0,
       wallView: venueDisplayLayouts.get(vn)?.wallView ?? 'floor',
+      scoresHint: venueScoresCue(vn).hint,
+      scoresBlockNextQuestion: venueScoresCue(vn).blocked,
       winnerScreensReadyAtMs: venueWinnerScreensReadyAtFor(vn),
     }),
   )
@@ -2539,6 +2554,7 @@ export function drainCpuVpSessionChain(sessionKey: string) {
 
 export function applyQuestionToAllPlayable(venueCode: string, picked: Question): boolean {
   const vn = normalizeVenueCode(venueCode)
+  commitVenueScoresOnQuestion(vn)
   clearVenueHostHandOnNewQuestion(vn)
   const lib = venueLibraries?.get(vn)
   if (lib) noteShownQuestion(vn, picked.id, lib)

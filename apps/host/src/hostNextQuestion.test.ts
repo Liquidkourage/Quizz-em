@@ -42,6 +42,28 @@ describe('next question cue', () => {
     const items = dock(1)
     expect(items.find((item) => item.role === 'primary')?.label).toBe('Next question')
     expect(items.some((item) => item.label === 'Random question')).toBe(false)
+    const held = buildHostPhaseDockItems({
+      gameState: addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada'),
+      answerWindowSeconds: 60,
+      dealCommunityBlocked: false,
+      closeBetBlocked: false,
+      startAnswerBlocked: false,
+      communityLen: 0,
+      bettingRound: 0,
+      onStartGame: noop,
+      onAssignFromLobby: noop,
+      onDealCommunity: noop,
+      onStartAnswering: noop,
+      onRevealAnswer: noop,
+      onEndRound: noop,
+      onRandomQuestion: noop,
+      onNextSetlist: noop,
+      onNudgeActing: noop,
+      hasActiveSetlist: true,
+      handsCompleted: 5,
+      nextQuestionBlocked: true,
+    })
+    expect(held.find((item) => item.label === 'Next question')?.disabled).toBe(true)
 
     const gameState = addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada')
     const headline = hostRunOfShowHeadline(gameState, null, {
@@ -92,5 +114,19 @@ describe('audience TV controls', () => {
     )
     expect(html).toContain('Seating')
     expect(html).toContain('Eliminations')
+  })
+
+  it('mentions scores when this hand has not shown them', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTvBar, {
+        onVenueFloor: noop,
+        onLeaderboard: noop,
+        onTriviaLeaderboard: noop,
+        onSeatingRules: noop,
+        scoresHint: 'Chip scores or trivia scores have not been up.',
+      }),
+    )
+    expect(html).toContain('have not been up')
+    expect(html).toContain('text-white/45')
   })
 })

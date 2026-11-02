@@ -707,6 +707,8 @@ export function buildHostPhaseDockItems(args: {
   hasActiveSetlist?: boolean
   /** Venue hands already paid. Zero while waiting to start question 1. */
   handsCompleted?: number
+  /** Chip or trivia scores have been skipped long enough that the next question waits. */
+  nextQuestionBlocked?: boolean
 }): HostDockItem[] {
   const {
     gameState,
@@ -731,8 +733,15 @@ export function buildHostPhaseDockItems(args: {
     onRehearsalSkipToShowdown,
     hasActiveSetlist = false,
     handsCompleted = 0,
+    nextQuestionBlocked = false,
   } = args
   const setlistCue = handsCompleted <= 0 ? 'Start Game' : 'Next question'
+  const gateQuestion = (items: HostDockItem[]): HostDockItem[] =>
+    items.map((item) =>
+      nextQuestionBlocked && (item.id === 'setlist' || item.id === 'random')
+        ? { ...item, disabled: true }
+        : item,
+    )
   const phase = gameState.phase
   const tableId = gameState.tableId ?? ''
   const bettingOpen = gameState.round.isBettingOpen !== false
@@ -784,7 +793,7 @@ export function buildHostPhaseDockItems(args: {
         role: 'primary',
       })
     }
-    return withRehearsalSkip(items)
+    return gateQuestion(withRehearsalSkip(items))
   }
 
   if (phase === 'question') {
@@ -817,7 +826,7 @@ export function buildHostPhaseDockItems(args: {
           role: 'secondary',
         })
       }
-      return withRehearsalSkip(dealItems)
+      return gateQuestion(withRehearsalSkip(dealItems))
     }
     if (questionLive && holesDealt) {
       return withRehearsalSkip([
@@ -831,7 +840,7 @@ export function buildHostPhaseDockItems(args: {
       ])
     }
     if (hasActiveSetlist) {
-      return withRehearsalSkip([
+      return gateQuestion(withRehearsalSkip([
         {
           id: 'setlist',
           label: setlistCue,
@@ -839,9 +848,9 @@ export function buildHostPhaseDockItems(args: {
           variant: 'purple',
           role: 'primary',
         },
-      ])
+      ]))
     }
-    return withRehearsalSkip([
+    return gateQuestion(withRehearsalSkip([
       {
         id: 'random',
         label: 'Show a random question',
@@ -849,7 +858,7 @@ export function buildHostPhaseDockItems(args: {
         variant: 'purple',
         role: 'primary',
       },
-    ])
+    ]))
   }
 
   if (phase === 'betting') {
@@ -2541,6 +2550,8 @@ export function HostTvBar({
   onSeatingChart,
   onEliminations,
   onSeatingRules,
+  scoresHint = null,
+  scoresForced = false,
 }: {
   activeView?: VenueWallViewMode
   onVenueFloor: () => void
@@ -2549,6 +2560,9 @@ export function HostTvBar({
   onSeatingChart?: () => void
   onEliminations?: () => void
   onSeatingRules: () => void
+  /** Quiet line when this hand has not shown chip or trivia scores. */
+  scoresHint?: string | null
+  scoresForced?: boolean
   /** @deprecated Spotlight via HostFloorStrip — ignored. */
   livelyTableNums?: number[]
   tableMax?: number
@@ -2592,6 +2606,11 @@ export function HostTvBar({
         )
       })}
       </div>
+      {scoresHint ? (
+        <p className={`mt-1.5 text-xs leading-snug ${scoresForced ? 'font-semibold text-amber-100/90' : 'text-white/45'}`}>
+          {scoresHint}
+        </p>
+      ) : null}
     </div>
   )
 }

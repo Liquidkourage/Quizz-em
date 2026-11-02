@@ -1607,6 +1607,14 @@ export {
   winnerScreensReadyAt,
 } from './winnerScreens';
 export { answerRevealOpen, answerRevealWaitLabel } from './answerReveal';
+export {
+  advanceScoresWatch,
+  emptyScoresWatch,
+  noteScoresView,
+  scoresCue,
+  SCORES_FORCE_AFTER_HANDS,
+} from './scoresWatch';
+export type { ScoresWatch } from './scoresWatch';
 
 function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAnswer'>, correct: number): number {
   if (snapshotPlayer.submittedAnswer === undefined) return 0;

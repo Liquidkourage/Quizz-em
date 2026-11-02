@@ -560,6 +560,7 @@ function HostApp() {
     onRehearsalSkipToShowdown: rehearsalCpuOnly ? () => rehearsalSkipToShowdown() : undefined,
     hasActiveSetlist,
     handsCompleted: venueFloorBrief?.handsCompleted ?? 0,
+    nextQuestionBlocked: venueFloorBrief?.scoresBlockNextQuestion === true,
   })
 
   const nextQuestionText =
@@ -589,7 +590,10 @@ function HostApp() {
             ? revealAnswerHint
             : primaryDockId === 'end-round' && payWinnersBlocked
               ? payWinnersHint
-              : null
+              : (primaryDockId === 'setlist' || primaryDockId === 'random') &&
+                  venueFloorBrief?.scoresBlockNextQuestion === true
+                ? venueFloorBrief.scoresHint ?? null
+                : null
   const hostTableNum = (() => {
     const raw = gameState.tableId ?? '1'
     if (raw === LOBBY_TABLE_ID) return 1
@@ -1112,6 +1116,8 @@ function HostApp() {
               (venueFloorBrief?.lastHandBustCount ?? 0) > 0 ? showEliminationsOnTvs : undefined
             }
             onSeatingRules={showSeatingRulesOnTvs}
+            scoresHint={venueFloorBrief?.scoresHint ?? null}
+            scoresForced={venueFloorBrief?.scoresBlockNextQuestion === true}
             activeView={venueFloorBrief?.wallView ?? 'floor'}
             venueFeltBeat={venueFeltBeat}
             questionSlot={

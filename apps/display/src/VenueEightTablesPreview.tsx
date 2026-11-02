@@ -37,7 +37,11 @@ import {
   type BroadcastDensity,
   MOSAIC_HOLE_CARD_FAN_DEG,
 } from './venueMosaicSeatGeometry'
-import { broadcastFeltScale } from './venueBroadcastLayout'
+import {
+  broadcastFeltScale,
+  DUAL_BROADCAST_HOLE_INWARD_FRAC,
+  dualBroadcastHoleCardBoxPx,
+} from './venueBroadcastLayout'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -1356,6 +1360,7 @@ function SeatRingWithLabels({
       : null
   const broadcastCommunityCardW = broadcastCommunityLayout?.widthPx ?? 0
   const broadcastCommunityCardH = broadcastCommunityLayout?.heightPx ?? 0
+  const dualHoleCardBox = isDualBroadcast ? dualBroadcastHoleCardBoxPx(rimW) : null
 
   const showFeltBoardCenter =
     !suppressFeltCenter &&
@@ -1447,7 +1452,9 @@ function SeatRingWithLabels({
         const chipInwardFrac = mosaicSeatChipInwardFrac(i)
         const holeInwardFrac = isMosaic
           ? mosaicHoleClearOfInitialsFrac(i, rimW, rimH)
-          : mosaicSeatHoleInwardFrac(i)
+          : isDualBroadcast
+            ? DUAL_BROADCAST_HOLE_INWARD_FRAC
+            : mosaicSeatHoleInwardFrac(i)
         const broadcastMarkerPx =
           isBroadcast && rimW > 0
             ? venueBlindMarkerSizePx(rimW, 'broadcast', isDualBroadcast ? 'dual' : 'solo')
@@ -1497,7 +1504,7 @@ function SeatRingWithLabels({
                   rotateDeg: pt.rotateDeg,
                 }
               })()
-        const holeLayout = broadcastAssets ? broadcastAssets.hole : holeLayoutRaw
+        const holeLayout = !isDualBroadcast && broadcastAssets ? broadcastAssets.hole : holeLayoutRaw
         const anchored = labelAnchorsPct[i]
         const fb = fallbackLabelEllipseScale(size, Boolean(feltSeatStacks && (size === 'lg' || isBroadcast)))
         const fallbackPos = venueSeatRimPct(i, fb, rimW, rimH)
@@ -1677,16 +1684,17 @@ function SeatRingWithLabels({
                 style={{
                   left: `${holeLayout.leftPct}%`,
                   top: `${holeLayout.topPct}%`,
-                  transform: isMosaic ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
+                  transform:
+                    isMosaic || isDualBroadcast ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
                 }}
                 aria-label="Two hole cards"
               >
-                {isMosaic ? (
+                {isMosaic || dualHoleCardBox != null ? (
                   <MosaicHoleCardPair
                     rotateDeg={holeLayout.rotateDeg}
-                    cardWidthPx={mosaicHoleCardW}
-                    cardHeightPx={mosaicHoleCardH}
-                    overlapPx={mosaicHoleCardOverlap}
+                    cardWidthPx={isMosaic ? mosaicHoleCardW : (dualHoleCardBox?.widthPx ?? 0)}
+                    cardHeightPx={isMosaic ? mosaicHoleCardH : (dualHoleCardBox?.heightPx ?? 0)}
+                    overlapPx={isMosaic ? mosaicHoleCardOverlap : (dualHoleCardBox?.overlapPx ?? 0)}
                   />
                 ) : (
                   <FeltHoleCardPair
@@ -2712,7 +2720,20 @@ export function VenueSingleTableBroadcast({
         />
       ) : (
         <>
-          {showTableBadge ? (
+          {isDualDensity ? (
+            <div className="@container relative grid shrink-0 grid-cols-[auto_minmax(0,1fr)] items-center px-1.5 pt-1.5">
+              <ShowdownTableBadge tableNum={tableNum} />
+              {broadcastActionKind != null ? (
+                <MosaicTableStatusBand
+                  kind={broadcastActionKind}
+                  playerName={actingPlayerName ?? undefined}
+                  callAmount={actingCallAmount ?? undefined}
+                  prefersReducedMotion={_prefersReducedMotion}
+                  gridRowClass="min-w-0"
+                />
+              ) : null}
+            </div>
+          ) : showTableBadge ? (
             <div className="pointer-events-none absolute left-2 top-2 z-20">
               <ShowdownTableBadge tableNum={tableNum} />
             </div>
@@ -2737,9 +2758,9 @@ export function VenueSingleTableBroadcast({
                 actingCallAmount={tile.actingCallAmount}
                 mosaicCenterPot={pot}
                 mosaicCenterPotMuted={potMuted}
-                broadcastActionKind={broadcastActionKind}
-                broadcastActingPlayerName={actingPlayerName}
-                broadcastCallAmount={actingCallAmount}
+                broadcastActionKind={isDualDensity ? null : broadcastActionKind}
+                broadcastActingPlayerName={isDualDensity ? null : actingPlayerName}
+                broadcastCallAmount={isDualDensity ? null : actingCallAmount}
                 seatHoleDigits={tile.seatHoleDigits}
                 seatHolesDealt={tile.seatHolesDealt}
                 communityDigits={tile.communityDigits}

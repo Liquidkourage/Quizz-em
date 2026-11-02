@@ -300,6 +300,18 @@ describe('broadcast felt assets', () => {
   })
 })
 
+describe('broadcast felt assets on a two-table felt', () => {
+  it('sets the button and chips beside the hole cards', () => {
+    const w = 700
+    const h = 400
+    const { hole, chip, blind } = broadcastFeltAssetAnchors(0, w, h, 36, 'dual')
+    const apart = (a: { leftPct: number; topPct: number }, b: { leftPct: number; topPct: number }) =>
+      Math.hypot(((a.leftPct - b.leftPct) / 100) * w, ((a.topPct - b.topPct) / 100) * h)
+    expect(apart(hole, chip)).toBeGreaterThan(70)
+    expect(apart(hole, blind)).toBeGreaterThan(70)
+  })
+})
+
 describe('broadcastRimLabel dual density', () => {
   const w = 640
   const h = 360

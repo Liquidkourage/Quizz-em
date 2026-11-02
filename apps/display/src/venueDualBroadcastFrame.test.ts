@@ -28,4 +28,18 @@ describe('two-table broadcast frame', () => {
     expect(html.match(/border-yellow-700\/40/g)?.length).toBe(2)
     expect(html).not.toContain('data-table-tile')
   })
+
+  it('puts the mosaic header on each two-table card and keeps that cue off the felt', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueDualTableBroadcast, {
+        tiles: [{ ...tile(9), phase: 'answering' }, { ...tile(10), phase: 'answering' }],
+        prefersReducedMotion: true,
+        floorSpec: resolveVenueFloorSpec({ populatedTableCount: 2 }) ?? undefined,
+      }),
+    )
+    expect(html.match(/vfd-mosaic-status-band--answering/g)?.length).toBe(2)
+    expect(html).toContain('Answer on your phone')
+    expect(html.match(/vfd-mosaic-table-num/g)?.length).toBe(2)
+    expect(html).not.toContain('vfd-broadcast-action-message')
+  })
 })

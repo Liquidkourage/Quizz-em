@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { STADIUM_REFERENCE_TABLE_WIDTH_PX } from '@qhe/ui'
 import {
   broadcastFeltScale,
+  dualBroadcastHoleCardBoxPx,
   buildVenueBroadcastMetaLine,
   isVenueBroadcastFloor,
   isVenueDualTableBroadcast,
@@ -23,6 +24,14 @@ describe('venueBroadcastLayout', () => {
     expect(broadcastFeltScale(half, 'dual')).toBeCloseTo(half / STADIUM_REFERENCE_TABLE_WIDTH_PX, 5)
     expect(broadcastFeltScale(half, 'solo')).toBe(0.78)
     expect(broadcastFeltScale(half, 'dual')).toBeLessThan(broadcastFeltScale(half, 'solo'))
+  })
+
+  it('sizes two-table hole cards to the same card as the community board', () => {
+    const box = dualBroadcastHoleCardBoxPx(640)
+    const communityW = Math.round(76 * broadcastFeltScale(640, 'dual'))
+    expect(box.widthPx).toBe(Math.max(28, communityW))
+    expect(box.heightPx).toBe(Math.round((box.widthPx * 7) / 5))
+    expect(box.overlapPx).toBe(Math.max(8, Math.round(box.widthPx * 0.36)))
   })
 
   it('splits single vs dual broadcast modes', () => {

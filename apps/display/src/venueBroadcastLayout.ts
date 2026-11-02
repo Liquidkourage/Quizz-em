@@ -12,6 +12,27 @@ export function broadcastFeltScale(rimW: number, density: 'solo' | 'dual'): numb
   if (density === 'dual') return Math.max(0.48, Math.min(1.05, proportional))
   return Math.max(0.78, Math.min(2.05, proportional))
 }
+
+/** Community card width at scale 1. Matches the two-table board. */
+const DUAL_COMMUNITY_CARD_WIDTH_PX = 76
+
+/**
+ * Two-table hole cards: the same card size as that felt's community board,
+ * fanned the way the 3+ mosaic fans them.
+ */
+export function dualBroadcastHoleCardBoxPx(rimW: number): {
+  widthPx: number
+  heightPx: number
+  overlapPx: number
+} {
+  const widthPx = Math.max(28, Math.round(DUAL_COMMUNITY_CARD_WIDTH_PX * broadcastFeltScale(rimW, 'dual')))
+  const heightPx = Math.round((widthPx * 7) / 5)
+  const overlapPx = Math.max(8, Math.round(widthPx * 0.36))
+  return { widthPx, heightPx, overlapPx }
+}
+
+/** Two-table pairs sit further onto the green than a mosaic tile, clear of the button. */
+export const DUAL_BROADCAST_HOLE_INWARD_FRAC = 0.36
 import {
   venueHeadlineCondenseCaptionParts,
   type VenueCondenseProgressModel,

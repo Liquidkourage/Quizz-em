@@ -240,7 +240,8 @@ export function broadcastFeltAssetAnchors(
     density === 'dual' ? broadcastFeltScale(w, 'dual') : Math.max(0.85, Math.min(1.15, w / 1134))
   const marker = markerSizePx > 0 ? markerSizePx : 44
   const cardIn = 46 * scale
-  const side = (density === 'dual' ? Math.max(32, marker * 1.05) : Math.max(50, marker * 1.15)) * scale
+  const side =
+    density === 'dual' ? Math.max(78, marker * 1.35) : Math.max(50, marker * 1.15) * scale
   const at = (x: number, y: number) => ({
     leftPct: (x / w) * 100,
     topPct: (y / h) * 100,

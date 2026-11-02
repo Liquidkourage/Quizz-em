@@ -2,7 +2,13 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
-import { HostNudgeClock, HostShowClocks, formatElapsedClock, soonestNudgeSeconds } from './HostShowClocks'
+import {
+  HostNudgeClock,
+  HostShowClocks,
+  formatElapsedClock,
+  lastActionAtMs,
+  soonestNudgeSeconds,
+} from './HostShowClocks'
 
 function felt(over: Partial<HostVenueFeltBeatRow>): HostVenueFeltBeatRow {
   return {
@@ -39,6 +45,18 @@ describe('host show clocks', () => {
     expect(html).toContain('Hand')
     expect(html).toContain('1:30')
     expect(html).toContain('0:12')
+  })
+
+  it('counts from the latest action this hand, or from the hand start', () => {
+    const hand = 1_000_000
+    const moves = [
+      { tableNum: 1, atMs: hand + 4_000 },
+      { tableNum: 1, atMs: hand + 12_000 },
+      { tableNum: 2, atMs: hand - 5_000 },
+    ]
+    expect(lastActionAtMs(moves, 1, hand)).toBe(hand + 12_000)
+    expect(lastActionAtMs(moves, 2, hand)).toBe(hand)
+    expect(lastActionAtMs(moves, 1, null)).toBeNull()
   })
 
   it('shows the 30s nudge that is running on a felt', () => {

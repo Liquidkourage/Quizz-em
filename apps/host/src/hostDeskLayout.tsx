@@ -15,7 +15,7 @@ import type {
 import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
-import { feltCountdownSec } from './HostShowClocks'
+import { feltCountdownSec, formatElapsedClock, lastActionAtMs } from './HostShowClocks'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
   lobby: 'Waiting room',
@@ -2032,12 +2032,13 @@ export function HostVenueFloorBriefPanel({
 }) {
   const rows = [...(brief?.actionRows ?? [])].sort((a, b) => a.tableNum - b.tableNum)
   const nudgeLive = feltHasNudgeClock(feltRows)
+  const actionClockLive = rows.some((row) => row.phase !== 'lobby' && row.phase !== 'inactive')
   const [, setNudgeTick] = useState(0)
   useEffect(() => {
-    if (!nudgeLive) return
+    if (!nudgeLive && !actionClockLive) return
     const id = window.setInterval(() => setNudgeTick((n) => n + 1), 1000)
     return () => window.clearInterval(id)
-  }, [nudgeLive])
+  }, [nudgeLive, actionClockLive])
   const soloTable = publicDisplaySoloTable(brief)
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
   const [openTable, setOpenTable] = useState<number | null>(null)
@@ -2097,6 +2098,13 @@ export function HostVenueFloorBriefPanel({
                   const drift = outlierTableNums.has(row.tableNum)
                   const nudgeName = onNudgeTable ? actingNudgeName(row) : null
                   const nudgeSec = nudgeSecondsForTable(feltRows, row.tableNum, Date.now())
+                  const sinceLast =
+                    row.phase === 'lobby' || row.phase === 'inactive'
+                      ? null
+                      : formatElapsedClock(
+                          lastActionAtMs(brief.moveLog, row.tableNum, brief.handStartedAtMs ?? null),
+                          Date.now(),
+                        )
                   return (
                     <li key={row.tableNum}>
                     <button
@@ -2116,6 +2124,14 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </span>
                       <p className="text-sm font-semibold">{cue.label}</p>
+                      {sinceLast != null && sinceLast !== '—' ? (
+                        <p
+                          className="font-mono text-sm font-bold tabular-nums text-white/75"
+                          aria-label={`Since last action ${sinceLast}`}
+                        >
+                          {sinceLast}
+                        </p>
+                      ) : null}
                       {nudgeName ? (
                         <p className="truncate text-sm font-semibold text-amber-50">
                           {hostPlayerLabel(nudgeName)}

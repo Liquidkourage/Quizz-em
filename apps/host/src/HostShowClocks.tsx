@@ -12,6 +12,21 @@ export function formatElapsedClock(startedAtMs: number | null, nowMs: number): s
   return `${minutes}:${ss}`
 }
 
+/** Latest action this hand, or the hand start when the table has not acted yet. */
+export function lastActionAtMs(
+  moves: readonly { tableNum: number; atMs: number }[],
+  tableNum: number,
+  handStartedAtMs: number | null,
+): number | null {
+  if (handStartedAtMs == null) return null
+  let latest = handStartedAtMs
+  for (const move of moves) {
+    if (move.tableNum !== tableNum || move.atMs < handStartedAtMs) continue
+    if (move.atMs > latest) latest = move.atMs
+  }
+  return latest
+}
+
 export function soonestNudgeSeconds(
   rows: readonly Pick<HostVenueFeltBeatRow, 'turnDeadlineMs'>[] | null,
   nowMs: number,

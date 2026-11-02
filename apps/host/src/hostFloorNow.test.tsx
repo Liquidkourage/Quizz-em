@@ -222,6 +222,41 @@ describe('venue floor now', () => {
     expect(other).not.toContain('Nudge clock')
   })
 
+  it('counts up on the table action card since that table last acted', () => {
+    const now = Date.now()
+    const hand = now - 40_000
+    const floor = brief()
+    floor.handStartedAtMs = hand
+    floor.actionRows = [
+      { ...actionRow(1), phase: 'betting' },
+      { ...actionRow(2), phase: 'betting' },
+      { ...actionRow(3), phase: 'lobby' },
+    ]
+    floor.moveLog = [
+      {
+        id: 'a',
+        atMs: now - 12_000,
+        tableNum: 1,
+        playerName: 'Ada',
+        kind: 'call',
+        summary: 'Ada called',
+      },
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    const first = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
+    const quiet = html.slice(html.indexOf('Open table 2'), html.indexOf('Open table 3'))
+    const lobby = html.slice(html.indexOf('Open table 3'))
+    expect(first).toContain('Since last action 0:12')
+    expect(quiet).toContain('Since last action 0:40')
+    expect(lobby).not.toContain('Since last action')
+  })
+
   it('lists table action in numerical order', () => {
     const floor = brief()
     floor.actionRows = [

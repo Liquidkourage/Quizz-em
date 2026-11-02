@@ -140,6 +140,8 @@ export default function VenueLeaderboardWall({
   const pageLabel = venueLeaderboardPageLabel(currentPage)
   const fullFieldLayout = venueLeaderboardPageUsesFullFieldLayout(currentPage)
   const title = trophy === 'trivia' ? 'Trivia leaders' : 'Chip leaders'
+  const showClock = showPager || trophyMode === 'dual'
+  const triviaClock = trophy === 'trivia' && showClock
 
   return (
     <LeaderboardFrame fullField={fullFieldLayout}>
@@ -155,7 +157,11 @@ export default function VenueLeaderboardWall({
         <LeaderboardStatusRow model={condenseProgress} />
       ) : null}
 
-      <main className="venue-lb-main flex min-h-0 flex-1 flex-col overflow-hidden">
+      <main
+        className={`venue-lb-main flex min-h-0 flex-1 flex-col overflow-hidden${
+          triviaClock ? ' venue-lb-main--clock' : ''
+        }`}
+      >
         <div className="relative min-h-0 flex-1 overflow-hidden">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -174,8 +180,12 @@ export default function VenueLeaderboardWall({
         {footerStats != null ? <VenueLeaderboardStatsRibbon stats={footerStats} /> : null}
       </main>
 
-      {showPager || trophyMode === 'dual' ? (
-        <div className="venue-lb-pager pointer-events-none absolute bottom-[clamp(6.5rem,12vh,8.5rem)] left-0 right-0 flex justify-center">
+      {showClock ? (
+        <div
+          className={`venue-lb-pager pointer-events-none absolute left-0 right-0 flex justify-center${
+            triviaClock ? ' venue-lb-pager--trivia' : ''
+          }`}
+        >
           <div className="flex items-center gap-2">
             {showPager ? (
               <SeatingChartPageClock

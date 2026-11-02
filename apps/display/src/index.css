@@ -3663,6 +3663,19 @@
     color: rgb(255 251 235 / 0.96);
   }
 
+  .venue-lb-pager {
+    bottom: clamp(6.5rem, 12vh, 8.5rem);
+  }
+
+  /* Trivia scores have no chip ribbon, so the circle and page dash sit at the foot. */
+  .venue-lb-pager--trivia {
+    bottom: clamp(0.85rem, 1.8vh, 1.35rem);
+  }
+
+  .venue-lb-main--clock {
+    padding-bottom: 3.75rem;
+  }
+
   .venue-lb-pager-dot {
     display: block;
     height: 8px;

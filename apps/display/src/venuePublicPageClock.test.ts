@@ -44,6 +44,18 @@ describe('public screens that change on a timer', () => {
     expect(single).not.toContain('seating-chart-clock-value')
   })
 
+  it('keeps the trivia scores clock at the foot of the board', () => {
+    const trivia = renderToStaticMarkup(
+      createElement(VenueLeaderboardWall, { wall: wall(9), skipMountIntro: true, trophyMode: 'trivia' }),
+    )
+    expect(trivia).toContain('venue-lb-pager--trivia')
+
+    const chips = renderToStaticMarkup(
+      createElement(VenueLeaderboardWall, { wall: wall(9), skipMountIntro: true, trophyMode: 'chips' }),
+    )
+    expect(chips).not.toContain('venue-lb-pager--trivia')
+  })
+
   it('shows the circle while chip and trivia scores trade places', () => {
     const html = renderToStaticMarkup(
       createElement(VenueLeaderboardWall, { wall: wall(1), skipMountIntro: true, trophyMode: 'dual' }),

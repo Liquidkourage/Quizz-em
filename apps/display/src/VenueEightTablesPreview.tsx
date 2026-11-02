@@ -48,6 +48,8 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAct
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import {
   MosaicSeatStackAmount,
+  MOSAIC_HOLE_CARD_LAYER,
+  MOSAIC_SEAT_INITIAL_LAYER,
   mosaicHoleClearOfInitialsFrac,
   mosaicSeatInitialFontPx,
   mosaicSeatInitialShiftXPx,
@@ -133,7 +135,7 @@ const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
 /** Stacking inside each mini felt ({@link SeatRingWithLabels}): name + bankroll beside name always top; then center hint, badges, pile, rim. */
 const SEAT_LAYER_FELT_POT = 'z-[130]'
-const SEAT_LAYER_DOT = 'z-[20]'
+const SEAT_LAYER_DOT = MOSAIC_SEAT_INITIAL_LAYER
 const SEAT_LAYER_FELT_CHIP_PILE = 'z-[115]'
 const SEAT_LAYER_BLIND_OUT = 'z-[117]'
 const SEAT_LAYER_ACTION_PANEL = 'z-[118]'
@@ -755,8 +757,8 @@ function padSeatHolesDealt(raw: readonly boolean[] | undefined): boolean[] {
   return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => raw?.[i] === true)
 }
 
-/** Above the seat initials (z-20). Letters spill past the cup; the pair has to stay visible. */
-const SEAT_LAYER_FELT_HOLE = 'z-[22]'
+/** Under the seat initials so the letters sit on top of the pair. */
+const SEAT_LAYER_FELT_HOLE = MOSAIC_HOLE_CARD_LAYER
 
 /** Community / center board card — fixed px from measured ring (same pattern as hole cards). */
 function MosaicDigitCard({

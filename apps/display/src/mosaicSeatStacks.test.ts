@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import {
   MosaicSeatStackAmount,
+  MOSAIC_HOLE_CARD_LAYER,
+  MOSAIC_SEAT_INITIAL_LAYER,
   mosaicHoleClearOfInitialsFrac,
   mosaicSeatInitialFontPx,
   mosaicSeatInitialShiftXPx,
@@ -143,7 +145,10 @@ describe('mosaic seat stacks', () => {
     expect(mosaicSeatInitialShiftXPx(2, w, h, font)).toBeLessThan(0)
   })
 
-  it('sets the hole cards past the initials on a large felt', () => {
+  it('keeps the initials above the hole cards and the pair readable toward center', () => {
+    const initialZ = Number(MOSAIC_SEAT_INITIAL_LAYER.match(/z-\[(\d+)\]/)?.[1])
+    const holeZ = Number(MOSAIC_HOLE_CARD_LAYER.match(/z-\[(\d+)\]/)?.[1])
+    expect(initialZ).toBeGreaterThan(holeZ)
     for (const w of [560, 640, 880]) {
       const h = Math.round(w / (1262 / 643))
       const font = mosaicSeatInitialFontPx(w)
@@ -152,7 +157,7 @@ describe('mosaic seat stacks', () => {
         expect(frac).toBeGreaterThanOrEqual(mosaicSeatHoleInwardFrac(seat))
         expect(frac).toBeLessThanOrEqual(0.38)
         const gap = holeGapPastInitials(seat, w, h, font, frac)
-        expect(gap, `${w} seat ${seat}`).toBeGreaterThanOrEqual(4)
+        expect(gap, `${w} seat ${seat}`).toBeGreaterThanOrEqual(14)
       }
     }
   })

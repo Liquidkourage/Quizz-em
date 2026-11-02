@@ -70,12 +70,17 @@ export function mosaicSeatInitialShiftXPx(
   return overflow > 0 ? -Math.ceil(overflow) : 0
 }
 
+/** Seat initials paint above the hole cards. */
+export const MOSAIC_SEAT_INITIAL_LAYER = 'z-[20]'
+/** Hole cards sit under the initials, still above the felt wash. */
+export const MOSAIC_HOLE_CARD_LAYER = 'z-[16]'
+
 /** Hole cards stay outside the center board, and past the initials when the felt allows. */
 const MOSAIC_HOLE_CLEAR_FRAC_CAP = 0.38
 
 /**
- * Hole-card inset that starts the pair past the initials.
- * The largest letters spill inward from the cup and would cover a pair parked on the rail.
+ * Hole-card inset that starts the pair far enough inward to stay readable
+ * under the initials. The letters paint on top of the cards.
  */
 export function mosaicHoleClearOfInitialsFrac(seatIndex: number, ringW: number, ringH: number): number {
   const base = mosaicSeatHoleInwardFrac(seatIndex)
@@ -93,7 +98,7 @@ export function mosaicHoleClearOfInitialsFrac(seatIndex: number, ringW: number, 
   const uy = dy / dist
   const shiftX = mosaicSeatInitialShiftXPx(seatIndex, ringW, ringH, font)
   const inwardMost = shiftX * ux + Math.abs(ux) * font * MOSAIC_INITIAL_HALF_EM + Math.abs(uy) * font * 0.52
-  const needed = (inwardMost + 8) / dist
+  const needed = (inwardMost + 16) / dist
   return Math.min(MOSAIC_HOLE_CLEAR_FRAC_CAP, Math.max(base, needed))
 }
 

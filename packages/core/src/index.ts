@@ -33,8 +33,8 @@ export interface PlayerState {
   /** Cumulative trivia score across answered rounds (even when busted off chips). */
   answerPoints?: number;
   /**
-   * Busted off the chip rails: no blinds, wagering, or pot share; may still compose answers each wave for `{@link answerPoints}`.
-   * Set once `bankroll <= 0` after a round settles (`endRound`); cleared only when a fresh game adds the player anew.
+   * Busted off the chip rails. Set when the hand pays out with no stack, then the player leaves the table.
+   * Their trivia total is kept on {@link GameState.pointsStandings}.
    */
   pointsOnly?: boolean;
 }
@@ -124,6 +124,15 @@ export interface GameState {
   maxPlayers: number;
   round: RoundState;
   players: PlayerState[];
+  /** Players with no stack. They are not seated. Trivia scores only. */
+  pointsStandings?: PointsStanding[];
+}
+
+/** A player who left the table with no stack. Ranked on the trivia scores, not at a seat. */
+export interface PointsStanding {
+  id: string;
+  name: string;
+  answerPoints: number;
 }
 
 export const DIGITS: ReadonlyArray<0|1|2|3|4|5|6|7|8|9> = Object.freeze([0,1,2,3,4,5,6,7,8,9]);
@@ -1621,6 +1630,66 @@ function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAns
   return triviaAnswerPoints(snapshotPlayer.submittedAnswer, correct);
 }
 
+/** Seats that still hold a chair. Points-only players do not. */
+export function tableOccupants<T extends { pointsOnly?: boolean }>(players: readonly T[]): T[] {
+  return players.filter((p) => p.pointsOnly !== true);
+}
+
+export function pointsStandingsFromRoster(
+  players: readonly Pick<PlayerState, 'id' | 'name' | 'answerPoints' | 'pointsOnly'>[],
+): PointsStanding[] {
+  const rows: PointsStanding[] = [];
+  for (const p of players) {
+    if (p.pointsOnly !== true) continue;
+    const name = p.name.trim();
+    if (!name) continue;
+    const raw = p.answerPoints ?? 0;
+    rows.push({
+      id: p.id,
+      name,
+      answerPoints: Number.isFinite(raw) ? Math.max(0, raw) : 0,
+    });
+  }
+  return rows;
+}
+
+export function mergePointsStandings(
+  prev: readonly PointsStanding[] | undefined,
+  added: readonly PointsStanding[],
+): PointsStanding[] {
+  const byId = new Map<string, PointsStanding>();
+  for (const row of prev ?? []) {
+    if (row.id) byId.set(row.id, row);
+  }
+  for (const row of added) byId.set(row.id, row);
+  return [...byId.values()];
+}
+
+/** Button for the next hand: the next player who still has a seat, after the old dealer. */
+export function nextDealerOnOccupants(
+  roster: readonly { id: string; pointsOnly?: boolean }[],
+  dealerIndex: number,
+): number {
+  const occupants = tableOccupants(roster);
+  if (occupants.length === 0 || roster.length === 0) return 0;
+  const n = roster.length;
+  for (let step = 1; step <= n; step++) {
+    const id = roster[(dealerIndex + step) % n]?.id;
+    const at = occupants.findIndex((p) => p.id === id);
+    if (at >= 0) return at;
+  }
+  return 0;
+}
+
+export function listPointsStandings(
+  games: readonly { pointsStandings?: readonly PointsStanding[] | undefined }[],
+): { name: string; answerPoints: number }[] {
+  return mergePointsStandings(
+    undefined,
+    games.flatMap((g) => [...(g.pointsStandings ?? [])]),
+  ).map((row) => ({ name: row.name, answerPoints: row.answerPoints }));
+}
+
 /** Run from showdown (or reveal if host skips the beat): pays pot, resets to lobby. Wrong phase → unchanged. */
 export function endRound(state: GameState): GameState {
   if (state.phase !== 'showdown' && state.phase !== 'reveal') return state;
@@ -1637,7 +1706,7 @@ export function endRound(state: GameState): GameState {
     return {
       ...p,
       bankroll: busted ? 0 : p.bankroll,
-      /** Stay seated for trivia; excluded from blinds / wagering / pot share. */
+      /** No stack after payout: leave the table. The trivia total is stored on pointsStandings. */
       pointsOnly: busted || p.pointsOnly === true,
       answerPoints,
       hand: [],
@@ -1648,12 +1717,16 @@ export function endRound(state: GameState): GameState {
     };
   });
 
-  const rosterLen = Math.max(1, clearedPlayers.length);
-  const nextDealer = (afterPayout.round.dealerIndex + 1) % rosterLen;
+  const occupants = tableOccupants(clearedPlayers);
+  const nextDealer = nextDealerOnOccupants(clearedPlayers, afterPayout.round.dealerIndex);
 
   return {
     ...afterPayout,
     phase: 'lobby',
+    pointsStandings: mergePointsStandings(
+      state.pointsStandings,
+      pointsStandingsFromRoster(clearedPlayers),
+    ),
     round: {
       roundId: nextRoundId(afterPayout.round.roundId),
       question: null,
@@ -1667,7 +1740,7 @@ export function endRound(state: GameState): GameState {
       playerBets: {},
       handContributions: {},
     },
-    players: clearedPlayers,
+    players: occupants,
   };
 }
 

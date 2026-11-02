@@ -234,6 +234,8 @@ function PlayerApp() {
 
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
   const currentPlayer = gameState && myIndex >= 0 ? gameState.players[myIndex] : undefined
+  const wasSeatedRef = useRef(false)
+  if (currentPlayer) wasSeatedRef.current = true
   const dealSeenRef = useRef<DealSnapshot | null>(null)
   const [dealFlash, setDealFlash] = useState<DealFlash | null>(null)
   const dismissDealFlash = useCallback(() => setDealFlash(null), [])
@@ -412,7 +414,7 @@ function PlayerApp() {
   const isEliminated =
     !currentPlayer &&
     (gameState.tableId ?? '') !== LOBBY_TABLE_ID &&
-    gameState.phase !== 'lobby'
+    (gameState.phase !== 'lobby' || wasSeatedRef.current)
 
   if (isEliminated) {
     return <EliminatedScreen />

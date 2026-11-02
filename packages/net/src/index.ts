@@ -194,6 +194,8 @@ export type DisplayVenueTileSnapshot = {
 /** Venue wall payload: table mosaic plus **shared trivia strip** keyed off the hottest trivia phase (prefer answering, then setup, etc.), not blindly table 1. */
 export type DisplayVenueWallSnapshot = {
   tiles: DisplayVenueTileSnapshot[]
+  /** No-stack players. Not seated. Shown on the trivia scores only. */
+  pointsStandings?: { name: string; answerPoints: number }[]
   /** Shared trivia headline: emitted from the current hand’s question through wagering, answering, and post-trivia phases while `round.question` is set. */
   headlineQuestionText: string | null
   /** Authoritative numeric answer for {@link headlineQuestionText} — same source as the headline felt’s `round.question.answer`. */

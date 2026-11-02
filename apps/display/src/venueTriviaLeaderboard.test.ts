@@ -20,19 +20,19 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
     expect(rows[0]?.answerPoints).toBe(90)
   })
 
-  it('keeps a points-only player on the trivia scores', () => {
+  it('keeps a points-only player on the trivia scores without a seat', () => {
     const tiles: DisplayVenueTileSnapshot[] = [
       {
         tableNum: 1,
-        seated: 2,
+        seated: 1,
         pot: 0,
         phase: 'lobby',
-        seatNames: ['Ada Lane', 'Bo Kent'],
-        seatBankrolls: [500, 0],
-        seatPointsOnly: [false, true],
-        seatAnswerPoints: [10, 40],
+        seatNames: ['Ada Lane'],
+        seatBankrolls: [500],
+        seatAnswerPoints: [10],
       },
     ]
-    expect(venueTriviaLeaderboardRowsFromTiles(tiles).map((row) => row.name)).toEqual(['Bo Kent', 'Ada Lane'])
+    const rows = venueTriviaLeaderboardRowsFromTiles(tiles, [{ name: 'Bo Kent', answerPoints: 40 }])
+    expect(rows.map((row) => row.name)).toEqual(['Bo Kent', 'Ada Lane'])
   })
 })

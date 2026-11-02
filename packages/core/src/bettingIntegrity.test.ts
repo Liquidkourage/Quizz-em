@@ -159,7 +159,7 @@ describe('placeBet stack cap', () => {
 })
 
 describe('endRound points-only + dealer', () => {
-  it('keeps busted players as pointsOnly and advances dealer on the surviving roster', () => {
+  it('takes a busted player off the table and passes the button to the next stack', () => {
     let gs = createEmptyGame('V', 'h')
     gs = addPlayer(gs, 'a', 'A', 0)
     gs = addPlayer(gs, 'b', 'B', 500)
@@ -183,13 +183,12 @@ describe('endRound points-only + dealer', () => {
 
     gs = endRound(gs)
     expect(gs.phase).toBe('lobby')
-    expect(gs.players).toHaveLength(3)
-    expect(gs.players.find((p) => p.id === 'a')!.pointsOnly).toBe(true)
-    expect(gs.players.find((p) => p.id === 'a')!.bankroll).toBe(0)
-    expect(gs.players.find((p) => p.id === 'a')!.answerPoints).toBe(100)
+    expect(gs.players.map((p) => p.id)).toEqual(['b', 'c'])
+    expect(gs.pointsStandings).toEqual([{ id: 'a', name: 'A', answerPoints: 100 }])
     expect(gs.players.find((p) => p.id === 'b')!.pointsOnly).toBeFalsy()
-    // dealer was 2 → next is (2+1) % 3 = 0
+    // Dealer was C. A is off the table, so the button passes to B.
     expect(gs.round.dealerIndex).toBe(0)
+    expect(gs.players[gs.round.dealerIndex]!.id).toBe('b')
   })
 
   it('does not award chip pot to points-only even with the closest answer', () => {
@@ -218,8 +217,8 @@ describe('endRound points-only + dealer', () => {
       ],
     }
     gs = endRound(gs)
-    expect(gs.players.find((p) => p.id === 'a')!.pointsOnly).toBe(true)
-    expect(gs.players.find((p) => p.id === 'a')!.bankroll).toBe(0)
+    expect(gs.players.map((p) => p.id)).toEqual(['b'])
+    expect(gs.pointsStandings?.find((p) => p.id === 'a')?.answerPoints).toBe(100)
     expect(gs.players.find((p) => p.id === 'b')!.bankroll).toBe(600)
   })
 })

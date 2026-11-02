@@ -130,9 +130,31 @@ export function venueLeaderboardRowsFromTiles(
   return out
 }
 
+function appendUnseatedTriviaRows(
+  out: VenueLeaderboardRow[],
+  standings: readonly { name: string; answerPoints: number }[],
+): void {
+  const seatedNames = new Set(out.map((row) => row.name.trim().toLowerCase()))
+  for (const row of standings) {
+    const name = row.name.trim()
+    if (!name || seatedNames.has(name.toLowerCase())) continue
+    seatedNames.add(name.toLowerCase())
+    const pts = row.answerPoints
+    out.push({
+      name,
+      tableNum: 0,
+      seatNum: 0,
+      bankroll: 0,
+      stackDelta: null,
+      answerPoints: Number.isFinite(pts) ? pts : 0,
+    })
+  }
+}
+
 /** Ranked by trivia answer points (desc); dual-trophy night companion to chip stacks. */
 export function venueTriviaLeaderboardRowsFromTiles(
   tiles: DisplayVenueTileSnapshot[],
+  standings: readonly { name: string; answerPoints: number }[] = [],
 ): VenueLeaderboardRow[] {
   const out: VenueLeaderboardRow[] = []
   for (const t of tiles) {
@@ -153,6 +175,7 @@ export function venueTriviaLeaderboardRowsFromTiles(
       })
     }
   }
+  appendUnseatedTriviaRows(out, standings)
   out.sort((a, b) => {
     const ap = a.answerPoints ?? 0
     const bp = b.answerPoints ?? 0

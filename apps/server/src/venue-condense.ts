@@ -45,7 +45,7 @@ function collectRosters(deps: VenueCondenseApplyDeps): VenueTableRoster[] {
     if (!gs || gs.players.length === 0) continue
     const n = deps.tableNumFromSessionKey(vn, tk)
     if (n == null) continue
-    /** Chip survivors drive seating math; points-only riders come along in shuffle apply. */
+    /** Chip stacks decide table size. A player with no stack is already off the table after payout. */
     const survivors = gs.players.filter((p) => p.bankroll > 0)
     if (survivors.length === 0) continue
     out.push({
@@ -55,24 +55,6 @@ function collectRosters(deps: VenueCondenseApplyDeps): VenueTableRoster[] {
     })
   }
   out.sort((a, b) => a.tableNum - b.tableNum)
-  return out
-}
-
-/** Points-only (busted) seats — stay for trivia, never count toward table sizing. */
-function collectPointsOnlyPlayers(deps: VenueCondenseApplyDeps): { tableNum: number; player: GameState['players'][number] }[] {
-  const vn = deps.venueCode
-  const out: { tableNum: number; player: GameState['players'][number] }[] = []
-  for (const tk of deps.allTableSessionKeys(vn)) {
-    const gs = deps.getState(tk)
-    if (!gs) continue
-    const n = deps.tableNumFromSessionKey(vn, tk)
-    if (n == null) continue
-    for (const p of gs.players) {
-      if (p.pointsOnly || p.bankroll <= 0) {
-        out.push({ tableNum: n, player: p })
-      }
-    }
-  }
   return out
 }
 
@@ -135,10 +117,30 @@ function applyPlayerMoveToRooms(
   return { name: player.name.trim() || move.playerId }
 }
 
+/** All-in this hand still has the seat. Points-only players do not. */
+export function unsettledAllInPassengers<T extends { pointsOnly?: boolean; bankroll: number }>(
+  players: readonly T[],
+): T[] {
+  return players.filter((p) => p.pointsOnly !== true && p.bankroll <= 0)
+}
+
+function seatUnsettledAllIn(
+  assignments: Map<number, GameState['players']>,
+  passengers: readonly GameState['players'][number][],
+): void {
+  const liveTableNums = [...assignments.keys()].sort((a, b) => a - b)
+  if (liveTableNums.length === 0 || passengers.length === 0) return
+  passengers.forEach((player, i) => {
+    const tableNum = liveTableNums[i % liveTableNums.length]!
+    const list = assignments.get(tableNum) ?? []
+    if (list.some((p) => p.id === player.id)) return
+    assignments.set(tableNum, list.concat(player))
+  })
+}
+
 function applyScheduledMerge(
   deps: VenueCondenseApplyDeps,
   merge: VenueCondenseScheduledMerge,
-  pointsOnlyRiders: { tableNum: number; player: GameState['players'][number] }[],
 ): void {
   const vn = deps.venueCode
   const sampleKey = deps.tableSessionKey(vn, '1')
@@ -146,19 +148,13 @@ function applyScheduledMerge(
   const hostId = sampleGs?.hostId ?? deps.hostId
   const smallBlind = sampleGs?.smallBlind ?? 10
   const bigBlind = sampleGs?.bigBlind ?? 20
-
-  /** Distribute points-only passengers onto live tables without changing chip seating math. */
-  const riders = pointsOnlyRiders.map((r) => r.player)
-  const liveTableNums = [...merge.assignments.keys()].sort((a, b) => a - b)
-  if (liveTableNums.length > 0 && riders.length > 0) {
-    riders.forEach((player, i) => {
-      const tableNum = liveTableNums[i % liveTableNums.length]!
-      const list = merge.assignments.get(tableNum) ?? []
-      if (!list.some((p) => p.id === player.id)) {
-        merge.assignments.set(tableNum, list.concat(player))
-      }
-    })
+  const passengers: GameState['players'] = []
+  for (const tk of deps.allTableSessionKeys(vn)) {
+    const gs = deps.getState(tk)
+    if (!gs) continue
+    passengers.push(...unsettledAllInPassengers(gs.players))
   }
+  seatUnsettledAllIn(merge.assignments, passengers)
 
   for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
     const tk = deps.tableSessionKey(vn, String(n))
@@ -208,7 +204,6 @@ export function applyVenueCondenseAfterRound(
   const plan = planVenueCondense(rosters, { shuffle: options.shuffle })
   let soloRescues = 0
   const seatingMoves: VenueCondenseApplyResult['seatingMoves'] = []
-  const pointsOnlyRiders = collectPointsOnlyPlayers(deps)
 
   for (const move of plan.playerMoves) {
     const applied = applyPlayerMoveToRooms(deps, move)
@@ -221,29 +216,6 @@ export function applyVenueCondenseAfterRound(
       byline: move.byline,
     })
     if (!hostToasts.includes(move.byline)) hostToasts.push(move.byline)
-    /** Points-only players stay through a balance move and ride along only when their table breaks. */
-    if (move.reason === 'break') {
-      const fromKey = deps.tableSessionKey(deps.venueCode, String(move.fromTableNum))
-      const fromGs = deps.getState(fromKey)
-      if (fromGs && fromGs.players.every((p) => p.bankroll <= 0 || p.pointsOnly)) {
-        for (const rider of [...fromGs.players]) {
-          const rode = applyPlayerMoveToRooms(deps, {
-            playerId: rider.id,
-            fromTableNum: move.fromTableNum,
-            toTableNum: move.toTableNum,
-            reason: 'break',
-            byline: move.byline,
-          })
-          if (rode == null) continue
-          seatingMoves.push({
-            name: rode.name,
-            fromTableNum: move.fromTableNum,
-            toTableNum: move.toTableNum,
-            byline: move.byline,
-          })
-        }
-      }
-    }
     rosters = collectRosters(deps)
   }
 
@@ -251,7 +223,7 @@ export function applyVenueCondenseAfterRound(
   if (plan.scheduledMerge) {
     const from = rosters.length
     const to = plan.scheduledMerge.targetTableCount
-    applyScheduledMerge(deps, plan.scheduledMerge, pointsOnlyRiders)
+    applyScheduledMerge(deps, plan.scheduledMerge)
     shuffled = true
     hostToasts.push(`Tables shuffled — ${from} → ${to} (${survivorsBefore} players remaining).`)
   }

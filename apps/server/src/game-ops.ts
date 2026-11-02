@@ -32,6 +32,7 @@ import {
   answerRevealWaitLabel,
   advanceRevealToShowdown,
   endRound,
+  listPointsStandings,
   winnerScreensPayoutHint,
   winnerScreensReadyAt,
   formatTriviaNumber,
@@ -2337,8 +2338,14 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     withholdUnreleasedShowdownAnswers(tiles)
   }
 
+  const pointsStandings = listPointsStandings(
+    allTableSessionsInVenue(vn)
+      .map((tk) => rooms.get(tk))
+      .filter((gs): gs is GameState => gs != null),
+  )
   const payload: DisplayVenueWallSnapshot = {
     tiles,
+    ...(pointsStandings.length > 0 ? { pointsStandings } : {}),
     headlineQuestionText,
     headlineQuestionAnswer,
     headlineAnswerComposition,

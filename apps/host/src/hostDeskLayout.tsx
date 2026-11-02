@@ -2102,7 +2102,7 @@ export function HostVenueFloorBriefPanel({
                     row.phase === 'lobby' || row.phase === 'inactive'
                       ? null
                       : formatElapsedClock(
-                          lastActionAtMs(brief.moveLog, row.tableNum, brief.handStartedAtMs ?? null),
+                          lastActionAtMs(brief.moveLog ?? [], row.tableNum, brief.handStartedAtMs ?? null),
                           Date.now(),
                         )
                   return (
@@ -2126,9 +2126,12 @@ export function HostVenueFloorBriefPanel({
                       <p className="text-sm font-semibold">{cue.label}</p>
                       {sinceLast != null && sinceLast !== '—' ? (
                         <p
-                          className="font-mono text-sm font-bold tabular-nums text-white/75"
+                          className="font-mono text-2xl font-black leading-none tabular-nums text-sky-100"
                           aria-label={`Since last action ${sinceLast}`}
                         >
+                          <span className="mb-0.5 block text-[0.65rem] font-bold uppercase tracking-wide text-sky-200/80">
+                            Since
+                          </span>
                           {sinceLast}
                         </p>
                       ) : null}

@@ -253,8 +253,34 @@ describe('venue floor now', () => {
     const quiet = html.slice(html.indexOf('Open table 2'), html.indexOf('Open table 3'))
     const lobby = html.slice(html.indexOf('Open table 3'))
     expect(first).toContain('Since last action 0:12')
+    expect(first).toContain('>Since<')
     expect(quiet).toContain('Since last action 0:40')
     expect(lobby).not.toContain('Since last action')
+  })
+
+  it('counts up from the last move when the hand clock has not started', () => {
+    const now = Date.now()
+    const floor = brief()
+    floor.handStartedAtMs = null
+    floor.actionRows = [{ ...actionRow(1), phase: 'betting' }]
+    floor.moveLog = [
+      {
+        id: 'a',
+        atMs: now - 12_000,
+        tableNum: 1,
+        playerName: 'Ada',
+        kind: 'call',
+        summary: 'Ada called',
+      },
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    expect(html).toContain('Since last action 0:12')
   })
 
   it('lists table action in numerical order', () => {

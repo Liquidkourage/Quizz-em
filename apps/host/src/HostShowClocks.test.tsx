@@ -56,7 +56,8 @@ describe('host show clocks', () => {
     ]
     expect(lastActionAtMs(moves, 1, hand)).toBe(hand + 12_000)
     expect(lastActionAtMs(moves, 2, hand)).toBe(hand)
-    expect(lastActionAtMs(moves, 1, null)).toBeNull()
+    expect(lastActionAtMs(moves, 1, null)).toBe(hand + 12_000)
+    expect(lastActionAtMs(moves, 2, null)).toBe(hand - 5_000)
   })
 
   it('shows the 30s nudge that is running on a felt', () => {

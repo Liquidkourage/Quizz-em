@@ -18,13 +18,13 @@ export function lastActionAtMs(
   tableNum: number,
   handStartedAtMs: number | null,
 ): number | null {
-  if (handStartedAtMs == null) return null
-  let latest = handStartedAtMs
+  let latest: number | null = null
   for (const move of moves) {
-    if (move.tableNum !== tableNum || move.atMs < handStartedAtMs) continue
-    if (move.atMs > latest) latest = move.atMs
+    if (move.tableNum !== tableNum) continue
+    if (handStartedAtMs != null && move.atMs < handStartedAtMs) continue
+    if (latest == null || move.atMs > latest) latest = move.atMs
   }
-  return latest
+  return latest ?? handStartedAtMs
 }
 
 export function soonestNudgeSeconds(

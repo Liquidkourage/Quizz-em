@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { addPlayer, createEmptyGame, type GameState } from '@qhe/core'
+import { addPlayer, createEmptyGame, endRound, type GameState } from '@qhe/core'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import type { Server } from 'socket.io'
 import {
@@ -7,6 +7,7 @@ import {
   emitDisplayVenueSnapshotNow,
   prepareVenuePersistence,
   rooms,
+  runVenueCondenseAfterRound,
   tableSessionKey,
 } from './game-ops'
 
@@ -25,6 +26,7 @@ function captureIo(): { server: Server; snapshots: DisplayVenueWallSnapshot[] } 
         if (event === 'displayVenueSnapshot' && payload) snapshots.push(payload)
       },
     }),
+    sockets: { adapter: { rooms: new Map() }, sockets: new Map() },
   } as unknown as Server
   return { server, snapshots }
 }
@@ -76,6 +78,67 @@ describe('public venue wall answer', () => {
     const snap = io.snapshots.at(-1)
     expect(snap?.headlineQuestionAnswer ?? null).toBeNull()
     expect(snap?.tiles.every((t) => t.showdownAnswer == null)).toBe(true)
+  })
+
+  it('keeps a busted player on the trivia snapshot after payout', () => {
+    let gs = createEmptyGame('LEAK', 'host', '1')
+    gs = addPlayer(gs, 'bust', 'Bo Kent', 0)
+    gs = addPlayer(gs, 'live', 'Ada Lane', 500)
+    gs = {
+      ...gs,
+      phase: 'showdown',
+      round: {
+        ...gs.round,
+        pot: 100,
+        question: { id: 'q', text: '?', answer: 42 },
+        handContributions: { live: 100 },
+      },
+      players: [
+        { ...gs.players[0]!, bankroll: 0, submittedAnswer: 42, hasFolded: false, answerPoints: 0 },
+        { ...gs.players[1]!, submittedAnswer: 40, hasFolded: false, answerPoints: 10 },
+      ],
+    }
+    rooms.set(tableSessionKey('LEAK', '1'), endRound(gs))
+    const io = captureIo()
+    bindGameIo(io.server)
+    emitDisplayVenueSnapshotNow('LEAK')
+    const snap = io.snapshots.at(-1)
+    const seatedNames = (snap?.tiles ?? []).flatMap((tile) => tile.seatNames ?? [])
+    expect(seatedNames).not.toContain('Bo Kent')
+    expect(snap?.pointsStandings).toEqual([{ name: 'Bo Kent', answerPoints: 100 }])
+  })
+
+  it('keeps a busted player on the trivia snapshot after a table shuffle', () => {
+    const paid = (tableId: string, bustName: string | null) => {
+      let gs = createEmptyGame('LEAK', 'host', tableId)
+      gs = addPlayer(gs, `${tableId}-a`, bustName ?? 'Cara Moss', bustName ? 0 : 500)
+      gs = addPlayer(gs, `${tableId}-b`, bustName ? 'Ada Lane' : 'Dean Orr', 500)
+      return endRound({
+        ...gs,
+        phase: 'showdown',
+        round: {
+          ...gs.round,
+          pot: 80,
+          question: { id: 'q', text: '?', answer: 42 },
+          handContributions: { [`${tableId}-b`]: 80 },
+        },
+        players: gs.players.map((player, index) => ({
+          ...player,
+          bankroll: bustName && index === 0 ? 0 : 500,
+          submittedAnswer: 42,
+          hasFolded: false,
+          answerPoints: 0,
+        })),
+      })
+    }
+    rooms.set(tableSessionKey('LEAK', '1'), paid('1', 'Bo Kent'))
+    rooms.set(tableSessionKey('LEAK', '2'), paid('2', null))
+    const io = captureIo()
+    bindGameIo(io.server)
+    runVenueCondenseAfterRound('LEAK', 'host', true)
+    emitDisplayVenueSnapshotNow('LEAK')
+    const snap = io.snapshots.at(-1)
+    expect(snap?.pointsStandings?.map((row) => row.name)).toContain('Bo Kent')
   })
 
   it('sends the correct answer once every seated table is in results', () => {

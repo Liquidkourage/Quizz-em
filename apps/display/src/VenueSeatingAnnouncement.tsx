@@ -128,7 +128,7 @@ export default function VenueSeatingAnnouncement({
 
   return (
     <motion.div
-      className="fixed inset-0 z-[195] flex items-center justify-center overflow-hidden bg-black/78 px-6 py-10 backdrop-blur-md"
+      className="fixed inset-0 z-[195] flex items-stretch justify-center overflow-hidden bg-black/78 p-3 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label={title}
@@ -144,9 +144,10 @@ export default function VenueSeatingAnnouncement({
       />
 
       <motion.div
-        className={`venue-seating-update venue-bust-overlay-panel relative z-10 flex w-full flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
+        className={`venue-seating-update venue-bust-overlay-panel relative z-10 flex h-full w-full flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
           compact ? 'venue-bust-overlay-panel--compact' : ''
         }`}
+        style={{ width: '100%', height: '100%', maxWidth: 'none' }}
         initial={reducedMotion ? false : { opacity: 0, y: 18, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={reducedMotion ? undefined : { opacity: 0, y: 10, scale: 0.98 }}

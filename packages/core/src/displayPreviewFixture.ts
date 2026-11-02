@@ -70,13 +70,16 @@ const REHEARSAL_SUR = [
 ] as const
 
 /**
- * Shared rehearsal/CPU display name: first name plus surname initial (e.g. `Alice S.`).
- * Deterministic from seat index so venue previews and server `vp:*` seats stay consistent.
+ * Shared rehearsal/CPU display name: first name plus surname initial (e.g. `Alice A.`).
+ * Walks every first name with every initial before a label repeats.
  */
 export function rehearsalSeatDisplayName(seatIndex: number): string {
   const i = Math.max(0, Math.floor(seatIndex))
-  const first = REHEARSAL_FIRST[i % REHEARSAL_FIRST.length]!
-  const sur = REHEARSAL_SUR[(i * 5 + 2) % REHEARSAL_SUR.length]!
+  const firsts = REHEARSAL_FIRST.length
+  const surs = REHEARSAL_SUR.length
+  const n = i % (firsts * surs)
+  const first = REHEARSAL_FIRST[n % firsts]!
+  const sur = REHEARSAL_SUR[Math.floor(n / firsts)]!
   const L = sur.charAt(0).toUpperCase()
   return `${first} ${L}.`
 }

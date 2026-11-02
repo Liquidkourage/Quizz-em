@@ -8,6 +8,7 @@ import {
   mosaicHoleClearOfInitialsFrac,
   mosaicSeatInitialFontPx,
   mosaicSeatInitialLabel,
+  publicSeatShowsHoleCards,
   mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
   mosaicCrowdedStackLayout,
@@ -92,6 +93,12 @@ describe('public table initials', () => {
   it('hides the letters when that seat is playing for points', () => {
     expect(mosaicSeatInitialLabel('Ada Lane', false)).toBe('AL')
     expect(mosaicSeatInitialLabel('Bo Kent', true)).toBe('')
+  })
+
+  it('hides the hole-card graphic when that seat is playing for points', () => {
+    expect(publicSeatShowsHoleCards(true, false, false, true)).toBe(true)
+    expect(publicSeatShowsHoleCards(true, false, true, true)).toBe(false)
+    expect(publicSeatShowsHoleCards(true, true, false, true)).toBe(false)
   })
 })
 

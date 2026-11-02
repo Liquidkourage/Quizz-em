@@ -36,6 +36,16 @@ export function mosaicSeatInitialLabel(name: string, pointsOnly: boolean): strin
     .toUpperCase()
 }
 
+/** Face-down hole cards stay off a folded seat and off a points-only seat. */
+export function publicSeatShowsHoleCards(
+  filled: boolean,
+  folded: boolean,
+  pointsOnly: boolean,
+  holesVisible: boolean,
+): boolean {
+  return filled && !folded && !pointsOnly && holesVisible
+}
+
 /** Two-letter seat mark, sized from the felt so it reads across the room. */
 export function mosaicSeatInitialFontPx(tableWidthPx: number): number {
   const w = feltWidthPx(tableWidthPx)

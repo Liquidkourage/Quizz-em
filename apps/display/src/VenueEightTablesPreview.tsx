@@ -54,6 +54,7 @@ import {
   mosaicSeatInitialFontPx,
   mosaicSeatInitialLabel,
   mosaicSeatInitialShiftXPx,
+  publicSeatShowsHoleCards,
   mosaicSeatStackClearPx,
   mosaicSeatStackFontForAmount,
   mosaicSeatStackFontPx,
@@ -1641,7 +1642,12 @@ function SeatRingWithLabels({
                 />
               </div>
             ) : null}
-            {filled && !isFolded && (seatHoleDigits[i] != null || seatHolesDealt[i]) ? (
+            {publicSeatShowsHoleCards(
+              filled,
+              isFolded,
+              isBusted,
+              seatHoleDigits[i] != null || seatHolesDealt[i] === true,
+            ) ? (
               <div
                 className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
                 style={{

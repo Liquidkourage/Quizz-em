@@ -2686,12 +2686,15 @@
 
   .vfd-mosaic-status-band {
     display: flex;
+    grid-column: 1 / -1;
+    grid-row: 1;
     min-width: 0;
     align-items: baseline;
-    justify-content: flex-start;
-    gap: clamp(6px, 1.4cqw, 16px);
+    justify-content: center;
+    gap: clamp(6px, 1.2cqw, 14px);
     border-radius: 8px;
-    padding: clamp(0.35rem, 0.9cqw, 0.95rem) clamp(0.55rem, 1.2cqw, 1.15rem);
+    padding-block: clamp(0.28rem, 0.65cqw, 0.7rem);
+    padding-inline: clamp(2.6rem, 8cqw, 5.25rem);
     margin-bottom: 0;
   }
 
@@ -2727,7 +2730,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(1rem, 6.4cqw, 4.25rem);
+    font-size: clamp(0.95rem, 5.2cqw, 3.35rem);
     font-weight: 700;
     line-height: 1.1;
     color: rgb(255 251 235 / 0.98);
@@ -2736,7 +2739,7 @@
   .vfd-mosaic-status-band-label {
     flex-shrink: 0;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.85rem, 4.4cqw, 2.85rem);
+    font-size: clamp(0.8rem, 3.6cqw, 2.25rem);
     font-weight: 600;
     letter-spacing: 0.05em;
     line-height: 1.1;
@@ -2746,7 +2749,7 @@
 
   .vfd-mosaic-status-band-amount.vfd-mosaic-dollar {
     flex-shrink: 0;
-    font-size: clamp(1.15rem, 7.2cqw, 4.75rem);
+    font-size: clamp(1.05rem, 5.8cqw, 3.75rem);
     line-height: 1;
   }
 
@@ -2756,7 +2759,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.95rem, 5.6cqw, 3.5rem);
+    font-size: clamp(0.9rem, 4.6cqw, 2.75rem);
     font-weight: 800;
     letter-spacing: 0.08em;
     line-height: 1.1;
@@ -2773,7 +2776,11 @@
   }
 
   :has(> .vfd-mosaic-status-band) > .vfd-mosaic-table-num {
-    font-size: clamp(1.15rem, 6.4cqw, 4.25rem);
+    position: relative;
+    z-index: 1;
+    justify-self: start;
+    align-self: center;
+    font-size: clamp(1.05rem, 5.2cqw, 3.35rem);
     line-height: 1;
   }
 

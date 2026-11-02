@@ -4,6 +4,13 @@ import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { formatVenueBankroll, formatVenueDisplayPlayerName, formatVenueTriviaPoints } from './venueLeaderboard'
 import type { VenueEndgameScore, VenueEndgameWinner } from './venueEndgame'
 
+function endgameMedalClass(index: number): string {
+  if (index === 0) return 'venue-endgame-score-row--gold'
+  if (index === 1) return 'venue-endgame-score-row--silver'
+  if (index === 2) return 'venue-endgame-score-row--bronze'
+  return ''
+}
+
 export default function VenueEndgameCard({
   winner,
   scores,
@@ -54,7 +61,7 @@ export default function VenueEndgameCard({
             <p className="venue-endgame-scores-title">Trivia scores</p>
             <ol className="venue-endgame-score-list">
               {scores.map((score, index) => (
-                <li key={`${score.name}-${index}`} className="venue-endgame-score-row">
+                <li key={`${score.name}-${index}`} className={`venue-endgame-score-row ${endgameMedalClass(index)}`.trim()}>
                   <span className="venue-endgame-score-rank">{index + 1}</span>
                   <span className="venue-endgame-score-name">
                     {formatVenueDisplayPlayerName(score.name) || score.name}

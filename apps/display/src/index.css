@@ -4329,11 +4329,18 @@
   }
 
   .venue-endgame .venue-bust-overlay-eyebrow {
+    font-size: clamp(1.2rem, 2.8vh, 2rem);
+    letter-spacing: 0.16em;
     color: rgb(253 224 71 / 0.92);
   }
 
   .venue-endgame .venue-bust-overlay-title {
+    font-size: clamp(3.6rem, 8.5vh, 6.4rem);
     color: rgb(254 240 138);
+  }
+
+  .venue-endgame .venue-bust-overlay-wordmark {
+    width: clamp(8rem, 16vw, 12rem);
   }
 
   .venue-endgame-name {
@@ -4365,9 +4372,9 @@
   .venue-endgame-scores-title {
     margin: 0 0 clamp(6px, 0.8vmin, 10px);
     font-family: Orbitron, monospace;
-    font-size: clamp(0.72rem, 1.2vw, 0.95rem);
+    font-size: clamp(1.25rem, 2.6vh, 1.9rem);
     font-weight: 700;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: rgb(253 224 71 / 0.92);
   }
@@ -4406,6 +4413,24 @@
     font-family: Orbitron, monospace;
     font-size: 0.72em;
     color: rgb(253 224 71 / 0.8);
+  }
+
+  .venue-endgame-score-row--gold,
+  .venue-endgame-score-row--gold .venue-endgame-score-rank,
+  .venue-endgame-score-row--gold .venue-endgame-score-points {
+    color: rgb(250 204 21);
+  }
+
+  .venue-endgame-score-row--silver,
+  .venue-endgame-score-row--silver .venue-endgame-score-rank,
+  .venue-endgame-score-row--silver .venue-endgame-score-points {
+    color: rgb(226 232 240);
+  }
+
+  .venue-endgame-score-row--bronze,
+  .venue-endgame-score-row--bronze .venue-endgame-score-rank,
+  .venue-endgame-score-row--bronze .venue-endgame-score-points {
+    color: rgb(232 164 90);
   }
 
   .venue-endgame-score-name {

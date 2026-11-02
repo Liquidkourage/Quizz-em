@@ -49,12 +49,14 @@ import {
 import { buildBettingContext, resolveMyPlayerIndex } from './playerModel/bettingModel'
 import { nextDealFlash, type DealFlash, type DealSnapshot } from './playerModel/dealFlash'
 import { eliminationPopupHandKey, type EliminationWatch } from './playerModel/eliminationPopup'
+import { playerEndgameView } from './playerModel/playerEndgame'
 import { lockedAnswerDisplayText } from './playerModel/lockedAnswerDisplay'
 import { resolvePreAction, type PreAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
 import EliminatedScreen from './components/EliminatedScreen'
+import PlayerEndgameScreen from './components/PlayerEndgameScreen'
 import EliminatedModal from './components/EliminatedModal'
 import PlayerToast from './components/PlayerToast'
 import { PlayerTableHeader, PlayerGameStatusBar } from './components/PlayerTableHeader'
@@ -409,6 +411,24 @@ function PlayerApp() {
 
   if (!gameState) {
     return <ConnectingScreen />
+  }
+
+  const endgame = playerEndgameView({
+    winnerName: venueBrief?.endgameWinnerName,
+    selfName: currentPlayer?.name ?? playerName,
+    selfBankroll: currentPlayer?.bankroll ?? null,
+  })
+  if (endgame) {
+    return (
+      <>
+        <PlayerToast message={toastMessage} />
+        <PlayerEndgameScreen
+          winnerName={endgame.winnerName}
+          selfWon={endgame.selfWon}
+          bankroll={endgame.bankroll}
+        />
+      </>
+    )
   }
 
   const isEliminated =

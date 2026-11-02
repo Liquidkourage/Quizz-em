@@ -109,6 +109,7 @@ import {
   noteGuessNudge,
 } from './virtual-players'
 import { planVenueWageringOrchestration } from './venue-wagering-orchestration'
+import { soleChipWinnerName } from './venue-endgame'
 import {
   applyVenueCondenseAfterRound,
   venueCondenseSnapshotFromRooms,
@@ -546,6 +547,15 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
     venueShuffleEveryHands: shuffleDisplay.shuffleEveryHands,
     venueHeld: isVenueHeld(vn),
     venueShuffleHeld: isVenueShuffleHeld(vn),
+    endgameWinnerName: soleChipWinnerName(
+      getVenueHandsCompleted(vn),
+      venuePlayableSnapshots(vn)
+        .filter((row) => Number.isFinite(row.n))
+        .map((row) => ({
+          phase: row.gs.phase,
+          players: row.gs.players,
+        })),
+    ),
   }
 }
 

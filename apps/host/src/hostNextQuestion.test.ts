@@ -73,6 +73,32 @@ describe('next question cue', () => {
     expect(headline.detail).toContain('How many minutes are there in a day?')
   })
 
+  it('stops the next question when one player has the last stack', () => {
+    const items = buildHostPhaseDockItems({
+      gameState: addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada'),
+      answerWindowSeconds: 60,
+      dealCommunityBlocked: false,
+      closeBetBlocked: false,
+      startAnswerBlocked: false,
+      communityLen: 0,
+      bettingRound: 0,
+      onStartGame: noop,
+      onAssignFromLobby: noop,
+      onDealCommunity: noop,
+      onStartAnswering: noop,
+      onRevealAnswer: noop,
+      onEndRound: noop,
+      onRandomQuestion: noop,
+      onNextSetlist: noop,
+      onNudgeActing: noop,
+      hasActiveSetlist: true,
+      handsCompleted: 4,
+      tournamentOver: true,
+    })
+    expect(items.some((item) => item.label === 'Next question')).toBe(false)
+    expect(items.find((item) => item.role === 'primary')?.label).toBe('Game over')
+  })
+
   it('tells the host to choose the public screen after a payout', () => {
     const gameState = addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada')
     const headline = hostRunOfShowHeadline(gameState, null, { afterPayout: true })

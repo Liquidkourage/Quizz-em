@@ -16,6 +16,7 @@ import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards, VENUE_NUMBERE
 import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { feltCountdownSec, formatElapsedClock, lastActionAtMs } from './HostShowClocks'
+import { hostEndgameWinnerName } from './hostEndgame'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
   lobby: 'Waiting room',
@@ -723,6 +724,8 @@ export function buildHostPhaseDockItems(args: {
   handsCompleted?: number
   /** Chip or trivia scores have been skipped long enough that the next question waits. */
   nextQuestionBlocked?: boolean
+  /** One player still has chips after a paid hand, and the tables are waiting. */
+  tournamentOver?: boolean
 }): HostDockItem[] {
   const {
     gameState,
@@ -748,6 +751,7 @@ export function buildHostPhaseDockItems(args: {
     hasActiveSetlist = false,
     handsCompleted = 0,
     nextQuestionBlocked = false,
+    tournamentOver = false,
   } = args
   const setlistCue = handsCompleted <= 0 ? 'Start Game' : 'Next question'
   const gateQuestion = (items: HostDockItem[]): HostDockItem[] =>
@@ -778,6 +782,16 @@ export function buildHostPhaseDockItems(args: {
   }
 
   if (phase === 'lobby') {
+    if (tournamentOver) {
+      return [{
+        id: 'endgame',
+        label: 'Game over',
+        onClick: () => {},
+        disabled: true,
+        variant: 'gold',
+        role: 'primary',
+      }]
+    }
     const items: HostDockItem[] = []
     if (tableId === LOBBY_TABLE_ID && gameState.players.length > 0) {
       items.push({
@@ -2053,6 +2067,7 @@ export function HostVenueFloorBriefPanel({
     return () => window.clearInterval(id)
   }, [nudgeLive, actionClockLive])
   const soloTable = publicDisplaySoloTable(brief)
+  const endgameWinner = hostEndgameWinnerName(brief)
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
   const [openTable, setOpenTable] = useState<number | null>(null)
   const openRow = rows.find((row) => row.tableNum === openTable)
@@ -2098,6 +2113,11 @@ export function HostVenueFloorBriefPanel({
               >
                 Match the room
               </button>
+            ) : null}
+            {endgameWinner ? (
+              <p className="mb-2 text-sm font-semibold text-amber-200">
+                Game over. {hostPlayerLabel(endgameWinner)} has the last stack.
+              </p>
             ) : null}
             <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
               Table action

@@ -54,6 +54,7 @@ import type { BlindCall, GameState, Question } from '@qhe/core'
 import { HostBlindCall } from './HostBlindCall'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
+import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { readHostVenueCode } from './hostVenueCode'
 import {
@@ -538,6 +539,7 @@ function HostApp() {
     activeSetlist.questionIds.length > 0 &&
     activeSetlistNextIndex < activeSetlist.questionIds.length
 
+  const endgameWinner = hostEndgameWinnerName(venueFloorBrief)
   const phaseDockItems = buildHostPhaseDockItems({
     gameState: hostControlState,
     answerWindowSeconds,
@@ -562,6 +564,7 @@ function HostApp() {
     hasActiveSetlist,
     handsCompleted: venueFloorBrief?.handsCompleted ?? 0,
     nextQuestionBlocked: venueFloorBrief?.scoresBlockNextQuestion === true,
+    tournamentOver: endgameWinner != null,
   })
 
   const nextQuestionText =
@@ -574,9 +577,10 @@ function HostApp() {
     nextQuestionText,
     afterPayout,
   })
+  const endgameHeadline = endgameWinner ? hostEndgameHeadline(endgameWinner) : null
   const runOfShowHeadline = {
-    title: pacingSuggestion.title,
-    detail: pacingSuggestion.detail,
+    title: endgameHeadline?.title ?? pacingSuggestion.title,
+    detail: endgameHeadline?.detail ?? pacingSuggestion.detail,
   }
   const floorLockstepMisaligned = hostFloorLockstepMisaligned(venueFeltBeat)
   const primaryDockId = phaseDockItems.find((i) => i.role === 'primary')?.id ?? phaseDockItems[0]?.id
@@ -1111,7 +1115,7 @@ function HostApp() {
             gameState={gameState}
             phaseDockItems={phaseDockItems}
             runOfShowHeadline={runOfShowHeadline}
-            pacingUrgency={pacingSuggestion.urgency}
+            pacingUrgency={endgameWinner ? 'ready' : pacingSuggestion.urgency}
             runBarCueHint={runBarCueHint}
             onVenueFloor={showVenueFloorOnTvs}
             onLeaderboard={showLeaderboardOnTvs}

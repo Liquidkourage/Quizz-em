@@ -92,6 +92,8 @@ export type PlayerVenueBrief = {
   venueShuffleEveryHands?: number | null
   /** Host froze phones, TVs, and the cue bar. */
   venueHeld?: boolean
+  /** Last player with chips, once a hand has been paid and the tables are waiting. */
+  endgameWinnerName?: string | null
   /** Next scheduled shuffle is postponed one cycle. */
   venueShuffleHeld?: boolean
 }

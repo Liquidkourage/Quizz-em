@@ -2,6 +2,23 @@ import type { Socket } from 'socket.io'
 import type { GameState, Question } from '@qhe/core'
 import * as g from '../game-ops'
 import { denyUnlessOwnSeat } from '../own-seat'
+import { soleChipWinnerName } from '../venue-endgame'
+import { getVenueHandsCompleted } from '../venue-shuffle-settings'
+
+function refuseFinishedTournament(socket: Socket, code: string): boolean {
+  const winner = soleChipWinnerName(
+    getVenueHandsCompleted(code),
+    g.venuePlayableSnapshots(code)
+      .filter((row) => Number.isFinite(row.n))
+      .map((row) => ({
+        phase: row.gs.phase,
+        players: row.gs.players,
+      })),
+  )
+  if (winner == null) return false
+  socket.emit('toast', `${winner} has the last stack. The tournament is over.`)
+  return true
+}
 
 export async function handleShowAction(
   socket: Socket,
@@ -83,6 +100,7 @@ export async function handleShowAction(
 
         case 'setQuestion': {
           if (!g.assertVenueHost(socket, gameState)) break
+          if (refuseFinishedTournament(socket, gameState.code)) break
           const lockQ = g.requireVenueLockstepTables(
             socket,
             gameState.code,
@@ -132,6 +150,7 @@ export async function handleShowAction(
 
         case 'nextQuestionFromSetlist': {
           if (!g.assertVenueHost(socket, gameState)) break
+          if (refuseFinishedTournament(socket, gameState.code)) break
           const lockSl = g.requireVenueLockstepTables(
             socket,
             gameState.code,

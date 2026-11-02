@@ -343,10 +343,7 @@ export function armVenueAnswerGuideDeadline(venueCode: string, fireAtMs: number)
 }
 
 /** Deal five community cards on every seated pre-board felt (round 2 opens). */
-export function dealCommunityBoardForVenue(
-  vnRaw: string,
-  opts?: { auto?: boolean },
-): boolean {
+export function dealCommunityBoardForVenue(vnRaw: string): boolean {
   const vn = normalizeVenueCode(vnRaw)
   const rows = venuePlayableSnapshots(vn)
   if (rows.length === 0) return false
@@ -390,13 +387,8 @@ export function dealCommunityBoardForVenue(
       emitVenueTableState(tk, gs, { skipOrchestration: true })
     }
   }
-  if (anyDealt) {
-    const msg = opts?.auto
-      ? 'Round 1 complete — board dealt on every table.'
-      : 'Board complete — wagering round 2 (every table at this venue).'
-    io.to(hostVenueRoom(vn)).emit('toast', msg)
-  }
-  return anyDealt
+  if (anyDealt) return true
+  return false
 }
 
 export function applyVenueWageringOrchestration(venueCode: string) {
@@ -412,7 +404,7 @@ export function applyVenueWageringOrchestration(venueCode: string) {
     })
 
     if (plan.dealCommunityBoard) {
-      if (dealCommunityBoardForVenue(vn, { auto: true })) {
+      if (dealCommunityBoardForVenue(vn)) {
         emitDisplayVenueSnapshotNow(vn)
         const follow = planVenueWageringOrchestration({
           seatedTableKeys: allSeatedTableSessionsInVenue(vn),
@@ -430,10 +422,6 @@ export function applyVenueWageringOrchestration(venueCode: string) {
       clearVenueWageringOrchestrationState(vn)
     } else if (plan.scheduleShowdownAtMs != null) {
       armVenueAnswerGuideDeadline(vn, plan.scheduleShowdownAtMs)
-      io.to(hostVenueRoom(vn)).emit(
-        'toast',
-        'Last table finished wagering — 45s guide countdown (reveal when ready).',
-      )
     }
 
     if (plan.tableUpdates.length === 0) return

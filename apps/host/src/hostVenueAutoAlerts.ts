@@ -75,88 +75,16 @@ export function snapshotVenueFeltBeat(felts: HostVenueFeltBeatRow[]): VenueFeltS
   }
 }
 
-function formatDeadlineDetail(deadlineMs: number | null): string | undefined {
-  if (deadlineMs == null) return undefined
-  const sec = Math.max(0, Math.ceil((deadlineMs - Date.now()) / 1000))
-  return `${sec}s guide on every felt — reveal when you are ready to close answers.`
-}
-
+/** Phase changes already show on the felts and the next cue, so they do not raise a banner. */
 export function detectVenueAutoAlerts(
-  prev: VenueFeltSnapshot | null,
-  next: VenueFeltSnapshot,
+  _prev: VenueFeltSnapshot | null,
+  _next: VenueFeltSnapshot,
 ): HostVenueAutoAlert[] {
-  if (prev == null || next.seatedCount === 0) return []
-
-  const out: HostVenueAutoAlert[] = []
-
-  if (prev.round1AnyOpen && !next.round1AnyOpen) {
-    out.push({
-      kind: 'round1-all-in',
-      title: 'Round 1 complete',
-      detail: 'All pre-board wagers are in on every table.',
-    })
-  }
-
-  if (prev.round2AnyOpen && !next.round2AnyOpen) {
-    out.push({
-      kind: 'round2-all-in',
-      title: 'Round 2 complete',
-      detail: 'All post-board wagers are in — answer window is next.',
-    })
-  }
-
-  if (prev.answeringCount === 0 && next.answeringCount > 0) {
-    out.push({
-      kind: 'answer-window-started',
-      title: 'Answer window started',
-      detail:
-        formatDeadlineDetail(next.unanimousAnswerDeadlineMs) ??
-        'Players can lock in numeric guesses on their phones.',
-    })
-  }
-
-  if (prev.answeringCount > 0 && next.answeringCount === 0 && next.showdownCount > 0) {
-    out.push({
-      kind: 'answer-window-ended',
-      title: 'Answer window closed',
-      detail: 'Showdown is running on the venue felts.',
-    })
-  }
-
-  return out
+  return []
 }
 
-/** Promote server venue-wide auto toasts into the same banner treatment. */
-export function hostVenueAutoAlertFromToast(message: string): HostVenueAutoAlert | null {
-  const m = message.trim()
-  if (m.includes('board dealt')) {
-    return {
-      kind: 'round1-all-in',
-      title: 'Board dealt',
-      detail: m,
-    }
-  }
-  if (m.includes('guide countdown') || m.includes('showdown in 45 seconds')) {
-    return {
-      kind: 'answer-window-started',
-      title: 'All post-board bets in',
-      detail: m,
-    }
-  }
-  if (m.includes('Answer window closed')) {
-    return {
-      kind: 'answer-window-ended',
-      title: 'Answer window closed',
-      detail: m,
-    }
-  }
-  if (m.includes('Answering opened')) {
-    return {
-      kind: 'answer-window-started',
-      title: 'Answer window started',
-      detail: m,
-    }
-  }
+/** Success toasts that only repeat the desk stay in the corner log, not the Update banner. */
+export function hostVenueAutoAlertFromToast(_message: string): HostVenueAutoAlert | null {
   return null
 }
 

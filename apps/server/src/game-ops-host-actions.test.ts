@@ -253,7 +253,7 @@ describe('dealCommunityBoardForVenue', () => {
       },
     }
     rooms.set(tableSessionKey('STILLBET', '1'), gs)
-    expect(dealCommunityBoardForVenue('STILLBET', { auto: false })).toBe(false)
+    expect(dealCommunityBoardForVenue('STILLBET')).toBe(false)
     const after = rooms.get(tableSessionKey('STILLBET', '1'))
     expect(after?.round.isBettingOpen).toBe(true)
     expect(after?.round.communityCards).toEqual([])

@@ -20,7 +20,6 @@ export async function handleLibraryAction(
           if (raw == null || raw === '') {
             g.venuePlayhead.set(venue, { setlistId: null, nextIndex: 0 })
             await g.emitHostLibrary(venue)
-            socket.emit('toast', 'Setlist rundown cleared — free play from the full bank.')
             break
           }
           const id = String(raw).trim()
@@ -30,11 +29,6 @@ export async function handleLibraryAction(
           }
           g.venuePlayhead.set(venue, { setlistId: id, nextIndex: 0 })
           await g.emitHostLibrary(venue)
-          const sel = lib.setlists.find((s) => s.id === id)!
-          socket.emit(
-            'toast',
-            `Active rundown: “${sel.name}” — ${sel.questionIds.length} question(s); use Next from setlist for cue 1.`
-          )
           break
         }
 
@@ -58,7 +52,6 @@ export async function handleLibraryAction(
           lib.setlists.push({ id, name, questionIds })
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
-          socket.emit('toast', `Setlist created: ${name}`)
           break
         }
 
@@ -97,7 +90,6 @@ export async function handleLibraryAction(
             })
           }
           await g.emitHostLibrary(gameState.code)
-          socket.emit('toast', `Setlist “${name}” saved (${questionIds.length} questions).`)
           break
         }
 
@@ -118,7 +110,6 @@ export async function handleLibraryAction(
             g.venuePlayhead.set(venue, { setlistId: null, nextIndex: 0 })
           }
           await g.emitHostLibrary(gameState.code)
-          socket.emit('toast', 'Setlist removed.')
           break
         }
 
@@ -145,7 +136,6 @@ export async function handleLibraryAction(
           bank.push(q)
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
-          socket.emit('toast', 'Question added.')
           break
         }
 
@@ -196,7 +186,6 @@ export async function handleLibraryAction(
           }
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
-          socket.emit('toast', 'Question saved.')
           break
         }
 
@@ -214,7 +203,6 @@ export async function handleLibraryAction(
           lib.questions = filtered
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
-          socket.emit('toast', 'Question removed.')
           break
         }
 
@@ -258,12 +246,6 @@ export async function handleLibraryAction(
           g.pruneSetlistRefs(lib)
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
-          socket.emit(
-            'toast',
-            replace
-              ? `Replaced bank with ${validated.length} question(s); setlists pruned to valid ids.`
-              : `Appended ${validated.length} question(s).`
-          )
           break
         }
 
@@ -281,7 +263,6 @@ export async function handleLibraryAction(
           g.pruneSetlistRefs(lib)
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
-          socket.emit('toast', `Starter pack restored (${g.STARTER_QUESTION_SET.length} questions).`)
           break
         }
           

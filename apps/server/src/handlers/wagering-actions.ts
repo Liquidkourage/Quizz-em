@@ -46,40 +46,27 @@ export async function handleWageringAction(
   switch (type) {
         case 'bet': {
           const betAction = payload as BetAction
-          const who = g.toastPlayerLabel(gameState, betAction.playerId)
           gameState = g.placeBet(gameState, betAction.playerId, betAction.amount)
-          g.io.to(sessionKey).emit('toast', `${who} bet $${betAction.amount.toLocaleString()}`)
           break
         }
         case 'check': {
           const checkAction = payload as CheckAction
-          const who = g.toastPlayerLabel(gameState, checkAction.playerId)
           gameState = g.playerCheck(gameState, checkAction.playerId)
-          g.io.to(sessionKey).emit('toast', `${who} checked`)
           break
         }
         case 'call': {
           const callAction = payload as CallAction
-          const who = g.toastPlayerLabel(gameState, callAction.playerId)
           gameState = g.playerCall(gameState, callAction.playerId)
-          g.io.to(sessionKey).emit('toast', `${who} called`)
           break
         }
         case 'raise': {
           const raiseAction = payload as RaiseAction
-          const who = g.toastPlayerLabel(gameState, raiseAction.playerId)
           gameState = g.playerRaise(gameState, raiseAction.playerId, raiseAction.amount)
-          g.io.to(sessionKey).emit(
-            'toast',
-            `${who} raised to $${raiseAction.amount.toLocaleString()}`,
-          )
           break
         }
         case 'allIn': {
           const allInAction = payload as AllInAction
-          const who = g.toastPlayerLabel(gameState, allInAction.playerId)
           gameState = g.playerAllIn(gameState, allInAction.playerId)
-          g.io.to(sessionKey).emit('toast', `${who} is all-in!`)
           break
         }
         case 'adminCloseBetting': {
@@ -98,7 +85,6 @@ export async function handleWageringAction(
             g.rooms.set(tk, gs)
             g.emitVenueTableState(tk, gs)
           }
-          socket.emit('toast', 'Betting closed — entire venue in sync.')
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -162,8 +148,6 @@ export async function handleWageringAction(
           }
           await g.emitHostLibrary(vn)
           g.emitDisplayVenueSnapshotNow(vn)
-          const snap = g.hostLibraryBlindsPayload(vn)
-          socket.emit('toast', `Venue blinds synced: $${snap.smallBlind} / $${snap.bigBlind}`)
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -181,8 +165,6 @@ export async function handleWageringAction(
           }
           await g.emitHostLibrary(vn)
           g.emitDisplayVenueSnapshotNow(vn)
-          const snap = g.hostLibraryBlindsPayload(vn)
-          socket.emit('toast', `Venue blinds saved: $${snap.smallBlind} / $${snap.bigBlind}`)
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -199,7 +181,7 @@ export async function handleWageringAction(
           }
           const tid = String(tableNum)
           const tk = g.tableSessionKey(vn, tid)
-          const pair = g.setTableBlindsOverride(vn, tid, sb, bb)
+          g.setTableBlindsOverride(vn, tid, sb, bb)
           const gs = g.rooms.get(tk)
           if (gs) {
             const next = g.applyEffectiveBlindsToGameState(gs, vn, tk)
@@ -207,7 +189,6 @@ export async function handleWageringAction(
             g.emitVenueTableState(tk, next)
           }
           g.emitDisplayVenueSnapshotNow(vn)
-          socket.emit('toast', `Table ${tableNum} blinds: $${pair.smallBlind} / $${pair.bigBlind}`)
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -230,8 +211,6 @@ export async function handleWageringAction(
             g.emitVenueTableState(tk, next)
           }
           g.emitDisplayVenueSnapshotNow(vn)
-          const snap = g.hostLibraryBlindsPayload(vn)
-          socket.emit('toast', `Table ${tableNum} reverted to venue blinds ($${snap.smallBlind} / $${snap.bigBlind})`)
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -254,23 +233,17 @@ export async function handleWageringAction(
               })
               .filter((x): x is { smallBlind: number; bigBlind: number } => x != null)
           }
-          const snap = g.setVenueBlindStructurePersist(vn, rawHands, levels)
+          g.setVenueBlindStructurePersist(vn, rawHands, levels)
           g.syncVenueBlindsToAllSessions(vn)
           await g.emitHostLibrary(vn)
           g.emitDisplayVenueSnapshotNow(vn)
-          socket.emit(
-            'toast',
-            `Blind structure: level every ${snap.handsPerBlindLevel} hand(s), ${snap.levels.length} levels, now $${snap.smallBlind}/$${snap.bigBlind}`,
-          )
           gameState = g.rooms.get(sessionKey)!
           break
         }
           
         case 'fold': {
           const foldAction = payload as FoldAction
-          const who = g.toastPlayerLabel(gameState, foldAction.playerId)
           gameState = g.foldPlayer(gameState, foldAction.playerId)
-          g.io.to(sessionKey).emit('toast', `${who} folded`)
           break
         }
           

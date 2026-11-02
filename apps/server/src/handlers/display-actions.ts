@@ -82,7 +82,6 @@ export async function handleDisplayTransport(
       g.venueDisplayLayouts.set(g.normalizeVenueCode(gsCtl.code), nextLayout)
       g.io.to(g.displayVenueRoom(gsCtl.code)).emit('displayLayout', nextLayout)
       g.emitDisplayVenueSnapshotNow(gsCtl.code)
-      socket.emit('toast', 'TV / display layout updated for the venue.')
       return true
     }
 

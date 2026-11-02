@@ -197,16 +197,12 @@ export async function handleShowAction(
           }
           const allHaveHoles = rows.every((r) => g.playersHaveHoleCards(r.gs))
           if (allHaveQuestion && allHaveHoles) {
-            if (g.openBettingAfterQuestionOnVenue(gameState.code)) {
-              socket.emit('toast', 'Wagering round 1 open (all tables).')
-            } else {
+            if (!g.openBettingAfterQuestionOnVenue(gameState.code)) {
               socket.emit('toast', 'Could not open wagering — check every table has hole cards and a question.')
             }
           } else if (!allHaveHoles) {
             if (g.autoDealHoleCardsOnVenue(gameState.code)) {
-              if (allHaveQuestion && g.openBettingAfterQuestionOnVenue(gameState.code)) {
-                socket.emit('toast', 'Hole cards dealt — wagering round 1 open (all tables).')
-              } else {
+              if (!(allHaveQuestion && g.openBettingAfterQuestionOnVenue(gameState.code))) {
                 socket.emit('toast', 'Hole cards dealt — show the question again if wagering did not open.')
               }
             } else {
@@ -234,7 +230,7 @@ export async function handleShowAction(
             break
           }
           const vnBoard = g.normalizeVenueCode(gameState.code)
-          if (g.dealCommunityBoardForVenue(vnBoard, { auto: false })) {
+          if (g.dealCommunityBoardForVenue(vnBoard)) {
             g.emitDisplayVenueSnapshotNow(vnBoard)
           } else {
             socket.emit('toast', 'Board failed to deal — reload from host if this persists.')
@@ -273,10 +269,6 @@ export async function handleShowAction(
             g.rooms.set(tk, gs)
             g.emitVenueTableState(tk, gs, { skipOrchestration: true })
           }
-          socket.emit(
-            'toast',
-            `Answering opened — ${lockAns.length} table(s); ${durationSec}s guide countdown (reveal when ready).`,
-          )
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -330,14 +322,12 @@ export async function handleShowAction(
             })
             break
           }
-          const who = g.toastPlayerLabel(gameState, submitAnswerAction.playerId)
           gameState = g.submitAnswer(
             gameState,
             submitAnswerAction.playerId,
             submitAnswerAction.answer,
             submitAnswerAction.composition
           )
-          g.io.to(sessionKey).emit('toast', `${who} locked an answer`)
           socket.emit('ack', { ok: true, message: 'Answer recorded.' })
           break
         }
@@ -356,12 +346,7 @@ export async function handleShowAction(
             g.emitVenueTableState(row.tk, row.gs, { skipOrchestration: true })
           }
           g.emitDisplayVenueSnapshotNow(vnAlign)
-          socket.emit(
-            'toast',
-            aligned.tables.length === 0
-              ? 'Tables already match.'
-              : `Matched tables ${aligned.tables.join(', ')} to ${g.phaseOverrideLabel(aligned.signature)}.`,
-          )
+          if (aligned.tables.length === 0) socket.emit('toast', 'Tables already match.')
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -379,7 +364,6 @@ export async function handleShowAction(
           const row = g.venuePlayableSnapshots(vnSet).find((r) => r.n === set.tableNum)
           if (row) g.emitVenueTableState(row.tk, row.gs, { skipOrchestration: true })
           g.emitDisplayVenueSnapshotNow(vnSet)
-          socket.emit('toast', `Table ${set.tableNum} set to ${g.phaseOverrideLabel(set.signature)}.`)
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -389,7 +373,6 @@ export async function handleShowAction(
           const vnRev = g.normalizeVenueCode(gameState.code)
           if (!g.revealVenueAnswersTogether(socket, vnRev)) break
           g.scheduleVenueRevealToShowdown(vnRev)
-          socket.emit('toast', 'Answers revealed.')
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -436,11 +419,7 @@ export async function handleShowAction(
           )
           g.attachVenueLastHandSeating(vnEnd, g.venueSeatingAnnouncementFromResult(condenseResult))
           g.emitDisplayVenueSnapshotNow(vnEnd)
-          socket.emit('toast', `Round cleared — lobby on all ${lockEnd.length} felts at this venue.`)
-          for (const msg of condenseResult.hostToasts) {
-            socket.emit('toast', msg)
-            g.io.to(g.hostVenueRoom(vnEnd)).emit('toast', msg)
-          }
+          for (const msg of condenseResult.hostToasts) socket.emit('toast', msg)
           if (levelMsg) socket.emit('toast', levelMsg)
           gameState = g.rooms.get(sessionKey)!
           break
@@ -709,7 +688,6 @@ export async function handleShowAction(
           const message = nowHeld ? 'Room on hold. Phones and TVs are waiting.' : 'Room resumed.'
           socket.emit('toast', message)
           socket.emit('ack', { ok: true, message })
-          g.io.to(g.hostVenueRoom(g.normalizeVenueCode(gameState.code))).emit('toast', message)
           break
         }
 
@@ -719,9 +697,7 @@ export async function handleShowAction(
             gameState.code,
             (payload as { every?: unknown })?.every,
           )
-          const message = `Tables shuffle every ${every} hands.`
-          socket.emit('toast', message)
-          socket.emit('ack', { ok: true, message })
+          socket.emit('ack', { ok: true, message: `Tables shuffle every ${every} hands.` })
           break
         }
 
@@ -729,11 +705,12 @@ export async function handleShowAction(
           if (!g.assertVenueHost(socket, gameState)) break
           const skip = (payload as { skip?: unknown })?.skip === true
           g.setVenueSkipNextShuffleAndBroadcast(gameState.code, skip)
-          const message = skip
-            ? 'Next shuffle skipped. These tables stay through that break.'
-            : 'Next shuffle is back on schedule.'
-          socket.emit('toast', message)
-          socket.emit('ack', { ok: true, message })
+          socket.emit('ack', {
+            ok: true,
+            message: skip
+              ? 'Next shuffle skipped. These tables stay through that break.'
+              : 'Next shuffle is back on schedule.',
+          })
           break
         }
 
@@ -763,10 +740,6 @@ export async function handleShowAction(
           g.markVenueShowStarted(seeded.vn)
           g.venueAudienceWelcomeExpired.add(seeded.vn)
           g.emitDisplayVenueSnapshotNow(seeded.vn)
-          socket.emit(
-            'toast',
-            `Rehearsal: ${seeded.tableCount} tables, ${seeded.totalBots} CPUs (${seeded.sizes.join(', ')} per table). Host on table 1.`,
-          )
           gameState = g.rooms.get(seeded.t1Key)!
           break
         }
@@ -779,12 +752,9 @@ export async function handleShowAction(
           const seeded = g.seedRehearsalVenueRooms(gameState, tableCount)
           const t1Key = g.moveVenueHostToTableOne(seeded.vn, gameState.hostId, sessionKey)
           const { advanced } = await g.fastForwardVenueRehearsalToShowdown(seeded.vn)
-          socket.emit(
-            'toast',
-            advanced > 0
-              ? `Rehearsal: winner screen on ${seeded.tableCount} table(s) (${seeded.totalBots} CPUs).`
-              : `Rehearsal: ${seeded.tableCount} table(s) already in showdown.`,
-          )
+          if (advanced === 0) {
+            socket.emit('toast', `Rehearsal: ${seeded.tableCount} table(s) already in showdown.`)
+          }
           gameState = g.rooms.get(t1Key)!
           break
         }
@@ -805,16 +775,7 @@ export async function handleShowAction(
             break
           }
           const { advanced, already } = await g.fastForwardVenueRehearsalToShowdown(vnSkip)
-          if (advanced > 0) {
-            socket.emit(
-              'toast',
-              already > 0
-                ? `Rehearsal: winner screen on ${advanced} table(s) (${already} already in showdown).`
-                : `Rehearsal: winner screen on ${advanced} table(s).`,
-            )
-          } else {
-            socket.emit('toast', `All ${already} table(s) already in showdown.`)
-          }
+          if (advanced === 0) socket.emit('toast', `All ${already} table(s) already in showdown.`)
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -824,8 +785,6 @@ export async function handleShowAction(
           const raw = Number((payload as { count?: number })?.count ?? 2)
           const asked = Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 2
           gameState = g.spawnVirtualPlayers(gameState, asked)
-          const nVirt = g.liveVirtualCount(gameState)
-          g.io.to(sessionKey).emit('toast', `Test mode: added virtual seats (CPU total: ${nVirt}).`)
           break
         }
 
@@ -833,10 +792,7 @@ export async function handleShowAction(
           if (!g.assertVenueHost(socket, gameState)) break
           const cleared = g.liveVirtualCount(gameState)
           gameState = g.removeAllVirtualPlayers(gameState)
-          g.io.to(sessionKey).emit(
-            'toast',
-            cleared > 0 ? `Removed ${cleared} virtual seat(s).` : 'No virtual seats to remove.'
-          )
+          if (cleared === 0) socket.emit('toast', 'No virtual seats to remove.')
           break
         }
 

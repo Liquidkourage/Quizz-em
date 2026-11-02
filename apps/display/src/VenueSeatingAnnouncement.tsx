@@ -41,6 +41,17 @@ function droppedTableByline(seating: DisplayVenueSeatingAnnouncement, tableNum: 
   return ''
 }
 
+function samePlayer(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase()
+}
+
+function rowMarks(eliminated: boolean, byline: string): string[] {
+  const marks: string[] = []
+  if (eliminated) marks.push('ELIMINATED')
+  if (byline) marks.push(byline)
+  return marks
+}
+
 function seatingRowClass(closed: boolean, compact: boolean): string {
   const parts = ['venue-bust-overlay-row border-cyan-500/20']
   if (closed) parts.push('venue-bust-overlay-row--closed')
@@ -82,31 +93,35 @@ export default function VenueSeatingAnnouncement({
   }, [])
 
   const rows = useMemo(() => {
-    const out: { key: string; label: string; detail: string; byline: string; closed: boolean }[] = []
-    for (const bust of busts) {
-      out.push({
-        key: `out-${bust.name}-${bust.tableNum}`,
-        label: displayPlayerName(bust.name),
-        detail: `Table ${bust.tableNum}`,
-        byline: 'ELIMINATED',
-        closed: false,
-      })
-    }
+    const out: { key: string; label: string; detail: string; marks: string[]; closed: boolean }[] = []
+    const usedBust = new Set<number>()
     for (const m of seating.moves) {
+      const bustAt = busts.findIndex((bust, index) => !usedBust.has(index) && samePlayer(bust.name, m.name))
+      if (bustAt >= 0) usedBust.add(bustAt)
       out.push({
         key: `${m.name}-${m.fromTableNum}-${m.toTableNum}`,
         label: displayPlayerName(m.name),
         detail: `Table ${m.fromTableNum} → Table ${m.toTableNum}`,
-        byline: m.byline?.trim() ?? '',
+        marks: rowMarks(bustAt >= 0, m.byline?.trim() ?? ''),
         closed: false,
       })
     }
+    busts.forEach((bust, index) => {
+      if (usedBust.has(index)) return
+      out.push({
+        key: `out-${bust.name}-${bust.tableNum}`,
+        label: displayPlayerName(bust.name),
+        detail: `Table ${bust.tableNum}`,
+        marks: ['ELIMINATED'],
+        closed: false,
+      })
+    })
     for (const n of seating.closedTableNums) {
       out.push({
         key: `closed-${n}`,
         label: `Table ${n}`,
         detail: 'Closed',
-        byline: droppedTableByline(seating, n),
+        marks: rowMarks(false, droppedTableByline(seating, n)),
         closed: true,
       })
     }
@@ -202,9 +217,13 @@ export default function VenueSeatingAnnouncement({
                   >
                     {row.label}
                   </span>
+                  {row.marks.map((mark) => (
+                    <span key={mark} className="venue-bust-overlay-byline shrink-0">
+                      {mark}
+                    </span>
+                  ))}
                   <span className="venue-bust-overlay-table-well text-cyan-100/90">{row.detail}</span>
                 </div>
-                {row.byline ? <span className="venue-bust-overlay-byline">{row.byline}</span> : null}
               </div>
             ))}
           </div>

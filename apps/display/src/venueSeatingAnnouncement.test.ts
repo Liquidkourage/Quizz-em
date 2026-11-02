@@ -92,6 +92,29 @@ describe('seating update', () => {
     expect(html.slice(closed, closed + 400)).toContain('TABLE SHUFFLE')
   })
 
+  it('puts an elimination on the same row as that player’s move', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 4,
+          tablesAfter: 3,
+          playerCount: 8,
+          moves: [{ name: 'Ada Lane', fromTableNum: 2, toTableNum: 1, byline: 'TABLE BALANCE' }],
+          closedTableNums: [],
+        },
+        busts: [{ name: 'Ada Lane', tableNum: 2 }],
+      }),
+    )
+    const rows = html.split('venue-bust-overlay-row ').length - 1
+    expect(rows).toBe(1)
+    const line = html.slice(html.indexOf('venue-bust-overlay-row-line'), html.indexOf('venue-bust-overlay-row-line') + 700)
+    expect(line).toContain('Ada')
+    expect(line).toContain('ELIMINATED')
+    expect(line).toContain('Table 2 → Table 1')
+    expect(line).toContain('TABLE BALANCE')
+  })
+
   it('lists eliminations on the same card as the moves', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSeatingAnnouncement, {

@@ -78,6 +78,27 @@ export function venueWallHasLiveTiles(wall: DisplayVenueWallSnapshot | null): bo
   return wall != null && wall.tiles != null && wall.tiles.length > 0
 }
 
+/** Join screen headcount. After a hand, this is who still has chips. */
+export function welcomeWallPlayerCount(wall: {
+  lobbyPlayerCount?: number
+  totalSeatedAtTables?: number
+  venueChipSurvivorCount?: number | null
+  venueHandsCompleted?: number | null
+} | null): number {
+  if (wall == null) return 0
+  const hands = wall.venueHandsCompleted
+  const standing = wall.venueChipSurvivorCount
+  if (
+    typeof hands === 'number' &&
+    hands >= 1 &&
+    typeof standing === 'number' &&
+    Number.isFinite(standing)
+  ) {
+    return Math.max(0, Math.floor(standing))
+  }
+  return Math.max(0, Math.floor(wall.lobbyPlayerCount ?? 0) + Math.floor(wall.totalSeatedAtTables ?? 0))
+}
+
 /** Welcome wall: seated tables when assigned, else projected from enrollment (assign-from-lobby sizing). */
 export function welcomeWallTableCount(
   wall: DisplayVenueWallSnapshot | null,

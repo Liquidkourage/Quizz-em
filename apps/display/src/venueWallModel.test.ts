@@ -4,6 +4,7 @@ import {
   venueHeadlineCondenseCaption,
   venueHeadlineCondenseCaptionParts,
   venuePublicAnswerReleased,
+  welcomeWallPlayerCount,
   type VenueCondenseProgressModel,
 } from './venueWallModel'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
@@ -80,6 +81,28 @@ describe('venueHeadlineCondenseCaptionParts', () => {
       '91 remaining',
       'shuffle next hand',
     ])
+  })
+
+  it('counts people still standing on the join screen after a hand', () => {
+    expect(
+      welcomeWallPlayerCount({
+        lobbyPlayerCount: 0,
+        totalSeatedAtTables: 7,
+        venueChipSurvivorCount: 1,
+        venueHandsCompleted: 4,
+      }),
+    ).toBe(1)
+  })
+
+  it('counts everyone who has joined before the first hand', () => {
+    expect(
+      welcomeWallPlayerCount({
+        lobbyPlayerCount: 3,
+        totalSeatedAtTables: 4,
+        venueChipSurvivorCount: 4,
+        venueHandsCompleted: 0,
+      }),
+    ).toBe(7)
   })
 
   it('shows only remaining on the final table', () => {

@@ -406,6 +406,19 @@ export function showdownLayoutTableCountFromSpec(
   return opts?.mosaicLayoutTableCount ?? spec?.sizingTableCount ?? 1
 }
 
+function finalTablePlayerCount(
+  floorTiles: readonly DisplayVenueTileSnapshot[],
+  condenseProgress: VenueCondenseProgressModel | null,
+): number | null {
+  if (condenseProgress != null) return condenseProgress.survivors
+  const seated = floorTiles[0]?.seated
+  return typeof seated === 'number' && seated > 0 ? seated : null
+}
+
+function playerCountLabel(count: number): string {
+  return `${count} player${count === 1 ? '' : 's'}`
+}
+
 /** Broadcast headline meta line — driven by spec template, not raw table count. */
 export function buildVenueFloorHeadlineMeta(
   spec: VenueFloorSpec,
@@ -417,14 +430,8 @@ export function buildVenueFloorHeadlineMeta(
 
   if (spec.broadcastMetaTemplate === 'final-table') {
     const parts: string[] = ['Final table']
-    const seated = floorTiles[0]?.seated
-    if (typeof seated === 'number' && seated > 0) parts.push(`${seated} players`)
-    if (condenseProgress != null) {
-      const survivorPart = venueHeadlineCondenseCaptionParts(condenseProgress).find((p) =>
-        /remaining/i.test(p)
-      )
-      if (survivorPart) parts.push(survivorPart.replace(/\s*remaining/i, ' left'))
-    }
+    const standing = finalTablePlayerCount(floorTiles, condenseProgress)
+    if (standing != null && standing > 0) parts.push(playerCountLabel(standing))
     return parts.join(' · ')
   }
 

@@ -11,7 +11,7 @@ import {
 } from './displayTypography'
 import { QUIZZ_EM_WELCOME_HOW_IT_WORKS_STEPS } from './venueRulesWallContent'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
-import { welcomeWallTableCount } from './venueWallModel'
+import { welcomeWallPlayerCount, welcomeWallTableCount } from './venueWallModel'
 import { WELCOME_WALL_ASSETS } from './welcomeWallAssets'
 
 export type AudienceWelcomeWallProps = {
@@ -579,7 +579,7 @@ export default function AudienceWelcomeWall({ venueCode, wall }: AudienceWelcome
   const joinUrl = playerJoinHref()
   const qrJoinUrl = playerJoinHrefForQr(venueCode)
   const syncingCounts = wall == null
-  const enrolled = syncingCounts ? null : (wall.lobbyPlayerCount ?? 0) + (wall.totalSeatedAtTables ?? 0)
+  const enrolled = syncingCounts ? null : welcomeWallPlayerCount(wall)
   const tableCount =
     syncingCounts || enrolled == null ? null : welcomeWallTableCount(wall, enrolled)
   const [qrOk, setQrOk] = useState(true)

@@ -52,7 +52,7 @@ describe('venueBroadcastLayout', () => {
         shuffleEveryHands: 5,
         shuffleFillPct: 0,
       })
-    ).toBe('Final table · 7 players · 7 left')
+    ).toBe('Final table · 7 players')
   })
 
   it('builds condense meta for n=2', () => {

@@ -76,7 +76,22 @@ describe('resolveVenueFloorSpec', () => {
         shuffleEveryHands: 5,
         shuffleFillPct: 0,
       })
-    ).toBe('Final table · 7 players · 7 left')
+    ).toBe('Final table · 7 players')
+  })
+
+  it('counts players still standing when the roster is larger', () => {
+    const spec = resolveVenueFloorSpec({ populatedTableCount: 1 })!
+    expect(
+      buildVenueFloorHeadlineMeta(spec, [{ tableNum: 1, seated: 7 } as never], {
+        survivors: 1,
+        peakSurvivors: 20,
+        liveTables: 1,
+        fillPct: 5,
+        handsUntilShuffle: null,
+        shuffleEveryHands: 5,
+        shuffleFillPct: 0,
+      }),
+    ).toBe('Final table · 1 player')
   })
 })
 

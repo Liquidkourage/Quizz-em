@@ -65,6 +65,14 @@ export function CupholderGraphic({
   )
 }
 
+/** Public mosaic initials breathe while that seat is up to act. */
+function mosaicActingInitialClass(state: SeatCupholderState, labelClassName?: string): string {
+  if (state !== 'acting') return ''
+  const tokens = labelClassName?.split(/\s+/) ?? []
+  if (!tokens.includes('vfd-mosaic-seat-initial')) return ''
+  return 'vfd-mosaic-seat-initial--acting'
+}
+
 /**
  * One consistent cupholder render — same graphic, size, and label treatment in every state.
  * State is shown with an outer ring only (acting / answer locked / winner) or dimming (folded / empty).
@@ -99,6 +107,7 @@ export function SeatCupholderMarker({
   'aria-label'?: string
 }) {
   const dimmed = state === 'folded' || state === 'empty'
+  const actingInitialClass = mosaicActingInitialClass(state, labelClassName)
 
   return (
     <div
@@ -120,7 +129,8 @@ export function SeatCupholderMarker({
         <span
           className={clsx(
             'absolute inset-0 flex items-center justify-center px-0.5 text-center font-black leading-none tracking-tight text-amber-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95),0_0_6px_rgba(0,0,0,0.85)]',
-            labelClassName
+            labelClassName,
+            actingInitialClass
           )}
           style={{
             ...(labelFontSizePx != null ? { fontSize: labelFontSizePx } : undefined),

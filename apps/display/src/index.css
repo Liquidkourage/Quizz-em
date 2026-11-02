@@ -2785,6 +2785,31 @@
       0 0 8px rgba(0, 0, 0, 0.95);
   }
 
+  @keyframes vfd-acting-initial-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.86;
+      text-shadow:
+        0 1px 0 #000,
+        0 2px 0 #000,
+        0 0 8px rgba(0, 0, 0, 0.95),
+        0 0 8px rgba(251, 191, 36, 0.55);
+    }
+  }
+
+  .vfd-mosaic-seat-initial--acting {
+    animation: vfd-acting-initial-pulse 2.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vfd-mosaic-seat-initial--acting {
+      animation: none;
+    }
+  }
+
   .vfd-mosaic-seat-stack .vfd-mosaic-dollar {
     text-shadow:
       0 1px 0 #000,

@@ -597,36 +597,29 @@
     overflow: hidden;
   }
 
-  /* Inset the artwork so names and stacks sit in a gutter instead of on the chips. */
+  /* A short gutter for names. The oval still fills the column the way a mosaic tile does. */
   .venue-broadcast-dual-stage {
     position: absolute;
-    inset: 22% 18% 20%;
+    inset: 10% 13% 12%;
   }
 
   .venue-broadcast-dual-stage .vfd-broadcast-action-stack,
   .venue-broadcast-dual-stage .vfd-broadcast-pot-stack {
-    max-width: 42%;
-  }
-
-  .venue-broadcast-dual-stage .vfd-broadcast-action-name,
-  .venue-broadcast-dual-stage .vfd-broadcast-action-label,
-  .venue-broadcast-dual-stage .vfd-broadcast-action-message,
-  .venue-broadcast-dual-stage .vfd-broadcast-center-amount {
-    font-size: clamp(11px, 1.35vw, 18px) !important;
+    max-width: 46%;
   }
 
   .venue-broadcast-dual-stage .vfd-broadcast-rim-name,
   .venue-broadcast-dual-stage .vfd-broadcast-rim-name--acting {
-    font-size: clamp(0.72rem, 1.45vh, 0.95rem) !important;
+    font-size: clamp(1.05rem, 2.35vh, 1.55rem) !important;
   }
 
   .venue-broadcast-dual-stage .vfd-broadcast-rim-stack {
-    font-size: clamp(0.78rem, 1.6vh, 1.05rem) !important;
+    font-size: clamp(1.1rem, 2.5vh, 1.65rem) !important;
   }
 
   .venue-broadcast-dual-stage .vfd-broadcast-action-name {
     display: inline-block;
-    max-width: 7.5rem;
+    max-width: 9.5rem;
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: bottom;

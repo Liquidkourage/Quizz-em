@@ -20,7 +20,6 @@ import {
   stadiumMosaicHoleCardHeightPx,
   stadiumMosaicHoleCardOverlapPx,
   stadiumSeatPointPx,
-  STADIUM_REFERENCE_TABLE_WIDTH_PX,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
 import {
@@ -38,6 +37,7 @@ import {
   type BroadcastDensity,
   MOSAIC_HOLE_CARD_FAN_DEG,
 } from './venueMosaicSeatGeometry'
+import { broadcastFeltScale } from './venueBroadcastLayout'
 import {
   formatTriviaNumber,
   isVenueTileWageringPaused,
@@ -350,13 +350,12 @@ function MosaicTableStatusBand({
 }
 
 /** Chip stack on broadcast felt — scales with measured table width (matches fullscreen hero). */
-function broadcastChipStackLayoutPx(rimW: number): {
+function broadcastChipStackLayoutPx(rimW: number, density: 'solo' | 'dual' = 'solo'): {
   heightPx: number
   maxWidthPx: number
   fontPx: number
 } {
-  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
-  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  const scale = broadcastFeltScale(rimW, density)
   return {
     heightPx: Math.round(70 * scale),
     maxWidthPx: Math.round(118 * scale),
@@ -365,15 +364,21 @@ function broadcastChipStackLayoutPx(rimW: number): {
 }
 
 /** Dealer puck / blind lammers — scale with table width on venue walls. */
-function venueBlindMarkerSizePx(rimW: number, mode: 'broadcast' | 'lg' | 'md'): number {
-  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
-  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+function venueBlindMarkerSizePx(
+  rimW: number,
+  mode: 'broadcast' | 'lg' | 'md',
+  density: 'solo' | 'dual' = 'solo',
+): number {
+  const scale =
+    mode === 'broadcast'
+      ? broadcastFeltScale(rimW, density)
+      : broadcastFeltScale(rimW, 'solo')
   const base = mode === 'broadcast' ? 44 : mode === 'lg' ? 38 : 30
   return Math.round(base * scale)
 }
 
 /** Felt center HUD on n=1 broadcast — scales with measured table width. */
-function broadcastCenterTypographyPx(rimW: number): {
+function broadcastCenterTypographyPx(rimW: number, density: 'solo' | 'dual' = 'solo'): {
   potAmountPx: number
   actionNamePx: number
   actionLabelPx: number
@@ -382,8 +387,7 @@ function broadcastCenterTypographyPx(rimW: number): {
   gapPx: number
   lineGapPx: number
 } {
-  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
-  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  const scale = broadcastFeltScale(rimW, density)
   return {
     potAmountPx: Math.round(80 * scale),
     actionNamePx: Math.round(32 * scale),
@@ -397,10 +401,10 @@ function broadcastCenterTypographyPx(rimW: number): {
 
 /** Community board on n=1 broadcast — stadium-scaled, not mosaic tile sizing. */
 function broadcastCommunityCardLayoutPx(
-  rimW: number
+  rimW: number,
+  density: 'solo' | 'dual' = 'solo',
 ): { widthPx: number; heightPx: number; boardGapPx: number; gapPx: number } {
-  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
-  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  const scale = broadcastFeltScale(rimW, density)
   const widthPx = Math.round(76 * scale)
   const heightPx = Math.round((widthPx * 7) / 5)
   return {
@@ -412,14 +416,13 @@ function broadcastCommunityCardLayoutPx(
 }
 
 /** Folded-player OUT badge on broadcast hero felts. */
-function broadcastFoldOutBadgePx(rimW: number): {
+function broadcastFoldOutBadgePx(rimW: number, density: 'solo' | 'dual' = 'solo'): {
   fontPx: number
   padXPx: number
   padYPx: number
   minWidthPx: number
 } {
-  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
-  const scale = Math.max(0.78, Math.min(2.05, w / STADIUM_REFERENCE_TABLE_WIDTH_PX))
+  const scale = broadcastFeltScale(rimW, density)
   return {
     fontPx: Math.round(24 * scale),
     padXPx: Math.round(14 * scale),
@@ -442,6 +445,7 @@ function VenueBroadcastCenterStack({
   communityCardGapPx,
   prefersReducedMotion,
   rimW,
+  density = 'solo',
 }: {
   pot: number
   potMuted: 'dim' | 'faint' | 'live'
@@ -455,9 +459,10 @@ function VenueBroadcastCenterStack({
   communityCardGapPx: number
   prefersReducedMotion: boolean
   rimW: number
+  density?: 'solo' | 'dual'
 }) {
   const feltBounds = venueFeltBoundsFrac()
-  const centerTypo = broadcastCenterTypographyPx(rimW)
+  const centerTypo = broadcastCenterTypographyPx(rimW, density)
   const centerCxPct = feltBounds.cx * 100
   const centerCyPct = feltBounds.cy * 100
   const hasCommunityBoard = communityDigits.length > 0
@@ -1237,7 +1242,9 @@ function SeatRingWithLabels({
   const isDualBroadcast = isBroadcast && broadcastDensity === 'dual'
   /** Spotlight / broadcast hero — wide capsule; mosaic tiles use smaller md ring below. */
   const lgRing = isBroadcast
-    ? 'venue-broadcast-felt relative mx-auto aspect-[14/8] h-full max-h-full w-auto max-w-full min-h-0 shrink-0'
+    ? isDualBroadcast
+      ? 'venue-broadcast-felt relative mx-auto aspect-[14/8] h-auto max-h-full w-full min-h-0'
+      : 'venue-broadcast-felt relative mx-auto aspect-[14/8] h-full max-h-full w-auto max-w-full min-h-0 shrink-0'
     : 'mx-auto aspect-[14/8] h-auto max-h-[min(min(68svh,57dvh),36rem)] w-[min(100%,calc(100dvw-2.5rem),68rem)] max-w-full shrink-0'
   /** Mosaic crawl — stadium capsule; fit cell with width-first sizing so aspect ratio holds. */
   const mdRing = isMosaic
@@ -1298,7 +1305,7 @@ function SeatRingWithLabels({
       const cupPx = Math.round(stadiumCupholderSizePx(w) * 1.2)
       const labelOutwardPx =
         broadcastDensity === 'dual'
-          ? Math.max(28, Math.round(Math.min(w, h) * 0.14))
+          ? Math.max(16, Math.round(Math.min(w, h) * 0.06))
           : cupPx * 0.72 + (feltSeatStacks ? 32 : 22)
       return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         if (!(seatNames[i]?.trim() ?? '')) return null
@@ -1344,7 +1351,9 @@ function SeatRingWithLabels({
 
   const potFromBroadcast = isBroadcast ? mosaicCenterPot : null
   const broadcastCommunityLayout =
-    isBroadcast && rimW > 0 ? broadcastCommunityCardLayoutPx(rimW) : null
+    isBroadcast && rimW > 0
+      ? broadcastCommunityCardLayoutPx(rimW, isDualBroadcast ? 'dual' : 'solo')
+      : null
   const broadcastCommunityCardW = broadcastCommunityLayout?.widthPx ?? 0
   const broadcastCommunityCardH = broadcastCommunityLayout?.heightPx ?? 0
 
@@ -1400,6 +1409,7 @@ function SeatRingWithLabels({
             communityCardGapPx={broadcastCommunityLayout?.gapPx ?? 0}
             prefersReducedMotion={prefersReducedMotion}
             rimW={rimW}
+            density={isDualBroadcast ? 'dual' : 'solo'}
           />
         ) : (
           <VenueMosaicFeltCenterStack
@@ -1439,10 +1449,18 @@ function SeatRingWithLabels({
           ? mosaicHoleClearOfInitialsFrac(i, rimW, rimH)
           : mosaicSeatHoleInwardFrac(i)
         const broadcastMarkerPx =
-          isBroadcast && rimW > 0 ? venueBlindMarkerSizePx(rimW, 'broadcast') : 0
+          isBroadcast && rimW > 0
+            ? venueBlindMarkerSizePx(rimW, 'broadcast', isDualBroadcast ? 'dual' : 'solo')
+            : 0
         const broadcastAssets =
           isBroadcast && rimW > 0 && rimH > 0
-            ? broadcastFeltAssetAnchors(i, rimW, rimH, broadcastMarkerPx)
+            ? broadcastFeltAssetAnchors(
+                i,
+                rimW,
+                rimH,
+                broadcastMarkerPx,
+                isDualBroadcast ? 'dual' : 'solo',
+              )
             : null
         const chipPt =
           isMosaic || isBroadcast
@@ -1497,7 +1515,9 @@ function SeatRingWithLabels({
             ((feltSeatStacks && size === 'lg') || isBroadcast)
         )
         const broadcastChipLayout =
-          isBroadcast && rimW > 0 && filled && !isBusted ? broadcastChipStackLayoutPx(rimW) : null
+          isBroadcast && rimW > 0 && filled && !isBusted
+            ? broadcastChipStackLayoutPx(rimW, isDualBroadcast ? 'dual' : 'solo')
+            : null
         const broadcastRimStack = isBroadcast && filled && !isBusted
         const broadcastRimStackInwardPx =
           broadcastRimStack && broadcastChipLayout
@@ -1519,7 +1539,9 @@ function SeatRingWithLabels({
           showSeatBettingActions && filled ? seatLastBettingAction[i] ?? null : null
         const showFoldOut = isFolded && !(showSeatBettingActions && lastBetAct === 'fold')
         const broadcastFoldOutLayout =
-          isBroadcast && showFoldOut && rimW > 0 ? broadcastFoldOutBadgePx(rimW) : null
+          isBroadcast && showFoldOut && rimW > 0
+            ? broadcastFoldOutBadgePx(rimW, isDualBroadcast ? 'dual' : 'solo')
+            : null
         const answerLocked =
           filled &&
           answeringPhase &&

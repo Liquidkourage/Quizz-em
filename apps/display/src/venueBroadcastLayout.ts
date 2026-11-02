@@ -1,4 +1,17 @@
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
+import { STADIUM_REFERENCE_TABLE_WIDTH_PX } from '@qhe/ui'
+
+/**
+ * Felt scale for broadcast graphics.
+ * One table keeps a full-table floor. Two tables follow the measured felt
+ * so the board, pot, and to-call line stay in proportion with the oval.
+ */
+export function broadcastFeltScale(rimW: number, density: 'solo' | 'dual'): number {
+  const w = rimW > 0 ? rimW : STADIUM_REFERENCE_TABLE_WIDTH_PX
+  const proportional = w / STADIUM_REFERENCE_TABLE_WIDTH_PX
+  if (density === 'dual') return Math.max(0.48, Math.min(1.05, proportional))
+  return Math.max(0.78, Math.min(2.05, proportional))
+}
 import {
   venueHeadlineCondenseCaptionParts,
   type VenueCondenseProgressModel,

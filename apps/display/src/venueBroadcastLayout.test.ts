@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { STADIUM_REFERENCE_TABLE_WIDTH_PX } from '@qhe/ui'
 import {
+  broadcastFeltScale,
   buildVenueBroadcastMetaLine,
   isVenueBroadcastFloor,
   isVenueDualTableBroadcast,
@@ -14,6 +16,13 @@ describe('venueBroadcastLayout', () => {
     expect(isVenueBroadcastFloor(2, null)).toBe(true)
     expect(isVenueBroadcastFloor(3, null)).toBe(false)
     expect(isVenueBroadcastFloor(2, 1)).toBe(false)
+  })
+
+  it('scales a two-table felt with its width instead of the full-table minimum', () => {
+    const half = 640
+    expect(broadcastFeltScale(half, 'dual')).toBeCloseTo(half / STADIUM_REFERENCE_TABLE_WIDTH_PX, 5)
+    expect(broadcastFeltScale(half, 'solo')).toBe(0.78)
+    expect(broadcastFeltScale(half, 'dual')).toBeLessThan(broadcastFeltScale(half, 'solo'))
   })
 
   it('splits single vs dual broadcast modes', () => {

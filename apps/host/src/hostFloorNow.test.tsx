@@ -127,6 +127,7 @@ describe('venue floor now', () => {
     expect(closed).toContain('border-teal-300/60')
     expect(card(4)).toContain('Guessing')
     expect(card(4)).toContain('border-violet-400/45')
+    expect(card(4)).not.toContain('submitted')
     expect(card(5)).toContain('Deal / question')
     expect(card(5)).toContain('border-sky-400/45')
     expect(card(6)).toContain('Answer reveal')
@@ -146,6 +147,25 @@ describe('venue floor now', () => {
       'border-yellow-300/50',
     ]
     expect(new Set(tones).size).toBe(tones.length)
+  })
+
+  it('shows how many players have submitted while a table is guessing', () => {
+    const floor = brief()
+    floor.actionRows = [
+      { ...actionRow(1), phase: 'answering', answersSubmitted: 2, answersExpected: 5 },
+      { ...actionRow(2), phase: 'betting' },
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    const guessing = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
+    const betting = html.slice(html.indexOf('Open table 2'))
+    expect(guessing).toContain('2/5 submitted')
+    expect(betting).not.toContain('submitted')
   })
 
   it('lists table action in numerical order', () => {

@@ -372,6 +372,31 @@ describe('buildHostVenueActionRows seats', () => {
     expect(rows.map((row) => row.betsClosed)).toEqual([false, true, true, false])
   })
 
+  it('counts guesses locked in while a table is answering', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 1,
+        seated: 3,
+        pot: 0,
+        phase: 'answering',
+        seatNames: ['Ada', '', 'Bo', 'Cy'],
+        seatAnswerLocked: [true, false, false, true],
+      } as never,
+      {
+        tableNum: 2,
+        seated: 1,
+        pot: 0,
+        phase: 'betting',
+        seatNames: ['Dee'],
+        seatAnswerLocked: [true],
+      } as never,
+    ])
+    expect(rows[0]?.answersSubmitted).toBe(2)
+    expect(rows[0]?.answersExpected).toBe(3)
+    expect(rows[1]?.answersSubmitted).toBeUndefined()
+    expect(rows[1]?.answersExpected).toBeUndefined()
+  })
+
   it('keeps tables in numerical order when one is interesting', () => {
     const rows = buildHostVenueActionRows([
       { tableNum: 4, seated: 2, pot: 0, phase: 'betting', seatNames: ['Ned'], interestingAction: true } as never,

@@ -367,6 +367,10 @@ export type HostVenueActionRow = {
   pointsOnlyCount: number
   /** Seated players, in chair order, with chip-contest status. */
   seats: HostVenueSeatContest[]
+  /** Seated players who have locked a guess. Set while this table is guessing. */
+  answersSubmitted?: number
+  /** Seated players who can submit. Set while this table is guessing. */
+  answersExpected?: number
 }
 
 export type HostVenueBustEntry = {

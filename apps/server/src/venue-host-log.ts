@@ -309,6 +309,19 @@ function recentActionsFromTile(tile: DisplayVenueTileSnapshot): HostVenueActionR
   return out.slice(-4)
 }
 
+function guessProgress(tile: DisplayVenueTileSnapshot): { answersSubmitted: number; answersExpected: number } | null {
+  if (tile.phase !== 'answering') return null
+  const names = tile.seatNames ?? []
+  let answersExpected = 0
+  let answersSubmitted = 0
+  for (let i = 0; i < names.length; i++) {
+    if (!names[i]?.trim()) continue
+    answersExpected++
+    if (tile.seatAnswerLocked?.[i] === true) answersSubmitted++
+  }
+  return { answersSubmitted, answersExpected }
+}
+
 function seatContests(tile: DisplayVenueTileSnapshot): HostVenueSeatContest[] {
   const seats: HostVenueSeatContest[] = []
   const names = tile.seatNames ?? []
@@ -347,6 +360,7 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         inPotCount,
         pointsOnlyCount: seats.length - inPotCount,
         seats,
+        ...guessProgress(tile),
       }
     })
     .sort((a, b) => a.tableNum - b.tableNum)

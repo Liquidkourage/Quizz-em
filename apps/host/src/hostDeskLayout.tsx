@@ -40,14 +40,24 @@ const TABLE_ACTION_TONE: Record<string, string> = {
   intermission: 'border-zinc-400/35 bg-zinc-900/50 text-zinc-200',
 }
 
-function tableActionCue(row: { phase: string; betsClosed?: boolean }): { label: string; tone: string } {
+function tableActionCue(row: {
+  phase: string
+  betsClosed?: boolean
+  answersSubmitted?: number
+  answersExpected?: number
+}): { label: string; tone: string } {
   if (row.phase === 'betting' && row.betsClosed === true) {
     return { label: 'No more bets', tone: TABLE_ACTION_TONE.betsClosed }
   }
   const phase = row.phase as GamePhase
+  const tone = TABLE_ACTION_TONE[row.phase] ?? 'border-white/10 bg-black/20 text-white/55'
+  if (phase === 'answering' && row.answersExpected != null) {
+    const submitted = row.answersSubmitted ?? 0
+    return { label: `Guessing · ${submitted}/${row.answersExpected} submitted`, tone }
+  }
   return {
     label: HOST_PHASE_LABEL[phase] ?? row.phase,
-    tone: TABLE_ACTION_TONE[row.phase] ?? 'border-white/10 bg-black/20 text-white/55',
+    tone,
   }
 }
 

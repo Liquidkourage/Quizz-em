@@ -129,7 +129,7 @@ import {
   VENUE_FLOOR_MOSAIC_FELT_WIDTH_CLASS,
 } from './venueFloorGridLayout'
 import { capsuleBoundaryHitPx } from './tableRimGeometry'
-import { nowOnServerClock } from './serverClock'
+import { useAnswerSecondsLeft } from './useAnswerSecondsLeft'
 
 const VENUE_SEAT_SLOTS = VENUE_WALL_SEAT_SLOTS
 
@@ -2530,11 +2530,10 @@ function VenueBroadcastHeadlineStrip({
   venueBlindsHeadline,
   inVenueShowdown,
   venueShowdownAnswer,
-  headlineTimerOnly,
   headlineAnsweringUnified,
   headlineAnswering,
   inAnsweringCountdown,
-  timerSeconds,
+  answerDeadlineMs,
   answerSubmitCount = null,
   answerEligibleCount = null,
 }: {
@@ -2549,14 +2548,16 @@ function VenueBroadcastHeadlineStrip({
   venueBlindsHeadline: { amount: string; meta: string | null } | null
   inVenueShowdown: boolean
   venueShowdownAnswer: number | null | undefined
-  headlineTimerOnly: boolean
   headlineAnsweringUnified: boolean
   headlineAnswering: boolean
   inAnsweringCountdown: boolean
-  timerSeconds: number | null
+  answerDeadlineMs: number | null
   answerSubmitCount?: number | null
   answerEligibleCount?: number | null
 }) {
+  const timerSeconds = useAnswerSecondsLeft(inAnsweringCountdown ? answerDeadlineMs : null, 250)
+  const headlineTimerOnly =
+    headlineAnsweringUnified && inAnsweringCountdown && typeof timerSeconds === 'number'
   const broadcastQuestionFit = displayBroadcastHeadlineQuestionFitProfile()
   const questionTimerClass = headlineQuestionDisplay
     ? 'venue-broadcast-answer-timer'
@@ -2929,6 +2930,157 @@ export function VenueHeroSpotlightLayout({
   )
 }
 
+/** Headline rail beside the question. Owns the answer clock so a tick does not redraw the felts. */
+function VenueFloorHeadlineAside({
+  answerDeadlineMs,
+  headlineAnsweringUnified,
+  headlineAnswering,
+  inAnsweringCountdown,
+  inVenueShowdown,
+  venueShowdownAnswer,
+  headlinePhaseBadge,
+  showVenueBlindsHeadline,
+  venueBlindsHeadline,
+  othersStillWagering,
+  answerSubmitCount,
+  answerEligibleCount,
+}: {
+  answerDeadlineMs: number | null
+  headlineAnsweringUnified: boolean
+  headlineAnswering: boolean
+  inAnsweringCountdown: boolean
+  inVenueShowdown: boolean
+  venueShowdownAnswer: number | null | undefined
+  headlinePhaseBadge: string | null
+  showVenueBlindsHeadline: boolean
+  venueBlindsHeadline: { amount: string; meta: string | null } | null
+  othersStillWagering: boolean
+  answerSubmitCount: number | null
+  answerEligibleCount: number | null
+}) {
+  const timerSeconds = useAnswerSecondsLeft(inAnsweringCountdown ? answerDeadlineMs : null, 250)
+  const headlineTimerOnly =
+    headlineAnsweringUnified && inAnsweringCountdown && typeof timerSeconds === 'number'
+
+  return (
+    <div
+      className={`flex shrink-0 flex-col justify-center ${
+        headlineAnsweringUnified
+          ? 'items-end'
+          : 'items-stretch gap-1.5 sm:min-w-[8.5rem] md:min-w-[10rem] lg:min-w-[11rem]'
+      }`}
+    >
+      {headlinePhaseBadge != null && !inVenueShowdown && !headlineAnsweringUnified ? (
+        <span
+          className={`inline-flex items-center justify-center rounded-lg border border-emerald-500/45 bg-emerald-950/50 px-2.5 py-1 text-center font-black uppercase tracking-wide text-emerald-100/95 sm:px-3 sm:py-1.5 ${DISPLAY_TEXT_HEADLINE_PHASE_BADGE}`}
+        >
+          {headlinePhaseBadge}
+        </span>
+      ) : null}
+      {showVenueBlindsHeadline && venueBlindsHeadline != null && !headlineAnsweringUnified ? (
+        <div
+          className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-amber-500/55 bg-amber-950/50 px-3 py-2 shadow-[0_0_20px_rgba(251,191,36,0.12)] sm:px-4 sm:py-2.5"
+          aria-label={
+            venueBlindsHeadline.meta
+              ? `Blinds ${venueBlindsHeadline.amount}, ${venueBlindsHeadline.meta}`
+              : `Blinds ${venueBlindsHeadline.amount}`
+          }
+        >
+          <span className={`text-center font-black uppercase tracking-wide text-amber-200/90 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_LABEL}`}>
+            Blinds
+          </span>
+          <div className={`text-center font-mono font-black tabular-nums tracking-tight text-amber-50 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_AMOUNT}`}>
+            <ChipText text={venueBlindsHeadline.amount} />
+          </div>
+          {venueBlindsHeadline.meta ? (
+            <div className="flex max-w-[11rem] flex-col items-center gap-0.5 text-center">
+              {venueBlindsHeadline.meta.split(' · ').map((line) => (
+                <span
+                  key={line}
+                  className={`font-semibold text-amber-200/75 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_META}`}
+                >
+                  {line}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {inVenueShowdown && venueShowdownAnswer != null ? (
+        <div
+          className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border-2 border-amber-300/70 bg-amber-950/75 px-3 py-2 shadow-[0_0_28px_rgba(251,191,36,0.28)] sm:min-w-[9.5rem] sm:px-4 sm:py-2.5 md:min-w-[11rem]"
+          aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
+        >
+          <span className={`font-black uppercase tracking-[0.16em] text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+            Correct answer
+          </span>
+          <div className="font-mono text-[clamp(2.25rem,5.5vw,4.25rem)] font-black tabular-nums leading-none tracking-tight text-amber-50">
+            {formatTriviaNumber(venueShowdownAnswer)}
+          </div>
+        </div>
+      ) : headlineTimerOnly ? (
+        <div
+          className={`flex shrink-0 items-center justify-center rounded-xl border px-3 py-1.5 sm:px-4 sm:py-2 ${
+            timerSeconds <= 10
+              ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_24px_rgba(34,211,238,0.16)]'
+              : 'border-cyan-600/35 bg-cyan-950/25'
+          }`}
+          aria-live="polite"
+          aria-label={`${timerSeconds} seconds remaining to answer`}
+        >
+          <div
+            className={`venue-headline-answer-timer font-mono font-black tabular-nums tracking-tight${
+              timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
+            }`}
+          >
+            {timerSeconds}
+          </div>
+        </div>
+      ) : headlineAnsweringUnified ? (
+        <p className="sr-only">Answer on your phone — timer starts when every table finishes wagering</p>
+      ) : headlineAnswering ? (
+        <div
+          className={`flex shrink-0 flex-col items-stretch justify-center gap-1 rounded-lg border px-2 py-1.5 sm:px-3 sm:py-2 ${
+            inAnsweringCountdown && typeof timerSeconds === 'number' && timerSeconds <= 10
+              ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_20px_rgba(34,211,238,0.12)]'
+              : 'border-cyan-600/35 bg-cyan-950/25'
+          }`}
+          aria-live="polite"
+          aria-label={
+            inAnsweringCountdown && typeof timerSeconds === 'number'
+              ? `Answer on your phone, ${timerSeconds} seconds remaining`
+              : 'Answer on your phone — timer starts when every table finishes wagering'
+          }
+        >
+          <span className={`text-center font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+            Answer on your phone
+          </span>
+          {typeof answerSubmitCount === 'number' &&
+          typeof answerEligibleCount === 'number' &&
+          answerEligibleCount > 0 ? (
+            <div className="text-center font-black tabular-nums tracking-wide text-cyan-50/95 text-[clamp(0.95rem,2.4vw,1.35rem)]">
+              {answerSubmitCount}/{answerEligibleCount} locked in
+            </div>
+          ) : null}
+          {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
+            <div
+              className={`venue-headline-answer-timer text-center font-mono font-black tabular-nums tracking-tight${
+                timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
+              }`}
+            >
+              {timerSeconds}
+            </div>
+          ) : othersStillWagering ? (
+            <div className={`text-center font-semibold text-cyan-200/80 ${DISPLAY_TEXT_HEADLINE_META}`}>
+              Waiting for last table
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 type VenueEightTablesPreviewProps = {
   /** null until first `displayVenueSnapshot` from socket */
   wall: DisplayVenueWallSnapshot | null
@@ -2948,7 +3100,6 @@ export default function VenueEightTablesPreview({
   skipMountIntro = false,
   hostFocusTable = null,
 }: VenueEightTablesPreviewProps) {
-  const [timerSeconds, setTimerSeconds] = useState<number | null>(null)
   const [peakSurvivors, setPeakSurvivors] = useState(0)
   const prefersReducedMotion = usePrefersReducedMotion()
   const headlineQuestionText = wall?.headlineQuestionText ?? null
@@ -2958,18 +3109,6 @@ export default function VenueEightTablesPreview({
   const showSetlistCue =
     setlistCueNumber != null && setlistCueTotal != null && setlistCueTotal > 0
   const inAnsweringCountdown = answerDeadlineMs != null
-
-  useEffect(() => {
-    if (answerDeadlineMs == null) {
-      setTimerSeconds(null)
-      return
-    }
-    const tick = () =>
-      setTimerSeconds(Math.max(0, Math.ceil((answerDeadlineMs - nowOnServerClock()) / 1000)))
-    tick()
-    const id = window.setInterval(tick, 250)
-    return () => window.clearInterval(id)
-  }, [answerDeadlineMs])
 
   const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
   const audienceTileRows = useMemo(() => venueTilesForAudience(tileRows), [tileRows])
@@ -3001,10 +3140,6 @@ export default function VenueEightTablesPreview({
   /** Every populated table is answering — strip blinds/phase chrome; show countdown only. */
   const headlineAnsweringUnified =
     headlineAnswering && allTablesAnswering && !othersStillWagering
-  const headlineTimerOnly =
-    headlineAnsweringUnified &&
-    inAnsweringCountdown &&
-    typeof timerSeconds === 'number'
   const showHeadline =
     hasLiveWall &&
     (headlineQuestionText != null || answerDeadlineMs != null || inVenueShowdown || headlineAnswering)
@@ -3140,11 +3275,10 @@ export default function VenueEightTablesPreview({
                   venueBlindsHeadline={venueBlindsHeadline}
                   inVenueShowdown={inVenueShowdown}
                   venueShowdownAnswer={venueShowdownAnswer}
-                  headlineTimerOnly={headlineTimerOnly}
                   headlineAnsweringUnified={headlineAnsweringUnified}
                   headlineAnswering={headlineAnswering}
                   inAnsweringCountdown={inAnsweringCountdown}
-                  timerSeconds={timerSeconds}
+                  answerDeadlineMs={answerDeadlineMs}
                   answerSubmitCount={wall?.answerSubmitCount ?? null}
                   answerEligibleCount={wall?.answerEligibleCount ?? null}
                 />
@@ -3218,121 +3352,20 @@ export default function VenueEightTablesPreview({
                     <p className="sr-only">Answering in progress.</p>
                   )}
                 </motion.div>
-                <div
-                  className={`flex shrink-0 flex-col justify-center ${
-                    headlineAnsweringUnified
-                      ? 'items-end'
-                      : 'items-stretch gap-1.5 sm:min-w-[8.5rem] md:min-w-[10rem] lg:min-w-[11rem]'
-                  }`}
-                >
-                  {headlinePhaseBadge != null && !inVenueShowdown && !headlineAnsweringUnified ? (
-                    <span
-                      className={`inline-flex items-center justify-center rounded-lg border border-emerald-500/45 bg-emerald-950/50 px-2.5 py-1 text-center font-black uppercase tracking-wide text-emerald-100/95 sm:px-3 sm:py-1.5 ${DISPLAY_TEXT_HEADLINE_PHASE_BADGE}`}
-                    >
-                      {headlinePhaseBadge}
-                    </span>
-                  ) : null}
-                  {showVenueBlindsHeadline && venueBlindsHeadline != null && !headlineAnsweringUnified ? (
-                    <div
-                      className="flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border-2 border-amber-500/55 bg-amber-950/50 px-3 py-2 shadow-[0_0_20px_rgba(251,191,36,0.12)] sm:px-4 sm:py-2.5"
-                      aria-label={
-                        venueBlindsHeadline.meta
-                          ? `Blinds ${venueBlindsHeadline.amount}, ${venueBlindsHeadline.meta}`
-                          : `Blinds ${venueBlindsHeadline.amount}`
-                      }
-                    >
-                      <span className={`text-center font-black uppercase tracking-wide text-amber-200/90 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_LABEL}`}>
-                        Blinds
-                      </span>
-                      <div className={`text-center font-mono font-black tabular-nums tracking-tight text-amber-50 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_AMOUNT}`}>
-                        <ChipText text={venueBlindsHeadline.amount} />
-                      </div>
-                      {venueBlindsHeadline.meta ? (
-                        <div className="flex max-w-[11rem] flex-col items-center gap-0.5 text-center">
-                          {venueBlindsHeadline.meta.split(' · ').map((line) => (
-                            <span
-                              key={line}
-                              className={`font-semibold text-amber-200/75 ${DISPLAY_TEXT_HEADLINE_BLINDS_PANEL_META}`}
-                            >
-                              {line}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {inVenueShowdown && venueShowdownAnswer != null ? (
-                    <div
-                      className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border-2 border-amber-300/70 bg-amber-950/75 px-3 py-2 shadow-[0_0_28px_rgba(251,191,36,0.28)] sm:min-w-[9.5rem] sm:px-4 sm:py-2.5 md:min-w-[11rem]"
-                      aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
-                    >
-                      <span className={`font-black uppercase tracking-[0.16em] text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
-                        Correct answer
-                      </span>
-                      <div className="font-mono text-[clamp(2.25rem,5.5vw,4.25rem)] font-black tabular-nums leading-none tracking-tight text-amber-50">
-                        {formatTriviaNumber(venueShowdownAnswer)}
-                      </div>
-                    </div>
-                  ) : headlineTimerOnly ? (
-                    <div
-                      className={`flex shrink-0 items-center justify-center rounded-xl border px-3 py-1.5 sm:px-4 sm:py-2 ${
-                        timerSeconds <= 10
-                          ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_24px_rgba(34,211,238,0.16)]'
-                          : 'border-cyan-600/35 bg-cyan-950/25'
-                      }`}
-                      aria-live="polite"
-                      aria-label={`${timerSeconds} seconds remaining to answer`}
-                    >
-                      <div
-                        className={`venue-headline-answer-timer font-mono font-black tabular-nums tracking-tight${
-                          timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
-                        }`}
-                      >
-                        {timerSeconds}
-                      </div>
-                    </div>
-                  ) : headlineAnsweringUnified ? (
-                    <p className="sr-only">Answer on your phone — timer starts when every table finishes wagering</p>
-                  ) : headlineAnswering ? (
-                    <div
-                      className={`flex shrink-0 flex-col items-stretch justify-center gap-1 rounded-lg border px-2 py-1.5 sm:px-3 sm:py-2 ${
-                        inAnsweringCountdown && typeof timerSeconds === 'number' && timerSeconds <= 10
-                          ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_20px_rgba(34,211,238,0.12)]'
-                          : 'border-cyan-600/35 bg-cyan-950/25'
-                      }`}
-                      aria-live="polite"
-                      aria-label={
-                        inAnsweringCountdown && typeof timerSeconds === 'number'
-                          ? `Answer on your phone, ${timerSeconds} seconds remaining`
-                          : 'Answer on your phone — timer starts when every table finishes wagering'
-                      }
-                    >
-                      <span className={`text-center font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
-                        Answer on your phone
-                      </span>
-                      {typeof wall?.answerSubmitCount === 'number' &&
-                      typeof wall?.answerEligibleCount === 'number' &&
-                      wall.answerEligibleCount > 0 ? (
-                        <div className="text-center font-black tabular-nums tracking-wide text-cyan-50/95 text-[clamp(0.95rem,2.4vw,1.35rem)]">
-                          {wall.answerSubmitCount}/{wall.answerEligibleCount} locked in
-                        </div>
-                      ) : null}
-                      {inAnsweringCountdown && typeof timerSeconds === 'number' ? (
-                        <div
-                          className={`venue-headline-answer-timer text-center font-mono font-black tabular-nums tracking-tight${
-                            timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
-                          }`}
-                        >
-                          {timerSeconds}
-                        </div>
-                      ) : othersStillWagering ? (
-                        <div className={`text-center font-semibold text-cyan-200/80 ${DISPLAY_TEXT_HEADLINE_META}`}>
-                          Waiting for last table
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
+                <VenueFloorHeadlineAside
+                  answerDeadlineMs={answerDeadlineMs}
+                  headlineAnsweringUnified={headlineAnsweringUnified}
+                  headlineAnswering={headlineAnswering}
+                  inAnsweringCountdown={inAnsweringCountdown}
+                  inVenueShowdown={inVenueShowdown}
+                  venueShowdownAnswer={venueShowdownAnswer}
+                  headlinePhaseBadge={headlinePhaseBadge}
+                  showVenueBlindsHeadline={showVenueBlindsHeadline}
+                  venueBlindsHeadline={venueBlindsHeadline}
+                  othersStillWagering={othersStillWagering}
+                  answerSubmitCount={wall?.answerSubmitCount ?? null}
+                  answerEligibleCount={wall?.answerEligibleCount ?? null}
+                />
                 </div>
               </motion.div>
               )

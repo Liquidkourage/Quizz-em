@@ -24,7 +24,7 @@ import { heroSeatBlindMarkerPills } from './heroBlindMarkers'
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import { showdownRowsFromGameState } from './showdownDisplay'
-import { nowOnServerClock } from './serverClock'
+import { useAnswerSecondsLeft } from './useAnswerSecondsLeft'
 import { DisplayFitQuestionText } from './DisplayFitQuestionText'
 
 /** Authoring viewport (logical px). Embedded venue heroes scale uniformly to fit the measured game plane; fullscreen uses live `gw/gh`. */
@@ -415,6 +415,40 @@ type DisplayTableLiveProps = {
   fallbackQuestionText?: string | null
   /** Fallback answer deadline (epoch ms) from the wall snapshot — drives the countdown when the felt has no live round. */
   fallbackAnswerDeadlineMs?: number | null
+}
+
+/** Hero question-strip clock. Ticks here so the felt does not re-render every 200 ms. */
+function DisplayQuestionStripTimer({ deadlineMs }: { deadlineMs: number | null }) {
+  const answerSecondsLeft = useAnswerSecondsLeft(deadlineMs, 200)
+  return (
+    <div
+      className={`flex shrink-0 flex-col items-center justify-center rounded-xl border px-6 py-4 sm:border-l sm:border-t-0 sm:border-yellow-500/35 sm:pl-8 ${
+        typeof answerSecondsLeft === 'number' && answerSecondsLeft <= 10
+          ? 'border-red-400/55 bg-red-950/35'
+          : 'border-yellow-500/25 bg-yellow-950/20'
+      }`}
+    >
+      <div className="text-lg font-bold uppercase tracking-widest text-white/75 sm:text-xl">Time left</div>
+      <motion.div
+        key={answerSecondsLeft ?? 'wait'}
+        className={`tabular-nums text-7xl font-black sm:text-8xl md:text-9xl ${
+          typeof answerSecondsLeft === 'number' && answerSecondsLeft <= 10
+            ? 'text-red-300'
+            : 'text-yellow-400'
+        }`}
+        animate={
+          typeof answerSecondsLeft === 'number' &&
+          answerSecondsLeft > 0 &&
+          answerSecondsLeft <= 10
+            ? { scale: [1, 1.04, 1] }
+            : {}
+        }
+        transition={{ repeat: Infinity, duration: 0.9 }}
+      >
+        {typeof answerSecondsLeft === 'number' ? `${answerSecondsLeft}s` : '—'}
+      </motion.div>
+    </div>
+  )
 }
 
 function DisplayTableLive({
@@ -1150,32 +1184,6 @@ function DisplayTableLive({
     clearCommunityDealTimers,
   ])
 
-  const [answerSecondsLeft, setAnswerSecondsLeft] = useState<number | null>(null)
-
-  useEffect(() => {
-    const gs = displayGameState
-    const liveDeadline = gs.round?.answerDeadline
-    const inAnswering = gs.phase === 'answering'
-    const deadline =
-      inAnswering && liveDeadline != null
-        ? liveDeadline
-        : typeof fallbackAnswerDeadlineMs === 'number' && Number.isFinite(fallbackAnswerDeadlineMs)
-          ? fallbackAnswerDeadlineMs
-          : null
-
-    if (deadline == null) {
-      setAnswerSecondsLeft(null)
-      return
-    }
-
-    const tick = () => {
-      const s = Math.max(0, Math.ceil((deadline - nowOnServerClock()) / 1000))
-      setAnswerSecondsLeft(s)
-    }
-    tick()
-    const id = window.setInterval(tick, 200)
-    return () => window.clearInterval(id)
-  }, [displayGameState.phase, displayGameState.round?.answerDeadline])
 
   const shellRef = useRef<HTMLDivElement>(null)
   const gamePlaneRef = useRef<HTMLDivElement>(null)
@@ -1418,33 +1426,7 @@ function DisplayTableLive({
               </div>
 
               {showQuestionStripTimer ? (
-                <div
-                  className={`flex shrink-0 flex-col items-center justify-center rounded-xl border px-6 py-4 sm:border-l sm:border-t-0 sm:border-yellow-500/35 sm:pl-8 ${
-                    typeof answerSecondsLeft === 'number' && answerSecondsLeft <= 10
-                      ? 'border-red-400/55 bg-red-950/35'
-                      : 'border-yellow-500/25 bg-yellow-950/20'
-                  }`}
-                >
-                  <div className="text-lg font-bold uppercase tracking-widest text-white/75 sm:text-xl">Time left</div>
-                  <motion.div
-                    key={answerSecondsLeft ?? 'wait'}
-                    className={`tabular-nums text-7xl font-black sm:text-8xl md:text-9xl ${
-                      typeof answerSecondsLeft === 'number' && answerSecondsLeft <= 10
-                        ? 'text-red-300'
-                        : 'text-yellow-400'
-                    }`}
-                    animate={
-                      typeof answerSecondsLeft === 'number' &&
-                      answerSecondsLeft > 0 &&
-                      answerSecondsLeft <= 10
-                        ? { scale: [1, 1.04, 1] }
-                        : {}
-                    }
-                    transition={{ repeat: Infinity, duration: 0.9 }}
-                  >
-                    {typeof answerSecondsLeft === 'number' ? `${answerSecondsLeft}s` : '—'}
-                  </motion.div>
-                </div>
+                <DisplayQuestionStripTimer deadlineMs={effectiveAnswerDeadlineMs} />
               ) : null}
             </div>
           </motion.div>

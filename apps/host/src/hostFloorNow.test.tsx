@@ -91,6 +91,28 @@ describe('venue floor now', () => {
     expect(html).not.toContain('ring-emerald-400/50')
   })
 
+  it('lists table action in numerical order', () => {
+    const floor = brief()
+    floor.actionRows = [
+      { ...actionRow(4), interestingAction: true },
+      actionRow(1),
+      actionRow(3),
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    const t1 = html.indexOf('Open table 1')
+    const t3 = html.indexOf('Open table 3')
+    const t4 = html.indexOf('Open table 4')
+    expect(t1).toBeGreaterThan(-1)
+    expect(t1).toBeLessThan(t3)
+    expect(t3).toBeLessThan(t4)
+  })
+
   it('opens a table into in-pot and points-only columns', () => {
     const html = renderToStaticMarkup(
       createElement(HostTableContest, {

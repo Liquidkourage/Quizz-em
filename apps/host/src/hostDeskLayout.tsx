@@ -1873,7 +1873,7 @@ export function HostVenueFloorBriefPanel({
   onRemove?: (playerId: string) => void
   blindCall?: ReactNode
 }) {
-  const rows = brief?.actionRows ?? []
+  const rows = [...(brief?.actionRows ?? [])].sort((a, b) => a.tableNum - b.tableNum)
   const soloTable = publicDisplaySoloTable(brief)
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
   const [openTable, setOpenTable] = useState<number | null>(null)

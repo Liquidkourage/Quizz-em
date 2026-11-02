@@ -353,6 +353,14 @@ describe('buildHostVenueActionRows seats', () => {
       { name: 'Bo', kind: 'points', reason: 'folded' },
     ])
   })
+
+  it('keeps tables in numerical order when one is interesting', () => {
+    const rows = buildHostVenueActionRows([
+      { tableNum: 4, seated: 2, pot: 0, phase: 'betting', seatNames: ['Ned'], interestingAction: true } as never,
+      { tableNum: 1, seated: 2, pot: 0, phase: 'betting', seatNames: ['Ada'] } as never,
+    ])
+    expect(rows.map((row) => row.tableNum)).toEqual([1, 4])
+  })
 })
 
 describe('buildHostVenueFloorBrief stacks', () => {

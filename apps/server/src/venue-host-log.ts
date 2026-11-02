@@ -347,10 +347,7 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         seats,
       }
     })
-    .sort((a, b) => {
-      if (a.interestingAction !== b.interestingAction) return a.interestingAction ? -1 : 1
-      return a.tableNum - b.tableNum
-    })
+    .sort((a, b) => a.tableNum - b.tableNum)
 }
 
 export function recordVenueHostHandResults(

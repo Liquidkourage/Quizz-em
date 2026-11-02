@@ -222,11 +222,17 @@ export function applyVenueCondenseAfterRound(
     const fromGs = deps.getState(fromKey)
     if (fromGs && fromGs.players.every((p) => p.bankroll <= 0 || p.pointsOnly)) {
       for (const rider of [...fromGs.players]) {
-        applyPlayerMoveToRooms(deps, {
+        const rode = applyPlayerMoveToRooms(deps, {
           playerId: rider.id,
           fromTableNum: move.fromTableNum,
           toTableNum: move.toTableNum,
           reason: 'solo',
+        })
+        if (rode == null) continue
+        seatingMoves.push({
+          name: rode.name,
+          fromTableNum: move.fromTableNum,
+          toTableNum: move.toTableNum,
         })
       }
     }

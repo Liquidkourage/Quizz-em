@@ -18,13 +18,20 @@ export type VenueBustAnnouncementState = {
   busts: DisplayVenueBustEntry[]
 }
 
+/** True when the hand that just paid eliminated at least one player. */
+export function handHasPayoutBusts(
+  wall: { lastHandBusts?: DisplayVenueBustEntry[] | null; lastHandEndMs?: number | null } | null,
+): boolean {
+  if (wall == null || wall.lastHandEndMs == null) return false
+  return (wall.lastHandBusts?.length ?? 0) > 0
+}
+
 /**
- * When the venue auto-rotates to the leaderboard after a hand, pause on a bust callout first.
+ * Full-screen callout when winners are paid and someone is eliminated.
  * Each hand (`lastHandEndMs`) shows at most once per display tab.
  */
 export function useVenueBustAnnouncement(
   wall: DisplayVenueWallSnapshot | null,
-  leaderboardPending: boolean,
 ): VenueBustAnnouncementState {
   const dismissedHandEndMsRef = useRef<number | null>(null)
   const [visible, setVisible] = useState(false)
@@ -32,13 +39,13 @@ export function useVenueBustAnnouncement(
 
   const busts = wall?.lastHandBusts ?? []
   const handEndMs = wall?.lastHandEndMs ?? null
+  const signature =
+    handEndMs == null || busts.length === 0
+      ? ''
+      : `${handEndMs}:${busts.map((b) => `${b.name}@${b.tableNum}`).join('|')}`
 
   useEffect(() => {
-    if (!leaderboardPending || wall == null) {
-      setVisible(false)
-      return
-    }
-    if (busts.length === 0 || handEndMs == null) {
+    if (!handHasPayoutBusts(wall) || handEndMs == null) {
       setVisible(false)
       return
     }
@@ -61,8 +68,7 @@ export function useVenueBustAnnouncement(
     }, bustOverlayDurationMs(busts.length, reducedMotion))
 
     return () => window.clearTimeout(timer)
-    // busts content is keyed by handEndMs from the server snapshot
-  }, [leaderboardPending, handEndMs, busts.length, wall])
+  }, [signature, handEndMs])
 
   return { visible, busts: shownBusts }
 }

@@ -25,7 +25,9 @@ import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
-import { venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
+import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
+import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
+import { useVenueSeatingAnnouncement, venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 
@@ -384,6 +386,11 @@ export default function DisplayRouter({
   const answerReveal = useVenueAnswerReveal(
     showVenueMosaicShell && !showHostBusts ? venueWall : null,
   )
+  const payoutBusts = useVenueBustAnnouncement(audienceBriefing ? null : venueWall)
+  const payoutMoves = useVenueSeatingAnnouncement(
+    audienceBriefing ? null : venueWall,
+    payoutBusts.visible,
+  )
 
   const showConnBadge = connectionStatus !== 'connected'
 
@@ -488,6 +495,12 @@ export default function DisplayRouter({
     <AnimatePresence>
       {showHostBusts ? (
         <VenueBustAnnouncement key="venue-bust-announcement" busts={lastHandBusts} />
+      ) : null}
+      {payoutBusts.visible && !showHostBusts ? (
+        <VenueBustAnnouncement key="payout-busts" busts={payoutBusts.busts} />
+      ) : null}
+      {payoutMoves.visible && payoutMoves.seating ? (
+        <VenueSeatingAnnouncement key="payout-moves" seating={payoutMoves.seating} />
       ) : null}
       {answerReveal.visible && answerReveal.payload ? (
         <VenueAnswerRevealOverlay

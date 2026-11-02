@@ -22,6 +22,21 @@ function seatingOverlayDurationMs(
   )
 }
 
+/**
+ * Named moves at payout. A global re-seat is not this card: shuffle-only
+ * payloads stay quiet, and a re-seat that also rescued someone lists just that player.
+ */
+export function payoutSeatChangesToAnnounce(
+  seating: DisplayVenueSeatingAnnouncement | null | undefined,
+): DisplayVenueSeatingAnnouncement | null {
+  if (seating == null || seating.moves.length === 0) return null
+  return {
+    ...seating,
+    shuffled: false,
+    closedTableNums: seating.shuffled ? [] : seating.closedTableNums,
+  }
+}
+
 export function venueSeatingAnnouncementHasContent(
   seating: DisplayVenueSeatingAnnouncement | null | undefined,
 ): seating is DisplayVenueSeatingAnnouncement {
@@ -35,8 +50,8 @@ export type VenueSeatingAnnouncementState = {
 }
 
 /**
- * Full-screen TV callout after End Round when players move tables or felts close.
- * Waits for the bust overlay to finish when both fire on the same hand.
+ * Full-screen TV callout after payout when a player changed tables outside a global re-seat.
+ * Waits for the elimination overlay to finish when both fire on the same hand.
  */
 export function useVenueSeatingAnnouncement(
   wall: DisplayVenueWallSnapshot | null,
@@ -46,9 +61,13 @@ export function useVenueSeatingAnnouncement(
   const [visible, setVisible] = useState(false)
   const [shownSeating, setShownSeating] = useState<DisplayVenueSeatingAnnouncement | null>(null)
 
-  const seating = wall?.lastHandSeating ?? null
+  const seating = payoutSeatChangesToAnnounce(wall?.lastHandSeating ?? null)
   const handEndMs = wall?.lastHandEndMs ?? null
   const hasContent = venueSeatingAnnouncementHasContent(seating)
+  const signature =
+    !hasContent || handEndMs == null
+      ? ''
+      : `${handEndMs}:${seating.moves.map((m) => `${m.name}:${m.fromTableNum}-${m.toTableNum}`).join('|')}:${seating.closedTableNums.join(',')}`
 
   useEffect(() => {
     if (wall == null || !hasContent || handEndMs == null) {
@@ -78,7 +97,7 @@ export function useVenueSeatingAnnouncement(
     }, seatingOverlayDurationMs(seating, reducedMotion))
 
     return () => window.clearTimeout(timer)
-  }, [wall, hasContent, handEndMs, bustOverlayVisible, seating])
+  }, [signature, handEndMs, bustOverlayVisible])
 
   return { visible, seating: shownSeating }
 }

@@ -178,6 +178,29 @@ describe('seating update', () => {
     expect(line).toContain('venue-seating-name')
   })
 
+  it('colors an elimination apart from a move', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 4,
+          tablesAfter: 3,
+          playerCount: 8,
+          moves: [{ name: 'Ada Lane', fromTableNum: 2, toTableNum: 1, byline: 'TABLE BALANCE' }],
+          closedTableNums: [],
+        },
+        busts: [{ name: 'Bo Kent', tableNum: 3 }],
+      }),
+    )
+    const moveAt = html.indexOf('venue-bust-overlay-row--move')
+    const outAt = html.indexOf('venue-bust-overlay-row--eliminated')
+    expect(moveAt).toBeGreaterThan(-1)
+    expect(outAt).toBeGreaterThan(-1)
+    expect(html.slice(moveAt, moveAt + 500)).toContain('Ada')
+    expect(html.slice(outAt, outAt + 500)).toContain('Bo')
+    expect(html.slice(moveAt, moveAt + 80)).not.toContain('venue-bust-overlay-row--eliminated')
+  })
+
   it('lists eliminations on the same card as the moves', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSeatingAnnouncement, {

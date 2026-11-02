@@ -60,9 +60,8 @@ function rowMarks(eliminated: boolean, byline: string): string[] {
   return marks
 }
 
-function seatingRowClass(closed: boolean, compact: boolean): string {
-  const parts = ['venue-bust-overlay-row border-cyan-500/20']
-  if (closed) parts.push('venue-bust-overlay-row--closed')
+function seatingRowClass(kind: 'move' | 'eliminated' | 'closed', compact: boolean): string {
+  const parts = ['venue-bust-overlay-row', `venue-bust-overlay-row--${kind}`]
   if (compact) parts.push('venue-bust-overlay-row--compact')
   return parts.join(' ')
 }
@@ -90,7 +89,13 @@ export default function VenueSeatingAnnouncement({
   const title = seatingTitle(seating, busts.length)
 
   const rows = useMemo(() => {
-    const out: { key: string; label: string; detail: string; marks: string[]; closed: boolean }[] = []
+    const out: {
+      key: string
+      label: string
+      detail: string
+      marks: string[]
+      kind: 'move' | 'eliminated' | 'closed'
+    }[] = []
     const usedBust = new Set<number>()
     for (const m of seating.moves) {
       const bustAt = busts.findIndex((bust, index) => !usedBust.has(index) && samePlayer(bust.name, m.name))
@@ -100,7 +105,7 @@ export default function VenueSeatingAnnouncement({
         label: displayPlayerName(m.name),
         detail: `Table ${m.fromTableNum} → Table ${m.toTableNum}`,
         marks: rowMarks(bustAt >= 0, m.byline?.trim() ?? ''),
-        closed: false,
+        kind: bustAt >= 0 ? 'eliminated' : 'move',
       })
     }
     busts.forEach((bust, index) => {
@@ -110,7 +115,7 @@ export default function VenueSeatingAnnouncement({
         label: displayPlayerName(bust.name),
         detail: `Table ${bust.tableNum}`,
         marks: ['ELIMINATED'],
-        closed: false,
+        kind: 'eliminated',
       })
     })
     for (const n of seating.closedTableNums) {
@@ -119,7 +124,7 @@ export default function VenueSeatingAnnouncement({
         label: `Table ${n}`,
         detail: 'Closed',
         marks: rowMarks(false, droppedTableByline(seating, n)),
-        closed: true,
+        kind: 'closed',
       })
     }
     return out
@@ -200,7 +205,7 @@ export default function VenueSeatingAnnouncement({
             {rows.map((row) => (
               <div
                 key={row.key}
-                className={seatingRowClass(row.closed, compact)}
+                className={seatingRowClass(row.kind, compact)}
               >
                 <div className="venue-bust-overlay-row-line">
                   <span
@@ -215,7 +220,7 @@ export default function VenueSeatingAnnouncement({
                       {mark}
                     </span>
                   ))}
-                  <span className="venue-bust-overlay-table-well text-cyan-100/90">{row.detail}</span>
+                  <span className="venue-bust-overlay-table-well">{row.detail}</span>
                 </div>
               </div>
             ))}

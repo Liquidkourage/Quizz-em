@@ -16,7 +16,6 @@ import {
   releasePlayer,
   rehearsalSeatDisplayName,
   normalizeBettingTurn,
-  inChipContest,
   type GameState,
   type PlayerState,
 } from '@qhe/core'
@@ -96,73 +95,96 @@ function vpAmountToCall(state: GameState, playerId: string): number {
   return Math.max(0, cur - contrib)
 }
 
-/** No wager on the street yet (`currentBet === 0`), e.g. fresh post-board round 2. */
-function chipStreetUnopened(state: GameState): boolean {
-  return (state.round.currentBet || 0) === 0
+/** One wagering personality for this seat on this street. Stable so a step can finish. */
+export type RehearsalBetScript = 'leave' | 'shove' | 'fold' | 'trap' | 'steal' | 'open' | 'flat'
+
+/**
+ * Most seats call or check. A few open, fold, or check-raise.
+ * Rarer seats jam, including short of a bigger bet, or walk off with the pot left behind.
+ */
+export function rehearsalBetScript(playerId: string, roundId: string, street: number): RehearsalBetScript {
+  const unit = unitHash(`${roundId}\0${playerId}\0bet\0${street}`)
+  if (unit < 0.02) return 'leave'
+  if (unit < 0.08) return 'shove'
+  if (unit < 0.16) return 'fold'
+  if (unit < 0.22) return 'trap'
+  if (unit < 0.28) return 'steal'
+  if (unit < 0.40) return 'open'
+  return 'flat'
 }
 
-function anyActiveSeatActedThisStreet(state: GameState): boolean {
-  const last = state.round.lastSeatBettingAction ?? []
-  for (let i = 0; i < state.players.length; i++) {
-    const p = state.players[i]
-    if (!p || p.hasFolded || p.isAllIn || !inChipContest(p)) continue
-    if (last[i] != null) return true
-  }
-  return false
+function blindUnit(state: GameState): number {
+  const bb = Math.max(state.bigBlind ?? 0, state.smallBlind ?? 0)
+  return bb > 0 ? bb : 10
 }
 
-/** Human-like wagering: occasional open/raising, rarely fold useless, sometimes jam. */
+function acted(next: GameState, prev: GameState): GameState | null {
+  return next !== prev ? next : null
+}
+
+function openMin(state: GameState, pid: string, bankroll: number): GameState | null {
+  const bb = blindUnit(state)
+  if (bankroll < bb) return null
+  return acted(playerRaise(state, pid, bb), state)
+}
+
+function flatBet(state: GameState, pid: string, toCall: number): GameState {
+  if (toCall === 0) return playerCheck(state, pid)
+  const called = playerCall(state, pid)
+  if (called !== state) return called
+  const folded = foldPlayer(state, pid)
+  return folded !== state ? folded : state
+}
+
+function trapBet(state: GameState, pid: string, toCall: number, bankroll: number): GameState | null {
+  if (toCall === 0) return acted(playerCheck(state, pid), state)
+  return bankroll >= toCall + blindUnit(state) ? openMin(state, pid, bankroll) : null
+}
+
+function stealBet(state: GameState, pid: string, toCall: number, bankroll: number): GameState | null {
+  if (toCall === 0) return openMin(state, pid, bankroll)
+  return acted(foldPlayer(state, pid), state)
+}
+
+function shoveBet(state: GameState, pid: string, bankroll: number): GameState | null {
+  if (bankroll <= 0) return null
+  return acted(playerAllIn(state, pid), state)
+}
+
+function leaveDuringBetting(state: GameState, pid: string): GameState | null {
+  if (state.players.length <= 1) return null
+  return acted(releasePlayer(state, pid), state)
+}
+
+function actRehearsalBet(
+  state: GameState,
+  pid: string,
+  script: RehearsalBetScript,
+  toCall: number,
+  bankroll: number,
+): GameState | null {
+  if (script === 'leave') return leaveDuringBetting(state, pid)
+  if (script === 'shove') return shoveBet(state, pid, bankroll)
+  if (script === 'fold') return toCall > 0 ? acted(foldPlayer(state, pid), state) : null
+  if (script === 'trap') return trapBet(state, pid, toCall, bankroll)
+  if (script === 'steal') return stealBet(state, pid, toCall, bankroll)
+  if (script === 'open') return toCall === 0 ? openMin(state, pid, bankroll) : null
+  return null
+}
+
+/** Human-like wagering, with a stable rare seat for the jams, folds, and walk-offs. */
 function actVirtualBetting(state: GameState, pid: string): GameState {
   const seat = state.players.find((p) => p.id === pid)
   if (!seat) return state
 
   const toCall = vpAmountToCall(state, pid)
-  const br = seat.bankroll
-  const bbRaw = Math.max(state.bigBlind ?? 0, state.smallBlind ?? 0)
-  const bb = bbRaw > 0 ? bbRaw : 10
+  const bankroll = seat.bankroll
+  if (toCall > 0 && bankroll === 0) return state
 
-  if (Math.random() < 0.03 && br > 0) {
-    const ai = playerAllIn(state, pid)
-    if (ai !== state) return ai
-  }
-
-  if (toCall === 0 && br > 0) {
-    // Can check — sometimes open with a min-raise (no blind seed on post-board streets).
-    const postBoard = (state.round.bettingRound ?? 0) >= 2
-    const unopened = chipStreetUnopened(state)
-    let openChance = 0.16
-    if (unopened && postBoard) {
-      openChance = 0.45
-    } else if (unopened && !anyActiveSeatActedThisStreet(state)) {
-      openChance = 0.28
-    }
-    if (Math.random() < openChance && br >= bb) {
-      const raised = playerRaise(state, pid, bb)
-      if (raised !== state) return raised
-    }
-    return playerCheck(state, pid)
-  }
-
-  if (toCall > 0 && br === 0) {
-    return state
-  }
-
-  // Facing a bet — thin folds, flats, raises
-  if (Math.random() < 0.11) {
-    const f = foldPlayer(state, pid)
-    if (f !== state) return f
-  }
-  const minRaise = bb
-  if (Math.random() < 0.14 && br >= toCall + minRaise) {
-    const raised = playerRaise(state, pid, minRaise)
-    if (raised !== state) return raised
-  }
-  let c = playerCall(state, pid)
-  if (c !== state) return c
-
-  const f = foldPlayer(state, pid)
-  if (f !== state) return f
-  return state
+  const script = rehearsalBetScript(pid, state.round.roundId, state.round.bettingRound ?? 1)
+  const chosen = actRehearsalBet(state, pid, script, toCall, bankroll)
+  if (chosen) return chosen
+  return flatBet(state, pid, toCall)
 }
 
 /** What this seat will do in the answer window. Stable for the hand, so a step can finish. */

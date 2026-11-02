@@ -1,9 +1,6 @@
 /**
- * Deterministic stand-in for Math.random in tests that run CPU players.
- *
- * Values stay in [0.2, 1), so the virtual players never roll their rare
- * all-in, fold and raise branches (thresholds 0.03, 0.11 and 0.14). Hands are
- * reproducible instead of depending on luck.
+ * Deterministic stand-in for Math.random in tests that deal cards.
+ * Values stay in [0.2, 1). Wagering personalities are chosen per seat, not by this roll.
  */
 export function seededPassiveRandom(seed: number): () => number {
   let state = seed >>> 0

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmptyGame, dealCommunityCards, dealInitialCards, setQuestion, startGame, SAMPLE_QUESTIONS } from '@qhe/core'
-import { addVirtualPlayers, runVirtualPlayerSimulation } from './virtual-players'
+import { addVirtualPlayers, rehearsalBetScript, runVirtualPlayerSimulation } from './virtual-players'
 import {
   isPostBoardWageringClosed,
   openAnsweringPhase,
@@ -19,6 +19,24 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+function flatBetId(index: number): string {
+  for (let i = 0; i < 50_000; i++) {
+    const id = `vp:orch-flat:${index}:${i}`
+    const street1 = rehearsalBetScript(id, 'r1', 1)
+    const street2 = rehearsalBetScript(id, 'r1', 2)
+    if (street1 === 'flat' && street2 === 'flat') return id
+  }
+  throw new Error('flat')
+}
+
+/** These tables check and call, so a jam or a walk-off does not change the clock under test. */
+function withCallingSeats<T extends { players: { id: string }[] }>(gs: T): T {
+  return {
+    ...gs,
+    players: gs.players.map((player, index) => ({ ...player, id: flatBetId(index) })),
+  }
+}
+
 function allInRunoutPostBoardTable(): { key: string; gs: ReturnType<typeof createEmptyGame> } {
   const closed = postBoardClosedTable()
   const gs = {
@@ -36,7 +54,7 @@ function allInRunoutPostBoardTable(): { key: string; gs: ReturnType<typeof creat
 function postBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<typeof createEmptyGame> } {
   let gs = createEmptyGame('V', '', '1')
   gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
-  gs = addVirtualPlayers(gs, playerCount)
+  gs = withCallingSeats(addVirtualPlayers(gs, playerCount))
   gs = startGame(gs)
   gs = setQuestion(gs, SAMPLE_QUESTIONS[0]!)
   gs = dealInitialCards(gs)
@@ -50,7 +68,7 @@ function postBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<ty
 function preBoardClosedTable(playerCount = 4): { key: string; gs: ReturnType<typeof createEmptyGame> } {
   let gs = createEmptyGame('V', '', '1')
   gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
-  gs = addVirtualPlayers(gs, playerCount)
+  gs = withCallingSeats(addVirtualPlayers(gs, playerCount))
   gs = startGame(gs)
   gs = setQuestion(gs, SAMPLE_QUESTIONS[0]!)
   gs = dealInitialCards(gs)
@@ -77,7 +95,7 @@ describe('venue wagering orchestration', () => {
     const done = preBoardClosedTable()
     let open = createEmptyGame('V', '', '2')
     open = { ...open, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
-    open = addVirtualPlayers(open, 3)
+    open = withCallingSeats(addVirtualPlayers(open, 3))
     open = startGame(open)
     open = setQuestion(open, SAMPLE_QUESTIONS[0]!)
     open = dealInitialCards(open)
@@ -147,7 +165,7 @@ describe('venue wagering orchestration', () => {
     const t1 = postBoardClosedTable()
     let t2 = createEmptyGame('V', '', '2')
     t2 = { ...t2, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
-    t2 = addVirtualPlayers(t2, 3)
+    t2 = withCallingSeats(addVirtualPlayers(t2, 3))
     t2 = startGame(t2)
     t2 = setQuestion(t2, SAMPLE_QUESTIONS[0]!)
     t2 = dealInitialCards(t2)
@@ -186,7 +204,7 @@ describe('venue wagering orchestration', () => {
     const t1 = postBoardClosedTable()
     let t2 = createEmptyGame('V', '', '2')
     t2 = { ...t2, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
-    t2 = addVirtualPlayers(t2, 3)
+    t2 = withCallingSeats(addVirtualPlayers(t2, 3))
     t2 = startGame(t2)
     t2 = setQuestion(t2, SAMPLE_QUESTIONS[0]!)
     t2 = dealInitialCards(t2)
@@ -212,7 +230,7 @@ describe('venue wagering orchestration', () => {
     const done = postBoardClosedTable()
     let round1 = createEmptyGame('V', '', '2')
     round1 = { ...round1, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
-    round1 = addVirtualPlayers(round1, 3)
+    round1 = withCallingSeats(addVirtualPlayers(round1, 3))
     round1 = startGame(round1)
     round1 = setQuestion(round1, SAMPLE_QUESTIONS[0]!)
     round1 = dealInitialCards(round1)

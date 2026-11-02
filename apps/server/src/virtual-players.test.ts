@@ -12,6 +12,7 @@ import {
   setQuestion,
   startGame,
   SAMPLE_QUESTIONS,
+  buildSidePotSettlement,
   type GameState,
   type NumericCard,
 } from '@qhe/core'
@@ -20,8 +21,10 @@ import {
   advanceVirtualBettingStep,
   noteGuessNudge,
   rehearsalAnswerScript,
+  rehearsalBetScript,
   runVirtualPlayerSimulation,
   type RehearsalAnswerScript,
+  type RehearsalBetScript,
 } from './virtual-players'
 import { seededPassiveRandom } from './test-utils/seeded-random'
 
@@ -133,6 +136,160 @@ function seven(gs: GameState, index = 0): number[] {
   const player = gs.players[index]!
   return [...player.hand, ...gs.round.communityCards].map((card) => card.digit)
 }
+
+function betSeat(script: RehearsalBetScript, street = 1): string {
+  for (let i = 0; i < 20_000; i++) {
+    const id = `vp:bet:${i}`
+    if (rehearsalBetScript(id, 'r1', street) === script) return id
+  }
+  throw new Error(script)
+}
+
+function bettingSeat(
+  id: string,
+  bankroll: number,
+  contributed: number,
+) {
+  return {
+    id,
+    name: id,
+    bankroll,
+    hand: [digit(1), digit(2)],
+    hasFolded: false,
+    isAllIn: false,
+    answerPoints: 0,
+    contributed,
+  }
+}
+
+function bettingTable(
+  seats: ReturnType<typeof bettingSeat>[],
+  toAct: number,
+  currentBet: number,
+) {
+  const playerBets = Object.fromEntries(seats.map((seat) => [seat.id, seat.contributed]))
+  let gs = createEmptyGame('V', 'h', '1')
+  gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
+  return {
+    ...gs,
+    phase: 'betting' as const,
+    players: seats.map(({ contributed: _contributed, ...player }) => player),
+    round: {
+      ...gs.round,
+      roundId: 'r1',
+      isBettingOpen: true,
+      bettingRound: 1 as const,
+      currentBet,
+      currentPlayerIndex: toAct,
+      pot: Object.values(playerBets).reduce((sum, n) => sum + n, 0),
+      playerBets,
+      handContributions: { ...playerBets },
+      lastFullRaiseAmount: 20,
+      lastSeatBettingAction: seats.map((seat, index) => (seat.contributed > 0 && index !== toAct ? 'raise' as const : null)),
+    },
+  }
+}
+
+describe('CPU betting edge cases', () => {
+  it('jams the whole stack', () => {
+    const id = betSeat('shove')
+    const gs = bettingTable([
+      bettingSeat(id, 1000, 0),
+      bettingSeat(betSeat('flat'), 1000, 20),
+    ], 0, 20)
+    const next = advanceVirtualBettingStep(gs)
+    expect(next.players[0]!.isAllIn).toBe(true)
+    expect(next.players[0]!.bankroll).toBe(0)
+  })
+
+  it('folds a bet and checks when nothing is owed', () => {
+    const id = betSeat('fold')
+    const facing = bettingTable([
+      bettingSeat(id, 1000, 0),
+      bettingSeat(betSeat('flat'), 1000, 40),
+    ], 0, 40)
+    expect(advanceVirtualBettingStep(facing).players[0]!.hasFolded).toBe(true)
+
+    const free = bettingTable([
+      bettingSeat(id, 1000, 0),
+      bettingSeat(betSeat('flat'), 1000, 0),
+    ], 0, 0)
+    const checked = advanceVirtualBettingStep(free)
+    expect(checked.players[0]!.hasFolded).toBe(false)
+    expect(checked.round.lastSeatBettingAction?.[0]).toBe('check')
+  })
+
+  it('opens a quiet street, then folds if someone bets', () => {
+    const id = betSeat('steal')
+    const quiet = bettingTable([
+      bettingSeat(id, 1000, 0),
+      bettingSeat(betSeat('flat'), 1000, 0),
+    ], 0, 0)
+    const opened = advanceVirtualBettingStep(quiet)
+    expect(opened.round.currentBet).toBe(20)
+    expect(opened.players[0]!.hasFolded).toBe(false)
+
+    const facing = bettingTable([
+      bettingSeat(id, 1000, 0),
+      bettingSeat(betSeat('flat'), 1000, 40),
+    ], 0, 40)
+    expect(advanceVirtualBettingStep(facing).players[0]!.hasFolded).toBe(true)
+  })
+
+  it('checks for free, then raises a bet', () => {
+    const id = betSeat('trap')
+    const free = bettingTable([
+      bettingSeat(id, 1000, 0),
+      bettingSeat(betSeat('flat'), 1000, 0),
+    ], 0, 0)
+    const checked = advanceVirtualBettingStep(free)
+    expect(checked.round.lastSeatBettingAction?.[0]).toBe('check')
+
+    const facing = bettingTable([
+      bettingSeat(id, 1000, 0),
+      bettingSeat(betSeat('flat'), 1000, 20),
+    ], 0, 20)
+    const raised = advanceVirtualBettingStep(facing)
+    expect(raised.round.currentBet).toBeGreaterThan(20)
+    expect(raised.players[0]!.hasFolded).toBe(false)
+  })
+
+  it('walks away during a live bet and leaves the pot on the table', () => {
+    const id = betSeat('leave')
+    const gs = bettingTable([
+      bettingSeat(id, 800, 20),
+      bettingSeat(betSeat('flat'), 800, 20),
+    ], 0, 20)
+    const next = advanceVirtualBettingStep(gs)
+    expect(next.players.map((p) => p.id)).toEqual([betSeat('flat')])
+    expect(next.round.pot).toBe(gs.round.pot)
+  })
+
+  it('jams short of the bet so the call builds a side pot', () => {
+    const short = betSeat('shove')
+    const caller = betSeat('flat')
+    const opener = betSeat('open')
+    let gs = bettingTable([
+      bettingSeat(opener, 400, 100),
+      bettingSeat(short, 40, 0),
+      bettingSeat(caller, 400, 0),
+    ], 1, 100)
+    gs = advanceVirtualBettingStep(gs)
+    expect(gs.players[1]!.isAllIn).toBe(true)
+    expect(gs.round.playerBets?.[short]).toBe(40)
+    expect(gs.round.currentBet).toBe(100)
+    gs = advanceVirtualBettingStep(gs)
+    expect(gs.round.playerBets?.[caller]).toBe(100)
+    const pots = buildSidePotSettlement(gs.round.handContributions ?? {}, {
+      [opener]: false,
+      [short]: false,
+      [caller]: false,
+    }).pots
+    expect(pots).toHaveLength(2)
+    expect(pots[0]!.eligiblePlayerIds).toContain(short)
+    expect(pots[1]!.eligiblePlayerIds).not.toContain(short)
+  })
+})
 
 describe('CPU answering', () => {
   it('locks a closest guess when a blank seat is nudged', () => {

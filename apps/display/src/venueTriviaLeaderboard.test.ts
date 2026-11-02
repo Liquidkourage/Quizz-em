@@ -23,6 +23,27 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
     expect(rows[0]?.answerPoints).toBe(90)
   })
 
+  it('counts an eliminated player who shares a name with someone still seated', () => {
+    const tiles: DisplayVenueTileSnapshot[] = [
+      {
+        tableNum: 1,
+        seated: 2,
+        pot: 0,
+        phase: 'lobby',
+        seatNames: ['Alice A.', 'Blake B.'],
+        seatBankrolls: [500, 500],
+        seatAnswerPoints: [10, 20],
+      },
+    ]
+    const rows = venueTriviaLeaderboardRowsFromTiles(tiles, [
+      { name: 'Alice A.', answerPoints: 80 },
+      { name: 'Alice A.', answerPoints: 30 },
+      { name: 'Carla C.', answerPoints: 5 },
+    ])
+    expect(rows).toHaveLength(5)
+    expect(rows.filter((row) => row.name === 'Alice A.')).toHaveLength(3)
+  })
+
   it('keeps a points-only player on the trivia scores without a seat', () => {
     const tiles: DisplayVenueTileSnapshot[] = [
       {

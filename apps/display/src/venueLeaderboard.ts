@@ -156,16 +156,16 @@ function appendUnseatedTriviaRows(
   out: VenueLeaderboardRow[],
   standings: readonly { name: string; answerPoints: number }[],
 ): void {
-  const seatedNames = new Set(out.map((row) => row.name.trim().toLowerCase()))
+  let seatNum = 0
   for (const row of standings) {
     const name = row.name.trim()
-    if (!name || seatedNames.has(name.toLowerCase())) continue
-    seatedNames.add(name.toLowerCase())
+    if (!name) continue
+    seatNum += 1
     const pts = row.answerPoints
     out.push({
       name,
       tableNum: 0,
-      seatNum: 0,
+      seatNum,
       bankroll: 0,
       stackDelta: null,
       answerPoints: Number.isFinite(pts) ? pts : 0,

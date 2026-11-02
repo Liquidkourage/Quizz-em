@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import VenueEndgameCard from './VenueEndgameCard'
 import { formatVenueBankroll } from './venueLeaderboard'
-import { endgameCoversFloor, venueEndgameWinner, type VenueEndgameWall } from './venueEndgame'
+import { endgameCoversFloor, venueEndgameTriviaTop, venueEndgameWinner, type VenueEndgameWall } from './venueEndgame'
 
 function wall(overrides: Partial<VenueEndgameWall> = {}): VenueEndgameWall {
   return {
@@ -65,13 +65,29 @@ describe('venueEndgameWinner', () => {
 describe('endgame card', () => {
   it('covers the floor with the winner after the elimination card has left', () => {
     const winner = venueEndgameWinner(wall())
-    expect(endgameCoversFloor(winner, { elimination: true, answer: false })).toBe(false)
-    expect(endgameCoversFloor(winner, { elimination: false, answer: false })).toBe(true)
-    const html = renderToStaticMarkup(createElement(VenueEndgameCard, { winner: winner! }))
+    expect(endgameCoversFloor(winner, { elimination: true, answer: false, scores: false })).toBe(false)
+    expect(endgameCoversFloor(winner, { elimination: false, answer: false, scores: false })).toBe(true)
+    expect(endgameCoversFloor(winner, { elimination: false, answer: false, scores: true })).toBe(false)
+    const scores = venueEndgameTriviaTop([
+      { name: 'Bo Kent', answerPoints: 90 },
+      { name: 'Ada Lane', answerPoints: 70 },
+      { name: 'Cy Diaz', answerPoints: 40 },
+      { name: 'Di Ellis', answerPoints: 30 },
+      { name: 'Eve Fox', answerPoints: 20 },
+      { name: 'Fay Gill', answerPoints: 10 },
+    ])
+    expect(scores.map((row) => row.name)).toEqual(['Bo Kent', 'Ada Lane', 'Cy Diaz', 'Di Ellis', 'Eve Fox'])
+    const html = renderToStaticMarkup(
+      createElement(VenueEndgameCard, { winner: winner!, scores }),
+    )
     expect(html).toContain('Winner')
     expect(html).toContain('Ada L.')
     expect(html).toContain('Table 2')
     expect(html).toContain(formatVenueBankroll(4800))
+    expect(html).toContain('Trivia scores')
+    expect(html).toContain('Bo K.')
+    expect(html).toContain('Eve F.')
+    expect(html).not.toContain('Fay')
     expect(html).toContain('venue-endgame')
     expect(html).not.toContain('opacity:0')
   })

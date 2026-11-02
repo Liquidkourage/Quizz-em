@@ -1,10 +1,16 @@
 import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
-import { formatVenueBankroll, formatVenueDisplayPlayerName } from './venueLeaderboard'
-import type { VenueEndgameWinner } from './venueEndgame'
+import { formatVenueBankroll, formatVenueDisplayPlayerName, formatVenueTriviaPoints } from './venueLeaderboard'
+import type { VenueEndgameScore, VenueEndgameWinner } from './venueEndgame'
 
-export default function VenueEndgameCard({ winner }: { winner: VenueEndgameWinner }) {
+export default function VenueEndgameCard({
+  winner,
+  scores,
+}: {
+  winner: VenueEndgameWinner
+  scores: readonly VenueEndgameScore[]
+}) {
   const name = formatVenueDisplayPlayerName(winner.name) || winner.name
   return (
     <motion.div
@@ -44,6 +50,22 @@ export default function VenueEndgameCard({ winner }: { winner: VenueEndgameWinne
           </div>
           <p className="venue-endgame-stack">{formatVenueBankroll(winner.bankroll)}</p>
         </div>
+        {scores.length > 0 ? (
+          <div className="venue-endgame-scores">
+            <p className="venue-endgame-scores-title">Trivia scores</p>
+            <ol className="venue-endgame-score-list">
+              {scores.map((score, index) => (
+                <li key={`${score.name}-${index}`} className="venue-endgame-score-row">
+                  <span className="venue-endgame-score-rank">{index + 1}</span>
+                  <span className="venue-endgame-score-name">
+                    {formatVenueDisplayPlayerName(score.name) || score.name}
+                  </span>
+                  <span className="venue-endgame-score-points">{formatVenueTriviaPoints(score.answerPoints)}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
       </motion.div>
     </motion.div>
   )

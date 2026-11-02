@@ -4354,6 +4354,59 @@
     color: rgb(253 230 138 / 0.96);
   }
 
+  .venue-endgame-scores {
+    margin-top: clamp(12px, 1.8vmin, 18px);
+  }
+
+  .venue-endgame-scores-title {
+    margin: 0 0 clamp(6px, 0.8vmin, 10px);
+    font-family: Orbitron, monospace;
+    font-size: clamp(0.72rem, 1.2vw, 0.95rem);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(253 224 71 / 0.92);
+  }
+
+  .venue-endgame-score-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 0.6vmin, 8px);
+  }
+
+  .venue-endgame-score-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: clamp(8px, 1vw, 14px);
+    font-family: Rajdhani, sans-serif;
+    font-size: clamp(1.35rem, 2.8vh, 2.1rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: rgb(255 255 255 / 0.96);
+  }
+
+  .venue-endgame-score-rank {
+    font-family: Orbitron, monospace;
+    font-size: 0.72em;
+    color: rgb(253 224 71 / 0.8);
+  }
+
+  .venue-endgame-score-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .venue-endgame-score-points {
+    font-variant-numeric: tabular-nums;
+    color: rgb(253 230 138 / 0.96);
+  }
+
   .venue-bust-overlay-name--compact {
     font-size: clamp(0.92rem, 1.45vw, 1.2rem);
   }

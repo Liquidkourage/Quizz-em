@@ -44,11 +44,34 @@ export function venueEndgameWinner(wall: VenueEndgameWall | null): VenueEndgameW
   return stacks.length === 1 ? stacks[0]! : null
 }
 
-/** The winner card follows the elimination card, then stays up. */
+export type VenueEndgameScore = {
+  name: string
+  answerPoints: number
+}
+
+/** First five of an already ranked trivia list. */
+export function venueEndgameTriviaTop(
+  rows: readonly { name: string; answerPoints?: number | null }[],
+): VenueEndgameScore[] {
+  const scores: VenueEndgameScore[] = []
+  for (const row of rows) {
+    const name = row.name.trim()
+    if (!name) continue
+    const points = row.answerPoints
+    scores.push({
+      name,
+      answerPoints: typeof points === 'number' && Number.isFinite(points) ? Math.max(0, Math.floor(points)) : 0,
+    })
+    if (scores.length === 5) break
+  }
+  return scores
+}
+
+/** The winner card follows the elimination card, then stays up. Trivia scores replace it when the host asks. */
 export function endgameCoversFloor(
   winner: VenueEndgameWinner | null,
-  overlays: { elimination: boolean; answer: boolean },
+  overlays: { elimination: boolean; answer: boolean; scores: boolean },
 ): boolean {
-  if (winner == null) return false
+  if (winner == null || overlays.scores) return false
   return !overlays.elimination && !overlays.answer
 }

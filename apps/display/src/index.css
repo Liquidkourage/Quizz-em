@@ -4222,6 +4222,21 @@
     padding: clamp(6px, 0.95vmin, 9px) clamp(8px, 1.2vw, 12px);
   }
 
+  .venue-bust-overlay-row--closed {
+    border-color: rgb(251 191 36 / 0.62);
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.05) 0%, transparent 24%),
+      linear-gradient(180deg, rgb(69 42 8 / 0.96) 0%, rgb(28 16 4 / 0.98) 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(253 230 138 / 0.1),
+      0 0 16px rgb(245 158 11 / 0.14);
+  }
+
+  .venue-bust-overlay-row--closed .venue-bust-overlay-table-well {
+    border-color: rgb(251 191 36 / 0.5);
+    color: rgb(253 230 138 / 0.96);
+  }
+
   .venue-bust-overlay-name {
     min-width: 0;
     overflow: hidden;

@@ -26,6 +26,13 @@ function seatingTitle(seating: DisplayVenueSeatingAnnouncement): string {
   return 'Table closed'
 }
 
+function seatingRowClass(closed: boolean, compact: boolean): string {
+  const parts = ['venue-bust-overlay-row border-cyan-500/20']
+  if (closed) parts.push('venue-bust-overlay-row--closed')
+  if (compact) parts.push('venue-bust-overlay-row--compact')
+  return parts.join(' ')
+}
+
 function seatingEyebrow(seating: DisplayVenueSeatingAnnouncement): string {
   const parts: string[] = []
   if (seating.shuffled) parts.push('Full shuffle')
@@ -58,12 +65,13 @@ export default function VenueSeatingAnnouncement({
   }, [])
 
   const rows = useMemo(() => {
-    const out: { key: string; label: string; detail: string }[] = []
+    const out: { key: string; label: string; detail: string; closed: boolean }[] = []
     for (const m of seating.moves) {
       out.push({
         key: `${m.name}-${m.fromTableNum}-${m.toTableNum}`,
         label: displayPlayerName(m.name),
         detail: `Table ${m.fromTableNum} → Table ${m.toTableNum}`,
+        closed: false,
       })
     }
     for (const n of seating.closedTableNums) {
@@ -71,6 +79,7 @@ export default function VenueSeatingAnnouncement({
         key: `closed-${n}`,
         label: `Table ${n}`,
         detail: 'Closed',
+        closed: true,
       })
     }
     return out
@@ -148,9 +157,7 @@ export default function VenueSeatingAnnouncement({
             {rows.map((row) => (
               <div
                 key={row.key}
-                className={`venue-bust-overlay-row border-cyan-500/20 ${
-                  compact ? 'venue-bust-overlay-row--compact' : ''
-                }`}
+                className={seatingRowClass(row.closed, compact)}
               >
                 <span
                   className={`venue-bust-overlay-name ${

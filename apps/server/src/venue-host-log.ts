@@ -436,6 +436,7 @@ export function buildHostVenueFloorBrief(args: {
   showStartedAtMs?: number | null
   fieldPeakCount?: number
   wallView?: VenueWallViewMode
+  winnerScreensReadyAtMs?: number | null
 }): HostVenueFloorBriefPayload {
   const log = logForVenue(args.venueCode)
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
@@ -460,5 +461,6 @@ export function buildHostVenueFloorBrief(args: {
     showStartedAtMs: args.showStartedAtMs ?? null,
     fieldPeakCount: Math.max(args.fieldPlayerCount, Math.floor(args.fieldPeakCount ?? 0)),
     wallView: args.wallView ?? 'floor',
+    winnerScreensReadyAtMs: args.winnerScreensReadyAtMs ?? null,
   }
 }

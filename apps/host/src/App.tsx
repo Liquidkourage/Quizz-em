@@ -52,7 +52,7 @@ import {
 import type { BlindCall, GameState, Question } from '@qhe/core'
 import { HostBlindCall } from './HostBlindCall'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { readHostVenueCode } from './hostVenueCode'
 import {
@@ -170,6 +170,15 @@ function HostApp() {
   const [blindLevelSummary, setBlindLevelSummary] = useState<string | null>(null)
   const [venueFeltBeat, setVenueFeltBeat] = useState<HostVenueFeltBeatRow[] | null>(null)
   const [venueFloorBrief, setVenueFloorBrief] = useState<HostVenueFloorBriefPayload | null>(null)
+  const [winnerScreenNowMs, setWinnerScreenNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const readyAt = venueFloorBrief?.winnerScreensReadyAtMs
+    if (readyAt == null) return
+    setWinnerScreenNowMs(Date.now())
+    if (Date.now() >= readyAt) return
+    const id = window.setInterval(() => setWinnerScreenNowMs(Date.now()), 1000)
+    return () => window.clearInterval(id)
+  }, [venueFloorBrief?.winnerScreensReadyAtMs])
   const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
     getSocketConnectionStatus(),
   )
@@ -502,6 +511,9 @@ function HostApp() {
   const startAnswerHint = startAnswerGate.hint
   const revealAnswerHint = hasVenueFeltBeat ? venueRevealAnswerBlockedHint(venueFeltBeat) : null
   const revealAnswerBlocked = revealAnswerHint != null
+  const winnerScreensReadyAtMs = venueFloorBrief?.winnerScreensReadyAtMs ?? null
+  const payWinnersHint = winnerScreensPayoutHint(winnerScreensReadyAtMs, winnerScreenNowMs)
+  const payWinnersBlocked = payWinnersHint != null
 
   const activeSetlist = activeSetlistId != null ? setlists.find((s) => s.id === activeSetlistId) : undefined
   const hasActiveSetlist =
@@ -516,6 +528,7 @@ function HostApp() {
     closeBetBlocked,
     startAnswerBlocked,
     revealAnswerBlocked,
+    payWinnersBlocked,
     communityLen: controlCommunityLen,
     bettingRound: controlBettingRound,
     onStartGame: handleStartGame,
@@ -558,7 +571,9 @@ function HostApp() {
           ? startAnswerHint
           : primaryDockId === 'reveal' && revealAnswerBlocked
             ? revealAnswerHint
-            : null
+            : primaryDockId === 'end-round' && payWinnersBlocked
+              ? payWinnersHint
+              : null
   const hostTableNum = (() => {
     const raw = gameState.tableId ?? '1'
     if (raw === LOBBY_TABLE_ID) return 1

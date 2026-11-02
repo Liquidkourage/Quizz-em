@@ -84,6 +84,7 @@ import {
 import type { VenueFloorSpec } from './venueFloorSpec'
 import { VenueFloorBody, resolveVenueFloorBodyKey } from './VenueFloorBody'
 import { ShowdownTableBadge } from './venueFloorSidePotDisplay'
+import { VenueWinnerScreens } from './VenueWinnerScreens'
 import {
   formatVenueBankroll,
   formatVenueBankrollDigits,
@@ -3284,6 +3285,7 @@ export default function VenueEightTablesPreview({
       {!showHeadline && condenseProgress != null && tileRows.length > 0 ? (
         <VenueCondenseProgressBar model={condenseProgress} variant="bottom" />
       ) : null}
+      <VenueWinnerScreens tiles={floorTiles} sharedAnswer={sharedShowdownAnswer} />
       </div>
     </div>
   )

@@ -685,6 +685,8 @@ export function buildHostPhaseDockItems(args: {
   startAnswerBlocked: boolean
   /** A player is still betting, so Reveal the answer stays off. */
   revealAnswerBlocked?: boolean
+  /** Winner screens have not finished one pass, so Pay winners stays off. */
+  payWinnersBlocked?: boolean
   communityLen: number
   bettingRound: number
   onStartGame: () => void
@@ -713,6 +715,7 @@ export function buildHostPhaseDockItems(args: {
     closeBetBlocked,
     startAnswerBlocked,
     revealAnswerBlocked = false,
+    payWinnersBlocked = false,
     communityLen,
     bettingRound,
     onStartGame,
@@ -924,6 +927,7 @@ export function buildHostPhaseDockItems(args: {
         id: 'end-round',
         label: 'Pay winners',
         onClick: onEndRound,
+        disabled: payWinnersBlocked,
         variant: 'red',
         role: 'primary',
       },

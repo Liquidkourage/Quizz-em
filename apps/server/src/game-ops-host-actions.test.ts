@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { addPlayer, createEmptyGame } from '@qhe/core'
+import { addPlayer, createEmptyGame, winnerScreensReadyAt } from '@qhe/core'
 import type { GameState } from '@qhe/core'
 import {
   buildHostVenueFloorBrief,
@@ -12,6 +12,9 @@ import type { Server } from 'socket.io'
 import {
   applyQuestionToAllPlayable,
   bindGameIo,
+  clearVenueWinnerScreens,
+  noteVenueWinnerScreens,
+  venueWinnerScreensBlockPayout,
   buildHostLibraryPayload,
   dealCommunityBoardForVenue,
   ensureVenueLibrary,
@@ -62,6 +65,29 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers()
+})
+
+describe('winner screens before payout', () => {
+  it('holds payout until every winner screen has been shown once', () => {
+    clearVenueWinnerScreens('WIN')
+    const started = 1_000_000
+    vi.setSystemTime(started)
+    for (const [tableId, playerId] of [
+      ['1', 'a'],
+      ['2', 'b'],
+    ] as const) {
+      const gs = seat('WIN', tableId, [playerId])
+      rooms.set(tableSessionKey('WIN', tableId), { ...gs, phase: 'showdown' })
+    }
+    noteVenueWinnerScreens('WIN')
+    const ready = winnerScreensReadyAt(started, 2)
+    expect(venueWinnerScreensBlockPayout('WIN', started)).toContain('Winners are still on the screens')
+    expect(venueWinnerScreensBlockPayout('WIN', ready - 1)).toContain('1s')
+    expect(venueWinnerScreensBlockPayout('WIN', ready)).toBeNull()
+    noteVenueWinnerScreens('WIN', ready + 5_000)
+    expect(venueWinnerScreensBlockPayout('WIN', ready)).toBeNull()
+    clearVenueWinnerScreens('WIN')
+  })
 })
 
 describe('getPlayhead', () => {

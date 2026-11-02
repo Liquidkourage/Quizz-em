@@ -396,6 +396,11 @@ export async function handleShowAction(
 
         case 'endRound': {
           if (!g.assertVenueHost(socket, gameState)) break
+          const winnerScreens = g.venueWinnerScreensBlockPayout(gameState.code)
+          if (winnerScreens) {
+            socket.emit('toast', winnerScreens)
+            break
+          }
           const lockEnd = g.requireVenueLockstepTables(
             socket,
             gameState.code,
@@ -405,6 +410,7 @@ export async function handleShowAction(
           if (!lockEnd) break
           g.clearVenueWageringOrchestrationState(gameState.code)
           g.clearVenueRevealBeatTimer(gameState.code)
+          g.clearVenueWinnerScreens(gameState.code)
           const vnEnd = g.normalizeVenueCode(gameState.code)
           const handResultRows: { tableNum: number; before: GameState; after: GameState }[] = []
           for (const { tk, n } of lockEnd) {
@@ -446,6 +452,7 @@ export async function handleShowAction(
           g.clearVenueHold(vn)
           g.clearVenueWageringOrchestrationState(vn)
           g.clearVenueRevealBeatTimer(vn)
+          g.clearVenueWinnerScreens(vn)
           const hostIdSnap = gameState.hostId
           const lobbyKey = g.tableSessionKey(vn, g.LOBBY_TABLE_ID)
           const droppedPlayerIds: string[] = []

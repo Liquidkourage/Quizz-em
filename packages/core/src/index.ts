@@ -1601,6 +1601,13 @@ export function formatTriviaPoints(value: number): string {
   return formatTriviaNumber(roundTriviaPoints(value));
 }
 
+export {
+  ANSWER_REVEAL_BEFORE_WINNERS_MS,
+  WINNER_SCREEN_DWELL_MS,
+  winnerScreensPayoutHint,
+  winnerScreensReadyAt,
+} from './winnerScreens';
+
 function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAnswer'>, correct: number): number {
   if (snapshotPlayer.submittedAnswer === undefined) return 0;
   return triviaAnswerPoints(snapshotPlayer.submittedAnswer, correct);

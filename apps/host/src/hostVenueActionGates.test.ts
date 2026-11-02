@@ -55,4 +55,28 @@ describe('reveal while someone is betting', () => {
     })
     expect(items.find((item) => item.label === 'Reveal the answer')?.disabled).toBe(true)
   })
+
+  it('holds Pay winners until the winner screens finish one pass', () => {
+    const gameState = { ...createEmptyGame('HOST', 'host', '1'), phase: 'showdown' as const }
+    const items = buildHostPhaseDockItems({
+      gameState,
+      answerWindowSeconds: 60,
+      dealCommunityBlocked: false,
+      closeBetBlocked: false,
+      startAnswerBlocked: false,
+      payWinnersBlocked: true,
+      communityLen: 5,
+      bettingRound: 2,
+      onStartGame: () => {},
+      onAssignFromLobby: () => {},
+      onDealCommunity: () => {},
+      onStartAnswering: () => {},
+      onRevealAnswer: () => {},
+      onEndRound: () => {},
+      onRandomQuestion: () => {},
+      onNextSetlist: () => {},
+      onNudgeActing: () => {},
+    })
+    expect(items.find((item) => item.label === 'Pay winners')?.disabled).toBe(true)
+  })
 })

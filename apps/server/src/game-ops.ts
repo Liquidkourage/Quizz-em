@@ -30,6 +30,8 @@ import {
   revealAnswer,
   advanceRevealToShowdown,
   endRound,
+  winnerScreensPayoutHint,
+  winnerScreensReadyAt,
   formatTriviaNumber,
   isSubmittedAnswerComposableFromDeal,
   adminCloseBetting,
@@ -287,6 +289,32 @@ export function clearVenueRevealBeatTimer(venueCode: string) {
   venueRevealToShowdownTimers.delete(vn)
 }
 
+/** Epoch ms when Pay winners unlocks. One pass of the public winner screens. */
+const venueWinnerScreensReadyAtMs = new Map<string, number>()
+
+export function clearVenueWinnerScreens(venueCode: string) {
+  venueWinnerScreensReadyAtMs.delete(normalizeVenueCode(venueCode))
+}
+
+/** Remember the first moment this hand's winner screens went up. A second call does not extend them. */
+export function noteVenueWinnerScreens(venueCode: string, nowMs = Date.now()) {
+  const vn = normalizeVenueCode(venueCode)
+  if (venueWinnerScreensReadyAtMs.has(vn)) return
+  const tables = venuePlayableSnapshots(vn).filter(
+    (row) => row.gs.phase === 'showdown' || row.gs.phase === 'reveal',
+  ).length
+  if (tables === 0) return
+  venueWinnerScreensReadyAtMs.set(vn, winnerScreensReadyAt(nowMs, tables))
+}
+
+export function venueWinnerScreensReadyAtFor(venueCode: string): number | null {
+  return venueWinnerScreensReadyAtMs.get(normalizeVenueCode(venueCode)) ?? null
+}
+
+export function venueWinnerScreensBlockPayout(venueCode: string, nowMs = Date.now()): string | null {
+  return winnerScreensPayoutHint(venueWinnerScreensReadyAtFor(venueCode), nowMs)
+}
+
 /** Host reveal goes straight to showdown. The old 8s reveal beat never drew on the TV. */
 export function scheduleVenueRevealToShowdown(venueCode: string) {
   const vn = normalizeVenueCode(venueCode)
@@ -301,7 +329,10 @@ export function scheduleVenueRevealToShowdown(venueCode: string) {
     emitVenueTableState(tk, gs)
     advanced++
   }
-  if (advanced > 0) emitDisplayVenueSnapshotNow(vn)
+  if (advanced > 0) {
+    noteVenueWinnerScreens(vn)
+    emitDisplayVenueSnapshotNow(vn)
+  }
 }
 
 /** Remember the soft answer-guide deadline for lockstep UI; do not auto-close answers. */
@@ -1599,6 +1630,7 @@ export async function fastForwardVenueRehearsalToShowdown(
   }
   markVenueShowStarted(vn)
   venueAudienceWelcomeExpired.add(vn)
+  noteVenueWinnerScreens(vn)
   emitDisplayVenueSnapshotNow(vn)
   return { advanced, already }
 }
@@ -2343,6 +2375,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       handsCompleted: getVenueHandsCompleted(vn),
       lastHandBustCount: lastHandDisplay?.busts.length ?? 0,
       wallView: venueDisplayLayouts.get(vn)?.wallView ?? 'floor',
+      winnerScreensReadyAtMs: venueWinnerScreensReadyAtFor(vn),
     }),
   )
 }

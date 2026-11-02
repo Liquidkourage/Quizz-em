@@ -426,6 +426,8 @@ export type HostVenueFloorBriefPayload = {
   lastHandBustCount?: number
   /** Mode the audience TVs are showing. */
   wallView?: VenueWallViewMode
+  /** Epoch ms when Pay winners unlocks. Null once the winner screens have finished a pass. */
+  winnerScreensReadyAtMs?: number | null
 }
 
 export const ClientHello = z.object({

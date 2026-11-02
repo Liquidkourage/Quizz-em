@@ -28,7 +28,11 @@ import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import { normalizeVenuePointsStandings } from './venueLeaderboard'
-import { normalizeLastHandSeating, useVenueSeatingAnnouncement } from './useVenueSeatingAnnouncement'
+import {
+  normalizeLastHandSeating,
+  payoutBustsShareTheSeatingCard,
+  useVenueSeatingAnnouncement,
+} from './useVenueSeatingAnnouncement'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 
@@ -340,10 +344,11 @@ export default function DisplayRouter({
   const answerReveal = useVenueAnswerReveal(
     showVenueMosaicShell && !showHostBusts ? venueWall : null,
   )
-  const payoutBusts = useVenueBustAnnouncement(audienceBriefing ? null : venueWall)
-  const payoutMoves = useVenueSeatingAnnouncement(
-    audienceBriefing ? null : venueWall,
-    payoutBusts.visible,
+  const audienceWall = audienceBriefing ? null : venueWall
+  const payoutMoves = useVenueSeatingAnnouncement(audienceWall)
+  const payoutBusts = useVenueBustAnnouncement(
+    audienceWall,
+    payoutBustsShareTheSeatingCard(audienceWall?.lastHandSeating),
   )
 
   const showConnBadge = connectionStatus !== 'connected'
@@ -454,7 +459,11 @@ export default function DisplayRouter({
         <VenueBustAnnouncement key="payout-busts" busts={payoutBusts.busts} timed />
       ) : null}
       {payoutMoves.visible && payoutMoves.seating ? (
-        <VenueSeatingAnnouncement key="payout-moves" seating={payoutMoves.seating} />
+        <VenueSeatingAnnouncement
+          key="payout-moves"
+          seating={payoutMoves.seating}
+          busts={payoutMoves.busts}
+        />
       ) : null}
       {answerReveal.visible && answerReveal.payload ? (
         <VenueAnswerRevealOverlay

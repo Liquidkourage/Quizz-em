@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
-import type { DisplayVenueSeatingAnnouncement } from '@qhe/net'
+import type { DisplayVenueBustEntry, DisplayVenueSeatingAnnouncement } from '@qhe/net'
 import { computeVenueBustGridLayout } from './venueBustGridLayout'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { SeatingChartPageClock } from './SeatingChartNameRoster'
@@ -19,8 +19,9 @@ function displayPlayerName(raw: string): string {
   return lastInitial ? `${first} ${lastInitial}.` : first
 }
 
-function seatingTitle(seating: DisplayVenueSeatingAnnouncement): string {
+function seatingTitle(seating: DisplayVenueSeatingAnnouncement, bustCount: number): string {
   if (seating.shuffled) return 'TABLE SHUFFLE'
+  if (bustCount > 0 && (seating.moves.length > 0 || seating.closedTableNums.length > 0)) return 'Seating update'
   if (seating.moves.length > 0 && seating.closedTableNums.length > 0) return 'Seating update'
   if (seating.moves.length > 1) return 'Players moved'
   if (seating.moves.length === 1) return 'Player moved'
@@ -47,8 +48,9 @@ function seatingRowClass(closed: boolean, compact: boolean): string {
   return parts.join(' ')
 }
 
-function seatingEyebrow(seating: DisplayVenueSeatingAnnouncement): string {
+function seatingEyebrow(seating: DisplayVenueSeatingAnnouncement, bustCount: number): string {
   const parts: string[] = []
+  if (bustCount > 0) parts.push(`${bustCount} eliminated`)
   if (seating.moves.length > 0) {
     parts.push(`${seating.moves.length} move${seating.moves.length === 1 ? '' : 's'}`)
   }
@@ -60,11 +62,13 @@ function seatingEyebrow(seating: DisplayVenueSeatingAnnouncement): string {
 
 export default function VenueSeatingAnnouncement({
   seating,
+  busts = [],
 }: {
   seating: DisplayVenueSeatingAnnouncement
+  busts?: DisplayVenueBustEntry[]
 }) {
   const reducedMotion = useReducedMotion()
-  const title = seatingTitle(seating)
+  const title = seatingTitle(seating, busts.length)
   const [viewport, setViewport] = useState(() =>
     typeof window !== 'undefined'
       ? { w: window.innerWidth, h: window.innerHeight }
@@ -79,6 +83,15 @@ export default function VenueSeatingAnnouncement({
 
   const rows = useMemo(() => {
     const out: { key: string; label: string; detail: string; byline: string; closed: boolean }[] = []
+    for (const bust of busts) {
+      out.push({
+        key: `out-${bust.name}-${bust.tableNum}`,
+        label: displayPlayerName(bust.name),
+        detail: `Table ${bust.tableNum}`,
+        byline: 'ELIMINATED',
+        closed: false,
+      })
+    }
     for (const m of seating.moves) {
       out.push({
         key: `${m.name}-${m.fromTableNum}-${m.toTableNum}`,
@@ -98,7 +111,7 @@ export default function VenueSeatingAnnouncement({
       })
     }
     return out
-  }, [seating])
+  }, [busts, seating])
 
   const grid = useMemo(
     () => computeVenueBustGridLayout(Math.max(1, rows.length), viewport.w, viewport.h),
@@ -139,7 +152,7 @@ export default function VenueSeatingAnnouncement({
           }`}
         >
           <div className="min-w-0">
-            <p className="venue-bust-overlay-eyebrow text-cyan-300/90">{seatingEyebrow(seating)}</p>
+            <p className="venue-bust-overlay-eyebrow text-cyan-300/90">{seatingEyebrow(seating, busts.length)}</p>
             <h2
               className={`venue-bust-overlay-title ${
                 compact ? 'venue-bust-overlay-title--compact' : ''
@@ -156,8 +169,8 @@ export default function VenueSeatingAnnouncement({
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <SeatingChartPageClock
-              durationMs={seatingOverlayDurationMs(seating, reducedMotion === true)}
-              cycleKey={seating.moves.length + seating.closedTableNums.length}
+              durationMs={seatingOverlayDurationMs(seating, reducedMotion === true, busts.length)}
+              cycleKey={seating.moves.length + seating.closedTableNums.length + busts.length}
               sizeClass="seating-chart-clock--table"
             />
             <div

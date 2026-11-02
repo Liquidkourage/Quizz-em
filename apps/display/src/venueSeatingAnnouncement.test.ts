@@ -92,6 +92,28 @@ describe('seating update', () => {
     expect(html.slice(closed, closed + 400)).toContain('TABLE SHUFFLE')
   })
 
+  it('lists eliminations on the same card as the moves', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 4,
+          tablesAfter: 3,
+          playerCount: 8,
+          moves: [{ name: 'Ada Lane', fromTableNum: 2, toTableNum: 1, byline: 'TABLE BALANCE' }],
+          closedTableNums: [],
+        },
+        busts: [{ name: 'Bo Kent', tableNum: 3 }],
+      }),
+    )
+    expect(html).toContain('Bo')
+    expect(html).toContain('ELIMINATED')
+    expect(html).toContain('Ada')
+    expect(html).toContain('TABLE BALANCE')
+    expect(html).toContain('1 eliminated')
+    expect(html).toContain('animation-duration:5210ms')
+  })
+
   it('shows a circle for how long the seating update stays up', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSeatingAnnouncement, {

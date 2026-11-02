@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   normalizeLastHandSeating,
+  payoutBustsShareTheSeatingCard,
   payoutSeatChangesToAnnounce,
+  seatingOverlayDurationMs,
   venueSeatingAnnouncementHasContent,
 } from './useVenueSeatingAnnouncement'
 import { handHasPayoutBusts } from './useVenueBustAnnouncement'
@@ -114,5 +116,22 @@ describe('payout announcements', () => {
       playerCount: 20,
     })
     expect(seating?.moves[0]?.byline).toBe('TABLE REDUCTION')
+  })
+
+  it('keeps eliminations on the seating card when that hand also moved players', () => {
+    const seating = {
+      moves: [{ name: 'Pat', fromTableNum: 2, toTableNum: 5 }],
+      closedTableNums: [] as number[],
+      shuffled: false,
+      tablesBefore: 3,
+      tablesAfter: 3,
+      playerCount: 10,
+    }
+    expect(payoutBustsShareTheSeatingCard(seating)).toBe(true)
+    expect(payoutBustsShareTheSeatingCard(null)).toBe(false)
+    expect(
+      seatingOverlayDurationMs(seating, false, 1),
+    ).toBe(5210)
+    expect(seatingOverlayDurationMs(seating, false, 0)).toBe(4600)
   })
 })

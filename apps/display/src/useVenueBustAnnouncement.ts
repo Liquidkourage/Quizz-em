@@ -32,6 +32,7 @@ export function handHasPayoutBusts(
  */
 export function useVenueBustAnnouncement(
   wall: DisplayVenueWallSnapshot | null,
+  shareTheSeatingCard = false,
 ): VenueBustAnnouncementState {
   const dismissedHandEndMsRef = useRef<number | null>(null)
   const [visible, setVisible] = useState(false)
@@ -45,7 +46,7 @@ export function useVenueBustAnnouncement(
       : `${handEndMs}:${busts.map((b) => `${b.name}@${b.tableNum}`).join('|')}`
 
   useEffect(() => {
-    if (!handHasPayoutBusts(wall) || handEndMs == null) {
+    if (shareTheSeatingCard || !handHasPayoutBusts(wall) || handEndMs == null) {
       setVisible(false)
       return
     }
@@ -68,7 +69,7 @@ export function useVenueBustAnnouncement(
     }, bustOverlayDurationMs(busts.length, reducedMotion))
 
     return () => window.clearTimeout(timer)
-  }, [signature, handEndMs])
+  }, [signature, handEndMs, shareTheSeatingCard])
 
   return { visible, busts: shownBusts }
 }

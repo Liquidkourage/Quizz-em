@@ -229,6 +229,10 @@ export async function handleShowAction(
             'be in pre-board wagering (round 1, board empty) before dealing community cards',
           )
           if (!lockBoard) break
+          if (lockBoard.some((r) => r.gs.round.isBettingOpen !== false)) {
+            socket.emit('toast', 'A player is still betting. Finish that round before revealing the board.')
+            break
+          }
           const vnBoard = g.normalizeVenueCode(gameState.code)
           if (g.dealCommunityBoardForVenue(vnBoard, { auto: false })) {
             g.emitDisplayVenueSnapshotNow(vnBoard)

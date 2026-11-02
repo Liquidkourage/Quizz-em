@@ -322,20 +322,15 @@ export function dealCommunityBoardForVenue(
       r.gs.phase === 'betting' &&
       r.gs.round.bettingRound === 1 &&
       (r.gs.round.communityCards?.length ?? 0) < 5 &&
-      (opts?.auto ? r.gs.round.isBettingOpen !== true : true),
+      r.gs.round.isBettingOpen === false,
   )
   if (!ready) return false
 
   clearVenueWageringOrchestrationState(vn)
   let anyDealt = false
-  let anyAutoClosed = false
   for (const { tk } of rows) {
     let gs = rooms.get(tk)
     if (!gs) continue
-    if (gs.round.isBettingOpen) {
-      gs = adminCloseBetting(gs)
-      anyAutoClosed = true
-    }
     const communityBefore = gs.round.communityCards.length
     gs = dealCommunityCards(gs)
     const dealt = gs.round.communityCards.length > communityBefore
@@ -364,9 +359,7 @@ export function dealCommunityBoardForVenue(
   if (anyDealt) {
     const msg = opts?.auto
       ? 'Round 1 complete — board dealt on every table.'
-      : anyAutoClosed
-        ? 'Closed round 1 + dealt board — wagering round 2 (every table at this venue).'
-        : 'Board complete — wagering round 2 (every table at this venue).'
+      : 'Board complete — wagering round 2 (every table at this venue).'
     io.to(hostVenueRoom(vn)).emit('toast', msg)
   }
   return anyDealt

@@ -6,6 +6,7 @@ import {
   applyQuestionToAllPlayable,
   bindGameIo,
   buildHostLibraryPayload,
+  dealCommunityBoardForVenue,
   ensureVenueLibrary,
   getPlayhead,
   moveSeatedPlayer,
@@ -142,6 +143,28 @@ describe('moveSeatedPlayer success', () => {
     expect(result).toEqual({ ok: true, message: 'Moved p1 from table 1 to table 3.' })
     expect(rooms.get('BAR:1')?.players.map((p) => p.id)).toEqual(['p2'])
     expect(rooms.get('BAR:3')?.players.map((p) => p.id)).toEqual(['p1'])
+  })
+})
+
+describe('dealCommunityBoardForVenue', () => {
+  it('leaves the hand alone while a player is still betting', () => {
+    let gs = seat('STILLBET', '1', ['p1', 'p2'])
+    gs = {
+      ...gs,
+      phase: 'betting',
+      round: {
+        ...gs.round,
+        bettingRound: 1,
+        isBettingOpen: true,
+        currentPlayerIndex: 0,
+        communityCards: [],
+      },
+    }
+    rooms.set(tableSessionKey('STILLBET', '1'), gs)
+    expect(dealCommunityBoardForVenue('STILLBET', { auto: false })).toBe(false)
+    const after = rooms.get(tableSessionKey('STILLBET', '1'))
+    expect(after?.round.isBettingOpen).toBe(true)
+    expect(after?.round.communityCards).toEqual([])
   })
 })
 

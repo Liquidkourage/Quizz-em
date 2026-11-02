@@ -667,6 +667,8 @@ export function buildHostPhaseDockItems(args: {
   dealCommunityBlocked: boolean
   closeBetBlocked: boolean
   startAnswerBlocked: boolean
+  /** A player is still betting, so Reveal the answer stays off. */
+  revealAnswerBlocked?: boolean
   communityLen: number
   bettingRound: number
   onStartGame: () => void
@@ -694,6 +696,7 @@ export function buildHostPhaseDockItems(args: {
     dealCommunityBlocked,
     closeBetBlocked,
     startAnswerBlocked,
+    revealAnswerBlocked = false,
     communityLen,
     bettingRound,
     onStartGame,
@@ -892,6 +895,7 @@ export function buildHostPhaseDockItems(args: {
         id: 'reveal',
         label: 'Reveal the answer',
         onClick: onRevealAnswer,
+        disabled: revealAnswerBlocked,
         variant: 'gold',
         role: 'primary',
       },

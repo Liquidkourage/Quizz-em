@@ -82,6 +82,7 @@ import { HostQuestionsPanel } from './HostQuestionsPanel'
 import {
   hostCloseBettingGate,
   hostDealCommunityGate,
+  venueRevealAnswerBlockedHint,
   hostStartAnswerGate,
 } from './hostVenueActionGates'
 import { HOST_VENUE_ALERT_MS, hostVenueAutoAlertFromToast } from './hostVenueAutoAlerts'
@@ -499,6 +500,8 @@ function HostApp() {
   const closeBetHint = closeBettingGate.hint
   const startAnswerBlocked = startAnswerGate.blocked
   const startAnswerHint = startAnswerGate.hint
+  const revealAnswerHint = hasVenueFeltBeat ? venueRevealAnswerBlockedHint(venueFeltBeat) : null
+  const revealAnswerBlocked = revealAnswerHint != null
 
   const activeSetlist = activeSetlistId != null ? setlists.find((s) => s.id === activeSetlistId) : undefined
   const hasActiveSetlist =
@@ -512,6 +515,7 @@ function HostApp() {
     dealCommunityBlocked,
     closeBetBlocked,
     startAnswerBlocked,
+    revealAnswerBlocked,
     communityLen: controlCommunityLen,
     bettingRound: controlBettingRound,
     onStartGame: handleStartGame,
@@ -552,7 +556,9 @@ function HostApp() {
         ? dealCommunityHint
         : primaryDockId === 'start-answer' && startAnswerBlocked
           ? startAnswerHint
-          : null
+          : primaryDockId === 'reveal' && revealAnswerBlocked
+            ? revealAnswerHint
+            : null
   const hostTableNum = (() => {
     const raw = gameState.tableId ?? '1'
     if (raw === LOBBY_TABLE_ID) return 1

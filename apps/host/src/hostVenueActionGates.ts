@@ -15,6 +15,11 @@ export function parseVenueBetPhaseSig(sig: string | null | undefined): VenueBetP
   }
 }
 
+/** True only when the signature says the betting clock is closed. */
+function wageringClockClosed(sig: string | null | undefined): boolean {
+  return typeof sig === 'string' && /^bet\|\d+\|F\|cc\d+$/.test(sig)
+}
+
 function seatedVenueRows(rows: HostVenueFeltBeatRow[] | null): HostVenueFeltBeatRow[] {
   return rows?.filter((r) => r.active && r.seated > 0) ?? []
 }
@@ -51,7 +56,7 @@ export function venueDealCommunityBlockedHint(rows: HostVenueFeltBeatRow[] | nul
       .join(', ')
     return `Tables ${nums} are not ready for the board (need wagering round 1, no community cards yet). Check Venue felts · beat.`
   }
-  const stillOpen = seated.filter((r) => parseVenueBetPhaseSig(r.phaseStrictSig)?.open === true)
+  const stillOpen = seated.filter((r) => !wageringClockClosed(r.phaseStrictSig))
   if (stillOpen.length > 0) {
     const nums = stillOpen
       .map((r) => r.tableNum)
@@ -80,6 +85,19 @@ export function venueCloseBettingBlockedHint(rows: HostVenueFeltBeatRow[] | null
     return 'Not every table has wagering open — wait for lockstep or check Venue felts · beat.'
   }
   return null
+}
+
+/** Someone still has a betting turn, so the answer must stay hidden. */
+export function venueRevealAnswerBlockedHint(rows: HostVenueFeltBeatRow[] | null): string | null {
+  const stillBetting = seatedVenueRows(rows).filter(
+    (row) => row.phase === 'betting' && !wageringClockClosed(row.phaseStrictSig),
+  )
+  if (stillBetting.length === 0) return null
+  const nums = stillBetting
+    .map((row) => row.tableNum)
+    .sort((a, b) => a - b)
+    .join(', ')
+  return `Tables ${nums} still have a player betting.`
 }
 
 /** Venue-wide gate for start answering — lockstep post-board, clock closed, full board. */

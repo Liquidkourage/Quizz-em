@@ -223,7 +223,7 @@ export default function VenueSeatingAnnouncement({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      initial={reducedMotion ? false : { opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
       exit={reducedMotion ? undefined : { opacity: 0 }}
       transition={{ duration: reducedMotion ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
@@ -238,7 +238,7 @@ export default function VenueSeatingAnnouncement({
         className={`venue-seating-move venue-seating-update venue-bust-overlay-panel relative z-10 flex max-h-full w-fit min-w-[min(32rem,92vw)] max-w-[min(72rem,92vw)] flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
           compact ? 'venue-bust-overlay-panel--compact' : ''
         }`}
-        initial={reducedMotion ? false : { opacity: 0, y: 18, scale: 0.97 }}
+        initial={false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={reducedMotion ? undefined : { opacity: 0, y: 10, scale: 0.98 }}
         transition={{ duration: reducedMotion ? 0 : 0.42, ease: [0.22, 1, 0.36, 1] }}

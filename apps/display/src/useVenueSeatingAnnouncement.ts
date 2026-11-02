@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type {
   DisplayVenueBustEntry,
   DisplayVenueSeatingAnnouncement,
@@ -110,10 +110,7 @@ export type VenueSeatingAnnouncementState = {
 export function useVenueSeatingAnnouncement(
   wall: DisplayVenueWallSnapshot | null,
 ): VenueSeatingAnnouncementState {
-  const dismissedHandEndMsRef = useRef<number | null>(null)
-  const [visible, setVisible] = useState(false)
-  const [shownSeating, setShownSeating] = useState<DisplayVenueSeatingAnnouncement | null>(null)
-  const [shownBusts, setShownBusts] = useState<DisplayVenueBustEntry[]>([])
+  const [dismissedHandEndMs, setDismissedHandEndMs] = useState<number | null>(null)
 
   const seating = payoutSeatChangesToAnnounce(wall?.lastHandSeating ?? null)
   const busts = wall?.lastHandBusts ?? []
@@ -123,20 +120,10 @@ export function useVenueSeatingAnnouncement(
     !hasContent || handEndMs == null
       ? ''
       : `${handEndMs}:${seating.moves.map((m) => `${m.name}:${m.fromTableNum}-${m.toTableNum}`).join('|')}:${seating.closedTableNums.join(',')}:${busts.map((b) => `${b.name}@${b.tableNum}`).join('|')}`
+  const visible = hasContent && handEndMs != null && dismissedHandEndMs !== handEndMs
 
   useEffect(() => {
-    if (wall == null || !hasContent || handEndMs == null) {
-      setVisible(false)
-      return
-    }
-    if (dismissedHandEndMsRef.current === handEndMs) {
-      setVisible(false)
-      return
-    }
-
-    setShownSeating(seating)
-    setShownBusts(busts)
-    setVisible(true)
+    if (!visible || seating == null || handEndMs == null) return
 
     const reducedMotion =
       typeof window !== 'undefined' &&
@@ -144,12 +131,11 @@ export function useVenueSeatingAnnouncement(
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     const timer = window.setTimeout(() => {
-      dismissedHandEndMsRef.current = handEndMs
-      setVisible(false)
+      setDismissedHandEndMs(handEndMs)
     }, seatingOverlayDurationMs(seating, reducedMotion, busts.length))
 
     return () => window.clearTimeout(timer)
-  }, [signature, handEndMs])
+  }, [signature, handEndMs, visible])
 
-  return { visible, seating: shownSeating, busts: shownBusts }
+  return { visible, seating: visible ? seating : null, busts }
 }

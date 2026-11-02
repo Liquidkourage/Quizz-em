@@ -98,44 +98,38 @@ function openAnswerReveal(
 export function useVenueAnswerReveal(
   wall: DisplayVenueWallSnapshot | null,
 ): VenueAnswerRevealState {
-  const prevWallRef = useRef<DisplayVenueWallSnapshot | null>(null)
-  const revealedDeadlineRef = useRef<number | null>(null)
-  const revealedShowdownKeyRef = useRef<string | null>(null)
   const dwellTimerRef = useRef<number | null>(null)
+  const [prevWall, setPrevWall] = useState<DisplayVenueWallSnapshot | null>(null)
+  const [revealed, setRevealed] = useState<RevealedMarks>({
+    revealedDeadlineMs: null,
+    revealedShowdownKey: null,
+  })
   const [visible, setVisible] = useState(false)
   const [payload, setPayload] = useState<VenueAnswerRevealPayload | null>(null)
 
-  useEffect(() => {
-    return () => {
-      if (dwellTimerRef.current != null) window.clearTimeout(dwellTimerRef.current)
+  if (wall !== prevWall) {
+    const opened = wall == null ? null : openAnswerReveal(wall, prevWall, revealed)
+    setPrevWall(wall)
+    if (opened != null) {
+      setRevealed({
+        revealedDeadlineMs: opened.revealedDeadlineMs,
+        revealedShowdownKey: opened.revealedShowdownKey,
+      })
+      setPayload(opened.payload)
+      setVisible(true)
     }
-  }, [])
+  }
 
   useEffect(() => {
-    if (wall == null) {
-      prevWallRef.current = null
-      return
-    }
-
-    const prev = prevWallRef.current
-    prevWallRef.current = wall
-    const opened = openAnswerReveal(wall, prev, {
-      revealedDeadlineMs: revealedDeadlineRef.current,
-      revealedShowdownKey: revealedShowdownKeyRef.current,
-    })
-    if (opened == null) return
-
-    revealedDeadlineRef.current = opened.revealedDeadlineMs
-    revealedShowdownKeyRef.current = opened.revealedShowdownKey
-    setPayload(opened.payload)
-    setVisible(true)
-
-    if (dwellTimerRef.current != null) window.clearTimeout(dwellTimerRef.current)
+    if (!visible) return
     dwellTimerRef.current = window.setTimeout(() => {
       dwellTimerRef.current = null
       setVisible(false)
     }, VENUE_ANSWER_REVEAL_DWELL_MS)
-  }, [wall])
+    return () => {
+      if (dwellTimerRef.current != null) window.clearTimeout(dwellTimerRef.current)
+    }
+  }, [visible, payload])
 
   return { visible, payload: visible ? payload : null }
 }

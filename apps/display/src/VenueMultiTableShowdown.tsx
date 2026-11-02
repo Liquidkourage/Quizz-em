@@ -63,7 +63,7 @@ export default function VenueMultiTableShowdown({
       role="dialog"
       aria-modal="true"
       aria-label={`Venue showdown — ${showdownTiles.length} table${showdownTiles.length === 1 ? '' : 's'}`}
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.35 }}

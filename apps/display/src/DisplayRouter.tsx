@@ -355,6 +355,27 @@ export default function DisplayRouter({
 
   return (
     <>
+    <AnimatePresence>
+      {showHostBusts ? (
+        <VenueBustAnnouncement key="venue-bust-announcement" busts={lastHandBusts} />
+      ) : null}
+      {payoutBusts.visible && !showHostBusts ? (
+        <VenueBustAnnouncement key="payout-busts" busts={payoutBusts.busts} timed />
+      ) : null}
+      {payoutMoves.visible && payoutMoves.seating ? (
+        <VenueSeatingAnnouncement
+          key="payout-moves"
+          seating={payoutMoves.seating}
+          busts={payoutMoves.busts}
+        />
+      ) : null}
+      {answerReveal.visible && answerReveal.payload ? (
+        <VenueAnswerRevealOverlay
+          key={`answer-reveal-${answerReveal.payload.answer}`}
+          payload={answerReveal.payload}
+        />
+      ) : null}
+    </AnimatePresence>
     {showConnBadge ? (
       <div
         className="pointer-events-none fixed left-1/2 top-3 z-[100] -translate-x-1/2 rounded-md border border-amber-400/40 bg-black/80 px-4 py-2 text-sm font-semibold tracking-wide text-amber-100 shadow-lg"
@@ -450,27 +471,6 @@ export default function DisplayRouter({
           />
         </motion.div>
       )}
-    </AnimatePresence>
-    <AnimatePresence>
-      {showHostBusts ? (
-        <VenueBustAnnouncement key="venue-bust-announcement" busts={lastHandBusts} />
-      ) : null}
-      {payoutBusts.visible && !showHostBusts ? (
-        <VenueBustAnnouncement key="payout-busts" busts={payoutBusts.busts} timed />
-      ) : null}
-      {payoutMoves.visible && payoutMoves.seating ? (
-        <VenueSeatingAnnouncement
-          key="payout-moves"
-          seating={payoutMoves.seating}
-          busts={payoutMoves.busts}
-        />
-      ) : null}
-      {answerReveal.visible && answerReveal.payload ? (
-        <VenueAnswerRevealOverlay
-          key={`answer-reveal-${answerReveal.payload.answer}`}
-          payload={answerReveal.payload}
-        />
-      ) : null}
     </AnimatePresence>
     </>
   )

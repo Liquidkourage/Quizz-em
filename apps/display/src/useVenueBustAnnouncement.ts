@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { DisplayVenueBustEntry, DisplayVenueWallSnapshot } from '@qhe/net'
 
 /** Dwell before the stacks leaderboard. */
@@ -35,9 +35,7 @@ export function useVenueBustAnnouncement(
   wall: DisplayVenueWallSnapshot | null,
   shareTheSeatingCard = false,
 ): VenueBustAnnouncementState {
-  const dismissedHandEndMsRef = useRef<number | null>(null)
-  const [visible, setVisible] = useState(false)
-  const [shownBusts, setShownBusts] = useState<DisplayVenueBustEntry[]>([])
+  const [dismissedHandEndMs, setDismissedHandEndMs] = useState<number | null>(null)
 
   const busts = wall?.lastHandBusts ?? []
   const handEndMs = wall?.lastHandEndMs ?? null
@@ -45,19 +43,14 @@ export function useVenueBustAnnouncement(
     handEndMs == null || busts.length === 0
       ? ''
       : `${handEndMs}:${busts.map((b) => `${b.name}@${b.tableNum}`).join('|')}`
+  const visible =
+    !shareTheSeatingCard &&
+    handHasPayoutBusts(wall) &&
+    handEndMs != null &&
+    dismissedHandEndMs !== handEndMs
 
   useEffect(() => {
-    if (shareTheSeatingCard || !handHasPayoutBusts(wall) || handEndMs == null) {
-      setVisible(false)
-      return
-    }
-    if (dismissedHandEndMsRef.current === handEndMs) {
-      setVisible(false)
-      return
-    }
-
-    setShownBusts(busts)
-    setVisible(true)
+    if (!visible || handEndMs == null) return
 
     const reducedMotion =
       typeof window !== 'undefined' &&
@@ -65,12 +58,11 @@ export function useVenueBustAnnouncement(
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     const timer = window.setTimeout(() => {
-      dismissedHandEndMsRef.current = handEndMs
-      setVisible(false)
+      setDismissedHandEndMs(handEndMs)
     }, bustOverlayDurationMs(busts.length, reducedMotion))
 
     return () => window.clearTimeout(timer)
-  }, [signature, handEndMs, shareTheSeatingCard])
+  }, [signature, handEndMs, visible])
 
-  return { visible, busts: shownBusts }
+  return { visible, busts }
 }

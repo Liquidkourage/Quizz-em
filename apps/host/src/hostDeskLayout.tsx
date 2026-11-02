@@ -643,9 +643,14 @@ export function hostRunOfShowHeadline(
   }
 
   if (stepId === 'question' && !controlState.round.question) {
+    const detail = opts?.nextQuestionText
+      ? `Next up: ${opts.nextQuestionText}`
+      : opts?.afterPayout
+        ? 'Choose the public screen: chip scores or the seating chart.'
+        : undefined
     return {
       title: 'Show the trivia question',
-      detail: opts?.nextQuestionText ? `Next up: ${opts.nextQuestionText}` : undefined,
+      detail,
     }
   }
 

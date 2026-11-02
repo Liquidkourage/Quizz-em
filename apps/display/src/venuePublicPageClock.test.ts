@@ -53,7 +53,7 @@ describe('public screens that change on a timer', () => {
   it('shows the circle on a timed elimination card and the answer card', () => {
     const busts = renderToStaticMarkup(
       createElement(VenueBustAnnouncement, {
-        busts: [{ name: 'Ada Lane', tableNum: 2, atMs: 1 }],
+        busts: [{ name: 'Ada Lane', tableNum: 2 }],
         timed: true,
       }),
     )
@@ -61,7 +61,7 @@ describe('public screens that change on a timer', () => {
 
     const held = renderToStaticMarkup(
       createElement(VenueBustAnnouncement, {
-        busts: [{ name: 'Ada Lane', tableNum: 2, atMs: 1 }],
+        busts: [{ name: 'Ada Lane', tableNum: 2 }],
       }),
     )
     expect(held).not.toContain('seating-chart-clock-value')

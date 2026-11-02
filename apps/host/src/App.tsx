@@ -21,6 +21,7 @@ import {
   alignTablesToRoom,
   setTablePhase,
   nudgeActingPlayers,
+  nudgeOpenGuesses,
   addVirtualPlayers,
   clearVirtualPlayers,
   clearTableBlinds,
@@ -921,7 +922,11 @@ function HostApp() {
 
       {/* Toast Messages */}
       {stillGuessing.length > 0 ? (
-        <HostStillGuessingNotice players={stillGuessing} dropped={venueAutoAlert != null} />
+        <HostStillGuessingNotice
+          players={stillGuessing}
+          dropped={venueAutoAlert != null}
+          onNudge={() => nudgeOpenGuesses()}
+        />
       ) : null}
       <AnimatePresence>
         {venueAutoAlert ? (

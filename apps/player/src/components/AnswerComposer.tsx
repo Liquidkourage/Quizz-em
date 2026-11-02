@@ -79,7 +79,11 @@ export default function AnswerComposer({
         </div>
       ) : null}
 
-      {remainingSec != null ? (
+      {currentPlayer.answerForfeited ? (
+        <p className="player-game-hint" role="status">
+          No guess in time — 0 points, and you cannot win this pot.
+        </p>
+      ) : remainingSec != null ? (
         <p
           className={`player-game-timer${remainingSec <= 10 ? ' player-game-timer--urgent' : ''}`}
           aria-live="polite"
@@ -94,7 +98,7 @@ export default function AnswerComposer({
         </p>
       ) : null}
 
-      {locked ? (
+      {currentPlayer.answerForfeited ? null : locked ? (
         <div className="player-game-answer-submitted" role="status">
           <p className="player-game-question-label">Submitted</p>
           <div className="player-game-answer-display player-game-answer-display--locked">{submittedDisplay}</div>

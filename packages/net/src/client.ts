@@ -714,6 +714,13 @@ export function nudgeActingPlayers(tableNum?: number, callback?: (ack: ServerAck
   if (callback) socket.once('ack', callback)
 }
 
+/** Host: 30s more for seats still guessing. A miss scores 0 and cannot win the pot. */
+export function nudgeOpenGuesses(callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'nudgeOpenGuesses' })
+  if (callback) socket.once('ack', callback)
+}
+
 export function adminSetBlinds(smallBlind: number, bigBlind: number, callback?: (ack: ServerAck) => void) {
   if (!socket) return
   socket.emit('action', { type: 'adminSetBlinds', payload: { smallBlind, bigBlind } })

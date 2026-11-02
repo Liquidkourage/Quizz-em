@@ -136,6 +136,22 @@ export async function handleWageringAction(
           gameState = g.rooms.get(sessionKey)!
           break
         }
+        case 'nudgeOpenGuesses': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const { nudged, names } = g.nudgeOpenGuesses(gameState.code)
+          if (nudged === 0) {
+            socket.emit('toast', 'Nobody is still guessing — nothing to nudge.')
+          } else {
+            const sample = names.slice(0, 4).join(', ')
+            const more = names.length > 4 ? ` +${names.length - 4} more` : ''
+            socket.emit(
+              'toast',
+              `Nudged ${nudged} player(s) — 30s to lock a guess, or they score 0 and cannot win the pot (${sample}${more}).`,
+            )
+          }
+          gameState = g.rooms.get(sessionKey)!
+          break
+        }
         case 'adminSetBlinds': {
           if (!g.assertVenueHost(socket, gameState)) break
           const { smallBlind, bigBlind } = payload as { smallBlind?: unknown; bigBlind?: unknown }

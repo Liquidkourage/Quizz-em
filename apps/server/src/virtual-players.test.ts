@@ -18,6 +18,7 @@ import {
 import {
   addVirtualPlayers,
   advanceVirtualBettingStep,
+  noteGuessNudge,
   rehearsalAnswerScript,
   runVirtualPlayerSimulation,
   type RehearsalAnswerScript,
@@ -134,6 +135,14 @@ function seven(gs: GameState, index = 0): number[] {
 }
 
 describe('CPU answering', () => {
+  it('locks a closest guess when a blank seat is nudged', () => {
+    const blank = seatIdFor('blank')
+    noteGuessNudge(blank)
+    const gs = answeringTable([blank])
+    const next = advanceVirtualBettingStep(gs)
+    expect(next.players[0]!.submittedAnswer).toBe(nearestLegalAnswerToTarget(seven(gs), 30))
+  })
+
   it('leaves a blank seat blank and still locks the next bot', () => {
     const blank = seatIdFor('blank')
     const close = seatIdFor('close')

@@ -1,13 +1,15 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { addPlayer, createEmptyGame } from '@qhe/core'
+import { addPlayer, createEmptyGame, endRound } from '@qhe/core'
 import type { GameState } from '@qhe/core'
 import type { Server } from 'socket.io'
 import {
   bindGameIo,
+  clearGuessNudgeClocks,
   clearHumanTurnClock,
   HUMAN_NUDGE_TIMEOUT_MS,
   humanTurnDeadlineMs,
   nudgeActingHumansVenue,
+  nudgeOpenGuesses,
   prepareVenuePersistence,
   resolveHumanTurnActor,
   rooms,
@@ -60,6 +62,7 @@ beforeEach(() => {
 
 afterEach(() => {
   for (const key of rooms.keys()) clearHumanTurnClock(key)
+  clearGuessNudgeClocks()
   vi.useRealTimers()
 })
 
@@ -215,5 +218,43 @@ describe('auto check or fold after a nudge', () => {
     await vi.advanceTimersByTimeAsync(60_000)
     expect(toasts.filter((t) => t.includes('nudged time up'))).toEqual([])
     setVenueRoomHold('a4', false)
+  })
+})
+
+describe('nudge open guesses', () => {
+  it('gives 30s, then a missed guess scores 0 and cannot take the pot', async () => {
+    const key = tableSessionKey('NG', '1')
+    let gs = createEmptyGame('NG', 'host', '1')
+    gs = addPlayer(gs, 'ada', 'Ada', 500)
+    gs = addPlayer(gs, 'bo', 'Bo', 500)
+    rooms.set(key, {
+      ...gs,
+      phase: 'answering',
+      round: {
+        ...gs.round,
+        answerDeadline: 1_000_000,
+        pot: 40,
+        handContributions: { ada: 20, bo: 20 },
+        question: { id: 'q', text: '?', answer: 10 },
+      },
+      players: [
+        { ...gs.players[0]!, submittedAnswer: 10, bankroll: 500 },
+        { ...gs.players[1]!, bankroll: 500 },
+      ],
+    })
+
+    expect(nudgeOpenGuesses('NG')).toEqual({ nudged: 1, names: ['Bo'] })
+    expect(rooms.get(key)!.round.answerDeadline).toBe(1_030_000)
+    expect(toasts).toContain('30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
+
+    await vi.advanceTimersByTimeAsync(HUMAN_NUDGE_TIMEOUT_MS)
+    const after = rooms.get(key)!
+    expect(after.players.find((p) => p.id === 'bo')!.answerForfeited).toBe(true)
+    expect(after.players.find((p) => p.id === 'ada')!.answerForfeited).not.toBe(true)
+
+    const paid = endRound({ ...after, phase: 'showdown' })
+    expect(paid.players.find((p) => p.id === 'bo')!.bankroll).toBe(500)
+    expect(paid.players.find((p) => p.id === 'bo')!.answerPoints ?? 0).toBe(0)
+    expect(paid.players.find((p) => p.id === 'ada')!.bankroll).toBe(540)
   })
 })

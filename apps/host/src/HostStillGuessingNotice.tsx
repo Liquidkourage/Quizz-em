@@ -3,9 +3,11 @@ import type { StillGuessingPlayer } from './hostStillGuessing'
 export default function HostStillGuessingNotice({
   players,
   dropped = false,
+  onNudge,
 }: {
   players: StillGuessingPlayer[]
   dropped?: boolean
+  onNudge?: () => void
 }) {
   return (
     <div
@@ -24,6 +26,16 @@ export default function HostStillGuessingNotice({
             </li>
           ))}
         </ul>
+        <p className="mt-2 text-xs leading-snug text-amber-100/90">
+          Nudge gives them 30 seconds. No guess scores 0 and cannot win the pot. Then reveal.
+        </p>
+        <button
+          type="button"
+          className="mt-2 w-full rounded-lg border border-amber-300/70 bg-amber-400/20 px-3 py-1.5 text-sm font-bold text-amber-50 hover:bg-amber-400/30"
+          onClick={onNudge}
+        >
+          Nudge
+        </button>
       </div>
     </div>
   )

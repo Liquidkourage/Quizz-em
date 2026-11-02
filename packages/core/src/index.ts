@@ -30,6 +30,8 @@ export interface PlayerState {
   holesDealt?: boolean;
   /** Five cards used to build `submittedAnswer`, in tap order. */
   answerComposition?: readonly AnswerCardPick[];
+  /** Nudge clock expired with no guess. Scores 0 and cannot take the chip pot. */
+  answerForfeited?: boolean;
   /** Cumulative trivia score across answered rounds (even when busted off chips). */
   answerPoints?: number;
   /**
@@ -1388,6 +1390,8 @@ export function submitAnswer(
   answer: number,
   composition?: readonly AnswerCardPick[]
 ): GameState {
+  const seat = state.players.find((player) => player.id === playerId);
+  if (seat?.answerForfeited === true) return state;
   const updatedPlayers = state.players.map((player) =>
     player.id === playerId
       ? {
@@ -1401,6 +1405,19 @@ export function submitAnswer(
       : player
   );
   return { ...state, players: updatedPlayers };
+}
+
+/** After the nudge clock: seats that never locked a guess score 0 and cannot take the pot. */
+export function forfeitOpenGuesses(state: GameState): GameState {
+  if (state.phase !== 'answering') return state;
+  let changed = false;
+  const players = state.players.map((player) => {
+    if (typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)) return player;
+    if (player.answerForfeited === true) return player;
+    changed = true;
+    return { ...player, answerForfeited: true };
+  });
+  return changed ? { ...state, players } : state;
 }
 
 /** Close the answer window. The server advances this straight into showdown. */
@@ -1510,21 +1527,38 @@ export function payoutPotSplitAmong(state: GameState, winnerIds: string[]): Game
   return payoutPotAmountAmong(state, winnerIds, state.round.pot);
 }
 
+function chipSeat(state: GameState, id: string): PlayerState | undefined {
+  const player = state.players.find((candidate) => candidate.id === id);
+  return player != null && inChipContest(player) ? player : undefined;
+}
+
+/** No trivia winner: non-forfeited seats take the layer. If every seat missed the nudge, split it back. */
+function unansweredPotRecipients(state: GameState, eligiblePlayerIds: readonly string[]): string[] {
+  const alive: string[] = [];
+  const seated: string[] = [];
+  const forfeited: string[] = [];
+  for (const id of eligiblePlayerIds) {
+    const player = chipSeat(state, id);
+    if (!player) continue;
+    if (player.answerForfeited === true) {
+      forfeited.push(id);
+      continue;
+    }
+    seated.push(id);
+    if (!player.hasFolded) alive.push(id);
+  }
+  if (alive.length > 0) return alive;
+  if (seated.length > 0) return seated;
+  return forfeited;
+}
+
 function payoutPotToEligibleSurvivors(state: GameState, eligiblePlayerIds: string[], amount: number): GameState {
   const trivia = determineChipPotTriviaWinnersAmong(state, eligiblePlayerIds);
   if (trivia && trivia.winnerIds.length > 0) {
     return payoutPotAmountAmong(state, trivia.winnerIds, amount);
   }
-  const alive = eligiblePlayerIds.filter((id) => {
-    const p = state.players.find((x) => x.id === id);
-    return p != null && inChipContest(p) && !p.hasFolded;
-  });
-  if (alive.length > 0) return payoutPotAmountAmong(state, alive, amount);
-  const seated = eligiblePlayerIds.filter((id) => {
-    const p = state.players.find((x) => x.id === id);
-    return p != null && inChipContest(p);
-  });
-  return seated.length > 0 ? payoutPotAmountAmong(state, seated, amount) : state;
+  const recipients = unansweredPotRecipients(state, eligiblePlayerIds);
+  return recipients.length > 0 ? payoutPotAmountAmong(state, recipients, amount) : state;
 }
 
 /** Pay the hand using side pots when {@link RoundState.handContributions} is present. */
@@ -1577,19 +1611,17 @@ function payoutLegacySinglePot(state: GameState): GameState {
   if (triviaChip && triviaChip.winnerIds.length > 0) {
     return payoutPotSplitAmong(state, triviaChip.winnerIds);
   }
-  const alive = playerIdsStillInChipContest(state);
-  if (alive.length === 1) return payoutPotSplitAmong(state, alive);
-  if (alive.length >= 2) return payoutPotSplitAmong(state, alive);
-  const seated = state.players.filter((p) => inChipContest(p)).map((p) => p.id);
-  return seated.length > 0 ? payoutPotSplitAmong(state, seated) : { ...state, round: { ...state.round, pot: 0 } };
+  const recipients = unansweredPotRecipients(
+    state,
+    state.players.map((player) => player.id),
+  );
+  return recipients.length > 0
+    ? payoutPotSplitAmong(state, recipients)
+    : { ...state, round: { ...state.round, pot: 0 } };
 }
 
 export function payoutWinner(state: GameState, winnerId: string): GameState {
   return payoutPotSplitAmong(state, [winnerId]);
-}
-
-function playerIdsStillInChipContest(state: GameState): string[] {
-  return state.players.filter((p) => inChipContest(p) && !p.hasFolded).map((p) => p.id);
 }
 
 /**
@@ -1721,6 +1753,7 @@ export function endRound(state: GameState): GameState {
       isAllIn: false,
       submittedAnswer: undefined,
       answerComposition: undefined,
+      answerForfeited: undefined,
     };
   });
 

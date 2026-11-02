@@ -36,6 +36,31 @@ export function liveVirtualCount(state: GameState): number {
   return state.players.filter(p => isVirtualPlayerId(p.id)).length
 }
 
+const guessNudgeIds = new Set<string>()
+
+/** Next answering step locks a closest legal guess for this rehearsal seat. */
+export function noteGuessNudge(playerId: string): void {
+  if (isVirtualPlayerId(playerId)) guessNudgeIds.add(playerId)
+}
+
+function takeNudgedGuess(state: GameState): GameState | null {
+  for (const player of state.players) {
+    if (!guessNudgeIds.has(player.id)) continue
+    guessNudgeIds.delete(player.id)
+    if (!isVirtualPlayerId(player.id) || player.hand.length !== 2) continue
+    if (typeof player.submittedAnswer === 'number' || player.answerForfeited === true) continue
+    if (state.round.question == null) continue
+    const values = legalAnswers(sevenDigits(player, state))
+    if (values.length === 0) continue
+    return lockGuess(
+      state,
+      player,
+      nearestLegalAnswerToTarget(sevenDigits(player, state), state.round.question.answer),
+    )
+  }
+  return null
+}
+
 export function addVirtualPlayers(state: GameState, requested: number): GameState {
   const room = Math.max(0, state.maxPlayers - state.players.length)
   if (room <= 0) return state
@@ -250,6 +275,8 @@ function applyOneAnswer(state: GameState, player: PlayerState, script: Rehearsal
 /** One phone action: lock, edit, or walk away. Blank seats are skipped. */
 function actVirtualAnswering(state: GameState): GameState {
   if (state.round.question == null || state.round.communityCards.length !== 5) return state
+  const nudged = takeNudgedGuess(state)
+  if (nudged) return nudged
   for (const player of state.players) {
     if (!isVirtualPlayerId(player.id) || player.hand.length !== 2) continue
     const next = applyOneAnswer(state, player, rehearsalAnswerScript(player.id, state.round.roundId))

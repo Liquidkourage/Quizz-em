@@ -23,6 +23,7 @@ import {
   placeBet,
   foldPlayer,
   submitAnswer,
+  forfeitOpenGuesses,
   answerCompositionForPlayer,
   communityIndicesFromAnswerComposition,
   inferAnswerComposition,
@@ -104,6 +105,7 @@ import {
   runVirtualPlayerSimulation as simulateVirtualPlayers,
   tableIsCpuOnly,
   liveVirtualCount,
+  noteGuessNudge,
 } from './virtual-players'
 import { planVenueWageringOrchestration } from './venue-wagering-orchestration'
 import {
@@ -1475,6 +1477,64 @@ export function nudgeActingHumansVenue(
   return { nudged, names }
 }
 
+const guessNudgeTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+export function clearGuessNudgeClocks(): void {
+  for (const timer of guessNudgeTimers.values()) clearTimeout(timer)
+  guessNudgeTimers.clear()
+}
+
+function seatsStillGuessing(gs: GameState): GameState['players'] {
+  if (gs.phase !== 'answering') return []
+  return gs.players.filter((player) => {
+    const locked = typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)
+    return !locked && player.answerForfeited !== true
+  })
+}
+
+function forfeitOpenGuessesOnVenue(vn: string): void {
+  for (const { tk, gs } of venuePlayableSnapshots(vn)) {
+    if (gs.phase !== 'answering') continue
+    const next = forfeitOpenGuesses(gs)
+    if (next === gs) continue
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next, { skipOrchestration: true })
+  }
+}
+
+function armGuessNudgeTimeout(vn: string, fireAt: number): void {
+  const prev = guessNudgeTimers.get(vn)
+  if (prev) clearTimeout(prev)
+  const timer = setTimeout(() => {
+    guessNudgeTimers.delete(vn)
+    if (isVenueHeld(vn)) return
+    forfeitOpenGuessesOnVenue(vn)
+  }, Math.max(0, fireAt - Date.now()))
+  guessNudgeTimers.set(vn, timer)
+}
+
+/** Host: 30s more on every answering table that still has an open guess, then those seats score 0. */
+export function nudgeOpenGuesses(vnRaw: string): { nudged: number; names: string[] } {
+  const vn = normalizeVenueCode(vnRaw)
+  const names: string[] = []
+  const fireAt = Date.now() + HUMAN_NUDGE_TIMEOUT_MS
+  for (const { tk, gs } of venuePlayableSnapshots(vn)) {
+    const open = seatsStillGuessing(gs)
+    if (open.length === 0) continue
+    for (const player of open) {
+      names.push(shortPlayerName(player.name))
+      if (player.id.startsWith('vp:')) noteGuessNudge(player.id)
+    }
+    const next = { ...gs, round: { ...gs.round, answerDeadline: fireAt } }
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next, { skipOrchestration: true })
+    io.to(tk).emit('toast', '30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
+    if (tableIsCpuOnly(next)) enqueueCpuOnlyVpDrain(tk)
+  }
+  if (names.length > 0) armGuessNudgeTimeout(vn, fireAt)
+  return { nudged: names.length, names }
+}
+
 export function runVenueCondenseAfterRound(
   vnRaw: string,
   hostId: string,
@@ -2139,7 +2199,9 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       seatAnswerLocked = scatterRosterToChairs(
         gs.players,
         false,
-        (p) => typeof p.submittedAnswer === 'number' && Number.isFinite(p.submittedAnswer),
+        (p) =>
+          (typeof p.submittedAnswer === 'number' && Number.isFinite(p.submittedAnswer)) ||
+          p.answerForfeited === true,
       )
     }
     if (gs.phase === 'showdown' || gs.phase === 'reveal') {
@@ -2668,6 +2730,7 @@ export const VENUE_SYNC_ACTION_TYPES = new Set<string>([
   'alignTablesToRoom',
   'setTablePhase',
   'nudgeActingPlayers',
+  'nudgeOpenGuesses',
   'assignTablesFromLobby',
   'movePlayerToTable',
   'quitEvent',

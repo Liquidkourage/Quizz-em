@@ -617,6 +617,9 @@ export type AdminAdvanceTurnVenueAction = z.infer<typeof AdminAdvanceTurnVenueAc
 export const NudgeActingPlayersAction = z.object({ type: z.literal('nudgeActingPlayers') })
 export type NudgeActingPlayersAction = z.infer<typeof NudgeActingPlayersAction>
 
+export const NudgeOpenGuessesAction = z.object({ type: z.literal('nudgeOpenGuesses') })
+export type NudgeOpenGuessesAction = z.infer<typeof NudgeOpenGuessesAction>
+
 export const AdminSetBlindsAction = z.object({
   type: z.literal('adminSetBlinds'),
   smallBlind: z.number(),

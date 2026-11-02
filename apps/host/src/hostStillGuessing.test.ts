@@ -88,5 +88,8 @@ describe('still guessing notice', () => {
     expect(html).toContain('Table 2')
     expect(html).toContain('Cy')
     expect(html).toContain('fixed')
+    expect(html).toContain('Nudge')
+    expect(html).toContain('scores 0')
+    expect(html).toContain('cannot win the pot')
   })
 })

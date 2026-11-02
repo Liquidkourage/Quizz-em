@@ -1603,7 +1603,6 @@ export function formatTriviaPoints(value: number): string {
 
 export {
   ANSWER_REVEAL_BEFORE_WINNERS_MS,
-  WINNER_SCREEN_DWELL_MS,
   winnerScreensPayoutHint,
   winnerScreensReadyAt,
 } from './winnerScreens';

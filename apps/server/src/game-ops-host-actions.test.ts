@@ -81,7 +81,7 @@ describe('winner screens before payout', () => {
     }
     noteVenueWinnerScreens('WIN')
     const ready = winnerScreensReadyAt(started, 2)
-    expect(venueWinnerScreensBlockPayout('WIN', started)).toContain('Winners are still on the screens')
+    expect(venueWinnerScreensBlockPayout('WIN', started)).toContain('The answer is still on the screens')
     expect(venueWinnerScreensBlockPayout('WIN', ready - 1)).toContain('1s')
     expect(venueWinnerScreensBlockPayout('WIN', ready)).toBeNull()
     noteVenueWinnerScreens('WIN', ready + 5_000)

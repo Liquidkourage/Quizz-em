@@ -289,7 +289,7 @@ export function clearVenueRevealBeatTimer(venueCode: string) {
   venueRevealToShowdownTimers.delete(vn)
 }
 
-/** Epoch ms when Pay winners unlocks. One pass of the public winner screens. */
+/** Epoch ms when Pay winners unlocks. The answer card has to finish first. */
 const venueWinnerScreensReadyAtMs = new Map<string, number>()
 
 export function clearVenueWinnerScreens(venueCode: string) {

@@ -347,6 +347,8 @@ export type HostVenueSeatContest = {
   name: string
   kind: 'pot' | 'points'
   reason: 'folded' | 'busted' | null
+  /** True when this seat has locked a guess. Set while the table is guessing. */
+  guessLocked?: boolean
 }
 
 export type HostVenueActionRow = {

@@ -88,6 +88,8 @@ import {
 import { HOST_VENUE_ALERT_MS, hostVenueAutoAlertFromToast } from './hostVenueAutoAlerts'
 import { useHostVenueAutoAlerts } from './useHostVenueAutoAlerts'
 import HostVenueAutoAlertBanner from './HostVenueAutoAlertBanner.tsx'
+import HostStillGuessingNotice from './HostStillGuessingNotice'
+import { playersStillGuessing } from './hostStillGuessing'
 import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
 import { suggestNextHostAction } from './hostPacingCopilot'
 
@@ -524,6 +526,7 @@ function HostApp() {
     ? venueRevealAnswerBlockedHint(venueFeltBeat, venueFloorBrief?.actionRows, guessClockNowMs)
     : null
   const revealAnswerBlocked = revealAnswerHint != null
+  const stillGuessing = playersStillGuessing(venueFloorBrief?.actionRows, venueFeltBeat, guessClockNowMs)
   const winnerScreensReadyAtMs = venueFloorBrief?.winnerScreensReadyAtMs ?? null
   const payWinnersHint = winnerScreensPayoutHint(winnerScreensReadyAtMs, winnerScreenNowMs)
   const payWinnersBlocked = payWinnersHint != null
@@ -913,6 +916,9 @@ function HostApp() {
       ) : null}
 
       {/* Toast Messages */}
+      {stillGuessing.length > 0 ? (
+        <HostStillGuessingNotice players={stillGuessing} dropped={venueAutoAlert != null} />
+      ) : null}
       <AnimatePresence>
         {venueAutoAlert ? (
           <HostVenueAutoAlertBanner key={venueAutoAlert.kind + venueAutoAlert.title} alert={venueAutoAlert} />

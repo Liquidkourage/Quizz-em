@@ -406,6 +406,11 @@ describe('buildHostVenueActionRows seats', () => {
     ])
     expect(rows[0]?.answersSubmitted).toBe(2)
     expect(rows[0]?.answersExpected).toBe(3)
+    expect(rows[0]?.seats.map((seat) => `${seat.name}:${seat.guessLocked === true}`)).toEqual([
+      'Ada:true',
+      'Bo:false',
+      'Cy:true',
+    ])
     expect(rows[1]?.answersSubmitted).toBeUndefined()
     expect(rows[1]?.answersExpected).toBeUndefined()
   })

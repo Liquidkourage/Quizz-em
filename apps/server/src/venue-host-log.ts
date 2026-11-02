@@ -336,15 +336,22 @@ function guessProgress(tile: DisplayVenueTileSnapshot): { answersSubmitted: numb
   return { answersSubmitted, answersExpected }
 }
 
+function seatContestAt(tile: DisplayVenueTileSnapshot, index: number, name: string): HostVenueSeatContest {
+  const busted = tile.seatPointsOnly?.[index] === true
+  const folded = !busted && tile.seatFolded?.[index] === true
+  const reason = busted ? 'busted' : folded ? 'folded' : null
+  const seat: HostVenueSeatContest = { name, kind: reason == null ? 'pot' : 'points', reason }
+  if (tile.phase === 'answering') seat.guessLocked = tile.seatAnswerLocked?.[index] === true
+  return seat
+}
+
 function seatContests(tile: DisplayVenueTileSnapshot): HostVenueSeatContest[] {
   const seats: HostVenueSeatContest[] = []
   const names = tile.seatNames ?? []
   for (let i = 0; i < names.length; i++) {
     const name = names[i]?.trim()
     if (!name) continue
-    if (tile.seatPointsOnly?.[i] === true) seats.push({ name, kind: 'points', reason: 'busted' })
-    else if (tile.seatFolded?.[i] === true) seats.push({ name, kind: 'points', reason: 'folded' })
-    else seats.push({ name, kind: 'pot', reason: null })
+    seats.push(seatContestAt(tile, i, name))
   }
   return seats
 }

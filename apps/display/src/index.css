@@ -2775,11 +2775,17 @@
     color: rgb(207 250 254 / 0.98);
   }
 
-  :has(> .vfd-mosaic-status-band) > .vfd-mosaic-table-num {
+  :has(> .vfd-mosaic-status-band) {
     position: relative;
+  }
+
+  :has(> .vfd-mosaic-status-band) > .vfd-mosaic-table-num {
+    position: absolute;
     z-index: 1;
-    justify-self: start;
-    align-self: center;
+    left: clamp(0.55rem, 1.5cqw, 1.15rem);
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
     font-size: clamp(1.05rem, 5.2cqw, 3.35rem);
     line-height: 1;
   }

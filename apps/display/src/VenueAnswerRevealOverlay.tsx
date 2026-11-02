@@ -4,6 +4,8 @@ import { formatTriviaNumber } from '@qhe/core'
 import type { VenueAnswerRevealPayload } from './useVenueAnswerReveal'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { DisplayFitQuestionText } from './DisplayFitQuestionText'
+import { SeatingChartPageClock } from './SeatingChartNameRoster'
+import { VENUE_ANSWER_REVEAL_DWELL_MS } from './venueAnswerRevealTrigger'
 
 /** One line of the question starts well above the answer number, then shrinks only if the full question would not fit. */
 export const REVEAL_QUESTION_MAX_FONT_VH = 0.36
@@ -49,9 +51,16 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
               Correct answer
             </h2>
           </div>
-          <div className="hidden w-[clamp(4rem,10vw,6.5rem)] shrink-0 sm:block">
-            <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
-              <QuizzEmWordmark layout="fill" />
+          <div className="flex shrink-0 items-center gap-3">
+            <SeatingChartPageClock
+              durationMs={VENUE_ANSWER_REVEAL_DWELL_MS}
+              cycleKey={answer}
+              sizeClass="seating-chart-clock--table"
+            />
+            <div className="hidden w-[clamp(4rem,10vw,6.5rem)] shrink-0 sm:block">
+              <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
+                <QuizzEmWordmark layout="fill" />
+              </div>
             </div>
           </div>
         </div>

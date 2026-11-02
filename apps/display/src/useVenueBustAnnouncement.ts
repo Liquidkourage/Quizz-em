@@ -6,7 +6,7 @@ const BUST_OVERLAY_BASE_MS = 6500
 const BUST_OVERLAY_PER_PLAYER_MS = 900
 const BUST_OVERLAY_MAX_MS = 14000
 
-function bustOverlayDurationMs(bustCount: number, reducedMotion: boolean): number {
+export function bustOverlayDurationMs(bustCount: number, reducedMotion: boolean): number {
   if (bustCount <= 0) return 0
   if (reducedMotion) return Math.min(BUST_OVERLAY_MAX_MS, BUST_OVERLAY_BASE_MS)
   const scaled = BUST_OVERLAY_BASE_MS + Math.max(0, bustCount - 1) * BUST_OVERLAY_PER_PLAYER_MS

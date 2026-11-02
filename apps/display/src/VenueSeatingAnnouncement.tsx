@@ -4,6 +4,8 @@ import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueSeatingAnnouncement } from '@qhe/net'
 import { computeVenueBustGridLayout } from './venueBustGridLayout'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
+import { SeatingChartPageClock } from './SeatingChartNameRoster'
+import { seatingOverlayDurationMs } from './useVenueSeatingAnnouncement'
 
 function displayPlayerName(raw: string): string {
   const s = String(raw ?? '')
@@ -139,13 +141,20 @@ export default function VenueSeatingAnnouncement({
               </p>
             ) : null}
           </div>
-          <div
-            className={`venue-bust-overlay-wordmark hidden shrink-0 sm:block ${
-              compact ? 'venue-bust-overlay-wordmark--compact' : ''
-            }`}
-            style={{ aspectRatio: '958 / 592' }}
-          >
-            <QuizzEmWordmark layout="fill" />
+          <div className="flex shrink-0 items-center gap-3">
+            <SeatingChartPageClock
+              durationMs={seatingOverlayDurationMs(seating, reducedMotion === true)}
+              cycleKey={seating.moves.length + seating.closedTableNums.length}
+              sizeClass="seating-chart-clock--table"
+            />
+            <div
+              className={`venue-bust-overlay-wordmark hidden shrink-0 sm:block ${
+                compact ? 'venue-bust-overlay-wordmark--compact' : ''
+              }`}
+              style={{ aspectRatio: '958 / 592' }}
+            >
+              <QuizzEmWordmark layout="fill" />
+            </div>
           </div>
         </div>
 

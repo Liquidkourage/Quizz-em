@@ -8,8 +8,10 @@ import VenueLeaderboardPanelGrid from './VenueLeaderboardPanelGrid'
 import VenueLeaderboardStatsRibbon from './VenueLeaderboardStatsRibbon'
 import { resolveVenueShowdownAnswer } from './showdownDisplay'
 import { useVenueLeaderboardPager } from './useVenueLeaderboardPager'
+import { SeatingChartPageClock } from './SeatingChartNameRoster'
 import {
   buildVenueLeaderboardPresentation,
+  venueLeaderboardPageDwellMs,
   venueLeaderboardPageLabel,
   venueLeaderboardPageUsesFullFieldLayout,
 } from './venueLeaderboardPresentation'
@@ -169,15 +171,33 @@ export default function VenueLeaderboardWall({
         {footerStats != null ? <VenueLeaderboardStatsRibbon stats={footerStats} /> : null}
       </main>
 
-      {showPager ? (
+      {showPager || trophyMode === 'dual' ? (
         <div className="venue-lb-pager pointer-events-none absolute bottom-[clamp(6.5rem,12vh,8.5rem)] left-0 right-0 flex justify-center">
-          <div className="flex items-center gap-2" aria-hidden>
-            {Array.from({ length: pageCount }, (_, i) => (
-              <span
-                key={i}
-                className={`venue-lb-pager-dot ${i === pageIndex ? 'venue-lb-pager-dot--active' : ''}`}
+          <div className="flex items-center gap-2">
+            {showPager ? (
+              <SeatingChartPageClock
+                durationMs={venueLeaderboardPageDwellMs(pageIndex + 1)}
+                cycleKey={pageIndex}
+                sizeClass="seating-chart-clock--table"
               />
-            ))}
+            ) : null}
+            {trophyMode === 'dual' ? (
+              <SeatingChartPageClock
+                durationMs={DUAL_TROPHY_ROTATE_MS}
+                cycleKey={dualFlip}
+                sizeClass="seating-chart-clock--table"
+              />
+            ) : null}
+            {showPager ? (
+              <div className="flex items-center gap-2" aria-hidden>
+                {Array.from({ length: pageCount }, (_, i) => (
+                  <span
+                    key={i}
+                    className={`venue-lb-pager-dot ${i === pageIndex ? 'venue-lb-pager-dot--active' : ''}`}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

@@ -4,6 +4,8 @@ import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueBustEntry } from '@qhe/net'
 import { computeVenueBustGridLayout } from './venueBustGridLayout'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
+import { SeatingChartPageClock } from './SeatingChartNameRoster'
+import { bustOverlayDurationMs } from './useVenueBustAnnouncement'
 
 function displayPlayerName(raw: string): string {
   const s = String(raw ?? '')
@@ -19,9 +21,11 @@ function displayPlayerName(raw: string): string {
 
 export type VenueBustAnnouncementProps = {
   busts: DisplayVenueBustEntry[]
+  /** This card leaves on its own. The host's eliminations screen stays until they change it. */
+  timed?: boolean
 }
 
-export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementProps) {
+export default function VenueBustAnnouncement({ busts, timed = false }: VenueBustAnnouncementProps) {
   const reducedMotion = useReducedMotion()
   const title = busts.length === 1 ? 'Player eliminated' : 'Players eliminated'
   const [viewport, setViewport] = useState(() =>
@@ -82,13 +86,22 @@ export default function VenueBustAnnouncement({ busts }: VenueBustAnnouncementPr
               Out of the tournament
             </h2>
           </div>
-          <div
-            className={`venue-bust-overlay-wordmark hidden shrink-0 sm:block ${
-              grid.compact ? 'venue-bust-overlay-wordmark--compact' : ''
-            }`}
-          >
-            <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
-              <QuizzEmWordmark layout="fill" />
+          <div className="flex shrink-0 items-center gap-3">
+            {timed ? (
+              <SeatingChartPageClock
+                durationMs={bustOverlayDurationMs(busts.length, reducedMotion === true)}
+                cycleKey={busts.length}
+                sizeClass="seating-chart-clock--table"
+              />
+            ) : null}
+            <div
+              className={`venue-bust-overlay-wordmark hidden shrink-0 sm:block ${
+                grid.compact ? 'venue-bust-overlay-wordmark--compact' : ''
+              }`}
+            >
+              <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
+                <QuizzEmWordmark layout="fill" />
+              </div>
             </div>
           </div>
         </div>

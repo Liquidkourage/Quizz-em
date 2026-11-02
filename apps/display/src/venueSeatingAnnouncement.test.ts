@@ -24,4 +24,21 @@ describe('seating update', () => {
     expect(html.slice(closed - 180, closed)).toContain('venue-bust-overlay-row--closed')
     expect(html.slice(moved - 180, moved)).not.toContain('venue-bust-overlay-row--closed')
   })
+
+  it('shows a circle for how long the seating update stays up', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 4,
+          tablesAfter: 3,
+          playerCount: 8,
+          moves: [{ name: 'Ada Lane', fromTableNum: 2, toTableNum: 1 }],
+          closedTableNums: [],
+        },
+      }),
+    )
+    expect(html).toContain('seating-chart-clock-value')
+    expect(html).toContain('animation-duration:6500ms')
+  })
 })

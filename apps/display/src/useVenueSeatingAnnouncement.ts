@@ -6,7 +6,7 @@ const SEATING_OVERLAY_SHUFFLE_MS = 9500
 const SEATING_OVERLAY_PER_ROW_MS = 850
 const SEATING_OVERLAY_MAX_MS = 14000
 
-function seatingOverlayDurationMs(
+export function seatingOverlayDurationMs(
   seating: DisplayVenueSeatingAnnouncement,
   reducedMotion: boolean,
 ): number {

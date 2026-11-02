@@ -497,7 +497,7 @@ export default function DisplayRouter({
         <VenueBustAnnouncement key="venue-bust-announcement" busts={lastHandBusts} />
       ) : null}
       {payoutBusts.visible && !showHostBusts ? (
-        <VenueBustAnnouncement key="payout-busts" busts={payoutBusts.busts} />
+        <VenueBustAnnouncement key="payout-busts" busts={payoutBusts.busts} timed />
       ) : null}
       {payoutMoves.visible && payoutMoves.seating ? (
         <VenueSeatingAnnouncement key="payout-moves" seating={payoutMoves.seating} />

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { HostRoomControls } from './HostRoomControls'
 
 describe('Host remove', () => {
-  it('offers remove for the selected seated player', () => {
+  it('keeps re-seat in More and leaves player moves on the table', () => {
     const html = renderToStaticMarkup(
       createElement(HostRoomControls, {
         brief: {
@@ -23,15 +23,12 @@ describe('Host remove', () => {
           venueShuffleHeld: false,
           handsUntilShuffle: 4,
         },
-        hostPlayerLabel: (name: string) => name,
-        onMove: () => {},
-        onRemove: () => {},
         onShuffleEvery: () => {},
         onSkipNextShuffle: () => {},
         onShuffleNow: () => {},
       }),
     )
-    expect(html).toContain('Remove')
+    expect(html).not.toContain('>Move<')
     expect(html).toContain('Re-seat now')
     expect(html).not.toContain('Shuffle')
     expect(html).not.toContain('Between hands')

@@ -107,6 +107,24 @@ describe('venue floor now', () => {
     expect(html).toContain('Folded')
   })
 
+  it('moves and removes the players seated at the opened table', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [],
+        recentActions: [],
+        tableNum: 2,
+        players: [{ playerId: 'human:a', name: 'Ada Lane' }],
+        onMove: () => {},
+        onRemove: () => {},
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    expect(html).toContain('Ada Lane')
+    expect(html).toContain('>Move<')
+    expect(html).toContain('>Remove<')
+    expect(html).toContain('Move Ada Lane to')
+  })
+
   it('puts recent actions on the opened table', () => {
     const html = renderToStaticMarkup(
       createElement(HostTableOpen, {

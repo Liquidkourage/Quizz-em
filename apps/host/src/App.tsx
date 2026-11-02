@@ -630,9 +630,6 @@ function HostApp() {
                 </div>
                 <HostRoomControls
                   brief={venueFloorBrief}
-                  hostPlayerLabel={hostPlayerLabel}
-                  onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
-                  onRemove={(playerId) => removePlayerFromEvent(playerId)}
                   onShuffleEvery={(every) => setVenueShuffleEvery(every)}
                   onSkipNextShuffle={(skip) => setVenueSkipNextShuffle(skip)}
                   onShuffleNow={() => shuffleTablesNow()}
@@ -1094,6 +1091,8 @@ function HostApp() {
                 onAlignRoom={() => alignTablesToRoom()}
                 onSetTablePhase={(tableNum, signature) => setTablePhase(tableNum, signature)}
                 onSpotlight={spotlightTableOnTvs}
+                onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
+                onRemove={(playerId) => removePlayerFromEvent(playerId)}
                 blindCall={
               <HostBlindCall
                 showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}

@@ -12,7 +12,7 @@ import type {
   VenueBlindsSnapshot,
   VenueWallViewMode,
 } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards } from '@qhe/core'
+import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 
@@ -1683,6 +1683,83 @@ function recentActionLabel(action: string): string {
   return BET_ACTION_LABEL[action] ?? action
 }
 
+function HostTablePlayers({
+  tableNum,
+  players,
+  hostPlayerLabel,
+  onMove,
+  onRemove,
+}: {
+  tableNum: number
+  players: { playerId: string; name: string }[]
+  hostPlayerLabel: (name: string) => string
+  onMove?: (playerId: string, toTableNum: number) => void
+  onRemove?: (playerId: string) => void
+}) {
+  const [toTable, setToTable] = useState(tableNum === 1 ? 2 : 1)
+  const [armedId, setArmedId] = useState<string | null>(null)
+  if (players.length === 0 || (onMove == null && onRemove == null)) return null
+  return (
+    <section>
+      <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Players</p>
+      <ul className="mt-2 space-y-2">
+        {players.map((player) => (
+          <li
+            key={player.playerId}
+            className="flex flex-wrap items-center gap-2 rounded-md bg-black/30 px-2 py-1.5"
+          >
+            <span className="min-w-[6rem] flex-1 text-sm font-semibold text-white">
+              {hostPlayerLabel(player.name)}
+            </span>
+            {onMove ? (
+              <>
+                <select
+                  aria-label={`Move ${player.name} to`}
+                  value={toTable}
+                  onChange={(e) => setToTable(Number(e.target.value))}
+                  className="rounded-md border border-white/20 bg-zinc-950 py-1 pl-2 pr-6 text-sm text-white [color-scheme:dark]"
+                >
+                  {Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, index) => index + 1).map((n) => (
+                    <option key={n} value={n}>
+                      Table {n}
+                    </option>
+                  ))}
+                </select>
+                <NeonButton
+                  variant="blue"
+                  size="small"
+                  type="button"
+                  disabled={toTable === tableNum}
+                  onClick={() => onMove(player.playerId, toTable)}
+                >
+                  Move
+                </NeonButton>
+              </>
+            ) : null}
+            {onRemove ? (
+              <NeonButton
+                variant="red"
+                size="small"
+                type="button"
+                onClick={() => {
+                  if (armedId !== player.playerId) {
+                    setArmedId(player.playerId)
+                    return
+                  }
+                  onRemove(player.playerId)
+                  setArmedId(null)
+                }}
+              >
+                {armedId === player.playerId ? 'Remove them' : 'Remove'}
+              </NeonButton>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 /** Contest columns plus this table's recent actions. */
 export function HostTableOpen({
   seats,
@@ -1692,6 +1769,9 @@ export function HostTableOpen({
   pot = 0,
   actingSummary,
   tableNum,
+  players,
+  onMove,
+  onRemove,
   onSetTablePhase,
   onSpotlight,
 }: {
@@ -1702,6 +1782,9 @@ export function HostTableOpen({
   pot?: number
   actingSummary?: string | null
   tableNum?: number
+  players?: { playerId: string; name: string }[]
+  onMove?: (playerId: string, toTableNum: number) => void
+  onRemove?: (playerId: string) => void
   onSetTablePhase?: (signature: string) => void
   onSpotlight?: () => void
 }) {
@@ -1724,6 +1807,13 @@ export function HostTableOpen({
         </p>
       ) : null}
       <HostTableContest seats={seats} hostPlayerLabel={hostPlayerLabel} />
+      <HostTablePlayers
+        tableNum={tableNum ?? 0}
+        players={players ?? []}
+        hostPlayerLabel={hostPlayerLabel}
+        onMove={onMove}
+        onRemove={onRemove}
+      />
       {recentActions.length > 0 ? (
         <section>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Recent actions</p>
@@ -1768,6 +1858,8 @@ export function HostVenueFloorBriefPanel({
   onAlignRoom,
   onSetTablePhase,
   onSpotlight,
+  onMove,
+  onRemove,
   blindCall,
 }: {
   brief: HostVenueFloorBriefPayload | null
@@ -1777,6 +1869,8 @@ export function HostVenueFloorBriefPanel({
   onAlignRoom?: () => void
   onSetTablePhase?: (tableNum: number, signature: string) => void
   onSpotlight?: (tableNum: number) => void
+  onMove?: (playerId: string, toTableNum: number) => void
+  onRemove?: (playerId: string) => void
   blindCall?: ReactNode
 }) {
   const rows = brief?.actionRows ?? []
@@ -1894,6 +1988,11 @@ export function HostVenueFloorBriefPanel({
                       : undefined
                   }
                   onSpotlight={onSpotlight ? () => onSpotlight(openRow.tableNum) : undefined}
+                  players={(brief?.roster ?? [])
+                    .filter((seat) => seat.tableNum === openRow.tableNum)
+                    .map((seat) => ({ playerId: seat.playerId, name: seat.name }))}
+                  onMove={onMove}
+                  onRemove={onRemove}
                   hostPlayerLabel={hostPlayerLabel}
                 />
               ) : null}

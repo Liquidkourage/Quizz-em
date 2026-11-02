@@ -52,6 +52,24 @@ export function actingNudgeName(row: {
   return name ? name : null
 }
 
+/** No per-table clock once nobody at that table still has to act. */
+function tableActionClockHidden(row: {
+  phase: string
+  betsClosed?: boolean
+  answersSubmitted?: number
+  answersExpected?: number
+}): boolean {
+  if (row.phase === 'lobby' || row.phase === 'inactive') return true
+  if (row.phase === 'betting') return row.betsClosed === true
+  if (row.phase === 'answering') {
+    const expected = row.answersExpected
+    if (expected == null || expected <= 0) return false
+    return (row.answersSubmitted ?? 0) >= expected
+  }
+  if (row.phase === 'question') return false
+  return true
+}
+
 function tableActionCue(row: {
   phase: string
   betsClosed?: boolean
@@ -2035,7 +2053,7 @@ export function HostVenueFloorBriefPanel({
 }) {
   const rows = [...(brief?.actionRows ?? [])].sort((a, b) => a.tableNum - b.tableNum)
   const nudgeLive = feltHasNudgeClock(feltRows)
-  const actionClockLive = rows.some((row) => row.phase !== 'lobby' && row.phase !== 'inactive')
+  const actionClockLive = rows.some((row) => !tableActionClockHidden(row))
   const [, setNudgeTick] = useState(0)
   useEffect(() => {
     if (!nudgeLive && !actionClockLive) return
@@ -2101,47 +2119,49 @@ export function HostVenueFloorBriefPanel({
                   const cue = tableActionCue(row)
                   const drift = outlierTableNums.has(row.tableNum)
                   const nudgeName = onNudgeTable ? actingNudgeName(row) : null
-                  const nudgeSec = nudgeSecondsForTable(feltRows, row.tableNum, Date.now())
-                  const sinceLast =
-                    row.phase === 'lobby' || row.phase === 'inactive'
-                      ? null
-                      : formatElapsedClock(
-                          lastActionAtMs(brief.moveLog ?? [], row.tableNum, brief.handStartedAtMs ?? null),
-                          Date.now(),
-                        )
+                  const clockHidden = tableActionClockHidden(row)
+                  const nudgeSec = clockHidden
+                    ? null
+                    : nudgeSecondsForTable(feltRows, row.tableNum, Date.now())
+                  const sinceLast = clockHidden
+                    ? null
+                    : formatElapsedClock(
+                        lastActionAtMs(brief.moveLog ?? [], row.tableNum, brief.handStartedAtMs ?? null),
+                        Date.now(),
+                      )
                   return (
                     <li key={row.tableNum}>
                     <button
                       type="button"
                       aria-label={`Open table ${row.tableNum}`}
                       onClick={() => setOpenTable(row.tableNum)}
-                      className={`w-full cursor-pointer rounded-md border px-1.5 py-0.5 text-left leading-tight ${cue.tone} ${
+                      className={`w-full cursor-pointer rounded-md border px-1.5 py-0.5 text-left leading-none ${cue.tone} ${
                         drift || row.interestingAction ? 'ring-1 ring-amber-300/70' : ''
                       } ${onPublicDisplay ? 'ring-1 ring-sky-300/70' : ''}`}
                     >
                       <span className="flex items-baseline justify-between gap-1">
-                        <span className="text-sm font-bold text-white/90">
+                        <span className="text-base font-bold text-white/90">
                           T{row.tableNum}
                           {onPublicDisplay ? (
-                            <span className="ml-1 text-[0.65rem] font-semibold uppercase text-sky-200">
+                            <span className="ml-1 text-xs font-semibold uppercase text-sky-200">
                               Focus
                             </span>
                           ) : null}
                         </span>
                         {sinceLast != null && sinceLast !== '—' ? (
                           <span
-                            className="font-mono text-xs font-bold tabular-nums text-sky-100"
-                            aria-label={`Since last action ${sinceLast}`}
+                            className="font-mono text-base font-black tabular-nums text-sky-100"
+                            aria-label={`Last action ${sinceLast}`}
                           >
-                            Since {sinceLast}
+                            {sinceLast}
                           </span>
                         ) : null}
                       </span>
-                      <p className="text-xs font-semibold">
+                      <p className="text-sm font-semibold">
                         {cue.label}
                         {nudgeSec != null ? (
                           <span
-                            className={`ml-1 font-mono text-sm font-black tabular-nums ${
+                            className={`ml-1 font-mono text-base font-black tabular-nums ${
                               nudgeSec <= 10 ? 'text-rose-200' : 'text-amber-200'
                             }`}
                             aria-label={`Nudge clock ${nudgeSec}`}
@@ -2151,11 +2171,11 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </p>
                       {nudgeName ? (
-                        <p className="truncate text-xs font-semibold text-amber-50">
+                        <p className="truncate text-sm font-semibold text-amber-50">
                           {hostPlayerLabel(nudgeName)}
                         </p>
                       ) : null}
-                      <p className="text-xs tabular-nums text-white/50">
+                      <p className="text-sm tabular-nums text-white/50">
                         <span className="font-semibold text-emerald-200/85">
                           {row.inPotCount ?? 0} in pot
                         </span>

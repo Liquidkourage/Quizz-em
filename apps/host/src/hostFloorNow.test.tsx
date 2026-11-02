@@ -66,7 +66,7 @@ describe('venue floor now', () => {
     expect(html).not.toContain('max-h-[40%]')
     expect(html).toContain('host-hand-lists')
     expect(html).toContain('minmax(7.5rem,9rem)')
-    expect(html).toContain('text-sm font-bold text-white/90')
+    expect(html).toContain('text-base font-bold text-white/90')
     expect(html).toContain('text-base text-white/50')
     expect(html).toContain('px-1.5 py-0.5')
     expect(html).not.toContain('lg:grid-cols-4')
@@ -254,11 +254,15 @@ describe('venue floor now', () => {
     const first = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
     const quiet = html.slice(html.indexOf('Open table 2'), html.indexOf('Open table 3'))
     const lobby = html.slice(html.indexOf('Open table 3'))
-    expect(first).toContain('Since last action 0:12')
-    expect(first).toContain('Since 0:12')
+    expect(first).toContain('Last action 0:12')
+    expect(first).toContain('>0:12<')
+    expect(first).not.toContain('Since')
+    expect(first).toContain('text-base')
     expect(first).not.toContain('text-2xl')
-    expect(quiet).toContain('Since last action 0:40')
-    expect(lobby).not.toContain('Since last action')
+    expect(html).toContain('minmax(7.5rem,9rem)')
+    expect(quiet).toContain('Last action 0:40')
+    expect(quiet).not.toContain('Since')
+    expect(lobby).not.toContain('Last action')
   })
 
   it('counts up from the last move when the hand clock has not started', () => {
@@ -283,7 +287,52 @@ describe('venue floor now', () => {
         hostTableId: '1',
       }),
     )
-    expect(html).toContain('Since last action 0:12')
+    expect(html).toContain('Last action 0:12')
+    expect(html).not.toContain('Since')
+  })
+
+  it('drops each table clock once that table has finished acting', () => {
+    const now = Date.now()
+    const floor = brief()
+    floor.handStartedAtMs = now - 40_000
+    floor.actionRows = [
+      { ...actionRow(1), phase: 'betting' },
+      { ...actionRow(2), phase: 'betting', betsClosed: true },
+      { ...actionRow(3), phase: 'answering', answersSubmitted: 5, answersExpected: 5 },
+      { ...actionRow(4), phase: 'answering', answersSubmitted: 2, answersExpected: 5 },
+      { ...actionRow(5), phase: 'reveal' },
+    ]
+    const felt = (tableNum: number): HostVenueFeltBeatRow => ({
+      tableNum,
+      active: true,
+      seated: 4,
+      phase: 'betting',
+      street: 'Pre-board',
+      clock: 'Clock open',
+      answerDeadlineMs: null,
+      turnDeadlineMs: now + 30_000,
+      phaseStrictSig: 'bet',
+    })
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+        feltRows: [felt(1), felt(2)],
+      }),
+    )
+    const open = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
+    const closed = html.slice(html.indexOf('Open table 2'), html.indexOf('Open table 3'))
+    const guessed = html.slice(html.indexOf('Open table 3'), html.indexOf('Open table 4'))
+    const guessing = html.slice(html.indexOf('Open table 4'), html.indexOf('Open table 5'))
+    const reveal = html.slice(html.indexOf('Open table 5'))
+    expect(open).toContain('Last action')
+    expect(open).toContain('Nudge clock')
+    expect(closed).not.toContain('Last action')
+    expect(closed).not.toContain('Nudge clock')
+    expect(guessed).not.toContain('Last action')
+    expect(guessing).toContain('Last action')
+    expect(reveal).not.toContain('Last action')
   })
 
   it('lists table action in numerical order', () => {

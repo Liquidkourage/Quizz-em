@@ -431,7 +431,7 @@ export function applyVenueWageringOrchestration(venueCode: string) {
     let openedAnsweringWithTimer = false
     for (const update of plan.tableUpdates) {
       const prev = rooms.get(update.sessionKey)
-      let gs = runVirtualPlayerSimulation(update.gameState)
+      let gs = playVirtualPlayers(update.sessionKey, update.gameState)
       rooms.set(update.sessionKey, gs)
       emitStateToSession(update.sessionKey, gs)
       if (
@@ -2505,6 +2505,19 @@ export function enqueueCpuOnlyVpDrain(sessionKey: string) {
   if (cpuVpDrainPending.has(sessionKey)) return
   cpuVpDrainPending.add(sessionKey)
   setImmediate(() => drainCpuVpSessionChain(sessionKey))
+}
+
+/**
+ * CPU-only answer windows take one phone action per drain tick.
+ * Any other table finishes its bots immediately so a human is not waiting on them.
+ */
+export function playVirtualPlayers(sessionKey: string, gs: GameState): GameState {
+  if (isVenueHeld(gs.code)) return gs
+  if (gs.phase === 'answering' && tableIsCpuOnly(gs)) {
+    enqueueCpuOnlyVpDrain(sessionKey)
+    return gs
+  }
+  return runVirtualPlayerSimulation(gs)
 }
 
 export function drainCpuVpSessionChain(sessionKey: string) {

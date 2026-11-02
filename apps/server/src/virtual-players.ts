@@ -2,7 +2,9 @@ import { randomBytes } from 'crypto'
 import {
   addPlayer,
   removePlayer,
+  composeNumericAnswersFromSevenDigitCards,
   inferAnswerComposition,
+  nearlyEqualNumbers,
   submitAnswer,
   foldPlayer,
   playerCheck,
@@ -11,10 +13,12 @@ import {
   playerRaise,
   playerAllIn,
   nearestLegalAnswerToTarget,
+  releasePlayer,
   rehearsalSeatDisplayName,
   normalizeBettingTurn,
   inChipContest,
   type GameState,
+  type PlayerState,
 } from '@qhe/core'
 
 /** Synthetic seats — never collide with Socket.IO ids. */
@@ -136,9 +140,122 @@ function actVirtualBetting(state: GameState, pid: string): GameState {
   return state
 }
 
-function nearestGuessFromDigits(digits: number[], answer: number): number {
-  if (digits.length !== 7) return 0
-  return nearestLegalAnswerToTarget(digits, answer)
+/** What this seat will do in the answer window. Stable for the hand, so a step can finish. */
+export type RehearsalAnswerScript = 'leave' | 'blank' | 'wild' | 'revise' | 'near' | 'close'
+
+function unitHash(text: string): number {
+  let h = 2166136261
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return (h >>> 0) / 4294967296
+}
+
+/**
+ * One phone-shaped choice for the hand: most seats try, some miss or edit,
+ * a few never lock, and a rare seat walks off or submits an extreme legal number.
+ */
+export function rehearsalAnswerScript(playerId: string, roundId: string): RehearsalAnswerScript {
+  const unit = unitHash(`${roundId}\0${playerId}`)
+  if (unit < 0.01) return 'leave'
+  if (unit < 0.09) return 'blank'
+  if (unit < 0.13) return 'wild'
+  if (unit < 0.25) return 'revise'
+  if (unit < 0.55) return 'near'
+  return 'close'
+}
+
+function hashIndex(playerId: string, roundId: string, salt: string, count: number): number {
+  if (count <= 1) return 0
+  return Math.floor(unitHash(`${roundId}\0${playerId}\0${salt}`) * count)
+}
+
+function sevenDigits(player: PlayerState, state: GameState): number[] {
+  return [...player.hand, ...state.round.communityCards].map((card) => card.digit)
+}
+
+function legalAnswers(digits: number[]): number[] {
+  return [...composeNumericAnswersFromSevenDigitCards(digits)].sort((a, b) => a - b)
+}
+
+function nearMiss(values: number[], target: number, playerId: string, roundId: string): number {
+  const ranked = [...values].sort((a, b) => Math.abs(a - target) - Math.abs(b - target) || a - b)
+  const closest = ranked[0]
+  if (closest == null) return 0
+  const rest = ranked.filter((value) => !nearlyEqualNumbers(value, closest))
+  if (rest.length === 0) return closest
+  const window = rest.slice(0, Math.min(8, rest.length))
+  return window[hashIndex(playerId, roundId, 'near', window.length)] ?? closest
+}
+
+function wildAnswer(values: number[], playerId: string, roundId: string): number {
+  const pickMax = unitHash(`${roundId}\0${playerId}\0wild`) >= 0.5
+  return pickMax ? values[values.length - 1]! : values[0]!
+}
+
+function otherLegal(values: number[], first: number, playerId: string, roundId: string): number {
+  const extreme = wildAnswer(values, playerId, roundId)
+  if (!nearlyEqualNumbers(extreme, first)) return extreme
+  return values.find((value) => !nearlyEqualNumbers(value, first)) ?? first
+}
+
+function lockGuess(state: GameState, player: PlayerState, answer: number): GameState {
+  const composition = inferAnswerComposition(player.hand, state.round.communityCards, answer)
+  return submitAnswer(state, player.id, answer, composition ?? undefined)
+}
+
+function applyRevise(state: GameState, player: PlayerState, values: number[], target: number): GameState {
+  const first = nearMiss(values, target, player.id, state.round.roundId)
+  const second = otherLegal(values, first, player.id, state.round.roundId)
+  if (player.submittedAnswer === undefined) return lockGuess(state, player, first)
+  if (!nearlyEqualNumbers(second, first) && nearlyEqualNumbers(player.submittedAnswer, first)) {
+    return lockGuess(state, player, second)
+  }
+  return state
+}
+
+function leaveIfNotAlone(state: GameState, player: PlayerState): GameState {
+  if (state.players.length <= 1) return state
+  return releasePlayer(state, player.id)
+}
+
+function lockFreshGuess(
+  state: GameState,
+  player: PlayerState,
+  script: RehearsalAnswerScript,
+  values: number[],
+  target: number,
+): GameState {
+  if (player.submittedAnswer !== undefined) return state
+  const roundId = state.round.roundId
+  const answer =
+    script === 'near'
+      ? nearMiss(values, target, player.id, roundId)
+      : script === 'wild'
+        ? wildAnswer(values, player.id, roundId)
+        : nearestLegalAnswerToTarget(sevenDigits(player, state), target)
+  return lockGuess(state, player, answer)
+}
+
+function applyOneAnswer(state: GameState, player: PlayerState, script: RehearsalAnswerScript): GameState {
+  if (script === 'blank') return state
+  if (script === 'leave') return leaveIfNotAlone(state, player)
+  const values = legalAnswers(sevenDigits(player, state))
+  if (values.length === 0 || state.round.question == null) return state
+  if (script === 'revise') return applyRevise(state, player, values, state.round.question.answer)
+  return lockFreshGuess(state, player, script, values, state.round.question.answer)
+}
+
+/** One phone action: lock, edit, or walk away. Blank seats are skipped. */
+function actVirtualAnswering(state: GameState): GameState {
+  if (state.round.question == null || state.round.communityCards.length !== 5) return state
+  for (const player of state.players) {
+    if (!isVirtualPlayerId(player.id) || player.hand.length !== 2) continue
+    const next = applyOneAnswer(state, player, rehearsalAnswerScript(player.id, state.round.roundId))
+    if (next !== state) return next
+  }
+  return state
 }
 
 /** One deterministic step so real players can join between bot actions after each broadcast. */
@@ -147,25 +264,7 @@ function stepVirtualSimulation(state: GameState): GameState {
 
   state = normalizeBettingTurn(state)
 
-  const virtualFirstNeedingAnswer = state.players.find(
-    p =>
-      isVirtualPlayerId(p.id) &&
-      p.submittedAnswer === undefined &&
-      state.phase === 'answering' &&
-      state.round.question &&
-      p.hand.length === 2
-  )
-
-  if (virtualFirstNeedingAnswer && state.phase === 'answering' && state.round.question) {
-    const digits = [...virtualFirstNeedingAnswer.hand, ...state.round.communityCards].map((c) => c.digit)
-    const answer = nearestGuessFromDigits(digits, state.round.question.answer)
-    const composition = inferAnswerComposition(
-      virtualFirstNeedingAnswer.hand,
-      state.round.communityCards,
-      answer
-    )
-    return submitAnswer(state, virtualFirstNeedingAnswer.id, answer, composition ?? undefined)
-  }
+  if (state.phase === 'answering') return actVirtualAnswering(state)
 
   if (state.phase !== 'betting' || state.round.isBettingOpen === false) return state
 

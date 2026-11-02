@@ -1,6 +1,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { addPlayer, createEmptyGame, winnerScreensReadyAt } from '@qhe/core'
+import { addPlayer, createEmptyGame, winnerScreensReadyAt, type NumericCard } from '@qhe/core'
 import type { GameState } from '@qhe/core'
+import { rehearsalAnswerScript } from './virtual-players'
 import {
   buildHostVenueFloorBrief,
   clearVenueHostLog,
@@ -23,6 +24,7 @@ import {
   getPlayhead,
   moveSeatedPlayer,
   prepareVenuePersistence,
+  cpuVpDrainPending,
   rooms,
   setVenueRoomHold,
   tableSessionKey,
@@ -328,5 +330,53 @@ describe('setVenueRoomHold', () => {
     vi.setSystemTime(14_000)
     setVenueRoomHold('freeze', false)
     expect(rooms.get('FREEZE:1')?.round.answerDeadline).toBe(104_000)
+  })
+})
+
+function closeSeatId(index: number): string {
+  let seen = 0
+  for (let i = 0; i < 20_000; i++) {
+    const id = `vp:pace:${i}`
+    if (rehearsalAnswerScript(id, 'r1') !== 'close') continue
+    if (seen === index) return id
+    seen += 1
+  }
+  throw new Error('close seat')
+}
+
+describe('CPU answer window', () => {
+  it('opens the window without locking every guess', () => {
+    const ids = [0, 1, 2, 3].map(closeSeatId)
+    const card = (n: number): NumericCard => ({ digit: n as NumericCard['digit'] })
+    let gs = createEmptyGame('PACEANS', 'host-1', '1')
+    gs = {
+      ...gs,
+      phase: 'betting',
+      players: ids.map((id, i) => ({
+        id,
+        name: id,
+        bankroll: 1000,
+        hand: [card(1), card(i + 2)],
+        hasFolded: false,
+        isAllIn: false,
+      })),
+      round: {
+        ...gs.round,
+        roundId: 'r1',
+        question: { id: 'q', text: 'How many?', answer: 30 },
+        bettingRound: 2,
+        isBettingOpen: false,
+        currentPlayerIndex: -1,
+        communityCards: [3, 4, 5, 6, 7].map(card),
+      },
+    }
+    const key = tableSessionKey('PACEANS', '1')
+    rooms.set(key, gs)
+    applyVenueWageringOrchestration('PACEANS')
+    const after = rooms.get(key)
+    expect(after?.phase).toBe('answering')
+    expect(after?.players.every((p) => p.submittedAnswer === undefined)).toBe(true)
+    rooms.delete(key)
+    cpuVpDrainPending.delete(key)
   })
 })

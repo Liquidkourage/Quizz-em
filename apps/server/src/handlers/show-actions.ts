@@ -275,7 +275,7 @@ export async function handleShowAction(
               phase: 'answering',
               round: { ...gs.round, answerDeadline: deadlineMs2 }
             }
-            gs = g.runVirtualPlayerSimulation(gs)
+            gs = g.playVirtualPlayers(tk, gs)
             g.rooms.set(tk, gs)
             g.emitVenueTableState(tk, gs, { skipOrchestration: true })
           }

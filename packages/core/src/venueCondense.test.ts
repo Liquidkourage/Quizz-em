@@ -74,6 +74,19 @@ describe('venue shuffle schedule', () => {
 })
 
 describe('planVenueCondense', () => {
+  it('moves every one-chip table before the next hand when several are open', () => {
+    const tables = [roster(1, 1), roster(2, 1), roster(4, 1), roster(5, 3), roster(7, 2), roster(8, 2), roster(9, 2)]
+    const plan = planVenueCondense(tables, { rng: () => 0 })
+    const size = new Map(tables.map((t) => [t.tableNum, t.players.length]))
+    for (const move of plan.playerMoves) {
+      size.set(move.fromTableNum, (size.get(move.fromTableNum) ?? 0) - 1)
+      size.set(move.toTableNum, (size.get(move.toTableNum) ?? 0) + 1)
+    }
+    const live = [...size.values()].filter((n) => n > 0)
+    expect(live.some((n) => n === 1)).toBe(false)
+    expect(live.reduce((n, size) => n + size, 0)).toBe(12)
+  })
+
   it('rescues solo table to the lowest table with room', () => {
     const tables = [
       { tableNum: 1, players: [p('a', 500), p('b', 500), p('c', 500)] },

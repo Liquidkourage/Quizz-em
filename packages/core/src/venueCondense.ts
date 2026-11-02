@@ -136,6 +136,7 @@ function tableSizesAfterMove(
   return sizes
 }
 
+/** True when this move turns a table of two or more into a one-chip table. An existing one-chip table does not count. */
 function wouldCreateSolo(
   tables: VenueTableRoster[],
   fromTableNum: number,
@@ -144,10 +145,11 @@ function wouldCreateSolo(
 ): boolean {
   for (const t of tables) {
     if (options?.ignoreFromTable && t.tableNum === fromTableNum) continue
-    let size = t.players.length
-    if (t.tableNum === fromTableNum) size -= 1
-    if (t.tableNum === toTableNum) size += 1
-    if (size === 1) return true
+    const before = t.players.length
+    let after = before
+    if (t.tableNum === fromTableNum) after -= 1
+    if (t.tableNum === toTableNum) after += 1
+    if (before >= 2 && after === 1) return true
   }
   return false
 }

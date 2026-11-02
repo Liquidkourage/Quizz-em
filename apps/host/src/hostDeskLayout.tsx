@@ -2116,46 +2116,47 @@ export function HostVenueFloorBriefPanel({
                       type="button"
                       aria-label={`Open table ${row.tableNum}`}
                       onClick={() => setOpenTable(row.tableNum)}
-                      className={`w-full cursor-pointer rounded-md border px-1.5 py-1 text-left ${cue.tone} ${
+                      className={`w-full cursor-pointer rounded-md border px-1.5 py-0.5 text-left leading-tight ${cue.tone} ${
                         drift || row.interestingAction ? 'ring-1 ring-amber-300/70' : ''
                       } ${onPublicDisplay ? 'ring-1 ring-sky-300/70' : ''}`}
                     >
-                      <span className="text-base font-bold text-white/90">
-                        T{row.tableNum}
-                        {onPublicDisplay ? (
-                          <span className="ml-1.5 text-sm font-semibold uppercase text-sky-200">
-                            Focus
+                      <span className="flex items-baseline justify-between gap-1">
+                        <span className="text-sm font-bold text-white/90">
+                          T{row.tableNum}
+                          {onPublicDisplay ? (
+                            <span className="ml-1 text-[0.65rem] font-semibold uppercase text-sky-200">
+                              Focus
+                            </span>
+                          ) : null}
+                        </span>
+                        {sinceLast != null && sinceLast !== '—' ? (
+                          <span
+                            className="font-mono text-xs font-bold tabular-nums text-sky-100"
+                            aria-label={`Since last action ${sinceLast}`}
+                          >
+                            Since {sinceLast}
                           </span>
                         ) : null}
                       </span>
-                      <p className="text-sm font-semibold">{cue.label}</p>
-                      {sinceLast != null && sinceLast !== '—' ? (
-                        <p
-                          className="font-mono text-2xl font-black leading-none tabular-nums text-sky-100"
-                          aria-label={`Since last action ${sinceLast}`}
-                        >
-                          <span className="mb-0.5 block text-[0.65rem] font-bold uppercase tracking-wide text-sky-200/80">
-                            Since
+                      <p className="text-xs font-semibold">
+                        {cue.label}
+                        {nudgeSec != null ? (
+                          <span
+                            className={`ml-1 font-mono text-sm font-black tabular-nums ${
+                              nudgeSec <= 10 ? 'text-rose-200' : 'text-amber-200'
+                            }`}
+                            aria-label={`Nudge clock ${nudgeSec}`}
+                          >
+                            {nudgeSec}
                           </span>
-                          {sinceLast}
-                        </p>
-                      ) : null}
+                        ) : null}
+                      </p>
                       {nudgeName ? (
-                        <p className="truncate text-sm font-semibold text-amber-50">
+                        <p className="truncate text-xs font-semibold text-amber-50">
                           {hostPlayerLabel(nudgeName)}
                         </p>
                       ) : null}
-                      {nudgeSec != null ? (
-                        <p
-                          className={`font-mono text-2xl font-black leading-none tabular-nums ${
-                            nudgeSec <= 10 ? 'text-rose-200' : 'text-amber-200'
-                          }`}
-                          aria-label={`Nudge clock ${nudgeSec}`}
-                        >
-                          {nudgeSec}
-                        </p>
-                      ) : null}
-                      <p className="text-sm tabular-nums text-white/50">
+                      <p className="text-xs tabular-nums text-white/50">
                         <span className="font-semibold text-emerald-200/85">
                           {row.inPotCount ?? 0} in pot
                         </span>

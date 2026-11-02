@@ -1,4 +1,4 @@
-﻿/// <reference path="./vite-import-meta.d.ts" />
+/// <reference path="./vite-import-meta.d.ts" />
 
 import { io, Socket } from 'socket.io-client'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'

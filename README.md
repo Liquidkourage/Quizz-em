@@ -1,4 +1,4 @@
-﻿# Quizz'em
+# Quizz'em
 
 A real-time trivia and Texas Hold-Em hybrid game where players use numeric cards to get closest to the correct answer.
 

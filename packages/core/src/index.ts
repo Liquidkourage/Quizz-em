@@ -1,4 +1,4 @@
-﻿export type GamePhase = 'lobby' | 'question' | 'betting' | 'answering' | 'reveal' | 'showdown' | 'payout' | 'intermission';
+export type GamePhase = 'lobby' | 'question' | 'betting' | 'answering' | 'reveal' | 'showdown' | 'payout' | 'intermission';
 
 export type PlayerId = string;
 

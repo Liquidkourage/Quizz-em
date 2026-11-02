@@ -1,4 +1,4 @@
-﻿import { z } from 'zod'
+import { z } from 'zod'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import type { GameState, Question, Setlist, SeatBettingAction } from '@qhe/core'
 

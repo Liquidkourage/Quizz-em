@@ -1,4 +1,4 @@
-﻿import { Fragment, useEffect, useState, useCallback, useRef, useLayoutEffect, useMemo } from 'react'
+import { Fragment, useEffect, useState, useCallback, useRef, useLayoutEffect, useMemo } from 'react'
 import type { RefObject } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NumericPlayingCard, PokerChip, PokerTableGraphic, SeatCupholderMarker, FeltHoleCardPair, ChipText, stadiumCupholderSizePx, stadiumHoleCardScale, STADIUM_CUPHOLDER_RADIAL, STADIUM_HOLE_CARDS_RADIAL, stadiumSeatPointPx } from '@qhe/ui'

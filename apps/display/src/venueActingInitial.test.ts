@@ -38,7 +38,7 @@ describe('public table initials', () => {
     expect(waiting).not.toContain('vfd-mosaic-seat-initial--acting')
     expect(phone).not.toContain('vfd-mosaic-seat-initial--acting')
     const css = actingInitialCss()
-    expect(css).toContain('opacity: 0.86')
+    expect(css).toContain('color: #facc15')
     expect(css).toContain('animation: vfd-acting-initial-pulse 2.6s ease-in-out infinite')
     expect(css).toContain('prefers-reduced-motion: reduce')
     expect(css).toContain('animation: none')

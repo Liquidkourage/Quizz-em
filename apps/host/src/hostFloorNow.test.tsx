@@ -129,22 +129,37 @@ describe('venue floor now', () => {
     expect(html).toContain('Folded')
   })
 
-  it('moves and removes the players seated at the opened table', () => {
+  it('moves and removes a player from the contest row they already occupy', () => {
     const html = renderToStaticMarkup(
       createElement(HostTableOpen, {
-        seats: [],
+        seats: [
+          { name: 'Ada Lane', kind: 'pot' as const, reason: null },
+          { name: 'Bo Kent', kind: 'points' as const, reason: 'folded' as const },
+        ],
         recentActions: [],
         tableNum: 2,
-        players: [{ playerId: 'human:a', name: 'Ada Lane' }],
+        players: [
+          { playerId: 'human:a', name: 'Ada Lane' },
+          { playerId: 'human:b', name: 'Bo Kent' },
+          { playerId: 'human:c', name: 'Cara Moss' },
+        ],
         onMove: () => {},
         onRemove: () => {},
         hostPlayerLabel: (name: string) => name,
       }),
     )
-    expect(html).toContain('Ada Lane')
-    expect(html).toContain('>Move<')
+    const pot = html.indexOf('In pot')
+    const adaMove = html.indexOf('Move Ada Lane to')
+    const points = html.indexOf('Points only')
+    const boMove = html.indexOf('Move Bo Kent to')
+    const caraMove = html.indexOf('Move Cara Moss to')
+    expect(html).not.toContain('>Players<')
+    expect(pot).toBeLessThan(adaMove)
+    expect(adaMove).toBeLessThan(points)
+    expect(points).toBeLessThan(boMove)
+    expect(pot).toBeLessThan(caraMove)
+    expect(caraMove).toBeLessThan(points)
     expect(html).toContain('>Remove<')
-    expect(html).toContain('Move Ada Lane to')
   })
 
   it('puts recent actions on the opened table', () => {

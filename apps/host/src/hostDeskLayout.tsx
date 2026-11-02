@@ -1610,38 +1610,176 @@ function seatReasonLabel(reason: HostVenueSeatContest['reason']): string | null 
   return null
 }
 
+type HostTablePlayerRef = { playerId: string; name: string }
+
+type ContestRow = { seat: HostVenueSeatContest; player: HostTablePlayerRef | null }
+
+type SeatActionBag = {
+  tableNum: number
+  toTable: number
+  onToTable: (tableNum: number) => void
+  armedId: string | null
+  onArm: (playerId: string | null) => void
+  onMove?: (playerId: string, toTableNum: number) => void
+  onRemove?: (playerId: string) => void
+}
+
+function playerMatchesSeat(
+  player: HostTablePlayerRef,
+  seatName: string,
+  hostPlayerLabel: (name: string) => string,
+): boolean {
+  const rawSeat = seatName.trim().toLowerCase()
+  const labeledSeat = hostPlayerLabel(seatName).trim().toLowerCase()
+  const rawPlayer = player.name.trim().toLowerCase()
+  const labeledPlayer = hostPlayerLabel(player.name).trim().toLowerCase()
+  return (
+    rawPlayer === rawSeat ||
+    labeledPlayer === labeledSeat ||
+    rawPlayer === labeledSeat ||
+    labeledPlayer === rawSeat
+  )
+}
+
+function takeMatchingPlayer(
+  seatName: string,
+  unused: HostTablePlayerRef[],
+  hostPlayerLabel: (name: string) => string,
+): HostTablePlayerRef | null {
+  const index = unused.findIndex((player) => playerMatchesSeat(player, seatName, hostPlayerLabel))
+  if (index < 0) return null
+  const [matched] = unused.splice(index, 1)
+  return matched ?? null
+}
+
+/** Pair each contest seat with a roster id. Roster players the felt omitted stay in the pot column. */
+function contestRows(
+  seats: HostVenueSeatContest[],
+  players: HostTablePlayerRef[],
+  hostPlayerLabel: (name: string) => string,
+): { pot: ContestRow[]; points: ContestRow[] } {
+  const unused = [...players]
+  const pot: ContestRow[] = []
+  const points: ContestRow[] = []
+  for (const seat of seats) {
+    const row = { seat, player: takeMatchingPlayer(seat.name, unused, hostPlayerLabel) }
+    if (seat.kind === 'pot') pot.push(row)
+    else points.push(row)
+  }
+  for (const player of unused) {
+    pot.push({ seat: { name: player.name, kind: 'pot', reason: null }, player })
+  }
+  return { pot, points }
+}
+
+function SeatMoveControls({
+  player,
+  actions,
+}: {
+  player: HostTablePlayerRef
+  actions: SeatActionBag
+}) {
+  const armed = actions.armedId === player.playerId
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      {actions.onMove ? (
+        <>
+          <select
+            aria-label={`Move ${player.name} to`}
+            value={actions.toTable}
+            onChange={(e) => actions.onToTable(Number(e.target.value))}
+            className="rounded-md border border-white/20 bg-zinc-950 py-1 pl-2 pr-6 text-sm text-white [color-scheme:dark]"
+          >
+            {Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, index) => index + 1).map((n) => (
+              <option key={n} value={n}>
+                Table {n}
+              </option>
+            ))}
+          </select>
+          <NeonButton
+            variant="blue"
+            size="small"
+            type="button"
+            disabled={actions.toTable === actions.tableNum}
+            onClick={() => actions.onMove?.(player.playerId, actions.toTable)}
+          >
+            Move
+          </NeonButton>
+        </>
+      ) : null}
+      {actions.onRemove ? (
+        <NeonButton
+          variant="red"
+          size="small"
+          type="button"
+          onClick={() => {
+            if (!armed) {
+              actions.onArm(player.playerId)
+              return
+            }
+            actions.onRemove?.(player.playerId)
+            actions.onArm(null)
+          }}
+        >
+          {armed ? 'Remove them' : 'Remove'}
+        </NeonButton>
+      ) : null}
+    </div>
+  )
+}
+
+function SeatContestRow({
+  row,
+  hostPlayerLabel,
+  actions,
+}: {
+  row: ContestRow
+  hostPlayerLabel: (name: string) => string
+  actions: SeatActionBag | null
+}) {
+  const reason = seatReasonLabel(row.seat.reason)
+  return (
+    <li className="rounded-md bg-black/30 px-2 py-1.5">
+      <p className="text-sm font-semibold leading-tight text-white">{hostPlayerLabel(row.seat.name)}</p>
+      {reason ? <p className="text-xs text-white/55">{reason}</p> : null}
+      {row.player && actions ? <SeatMoveControls player={row.player} actions={actions} /> : null}
+    </li>
+  )
+}
+
 function SeatContestColumn({
   title,
   empty,
-  seats,
+  rows,
   tone,
   hostPlayerLabel,
+  actions,
 }: {
   title: string
   empty: string
-  seats: HostVenueSeatContest[]
+  rows: ContestRow[]
   tone: string
   hostPlayerLabel: (name: string) => string
+  actions: SeatActionBag | null
 }) {
   return (
     <section className={`min-w-0 rounded-lg border p-2 ${tone}`}>
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">
         {title}
-        <span className="ml-1.5 tabular-nums text-white/45">{seats.length}</span>
+        <span className="ml-1.5 tabular-nums text-white/45">{rows.length}</span>
       </p>
-      {seats.length === 0 ? (
+      {rows.length === 0 ? (
         <p className="mt-2 text-sm text-white/40">{empty}</p>
       ) : (
         <ul className="mt-2 space-y-1">
-          {seats.map((seat) => {
-            const reason = seatReasonLabel(seat.reason)
-            return (
-              <li key={seat.name} className="rounded-md bg-black/30 px-2 py-1.5">
-                <p className="text-sm font-semibold leading-tight text-white">{hostPlayerLabel(seat.name)}</p>
-                {reason ? <p className="text-xs text-white/55">{reason}</p> : null}
-              </li>
-            )
-          })}
+          {rows.map((row, index) => (
+            <SeatContestRow
+              key={row.player?.playerId ?? `${row.seat.name}-${index}`}
+              row={row}
+              hostPlayerLabel={hostPlayerLabel}
+              actions={actions}
+            />
+          ))}
         </ul>
       )}
     </section>
@@ -1652,27 +1790,50 @@ function SeatContestColumn({
 export function HostTableContest({
   seats,
   hostPlayerLabel,
+  tableNum,
+  players = [],
+  onMove,
+  onRemove,
 }: {
   seats: HostVenueSeatContest[]
   hostPlayerLabel: (name: string) => string
+  tableNum?: number
+  players?: HostTablePlayerRef[]
+  onMove?: (playerId: string, toTableNum: number) => void
+  onRemove?: (playerId: string) => void
 }) {
-  const pot = seats.filter((seat) => seat.kind === 'pot')
-  const points = seats.filter((seat) => seat.kind !== 'pot')
+  const [toTable, setToTable] = useState(tableNum === 1 ? 2 : 1)
+  const [armedId, setArmedId] = useState<string | null>(null)
+  const { pot, points } = contestRows(seats, players, hostPlayerLabel)
+  const actions: SeatActionBag | null =
+    onMove == null && onRemove == null
+      ? null
+      : {
+          tableNum: tableNum ?? 0,
+          toTable,
+          onToTable: setToTable,
+          armedId,
+          onArm: setArmedId,
+          onMove,
+          onRemove,
+        }
   return (
     <div className="grid grid-cols-2 gap-2" aria-label="Player contest status">
       <SeatContestColumn
         title="In pot"
         empty="Nobody in the pot."
-        seats={pot}
+        rows={pot}
         tone="border-emerald-400/35 bg-emerald-950/20"
         hostPlayerLabel={hostPlayerLabel}
+        actions={actions}
       />
       <SeatContestColumn
         title="Points only"
         empty="Everyone is still in."
-        seats={points}
+        rows={points}
         tone="border-amber-400/30 bg-amber-950/15"
         hostPlayerLabel={hostPlayerLabel}
+        actions={actions}
       />
     </div>
   )
@@ -1681,83 +1842,6 @@ export function HostTableContest({
 function recentActionLabel(action: string): string {
   if (action === 'fold') return 'Fold · points'
   return BET_ACTION_LABEL[action] ?? action
-}
-
-function HostTablePlayers({
-  tableNum,
-  players,
-  hostPlayerLabel,
-  onMove,
-  onRemove,
-}: {
-  tableNum: number
-  players: { playerId: string; name: string }[]
-  hostPlayerLabel: (name: string) => string
-  onMove?: (playerId: string, toTableNum: number) => void
-  onRemove?: (playerId: string) => void
-}) {
-  const [toTable, setToTable] = useState(tableNum === 1 ? 2 : 1)
-  const [armedId, setArmedId] = useState<string | null>(null)
-  if (players.length === 0 || (onMove == null && onRemove == null)) return null
-  return (
-    <section>
-      <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Players</p>
-      <ul className="mt-2 space-y-2">
-        {players.map((player) => (
-          <li
-            key={player.playerId}
-            className="flex flex-wrap items-center gap-2 rounded-md bg-black/30 px-2 py-1.5"
-          >
-            <span className="min-w-[6rem] flex-1 text-sm font-semibold text-white">
-              {hostPlayerLabel(player.name)}
-            </span>
-            {onMove ? (
-              <>
-                <select
-                  aria-label={`Move ${player.name} to`}
-                  value={toTable}
-                  onChange={(e) => setToTable(Number(e.target.value))}
-                  className="rounded-md border border-white/20 bg-zinc-950 py-1 pl-2 pr-6 text-sm text-white [color-scheme:dark]"
-                >
-                  {Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, index) => index + 1).map((n) => (
-                    <option key={n} value={n}>
-                      Table {n}
-                    </option>
-                  ))}
-                </select>
-                <NeonButton
-                  variant="blue"
-                  size="small"
-                  type="button"
-                  disabled={toTable === tableNum}
-                  onClick={() => onMove(player.playerId, toTable)}
-                >
-                  Move
-                </NeonButton>
-              </>
-            ) : null}
-            {onRemove ? (
-              <NeonButton
-                variant="red"
-                size="small"
-                type="button"
-                onClick={() => {
-                  if (armedId !== player.playerId) {
-                    setArmedId(player.playerId)
-                    return
-                  }
-                  onRemove(player.playerId)
-                  setArmedId(null)
-                }}
-              >
-                {armedId === player.playerId ? 'Remove them' : 'Remove'}
-              </NeonButton>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
 }
 
 /** Contest columns plus this table's recent actions. */
@@ -1782,7 +1866,7 @@ export function HostTableOpen({
   pot?: number
   actingSummary?: string | null
   tableNum?: number
-  players?: { playerId: string; name: string }[]
+  players?: HostTablePlayerRef[]
   onMove?: (playerId: string, toTableNum: number) => void
   onRemove?: (playerId: string) => void
   onSetTablePhase?: (signature: string) => void
@@ -1806,11 +1890,11 @@ export function HostTableOpen({
           ) : null}
         </p>
       ) : null}
-      <HostTableContest seats={seats} hostPlayerLabel={hostPlayerLabel} />
-      <HostTablePlayers
-        tableNum={tableNum ?? 0}
-        players={players ?? []}
+      <HostTableContest
+        seats={seats}
         hostPlayerLabel={hostPlayerLabel}
+        tableNum={tableNum}
+        players={players}
         onMove={onMove}
         onRemove={onRemove}
       />

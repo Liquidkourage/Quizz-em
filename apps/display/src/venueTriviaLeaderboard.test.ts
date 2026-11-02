@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
-import { venueTriviaLeaderboardRowsFromTiles } from './venueLeaderboard'
+import {
+  normalizeVenuePointsStandings,
+  venueTriviaLeaderboardRowsFromTiles,
+} from './venueLeaderboard'
 
 describe('venueTriviaLeaderboardRowsFromTiles', () => {
   it('ranks by answerPoints descending', () => {
@@ -34,5 +37,14 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
     ]
     const rows = venueTriviaLeaderboardRowsFromTiles(tiles, [{ name: 'Bo Kent', answerPoints: 40 }])
     expect(rows.map((row) => row.name)).toEqual(['Bo Kent', 'Ada Lane'])
+  })
+
+  it('keeps a player with no chips on the wall snapshot', () => {
+    expect(
+      normalizeVenuePointsStandings([
+        { name: 'Bo Kent', answerPoints: 40 },
+        { name: '  ', answerPoints: 5 },
+      ]),
+    ).toEqual([{ name: 'Bo Kent', answerPoints: 40 }])
   })
 })

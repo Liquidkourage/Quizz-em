@@ -130,6 +130,28 @@ export function venueLeaderboardRowsFromTiles(
   return out
 }
 
+/** Players who left with no stack. The wall snapshot carries them beside the seated tiles. */
+export function normalizeVenuePointsStandings(
+  raw: unknown,
+): { name: string; answerPoints: number }[] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  const out: { name: string; answerPoints: number }[] = []
+  for (const row of raw) {
+    const standing = pointsStandingFromWire(row)
+    if (standing) out.push(standing)
+  }
+  return out.length > 0 ? out : undefined
+}
+
+function pointsStandingFromWire(row: unknown): { name: string; answerPoints: number } | null {
+  if (row == null || typeof row !== 'object') return null
+  const name = typeof (row as { name?: unknown }).name === 'string' ? (row as { name: string }).name.trim() : ''
+  if (!name) return null
+  const pts = (row as { answerPoints?: unknown }).answerPoints
+  const answerPoints = typeof pts === 'number' && Number.isFinite(pts) ? Math.max(0, Math.floor(pts)) : 0
+  return { name, answerPoints }
+}
+
 function appendUnseatedTriviaRows(
   out: VenueLeaderboardRow[],
   standings: readonly { name: string; answerPoints: number }[],

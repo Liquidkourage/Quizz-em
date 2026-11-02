@@ -27,6 +27,7 @@ import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive }
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
+import { normalizeVenuePointsStandings } from './venueLeaderboard'
 import { normalizeLastHandSeating, useVenueSeatingAnnouncement } from './useVenueSeatingAnnouncement'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
@@ -225,6 +226,7 @@ export default function DisplayRouter({
       recordServerClockSample(p.serverNowMs ?? null)
       const next: DisplayVenueWallSnapshot = {
         tiles,
+        pointsStandings: normalizeVenuePointsStandings(p.pointsStandings),
         headlineQuestionText: p.headlineQuestionText ?? null,
         headlineQuestionAnswer:
           typeof p.headlineQuestionAnswer === 'number' && Number.isFinite(p.headlineQuestionAnswer)

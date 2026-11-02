@@ -39,6 +39,6 @@ describe('seating update', () => {
       }),
     )
     expect(html).toContain('seating-chart-clock-value')
-    expect(html).toContain('animation-duration:6500ms')
+    expect(html).toContain('animation-duration:4600ms')
   })
 })

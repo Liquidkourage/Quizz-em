@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DisplayVenueBustEntry, DisplayVenueWallSnapshot } from '@qhe/net'
 
-/** Room-readable dwell before the stacks leaderboard. */
-const BUST_OVERLAY_BASE_MS = 6500
-const BUST_OVERLAY_PER_PLAYER_MS = 900
-const BUST_OVERLAY_MAX_MS = 14000
+/** Dwell before the stacks leaderboard. */
+const BUST_OVERLAY_BASE_MS = 4600
+const BUST_OVERLAY_PER_PLAYER_MS = 640
+const BUST_OVERLAY_MAX_MS = 10000
 
 export function bustOverlayDurationMs(bustCount: number, reducedMotion: boolean): number {
   if (bustCount <= 0) return 0

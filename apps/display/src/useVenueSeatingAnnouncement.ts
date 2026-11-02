@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DisplayVenueSeatingAnnouncement, DisplayVenueWallSnapshot } from '@qhe/net'
 
-const SEATING_OVERLAY_BASE_MS = 6500
-const SEATING_OVERLAY_SHUFFLE_MS = 9500
-const SEATING_OVERLAY_PER_ROW_MS = 850
-const SEATING_OVERLAY_MAX_MS = 14000
+const SEATING_OVERLAY_BASE_MS = 4600
+const SEATING_OVERLAY_SHUFFLE_MS = 6800
+const SEATING_OVERLAY_PER_ROW_MS = 610
+const SEATING_OVERLAY_MAX_MS = 10000
 
 export function seatingOverlayDurationMs(
   seating: DisplayVenueSeatingAnnouncement,
   reducedMotion: boolean,
 ): number {
   if (seating.shuffled) {
-    return reducedMotion ? 6000 : SEATING_OVERLAY_SHUFFLE_MS
+    return reducedMotion ? 4300 : SEATING_OVERLAY_SHUFFLE_MS
   }
   const rows = seating.moves.length + seating.closedTableNums.length
   if (rows <= 0) return 0

@@ -5,6 +5,8 @@ import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot } from '@qhe/ne
 import VenueLeaderboardWall from './VenueLeaderboardWall'
 import VenueBustAnnouncement from './VenueBustAnnouncement'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay'
+import { bustOverlayDurationMs } from './useVenueBustAnnouncement'
+import { seatingOverlayDurationMs } from './useVenueSeatingAnnouncement'
 
 function tile(tableNum: number): DisplayVenueTileSnapshot {
   return {
@@ -57,7 +59,7 @@ describe('public screens that change on a timer', () => {
         timed: true,
       }),
     )
-    expect(busts).toContain('animation-duration:6500ms')
+    expect(busts).toContain('animation-duration:4600ms')
 
     const held = renderToStaticMarkup(
       createElement(VenueBustAnnouncement, {
@@ -72,5 +74,37 @@ describe('public screens that change on a timer', () => {
       }),
     )
     expect(answer).toContain('animation-duration:7000ms')
+  })
+
+  it('keeps elimination and seating cards up for the shorter dwell', () => {
+    expect(bustOverlayDurationMs(1, false)).toBe(4600)
+    expect(bustOverlayDurationMs(3, false)).toBe(5880)
+    expect(bustOverlayDurationMs(20, false)).toBe(10000)
+    expect(
+      seatingOverlayDurationMs(
+        {
+          shuffled: true,
+          tablesBefore: 4,
+          tablesAfter: 3,
+          playerCount: 8,
+          moves: [],
+          closedTableNums: [],
+        },
+        false,
+      ),
+    ).toBe(6800)
+    expect(
+      seatingOverlayDurationMs(
+        {
+          shuffled: true,
+          tablesBefore: 4,
+          tablesAfter: 3,
+          playerCount: 8,
+          moves: [],
+          closedTableNums: [],
+        },
+        true,
+      ),
+    ).toBe(4300)
   })
 })

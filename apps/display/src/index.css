@@ -2688,11 +2688,11 @@
     display: flex;
     min-width: 0;
     align-items: baseline;
-    justify-content: center;
+    justify-content: flex-start;
     gap: clamp(4px, 1.6cqw, 9px);
     border-radius: 6px;
-    padding: clamp(5px, 1.8cqh, 11px) clamp(8px, 2.8cqw, 16px);
-    margin-bottom: clamp(2px, 0.8cqh, 4px);
+    padding: 0.125rem 0.45rem;
+    margin-bottom: 0;
   }
 
   .vfd-mosaic-status-band--call {
@@ -2751,6 +2751,10 @@
   }
 
   .vfd-mosaic-status-band-message {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-family: Rajdhani, sans-serif;
     font-size: clamp(0.7rem, 4.6cqw, 1.45rem);
     font-weight: 800;

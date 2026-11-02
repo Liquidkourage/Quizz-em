@@ -279,6 +279,17 @@ function VenuePotAmount({
   )
 }
 
+function mosaicHeaderGridCols(
+  statusInHeader: boolean,
+  potInHeader: boolean,
+  dense: boolean,
+  phaseChip: boolean,
+): string {
+  if (statusInHeader && potInHeader) return 'grid-cols-[auto_minmax(0,1fr)_auto]'
+  if (dense || !phaseChip) return 'grid-cols-[auto_minmax(0,1fr)]'
+  return 'grid-cols-[auto_minmax(0,1fr)_auto]'
+}
+
 type MosaicTableStatusBandKind = 'to-call' | 'no-more-bets' | 'answering'
 
 /** Table status cue — sits between header and felt (to-call, closed betting, answering). */
@@ -2109,9 +2120,15 @@ function VenueMosaicTableCard({
         ? ('dim' as const)
         : ('faint' as const)
       : ('live' as const)
-  const feltGridRow = showStatusBand ? 'col-start-1 row-start-3' : 'col-start-1 row-start-2'
-  const statusBandGridRow = 'col-start-1 row-start-2 min-w-0'
-  const showdownPanelGridRow = showStatusBand ? 'col-start-1 row-start-4' : 'col-start-1 row-start-3'
+  const feltGridRow = 'col-start-1 row-start-2'
+  const showdownPanelGridRow = 'col-start-1 row-start-3'
+  const potInHeader = !potOnFelt && !showFloorShowdownOverlay
+  const headerCols = mosaicHeaderGridCols(
+    showStatusBand,
+    potInHeader,
+    denseMosaicChrome,
+    showHeaderPhaseChip,
+  )
 
   const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
@@ -2144,11 +2161,9 @@ function VenueMosaicTableCard({
             ? 'flex h-full min-h-0 w-full flex-col'
             : shrinkWrapRowHeight || mosaicShrinkWrap
               ? 'flex h-auto flex-col'
-              : feltFillsCell && showStatusBand
-                ? 'grid h-full grid-rows-[auto_auto_minmax(0,1fr)]'
-                : feltFillsCell
-                  ? 'grid h-full grid-rows-[auto_minmax(0,1fr)]'
-                  : 'flex h-full flex-col'
+              : feltFillsCell
+                ? 'grid h-full grid-rows-[auto_minmax(0,1fr)]'
+                : 'flex h-full flex-col'
         }`}
       >
         <div
@@ -2161,13 +2176,7 @@ function VenueMosaicTableCard({
           } ${showFloorShowdownOverlay ? 'hidden' : ''}`}
         >
         <div
-          className={`grid shrink-0 gap-x-1 ${
-            denseMosaicChrome
-              ? 'grid-cols-[auto_minmax(0,1fr)]'
-              : showHeaderPhaseChip
-                ? 'grid-cols-[auto_minmax(0,1fr)_auto]'
-                : 'grid-cols-[auto_minmax(0,1fr)]'
-          } ${floorSize.headerRowClass} ${denseMosaicChrome ? mosaicTypography.titleRowClass : ''} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 gap-x-1 ${headerCols} ${floorSize.headerRowClass} ${denseMosaicChrome ? mosaicTypography.titleRowClass : ''} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
           {denseMosaicChrome ? (
             <span
@@ -2182,7 +2191,15 @@ function VenueMosaicTableCard({
               {tn}
             </div>
           )}
-          {potOnFelt ? (
+          {showStatusBand && statusBandKind != null ? (
+            <MosaicTableStatusBand
+              kind={statusBandKind}
+              playerName={actingPlayerName ?? undefined}
+              callAmount={actingCallAmount ?? undefined}
+              prefersReducedMotion={prefersReducedMotion}
+              gridRowClass="min-w-0"
+            />
+          ) : potOnFelt ? (
             <div
               className="min-w-0 px-0.5 text-center"
               aria-label={actingPlayerName && !showStatusBand ? `${actingPlayerName} to act` : undefined}
@@ -2218,7 +2235,19 @@ function VenueMosaicTableCard({
           ) : (
             <div className="min-w-0" aria-hidden />
           )}
-          {showHeaderPhaseChip ? (
+          {showStatusBand && potInHeader ? (
+            <div
+              className="min-w-0 px-0.5 text-center"
+              aria-label={`Pot ${formatVenueBankroll(pot)}`}
+            >
+              <VenuePotAmount
+                amount={pot}
+                prefersReducedMotion={prefersReducedMotion}
+                potMuted={potMuted}
+                className={`block truncate ${floorSize.potClass} ${mosaicTypography.feltPot}`}
+              />
+            </div>
+          ) : showHeaderPhaseChip ? (
             <div className="shrink-0 justify-self-end">
               <span
                 className={`inline-block whitespace-nowrap rounded-sm font-semibold leading-tight ${
@@ -2230,16 +2259,6 @@ function VenueMosaicTableCard({
             </div>
           ) : null}
         </div>
-
-        {statusBandKind != null ? (
-          <MosaicTableStatusBand
-            kind={statusBandKind}
-            playerName={actingPlayerName ?? undefined}
-            callAmount={actingCallAmount ?? undefined}
-            prefersReducedMotion={prefersReducedMotion}
-            gridRowClass={feltFillsCell ? statusBandGridRow : ''}
-          />
-        ) : null}
 
         <div
           className={`@container/size relative z-[1] w-full overflow-hidden ${floorSize.ringScaleClass} ${

@@ -66,7 +66,7 @@ describe('requireVenueLockstepTables', () => {
     const { socket, toasts } = host()
     expect(requireVenueLockstepTables(socket, 'l2', () => true, 'be waiting')).toBeNull()
     expect(toasts).toEqual([
-      'Tables are out of sync (1→answer window · 2→lobby between hands). Fix the stragglers so every felt matches before advancing.',
+      'Waiting on table 2 — lobby between hands.',
     ])
   })
 
@@ -86,7 +86,7 @@ describe('toastVenueMisaligned', () => {
     seat('L4', '3', 'lobby')
     const { socket, toasts } = host()
     toastVenueMisaligned(socket, venuePlayableSnapshots('l4'))
-    expect(toasts[0]).toContain('(1,2→answer window · 3→lobby between hands)')
+    expect(toasts[0]).toBe('Waiting on table 3 — lobby between hands.')
   })
 })
 
@@ -100,7 +100,8 @@ describe('revealVenueAnswersTogether', () => {
     expect(rooms.get(tableSessionKey('L7', '1'))!.phase).toBe('answering')
     expect(rooms.get(tableSessionKey('L7', '2'))!.phase).toBe('answering')
     expect(rooms.get(tableSessionKey('L7', '3'))!.phase).toBe('betting')
-    expect(toasts[0]).toContain('out of sync')
+    expect(toasts[0]).toContain('Waiting on table 3')
+    expect(toasts[0]).not.toContain('out of sync')
   })
 
   it('holds the answer while guesses are still open', () => {

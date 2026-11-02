@@ -1,7 +1,12 @@
 import { createEmptyGame } from '@qhe/core'
 import { describe, expect, it } from 'vitest'
 import { buildHostPhaseDockItems } from './hostDeskLayout'
-import { venueDealCommunityBlockedHint, venueRevealAnswerBlockedHint } from './hostVenueActionGates'
+import {
+  venueCloseBettingBlockedHint,
+  venueDealCommunityBlockedHint,
+  venueRevealAnswerBlockedHint,
+  venueStartAnswerBlockedHint,
+} from './hostVenueActionGates'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
 
 function felt(
@@ -22,6 +27,24 @@ function felt(
     ...extra,
   } as HostVenueFeltBeatRow
 }
+
+describe('tables being waited on', () => {
+  it('names the tables still behind instead of saying the room is out of sync', () => {
+    const close = venueCloseBettingBlockedHint([
+      felt(1, 'betting', 'bet|1|F|cc0'),
+      felt(2, 'betting', 'bet|1|T|cc0'),
+    ])
+    expect(close).toContain('Waiting on table 2')
+    expect(close).not.toContain('out of sync')
+
+    const answer = venueStartAnswerBlockedHint([
+      felt(1, 'answering', 'answer'),
+      felt(3, 'betting', 'bet|2|T|cc5'),
+    ])
+    expect(answer).toContain('Waiting on table 3')
+    expect(answer).not.toContain('out of sync')
+  })
+})
 
 describe('reveal while someone is betting', () => {
   it('keeps the shared cards back while a table still has the clock open', () => {

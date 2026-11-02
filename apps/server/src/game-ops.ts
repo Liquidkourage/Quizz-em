@@ -1707,25 +1707,64 @@ export async function fastForwardVenueRehearsalToShowdown(
   return { advanced, already }
 }
 
-export function toastVenueMisaligned(socket: Socket, rows: { n: number; gs: GameState }[]): void {
-  const seenSig = new Set<string>()
-  const parts: string[] = []
-  for (const row of rows) {
-    const sig = phaseStrictSignature(row.gs)
-    if (seenSig.has(sig)) continue
-    seenSig.add(sig)
-    const nums = rows
-      .filter((r) => phaseStrictSignature(r.gs) === sig)
-      .map((r) => (Number.isFinite(r.n) ? String(r.n) : '?'))
-      .sort()
-    parts.push(`${nums.join(',')}→${humanReadableStrictState(row.gs)}`)
+function tableProgress(gs: GameState): number {
+  const phase = gs.phase
+  if (phase === 'lobby' || phase === 'inactive') return 0
+  if (phase === 'question') return 10
+  if (phase !== 'betting') return laterPhaseRank(phase)
+  const round = gs.round
+  const br =
+    typeof round?.bettingRound === 'number' && Number.isFinite(round.bettingRound)
+      ? Math.floor(round.bettingRound)
+      : 0
+  const cc = Array.isArray(round?.communityCards) ? round.communityCards.length : 0
+  const closed = round?.isBettingOpen === true ? 0 : 1
+  return 100 + br * 20 + cc * 2 + closed
+}
+
+function laterPhaseRank(phase: string): number {
+  if (phase === 'answering') return 1000
+  if (phase === 'reveal' || phase === 'showdown') return 1100
+  if (phase === 'payout') return 1200
+  if (phase === 'intermission') return 1300
+  return 50
+}
+
+function waitingOnPhrase(groups: { nums: string[]; label: string }[]): string {
+  if (groups.length === 1) {
+    const word = groups[0]!.nums.length === 1 ? 'table' : 'tables'
+    return `Waiting on ${word} ${groups[0]!.nums.join(', ')} — ${groups[0]!.label}.`
   }
-  const detail = parts.join(' · ')
-  console.warn(`[venue-lockstep] out of sync code=${rows[0]?.gs?.code ?? '?'} ${detail}`)
-  socket.emit(
-    'toast',
-    `Tables are out of sync (${detail}). Fix the stragglers so every felt matches before advancing.`,
-  )
+  const parts = groups.map((group) => {
+    const word = group.nums.length === 1 ? 'table' : 'tables'
+    return `${word} ${group.nums.join(', ')} (${group.label})`
+  })
+  return `Waiting on ${parts.join(' · ')}.`
+}
+
+export function toastVenueMisaligned(socket: Socket, rows: { n: number; gs: GameState }[]): void {
+  const lead = rows.reduce((max, row) => Math.max(max, tableProgress(row.gs)), 0)
+  const behind = rows.filter((row) => tableProgress(row.gs) < lead)
+  const source = behind.length > 0 ? behind : rows
+  const order: string[] = []
+  const byLabel = new Map<string, string[]>()
+  for (const row of source) {
+    const label = humanReadableStrictState(row.gs)
+    const num = Number.isFinite(row.n) ? String(row.n) : '?'
+    const list = byLabel.get(label)
+    if (list) list.push(num)
+    else {
+      byLabel.set(label, [num])
+      order.push(label)
+    }
+  }
+  const groups = order.map((label) => ({
+    label,
+    nums: (byLabel.get(label) ?? []).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+  }))
+  const message = waitingOnPhrase(groups)
+  console.warn(`[venue-lockstep] ${rows[0]?.gs?.code ?? '?'} ${message}`)
+  socket.emit('toast', message)
 }
 
 /**

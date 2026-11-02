@@ -30,16 +30,69 @@ function seatedVenueRows(rows: HostVenueFeltBeatRow[] | null): HostVenueFeltBeat
   return rows?.filter((r) => r.active && r.seated > 0) ?? []
 }
 
-function venueBeatLockstep(rows: HostVenueFeltBeatRow[]): {
-  misaligned: boolean
-  rowsWithSig: HostVenueFeltBeatRow[]
-} {
-  const rowsWithSig = rows.filter((r) => r.phaseStrictSig != null && r.phaseStrictSig !== '')
-  if (rowsWithSig.length < 2) {
-    return { misaligned: false, rowsWithSig }
+/** Higher means further through the hand. Tables below the lead are the ones being waited on. */
+function feltProgress(row: HostVenueFeltBeatRow): number {
+  if (row.phase === 'lobby' || row.phase === 'inactive') return 0
+  if (row.phase === 'question') return 10
+  if (row.phase !== 'betting') return feltPhaseRank(row.phase)
+  const parsed = parseVenueBetPhaseSig(row.phaseStrictSig)
+  if (parsed == null) return 20
+  return 100 + parsed.br * 20 + parsed.cc * 2 + (parsed.open ? 0 : 1)
+}
+
+function feltPhaseRank(phase: string): number {
+  if (phase === 'answering') return 1000
+  if (phase === 'reveal' || phase === 'showdown') return 1100
+  if (phase === 'payout') return 1200
+  return 50
+}
+
+function feltWaitLabel(row: HostVenueFeltBeatRow): string {
+  if (row.phase === 'answering') return 'answer window'
+  if (row.phase === 'reveal' || row.phase === 'showdown') return 'showdown'
+  if (row.phase === 'question') return 'deal setup'
+  if (row.phase === 'lobby') return 'lobby between hands'
+  const parsed = parseVenueBetPhaseSig(row.phaseStrictSig)
+  if (row.phase !== 'betting' || parsed == null) return row.phase
+  const street = parsed.br === 1 ? 'pre-board' : parsed.br === 2 ? 'after board' : `round ${parsed.br}`
+  const clock = parsed.open ? 'clock open' : 'clock closed'
+  return `${street}, ${clock}, ${parsed.cc}/5 board`
+}
+
+function waitingOnPhrase(groups: { nums: number[]; label: string }[]): string {
+  if (groups.length === 1) {
+    const word = groups[0]!.nums.length === 1 ? 'table' : 'tables'
+    return `Waiting on ${word} ${groups[0]!.nums.join(', ')} — ${groups[0]!.label}.`
   }
-  const sigs = new Set(rowsWithSig.map((r) => r.phaseStrictSig!))
-  return { misaligned: sigs.size > 1, rowsWithSig }
+  const parts = groups.map((group) => {
+    const word = group.nums.length === 1 ? 'table' : 'tables'
+    return `${word} ${group.nums.join(', ')} (${group.label})`
+  })
+  return `Waiting on ${parts.join(' · ')}.`
+}
+
+/** Tables that have not caught the lead felt. Null when every seated table is together. */
+function tablesWaitingHint(rows: HostVenueFeltBeatRow[]): string | null {
+  if (rows.length < 2) return null
+  const lead = Math.max(...rows.map(feltProgress))
+  const behind = rows.filter((row) => feltProgress(row) < lead)
+  if (behind.length === 0) return null
+  const order: string[] = []
+  const byLabel = new Map<string, number[]>()
+  for (const row of behind) {
+    const label = feltWaitLabel(row)
+    const list = byLabel.get(label)
+    if (list) list.push(row.tableNum)
+    else {
+      byLabel.set(label, [row.tableNum])
+      order.push(label)
+    }
+  }
+  const groups = order.map((label) => ({
+    label,
+    nums: (byLabel.get(label) ?? []).sort((a, b) => a - b),
+  }))
+  return waitingOnPhrase(groups)
 }
 
 export function feltInPreBoardBetting(row: HostVenueFeltBeatRow): boolean {
@@ -79,16 +132,19 @@ export function venueCloseBettingBlockedHint(rows: HostVenueFeltBeatRow[] | null
   if (seated.length === 0) {
     return 'No seated tables at this venue.'
   }
-  const { misaligned } = venueBeatLockstep(seated)
-  if (misaligned) {
-    return 'Tables are out of sync — align every felt before closing wagering venue-wide.'
-  }
+  const waiting = tablesWaitingHint(seated)
+  if (waiting) return waiting
   const notOpen = seated.filter((r) => {
     const parsed = parseVenueBetPhaseSig(r.phaseStrictSig)
     return !(r.phase === 'betting' && parsed?.open === true)
   })
   if (notOpen.length > 0) {
-    return 'Not every table has wagering open — wait for lockstep or check Venue felts · beat.'
+    const nums = notOpen
+      .map((r) => r.tableNum)
+      .sort((a, b) => a - b)
+      .join(', ')
+    const word = notOpen.length === 1 ? 'table' : 'tables'
+    return `Waiting on ${word} ${nums} — wagering is not open yet.`
   }
   return null
 }
@@ -139,10 +195,8 @@ export function venueStartAnswerBlockedHint(rows: HostVenueFeltBeatRow[] | null)
   if (seated.length === 0) {
     return 'No seated tables at this venue.'
   }
-  const { misaligned } = venueBeatLockstep(seated)
-  if (misaligned) {
-    return 'Tables are out of sync — align every felt before opening the answer window.'
-  }
+  const waiting = tablesWaitingHint(seated)
+  if (waiting) return waiting
   const notReady = seated.filter((r) => {
     const parsed = parseVenueBetPhaseSig(r.phaseStrictSig)
     return !(r.phase === 'betting' && parsed?.br === 2 && parsed.open === false && parsed.cc >= 5)
@@ -152,7 +206,8 @@ export function venueStartAnswerBlockedHint(rows: HostVenueFeltBeatRow[] | null)
       .map((r) => r.tableNum)
       .sort((a, b) => a - b)
       .join(', ')
-    return `Tables ${nums} are not ready (need post-board wagering closed with a full board).`
+    const word = notReady.length === 1 ? 'table' : 'tables'
+    return `Waiting on ${word} ${nums} — need post-board wagering closed with a full board.`
   }
   return null
 }

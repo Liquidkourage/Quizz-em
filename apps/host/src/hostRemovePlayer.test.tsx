@@ -32,6 +32,8 @@ describe('Host remove', () => {
       }),
     )
     expect(html).toContain('Remove')
+    expect(html).toContain('Re-seat now')
+    expect(html).not.toContain('Shuffle')
     expect(html).not.toContain('Between hands')
   })
 })

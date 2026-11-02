@@ -168,7 +168,7 @@ export function HostBlindCall({
           <PaceNumber label="Level every" value={handsPerLevel} min={1} max={50} onChange={(n) => onHandsPerLevel?.(n)} />
           {onShuffleEvery ? (
             <PaceNumber
-              label="Shuffle every"
+              label="Re-seat every"
               value={shuffleEvery ?? 5}
               min={1}
               max={20}

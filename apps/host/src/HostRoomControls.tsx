@@ -47,10 +47,10 @@ export function HostRoomControls({
 
   const shuffleLine =
     brief?.handsUntilShuffle == null
-      ? 'One table — no shuffle.'
+      ? 'One table — no re-seat.'
       : brief.venueShuffleHeld
-        ? `Next shuffle is held. Tables stay for ${brief.handsUntilShuffle} hands.`
-        : `Shuffle in ${brief.handsUntilShuffle} hands.`
+        ? `Next re-seat is held. Tables stay for ${brief.handsUntilShuffle} hands.`
+        : `Re-seat in ${brief.handsUntilShuffle} hands.`
 
   return (
     <section className="space-y-4">
@@ -127,7 +127,7 @@ export function HostRoomControls({
       </div>
 
       <div>
-        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">Table shuffle</h3>
+        <h3 className="text-sm font-bold uppercase tracking-[0.12em] text-white/45">Re-seat</h3>
         <p className="mt-1 text-sm text-white/70">{shuffleLine}</p>
         <div className="mt-2 flex flex-wrap items-end gap-2">
           <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-wide text-white/45">
@@ -136,7 +136,7 @@ export function HostRoomControls({
               type="number"
               min={1}
               max={20}
-              aria-label="Hands between shuffles"
+              aria-label="Hands between re-seats"
               value={every}
               onChange={(e) => {
                 const next = Math.floor(Number(e.target.value))
@@ -154,10 +154,10 @@ export function HostRoomControls({
             size="small"
             onClick={() => onSkipNextShuffle(!(brief?.venueShuffleHeld === true))}
           >
-            {brief?.venueShuffleHeld ? 'Put shuffle back' : 'Keep these tables'}
+            {brief?.venueShuffleHeld ? 'Resume re-seat' : 'Keep these tables'}
           </NeonButton>
           <NeonButton variant="blue" size="small" onClick={onShuffleNow}>
-            Shuffle now
+            Re-seat now
           </NeonButton>
         </div>
       </div>

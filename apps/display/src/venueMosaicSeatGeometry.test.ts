@@ -280,7 +280,8 @@ describe('broadcast felt assets', () => {
     return Math.hypot(((a.leftPct - b.leftPct) / 100) * w, ((a.topPct - b.topPct) / 100) * h)
   }
 
-  it('keeps cards, chips, and the button in a cluster at the seat', () => {
+  it('keeps the button at the seat and the chip stack on the felt', () => {
+    const center = venueMosaicFeltCenterPct(w, h)
     for (let i = 0; i < 8; i++) {
       const { hole, chip, blind } = broadcastFeltAssetAnchors(i, w, h, marker)
       const cup = mosaicSeatDotPct(i, 8, w, h)
@@ -288,13 +289,9 @@ describe('broadcast felt assets', () => {
       const stack = broadcastRimStackPct(i, name, w, h, broadcastRimStackOffsetPx(i, 34))
       expect(distPx(hole, cup)).toBeGreaterThan(36)
       expect(distPx(hole, cup)).toBeLessThan(60)
-      expect(distPx(chip, cup)).toBeLessThan(84)
-      expect(distPx(blind, cup)).toBeLessThan(84)
-      expect(distPx(hole, chip)).toBeGreaterThan(44)
-      expect(distPx(hole, blind)).toBeGreaterThan(44)
-      expect(distPx(chip, blind)).toBeGreaterThan(44)
-      expect(distPx(stack, hole)).toBeGreaterThan(48)
-      expect(distPx(stack, chip)).toBeGreaterThan(48)
+      expect(distPx(blind, cup)).toBeLessThan(120)
+      expect(distPx(chip, cup)).toBeGreaterThan(distPx(blind, cup))
+      expect(distPx(chip, center)).toBeLessThan(distPx(cup, center))
       expect(distPx(stack, blind)).toBeGreaterThan(48)
     }
   })

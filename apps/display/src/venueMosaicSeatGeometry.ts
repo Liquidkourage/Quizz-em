@@ -192,10 +192,30 @@ export function broadcastRimClusterLayout(
     : { flexDirection: 'row', gapRem: 0.35, stackFirst: false }
 }
 
+function broadcastChipPoint(
+  density: BroadcastDensity,
+  at: (x: number, y: number) => { leftPct: number; topPct: number },
+  cupX: number,
+  cupY: number,
+  ix: number,
+  iy: number,
+  tx: number,
+  ty: number,
+  cardIn: number,
+  side: number,
+  inward: number,
+): { leftPct: number; topPct: number } {
+  if (density === 'solo') {
+    const chipIn = Math.min(Math.max(inward * 0.32, 96), inward * 0.42)
+    return at(cupX + ix * chipIn, cupY + iy * chipIn)
+  }
+  return at(cupX + ix * cardIn - tx * side, cupY + iy * cardIn - ty * side)
+}
+
 /**
- * Broadcast hero: cards, chips, and the dealer button sit in one cluster at the
- * seat, in a row just inside the rail. Chips sit to one side of the cards and
- * the button sits on the other. The stack amount stays with the name.
+ * Broadcast hero: cards and the dealer button sit in a cluster at the seat.
+ * One-table chip stacks sit on the felt, in from the cup. Two-table chips stay
+ * beside the hole cards. The stack amount stays with the name.
  */
 export function broadcastFeltAssetAnchors(
   seatIndex: number,
@@ -251,7 +271,7 @@ export function broadcastFeltAssetAnchors(
       ...at(cupX + ix * cardIn, cupY + iy * cardIn),
       rotateDeg: holeLayout.rotateDeg,
     },
-    chip: at(cupX + ix * cardIn - tx * side, cupY + iy * cardIn - ty * side),
+    chip: broadcastChipPoint(density, at, cupX, cupY, ix, iy, tx, ty, cardIn, side, inward),
     blind: at(cupX + ix * cardIn + tx * side, cupY + iy * cardIn + ty * side),
   }
 }

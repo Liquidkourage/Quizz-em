@@ -2546,14 +2546,17 @@ function VenueBroadcastHeadlineStrip({
         </div>
       ) : headlineTimerOnly && typeof timerSeconds === 'number' ? (
         <div
-          className={`flex items-center justify-center rounded-xl border px-4 py-2 ${
+          className={`mx-auto flex w-fit flex-col items-center justify-center gap-1 rounded-xl border px-6 py-2 ${
             timerSeconds <= 10
               ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_24px_rgba(34,211,238,0.16)]'
               : 'border-cyan-600/35 bg-cyan-950/25'
           }`}
           aria-live="polite"
-          aria-label={`${timerSeconds} seconds remaining to answer`}
+          aria-label={`Time to guess, ${timerSeconds} seconds`}
         >
+          <span className="vfd-broadcast-answer-prompt font-black uppercase tracking-wide text-cyan-100/90">
+            Time to guess
+          </span>
           <div
             className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight${
               timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
@@ -2564,7 +2567,7 @@ function VenueBroadcastHeadlineStrip({
         </div>
       ) : headlineAnsweringUnified || headlineAnswering ? (
         <div
-          className={`flex flex-col items-center justify-center gap-1 rounded-lg border px-3 py-2 ${
+          className={`mx-auto flex w-fit flex-col items-center justify-center gap-1 rounded-lg border px-6 py-2 ${
             inAnsweringCountdown && typeof timerSeconds === 'number' && timerSeconds <= 10
               ? 'border-cyan-400/55 bg-cyan-950/45'
               : 'border-cyan-600/35 bg-cyan-950/25'
@@ -2616,6 +2619,7 @@ export function VenueSingleTableBroadcast({
   sharedShowdownAnswer,
   broadcastDensity,
   showTableBadge = false,
+  reserveHeadlineSpace = false,
 }: {
   tile: DisplayVenueTileSnapshot
   floorSpec?: VenueFloorSpec
@@ -2623,6 +2627,8 @@ export function VenueSingleTableBroadcast({
   sharedShowdownAnswer?: number
   broadcastDensity?: 'solo' | 'dual'
   showTableBadge?: boolean
+  /** Keep the felt the size it has while the question bar is on screen. */
+  reserveHeadlineSpace?: boolean
 }) {
   const seats = tile.seated
   const pot = Math.max(0, Math.floor(Number.isFinite(tile.pot) ? tile.pot : 0))
@@ -2700,7 +2706,7 @@ export function VenueSingleTableBroadcast({
     <div
       className={`venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-stretch justify-center overflow-hidden px-0 pb-0 pt-0${
         isDualDensity ? ` venue-single-table-broadcast--dual relative min-w-0 ${dualFrame}` : ''
-      }`}
+      }${reserveHeadlineSpace && !isDualDensity ? ' venue-single-table-broadcast--headline-cap' : ''}`}
       aria-label={
         showFloorShowdownOverlay
           ? floorShowdownPresentation?.ariaLabel ?? 'Showdown winner reveal'

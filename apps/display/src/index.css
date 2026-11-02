@@ -3022,6 +3022,14 @@
     color: rgb(255 251 235 / 0.72);
   }
 
+  .venue-single-table-broadcast--headline-cap {
+    flex: 0 1 auto;
+    height: calc(100% - min(22vh, 12rem));
+    max-height: calc(100% - min(22vh, 12rem));
+    margin-block: auto;
+    width: 100%;
+  }
+
   .venue-broadcast-answer-timer {
     font-size: clamp(3.4rem, 9vh, 7rem);
     line-height: 0.85;

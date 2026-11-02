@@ -284,7 +284,27 @@ export default function VenueSeatingAnnouncement({
         {rowCount > 0 ? (
           <div className="venue-seating-sections">
             {layout.eliminations.length > 0 ? (
-              <SeatingUpdateGrid rows={layout.eliminations} compact={compact} />
+              <div className="venue-seating-closure">
+                <SeatingUpdateRow
+                  row={{
+                    key: 'eliminated-header',
+                    label: 'Eliminated',
+                    detail: 'OUT',
+                    marks: [],
+                    kind: 'eliminated',
+                  }}
+                  compact={compact}
+                />
+                <div className="venue-seating-closure-moves">
+                  <SeatingUpdateGrid
+                    rows={layout.eliminations.map((row) => ({
+                      ...row,
+                      marks: row.marks.filter((mark) => mark !== 'ELIMINATED'),
+                    }))}
+                    compact={compact}
+                  />
+                </div>
+              </div>
             ) : null}
             {layout.closures.map((block) => (
               <div key={block.header.key} className="venue-seating-closure">

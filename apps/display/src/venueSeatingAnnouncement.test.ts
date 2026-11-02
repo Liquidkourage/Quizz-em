@@ -107,10 +107,9 @@ describe('seating update', () => {
       }),
     )
     const rows = html.split('venue-bust-overlay-row ').length - 1
-    expect(rows).toBe(1)
-    const line = html.slice(html.indexOf('venue-bust-overlay-row-line'), html.indexOf('venue-bust-overlay-row-line') + 700)
-    expect(line).toContain('Ada')
-    expect(line).toContain('ELIMINATED')
+    expect(rows).toBe(2)
+    expect(html.indexOf('>Eliminated<')).toBeLessThan(html.indexOf('Ada'))
+    const line = html.slice(html.indexOf('Ada'), html.indexOf('Ada') + 700)
     expect(line).toContain('Table 2 → Table 1')
     expect(line).toContain('TABLE BALANCE')
     expect(html).toContain('venue-seating-update')
@@ -208,7 +207,7 @@ describe('seating update', () => {
     expect(at('Cam D.')).toBeLessThan(at('>Table 9<'))
     expect(at('>Table 9<')).toBeLessThan(at('Pat M.'))
     expect(at('Pat M.')).toBeLessThan(at('Ada L.'))
-    const under4 = html.indexOf('venue-seating-closure-moves')
+    const under4 = html.indexOf('venue-seating-closure-moves', html.indexOf('>Table 4<'))
     expect(html.slice(under4, under4 + 600)).toContain('Cam D.')
     expect(html.slice(under4, under4 + 600)).not.toContain('Ada L.')
     expect(html.split('Eve H.').length - 1).toBe(1)
@@ -230,11 +229,12 @@ describe('seating update', () => {
       }),
     )
     const moveAt = html.indexOf('venue-bust-overlay-row--move')
-    const outAt = html.indexOf('venue-bust-overlay-row--eliminated')
+    const boAt = html.indexOf('Bo K.')
     expect(moveAt).toBeGreaterThan(-1)
-    expect(outAt).toBeGreaterThan(-1)
+    expect(boAt).toBeGreaterThan(-1)
     expect(html.slice(moveAt, moveAt + 500)).toContain('Ada')
-    expect(html.slice(outAt, outAt + 500)).toContain('Bo')
+    expect(html.slice(boAt - 400, boAt)).toContain('venue-bust-overlay-row--eliminated')
+    expect(html.indexOf('>Eliminated<')).toBeLessThan(boAt)
     expect(html.slice(moveAt, moveAt + 80)).not.toContain('venue-bust-overlay-row--eliminated')
   })
 
@@ -253,7 +253,8 @@ describe('seating update', () => {
       }),
     )
     expect(html).toContain('Bo')
-    expect(html).toContain('ELIMINATED')
+    expect(html).toContain('Eliminated')
+    expect(html).toContain('venue-seating-closure-moves')
     expect(html).toContain('Ada')
     expect(html).toContain('TABLE BALANCE')
     expect(html).toContain('1 eliminated')

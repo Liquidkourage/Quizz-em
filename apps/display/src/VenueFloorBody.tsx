@@ -58,6 +58,7 @@ export function VenueFloorBody({
           floorSpec={floorSpec}
           prefersReducedMotion={prefersReducedMotion}
           sharedShowdownAnswer={sharedShowdownAnswer}
+          reserveHeadlineSpace={!showHeadline}
         />
       ) : floorSpec?.renderer === 'broadcast' && floorSpec.id === 'broadcast-2' ? (
         <VenueDualTableBroadcast

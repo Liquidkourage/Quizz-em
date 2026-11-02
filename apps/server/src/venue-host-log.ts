@@ -1,5 +1,6 @@
 import {
   formatTriviaNumber,
+  isVenueTileWageringPaused,
   medianSeatedStack,
   previewChipPayoutByPlayerId,
   type GameState,
@@ -337,6 +338,7 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         phase: tile.phase,
         seated: tile.seated,
         pot: tile.pot,
+        betsClosed: isVenueTileWageringPaused(tile),
         interestingAction: tile.interestingAction === true,
         actingSeatIndex: idx ?? null,
         actingPlayerName,

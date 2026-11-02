@@ -91,6 +91,63 @@ describe('venue floor now', () => {
     expect(html).not.toContain('ring-emerald-400/50')
   })
 
+  it('colors each table by phase and says when betting is finished', () => {
+    const floor = brief()
+    floor.actionRows = [
+      { ...actionRow(1), phase: 'lobby' },
+      { ...actionRow(2), phase: 'betting', betsClosed: false },
+      { ...actionRow(3), phase: 'betting', betsClosed: true },
+      { ...actionRow(4), phase: 'answering' },
+      { ...actionRow(5), phase: 'question' },
+      { ...actionRow(6), phase: 'reveal' },
+      { ...actionRow(7), phase: 'showdown' },
+      { ...actionRow(8), phase: 'payout' },
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    const card = (tableNum: number) => {
+      const start = html.indexOf(`Open table ${tableNum}`)
+      const next = html.indexOf('Open table', start + 1)
+      return html.slice(start, next === -1 ? undefined : next)
+    }
+    const waiting = card(1)
+    const open = card(2)
+    const closed = card(3)
+    expect(waiting).toContain('Waiting room')
+    expect(waiting).toContain('border-slate-400/35')
+    expect(open).toContain('>Betting<')
+    expect(open).toContain('border-orange-400/50')
+    expect(open).not.toContain('No more bets')
+    expect(closed).toContain('No more bets')
+    expect(closed).toContain('border-teal-300/60')
+    expect(card(4)).toContain('Guessing')
+    expect(card(4)).toContain('border-violet-400/45')
+    expect(card(5)).toContain('Deal / question')
+    expect(card(5)).toContain('border-sky-400/45')
+    expect(card(6)).toContain('Answer reveal')
+    expect(card(6)).toContain('border-pink-400/45')
+    expect(card(7)).toContain('Results')
+    expect(card(7)).toContain('border-emerald-400/40')
+    expect(card(8)).toContain('Paying out')
+    expect(card(8)).toContain('border-yellow-300/50')
+    const tones = [
+      'border-slate-400/35',
+      'border-orange-400/50',
+      'border-teal-300/60',
+      'border-violet-400/45',
+      'border-sky-400/45',
+      'border-pink-400/45',
+      'border-emerald-400/40',
+      'border-yellow-300/50',
+    ]
+    expect(new Set(tones).size).toBe(tones.length)
+  })
+
   it('lists table action in numerical order', () => {
     const floor = brief()
     floor.actionRows = [

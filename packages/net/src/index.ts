@@ -354,6 +354,8 @@ export type HostVenueActionRow = {
   phase: string
   seated: number
   pot: number
+  /** Betting phase and the wagering clock is closed: no further bets on this street. */
+  betsClosed?: boolean
   interestingAction?: boolean
   actingSeatIndex: number | null
   actingPlayerName: string | null

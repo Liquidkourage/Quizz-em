@@ -27,6 +27,30 @@ const HOST_PHASE_LABEL: Record<GamePhase, string> = {
   intermission: 'Break',
 }
 
+/** One color per felt phase. A closed betting clock gets its own tone. */
+const TABLE_ACTION_TONE: Record<string, string> = {
+  lobby: 'border-slate-400/35 bg-slate-900/50 text-slate-200',
+  question: 'border-sky-400/45 bg-sky-950/40 text-sky-100',
+  betting: 'border-orange-400/50 bg-orange-950/40 text-orange-100',
+  betsClosed: 'border-teal-300/60 bg-teal-950/45 text-teal-50',
+  answering: 'border-violet-400/45 bg-violet-950/40 text-violet-100',
+  reveal: 'border-pink-400/45 bg-pink-950/35 text-pink-100',
+  showdown: 'border-emerald-400/40 bg-emerald-950/30 text-emerald-100',
+  payout: 'border-yellow-300/50 bg-yellow-950/30 text-yellow-100',
+  intermission: 'border-zinc-400/35 bg-zinc-900/50 text-zinc-200',
+}
+
+function tableActionCue(row: { phase: string; betsClosed?: boolean }): { label: string; tone: string } {
+  if (row.phase === 'betting' && row.betsClosed === true) {
+    return { label: 'No more bets', tone: TABLE_ACTION_TONE.betsClosed }
+  }
+  const phase = row.phase as GamePhase
+  return {
+    label: HOST_PHASE_LABEL[phase] ?? row.phase,
+    tone: TABLE_ACTION_TONE[row.phase] ?? 'border-white/10 bg-black/20 text-white/55',
+  }
+}
+
 /** Empty venue pool — no one to seat yet (brand-new host empty desk). */
 export function isHostWaitingForJoiners(gameState: GameState): boolean {
   return (
@@ -2013,7 +2037,7 @@ export function HostVenueFloorBriefPanel({
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(7.5rem,9rem))] justify-start gap-1.5">
                 {rows.map((row) => {
                   const onPublicDisplay = soloTable === row.tableNum
-                  const phaseLabel = HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
+                  const cue = tableActionCue(row)
                   const drift = outlierTableNums.has(row.tableNum)
                   return (
                     <li key={row.tableNum}>
@@ -2021,10 +2045,8 @@ export function HostVenueFloorBriefPanel({
                       type="button"
                       aria-label={`Open table ${row.tableNum}`}
                       onClick={() => setOpenTable(row.tableNum)}
-                      className={`w-full cursor-pointer rounded-md border px-1.5 py-1 text-left ${
-                        drift || row.interestingAction
-                          ? 'border-amber-400/45 bg-amber-950/25'
-                          : 'border-white/10 bg-black/20'
+                      className={`w-full cursor-pointer rounded-md border px-1.5 py-1 text-left ${cue.tone} ${
+                        drift || row.interestingAction ? 'ring-1 ring-amber-300/70' : ''
                       } ${onPublicDisplay ? 'ring-1 ring-sky-300/70' : ''}`}
                     >
                       <span className="text-base font-bold text-white/90">
@@ -2035,7 +2057,7 @@ export function HostVenueFloorBriefPanel({
                           </span>
                         ) : null}
                       </span>
-                      <p className="text-sm text-white/55">{phaseLabel}</p>
+                      <p className="text-sm font-semibold">{cue.label}</p>
                       <p className="text-sm tabular-nums text-white/50">
                         <span className="font-semibold text-emerald-200/85">
                           {row.inPotCount ?? 0} in pot
@@ -2062,7 +2084,7 @@ export function HostVenueFloorBriefPanel({
                 <HostTableOpen
                   seats={openRow.seats ?? []}
                   recentActions={openRow.recentActions}
-                  phaseLabel={HOST_PHASE_LABEL[openRow.phase as GamePhase] ?? openRow.phase}
+                  phaseLabel={tableActionCue(openRow).label}
                   pot={openRow.pot}
                   actingSummary={openRow.actingSummary}
                   tableNum={openRow.tableNum}

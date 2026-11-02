@@ -354,6 +354,24 @@ describe('buildHostVenueActionRows seats', () => {
     ])
   })
 
+  it('records when a table has no more bets', () => {
+    const rows = buildHostVenueActionRows([
+      { tableNum: 1, seated: 2, pot: 40, phase: 'betting', seatNames: ['Bo'], isBettingOpen: true } as never,
+      { tableNum: 2, seated: 2, pot: 40, phase: 'betting', seatNames: ['Ada'], isBettingOpen: false } as never,
+      {
+        tableNum: 3,
+        seated: 2,
+        pot: 40,
+        phase: 'betting',
+        seatNames: ['Cy'],
+        isBettingOpen: null,
+        currentPlayerIndex: -1,
+      } as never,
+      { tableNum: 4, seated: 2, pot: 0, phase: 'answering', seatNames: ['Dee'] } as never,
+    ])
+    expect(rows.map((row) => row.betsClosed)).toEqual([false, true, true, false])
+  })
+
   it('keeps tables in numerical order when one is interesting', () => {
     const rows = buildHostVenueActionRows([
       { tableNum: 4, seated: 2, pot: 0, phase: 'betting', seatNames: ['Ned'], interestingAction: true } as never,

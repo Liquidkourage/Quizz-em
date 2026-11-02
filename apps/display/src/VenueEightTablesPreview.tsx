@@ -2565,6 +2565,19 @@ function VenueBroadcastHeadlineStrip({
   )
 }
 
+/** Card edge for the two-table broadcast. Names and stacks stay outside the oval. */
+function dualBroadcastFrameClass(
+  phase: string,
+  showNoMoreBets: boolean,
+  wageringLive: boolean,
+): string {
+  const shell = 'rounded-xl border-2 bg-black/55'
+  if (showNoMoreBets) return `${shell} border-emerald-500/70`
+  if (phase === 'answering') return `${shell} border-cyan-500/55`
+  if (wageringLive) return `${shell} border-amber-500/70`
+  return `${shell} border-yellow-700/40`
+}
+
 /** n=1 or n=2 broadcast hero — full-viewport felt, names + stacks, pot/action on felt center. */
 export function VenueSingleTableBroadcast({
   tile,
@@ -2637,23 +2650,26 @@ export function VenueSingleTableBroadcast({
         ? ('dim' as const)
         : ('faint' as const)
       : ('live' as const)
-  const phaseShell = showNoMoreBets
-    ? 'ring-2 ring-emerald-500/55 shadow-[0_0_28px_rgba(52,211,153,0.18)]'
-    : ph === 'answering'
-      ? 'ring-2 ring-cyan-500/45 shadow-[0_0_28px_rgba(34,211,238,0.16)]'
-      : wageringLive
-        ? 'ring-2 ring-amber-500/55 shadow-[0_0_32px_rgba(251,191,36,0.22)]'
-        : ''
 
   const tableNum = tile.tableNum
   const density = broadcastDensity ?? floorSpec?.broadcastDensity ?? 'solo'
   const isDualDensity = density === 'dual'
+  const dualFrame = isDualDensity ? dualBroadcastFrameClass(ph, showNoMoreBets, wageringLive) : ''
+  const phaseShell = isDualDensity
+    ? ''
+    : showNoMoreBets
+      ? 'ring-2 ring-emerald-500/55 shadow-[0_0_28px_rgba(52,211,153,0.18)]'
+      : ph === 'answering'
+        ? 'ring-2 ring-cyan-500/45 shadow-[0_0_28px_rgba(34,211,238,0.16)]'
+        : wageringLive
+          ? 'ring-2 ring-amber-500/55 shadow-[0_0_32px_rgba(251,191,36,0.22)]'
+          : ''
   const showdownViewport = showdownStageViewportFromSpec(floorSpec ?? null)
 
   return (
     <div
       className={`venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-stretch justify-center overflow-hidden px-0 pb-0 pt-0${
-        isDualDensity ? ' venue-single-table-broadcast--dual relative min-w-0' : ''
+        isDualDensity ? ` venue-single-table-broadcast--dual relative min-w-0 ${dualFrame}` : ''
       }`}
       aria-label={
         showFloorShowdownOverlay
@@ -2733,7 +2749,7 @@ export function VenueDualTableBroadcast({
   sharedShowdownAnswer?: number
 }) {
   return (
-    <div className="venue-floor-dual-broadcast grid min-h-0 min-w-0 flex-1 grid-cols-2 gap-x-2 overflow-hidden px-0.5">
+    <div className="venue-floor-dual-broadcast grid min-h-0 min-w-0 flex-1 grid-cols-2 gap-x-3 overflow-hidden p-2">
       {tiles.map((tile) => (
         <div
           key={tile.tableNum}

@@ -283,17 +283,6 @@ function VenuePotAmount({
   )
 }
 
-function mosaicHeaderGridCols(
-  statusInHeader: boolean,
-  potInHeader: boolean,
-  dense: boolean,
-  phaseChip: boolean,
-): string {
-  if (statusInHeader && potInHeader) return 'grid-cols-[auto_minmax(0,1fr)_auto]'
-  if (dense || !phaseChip) return 'grid-cols-[auto_minmax(0,1fr)]'
-  return 'grid-cols-[auto_minmax(0,1fr)_auto]'
-}
-
 type MosaicTableStatusBandKind = 'to-call' | 'no-more-bets' | 'answering'
 
 /** Table status cue — sits between header and felt (to-call, closed betting, answering). */
@@ -994,50 +983,11 @@ function mosaicWagerStyleFlags(
   return { showNoMoreBets, wageringLive }
 }
 
-function mosaicPhaseLabel(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean, dense = false): string {
-  if (showNoMoreBets) return dense ? 'NO BET' : 'NO MORE BETS'
-  const ph = String(row.phase ?? '').trim().toLowerCase()
-  if (dense) {
-    if (ph === 'betting') return 'WAGER'
-    if (ph === 'question') return 'Question'
-    if (ph === 'answering') return 'Answer'
-    if (ph === 'showdown') return 'Showdown'
-    if (ph === 'intermission') return 'Break'
-  }
-  if (ph === 'betting' && row.seated >= 1 && row.isBettingOpen === true) {
-    return 'Wagering'
-  }
-  return phaseLabel(row.phase)
-}
-
-function mosaicPhaseAccent(row: DisplayVenueTileSnapshot, showNoMoreBets: boolean, wageringLive: boolean): string {
-  if (showNoMoreBets && row.seated >= 1) {
-    return 'bg-emerald-400 font-black text-black shadow-[0_0_10px_rgba(52,211,153,0.45)] ring-0'
-  }
-  if (wageringLive) {
-    return 'bg-amber-400 font-black text-black shadow-[0_0_10px_rgba(251,191,36,0.35)] ring-0'
-  }
-  return phaseAccent(row.phase)
-}
-
 /** Seat-marker initials on mosaic felts — font size set from the felt width. */
 function mosaicSeatInitialsClass(_density: VenueFloorTableSize | undefined): string {
   return VENUE_FLOOR_MOSAIC_HEADER_TYPE.seatInitials
 }
 
-function mosaicPhaseCornerTypography(
-  row: DisplayVenueTileSnapshot,
-  showNoMoreBets: boolean,
-  wageringLive: boolean
-): string {
-  if (showNoMoreBets && row.seated >= 1) {
-    return 'whitespace-nowrap font-black uppercase leading-none tracking-tight'
-  }
-  if (wageringLive) {
-    return 'truncate font-black uppercase leading-none tracking-wide'
-  }
-  return 'truncate font-bold uppercase leading-none'
-}
 function fallbackLabelEllipseScale(size: 'md' | 'lg', feltStacks: boolean): number {
   if (size === 'lg') return feltStacks ? 1.045 : 1.03
   return feltStacks ? 1.04 : 1.025
@@ -1963,25 +1913,6 @@ function SeatRingWithLabels({
   )
 }
 
-function phaseLabel(ph: string) {
-  if (ph === 'lobby') return 'Lobby'
-  if (ph === 'question') return 'Question'
-  if (ph === 'betting') return 'Wagering'
-  if (ph === 'answering') return 'Answering'
-  if (ph === 'reveal') return 'Reveal'
-  if (ph === 'showdown') return 'Showdown'
-  if (ph === 'payout') return 'Payout'
-  if (ph === 'intermission') return 'Break'
-  return ph
-}
-
-function phaseAccent(ph: string) {
-  if (ph === 'answering') return 'text-amber-200 ring-1 ring-amber-400/50'
-  if (ph === 'showdown') return 'text-yellow-300 ring-1 ring-yellow-400/35'
-  if (ph === 'question') return 'text-emerald-200/95'
-  return 'text-white/85'
-}
-
 type VenueMosaicTableCardProps = {
   row: DisplayVenueTileSnapshot
   /** Winner line only (dense floor with many tables). */
@@ -2115,12 +2046,7 @@ function VenueMosaicTableCard({
     return null
   })()
   const showStatusBand = statusBandKind != null
-  /** Status band + venue headline cover these — never duplicate as a header corner chip. */
-  const suppressCornerPhaseChip =
-    showNoMoreBets || ph === 'answering' || (wageringLive && ph === 'betting')
-  const showHeaderPhaseChip =
-    !denseMosaicChrome && !showFloorShowdownOverlay && !suppressCornerPhaseChip && ph !== 'lobby'
-  const potOnFelt = denseMosaicChrome && !showFloorShowdownOverlay
+  const potOnFelt = !showFloorShowdownOverlay
   const potMuted =
     ph === 'lobby' || ph === 'question'
       ? pot > 0
@@ -2129,13 +2055,6 @@ function VenueMosaicTableCard({
       : ('live' as const)
   const feltGridRow = 'col-start-1 row-start-2'
   const showdownPanelGridRow = 'col-start-1 row-start-3'
-  const potInHeader = !potOnFelt && !showFloorShowdownOverlay
-  const headerCols = mosaicHeaderGridCols(
-    showStatusBand,
-    potInHeader,
-    denseMosaicChrome,
-    showHeaderPhaseChip,
-  )
 
   const cardShell = showNoMoreBets
     ? 'rounded-xl border-2 border-emerald-500/70 bg-black/55 shadow-[0_0_16px_rgba(52,211,153,0.22)] ring-1 ring-emerald-400/20'
@@ -2183,7 +2102,7 @@ function VenueMosaicTableCard({
           } ${showFloorShowdownOverlay ? 'hidden' : ''}`}
         >
         <div
-          className={`grid shrink-0 gap-x-1 ${headerCols} ${floorSize.headerRowClass} ${denseMosaicChrome ? mosaicTypography.titleRowClass : ''} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 gap-x-1 grid-cols-[auto_minmax(0,1fr)] ${floorSize.headerRowClass} ${denseMosaicChrome ? mosaicTypography.titleRowClass : ''} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
           {denseMosaicChrome ? (
             <span
@@ -2221,50 +2140,9 @@ function VenueMosaicTableCard({
                 </span>
               ) : null}
             </div>
-          ) : !showFloorShowdownOverlay ? (
-            <div
-              className="min-w-0 px-0.5 text-center"
-              aria-label={`Pot ${formatVenueBankroll(pot)}`}
-            >
-              <VenuePotAmount
-                amount={pot}
-                prefersReducedMotion={prefersReducedMotion}
-                potMuted={
-                  ph === 'lobby' || ph === 'question'
-                    ? pot > 0
-                      ? 'dim'
-                      : 'faint'
-                    : 'live'
-                }
-                className={`block truncate ${floorSize.potClass} ${mosaicTypography.feltPot}`}
-              />
-            </div>
           ) : (
             <div className="min-w-0" aria-hidden />
           )}
-          {showStatusBand && potInHeader ? (
-            <div
-              className="min-w-0 px-0.5 text-center"
-              aria-label={`Pot ${formatVenueBankroll(pot)}`}
-            >
-              <VenuePotAmount
-                amount={pot}
-                prefersReducedMotion={prefersReducedMotion}
-                potMuted={potMuted}
-                className={`block truncate ${floorSize.potClass} ${mosaicTypography.feltPot}`}
-              />
-            </div>
-          ) : showHeaderPhaseChip ? (
-            <div className="shrink-0 justify-self-end">
-              <span
-                className={`inline-block whitespace-nowrap rounded-sm font-semibold leading-tight ${
-                  showNoMoreBets ? `${floorSize.phaseChipClass} font-black uppercase` : floorSize.phaseChipClass
-                } ${mosaicPhaseCornerTypography(row, showNoMoreBets, wageringLive)} ${mosaicPhaseAccent(row, showNoMoreBets, wageringLive)}`}
-              >
-                {mosaicPhaseLabel(row, showNoMoreBets, false)}
-              </span>
-            </div>
-          ) : null}
         </div>
 
         <div

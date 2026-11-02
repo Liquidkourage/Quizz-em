@@ -43,6 +43,13 @@ function titleRowHtml(card: string): string {
   return ''
 }
 
+/** Felt-center stack, where the pot sits on the green. */
+function feltCenterHtml(card: string): string {
+  const at = card.indexOf('translate(-50%, -50%)')
+  if (at < 0) return ''
+  return card.slice(at, at + 900)
+}
+
 describe('public table status line', () => {
   it('keeps the cue on the same line as the table number', () => {
     const spec = resolveVenueFloorSpec({ populatedTableCount: 6 })
@@ -69,23 +76,33 @@ describe('public table status line', () => {
     expect(answering).not.toContain('row-start-2')
     expect(closed).toContain('vfd-mosaic-table-num')
     expect(closed).toContain('No more bets')
-    expect(closed).toContain('$200')
+    expect(closed).not.toContain('$200')
+    expect(feltCenterHtml(cardHtml(html, 2))).toContain('$200')
   })
 
-  it('leaves the lobby word off the table card', () => {
-    const spec = resolveVenueFloorSpec({ populatedTableCount: 6 })
+  it('keeps the pot in the felt center and leaves the phase off the card', () => {
+    const spec = resolveVenueFloorSpec({ populatedTableCount: 8 })
     const html = renderToStaticMarkup(
       createElement(VenueAerialFloorGrid, {
-        tiles: [tile(1, 'lobby'), tile(2, 'intermission')],
+        tiles: [
+          tile(1, 'question', { pot: 0 }),
+          tile(2, 'intermission'),
+          tile(3, 'lobby'),
+          tile(4, 'betting', { isBettingOpen: true }),
+        ],
         showHeadline: false,
         skipMountIntro: true,
         prefersReducedMotion: true,
         floorSpec: spec!,
       }),
     )
-    const lobby = titleRowHtml(cardHtml(html, 1))
-    const brk = titleRowHtml(cardHtml(html, 2))
-    expect(lobby).not.toContain('Lobby')
-    expect(brk).toContain('Break')
+    const question = cardHtml(html, 1)
+    const title = titleRowHtml(question)
+    expect(title).not.toContain('Question')
+    expect(title).not.toContain('Pot $0')
+    expect(feltCenterHtml(question)).toContain('$0')
+    expect(cardHtml(html, 2)).not.toContain('Break')
+    expect(cardHtml(html, 3)).not.toContain('Lobby')
+    expect(cardHtml(html, 4)).not.toContain('Wagering')
   })
 })

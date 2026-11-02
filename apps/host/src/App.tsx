@@ -526,6 +526,7 @@ function HostApp() {
     onForceAdvance: () => adminAdvanceTurn(),
     onRehearsalSkipToShowdown: rehearsalCpuOnly ? () => rehearsalSkipToShowdown() : undefined,
     hasActiveSetlist,
+    handsCompleted: venueFloorBrief?.handsCompleted ?? 0,
   })
 
   const nextQuestionText =

@@ -675,6 +675,8 @@ export function buildHostPhaseDockItems(args: {
   onRehearsalSkipToShowdown?: () => void
   /** Active rundown selected — show one-click Next from setlist in lobby. */
   hasActiveSetlist?: boolean
+  /** Venue hands already paid. Zero while waiting to start question 1. */
+  handsCompleted?: number
 }): HostDockItem[] {
   const {
     gameState,
@@ -696,7 +698,9 @@ export function buildHostPhaseDockItems(args: {
     onForceAdvance,
     onRehearsalSkipToShowdown,
     hasActiveSetlist = false,
+    handsCompleted = 0,
   } = args
+  const setlistCue = handsCompleted <= 0 ? 'Start Game' : 'Next question'
   const phase = gameState.phase
   const tableId = gameState.tableId ?? ''
   const bettingOpen = gameState.round.isBettingOpen !== false
@@ -734,17 +738,10 @@ export function buildHostPhaseDockItems(args: {
     } else if (hasActiveSetlist) {
       items.push({
         id: 'setlist',
-        label: 'Next question',
+        label: setlistCue,
         onClick: onNextSetlist,
         variant: 'purple',
         role: 'primary',
-      })
-      items.push({
-        id: 'random',
-        label: 'Random question',
-        onClick: onRandomQuestion,
-        variant: 'purple',
-        role: 'secondary',
       })
     } else {
       items.push({
@@ -805,17 +802,10 @@ export function buildHostPhaseDockItems(args: {
       return withRehearsalSkip([
         {
           id: 'setlist',
-          label: 'Next question',
+          label: setlistCue,
           onClick: onNextSetlist,
           variant: 'purple',
           role: 'primary',
-        },
-        {
-          id: 'random',
-          label: 'Random question',
-          onClick: onRandomQuestion,
-          variant: 'purple',
-          role: 'secondary',
         },
       ])
     }

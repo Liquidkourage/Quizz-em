@@ -7,9 +7,9 @@ import { buildHostPhaseDockItems, hostRunOfShowHeadline, HostRunBar, HostTvBar }
 const noop = () => {}
 
 describe('next question cue', () => {
-  it('offers the next list question after a hand, with its text', () => {
+  function dock(handsCompleted: number) {
     const gameState = addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada')
-    const items = buildHostPhaseDockItems({
+    return buildHostPhaseDockItems({
       gameState,
       answerWindowSeconds: 60,
       dealCommunityBlocked: false,
@@ -27,10 +27,23 @@ describe('next question cue', () => {
       onNextSetlist: noop,
       onNudgeActing: noop,
       hasActiveSetlist: true,
+      handsCompleted,
     })
-    expect(items.find((item) => item.role === 'primary')?.label).toBe('Next question')
-    expect(items.some((item) => item.label === 'Show a random question')).toBe(false)
+  }
 
+  it('says Start Game before the first question and drops Random question', () => {
+    const items = dock(0)
+    expect(items.find((item) => item.role === 'primary')?.label).toBe('Start Game')
+    expect(items.some((item) => item.label === 'Random question')).toBe(false)
+    expect(items.some((item) => item.label === 'Show a random question')).toBe(false)
+  })
+
+  it('offers the next list question after a hand, with its text', () => {
+    const items = dock(1)
+    expect(items.find((item) => item.role === 'primary')?.label).toBe('Next question')
+    expect(items.some((item) => item.label === 'Random question')).toBe(false)
+
+    const gameState = addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada')
     const headline = hostRunOfShowHeadline(gameState, null, {
       hasActiveSetlist: true,
       nextQuestionText: 'How many minutes are there in a day?',

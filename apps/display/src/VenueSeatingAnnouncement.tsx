@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueBustEntry, DisplayVenueSeatingAnnouncement } from '@qhe/net'
-import { computeVenueBustGridLayout } from './venueBustGridLayout'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { SeatingChartPageClock } from './SeatingChartNameRoster'
 import { seatingOverlayDurationMs } from './useVenueSeatingAnnouncement'
@@ -39,6 +38,13 @@ function droppedTableByline(seating: DisplayVenueSeatingAnnouncement, tableNum: 
   if (labels.size === 1) return [...labels][0]!
   if (seating.shuffled) return 'TABLE SHUFFLE'
   return ''
+}
+
+/** A short update is one full-width row so the type can fill the TV. */
+function seatingColumns(count: number): number {
+  if (count <= 3) return 1
+  if (count <= 8) return 2
+  return 3
 }
 
 function samePlayer(a: string, b: string): boolean {
@@ -80,17 +86,6 @@ export default function VenueSeatingAnnouncement({
 }) {
   const reducedMotion = useReducedMotion()
   const title = seatingTitle(seating, busts.length)
-  const [viewport, setViewport] = useState(() =>
-    typeof window !== 'undefined'
-      ? { w: window.innerWidth, h: window.innerHeight }
-      : { w: 1920, h: 1080 },
-  )
-
-  useEffect(() => {
-    const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight })
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
 
   const rows = useMemo(() => {
     const out: { key: string; label: string; detail: string; marks: string[]; closed: boolean }[] = []
@@ -128,11 +123,8 @@ export default function VenueSeatingAnnouncement({
     return out
   }, [busts, seating])
 
-  const grid = useMemo(
-    () => computeVenueBustGridLayout(Math.max(1, rows.length), viewport.w, viewport.h),
-    [rows.length, viewport.h, viewport.w],
-  )
-  const compact = grid.compact || rows.length > 4
+  const columns = seatingColumns(rows.length)
+  const compact = rows.length > 10
 
   return (
     <motion.div
@@ -152,10 +144,9 @@ export default function VenueSeatingAnnouncement({
       />
 
       <motion.div
-        className={`venue-bust-overlay-panel relative z-10 flex w-full flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
+        className={`venue-seating-update venue-bust-overlay-panel relative z-10 flex w-full flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
           compact ? 'venue-bust-overlay-panel--compact' : ''
         }`}
-        style={{ maxWidth: grid.cardMaxWidth }}
         initial={reducedMotion ? false : { opacity: 0, y: 18, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={reducedMotion ? undefined : { opacity: 0, y: 10, scale: 0.98 }}
@@ -202,7 +193,7 @@ export default function VenueSeatingAnnouncement({
         {rows.length > 0 ? (
           <div
             className={`venue-bust-overlay-grid ${compact ? 'venue-bust-overlay-grid--compact' : ''}`}
-            style={{ gridTemplateColumns: `repeat(${grid.columns}, minmax(0, 1fr))` }}
+            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
           >
             {rows.map((row) => (
               <div

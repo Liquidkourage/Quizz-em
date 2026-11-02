@@ -113,6 +113,8 @@ describe('seating update', () => {
     expect(line).toContain('ELIMINATED')
     expect(line).toContain('Table 2 → Table 1')
     expect(line).toContain('TABLE BALANCE')
+    expect(html).toContain('venue-seating-update')
+    expect(html).toContain('repeat(1, minmax(0, 1fr))')
   })
 
   it('lists eliminations on the same card as the moves', () => {

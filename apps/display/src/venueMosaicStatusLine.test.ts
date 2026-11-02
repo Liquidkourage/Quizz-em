@@ -71,4 +71,21 @@ describe('public table status line', () => {
     expect(closed).toContain('No more bets')
     expect(closed).toContain('$200')
   })
+
+  it('leaves the lobby word off the table card', () => {
+    const spec = resolveVenueFloorSpec({ populatedTableCount: 6 })
+    const html = renderToStaticMarkup(
+      createElement(VenueAerialFloorGrid, {
+        tiles: [tile(1, 'lobby'), tile(2, 'intermission')],
+        showHeadline: false,
+        skipMountIntro: true,
+        prefersReducedMotion: true,
+        floorSpec: spec!,
+      }),
+    )
+    const lobby = titleRowHtml(cardHtml(html, 1))
+    const brk = titleRowHtml(cardHtml(html, 2))
+    expect(lobby).not.toContain('Lobby')
+    expect(brk).toContain('Break')
+  })
 })

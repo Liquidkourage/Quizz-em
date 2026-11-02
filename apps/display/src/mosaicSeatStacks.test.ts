@@ -11,9 +11,11 @@ import {
   mosaicSeatStackClearPx,
   mosaicCrowdedStackLayout,
   mosaicSeatStackFontPx,
+  mosaicSeatStackFontForAmount,
   mosaicShowsSeatStacks,
   mosaicStreetCardBoxPx,
   MOSAIC_STACK_LABEL_EM,
+  mosaicStackLabelEm,
 } from './mosaicSeatStacks'
 import {
   mosaicSeatDotPct,
@@ -169,6 +171,14 @@ describe('mosaic seat stacks', () => {
       expect(card.widthPx).toBeGreaterThanOrEqual(initials)
       expect(card.heightPx).toBeGreaterThanOrEqual(initials)
     }
+  })
+
+  it('shrinks a stack when the amount gains a digit', () => {
+    const short = mosaicSeatStackFontForAmount(28, 1_000)
+    const longer = mosaicSeatStackFontForAmount(28, 10_990)
+    expect(short).toBe(28)
+    expect(longer).toBeLessThan(short)
+    expect(longer * mosaicStackLabelEm(10_990)).toBeLessThanOrEqual(short * MOSAIC_STACK_LABEL_EM + 0.01)
   })
 
   it('prints the seat stack as a chip amount', () => {

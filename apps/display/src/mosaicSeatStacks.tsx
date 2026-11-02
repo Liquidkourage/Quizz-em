@@ -105,6 +105,23 @@ export function mosaicHoleClearOfInitialsFrac(seatIndex: number, ringW: number, 
 /** Em width of a gold amount such as $1,000, including the chip mark. */
 export const MOSAIC_STACK_LABEL_EM = 3.3
 
+/** Chip mark inside that $1,000 measurement. */
+const MOSAIC_STACK_CHIP_EM = 0.78
+
+/** Width of one stack label in em, chip included. A $1,000 is the measured width. */
+export function mosaicStackLabelEm(amount: number): number {
+  const digits = formatVenueBankrollDigits(amount)
+  const perChar = (MOSAIC_STACK_LABEL_EM - MOSAIC_STACK_CHIP_EM) / '1,000'.length
+  return MOSAIC_STACK_CHIP_EM + digits.length * perChar
+}
+
+/** Keep a short stack at the felt size. Shrink once the amount is wider than $1,000. */
+export function mosaicSeatStackFontForAmount(baseFontPx: number, amount: number): number {
+  const em = mosaicStackLabelEm(amount)
+  if (!(baseFontPx > 0) || em <= MOSAIC_STACK_LABEL_EM) return Math.max(1, Math.round(baseFontPx))
+  return Math.max(12, Math.floor(baseFontPx * (MOSAIC_STACK_LABEL_EM / em)))
+}
+
 /** Space between neighboring stack amounts on a full felt. */
 const CROWDED_STACK_GAP_PX = 4
 

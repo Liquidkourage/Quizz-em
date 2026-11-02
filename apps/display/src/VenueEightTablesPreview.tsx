@@ -54,6 +54,7 @@ import {
   mosaicSeatInitialFontPx,
   mosaicSeatInitialShiftXPx,
   mosaicSeatStackClearPx,
+  mosaicSeatStackFontForAmount,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
   mosaicShowsSeatStacks,
@@ -1693,7 +1694,7 @@ function SeatRingWithLabels({
                 <MosaicSeatStackAmount
                   name={raw}
                   amount={chips}
-                  fontPx={mosaicStackFontPx}
+                  fontPx={mosaicSeatStackFontForAmount(mosaicStackFontPx, chips)}
                 />
               </div>
             ) : null}
@@ -2118,7 +2119,7 @@ function VenueMosaicTableCard({
   const suppressCornerPhaseChip =
     showNoMoreBets || ph === 'answering' || (wageringLive && ph === 'betting')
   const showHeaderPhaseChip =
-    !denseMosaicChrome && !showFloorShowdownOverlay && !suppressCornerPhaseChip
+    !denseMosaicChrome && !showFloorShowdownOverlay && !suppressCornerPhaseChip && ph !== 'lobby'
   const potOnFelt = denseMosaicChrome && !showFloorShowdownOverlay
   const potMuted =
     ph === 'lobby' || ph === 'question'

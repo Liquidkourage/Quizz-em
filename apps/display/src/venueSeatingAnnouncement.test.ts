@@ -143,7 +143,8 @@ describe('seating update', () => {
         busts,
       }),
     )
-    expect(html).toContain('repeat(5, minmax(0, 1fr))')
+    expect(html).toContain('repeat(3, minmax(0, 1fr))')
+    expect(html.indexOf('Busted 0')).toBeLessThan(html.indexOf('Maximilian W.'))
     expect(html).toContain('venue-bust-overlay-panel--compact')
     expect(html).toContain('Maximilian W.')
     expect(html).toContain('TABLE REDUCTION')
@@ -176,6 +177,42 @@ describe('seating update', () => {
     )
     expect(line).toContain('Maximilian W.')
     expect(line).toContain('venue-seating-name')
+  })
+
+  it('lists people who left a closed table underneath that table', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 6,
+          tablesAfter: 4,
+          playerCount: 16,
+          moves: [
+            { name: 'Ada Lane', fromTableNum: 2, toTableNum: 5, byline: 'TABLE BALANCE' },
+            { name: 'Cam Diaz', fromTableNum: 4, toTableNum: 1, byline: 'TABLE REDUCTION' },
+            { name: 'Eve Hart', fromTableNum: 4, toTableNum: 1, byline: 'TABLE REDUCTION' },
+            { name: 'Pat Mills', fromTableNum: 9, toTableNum: 2, byline: 'TABLE REDUCTION' },
+          ],
+          closedTableNums: [4, 9],
+        },
+        busts: [
+          { name: 'Bo Kent', tableNum: 3 },
+          { name: 'Eve Hart', tableNum: 4 },
+        ],
+      }),
+    )
+    const at = (label: string) => html.indexOf(label)
+    expect(at('Bo K.')).toBeGreaterThan(-1)
+    expect(at('Bo K.')).toBeLessThan(at('>Table 4<'))
+    expect(at('>Table 4<')).toBeLessThan(at('Cam D.'))
+    expect(at('Cam D.')).toBeLessThan(at('>Table 9<'))
+    expect(at('>Table 9<')).toBeLessThan(at('Pat M.'))
+    expect(at('Pat M.')).toBeLessThan(at('Ada L.'))
+    const under4 = html.indexOf('venue-seating-closure-moves')
+    expect(html.slice(under4, under4 + 600)).toContain('Cam D.')
+    expect(html.slice(under4, under4 + 600)).not.toContain('Ada L.')
+    expect(html.split('Eve H.').length - 1).toBe(1)
+    expect(at('Eve H.')).toBeLessThan(at('>Table 4<'))
   })
 
   it('colors an elimination apart from a move', () => {

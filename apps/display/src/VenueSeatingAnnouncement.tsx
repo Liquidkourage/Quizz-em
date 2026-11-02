@@ -66,6 +66,95 @@ function seatingRowClass(kind: 'move' | 'eliminated' | 'closed', compact: boolea
   return parts.join(' ')
 }
 
+type SeatingUpdateRow = {
+  key: string
+  label: string
+  detail: string
+  marks: string[]
+  kind: 'move' | 'eliminated' | 'closed'
+}
+
+type SeatingClosureBlock = {
+  header: SeatingUpdateRow
+  moves: SeatingUpdateRow[]
+}
+
+type SeatingUpdateLayout = {
+  eliminations: SeatingUpdateRow[]
+  closures: SeatingClosureBlock[]
+  otherMoves: SeatingUpdateRow[]
+}
+
+function playerMoveRow(
+  move: DisplayVenueSeatingAnnouncement['moves'][number],
+  busts: DisplayVenueBustEntry[],
+  usedBust: Set<number>,
+): SeatingUpdateRow {
+  const bustAt = busts.findIndex((bust, index) => !usedBust.has(index) && samePlayer(bust.name, move.name))
+  if (bustAt >= 0) usedBust.add(bustAt)
+  const byline = move.byline?.trim() ?? ''
+  return {
+    key: `${move.name}-${move.fromTableNum}-${move.toTableNum}`,
+    label: displayPlayerName(move.name),
+    detail: `Table ${move.fromTableNum} → Table ${move.toTableNum}`,
+    marks: rowMarks(bustAt >= 0, byline),
+    kind: bustAt >= 0 ? 'eliminated' : 'move',
+  }
+}
+
+function unpairedBustRow(bust: DisplayVenueBustEntry): SeatingUpdateRow {
+  return {
+    key: `out-${bust.name}-${bust.tableNum}`,
+    label: displayPlayerName(bust.name),
+    detail: `Table ${bust.tableNum}`,
+    marks: ['ELIMINATED'],
+    kind: 'eliminated',
+  }
+}
+
+function closedHeaderRow(seating: DisplayVenueSeatingAnnouncement, tableNum: number): SeatingUpdateRow {
+  return {
+    key: `closed-${tableNum}`,
+    label: `Table ${tableNum}`,
+    detail: 'Closed',
+    marks: rowMarks(false, droppedTableByline(seating, tableNum)),
+    kind: 'closed',
+  }
+}
+
+/** Eliminations, then each closed table with the people who left it, then other moves. */
+export function seatingUpdateLayout(
+  seating: DisplayVenueSeatingAnnouncement,
+  busts: DisplayVenueBustEntry[],
+): SeatingUpdateLayout {
+  const usedBust = new Set<number>()
+  const moved = seating.moves.map((move) => ({
+    fromTableNum: move.fromTableNum,
+    row: playerMoveRow(move, busts, usedBust),
+  }))
+  const closed = new Set(seating.closedTableNums)
+  return {
+    eliminations: [
+      ...moved.filter((item) => item.row.kind === 'eliminated').map((item) => item.row),
+      ...busts.filter((_, index) => !usedBust.has(index)).map(unpairedBustRow),
+    ],
+    closures: seating.closedTableNums.map((tableNum) => ({
+      header: closedHeaderRow(seating, tableNum),
+      moves: moved
+        .filter((item) => item.row.kind === 'move' && item.fromTableNum === tableNum)
+        .map((item) => item.row),
+    })),
+    otherMoves: moved
+      .filter((item) => item.row.kind === 'move' && !closed.has(item.fromTableNum))
+      .map((item) => item.row),
+  }
+}
+
+function seatingLayoutRowCount(layout: SeatingUpdateLayout): number {
+  const nested = layout.closures.reduce((sum, block) => sum + 1 + block.moves.length, 0)
+  return layout.eliminations.length + layout.otherMoves.length + nested
+}
+
 function seatingEyebrow(seating: DisplayVenueSeatingAnnouncement, bustCount: number): string {
   const parts: string[] = []
   if (bustCount > 0) parts.push(`${bustCount} eliminated`)
@@ -78,6 +167,42 @@ function seatingEyebrow(seating: DisplayVenueSeatingAnnouncement, bustCount: num
   return parts.join(' · ')
 }
 
+function SeatingUpdateRow({ row, compact }: { row: SeatingUpdateRow; compact: boolean }) {
+  return (
+    <div className={seatingRowClass(row.kind, compact)}>
+      <div className="venue-bust-overlay-row-line">
+        <span
+          className={`venue-seating-name venue-bust-overlay-name ${
+            compact ? 'venue-bust-overlay-name--compact' : ''
+          }`}
+        >
+          {row.label}
+        </span>
+        {row.marks.map((mark) => (
+          <span key={mark} className="venue-bust-overlay-byline shrink-0">
+            {mark}
+          </span>
+        ))}
+        <span className="venue-bust-overlay-table-well">{row.detail}</span>
+      </div>
+    </div>
+  )
+}
+
+function SeatingUpdateGrid({ rows, compact }: { rows: SeatingUpdateRow[]; compact: boolean }) {
+  const columns = seatingColumns(rows.length)
+  return (
+    <div
+      className={`venue-bust-overlay-grid ${compact ? 'venue-bust-overlay-grid--compact' : ''}`}
+      style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+    >
+      {rows.map((row) => (
+        <SeatingUpdateRow key={row.key} row={row} compact={compact} />
+      ))}
+    </div>
+  )
+}
+
 export default function VenueSeatingAnnouncement({
   seating,
   busts = [],
@@ -88,50 +213,9 @@ export default function VenueSeatingAnnouncement({
   const reducedMotion = useReducedMotion()
   const title = seatingTitle(seating, busts.length)
 
-  const rows = useMemo(() => {
-    const out: {
-      key: string
-      label: string
-      detail: string
-      marks: string[]
-      kind: 'move' | 'eliminated' | 'closed'
-    }[] = []
-    const usedBust = new Set<number>()
-    for (const m of seating.moves) {
-      const bustAt = busts.findIndex((bust, index) => !usedBust.has(index) && samePlayer(bust.name, m.name))
-      if (bustAt >= 0) usedBust.add(bustAt)
-      out.push({
-        key: `${m.name}-${m.fromTableNum}-${m.toTableNum}`,
-        label: displayPlayerName(m.name),
-        detail: `Table ${m.fromTableNum} → Table ${m.toTableNum}`,
-        marks: rowMarks(bustAt >= 0, m.byline?.trim() ?? ''),
-        kind: bustAt >= 0 ? 'eliminated' : 'move',
-      })
-    }
-    busts.forEach((bust, index) => {
-      if (usedBust.has(index)) return
-      out.push({
-        key: `out-${bust.name}-${bust.tableNum}`,
-        label: displayPlayerName(bust.name),
-        detail: `Table ${bust.tableNum}`,
-        marks: ['ELIMINATED'],
-        kind: 'eliminated',
-      })
-    })
-    for (const n of seating.closedTableNums) {
-      out.push({
-        key: `closed-${n}`,
-        label: `Table ${n}`,
-        detail: 'Closed',
-        marks: rowMarks(false, droppedTableByline(seating, n)),
-        kind: 'closed',
-      })
-    }
-    return out
-  }, [busts, seating])
-
-  const columns = seatingColumns(rows.length)
-  const compact = rows.length > 10
+  const layout = useMemo(() => seatingUpdateLayout(seating, busts), [busts, seating])
+  const rowCount = seatingLayoutRowCount(layout)
+  const compact = rowCount > 10
 
   return (
     <motion.div
@@ -197,33 +281,24 @@ export default function VenueSeatingAnnouncement({
           </div>
         </div>
 
-        {rows.length > 0 ? (
-          <div
-            className={`venue-bust-overlay-grid ${compact ? 'venue-bust-overlay-grid--compact' : ''}`}
-            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-          >
-            {rows.map((row) => (
-              <div
-                key={row.key}
-                className={seatingRowClass(row.kind, compact)}
-              >
-                <div className="venue-bust-overlay-row-line">
-                  <span
-                    className={`venue-seating-name venue-bust-overlay-name ${
-                      compact ? 'venue-bust-overlay-name--compact' : ''
-                    }`}
-                  >
-                    {row.label}
-                  </span>
-                  {row.marks.map((mark) => (
-                    <span key={mark} className="venue-bust-overlay-byline shrink-0">
-                      {mark}
-                    </span>
-                  ))}
-                  <span className="venue-bust-overlay-table-well">{row.detail}</span>
-                </div>
+        {rowCount > 0 ? (
+          <div className="venue-seating-sections">
+            {layout.eliminations.length > 0 ? (
+              <SeatingUpdateGrid rows={layout.eliminations} compact={compact} />
+            ) : null}
+            {layout.closures.map((block) => (
+              <div key={block.header.key} className="venue-seating-closure">
+                <SeatingUpdateRow row={block.header} compact={compact} />
+                {block.moves.length > 0 ? (
+                  <div className="venue-seating-closure-moves">
+                    <SeatingUpdateGrid rows={block.moves} compact={compact} />
+                  </div>
+                ) : null}
               </div>
             ))}
+            {layout.otherMoves.length > 0 ? (
+              <SeatingUpdateGrid rows={layout.otherMoves} compact={compact} />
+            ) : null}
           </div>
         ) : seating.shuffled ? (
           <p className="px-1 pb-1 text-center text-sm text-white/70 sm:text-base">

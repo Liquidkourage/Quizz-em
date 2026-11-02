@@ -1606,6 +1606,7 @@ export {
   winnerScreensPayoutHint,
   winnerScreensReadyAt,
 } from './winnerScreens';
+export { answerRevealOpen, answerRevealWaitLabel } from './answerReveal';
 
 function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAnswer'>, correct: number): number {
   if (snapshotPlayer.submittedAnswer === undefined) return 0;

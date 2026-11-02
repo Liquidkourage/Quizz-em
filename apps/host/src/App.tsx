@@ -179,6 +179,17 @@ function HostApp() {
     const id = window.setInterval(() => setWinnerScreenNowMs(Date.now()), 1000)
     return () => window.clearInterval(id)
   }, [venueFloorBrief?.winnerScreensReadyAtMs])
+  const [guessClockNowMs, setGuessClockNowMs] = useState(() => Date.now())
+  useEffect(() => {
+    const deadlines = (venueFeltBeat ?? [])
+      .filter((row) => row.active && row.seated > 0 && row.phase === 'answering' && row.answerDeadlineMs != null)
+      .map((row) => row.answerDeadlineMs as number)
+    if (deadlines.length === 0) return
+    const soonest = Math.min(...deadlines)
+    if (Date.now() >= soonest) return
+    const id = window.setTimeout(() => setGuessClockNowMs(Date.now()), Math.max(0, soonest - Date.now()))
+    return () => window.clearTimeout(id)
+  }, [venueFeltBeat, guessClockNowMs])
   const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
     getSocketConnectionStatus(),
   )
@@ -509,7 +520,9 @@ function HostApp() {
   const closeBetHint = closeBettingGate.hint
   const startAnswerBlocked = startAnswerGate.blocked
   const startAnswerHint = startAnswerGate.hint
-  const revealAnswerHint = hasVenueFeltBeat ? venueRevealAnswerBlockedHint(venueFeltBeat) : null
+  const revealAnswerHint = hasVenueFeltBeat
+    ? venueRevealAnswerBlockedHint(venueFeltBeat, venueFloorBrief?.actionRows, guessClockNowMs)
+    : null
   const revealAnswerBlocked = revealAnswerHint != null
   const winnerScreensReadyAtMs = venueFloorBrief?.winnerScreensReadyAtMs ?? null
   const payWinnersHint = winnerScreensPayoutHint(winnerScreensReadyAtMs, winnerScreenNowMs)

@@ -103,15 +103,57 @@ describe('revealVenueAnswersTogether', () => {
     expect(toasts[0]).toContain('out of sync')
   })
 
-  it('reveals every seated table in one beat when all are answering', () => {
+  it('holds the answer while guesses are still open', () => {
+    seat('L9', '1', 'answering', 2)
+    seat('L9', '2', 'answering', 2)
+    const future = Date.now() + 60_000
+    for (const tableId of ['1', '2']) {
+      const key = tableSessionKey('L9', tableId)
+      const gs = rooms.get(key)!
+      rooms.set(key, {
+        ...gs,
+        players: gs.players.map((player, index) =>
+          tableId === '1' || index === 0 ? { ...player, submittedAnswer: 10 } : player,
+        ),
+        round: { ...gs.round, answerDeadline: future },
+      })
+    }
+    const { socket, toasts } = host()
+    expect(revealVenueAnswersTogether(socket, 'l9')).toBe(false)
+    expect(rooms.get(tableSessionKey('L9', '1'))!.phase).toBe('answering')
+    expect(rooms.get(tableSessionKey('L9', '2'))!.phase).toBe('answering')
+    expect(toasts[0]).toContain('still guessing')
+  })
+
+  it('reveals every seated table in one beat when the guessing timer is up', () => {
     seat('L8', '1', 'answering')
     seat('L8', '2', 'answering')
     seat('L8', '3', 'answering')
+    for (const tableId of ['1', '2', '3']) {
+      const key = tableSessionKey('L8', tableId)
+      const gs = rooms.get(key)!
+      rooms.set(key, { ...gs, round: { ...gs.round, answerDeadline: 1 } })
+    }
     const { socket, toasts } = host()
     expect(revealVenueAnswersTogether(socket, 'l8')).toBe(true)
     expect(rooms.get(tableSessionKey('L8', '1'))!.phase).toBe('reveal')
     expect(rooms.get(tableSessionKey('L8', '2'))!.phase).toBe('reveal')
     expect(rooms.get(tableSessionKey('L8', '3'))!.phase).toBe('reveal')
+    expect(toasts).toEqual([])
+  })
+
+  it('reveals when every player has guessed before the timer ends', () => {
+    seat('L10', '1', 'answering', 2)
+    const key = tableSessionKey('L10', '1')
+    const gs = rooms.get(key)!
+    rooms.set(key, {
+      ...gs,
+      players: gs.players.map((player) => ({ ...player, submittedAnswer: 4 })),
+      round: { ...gs.round, answerDeadline: Date.now() + 60_000 },
+    })
+    const { socket, toasts } = host()
+    expect(revealVenueAnswersTogether(socket, 'l10')).toBe(true)
+    expect(rooms.get(key)!.phase).toBe('reveal')
     expect(toasts).toEqual([])
   })
 })

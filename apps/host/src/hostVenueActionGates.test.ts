@@ -4,7 +4,12 @@ import { buildHostPhaseDockItems } from './hostDeskLayout'
 import { venueDealCommunityBlockedHint, venueRevealAnswerBlockedHint } from './hostVenueActionGates'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
 
-function felt(tableNum: number, phase: string, phaseStrictSig: string | null): HostVenueFeltBeatRow {
+function felt(
+  tableNum: number,
+  phase: string,
+  phaseStrictSig: string | null,
+  extra?: Partial<HostVenueFeltBeatRow>,
+): HostVenueFeltBeatRow {
   return {
     tableNum,
     phase,
@@ -14,6 +19,7 @@ function felt(tableNum: number, phase: string, phaseStrictSig: string | null): H
     questionText: null,
     questionAnswer: null,
     answerDeadlineMs: null,
+    ...extra,
   } as HostVenueFeltBeatRow
 }
 
@@ -54,6 +60,27 @@ describe('reveal while someone is betting', () => {
       onNudgeActing: () => {},
     })
     expect(items.find((item) => item.label === 'Reveal the answer')?.disabled).toBe(true)
+  })
+
+  it('keeps Reveal the answer off until the timer ends or every guess is in', () => {
+    const open = venueRevealAnswerBlockedHint(
+      [felt(1, 'answering', 'answer', { answerDeadlineMs: 10_000 })],
+      [{ tableNum: 1, answersSubmitted: 1, answersExpected: 2 }],
+      1_000,
+    )
+    expect(open).toContain('still guessing')
+    const allIn = venueRevealAnswerBlockedHint(
+      [felt(1, 'answering', 'answer', { answerDeadlineMs: 10_000 })],
+      [{ tableNum: 1, answersSubmitted: 2, answersExpected: 2 }],
+      1_000,
+    )
+    expect(allIn).toBeNull()
+    const expired = venueRevealAnswerBlockedHint(
+      [felt(1, 'answering', 'answer', { answerDeadlineMs: 10_000 })],
+      [{ tableNum: 1, answersSubmitted: 0, answersExpected: 2 }],
+      10_000,
+    )
+    expect(expired).toBeNull()
   })
 
   it('holds Pay winners until the winner screens finish one pass', () => {

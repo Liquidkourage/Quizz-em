@@ -28,6 +28,8 @@ import {
   inferAnswerComposition,
   PLAYER_ANSWER_DIGIT_CARD_COUNT,
   revealAnswer,
+  answerRevealOpen,
+  answerRevealWaitLabel,
   advanceRevealToShowdown,
   endRound,
   winnerScreensPayoutHint,
@@ -1808,7 +1810,7 @@ export function setOneTablePhase(
   return { ok: true, tableNum, signature }
 }
 
-/** Reveal is one venue beat. Returns false, and changes nothing, until every seated table is answering. */
+/** Reveal is one venue beat. Returns false, and changes nothing, until every seated table is answering and the clock is done or every guess is in. */
 export function revealVenueAnswersTogether(socket: Socket, venueCode: string): boolean {
   const lock = requireVenueLockstepTables(
     socket,
@@ -1817,6 +1819,12 @@ export function revealVenueAnswersTogether(socket: Socket, venueCode: string): b
     'be in the answer window before revealing',
   )
   if (!lock) return false
+  const nowMs = Date.now()
+  const stillGuessing = lock.filter((row) => !tableAnswersReady(row.gs, nowMs))
+  if (stillGuessing.length > 0) {
+    socket.emit('toast', answerRevealWaitLabel(stillGuessing.map((row) => row.n)))
+    return false
+  }
   clearVenueWageringOrchestrationState(normalizeVenueCode(venueCode))
   for (const { tk } of lock) {
     const gs = rooms.get(tk)
@@ -1824,6 +1832,17 @@ export function revealVenueAnswersTogether(socket: Socket, venueCode: string): b
     rooms.set(tk, revealAnswer(gs))
   }
   return true
+}
+
+function tableAnswersReady(gs: GameState, nowMs: number): boolean {
+  const deadline = gs.round?.answerDeadline
+  const deadlineMs = typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : null
+  const players = gs.players ?? []
+  let submitted = 0
+  for (const player of players) {
+    if (typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)) submitted++
+  }
+  return answerRevealOpen({ deadlineMs, submitted, expected: players.length, nowMs })
 }
 
 /**

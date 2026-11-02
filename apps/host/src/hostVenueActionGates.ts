@@ -1,5 +1,11 @@
-import type { GameState } from '@qhe/core'
+import { answerRevealOpen, answerRevealWaitLabel, type GameState } from '@qhe/core'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
+
+export type VenueGuessProgress = {
+  tableNum: number
+  answersSubmitted?: number
+  answersExpected?: number
+}
 
 export type VenueBetPhaseSig = { br: number; open: boolean; cc: number }
 
@@ -87,17 +93,44 @@ export function venueCloseBettingBlockedHint(rows: HostVenueFeltBeatRow[] | null
   return null
 }
 
-/** Someone still has a betting turn, so the answer must stay hidden. */
-export function venueRevealAnswerBlockedHint(rows: HostVenueFeltBeatRow[] | null): string | null {
-  const stillBetting = seatedVenueRows(rows).filter(
+/** Someone still has a betting turn, or guesses are still open, so the answer must stay hidden. */
+export function venueRevealAnswerBlockedHint(
+  rows: HostVenueFeltBeatRow[] | null,
+  guesses?: VenueGuessProgress[] | null,
+  nowMs = Date.now(),
+): string | null {
+  const seated = seatedVenueRows(rows)
+  const stillBetting = seated.filter(
     (row) => row.phase === 'betting' && !wageringClockClosed(row.phaseStrictSig),
   )
-  if (stillBetting.length === 0) return null
-  const nums = stillBetting
-    .map((row) => row.tableNum)
-    .sort((a, b) => a - b)
-    .join(', ')
-  return `Tables ${nums} still have a player betting.`
+  if (stillBetting.length > 0) {
+    const nums = stillBetting
+      .map((row) => row.tableNum)
+      .sort((a, b) => a - b)
+      .join(', ')
+    return `Tables ${nums} still have a player betting.`
+  }
+  const waiting = guessingTablesStillOpen(seated, guesses, nowMs)
+  if (waiting.length === 0) return null
+  return answerRevealWaitLabel(waiting.map((row) => row.tableNum))
+}
+
+function guessingTablesStillOpen(
+  rows: HostVenueFeltBeatRow[],
+  guesses: VenueGuessProgress[] | null | undefined,
+  nowMs: number,
+): HostVenueFeltBeatRow[] {
+  const byTable = new Map((guesses ?? []).map((row) => [row.tableNum, row]))
+  return rows.filter((row) => {
+    if (row.phase !== 'answering') return false
+    const guess = byTable.get(row.tableNum)
+    return !answerRevealOpen({
+      deadlineMs: row.answerDeadlineMs,
+      submitted: guess?.answersSubmitted ?? 0,
+      expected: guess?.answersExpected ?? row.seated,
+      nowMs,
+    })
+  })
 }
 
 /** Venue-wide gate for start answering — lockstep post-board, clock closed, full board. */

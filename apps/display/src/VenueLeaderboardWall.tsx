@@ -111,8 +111,8 @@ export default function VenueLeaderboardWall({
     [tileRows, handBaselines]
   )
   const triviaRows = useMemo(
-    () => venueTriviaLeaderboardRowsFromTiles(tileRows, wall.pointsStandings ?? []),
-    [tileRows, wall.pointsStandings],
+    () => venueTriviaLeaderboardRowsFromTiles(tileRows, wall?.pointsStandings ?? []),
+    [tileRows, wall?.pointsStandings],
   )
   const rows = trophy === 'trivia' ? triviaRows : chipRows
   const presentation = useMemo(() => buildVenueLeaderboardPresentation(rows), [rows])

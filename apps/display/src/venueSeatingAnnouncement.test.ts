@@ -118,6 +118,36 @@ describe('seating update', () => {
     expect(html).toContain('max-width:none')
   })
 
+  it('splits a crowded seating update across more columns', () => {
+    const moves = Array.from({ length: 12 }, (_, i) => ({
+      name: i === 0 ? 'Maximilian Westerly' : `Player ${i}`,
+      fromTableNum: (i % 11) + 1,
+      toTableNum: 1,
+      byline: 'TABLE REDUCTION',
+    }))
+    const busts = Array.from({ length: 12 }, (_, i) => ({
+      name: `Busted ${i}`,
+      tableNum: (i % 11) + 1,
+    }))
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 11,
+          tablesAfter: 6,
+          playerCount: 24,
+          moves,
+          closedTableNums: [],
+        },
+        busts,
+      }),
+    )
+    expect(html).toContain('repeat(5, minmax(0, 1fr))')
+    expect(html).toContain('venue-bust-overlay-panel--compact')
+    expect(html).toContain('Maximilian W.')
+    expect(html).toContain('TABLE REDUCTION')
+  })
+
   it('keeps a long name and its initial on the seating line', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSeatingAnnouncement, {

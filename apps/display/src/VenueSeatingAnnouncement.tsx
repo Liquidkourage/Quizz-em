@@ -44,7 +44,9 @@ function droppedTableByline(seating: DisplayVenueSeatingAnnouncement, tableNum: 
 function seatingColumns(count: number): number {
   if (count <= 3) return 1
   if (count <= 8) return 2
-  return 3
+  if (count <= 12) return 3
+  if (count <= 20) return 4
+  return 5
 }
 
 function samePlayer(a: string, b: string): boolean {

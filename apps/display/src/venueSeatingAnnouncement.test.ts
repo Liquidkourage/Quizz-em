@@ -118,6 +118,35 @@ describe('seating update', () => {
     expect(html).toContain('max-width:none')
   })
 
+  it('keeps a long name and its initial on the seating line', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 4,
+          tablesAfter: 3,
+          playerCount: 8,
+          moves: [
+            {
+              name: 'Maximilian Westerly',
+              fromTableNum: 12,
+              toTableNum: 3,
+              byline: 'TABLE BALANCE',
+            },
+          ],
+          closedTableNums: [],
+        },
+        busts: [{ name: 'Maximilian Westerly', tableNum: 12 }],
+      }),
+    )
+    const line = html.slice(
+      html.indexOf('venue-bust-overlay-row-line'),
+      html.indexOf('venue-bust-overlay-row-line') + 800,
+    )
+    expect(line).toContain('Maximilian W.')
+    expect(line).toContain('venue-seating-name')
+  })
+
   it('lists eliminations on the same card as the moves', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSeatingAnnouncement, {

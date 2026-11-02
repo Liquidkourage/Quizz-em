@@ -144,7 +144,7 @@ export default function VenueSeatingAnnouncement({
       />
 
       <motion.div
-        className={`venue-seating-update venue-bust-overlay-panel relative z-10 flex h-full w-full flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
+        className={`venue-seating-move venue-seating-update venue-bust-overlay-panel relative z-10 flex h-full w-full flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
           compact ? 'venue-bust-overlay-panel--compact' : ''
         }`}
         style={{ width: '100%', height: '100%', maxWidth: 'none' }}
@@ -203,7 +203,7 @@ export default function VenueSeatingAnnouncement({
               >
                 <div className="venue-bust-overlay-row-line">
                   <span
-                    className={`venue-bust-overlay-name ${
+                    className={`venue-seating-name venue-bust-overlay-name ${
                       compact ? 'venue-bust-overlay-name--compact' : ''
                     }`}
                   >

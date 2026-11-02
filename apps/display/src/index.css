@@ -4361,3 +4361,28 @@
   font-size: clamp(1.6rem, 3.2vh, 3rem);
   letter-spacing: 0.06em;
 }
+
+.venue-seating-move .venue-bust-overlay-row-line {
+  flex-wrap: wrap;
+  row-gap: 0.4rem;
+}
+
+.venue-seating-move .venue-seating-name {
+  min-width: max-content;
+  overflow: visible;
+  text-overflow: clip;
+  flex-shrink: 0;
+  font-size: clamp(2.15rem, 4.4vh, 4.4rem);
+}
+
+.venue-seating-move .venue-seating-name.venue-bust-overlay-name--compact {
+  font-size: clamp(1.35rem, 2.6vh, 2.2rem);
+}
+
+.venue-seating-move .venue-bust-overlay-byline {
+  font-size: clamp(1.25rem, 2.4vh, 2.15rem);
+}
+
+.venue-seating-move .venue-bust-overlay-table-well {
+  font-size: clamp(1.15rem, 2.2vh, 2rem);
+}

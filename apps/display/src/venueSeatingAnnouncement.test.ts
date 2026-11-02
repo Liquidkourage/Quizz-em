@@ -45,6 +45,7 @@ describe('seating update', () => {
         },
       }),
     )
+    expect(html).toContain('venue-bust-overlay-byline')
     expect(html).toContain('Table 9 was two players ahead, so its next big blind moved to table 4.')
   })
 

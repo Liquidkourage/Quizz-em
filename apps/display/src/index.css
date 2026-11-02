@@ -4207,10 +4207,10 @@
 
   .venue-bust-overlay-row {
     display: flex;
+    flex-direction: column;
+    align-items: stretch;
     min-width: 0;
-    align-items: center;
-    justify-content: space-between;
-    gap: clamp(8px, 1.15vw, 12px);
+    gap: clamp(4px, 0.55vmin, 6px);
     border-radius: clamp(8px, 1.05vmin, 12px);
     border: 1px solid rgb(248 113 113 / 0.44);
     background:
@@ -4224,6 +4224,20 @@
 
   .venue-bust-overlay-row--compact {
     padding: clamp(6px, 0.95vmin, 9px) clamp(8px, 1.2vw, 12px);
+  }
+
+  .venue-bust-overlay-row-line {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(8px, 1.15vw, 12px);
+  }
+
+  .venue-bust-overlay-byline {
+    font-size: clamp(0.78rem, 1.15vw, 0.95rem);
+    line-height: 1.3;
+    color: rgb(255 255 255 / 0.72);
   }
 
   .venue-bust-overlay-row--closed {

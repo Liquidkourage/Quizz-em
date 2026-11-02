@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import type { DisplayLayoutPayload, DisplayVenueSeatingAnnouncement, DisplayVenueWallSnapshot } from '@qhe/net'
+import type { DisplayLayoutPayload, DisplayVenueWallSnapshot } from '@qhe/net'
 import {
   connect,
   onDisplayLayout,
@@ -27,7 +27,7 @@ import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive }
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
-import { useVenueSeatingAnnouncement, venueSeatingAnnouncementHasContent } from './useVenueSeatingAnnouncement'
+import { normalizeLastHandSeating, useVenueSeatingAnnouncement } from './useVenueSeatingAnnouncement'
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 
@@ -50,54 +50,6 @@ function normalizeVenueWallTiles(
     }
   }
   return [...byNum.keys()].sort((a, b) => a - b).map((n) => byNum.get(n)!)
-}
-
-function normalizeLastHandSeating(raw: unknown): DisplayVenueSeatingAnnouncement | null {
-  if (raw == null || typeof raw !== 'object') return null
-  const s = raw as Partial<DisplayVenueSeatingAnnouncement>
-  const moves = Array.isArray(s.moves)
-    ? s.moves
-        .map((m) => {
-          if (m == null || typeof m !== 'object') return null
-          const row = m as Partial<DisplayVenueSeatingAnnouncement['moves'][number]>
-          if (typeof row.name !== 'string' || typeof row.fromTableNum !== 'number' || typeof row.toTableNum !== 'number') {
-            return null
-          }
-          return {
-            name: row.name.trim(),
-            fromTableNum: Math.floor(row.fromTableNum),
-            toTableNum: Math.floor(row.toTableNum),
-          }
-        })
-        .filter((m): m is DisplayVenueSeatingAnnouncement['moves'][number] => m != null)
-    : []
-  const closedTableNums = Array.isArray(s.closedTableNums)
-    ? s.closedTableNums
-        .filter((n): n is number => typeof n === 'number' && Number.isFinite(n))
-        .map((n) => Math.floor(n))
-    : []
-  const shuffled = s.shuffled === true
-  const tablesBefore =
-    typeof s.tablesBefore === 'number' && Number.isFinite(s.tablesBefore)
-      ? Math.floor(s.tablesBefore)
-      : 0
-  const tablesAfter =
-    typeof s.tablesAfter === 'number' && Number.isFinite(s.tablesAfter)
-      ? Math.floor(s.tablesAfter)
-      : 0
-  const playerCount =
-    typeof s.playerCount === 'number' && Number.isFinite(s.playerCount)
-      ? Math.floor(s.playerCount)
-      : 0
-  const out: DisplayVenueSeatingAnnouncement = {
-    moves,
-    closedTableNums,
-    shuffled,
-    tablesBefore,
-    tablesAfter,
-    playerCount,
-  }
-  return venueSeatingAnnouncementHasContent(out) ? out : null
 }
 
 function venueOverviewFocusOff(l: DisplayLayoutPayload) {

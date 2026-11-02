@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  normalizeLastHandSeating,
   payoutSeatChangesToAnnounce,
   venueSeatingAnnouncementHasContent,
 } from './useVenueSeatingAnnouncement'
@@ -94,5 +95,24 @@ describe('payout announcements', () => {
         playerCount: 10,
       })?.closedTableNums,
     ).toEqual([2])
+  })
+
+  it('keeps the reason on each move the TV is about to show', () => {
+    const seating = normalizeLastHandSeating({
+      moves: [
+        {
+          name: 'Elena G.',
+          fromTableNum: 1,
+          toTableNum: 2,
+          byline: 'Table 1 closed. Its players drew new seats.',
+        },
+      ],
+      closedTableNums: [1],
+      shuffled: false,
+      tablesBefore: 6,
+      tablesAfter: 5,
+      playerCount: 20,
+    })
+    expect(seating?.moves[0]?.byline).toBe('Table 1 closed. Its players drew new seats.')
   })
 })

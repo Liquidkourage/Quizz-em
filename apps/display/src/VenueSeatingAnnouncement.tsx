@@ -170,17 +170,17 @@ export default function VenueSeatingAnnouncement({
                 key={row.key}
                 className={seatingRowClass(row.closed, compact)}
               >
-                <span
-                  className={`venue-bust-overlay-name ${
-                    compact ? 'venue-bust-overlay-name--compact' : ''
-                  }`}
-                >
-                  {row.label}
-                </span>
-                <span className="venue-bust-overlay-table-well text-cyan-100/90">{row.detail}</span>
-                {row.byline ? (
-                  <span className="mt-1 block text-sm leading-snug text-white/70">{row.byline}</span>
-                ) : null}
+                <div className="venue-bust-overlay-row-line">
+                  <span
+                    className={`venue-bust-overlay-name ${
+                      compact ? 'venue-bust-overlay-name--compact' : ''
+                    }`}
+                  >
+                    {row.label}
+                  </span>
+                  <span className="venue-bust-overlay-table-well text-cyan-100/90">{row.detail}</span>
+                </div>
+                {row.byline ? <span className="venue-bust-overlay-byline">{row.byline}</span> : null}
               </div>
             ))}
           </div>

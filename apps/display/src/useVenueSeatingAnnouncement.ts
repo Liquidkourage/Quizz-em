@@ -37,6 +37,49 @@ export function payoutSeatChangesToAnnounce(
   }
 }
 
+function seatingMoveFromWire(raw: unknown): DisplayVenueSeatingAnnouncement['moves'][number] | null {
+  if (raw == null || typeof raw !== 'object') return null
+  const row = raw as Partial<DisplayVenueSeatingAnnouncement['moves'][number]>
+  if (typeof row.name !== 'string' || typeof row.fromTableNum !== 'number' || typeof row.toTableNum !== 'number') {
+    return null
+  }
+  const byline = typeof row.byline === 'string' ? row.byline.trim() : ''
+  return {
+    name: row.name.trim(),
+    fromTableNum: Math.floor(row.fromTableNum),
+    toTableNum: Math.floor(row.toTableNum),
+    ...(byline ? { byline } : {}),
+  }
+}
+
+function wholeNumber(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.floor(value) : 0
+}
+
+function closedTablesFromWire(raw: unknown): number[] {
+  if (!Array.isArray(raw)) return []
+  return raw.filter((n): n is number => typeof n === 'number' && Number.isFinite(n)).map((n) => Math.floor(n))
+}
+
+export function normalizeLastHandSeating(raw: unknown): DisplayVenueSeatingAnnouncement | null {
+  if (raw == null || typeof raw !== 'object') return null
+  const s = raw as Partial<DisplayVenueSeatingAnnouncement>
+  const moves = Array.isArray(s.moves)
+    ? s.moves
+        .map(seatingMoveFromWire)
+        .filter((m): m is DisplayVenueSeatingAnnouncement['moves'][number] => m != null)
+    : []
+  const out: DisplayVenueSeatingAnnouncement = {
+    moves,
+    closedTableNums: closedTablesFromWire(s.closedTableNums),
+    shuffled: s.shuffled === true,
+    tablesBefore: wholeNumber(s.tablesBefore),
+    tablesAfter: wholeNumber(s.tablesAfter),
+    playerCount: wholeNumber(s.playerCount),
+  }
+  return venueSeatingAnnouncementHasContent(out) ? out : null
+}
+
 export function venueSeatingAnnouncementHasContent(
   seating: DisplayVenueSeatingAnnouncement | null | undefined,
 ): seating is DisplayVenueSeatingAnnouncement {

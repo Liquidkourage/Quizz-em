@@ -130,7 +130,10 @@ export async function handleWageringAction(
         case 'nudgeActingPlayers': {
           if (!g.assertVenueHost(socket, gameState)) break
           const vnNudge = g.normalizeVenueCode(gameState.code)
-          const { nudged, names } = g.nudgeActingHumansVenue(vnNudge)
+          const requested = payload?.tableNum
+          const tableNum =
+            typeof requested === 'number' && Number.isFinite(requested) ? Math.floor(requested) : undefined
+          const { nudged, names } = g.nudgeActingHumansVenue(vnNudge, tableNum)
           if (nudged === 0) {
             socket.emit(
               'toast',

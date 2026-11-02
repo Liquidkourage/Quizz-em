@@ -40,6 +40,17 @@ const TABLE_ACTION_TONE: Record<string, string> = {
   intermission: 'border-zinc-400/35 bg-zinc-900/50 text-zinc-200',
 }
 
+/** Player the host can put on a 30s clock from this table card. */
+export function actingNudgeName(row: {
+  phase: string
+  betsClosed?: boolean
+  actingPlayerName?: string | null
+}): string | null {
+  if (row.phase !== 'betting' || row.betsClosed === true) return null
+  const name = row.actingPlayerName?.trim()
+  return name ? name : null
+}
+
 function tableActionCue(row: {
   phase: string
   betsClosed?: boolean
@@ -1972,6 +1983,7 @@ export function HostVenueFloorBriefPanel({
   onSpotlight,
   onMove,
   onRemove,
+  onNudgeTable,
   blindCall,
 }: {
   brief: HostVenueFloorBriefPayload | null
@@ -1983,6 +1995,8 @@ export function HostVenueFloorBriefPanel({
   onSpotlight?: (tableNum: number) => void
   onMove?: (playerId: string, toTableNum: number) => void
   onRemove?: (playerId: string) => void
+  /** Start the 30s clock for the human waiting to act at this table. */
+  onNudgeTable?: (tableNum: number) => void
   blindCall?: ReactNode
 }) {
   const rows = [...(brief?.actionRows ?? [])].sort((a, b) => a.tableNum - b.tableNum)
@@ -2043,6 +2057,7 @@ export function HostVenueFloorBriefPanel({
                   const onPublicDisplay = soloTable === row.tableNum
                   const cue = tableActionCue(row)
                   const drift = outlierTableNums.has(row.tableNum)
+                  const nudgeName = onNudgeTable ? actingNudgeName(row) : null
                   return (
                     <li key={row.tableNum}>
                     <button
@@ -2062,6 +2077,11 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </span>
                       <p className="text-sm font-semibold">{cue.label}</p>
+                      {nudgeName ? (
+                        <p className="truncate text-sm font-semibold text-amber-50">
+                          {hostPlayerLabel(nudgeName)}
+                        </p>
+                      ) : null}
                       <p className="text-sm tabular-nums text-white/50">
                         <span className="font-semibold text-emerald-200/85">
                           {row.inPotCount ?? 0} in pot
@@ -2074,6 +2094,16 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </p>
                     </button>
+                    {nudgeName ? (
+                      <button
+                        type="button"
+                        aria-label={`Nudge ${nudgeName} on table ${row.tableNum}`}
+                        onClick={() => onNudgeTable?.(row.tableNum)}
+                        className="mt-1 w-full rounded border border-amber-300/70 bg-amber-500/25 px-1 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-50"
+                      >
+                        Nudge
+                      </button>
+                    ) : null}
                     </li>
                   )
                 })}

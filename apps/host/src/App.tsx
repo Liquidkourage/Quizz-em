@@ -1100,6 +1100,7 @@ function HostApp() {
                 onSpotlight={spotlightTableOnTvs}
                 onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
                 onRemove={(playerId) => removePlayerFromEvent(playerId)}
+                onNudgeTable={(tableNum) => nudgeActingPlayers(tableNum)}
                 blindCall={
               <HostBlindCall
                 showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}

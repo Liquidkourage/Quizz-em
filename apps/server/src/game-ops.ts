@@ -1406,13 +1406,17 @@ export function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): voi
   humanTurnTimers.set(sessionKey, timer)
 }
 
-/** Host: start a 30s countdown on every table whose acting seat is a human. */
-export function nudgeActingHumansVenue(vnRaw: string): { nudged: number; names: string[] } {
+/** Host: start a 30s countdown on each table whose acting seat is a human. One table when `tableNum` is set. */
+export function nudgeActingHumansVenue(
+  vnRaw: string,
+  tableNum?: number,
+): { nudged: number; names: string[] } {
   const vn = normalizeVenueCode(vnRaw)
   const names: string[] = []
   let nudged = 0
   const fireAt = Date.now() + HUMAN_NUDGE_TIMEOUT_MS
-  for (const { tk, gs } of venuePlayableSnapshots(vn)) {
+  for (const { tk, n, gs } of venuePlayableSnapshots(vn)) {
+    if (tableNum != null && n !== tableNum) continue
     const actor = resolveHumanTurnActor(gs)
     if (!actor) continue
     humanTurnActorKey.set(tk, `${actor.playerId}:${actor.seatIndex}`)

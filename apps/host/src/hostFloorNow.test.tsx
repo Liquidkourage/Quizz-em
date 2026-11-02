@@ -168,6 +168,29 @@ describe('venue floor now', () => {
     expect(betting).not.toContain('submitted')
   })
 
+  it('offers a nudge on the table that is waiting for a player to act', () => {
+    const floor = brief()
+    floor.actionRows = [
+      { ...actionRow(1), phase: 'betting', actingPlayerName: 'Ada Lane' },
+      { ...actionRow(2), phase: 'betting', betsClosed: true, actingPlayerName: 'Bo' },
+      { ...actionRow(3), phase: 'answering', actingPlayerName: 'Cy' },
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+        onNudgeTable: () => {},
+      }),
+    )
+    const waiting = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
+    const closed = html.slice(html.indexOf('Open table 2'), html.indexOf('Open table 3'))
+    const guessing = html.slice(html.indexOf('Open table 3'))
+    expect(waiting).toContain('Nudge Ada Lane on table 1')
+    expect(closed).not.toContain('Nudge')
+    expect(guessing).not.toContain('Nudge')
+  })
+
   it('lists table action in numerical order', () => {
     const floor = brief()
     floor.actionRows = [

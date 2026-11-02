@@ -702,10 +702,15 @@ export function adminAdvanceTurn(callback?: (ack: ServerAck) => void) {
   if (callback) socket.once('ack', callback)
 }
 
-/** Host: give every acting human 30s, then auto check/fold if they still stall. */
-export function nudgeActingPlayers(callback?: (ack: ServerAck) => void) {
+/** Host: 30s for the acting human, then auto check/fold. One table when `tableNum` is set; otherwise every table. */
+export function nudgeActingPlayers(tableNum?: number, callback?: (ack: ServerAck) => void) {
   if (!socket) return
-  socket.emit('action', { type: 'nudgeActingPlayers' })
+  socket.emit(
+    'action',
+    typeof tableNum === 'number'
+      ? { type: 'nudgeActingPlayers', payload: { tableNum } }
+      : { type: 'nudgeActingPlayers' },
+  )
   if (callback) socket.once('ack', callback)
 }
 

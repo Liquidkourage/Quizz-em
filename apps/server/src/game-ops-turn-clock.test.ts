@@ -133,6 +133,14 @@ describe('nudgeActingHumansVenue', () => {
     put('N2', '1', { isBettingOpen: false })
     expect(nudgeActingHumansVenue('n2')).toEqual({ nudged: 0, names: [] })
   })
+
+  it('nudges the acting human on one table and leaves the others waiting', () => {
+    const a = put('N3', '1')
+    const b = put('N3', '2', { currentPlayerIndex: 1 })
+    expect(nudgeActingHumansVenue('n3', 2)).toEqual({ nudged: 1, names: ['Bo'] })
+    expect(humanTurnDeadlineMs.has(a.key)).toBe(false)
+    expect(humanTurnDeadlineMs.get(b.key)).toBe(1_030_000)
+  })
 })
 
 describe('auto check or fold after a nudge', () => {

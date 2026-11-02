@@ -489,6 +489,7 @@ export function buildHostVenueFloorBrief(args: {
   handsCompleted?: number
   lastHandBustCount?: number
   showStartedAtMs?: number | null
+  handStartedAtMs?: number | null
   fieldPeakCount?: number
   wallView?: VenueWallViewMode
   winnerScreensReadyAtMs?: number | null
@@ -516,6 +517,7 @@ export function buildHostVenueFloorBrief(args: {
     lastHandBustCount: Math.max(0, Math.floor(args.lastHandBustCount ?? 0)),
     medianStack: medianSeatedStack(args.tiles),
     showStartedAtMs: args.showStartedAtMs ?? null,
+    handStartedAtMs: args.handStartedAtMs ?? null,
     fieldPeakCount: Math.max(args.fieldPlayerCount, Math.floor(args.fieldPeakCount ?? 0)),
     wallView: args.wallView ?? 'floor',
     winnerScreensReadyAtMs: args.winnerScreensReadyAtMs ?? null,

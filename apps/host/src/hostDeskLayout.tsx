@@ -15,6 +15,7 @@ import type {
 import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
+import { feltCountdownSec } from './HostShowClocks'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
   lobby: 'Waiting room',
@@ -1288,10 +1289,7 @@ function HostFeltBeatTile({
 }) {
   const watching = hostTableId.trim() !== LOBBY_TABLE_ID && String(row.tableNum) === hostTableId.trim()
   const phaseLabel = row.phase === 'inactive' ? '—' : HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
-  const countdownSec =
-    row.phase === 'answering' && row.answerDeadlineMs != null
-      ? Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
-      : null
+  const countdownSec = feltCountdownSec(row, Date.now())
   const title = feltBeatTileTitle({
     watching,
     seated: row.seated,
@@ -1341,8 +1339,7 @@ export function HostVenueFeltBeatStrip({
   const openRow =
     openTable == null ? undefined : rows?.find((row) => row.tableNum === openTable && row.seated > 0)
 
-  const hasLiveCountdown =
-    rows?.some((r) => r.phase === 'answering' && r.answerDeadlineMs != null) ?? false
+  const hasLiveCountdown = rows?.some((r) => feltCountdownSec(r, Date.now()) != null) ?? false
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!hasLiveCountdown) return
@@ -2804,8 +2801,7 @@ export function HostFloorStrip({
   const actionByTable = new Map((brief?.actionRows ?? []).map((r) => [r.tableNum, r]))
   const seated =
     rows?.filter((r) => r.active && r.seated > 0).sort((a, b) => a.tableNum - b.tableNum) ?? []
-  const hasLiveCountdown =
-    rows?.some((r) => r.phase === 'answering' && r.answerDeadlineMs != null) ?? false
+  const hasLiveCountdown = rows?.some((r) => feltCountdownSec(r, Date.now()) != null) ?? false
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!hasLiveCountdown) return
@@ -2846,10 +2842,7 @@ export function HostFloorStrip({
             const action = actionByTable.get(row.tableNum)
             const drift = outlierTableNums.has(row.tableNum)
             const phaseLabel = HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
-            const countdownSec =
-              row.phase === 'answering' && row.answerDeadlineMs != null
-                ? Math.max(0, Math.ceil((row.answerDeadlineMs - Date.now()) / 1000))
-                : null
+            const countdownSec = feltCountdownSec(row, Date.now())
             return (
               <button
                 key={row.tableNum}

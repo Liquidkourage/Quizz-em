@@ -25,6 +25,7 @@ const handsCompletedByVenue = new Map<string, number>()
 const shuffleEveryByVenue = new Map<string, number>()
 const skipNextShuffleByVenue = new Map<string, boolean>()
 const showStartedAtByVenue = new Map<string, number>()
+const handStartedAtByVenue = new Map<string, number>()
 const fieldPeakByVenue = new Map<string, number>()
 
 export function clampVenueShuffleEvery(raw: unknown): number {
@@ -112,6 +113,7 @@ export function resetVenueShuffleCounter(venueCode: string): void {
   handsCompletedByVenue.set(vn, 0)
   skipNextShuffleByVenue.set(vn, false)
   showStartedAtByVenue.delete(vn)
+  handStartedAtByVenue.delete(vn)
   fieldPeakByVenue.delete(vn)
   persistToDisk()
 }
@@ -130,6 +132,20 @@ export function noteVenueShowStarted(venueCode: string, nowMs = Date.now()): num
 
 export function getVenueShowStartedAt(venueCode: string): number | null {
   return showStartedAtByVenue.get(normalizeVenueKey(venueCode)) ?? null
+}
+
+/** First moment a seated felt leaves the lobby this hand. Cleared when every table is between hands. */
+export function noteVenueHandClock(venueCode: string, handInProgress: boolean, nowMs = Date.now()): number | null {
+  const vn = normalizeVenueKey(venueCode)
+  if (!vn || !handInProgress) {
+    if (vn) handStartedAtByVenue.delete(vn)
+    return null
+  }
+  const existing = handStartedAtByVenue.get(vn)
+  if (existing != null) return existing
+  const stamp = Math.floor(nowMs)
+  handStartedAtByVenue.set(vn, stamp)
+  return stamp
 }
 
 /** Largest chip-survivor count seen since New game. */

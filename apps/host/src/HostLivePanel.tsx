@@ -8,6 +8,7 @@ import {
   type HostDockItem,
   isHostWaitingForJoiners,
 } from './hostDeskLayout'
+import { HostNudgeClock, HostShowClocks } from './HostShowClocks'
 
 export function HostLivePanel({
   gameState,
@@ -25,6 +26,8 @@ export function HostLivePanel({
   scoresForced = false,
   activeView = 'floor',
   venueFeltBeat,
+  showStartedAtMs = null,
+  handStartedAtMs = null,
   questionSlot,
   handBody,
   floorNow,
@@ -46,6 +49,8 @@ export function HostLivePanel({
   /** Public display mode currently on the audience TVs. */
   activeView?: VenueWallViewMode
   venueFeltBeat: HostVenueFeltBeatRow[] | null
+  showStartedAtMs?: number | null
+  handStartedAtMs?: number | null
   questionSlot?: ReactNode
   handBody: ReactNode
   /** Venue floor · now, already open. */
@@ -101,6 +106,8 @@ export function HostLivePanel({
 
       <div className="flex min-w-0 items-start gap-2 sm:col-span-2 sm:row-start-2">
         <div className="min-w-0 flex-1">{questionSlot}</div>
+        <HostShowClocks showStartedAtMs={showStartedAtMs} handStartedAtMs={handStartedAtMs} />
+        <HostNudgeClock rows={venueFeltBeat} />
         <HostAnswerClock rows={venueFeltBeat} />
       </div>
 

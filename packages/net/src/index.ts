@@ -308,6 +308,8 @@ export type HostVenueFeltBeatRow = {
   street: string
   clock: string
   answerDeadlineMs: number | null
+  /** Epoch ms when a host nudge on the acting seat expires. Absent until the host nudges. */
+  turnDeadlineMs?: number | null
   /**
    * Server lockstep fingerprint (`phaseStrictSignature`); `null` when inactive.
    * Host compares across active felts to flag drift.
@@ -426,6 +428,8 @@ export type HostVenueFloorBriefPayload = {
   medianStack?: number | null
   /** Epoch ms when the first hand left the lobby. Null before the night starts. */
   showStartedAtMs?: number | null
+  /** Epoch ms when the current hand left the lobby. Null between hands. */
+  handStartedAtMs?: number | null
   /** Largest seated field seen this night. */
   fieldPeakCount?: number
   /** Players eliminated on the hand that just paid. */

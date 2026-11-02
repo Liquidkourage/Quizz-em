@@ -121,6 +121,7 @@ import {
   getVenueShowStartedAt,
   loadVenueShuffleSettingsFromDisk,
   noteVenueFieldPeak,
+  noteVenueHandClock,
   noteVenueShowStarted,
   recordVenueShuffleHandCompleted,
   resetVenueShuffleCounter,
@@ -2012,6 +2013,12 @@ export function pickVenueHeadlineSource(venueCode: string): { gs: GameState; tab
   return null
 }
 
+function feltTurnDeadlineMs(phase: string, sessionKey: string): number | null {
+  if (phase !== 'betting') return null
+  const deadline = humanTurnDeadlineMs.get(sessionKey)
+  return typeof deadline === 'number' && Number.isFinite(deadline) ? Math.floor(deadline) : null
+}
+
 export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenueFeltBeatRow[] } {
   const vn = normalizeVenueCode(vnRaw)
   const felts: HostVenueFeltBeatRow[] = []
@@ -2073,6 +2080,7 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
       street,
       clock,
       answerDeadlineMs,
+      turnDeadlineMs: feltTurnDeadlineMs(phase, key),
       phaseStrictSig: phaseStrictSignature(gs),
       questionText: gs.round.question?.text?.trim() || null,
       questionAnswer:
@@ -2461,6 +2469,10 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       fieldPlayerCount: condenseCounts.chipSurvivorCount,
       liveTableCount: condenseCounts.liveTableCount,
       showStartedAtMs: getVenueShowStartedAt(vn),
+      handStartedAtMs: noteVenueHandClock(
+        vn,
+        tiles.some((t) => t.seated > 0 && t.phase !== 'lobby' && t.phase !== 'inactive'),
+      ),
       fieldPeakCount: noteVenueFieldPeak(vn, condenseCounts.chipSurvivorCount),
       bigBlindHint: blindsSnap.bigBlind,
       roster: venueRosterSeats(vn),

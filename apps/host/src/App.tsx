@@ -1125,6 +1125,8 @@ function HostApp() {
             scoresForced={venueFloorBrief?.scoresBlockNextQuestion === true}
             activeView={venueFloorBrief?.wallView ?? 'floor'}
             venueFeltBeat={venueFeltBeat}
+            showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}
+            handStartedAtMs={venueFloorBrief?.handStartedAtMs ?? null}
             questionSlot={
               hostControlState.round.question ? (
                 <HostLiveQuestionCard

@@ -1980,6 +1980,22 @@ export function HostTableOpen({
   )
 }
 
+function nudgeSecondsForTable(
+  feltRows: readonly HostVenueFeltBeatRow[] | null,
+  tableNum: number,
+  nowMs: number,
+): number | null {
+  const deadline = feltRows?.find((row) => row.tableNum === tableNum)?.turnDeadlineMs
+  if (typeof deadline !== 'number' || !Number.isFinite(deadline)) return null
+  return Math.max(0, Math.ceil((deadline - nowMs) / 1000))
+}
+
+function feltHasNudgeClock(feltRows: readonly HostVenueFeltBeatRow[] | null): boolean {
+  return (feltRows ?? []).some(
+    (row) => typeof row.turnDeadlineMs === 'number' && Number.isFinite(row.turnDeadlineMs),
+  )
+}
+
 /** The table filling the public screens by itself, or null while other tables or another mode share the wall. */
 export function publicDisplaySoloTable(brief: HostVenueFloorBriefPayload | null): number | null {
   if (brief == null) return null
@@ -2015,6 +2031,13 @@ export function HostVenueFloorBriefPanel({
   blindCall?: ReactNode
 }) {
   const rows = [...(brief?.actionRows ?? [])].sort((a, b) => a.tableNum - b.tableNum)
+  const nudgeLive = feltHasNudgeClock(feltRows)
+  const [, setNudgeTick] = useState(0)
+  useEffect(() => {
+    if (!nudgeLive) return
+    const id = window.setInterval(() => setNudgeTick((n) => n + 1), 1000)
+    return () => window.clearInterval(id)
+  }, [nudgeLive])
   const soloTable = publicDisplaySoloTable(brief)
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
   const [openTable, setOpenTable] = useState<number | null>(null)
@@ -2073,6 +2096,7 @@ export function HostVenueFloorBriefPanel({
                   const cue = tableActionCue(row)
                   const drift = outlierTableNums.has(row.tableNum)
                   const nudgeName = onNudgeTable ? actingNudgeName(row) : null
+                  const nudgeSec = nudgeSecondsForTable(feltRows, row.tableNum, Date.now())
                   return (
                     <li key={row.tableNum}>
                     <button
@@ -2095,6 +2119,16 @@ export function HostVenueFloorBriefPanel({
                       {nudgeName ? (
                         <p className="truncate text-sm font-semibold text-amber-50">
                           {hostPlayerLabel(nudgeName)}
+                        </p>
+                      ) : null}
+                      {nudgeSec != null ? (
+                        <p
+                          className={`font-mono text-2xl font-black leading-none tabular-nums ${
+                            nudgeSec <= 10 ? 'text-rose-200' : 'text-amber-200'
+                          }`}
+                          aria-label={`Nudge clock ${nudgeSec}`}
+                        >
+                          {nudgeSec}
                         </p>
                       ) : null}
                       <p className="text-sm tabular-nums text-white/50">

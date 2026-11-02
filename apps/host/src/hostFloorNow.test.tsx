@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import type { HostVenueActionRow, HostVenueFloorBriefPayload } from '@qhe/net'
+import type { HostVenueActionRow, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { HostTableContest, HostTableOpen, HostVenueFloorBriefPanel } from './hostDeskLayout'
 
 function actionRow(tableNum: number): HostVenueActionRow {
@@ -189,6 +189,37 @@ describe('venue floor now', () => {
     expect(waiting).toContain('Nudge Ada Lane on table 1')
     expect(closed).not.toContain('Nudge')
     expect(guessing).not.toContain('Nudge')
+  })
+
+  it('shows the nudge clock on the table action card that was nudged', () => {
+    const floor = brief()
+    floor.actionRows = [
+      { ...actionRow(1), phase: 'betting', actingPlayerName: 'Ada Lane' },
+      { ...actionRow(2), phase: 'betting', actingPlayerName: 'Bo' },
+    ]
+    const felt = (tableNum: number, turnDeadlineMs: number | null): HostVenueFeltBeatRow => ({
+      tableNum,
+      active: true,
+      seated: 4,
+      phase: 'betting',
+      street: 'Pre-board',
+      clock: 'Clock open',
+      answerDeadlineMs: null,
+      turnDeadlineMs,
+      phaseStrictSig: 'bet',
+    })
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+        feltRows: [felt(1, Date.now() + 30_000), felt(2, null)],
+      }),
+    )
+    const nudged = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
+    const other = html.slice(html.indexOf('Open table 2'))
+    expect(nudged).toContain('Nudge clock 30')
+    expect(other).not.toContain('Nudge clock')
   })
 
   it('lists table action in numerical order', () => {

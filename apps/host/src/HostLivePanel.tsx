@@ -111,7 +111,7 @@ export function HostLivePanel({
         <HostAnswerClock rows={venueFeltBeat} />
       </div>
 
-      <div className="min-h-0 max-h-full self-start overflow-y-auto sm:col-span-2 sm:row-start-3">{floorNow}</div>
+      <div className="h-full min-h-0 overflow-hidden sm:col-span-2 sm:row-start-3">{floorNow}</div>
     </div>
   )
 }

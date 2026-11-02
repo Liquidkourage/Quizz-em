@@ -134,6 +134,7 @@ export function HostCollapsible({
   toolbar,
   expanded = false,
   appearance = 'bar',
+  bodyClassName = '',
 }: {
   summary: ReactNode
   /** Short face for a live-desk button. The popup title keeps `summary`. */
@@ -149,6 +150,8 @@ export function HostCollapsible({
   expanded?: boolean
   /** `button` is a compact control. `bar` is a full-width label row. */
   appearance?: 'bar' | 'button'
+  /** Extra classes for the expanded section body. */
+  bodyClassName?: string
 }) {
   const nested = useHostModalNested()
   const [open, setOpen] = useState(() => forceOpen || (defaultOpen && !nested))
@@ -167,7 +170,7 @@ export function HostCollapsible({
           </span>
           {toolbar ? <div className="min-w-0 text-base font-normal">{toolbar}</div> : null}
         </div>
-        <div className="px-3 py-2">{children}</div>
+        <div className={`min-h-0 px-3 py-2 ${bodyClassName}`}>{children}</div>
       </section>
     )
   }
@@ -2045,9 +2048,11 @@ export function HostVenueFloorBriefPanel({
   const openRow = rows.find((row) => row.tableNum === openTable)
 
   return (
-    <>
+    <div className="host-live-floor flex h-full min-h-0 flex-col gap-2">
     <HostCollapsible
       expanded
+      className="min-h-0 flex-1"
+      bodyClassName="flex-1 overflow-y-auto"
       toolbar={
         blindCall ? <div className="host-floor-toolbar">{blindCall}</div> : undefined
       }
@@ -2209,9 +2214,10 @@ export function HostVenueFloorBriefPanel({
         </div>
       )}
     </HostCollapsible>
-    <div className="mt-2">
     <HostCollapsible
       expanded
+      className="host-hand-lists order-first max-h-[40%] shrink-0"
+      bodyClassName="min-h-0 flex-1 overflow-y-auto"
       summary={
         <span>
           This hand
@@ -2285,7 +2291,6 @@ export function HostVenueFloorBriefPanel({
       )}
     </HostCollapsible>
     </div>
-    </>
   )
 }
 

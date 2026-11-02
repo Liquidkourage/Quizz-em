@@ -1715,7 +1715,7 @@ export async function fastForwardVenueRehearsalToShowdown(
 
 function tableProgress(gs: GameState): number {
   const phase = gs.phase
-  if (phase === 'lobby' || phase === 'inactive') return 0
+  if (phase === 'lobby') return 0
   if (phase === 'question') return 10
   if (phase !== 'betting') return laterPhaseRank(phase)
   const round = gs.round

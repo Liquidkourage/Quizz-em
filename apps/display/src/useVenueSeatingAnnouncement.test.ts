@@ -57,7 +57,7 @@ describe('payout announcements', () => {
     ).toBe(true)
   })
 
-  it('pops named table moves and leaves a global re-seat off the card', () => {
+  it('shows a dropped table from a redraw', () => {
     expect(
       payoutSeatChangesToAnnounce({
         moves: [],
@@ -66,8 +66,8 @@ describe('payout announcements', () => {
         tablesBefore: 4,
         tablesAfter: 2,
         playerCount: 12,
-      }),
-    ).toBeNull()
+      })?.closedTableNums,
+    ).toEqual([3, 4])
     expect(
       payoutSeatChangesToAnnounce({
         moves: [{ name: 'Pat', fromTableNum: 2, toTableNum: 5 }],
@@ -79,8 +79,8 @@ describe('payout announcements', () => {
       }),
     ).toEqual({
       moves: [{ name: 'Pat', fromTableNum: 2, toTableNum: 5 }],
-      closedTableNums: [],
-      shuffled: false,
+      closedTableNums: [2, 3, 4],
+      shuffled: true,
       tablesBefore: 4,
       tablesAfter: 2,
       playerCount: 12,

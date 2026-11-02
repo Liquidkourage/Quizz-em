@@ -49,6 +49,49 @@ describe('seating update', () => {
     expect(html).toContain('TABLE BALANCE')
   })
 
+  it('labels a dropped table with the line that emptied it', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 2,
+          tablesAfter: 1,
+          playerCount: 5,
+          moves: [
+            {
+              name: 'Ada Lane',
+              fromTableNum: 4,
+              toTableNum: 1,
+              byline: 'TABLE REDUCTION',
+            },
+          ],
+          closedTableNums: [4],
+        },
+      }),
+    )
+    const closed = html.indexOf('>Table 4<')
+    expect(closed).toBeGreaterThan(-1)
+    expect(html.slice(closed, closed + 400)).toContain('TABLE REDUCTION')
+  })
+
+  it('labels a table dropped by a redraw TABLE SHUFFLE', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: true,
+          tablesBefore: 4,
+          tablesAfter: 2,
+          playerCount: 12,
+          moves: [],
+          closedTableNums: [9],
+        },
+      }),
+    )
+    const closed = html.indexOf('>Table 9<')
+    expect(closed).toBeGreaterThan(-1)
+    expect(html.slice(closed, closed + 400)).toContain('TABLE SHUFFLE')
+  })
+
   it('shows a circle for how long the seating update stays up', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSeatingAnnouncement, {

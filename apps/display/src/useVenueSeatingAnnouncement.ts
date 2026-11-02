@@ -23,18 +23,14 @@ export function seatingOverlayDurationMs(
 }
 
 /**
- * Named moves at payout. A global re-seat is not this card: shuffle-only
- * payloads stay quiet, and a re-seat that also rescued someone lists just that player.
+ * Moves and dropped tables after a hand. A redraw with no closed table stays off this card.
  */
 export function payoutSeatChangesToAnnounce(
   seating: DisplayVenueSeatingAnnouncement | null | undefined,
 ): DisplayVenueSeatingAnnouncement | null {
-  if (seating == null || seating.moves.length === 0) return null
-  return {
-    ...seating,
-    shuffled: false,
-    closedTableNums: seating.shuffled ? [] : seating.closedTableNums,
-  }
+  if (seating == null) return null
+  if (seating.moves.length === 0 && seating.closedTableNums.length === 0) return null
+  return seating
 }
 
 function seatingMoveFromWire(raw: unknown): DisplayVenueSeatingAnnouncement['moves'][number] | null {

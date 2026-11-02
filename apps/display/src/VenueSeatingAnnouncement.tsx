@@ -28,6 +28,18 @@ function seatingTitle(seating: DisplayVenueSeatingAnnouncement): string {
   return 'Table closed'
 }
 
+function droppedTableByline(seating: DisplayVenueSeatingAnnouncement, tableNum: number): string {
+  const labels = new Set<string>()
+  for (const move of seating.moves) {
+    if (move.fromTableNum !== tableNum) continue
+    const byline = move.byline?.trim()
+    if (byline) labels.add(byline)
+  }
+  if (labels.size === 1) return [...labels][0]!
+  if (seating.shuffled) return 'TABLE SHUFFLE'
+  return ''
+}
+
 function seatingRowClass(closed: boolean, compact: boolean): string {
   const parts = ['venue-bust-overlay-row border-cyan-500/20']
   if (closed) parts.push('venue-bust-overlay-row--closed')
@@ -81,7 +93,7 @@ export default function VenueSeatingAnnouncement({
         key: `closed-${n}`,
         label: `Table ${n}`,
         detail: 'Closed',
-        byline: '',
+        byline: droppedTableByline(seating, n),
         closed: true,
       })
     }

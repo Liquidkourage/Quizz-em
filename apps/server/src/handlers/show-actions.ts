@@ -421,12 +421,8 @@ export async function handleShowAction(
           const levelMsg = g.recordVenueHandCompleted(vnEnd)
           g.syncVenueBlindsToAllSessions(vnEnd)
           await g.emitHostLibrary(vnEnd)
-          const shuffleTick = g.recordVenueShuffleHandCompleted(vnEnd)
-          const condenseResult = g.runVenueCondenseAfterRound(
-            vnEnd,
-            gameState.hostId,
-            shuffleTick.shuffleThisRound,
-          )
+          g.recordVenueShuffleHandCompleted(vnEnd)
+          const condenseResult = g.runVenueCondenseAfterRound(vnEnd, gameState.hostId, false)
           g.attachVenueLastHandSeating(vnEnd, g.venueSeatingAnnouncementFromResult(condenseResult))
           g.emitDisplayVenueSnapshotNow(vnEnd)
           for (const msg of condenseResult.hostToasts) socket.emit('toast', msg)

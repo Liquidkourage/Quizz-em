@@ -4,6 +4,7 @@ import {
   type GameState,
   VENUE_NUMBERED_TABLE_MAX,
   createEmptyGame,
+  nextBigBlindChipIndex,
   planVenueCondense,
   type VenueCondensePlayerMove,
   type VenueCondenseScheduledMerge,
@@ -32,7 +33,7 @@ export type VenueCondenseApplyResult = {
   survivorsBefore: number
   survivorsAfter: number
   hostToasts: string[]
-  seatingMoves: { name: string; fromTableNum: number; toTableNum: number }[]
+  seatingMoves: { name: string; fromTableNum: number; toTableNum: number; byline: string }[]
   closedTableNums: number[]
 }
 
@@ -47,7 +48,11 @@ function collectRosters(deps: VenueCondenseApplyDeps): VenueTableRoster[] {
     /** Chip survivors drive seating math; points-only riders come along in shuffle apply. */
     const survivors = gs.players.filter((p) => p.bankroll > 0)
     if (survivors.length === 0) continue
-    out.push({ tableNum: n, players: survivors })
+    out.push({
+      tableNum: n,
+      players: survivors,
+      nextBigBlindIndex: nextBigBlindChipIndex(gs.players, gs.round.dealerIndex),
+    })
   }
   out.sort((a, b) => a.tableNum - b.tableNum)
   return out
@@ -213,27 +218,30 @@ export function applyVenueCondenseAfterRound(
       name: applied.name,
       fromTableNum: move.fromTableNum,
       toTableNum: move.toTableNum,
+      byline: move.byline,
     })
-    hostToasts.push(
-      `Table ${move.fromTableNum} closed — player rescued to Table ${move.toTableNum}.`,
-    )
-    /** Bring points-only spectators along when a felt loses its last chip player. */
-    const fromKey = deps.tableSessionKey(deps.venueCode, String(move.fromTableNum))
-    const fromGs = deps.getState(fromKey)
-    if (fromGs && fromGs.players.every((p) => p.bankroll <= 0 || p.pointsOnly)) {
-      for (const rider of [...fromGs.players]) {
-        const rode = applyPlayerMoveToRooms(deps, {
-          playerId: rider.id,
-          fromTableNum: move.fromTableNum,
-          toTableNum: move.toTableNum,
-          reason: 'solo',
-        })
-        if (rode == null) continue
-        seatingMoves.push({
-          name: rode.name,
-          fromTableNum: move.fromTableNum,
-          toTableNum: move.toTableNum,
-        })
+    if (!hostToasts.includes(move.byline)) hostToasts.push(move.byline)
+    /** Points-only players stay through a balance move and ride along only when their table breaks. */
+    if (move.reason === 'break') {
+      const fromKey = deps.tableSessionKey(deps.venueCode, String(move.fromTableNum))
+      const fromGs = deps.getState(fromKey)
+      if (fromGs && fromGs.players.every((p) => p.bankroll <= 0 || p.pointsOnly)) {
+        for (const rider of [...fromGs.players]) {
+          const rode = applyPlayerMoveToRooms(deps, {
+            playerId: rider.id,
+            fromTableNum: move.fromTableNum,
+            toTableNum: move.toTableNum,
+            reason: 'break',
+            byline: move.byline,
+          })
+          if (rode == null) continue
+          seatingMoves.push({
+            name: rode.name,
+            fromTableNum: move.fromTableNum,
+            toTableNum: move.toTableNum,
+            byline: move.byline,
+          })
+        }
       }
     }
     rosters = collectRosters(deps)
@@ -282,6 +290,7 @@ export function venueSeatingAnnouncementFromResult(
       name: m.name,
       fromTableNum: m.fromTableNum,
       toTableNum: m.toTableNum,
+      byline: m.byline,
     })),
     closedTableNums: result.closedTableNums,
     shuffled: result.shuffled,

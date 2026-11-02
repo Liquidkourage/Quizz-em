@@ -67,12 +67,13 @@ export default function VenueSeatingAnnouncement({
   }, [])
 
   const rows = useMemo(() => {
-    const out: { key: string; label: string; detail: string; closed: boolean }[] = []
+    const out: { key: string; label: string; detail: string; byline: string; closed: boolean }[] = []
     for (const m of seating.moves) {
       out.push({
         key: `${m.name}-${m.fromTableNum}-${m.toTableNum}`,
         label: displayPlayerName(m.name),
         detail: `Table ${m.fromTableNum} → Table ${m.toTableNum}`,
+        byline: m.byline?.trim() ?? '',
         closed: false,
       })
     }
@@ -81,6 +82,7 @@ export default function VenueSeatingAnnouncement({
         key: `closed-${n}`,
         label: `Table ${n}`,
         detail: 'Closed',
+        byline: '',
         closed: true,
       })
     }
@@ -176,6 +178,9 @@ export default function VenueSeatingAnnouncement({
                   {row.label}
                 </span>
                 <span className="venue-bust-overlay-table-well text-cyan-100/90">{row.detail}</span>
+                {row.byline ? (
+                  <span className="mt-1 block text-sm leading-snug text-white/70">{row.byline}</span>
+                ) : null}
               </div>
             ))}
           </div>

@@ -270,6 +270,8 @@ export type DisplayVenueSeatingMoveEntry = {
   name: string
   fromTableNum: number
   toTableNum: number
+  /** Why this player changed tables, shown on the seating update. */
+  byline?: string
 }
 
 /** Public display: seating changes after End Round (solo rescue, closed felts, scheduled shuffle). */

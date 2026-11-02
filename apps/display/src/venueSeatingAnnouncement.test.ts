@@ -25,6 +25,29 @@ describe('seating update', () => {
     expect(html.slice(moved - 180, moved)).not.toContain('venue-bust-overlay-row--closed')
   })
 
+  it('explains why each player moved', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 4,
+          tablesAfter: 4,
+          playerCount: 8,
+          moves: [
+            {
+              name: 'Ada Lane',
+              fromTableNum: 9,
+              toTableNum: 4,
+              byline: 'Table 9 was two players ahead, so its next big blind moved to table 4.',
+            },
+          ],
+          closedTableNums: [],
+        },
+      }),
+    )
+    expect(html).toContain('Table 9 was two players ahead, so its next big blind moved to table 4.')
+  })
+
   it('shows a circle for how long the seating update stays up', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSeatingAnnouncement, {

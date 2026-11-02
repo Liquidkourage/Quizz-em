@@ -67,7 +67,7 @@ describe('HostBlindCall', () => {
     expect(html).toContain('Small blind')
     expect(html).toContain('Big blind')
     expect(html).toContain('Level every')
-    expect(html).toContain('Re-seat every')
+    expect(html).not.toContain('Re-seat every')
     expect(html).not.toContain('Shuffle every')
     expect(html).toContain('Guide')
     expect(html).toContain('>Save<')

@@ -276,9 +276,7 @@ export function venueWallCondenseHeadline(wall: DisplayVenueWallSnapshot | null)
   const handsUntilShuffle =
     typeof wall.venueHandsUntilShuffle === 'number' && Number.isFinite(wall.venueHandsUntilShuffle)
       ? Math.max(1, Math.floor(wall.venueHandsUntilShuffle))
-      : liveTables <= 1
-        ? null
-        : shuffleEveryHands
+      : null
 
   if (liveTables <= 1) {
     return {

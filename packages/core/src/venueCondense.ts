@@ -64,15 +64,50 @@ export function isVenueShuffleHand(
 export type VenueTableRoster = {
   tableNum: number
   players: PlayerState[]
+  /** Index into chip-survivor `players` who posts the next big blind. */
+  nextBigBlindIndex?: number
 }
 
-export type VenueCondenseMoveReason = 'solo'
+export type VenueCondenseMoveReason = 'balance' | 'break'
+
+export function seatingMoveByline(args: {
+  reason: VenueCondenseMoveReason
+  fromTableNum: number
+  toTableNum: number
+  aheadBy?: number
+}): string {
+  if (args.reason === 'break') {
+    return `Table ${args.fromTableNum} closed. Its players drew new seats.`
+  }
+  const ahead = Math.max(2, Math.floor(args.aheadBy ?? 2))
+  const count = ahead === 2 ? 'two' : String(ahead)
+  return `Table ${args.fromTableNum} was ${count} players ahead, so its next big blind moved to table ${args.toTableNum}.`
+}
+
+/** Chip-survivor index of the player who posts the next big blind. */
+export function nextBigBlindChipIndex(players: readonly PlayerState[], dealerIndex: number): number {
+  const chips = players.filter(isChipSurvivor)
+  if (chips.length === 0 || players.length === 0) return 0
+  const nextChip = (fromExclusive: number): number => {
+    for (let step = 1; step <= players.length; step++) {
+      const idx = (((fromExclusive + step) % players.length) + players.length) % players.length
+      if (isChipSurvivor(players[idx]!)) return idx
+    }
+    return -1
+  }
+  const smallBlind = nextChip(dealerIndex)
+  const bigBlind = chips.length <= 1 ? smallBlind : nextChip(smallBlind)
+  const id = bigBlind >= 0 ? players[bigBlind]?.id : undefined
+  const at = chips.findIndex((player) => player.id === id)
+  return at < 0 ? 0 : at
+}
 
 export type VenueCondensePlayerMove = {
   playerId: string
   fromTableNum: number
   toTableNum: number
   reason: VenueCondenseMoveReason
+  byline: string
 }
 
 /** @deprecated Use {@link VenueCondensePlayerMove} */
@@ -95,15 +130,23 @@ export type VenueCondensePlan = {
 }
 
 function cloneTables(tables: VenueTableRoster[]): VenueTableRoster[] {
-  return tables.map((t) => ({ tableNum: t.tableNum, players: [...t.players] }))
+  return tables.map((t) => ({
+    tableNum: t.tableNum,
+    players: [...t.players],
+    nextBigBlindIndex: t.nextBigBlindIndex,
+  }))
 }
 
 function liveTablesWithChipSurvivors(tables: VenueTableRoster[]): VenueTableRoster[] {
   return tables
-    .map((t) => ({
-      tableNum: t.tableNum,
-      players: t.players.filter(isChipSurvivor),
-    }))
+    .map((t) => {
+      const players = t.players.filter(isChipSurvivor)
+      return {
+        tableNum: t.tableNum,
+        players,
+        nextBigBlindIndex: players.length === t.players.length ? t.nextBigBlindIndex : 0,
+      }
+    })
     .filter((t) => t.players.length > 0)
 }
 
@@ -111,99 +154,114 @@ function countSurvivorsAcross(tables: VenueTableRoster[]): number {
   return tables.reduce((n, t) => n + t.players.length, 0)
 }
 
-function tableSizesAfterMove(
-  tables: VenueTableRoster[],
-  fromTableNum: number,
-  toTableNum: number,
-): number[] {
-  const from = tables.find((t) => t.tableNum === fromTableNum)
-  const to = tables.find((t) => t.tableNum === toTableNum)
-  if (from == null || to == null || from.players.length === 0) return tables.map((t) => t.players.length)
-
-  const sizes: number[] = []
-  for (const t of tables) {
-    if (t.tableNum === fromTableNum) {
-      const next = t.players.length - 1
-      if (next > 0) sizes.push(next)
-      continue
-    }
-    if (t.tableNum === toTableNum) {
-      sizes.push(t.players.length + 1)
-      continue
-    }
-    sizes.push(t.players.length)
-  }
-  return sizes
+function bigBlindIndex(table: VenueTableRoster): number {
+  const n = table.players.length
+  if (n === 0) return 0
+  const raw = table.nextBigBlindIndex ?? 0
+  return ((raw % n) + n) % n
 }
 
-/** True when this move turns a table of two or more into a one-chip table. An existing one-chip table does not count. */
-function wouldCreateSolo(
-  tables: VenueTableRoster[],
-  fromTableNum: number,
-  toTableNum: number,
-  options?: { ignoreFromTable?: boolean },
-): boolean {
-  for (const t of tables) {
-    if (options?.ignoreFromTable && t.tableNum === fromTableNum) continue
-    const before = t.players.length
-    let after = before
-    if (t.tableNum === fromTableNum) after -= 1
-    if (t.tableNum === toTableNum) after += 1
-    if (before >= 2 && after === 1) return true
+function noteBigBlindRemoved(table: VenueTableRoster, removedIndex: number): void {
+  const before = table.players.length + 1
+  const bb = ((table.nextBigBlindIndex ?? 0) % before + before) % before
+  if (table.players.length === 0) {
+    table.nextBigBlindIndex = 0
+    return
   }
-  return false
+  if (removedIndex < bb) table.nextBigBlindIndex = bb - 1
+  else if (removedIndex === bb) table.nextBigBlindIndex = bb % table.players.length
+  else table.nextBigBlindIndex = bb
 }
 
-function scoreMoveDestination(
-  tables: VenueTableRoster[],
-  fromTableNum: number,
-  toTable: VenueTableRoster,
-  maxSeats: number,
-  options?: { ignoreFromTableSolo?: boolean },
-): number {
-  if (toTable.tableNum === fromTableNum) return -Infinity
-  if (toTable.players.length >= maxSeats) return -Infinity
-
-  const sizesAfter = tableSizesAfterMove(tables, fromTableNum, toTable.tableNum)
-  if (sizesAfter.length === 0) return -Infinity
-  if (sizesAfter.some((n) => n > maxSeats)) return -Infinity
-  if (wouldCreateSolo(tables, fromTableNum, toTable.tableNum, { ignoreFromTable: options?.ignoreFromTableSolo })) {
-    return -Infinity
-  }
-
-  const spread = Math.max(...sizesAfter) - Math.min(...sizesAfter)
-  let score = 1000 - spread * 100
-
-  const destSize = toTable.players.length
-  if (destSize >= 2 && destSize <= 6) score += 40
-  if (destSize === 0) score += 20
-
-  score -= toTable.tableNum * 0.01
-  return score
+function largestTable(tables: VenueTableRoster[]): VenueTableRoster {
+  return tables.reduce((best, table) =>
+    table.players.length > best.players.length ||
+    (table.players.length === best.players.length && table.tableNum < best.tableNum)
+      ? table
+      : best,
+  )
 }
 
-function pickBestDestination(
-  tables: VenueTableRoster[],
-  fromTableNum: number,
-  maxSeats: number,
-  options?: { allowSoloDest?: boolean; ignoreFromTableSolo?: boolean },
-): VenueTableRoster | null {
+function shortestOther(tables: VenueTableRoster[], fromTableNum: number, maxSeats: number): VenueTableRoster | null {
   let best: VenueTableRoster | null = null
-  let bestScore = -Infinity
-
-  for (const candidate of tables) {
-    if (candidate.tableNum === fromTableNum) continue
-    if (!options?.allowSoloDest && candidate.players.length === 1) continue
-    const score = scoreMoveDestination(tables, fromTableNum, candidate, maxSeats, {
-      ignoreFromTableSolo: options?.ignoreFromTableSolo,
-    })
-    if (score > bestScore || (score === bestScore && best != null && candidate.tableNum < best.tableNum)) {
-      bestScore = score
-      best = candidate
+  for (const table of tables) {
+    if (table.tableNum === fromTableNum || table.players.length >= maxSeats) continue
+    if (
+      best == null ||
+      table.players.length < best.players.length ||
+      (table.players.length === best.players.length && table.tableNum < best.tableNum)
+    ) {
+      best = table
     }
   }
+  return best
+}
 
-  return bestScore > -Infinity ? best : null
+function tableToBreak(tables: VenueTableRoster[]): VenueTableRoster | null {
+  if (tables.length <= 1) return null
+  if (tables.length <= mergeTargetTableCount(countSurvivorsAcross(tables))) return null
+  return tables.reduce((best, table) =>
+    table.players.length < best.players.length ||
+    (table.players.length === best.players.length && table.tableNum > best.tableNum)
+      ? table
+      : best,
+  )
+}
+
+function breakMove(from: VenueTableRoster, to: VenueTableRoster, player: PlayerState): VenueCondensePlayerMove {
+  return {
+    playerId: player.id,
+    fromTableNum: from.tableNum,
+    toTableNum: to.tableNum,
+    reason: 'break',
+    byline: seatingMoveByline({ reason: 'break', fromTableNum: from.tableNum, toTableNum: to.tableNum }),
+  }
+}
+
+function pickBreakMove(tables: VenueTableRoster[], maxSeats: number, lockedFrom?: number): VenueCondensePlayerMove | null {
+  const from =
+    lockedFrom != null ? tables.find((table) => table.tableNum === lockedFrom) ?? null : tableToBreak(tables)
+  if (from == null || from.players.length === 0) return null
+  const to = shortestOther(tables, from.tableNum, maxSeats)
+  const player = from.players[0]
+  if (to == null || player == null) return null
+  return breakMove(from, to, player)
+}
+
+function pickBalanceMove(tables: VenueTableRoster[], maxSeats: number): VenueCondensePlayerMove | null {
+  if (tables.length < 2) return null
+  const big = largestTable(tables)
+  const small = shortestOther(tables, big.tableNum, maxSeats)
+  if (small == null) return null
+  const gap = big.players.length - small.players.length
+  if (gap < 2) return null
+  const player = big.players[bigBlindIndex(big)]
+  if (player == null) return null
+  return {
+    playerId: player.id,
+    fromTableNum: big.tableNum,
+    toTableNum: small.tableNum,
+    reason: 'balance',
+    byline: seatingMoveByline({
+      reason: 'balance',
+      fromTableNum: big.tableNum,
+      toTableNum: small.tableNum,
+      aheadBy: gap,
+    }),
+  }
+}
+
+function pickDeadTableMove(tables: VenueTableRoster[], maxSeats: number): VenueCondensePlayerMove | null {
+  if (tables.length < 2) return null
+  if (Math.max(...tables.map((table) => table.players.length)) >= 3) return null
+  const from = tables
+    .filter((table) => table.players.length === 1)
+    .sort((a, b) => b.tableNum - a.tableNum)[0]
+  if (from == null) return null
+  const to = shortestOther(tables, from.tableNum, maxSeats)
+  const player = from.players[0]
+  if (to == null || player == null) return null
+  return breakMove(from, to, player)
 }
 
 function applyPlayerMove(tables: VenueTableRoster[], move: VenueCondensePlayerMove): VenueTableRoster[] {
@@ -214,34 +272,9 @@ function applyPlayerMove(tables: VenueTableRoster[], move: VenueCondensePlayerMo
   const pi = next[fromIdx]!.players.findIndex((p) => p.id === move.playerId)
   if (pi < 0) return liveTablesWithChipSurvivors(next)
   const [player] = next[fromIdx]!.players.splice(pi, 1)
+  noteBigBlindRemoved(next[fromIdx]!, pi)
   if (player) next[toIdx]!.players.push(player)
   return liveTablesWithChipSurvivors(next)
-}
-
-function pickSoloMove(tables: VenueTableRoster[], maxSeats: number): VenueCondensePlayerMove | null {
-  const solos = tables.filter((t) => t.players.length === 1).sort((a, b) => a.tableNum - b.tableNum)
-  if (solos.length === 0) return null
-  if (tables.length === 1 && solos.length === 1) return null
-
-  const from = solos[0]!
-  const to = pickBestDestination(tables, from.tableNum, maxSeats, { allowSoloDest: false })
-  if (to == null) {
-    const fallback = pickBestDestination(tables, from.tableNum, maxSeats, { allowSoloDest: true })
-    if (fallback == null) return null
-    return {
-      playerId: from.players[0]!.id,
-      fromTableNum: from.tableNum,
-      toTableNum: fallback.tableNum,
-      reason: 'solo',
-    }
-  }
-
-  return {
-    playerId: from.players[0]!.id,
-    fromTableNum: from.tableNum,
-    toTableNum: to.tableNum,
-    reason: 'solo',
-  }
 }
 
 function buildScheduledMerge(
@@ -264,8 +297,48 @@ function buildScheduledMerge(
   return { targetTableCount, sizes, assignments }
 }
 
+function pushMove(
+  moves: VenueCondensePlayerMove[],
+  tables: VenueTableRoster[],
+  move: VenueCondensePlayerMove,
+): VenueTableRoster[] {
+  moves.push(move)
+  return applyPlayerMove(tables, move)
+}
+
+function drainMoves(
+  tables: VenueTableRoster[],
+  moves: VenueCondensePlayerMove[],
+  pick: (tables: VenueTableRoster[]) => VenueCondensePlayerMove | null,
+): VenueTableRoster[] {
+  let next = tables
+  for (let guard = 0; guard < 64; guard++) {
+    const move = pick(next)
+    if (!move) break
+    next = pushMove(moves, next, move)
+  }
+  return next
+}
+
+function breakSpareTables(
+  tables: VenueTableRoster[],
+  moves: VenueCondensePlayerMove[],
+  maxSeats: number,
+): VenueTableRoster[] {
+  let next = tables
+  let breaking: number | undefined
+  for (let guard = 0; guard < 64; guard++) {
+    const move = pickBreakMove(next, maxSeats, breaking)
+    if (!move) break
+    breaking = move.fromTableNum
+    next = pushMove(moves, next, move)
+    if (!next.some((table) => table.tableNum === breaking)) breaking = undefined
+  }
+  return next
+}
+
 /**
- * Plan venue seating after End Round: solo rescue, then optional scheduled full shuffle.
+ * Plan venue seating after End Round: break spare tables, balance the rest, then an optional full shuffle.
  */
 export function planVenueCondense(
   tablesIn: VenueTableRoster[],
@@ -273,16 +346,11 @@ export function planVenueCondense(
 ): VenueCondensePlan {
   const maxSeats = options?.maxSeats ?? VENUE_CONDENSE_MAX_SEATS
   const rng = options?.rng ?? Math.random
-
   const playerMoves: VenueCondensePlayerMove[] = []
   let tables = liveTablesWithChipSurvivors(tablesIn)
-
-  for (let guard = 0; guard < 64; guard++) {
-    const move = pickSoloMove(tables, maxSeats)
-    if (!move) break
-    playerMoves.push(move)
-    tables = applyPlayerMove(tables, move)
-  }
+  tables = breakSpareTables(tables, playerMoves, maxSeats)
+  tables = drainMoves(tables, playerMoves, (current) => pickBalanceMove(current, maxSeats))
+  tables = drainMoves(tables, playerMoves, (current) => pickDeadTableMove(current, maxSeats))
 
   const survivorCount = countSurvivorsAcross(tables)
   const scheduledMerge =
@@ -324,10 +392,5 @@ export function venueShuffleDisplayFields(args: {
   shuffleEveryHands: number
 } {
   const shuffleEveryHands = Math.max(1, Math.floor(args.every ?? VENUE_SHUFFLE_EVERY_HANDS))
-  if (args.liveTableCount <= 1) {
-    return { handsUntilShuffle: null, shuffleEveryHands }
-  }
-  let handsUntilShuffle = handsUntilVenueShuffle(args.handsCompletedAtVenue, shuffleEveryHands)
-  if (args.skipNext) handsUntilShuffle += shuffleEveryHands
-  return { handsUntilShuffle, shuffleEveryHands }
+  return { handsUntilShuffle: null, shuffleEveryHands }
 }

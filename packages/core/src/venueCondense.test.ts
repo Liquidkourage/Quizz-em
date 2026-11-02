@@ -41,21 +41,21 @@ describe('venue shuffle schedule', () => {
     expect(isVenueShuffleHand(10)).toBe(true)
   })
 
-  it('display fields hide countdown at final table', () => {
+  it('does not announce a full-room shuffle countdown', () => {
     expect(venueShuffleDisplayFields({ handsCompletedAtVenue: 3, liveTableCount: 1 })).toEqual({
       handsUntilShuffle: null,
       shuffleEveryHands: 5,
     })
     expect(
       venueShuffleDisplayFields({ handsCompletedAtVenue: 3, liveTableCount: 12 }).handsUntilShuffle,
-    ).toBe(2)
+    ).toBeNull()
     expect(
       venueShuffleDisplayFields({
         handsCompletedAtVenue: 3,
         liveTableCount: 12,
         skipNext: true,
       }).handsUntilShuffle,
-    ).toBe(7)
+    ).toBeNull()
   })
 
   it('skips one shuffle boundary and then resumes the cycle', () => {
@@ -74,7 +74,37 @@ describe('venue shuffle schedule', () => {
 })
 
 describe('planVenueCondense', () => {
-  it('moves every one-chip table before the next hand when several are open', () => {
+  it('fills a short table from the big table before the next hand', () => {
+    const tables = [
+      {
+        tableNum: 9,
+        players: [p('bb', 500), p('b', 500), p('c', 500), p('d', 500), p('e', 500), p('f', 500)],
+        nextBigBlindIndex: 0,
+      },
+      { tableNum: 4, players: [p('s1', 500), p('s2', 500), p('s3', 500), p('s4', 500)] },
+    ]
+    const plan = planVenueCondense(tables, { rng: () => 0 })
+    expect(plan.playerMoves).toHaveLength(1)
+    expect(plan.playerMoves[0]).toMatchObject({
+      playerId: 'bb',
+      fromTableNum: 9,
+      toTableNum: 4,
+      reason: 'balance',
+    })
+    expect(plan.playerMoves[0]!.byline).toBe(
+      'Table 9 was two players ahead, so its next big blind moved to table 4.',
+    )
+  })
+
+  it('closes a one-player table when the others are only one seat larger', () => {
+    const tables = [roster(1, 2), roster(4, 1)]
+    const plan = planVenueCondense(tables, { rng: () => 0 })
+    expect(plan.playerMoves).toHaveLength(1)
+    expect(plan.playerMoves[0]).toMatchObject({ playerId: 't4p1', fromTableNum: 4, toTableNum: 1, reason: 'break' })
+    expect(plan.playerMoves[0]!.byline).toBe('Table 4 closed. Its players drew new seats.')
+  })
+
+  it('breaks extra tables down to the count the field can fill', () => {
     const tables = [roster(1, 1), roster(2, 1), roster(4, 1), roster(5, 3), roster(7, 2), roster(8, 2), roster(9, 2)]
     const plan = planVenueCondense(tables, { rng: () => 0 })
     const size = new Map(tables.map((t) => [t.tableNum, t.players.length]))
@@ -82,22 +112,11 @@ describe('planVenueCondense', () => {
       size.set(move.fromTableNum, (size.get(move.fromTableNum) ?? 0) - 1)
       size.set(move.toTableNum, (size.get(move.toTableNum) ?? 0) + 1)
     }
-    const live = [...size.values()].filter((n) => n > 0)
-    expect(live.some((n) => n === 1)).toBe(false)
-    expect(live.reduce((n, size) => n + size, 0)).toBe(12)
-  })
-
-  it('rescues solo table to the lowest table with room', () => {
-    const tables = [
-      { tableNum: 1, players: [p('a', 500), p('b', 500), p('c', 500)] },
-      { tableNum: 2, players: [p('solo', 500)] },
-    ]
-    const plan = planVenueCondense(tables, { rng: () => 0 })
-    const soloMoves = plan.playerMoves.filter((m) => m.reason === 'solo')
-    expect(soloMoves).toHaveLength(1)
-    expect(soloMoves[0]!.fromTableNum).toBe(2)
-    expect(soloMoves[0]!.toTableNum).toBe(1)
-    expect(plan.scheduledMerge).toBeNull()
+    const live = [...size.entries()].filter(([, n]) => n > 0)
+    expect(live.some(([, n]) => n === 1)).toBe(false)
+    expect(live.reduce((n, [, size]) => n + size, 0)).toBe(12)
+    expect(live).toHaveLength(mergeTargetTableCount(12))
+    expect(plan.playerMoves.every((move) => move.byline.length > 0)).toBe(true)
   })
 
   it('does not rescue lone survivor on only table', () => {
@@ -105,11 +124,11 @@ describe('planVenueCondense', () => {
     expect(plan.playerMoves).toHaveLength(0)
   })
 
-  it('does not move players when table count is optimal but sizes are uneven', () => {
+  it('evens a crowded table onto the short one when the room already has the right number of tables', () => {
     const tables = [roster(1, 8), roster(2, 5), roster(3, 5)]
     const plan = planVenueCondense(tables, { rng: () => 0 })
     expect(plan.scheduledMerge).toBeNull()
-    expect(plan.playerMoves).toHaveLength(0)
+    expect(plan.playerMoves[0]).toMatchObject({ fromTableNum: 1, toTableNum: 2, reason: 'balance' })
   })
 
   it('shuffles all survivors into optimal tables on shuffle hands', () => {

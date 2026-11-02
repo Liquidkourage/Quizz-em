@@ -72,7 +72,6 @@ export function HostBlindCall({
   bigBlind,
   handsPerLevel,
   guideSec,
-  shuffleEvery,
   goalMinutes,
   onApply,
   onGoalMinutes,
@@ -80,7 +79,6 @@ export function HostBlindCall({
   onBigBlind,
   onHandsPerLevel,
   onGuideSec,
-  onShuffleEvery,
   onSave,
 }: {
   showStartedAtMs: number | null
@@ -166,15 +164,6 @@ export function HostBlindCall({
           <PaceNumber label="Small blind" value={smallBlind ?? bigBlind} min={1} onChange={(n) => onSmallBlind?.(n)} />
           <PaceNumber label="Big blind" value={bigBlind} min={1} onChange={(n) => onBigBlind?.(n)} />
           <PaceNumber label="Level every" value={handsPerLevel} min={1} max={50} onChange={(n) => onHandsPerLevel?.(n)} />
-          {onShuffleEvery ? (
-            <PaceNumber
-              label="Re-seat every"
-              value={shuffleEvery ?? 5}
-              min={1}
-              max={20}
-              onChange={(n) => onShuffleEvery(Math.min(20, Math.max(1, Math.floor(n) || 1)))}
-            />
-          ) : null}
           <PaceNumber label="Guide" value={guideSec} min={15} max={300} step={5} onChange={(n) => onGuideSec?.(n)} />
           <button
             type="button"

@@ -123,7 +123,7 @@ export async function handleWageringAction(
           if (nudged === 0) {
             socket.emit(
               'toast',
-              'No human is to act on an open wagering table — nothing to nudge.',
+              'Nobody is to act on an open wagering table — nothing to nudge.',
             )
           } else {
             const sample = names.slice(0, 4).join(', ')

@@ -1344,7 +1344,7 @@ export function resolveHumanTurnActor(
   const idx = gs.round.currentPlayerIndex
   if (typeof idx !== 'number' || idx < 0) return null
   const player = gs.players[idx]
-  if (!player || player.id.startsWith('vp:') || player.hasFolded || !inChipContest(player)) return null
+  if (!player || player.hasFolded || !inChipContest(player)) return null
   return { seatIndex: idx, playerId: player.id, playerName: player.name }
 }
 
@@ -1371,8 +1371,8 @@ export function commitTableAdvance(
 }
 
 /**
- * Shot clock is host-nudge only. Returns a deadline for the wire when the current
- * acting human has been nudged; clears automatically when the actor changes.
+ * Shot clock is host-nudge only. Returns a deadline for the wire when the acting
+ * seat has been nudged, person or rehearsal bot. Clears when that seat changes.
  */
 export function syncHumanTurnDeadline(sessionKey: string, gs: GameState): number | undefined {
   const actor = resolveHumanTurnActor(gs)
@@ -1391,6 +1391,15 @@ export function syncHumanTurnDeadline(sessionKey: string, gs: GameState): number
   }
   const deadline = humanTurnDeadlineMs.get(sessionKey)
   return typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : undefined
+}
+
+/** After a nudge forces one seat, a CPU-only felt keeps its paced steps. */
+function continueAfterForcedTurn(sessionKey: string, gs: GameState): GameState {
+  if (tableIsCpuOnly(gs)) {
+    enqueueCpuOnlyVpDrain(sessionKey)
+    return gs
+  }
+  return runVirtualPlayerSimulation(gs)
 }
 
 /** Arm auto check/fold only when a host nudge deadline is active for the current actor. */
@@ -1429,7 +1438,7 @@ export function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): voi
     const toCall = Math.max(0, (cur.round.currentBet ?? 0) - contrib)
     const beforeTimeout = cur
     cur = forcedTurnAction(cur, acting.id)
-    cur = runVirtualPlayerSimulation(cur)
+    cur = continueAfterForcedTurn(sessionKey, cur)
     clearHumanTurnClock(sessionKey)
     commitTableAdvance(sessionKey, beforeTimeout, cur)
     io.to(sessionKey).emit(
@@ -1440,7 +1449,7 @@ export function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): voi
   humanTurnTimers.set(sessionKey, timer)
 }
 
-/** Host: start a 30s countdown on each table whose acting seat is a human. One table when `tableNum` is set. */
+/** Host: start a 30s countdown on each table whose acting seat can still bet. One table when `tableNum` is set. */
 export function nudgeActingHumansVenue(
   vnRaw: string,
   tableNum?: number,

@@ -77,11 +77,23 @@ describe('resolveHumanTurnActor', () => {
     expect(resolveHumanTurnActor({ ...bettingTable('T1', '1'), phase: 'answering' } as GameState)).toBeNull()
   })
 
-  it('finds nobody when the acting seat is a computer player, is folded, or plays for points only', () => {
+  it('names a rehearsal bot whose turn it is, the same as a person', () => {
+    const base = bettingTable('T1', '1')
+    const cpu = {
+      ...base,
+      players: base.players.map((p, i) => (i === 0 ? { ...p, id: 'vp:cpu1', name: 'Ada A.' } : p)),
+    } as GameState
+    expect(resolveHumanTurnActor(cpu)).toEqual({
+      seatIndex: 0,
+      playerId: 'vp:cpu1',
+      playerName: 'Ada A.',
+    })
+  })
+
+  it('finds nobody when the acting seat is folded or plays for points only', () => {
     const base = bettingTable('T1', '1')
     const withSeat0 = (patch: Record<string, unknown>) =>
       ({ ...base, players: base.players.map((p, i) => (i === 0 ? { ...p, ...patch } : p)) }) as GameState
-    expect(resolveHumanTurnActor(withSeat0({ id: 'vp:cpu1' }))).toBeNull()
     expect(resolveHumanTurnActor(withSeat0({ hasFolded: true }))).toBeNull()
     expect(resolveHumanTurnActor(withSeat0({ pointsOnly: true }))).toBeNull()
   })
@@ -134,6 +146,16 @@ describe('nudgeActingHumansVenue', () => {
     expect(nudgeActingHumansVenue('n2')).toEqual({ nudged: 0, names: [] })
   })
 
+  it('starts the same 30s clock when a rehearsal bot is the one to act', () => {
+    const { key, gs } = put('N4', '1')
+    rooms.set(key, {
+      ...gs,
+      players: gs.players.map((p, i) => (i === 0 ? { ...p, id: 'vp:ada', name: 'Ada A.' } : p)),
+    })
+    expect(nudgeActingHumansVenue('n4')).toEqual({ nudged: 1, names: ['Ada A.'] })
+    expect(humanTurnDeadlineMs.get(key)).toBe(1_030_000)
+  })
+
   it('nudges the acting human on one table and leaves the others waiting', () => {
     const a = put('N3', '1')
     const b = put('N3', '2', { currentPlayerIndex: 1 })
@@ -163,6 +185,27 @@ describe('auto check or fold after a nudge', () => {
     nudgeActingHumansVenue('a3')
     await vi.advanceTimersByTimeAsync(29_999)
     expect(toasts.filter((t) => t.includes('nudged time up'))).toEqual([])
+  })
+
+  it('checks a rehearsal bot who owes nothing when the nudge runs out, and leaves the other bots to act', async () => {
+    const { key, gs } = put('A5', '1')
+    rooms.set(key, {
+      ...gs,
+      players: ['Ada A.', 'Bea B.', 'Cal C.'].map((name, i) => ({
+        ...gs.players[0]!,
+        id: `vp:a5:${i}`,
+        name,
+      })),
+    })
+    const previousDelay = process.env.QHE_CPU_VP_ACTION_DELAY_MS
+    process.env.QHE_CPU_VP_ACTION_DELAY_MS = '120000'
+    nudgeActingHumansVenue('a5')
+    await vi.advanceTimersByTimeAsync(30_000)
+    process.env.QHE_CPU_VP_ACTION_DELAY_MS = previousDelay
+    const after = rooms.get(key)!
+    expect(toasts).toContain('Ada A. nudged time up — checked.')
+    expect(after.round.isBettingOpen).toBe(true)
+    expect(after.round.currentPlayerIndex).not.toBe(0)
   })
 
   it('does nothing while the room is on hold', async () => {

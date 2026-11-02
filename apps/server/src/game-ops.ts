@@ -1541,8 +1541,13 @@ export function runVenueCondenseAfterRound(
   vnRaw: string,
   hostId: string,
   shuffle: boolean,
+  opts?: { skipWall?: boolean },
 ): import('./venue-condense').VenueCondenseApplyResult {
   const vn = normalizeVenueCode(vnRaw)
+  const emitTableState = opts?.skipWall
+    ? (sessionKey: string, gs: GameState) =>
+        emitVenueTableState(sessionKey, gs, { skipWall: true, skipOrchestration: true })
+    : emitVenueTableState
   return applyVenueCondenseAfterRound(
     {
       venueCode: vn,
@@ -1554,7 +1559,7 @@ export function runVenueCondenseAfterRound(
       tableNumFromSessionKey,
       allTableSessionKeys: allTableSessionsInVenue,
       applyEffectiveBlinds: applyEffectiveBlindsToGameState,
-      emitTableState: emitVenueTableState,
+      emitTableState,
       moveHumanSocket: moveHumanToTableSession,
     },
     { shuffle },

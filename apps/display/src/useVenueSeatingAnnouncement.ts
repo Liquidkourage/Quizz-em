@@ -4,7 +4,6 @@ import type {
   DisplayVenueSeatingAnnouncement,
   DisplayVenueWallSnapshot,
 } from '@qhe/net'
-import { seatingHoldForBustsMs } from './useVenueBustAnnouncement'
 
 const SEATING_OVERLAY_BASE_MS = 4600
 const SEATING_OVERLAY_SHUFFLE_MS = 6800
@@ -135,40 +134,21 @@ export function useVenueSeatingAnnouncement(
       return
     }
 
+    setShownSeating(seating)
+    setShownBusts(busts)
+    setVisible(true)
+
     const reducedMotion =
       typeof window !== 'undefined' &&
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    const show = () => {
-      setShownSeating(seating)
-      setShownBusts(busts)
-      setVisible(true)
-    }
-    const armHide = () =>
-      window.setTimeout(() => {
-        dismissedHandEndMsRef.current = handEndMs
-        setVisible(false)
-      }, seatingOverlayDurationMs(seating, reducedMotion, busts.length))
+    const timer = window.setTimeout(() => {
+      dismissedHandEndMsRef.current = handEndMs
+      setVisible(false)
+    }, seatingOverlayDurationMs(seating, reducedMotion, busts.length))
 
-    const holdMs = seatingHoldForBustsMs(busts.length, reducedMotion)
-    let hideTimer = 0
-    if (holdMs <= 0) {
-      show()
-      hideTimer = armHide()
-    }
-    const showTimer =
-      holdMs > 0
-        ? window.setTimeout(() => {
-            show()
-            hideTimer = armHide()
-          }, holdMs)
-        : 0
-
-    return () => {
-      window.clearTimeout(showTimer)
-      window.clearTimeout(hideTimer)
-    }
+    return () => window.clearTimeout(timer)
   }, [signature, handEndMs])
 
   return { visible, seating: shownSeating, busts: shownBusts }

@@ -384,6 +384,47 @@ describe('recordVenueMovesBetweenStates', () => {
     recordVenueMovesBetweenStates('LOG', 1, before, covered)
     expect(handBetLines()).toEqual(['allIn:1000:Alice C.'])
   })
+
+  it('keeps a first-street big bet while the second street is a run of small calls', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const raised: GameState = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:b' ? { ...p, bankroll: 500 } : p,
+      ),
+      round: {
+        ...before.round,
+        roundId: 'r1',
+        currentBet: 500,
+        lastSeatBettingAction: [null, 'raise'],
+        playerBets: { 'human:b': 500 },
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, before, raised)
+
+    let prev = raised
+    for (let i = 0; i < 50; i++) {
+      const bankroll = 1000 - (i + 1) * 20
+      const next: GameState = {
+        ...prev,
+        players: prev.players.map((p) =>
+          p.id === 'human:a' ? { ...p, bankroll } : p,
+        ),
+        round: {
+          ...prev.round,
+          bettingRound: 2,
+          currentBet: 20,
+          lastSeatBettingAction: i % 2 === 0 ? ['call', 'raise'] : ['raise', 'raise'],
+          playerBets: { 'human:a': (i + 1) * 20, 'human:b': 500 },
+        },
+      }
+      recordVenueMovesBetweenStates('LOG', 1, prev, next)
+      prev = next
+    }
+
+    expect(handBetLines()).toContain('raise:500:Bob D.')
+  })
 })
 
 describe('buildHostVenueFloorBrief busts', () => {

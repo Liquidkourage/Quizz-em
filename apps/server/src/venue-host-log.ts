@@ -248,6 +248,10 @@ function formatBettingMoveSummary(
   }
 }
 
+function blindForHandBet(gs: GameState): number {
+  return typeof gs.bigBlind === 'number' && gs.bigBlind > 0 ? gs.bigBlind : 100
+}
+
 function rememberHandBet(
   log: VenueHostLog,
   tableNum: number,
@@ -373,7 +377,9 @@ function noteSeatAction(
     kind: betKind,
     atMs: now,
   }
-  rememberHandBet(log, tableNum, after.round.roundId, bet)
+  if (countsAsThisHandBigBet(bet, blindForHandBet(after))) {
+    rememberHandBet(log, tableNum, after.round.roundId, bet)
+  }
   if (committed >= bigWinThreshold(after)) log.bigBets.unshift(bet)
 }
 
@@ -396,7 +402,9 @@ function noteClearedAllIns(
       kind: 'allIn' as const,
       atMs: now,
     }
-    rememberHandBet(log, tableNum, after.round.roundId, bet)
+    if (countsAsThisHandBigBet(bet, blindForHandBet(after))) {
+      rememberHandBet(log, tableNum, after.round.roundId, bet)
+    }
     if (committed >= bigWinThreshold(after)) log.bigBets.unshift(bet)
   }
 }

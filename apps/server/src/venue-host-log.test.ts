@@ -3,8 +3,10 @@ import { createEmptyGame, type GameState } from '@qhe/core'
 import {
   attachVenueLastHandSeating,
   buildHostVenueActionRows,
+  actingClockSince,
   buildHostVenueFloorBrief,
   clearVenueHostLog,
+  rememberVenueTriviaField,
   getVenueLastHandDisplay,
   recordVenueHostHandResults,
   recordVenueMovesBetweenStates,
@@ -437,6 +439,37 @@ describe('buildHostVenueActionRows seats', () => {
       { name: 'Ada', kind: 'pot', reason: null },
       { name: 'Bo', kind: 'points', reason: 'folded' },
     ])
+  })
+
+  it('restarts the listed-player clock when a different player is on the action', () => {
+    clearVenueHostLog('CLK')
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'CLK',
+      tiles: [],
+      fieldPlayerCount: 0,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+      handStartedAtMs: 1_000,
+    })
+    const log = { actingClockByTable: {} } as never
+    expect(actingClockSince(log, 1, 'Ada', 1_000, 5_000)).toBe(5_000)
+    expect(actingClockSince(log, 1, 'Ada', 1_000, 9_000)).toBe(5_000)
+    expect(actingClockSince(log, 1, 'Bo', 1_000, 9_000)).toBe(9_000)
+    expect(brief.actionRows).toEqual([])
+  })
+
+  it('keeps a player on the trivia field after the seat is gone', () => {
+    clearVenueHostLog('TRIV')
+    const seated = {
+      players: [
+        { id: 'a', name: 'Ada', answerPoints: 12 },
+        { id: 'b', name: 'Bea', answerPoints: 4 },
+      ],
+    }
+    expect(rememberVenueTriviaField('TRIV', [seated]).map((row) => row.name).sort()).toEqual(['Ada', 'Bea'])
+    const field = rememberVenueTriviaField('TRIV', [{ players: [seated.players[1]!], pointsStandings: [] }])
+    expect(field.map((row) => row.name).sort()).toEqual(['Ada', 'Bea'])
+    expect(field.find((row) => row.name === 'Ada')?.answerPoints).toBe(12)
   })
 
   it('records when a table has no more bets', () => {

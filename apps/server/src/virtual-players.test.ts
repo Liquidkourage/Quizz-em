@@ -269,7 +269,7 @@ describe('CPU betting edge cases', () => {
     const short = betSeat('shove')
     const caller = betSeat('flat')
     const opener = betSeat('open')
-    let gs = bettingTable([
+    let gs: GameState = bettingTable([
       bettingSeat(opener, 400, 100),
       bettingSeat(short, 40, 0),
       bettingSeat(caller, 400, 0),

@@ -17,8 +17,8 @@ import {
 } from './venueLeaderboardPresentation'
 import {
   venueLeaderboardFooterStats,
+  triviaLeaderboardSource,
   venueLeaderboardRowsFromTiles,
-  venueTriviaLeaderboardRowsFromTiles,
   type VenueLeaderboardTrophy,
 } from './venueLeaderboard'
 import {
@@ -111,8 +111,8 @@ export default function VenueLeaderboardWall({
     [tileRows, handBaselines]
   )
   const triviaRows = useMemo(
-    () => venueTriviaLeaderboardRowsFromTiles(tileRows, wall?.pointsStandings ?? []),
-    [tileRows, wall?.pointsStandings],
+    () => triviaLeaderboardSource(tileRows, wall?.pointsStandings ?? [], wall?.triviaField),
+    [tileRows, wall?.pointsStandings, wall?.triviaField],
   )
   const rows = trophy === 'trivia' ? triviaRows : chipRows
   const presentation = useMemo(() => buildVenueLeaderboardPresentation(rows), [rows])

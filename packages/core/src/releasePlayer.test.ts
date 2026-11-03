@@ -37,4 +37,17 @@ describe('releasePlayer', () => {
     expect(next.round.lastSeatBettingAction).toHaveLength(1)
     expect(next.players[0]?.hasFolded).toBe(false)
   })
+
+  it('keeps a walk-off on the trivia standings', () => {
+    let gs = createEmptyGame('Q', 'host', '1')
+    gs = addPlayer(gs, 'human:a', 'Ada', 1000)
+    gs = addPlayer(gs, 'human:b', 'Bea', 1000)
+    gs = {
+      ...gs,
+      players: gs.players.map((p) => (p.id === 'human:a' ? { ...p, answerPoints: 12 } : p)),
+    }
+    const next = releasePlayer(gs, 'human:a')
+    expect(next.players.map((p) => p.id)).toEqual(['human:b'])
+    expect(next.pointsStandings).toEqual([{ id: 'human:a', name: 'Ada', answerPoints: 12 }])
+  })
 })

@@ -141,6 +141,7 @@ import {
   getVenueLastHandDisplay,
   recordVenueHostHandResults,
   recordVenueMovesBetweenStates,
+  rememberVenueTriviaField,
   setVenueLastHandDisplay,
   attachVenueLastHandSeating,
   clearVenueLastHandDisplay,
@@ -2471,14 +2472,16 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     withholdUnreleasedShowdownAnswers(tiles)
   }
 
-  const pointsStandings = listPointsStandings(
-    allTableSessionsInVenue(vn)
-      .map((tk) => rooms.get(tk))
-      .filter((gs): gs is GameState => gs != null),
-  )
+  const tableGames = allTableSessionsInVenue(vn)
+    .map((tk) => rooms.get(tk))
+    .filter((gs): gs is GameState => gs != null)
+  const pointsStandings = listPointsStandings(tableGames)
+  const triviaGames = lobbyGs != null ? [lobbyGs, ...tableGames] : tableGames
+  const triviaField = rememberVenueTriviaField(vn, triviaGames)
   const payload: DisplayVenueWallSnapshot = {
     tiles,
     ...(pointsStandings.length > 0 ? { pointsStandings } : {}),
+    ...(triviaField.length > 0 ? { triviaField } : {}),
     headlineQuestionText,
     headlineQuestionAnswer,
     headlineAnswerComposition,

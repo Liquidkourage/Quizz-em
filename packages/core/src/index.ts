@@ -555,12 +555,31 @@ function stateWithoutSeat(state: GameState, playerId: string): GameState {
  * Take a player out of this felt. An open wager folds first so the street can finish.
  * Chips already in the pot stay there. The leftover stack leaves with the seat.
  */
+function standingForReleasedPlayer(state: GameState, player: PlayerState): PointsStanding | null {
+  const name = player.name.trim()
+  if (!name) return null
+  const correct = state.round.question?.answer
+  const gained = typeof correct === 'number' ? answerRoundPointsGained(player, correct) : 0
+  const raw = (player.answerPoints ?? 0) + gained
+  return {
+    id: player.id,
+    name,
+    answerPoints: Number.isFinite(raw) ? Math.max(0, raw) : 0,
+  }
+}
+
 export function releasePlayer(state: GameState, playerId: string): GameState {
   const seat = state.players.findIndex((p) => p.id === playerId)
   if (seat < 0) return state
   const player = state.players[seat]!
   const folded = openBettorLeaving(state, player) ? foldPlayer(state, playerId) : state
-  return stateWithoutSeat(folded, playerId)
+  const without = stateWithoutSeat(folded, playerId)
+  const standing = standingForReleasedPlayer(state, player)
+  if (!standing) return without
+  return {
+    ...without,
+    pointsStandings: mergePointsStandings(without.pointsStandings, [standing]),
+  }
 }
 
 export function dealCard(): NumericCard {

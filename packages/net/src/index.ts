@@ -198,6 +198,11 @@ export type DisplayVenueWallSnapshot = {
   tiles: DisplayVenueTileSnapshot[]
   /** No-stack players. Not seated. Shown on the trivia scores only. */
   pointsStandings?: { name: string; answerPoints: number }[]
+  /**
+   * Everyone who has held a seat this game, including players who left mid-hand.
+   * The trivia board uses this list so a walk-off does not vanish from the scores.
+   */
+  triviaField?: { name: string; answerPoints: number }[]
   /** Shared trivia headline: emitted from the current hand’s question through wagering, answering, and post-trivia phases while `round.question` is set. */
   headlineQuestionText: string | null
   /** Authoritative numeric answer for {@link headlineQuestionText} — same source as the headline felt’s `round.question.answer`. */
@@ -276,6 +281,8 @@ export type DisplayVenueSeatingMoveEntry = {
   toTableNum: number
   /** Why this player changed tables, shown on the seating update. */
   byline?: string
+  /** Destination table number before the floor was packed to 1..n. */
+  renumberedFromTableNum?: number
 }
 
 /** Public display: seating changes after End Round (solo rescue, closed felts, scheduled shuffle). */
@@ -371,6 +378,11 @@ export type HostVenueActionRow = {
   interestingAction?: boolean
   actingSeatIndex: number | null
   actingPlayerName: string | null
+  /**
+   * Epoch ms when this listed player became the one to act.
+   * Restarts when that player acts and someone else is listed.
+   */
+  actingSinceMs?: number | null
   actingSummary: string | null
   recentActions: HostVenueRecentAction[]
   /** Seats still contesting the chip pot (not folded, not busted). */

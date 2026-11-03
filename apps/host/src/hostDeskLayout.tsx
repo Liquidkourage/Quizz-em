@@ -15,7 +15,7 @@ import type {
 import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
 import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
-import { feltCountdownSec, formatElapsedClock, lastActionAtMs } from './HostShowClocks'
+import { feltCountdownSec, formatElapsedClock, tableActionClockStart } from './HostShowClocks'
 import { hostEndgameWinnerName } from './hostEndgame'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
@@ -2138,7 +2138,12 @@ export function HostVenueFloorBriefPanel({
                   const sinceLast = clockHidden
                     ? null
                     : formatElapsedClock(
-                        lastActionAtMs(brief.moveLog ?? [], row.tableNum, brief.handStartedAtMs ?? null),
+                        tableActionClockStart(
+                          row.actingSinceMs,
+                          brief.moveLog ?? [],
+                          row.tableNum,
+                          brief.handStartedAtMs ?? null,
+                        ),
                         Date.now(),
                       )
                   return (

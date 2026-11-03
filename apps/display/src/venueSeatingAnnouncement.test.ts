@@ -118,6 +118,31 @@ describe('seating update', () => {
     expect(html).not.toContain('max-width:none')
   })
 
+  it('says the tables were renumbered when the packed number matches the old one', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 4,
+          tablesAfter: 3,
+          playerCount: 8,
+          moves: [
+            {
+              name: 'Ada Lane',
+              fromTableNum: 1,
+              toTableNum: 1,
+              renumberedFromTableNum: 4,
+              byline: 'TABLE BALANCE',
+            },
+          ],
+          closedTableNums: [],
+        },
+        busts: [],
+      }),
+    )
+    expect(html).toContain('Table 1 → Table 1 · was table 4 before tables were renumbered')
+  })
+
   it('splits a crowded seating update across more columns', () => {
     const moves = Array.from({ length: 12 }, (_, i) => ({
       name: i === 0 ? 'Maximilian Westerly' : `Player ${i}`,

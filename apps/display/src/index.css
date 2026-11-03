@@ -2664,6 +2664,8 @@
   }
 
   .vfd-mosaic-title-row {
+    position: relative;
+    z-index: 30;
     min-height: var(--vfd-title-row-min-h);
     align-items: center;
   }
@@ -2789,6 +2791,37 @@
     margin: 0;
     font-size: clamp(1.05rem, 5.2cqw, 3.35rem);
     line-height: 1;
+  }
+
+  /* 9+ tables: the status line has to fit a name, “to call”, and the amount. */
+  .venue-floor-typography-standard .vfd-mosaic-status-band,
+  .venue-floor-typography-compact .vfd-mosaic-status-band {
+    gap: clamp(4px, 0.7cqw, 8px);
+    padding-inline: clamp(1.55rem, 4cqw, 2.2rem);
+  }
+
+  .venue-floor-typography-standard .vfd-mosaic-status-band-name,
+  .venue-floor-typography-compact .vfd-mosaic-status-band-name,
+  .venue-floor-typography-standard .vfd-mosaic-status-band-amount,
+  .venue-floor-typography-compact .vfd-mosaic-status-band-amount {
+    font-size: clamp(0.68rem, 2.7cqw, 1.15rem);
+  }
+
+  .venue-floor-typography-standard .vfd-mosaic-status-band-label,
+  .venue-floor-typography-compact .vfd-mosaic-status-band-label {
+    font-size: clamp(0.58rem, 1.9cqw, 0.85rem);
+    letter-spacing: 0.03em;
+  }
+
+  .venue-floor-typography-standard .vfd-mosaic-status-band-message,
+  .venue-floor-typography-compact .vfd-mosaic-status-band-message {
+    font-size: clamp(0.62rem, 2.3cqw, 1rem);
+    letter-spacing: 0.04em;
+  }
+
+  .venue-floor-typography-standard :has(> .vfd-mosaic-status-band) > .vfd-mosaic-table-num,
+  .venue-floor-typography-compact :has(> .vfd-mosaic-status-band) > .vfd-mosaic-table-num {
+    font-size: clamp(0.72rem, 2.7cqw, 1.15rem);
   }
 
   .vfd-mosaic-felt-cap {
@@ -3159,7 +3192,7 @@
   }
 
   .venue-lb-viewport--full-field .venue-lb-row-name {
-    font-size: clamp(1.05rem, calc((100cqh - 0.85rem) / var(--lb-rows) * 0.84), 1.875rem);
+    font-size: clamp(0.8rem, calc((100cqh - 0.85rem) / var(--lb-rows) * 0.84), 1.875rem);
   }
 
   .venue-lb-viewport--full-field .venue-lb-row-stack {
@@ -3509,8 +3542,8 @@
   }
 
   .venue-lb-medal {
-    width: clamp(1.35rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.15), 2.1rem);
-    height: clamp(1.6rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.35), 2.5rem);
+    width: clamp(1.05rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.15), 2.1rem);
+    height: clamp(1.2rem, calc((100cqh - 1.5rem) / var(--lb-rows) * 1.35), 2.5rem);
     flex-shrink: 0;
     filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.55));
   }

@@ -85,6 +85,21 @@ type SeatingUpdateLayout = {
   otherMoves: SeatingUpdateRow[]
 }
 
+export function seatingMoveDetail(move: {
+  fromTableNum: number
+  toTableNum: number
+  renumberedFromTableNum?: number
+}): string {
+  const from = move.fromTableNum
+  const to = move.toTableNum
+  const prior = move.renumberedFromTableNum
+  if (prior != null && prior !== to) {
+    return `Table ${from} → Table ${to} · was table ${prior} before tables were renumbered`
+  }
+  if (from === to) return `Table ${from} → Table ${to} · tables were renumbered`
+  return `Table ${from} → Table ${to}`
+}
+
 function playerMoveRow(
   move: DisplayVenueSeatingAnnouncement['moves'][number],
   busts: DisplayVenueBustEntry[],
@@ -96,7 +111,7 @@ function playerMoveRow(
   return {
     key: `${move.name}-${move.fromTableNum}-${move.toTableNum}`,
     label: displayPlayerName(move.name),
-    detail: `Table ${move.fromTableNum} → Table ${move.toTableNum}`,
+    detail: seatingMoveDetail(move),
     marks: rowMarks(bustAt >= 0, byline),
     kind: bustAt >= 0 ? 'eliminated' : 'move',
   }

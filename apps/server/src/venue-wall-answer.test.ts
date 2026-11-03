@@ -139,6 +139,7 @@ describe('public venue wall answer', () => {
     emitDisplayVenueSnapshotNow('LEAK')
     const snap = io.snapshots.at(-1)
     expect(snap?.pointsStandings?.map((row) => row.name)).toContain('Bo Kent')
+    expect(snap?.triviaField?.map((row) => row.name)).toContain('Bo Kent')
   })
 
   it('sends the correct answer once every seated table is in results', () => {

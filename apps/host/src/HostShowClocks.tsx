@@ -27,6 +27,19 @@ export function lastActionAtMs(
   return latest ?? handStartedAtMs
 }
 
+/** How long the listed player has been the one to act. Their own action starts it over. */
+export function tableActionClockStart(
+  actingSinceMs: number | null | undefined,
+  moves: readonly { tableNum: number; atMs: number }[],
+  tableNum: number,
+  handStartedAtMs: number | null,
+): number | null {
+  if (typeof actingSinceMs === 'number' && Number.isFinite(actingSinceMs)) {
+    if (handStartedAtMs == null || actingSinceMs >= handStartedAtMs) return actingSinceMs
+  }
+  return lastActionAtMs(moves, tableNum, handStartedAtMs)
+}
+
 export function soonestNudgeSeconds(
   rows: readonly Pick<HostVenueFeltBeatRow, 'turnDeadlineMs'>[] | null,
   nowMs: number,

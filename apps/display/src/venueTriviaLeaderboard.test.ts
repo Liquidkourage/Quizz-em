@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   normalizeVenuePointsStandings,
+  triviaLeaderboardSource,
   venueTriviaLeaderboardRowsFromTiles,
 } from './venueLeaderboard'
 
@@ -58,6 +59,26 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
     ]
     const rows = venueTriviaLeaderboardRowsFromTiles(tiles, [{ name: 'Bo Kent', answerPoints: 40 }])
     expect(rows.map((row) => row.name)).toEqual(['Bo Kent', 'Ada Lane'])
+  })
+
+  it('uses the remembered field when chairs no longer list everyone', () => {
+    const tiles: DisplayVenueTileSnapshot[] = [
+      {
+        tableNum: 1,
+        seated: 1,
+        pot: 0,
+        phase: 'lobby',
+        seatNames: ['Ada Lane'],
+        seatAnswerPoints: [10],
+      },
+    ]
+    const field = [
+      { name: 'Ada Lane', answerPoints: 10 },
+      { name: 'Bo Kent', answerPoints: 4 },
+      { name: 'Cy Drew', answerPoints: 0 },
+    ]
+    const rows = triviaLeaderboardSource(tiles, [], field)
+    expect(rows.map((row) => row.name)).toEqual(['Ada Lane', 'Bo Kent', 'Cy Drew'])
   })
 
   it('keeps a player with no chips on the wall snapshot', () => {

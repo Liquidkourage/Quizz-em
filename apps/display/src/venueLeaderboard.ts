@@ -173,6 +173,16 @@ function appendUnseatedTriviaRows(
   }
 }
 
+/** The night's trivia list. A remembered field includes players who already left a chair. */
+export function triviaLeaderboardSource(
+  tiles: DisplayVenueTileSnapshot[],
+  standings: readonly { name: string; answerPoints: number }[],
+  field: readonly { name: string; answerPoints: number }[] | null | undefined,
+): VenueLeaderboardRow[] {
+  if (field != null && field.length > 0) return venueTriviaLeaderboardRowsFromTiles([], field)
+  return venueTriviaLeaderboardRowsFromTiles(tiles, standings)
+}
+
 /** Ranked by trivia answer points (desc); dual-trophy night companion to chip stacks. */
 export function venueTriviaLeaderboardRowsFromTiles(
   tiles: DisplayVenueTileSnapshot[],

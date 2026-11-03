@@ -23,6 +23,8 @@ import type {
 const LOG_CAP = 48
 const MOVE_LOG_CAP = 200
 
+type ActingClock = { name: string; sinceMs: number; handStartedAtMs: number | null }
+
 type VenueHostLog = {
   busts: HostVenueBustEntry[]
   bigWinners: HostVenueBigWinEntry[]
@@ -31,6 +33,7 @@ type VenueHostLog = {
   handRoundByTable: Record<number, string>
   moveLog: HostVenueMoveLogEntry[]
   moveSeq: number
+  actingClockByTable: Record<number, ActingClock>
 }
 
 const venueHostLogs = new Map<string, VenueHostLog>()
@@ -43,6 +46,64 @@ type VenueLastHandDisplay = {
 
 const venueLastHandDisplay = new Map<string, VenueLastHandDisplay>()
 
+/** Player id → latest trivia total. Survives leaving a chair mid-hand. */
+const venueTriviaMemory = new Map<string, Map<string, { name: string; answerPoints: number }>>()
+
+function absorbTriviaRow(
+  memory: Map<string, { name: string; answerPoints: number }>,
+  id: string,
+  name: string,
+  answerPoints: number,
+): void {
+  const key = id.trim()
+  const label = name.trim()
+  if (!key || !label) return
+  const pts = Number.isFinite(answerPoints) ? Math.max(0, answerPoints) : 0
+  const prev = memory.get(key)
+  if (prev && prev.answerPoints > pts) return
+  memory.set(key, { name: label, answerPoints: pts })
+}
+
+/** Every player seen at this venue, so the trivia board still lists people who left. */
+export function rememberVenueTriviaField(
+  vnRaw: string,
+  games: readonly {
+    players: readonly { id: string; name: string; answerPoints?: number }[]
+    pointsStandings?: readonly { id: string; name: string; answerPoints: number }[]
+  }[],
+): { name: string; answerPoints: number }[] {
+  const vn = vnRaw.trim().toUpperCase()
+  const memory = venueTriviaMemory.get(vn) ?? new Map()
+  for (const gs of games) {
+    for (const player of gs.players) {
+      absorbTriviaRow(memory, player.id, player.name, player.answerPoints ?? 0)
+    }
+    for (const row of gs.pointsStandings ?? []) {
+      absorbTriviaRow(memory, row.id, row.name, row.answerPoints)
+    }
+  }
+  venueTriviaMemory.set(vn, memory)
+  return [...memory.values()]
+}
+
+/** Clock start for the player listed on a table. A new name means someone just acted. */
+export function actingClockSince(
+  log: VenueHostLog,
+  tableNum: number,
+  name: string | null,
+  handStartedAtMs: number | null,
+  now: number,
+): number | null {
+  if (!name) {
+    delete log.actingClockByTable[tableNum]
+    return null
+  }
+  const prev = log.actingClockByTable[tableNum]
+  if (prev && prev.name === name && prev.handStartedAtMs === handStartedAtMs) return prev.sinceMs
+  log.actingClockByTable[tableNum] = { name, sinceMs: now, handStartedAtMs }
+  return now
+}
+
 function logForVenue(vn: string): VenueHostLog {
   let log = venueHostLogs.get(vn)
   if (!log) {
@@ -54,6 +115,7 @@ function logForVenue(vn: string): VenueHostLog {
       handRoundByTable: {},
       moveLog: [],
       moveSeq: 0,
+      actingClockByTable: {},
     }
     venueHostLogs.set(vn, log)
   }
@@ -62,12 +124,14 @@ function logForVenue(vn: string): VenueHostLog {
   if (log.handRoundByTable == null) log.handRoundByTable = {}
   if (!Array.isArray(log.moveLog)) log.moveLog = []
   if (typeof log.moveSeq !== 'number') log.moveSeq = 0
+  if (log.actingClockByTable == null) log.actingClockByTable = {}
   return log
 }
 
 export function clearVenueHostLog(vn: string): void {
   venueHostLogs.delete(vn)
   venueLastHandDisplay.delete(vn)
+  venueTriviaMemory.delete(vn.trim().toUpperCase())
 }
 
 export function setVenueLastHandDisplay(vn: string, busts: HostVenueBustEntry[]): void {
@@ -498,8 +562,19 @@ export function buildHostVenueFloorBrief(args: {
 }): HostVenueFloorBriefPayload {
   const log = logForVenue(args.venueCode)
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
+  const handStartedAtMs = args.handStartedAtMs ?? null
+  const now = Date.now()
   return {
-    actionRows: buildHostVenueActionRows(args.tiles),
+    actionRows: buildHostVenueActionRows(args.tiles).map((row) => ({
+      ...row,
+      actingSinceMs: actingClockSince(
+        log,
+        row.tableNum,
+        row.actingPlayerName,
+        handStartedAtMs,
+        now,
+      ),
+    })),
     moveLog: log.moveLog.slice(0, MOVE_LOG_CAP),
     busts: getVenueLastHandDisplay(args.venueCode)?.busts ?? [],
     bigWinners: log.bigWinners,

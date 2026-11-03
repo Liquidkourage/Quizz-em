@@ -4,9 +4,11 @@ import {
   type GameState,
   VENUE_NUMBERED_TABLE_MAX,
   createEmptyGame,
+  mergePointsStandings,
   nextBigBlindChipIndex,
   compactTableNumbers,
   planVenueCondense,
+  type PointsStanding,
   type VenueCondensePlayerMove,
   type VenueCondenseScheduledMerge,
   type VenueTableRoster,
@@ -34,7 +36,13 @@ export type VenueCondenseApplyResult = {
   survivorsBefore: number
   survivorsAfter: number
   hostToasts: string[]
-  seatingMoves: { name: string; fromTableNum: number; toTableNum: number; byline: string }[]
+  seatingMoves: {
+    name: string
+    fromTableNum: number
+    toTableNum: number
+    byline: string
+    renumberedFromTableNum?: number
+  }[]
   closedTableNums: number[]
 }
 
@@ -246,6 +254,19 @@ function emitPackedTables(deps: VenueCondenseApplyDeps, snapshots: PackedTableSn
   }
 }
 
+/** Keep the pre-pack table number when packing changes where a move lands. */
+export function noteRenumberedSeatingMoves<T extends { toTableNum: number; renumberedFromTableNum?: number }>(
+  moves: T[],
+  packed: ReadonlyMap<number, number>,
+): void {
+  for (const move of moves) {
+    const nextTable = packed.get(move.toTableNum)
+    if (nextTable == null || nextTable === move.toTableNum) continue
+    move.renumberedFromTableNum = move.toTableNum
+    move.toTableNum = nextTable
+  }
+}
+
 /**
  * After a table closes, pack the survivors into table 1..n so the floor
  * does not keep a missing number.
@@ -268,10 +289,33 @@ export function compactVenueTableNumbers(deps: VenueCondenseApplyDeps): Map<numb
   return map
 }
 
+function readVenuePointsStandings(deps: VenueCondenseApplyDeps): PointsStanding[] {
+  const vn = deps.venueCode
+  const rows: PointsStanding[] = []
+  for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
+    const gs = deps.getState(deps.tableSessionKey(vn, String(n)))
+    const standings = gs?.pointsStandings
+    if (standings != null && standings.length > 0) rows.push(...standings)
+  }
+  return mergePointsStandings(undefined, rows)
+}
+
+function writeVenuePointsStandings(deps: VenueCondenseApplyDeps, carried: readonly PointsStanding[]): void {
+  if (carried.length === 0) return
+  const vn = deps.venueCode
+  for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
+    const tk = deps.tableSessionKey(vn, String(n))
+    const gs = deps.getState(tk)
+    if (!gs) continue
+    deps.setState(tk, { ...gs, pointsStandings: mergePointsStandings(carried, gs.pointsStandings ?? []) })
+  }
+}
+
 export function applyVenueCondenseAfterRound(
   deps: VenueCondenseApplyDeps,
   options: { shuffle: boolean },
 ): VenueCondenseApplyResult {
+  const carriedStandings = readVenuePointsStandings(deps)
   const hostToasts: string[] = []
   let rosters = collectRosters(deps)
   const tablesBeforeSet = new Set(rosters.map((t) => t.tableNum))
@@ -312,12 +356,10 @@ export function applyVenueCondenseAfterRound(
     .sort((a, b) => a - b)
 
   if (!shuffled) {
-    const packed = compactVenueTableNumbers(deps)
-    for (const move of seatingMoves) {
-      const nextTable = packed.get(move.toTableNum)
-      if (nextTable != null) move.toTableNum = nextTable
-    }
+    noteRenumberedSeatingMoves(seatingMoves, compactVenueTableNumbers(deps))
   }
+
+  writeVenuePointsStandings(deps, carriedStandings)
 
   return {
     soloRescues,
@@ -348,6 +390,9 @@ export function venueSeatingAnnouncementFromResult(
       fromTableNum: m.fromTableNum,
       toTableNum: m.toTableNum,
       byline: m.byline,
+      ...(m.renumberedFromTableNum != null
+        ? { renumberedFromTableNum: m.renumberedFromTableNum }
+        : {}),
     })),
     closedTableNums: result.closedTableNums,
     shuffled: result.shuffled,

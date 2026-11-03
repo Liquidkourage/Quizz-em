@@ -37,7 +37,7 @@ import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 import VenueEndgameCard from './VenueEndgameCard.tsx'
 import { endgameCoversFloor, venueEndgameTriviaTop, venueEndgameWinner } from './venueEndgame'
-import { venueTriviaLeaderboardRowsFromTiles } from './venueLeaderboard'
+import { triviaLeaderboardSource } from './venueLeaderboard'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -355,7 +355,11 @@ export default function DisplayRouter({
   )
   const endgameWinner = venueEndgameWinner(audienceWall)
   const endgameScores = venueEndgameTriviaTop(
-    venueTriviaLeaderboardRowsFromTiles(audienceWall?.tiles ?? [], audienceWall?.pointsStandings ?? []),
+    triviaLeaderboardSource(
+      audienceWall?.tiles ?? [],
+      audienceWall?.pointsStandings ?? [],
+      audienceWall?.triviaField,
+    ),
   )
   const showEndgame = endgameCoversFloor(endgameWinner, {
     elimination: showHostBusts || payoutBusts.visible || payoutMoves.visible,

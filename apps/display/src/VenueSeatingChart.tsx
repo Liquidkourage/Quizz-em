@@ -124,10 +124,10 @@ export default function VenueSeatingChart({ wall, skipMountIntro = false }: Venu
               </div>
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-black tracking-tight text-yellow-300 sm:text-3xl">
+              <h1 className="text-5xl font-black tracking-tight text-yellow-300 sm:text-6xl">
                 Seating assignments
               </h1>
-              <p className="mt-0.5 text-sm text-white/65 sm:text-base">
+              <p className="mt-1 text-2xl text-white/65 sm:text-3xl">
                 <span className="font-semibold tabular-nums text-amber-200/90">{totalSeated}</span> players
                 across{' '}
                 <span className="font-semibold tabular-nums text-amber-200/90">{tables.length}</span> tables

@@ -3,6 +3,7 @@ import { createEmptyGame, type GameState } from '@qhe/core'
 import {
   applyVenueCondenseAfterRound,
   compactVenueTableNumbers,
+  noteRenumberedSeatingMoves,
   unsettledAllInPassengers,
   type VenueCondenseApplyDeps,
 } from './venue-condense'
@@ -43,7 +44,7 @@ describe('compactVenueTableNumbers', () => {
       moveHumanSocket: (playerId: string, toKey: string) => moved.push(`${playerId}->${toKey}`),
       io: { to: () => ({ emit: () => {} }) },
       hostId: 'host',
-    } as VenueCondenseApplyDeps
+    } as unknown as VenueCondenseApplyDeps
 
     const map = compactVenueTableNumbers(deps)
 
@@ -80,7 +81,7 @@ describe('compactVenueTableNumbers', () => {
       moveHumanSocket: () => {},
       io: { to: () => ({ emit: () => {} }) },
       hostId: 'host',
-    } as VenueCondenseApplyDeps
+    } as unknown as VenueCondenseApplyDeps
 
     const result = applyVenueCondenseAfterRound(deps, { shuffle: false })
 
@@ -91,5 +92,19 @@ describe('compactVenueTableNumbers', () => {
     expect(rooms.get('V:4')?.players.map((p) => p.id)).toEqual(['t5s0', 't5s1'])
     expect(rooms.get('V:5')?.players ?? []).toEqual([])
     expect(rooms.get('V:1')?.players.map((p) => p.id)).toEqual(['t1s0', 't1s1'])
+  })
+})
+
+describe('noteRenumberedSeatingMoves', () => {
+  it('keeps the pre-pack destination when the floor is renumbered onto the same numeral', () => {
+    const moves = [{ name: 'Ada', fromTableNum: 1, toTableNum: 4, byline: 'TABLE BALANCE' }]
+    noteRenumberedSeatingMoves(moves, new Map([[4, 1]]))
+    expect(moves[0]).toEqual({
+      name: 'Ada',
+      fromTableNum: 1,
+      toTableNum: 1,
+      byline: 'TABLE BALANCE',
+      renumberedFromTableNum: 4,
+    })
   })
 })

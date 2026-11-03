@@ -8,6 +8,7 @@ import {
   formatElapsedClock,
   lastActionAtMs,
   soonestNudgeSeconds,
+  tableActionClockStart,
 } from './HostShowClocks'
 
 function felt(over: Partial<HostVenueFeltBeatRow>): HostVenueFeltBeatRow {
@@ -58,6 +59,14 @@ describe('host show clocks', () => {
     expect(lastActionAtMs(moves, 2, hand)).toBe(hand)
     expect(lastActionAtMs(moves, 1, null)).toBe(hand + 12_000)
     expect(lastActionAtMs(moves, 2, null)).toBe(hand - 5_000)
+  })
+
+  it('restarts when the listed player changes, and ignores an older table move', () => {
+    const hand = 1_000_000
+    const moves = [{ tableNum: 1, atMs: hand + 4_000 }]
+    expect(tableActionClockStart(hand + 20_000, moves, 1, hand)).toBe(hand + 20_000)
+    expect(tableActionClockStart(hand - 5_000, moves, 1, hand)).toBe(hand + 4_000)
+    expect(tableActionClockStart(null, moves, 1, hand)).toBe(hand + 4_000)
   })
 
   it('shows the 30s nudge that is running on a felt', () => {

@@ -78,18 +78,38 @@ function useClockNow(nowMs?: number): number {
   return nowMs ?? ticked
 }
 
-function ClockFace({ label, value, urgent = false }: { label: string; value: string; urgent?: boolean }) {
+function clockRunsPastAnHour(value: string): boolean {
+  return value.split(':').length > 2
+}
+
+function ClockFace({
+  label,
+  value,
+  urgent = false,
+  roomy = false,
+}: {
+  label: string
+  value: string
+  urgent?: boolean
+  roomy?: boolean
+}) {
+  const hour = clockRunsPastAnHour(value)
+  const box = roomy ? 'w-44 px-2' : hour ? 'min-w-[8.5rem] w-auto px-2.5' : 'w-28 px-2'
   return (
     <div
-      className={`flex w-28 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 ${
+      className={`flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border py-3 ${box} ${
         urgent ? 'border-rose-400/75 bg-rose-950/45' : 'border-white/20 bg-black/40'
       }`}
     >
-      <span className="text-center text-[0.65rem] font-bold uppercase leading-tight tracking-[0.12em] text-white/70">
+      <span
+        className={`text-center text-[0.65rem] font-bold uppercase leading-tight text-white/70 ${
+          roomy ? 'tracking-normal' : 'tracking-[0.12em]'
+        }`}
+      >
         {label}
       </span>
       <span
-        className={`font-mono text-3xl font-black leading-none tabular-nums ${
+        className={`font-mono font-black leading-none tabular-nums ${hour ? 'text-2xl' : 'text-3xl'} ${
           urgent ? 'text-rose-200' : 'text-white'
         }`}
       >
@@ -135,8 +155,8 @@ export function HostNudgeClock({
   const soonest = soonestNudgeSeconds(rows, now)
   if (soonest == null) return null
   return (
-    <div aria-label={`${soonest} seconds left on the nudge`}>
-      <ClockFace label="Nudge" value={String(soonest)} urgent={soonest <= 10} />
+    <div aria-label={`${soonest} seconds left. Last call for responses`}>
+      <ClockFace label="Last call for responses" value={String(soonest)} urgent={soonest <= 10} roomy />
     </div>
   )
 }

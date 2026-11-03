@@ -298,14 +298,28 @@ describe('broadcast felt assets', () => {
 })
 
 describe('broadcast felt assets on a two-table felt', () => {
-  it('sets the button and chips beside the hole cards', () => {
+  it('keeps two-table chip stacks on the felt, inward from the rail', () => {
     const w = 700
     const h = 400
-    const { hole, chip, blind } = broadcastFeltAssetAnchors(0, w, h, 36, 'dual')
+    const center = venueMosaicFeltCenterPct(w, h)
     const apart = (a: { leftPct: number; topPct: number }, b: { leftPct: number; topPct: number }) =>
       Math.hypot(((a.leftPct - b.leftPct) / 100) * w, ((a.topPct - b.topPct) / 100) * h)
-    expect(apart(hole, chip)).toBeGreaterThan(70)
-    expect(apart(hole, blind)).toBeGreaterThan(70)
+    for (let i = 0; i < 8; i++) {
+      const { chip, blind, hole } = broadcastFeltAssetAnchors(i, w, h, 36, 'dual')
+      const cup = mosaicSeatDotPct(i, 8, w, h)
+      expect(apart(chip, center)).toBeLessThan(apart(cup, center) - 8)
+      const inwardX = center.leftPct - cup.leftPct
+      const inwardY = center.topPct - cup.topPct
+      const moveX = chip.leftPct - cup.leftPct
+      const moveY = chip.topPct - cup.topPct
+      const tangent = Math.abs(inwardX * moveY - inwardY * moveX) / (Math.hypot(inwardX, inwardY) || 1)
+      expect(tangent).toBeLessThan(1.5)
+      expect(apart(hole, blind)).toBeGreaterThan(40)
+    }
+  })
+
+  it('hugs the two-table bankroll closer to the name than a one-table felt', () => {
+    expect(broadcastRimStackOffsetPx(1, 34, 'dual')).toBeLessThan(broadcastRimStackOffsetPx(1, 34, 'solo'))
   })
 })
 

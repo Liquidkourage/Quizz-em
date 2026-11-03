@@ -2823,13 +2823,27 @@ export function HostTvBar({
 }
 
 /** Question and answer for the host desk. The answer stays off player phones until Reveal. */
-export function HostLiveQuestionCard({ text, answer }: { text: string; answer: number }) {
+export function HostLiveQuestionCard({
+  text,
+  answer,
+  cueNumber = null,
+  cueTotal = null,
+}: {
+  text: string
+  answer: number
+  cueNumber?: number | null
+  cueTotal?: number | null
+}) {
+  const heading =
+    cueNumber != null && cueNumber > 0 && cueTotal != null && cueTotal > 0
+      ? `Question ${cueNumber} of ${cueTotal}`
+      : 'Question'
   return (
     <section
       className="host-lower-third overflow-y-auto rounded-xl border border-amber-400/40 px-4 py-3"
       aria-label="Live question"
     >
-      <p className="text-sm font-bold uppercase tracking-[0.14em] text-white/45">Question</p>
+      <p className="text-sm font-bold uppercase tracking-[0.14em] text-white/45">{heading}</p>
       <p className="mt-1 whitespace-pre-wrap text-2xl font-semibold leading-snug text-white">{text}</p>
       <p className="mt-3 text-sm font-bold uppercase tracking-[0.14em] text-casino-gold/80">Answer</p>
       <p className="mt-0.5 text-4xl font-extrabold tabular-nums text-casino-gold">

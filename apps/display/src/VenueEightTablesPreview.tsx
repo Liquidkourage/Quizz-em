@@ -376,9 +376,11 @@ function broadcastChipStackLayoutPx(rimW: number, density: 'solo' | 'dual' = 'so
   fontPx: number
 } {
   const scale = broadcastFeltScale(rimW, density)
+  const pile = density === 'dual' ? 42 : 70
+  const pileWide = density === 'dual' ? 68 : 118
   return {
-    heightPx: Math.round(70 * scale),
-    maxWidthPx: Math.round(118 * scale),
+    heightPx: Math.round(pile * scale),
+    maxWidthPx: Math.round(pileWide * scale),
     fontPx: Math.round(34 * scale),
   }
 }
@@ -1560,7 +1562,7 @@ function SeatRingWithLabels({
         const broadcastRimStack = isBroadcast && filled && !isBusted
         const broadcastRimStackInwardPx =
           broadcastRimStack && broadcastChipLayout
-            ? broadcastRimStackOffsetPx(i, broadcastChipLayout.fontPx)
+            ? broadcastRimStackOffsetPx(i, broadcastChipLayout.fontPx, isDualBroadcast ? 'dual' : 'solo')
             : 0
         const broadcastStackPos =
           broadcastRimStack && broadcastRimStackInwardPx > 0 && rimW > 0 && rimH > 0

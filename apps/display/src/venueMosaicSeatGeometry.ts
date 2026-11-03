@@ -107,16 +107,23 @@ export type BroadcastRimClusterLayout = {
   stackFirst: boolean
 }
 
+export type BroadcastDensity = 'solo' | 'dual'
+
 /** Semicircle arc seats — need extra vertical gap between rim name and bankroll. */
 const BROADCAST_ARC_SEAT_INDEXES = new Set([1, 3, 5, 7])
 
-/** Scaled gap from rim name to bankroll label (px). */
-export function broadcastRimStackOffsetPx(seatIndex: number, stackFontPx: number): number {
+/** Scaled gap from rim name to bankroll label (px). Two-table labels sit closer so the amount stays with the name. */
+export function broadcastRimStackOffsetPx(
+  seatIndex: number,
+  stackFontPx: number,
+  density: BroadcastDensity = 'solo',
+): number {
   const i = mosaicSeatIndex(seatIndex)
   if (stackFontPx <= 0) return 0
-  if (BROADCAST_ARC_SEAT_INDEXES.has(i)) return Math.round(stackFontPx * 1.42)
-  if (i === 2 || i === 6) return Math.round(stackFontPx * 1.15)
-  return Math.round(stackFontPx * 1.08)
+  const hug = density === 'dual' ? 0.62 : 1
+  if (BROADCAST_ARC_SEAT_INDEXES.has(i)) return Math.round(stackFontPx * 1.42 * hug)
+  if (i === 2 || i === 6) return Math.round(stackFontPx * 1.15 * hug)
+  return Math.round(stackFontPx * 1.08 * hug)
 }
 
 /** Bankroll label — under the rim name; flat side seats stack vertically (+Y). */
@@ -199,23 +206,18 @@ function broadcastChipPoint(
   cupY: number,
   ix: number,
   iy: number,
-  tx: number,
-  ty: number,
-  cardIn: number,
-  side: number,
   inward: number,
 ): { leftPct: number; topPct: number } {
-  if (density === 'solo') {
-    const chipIn = Math.min(Math.max(inward * 0.32, 96), inward * 0.42)
-    return at(cupX + ix * chipIn, cupY + iy * chipIn)
-  }
-  return at(cupX + ix * cardIn - tx * side, cupY + iy * cardIn - ty * side)
+  const chipIn =
+    density === 'solo'
+      ? Math.min(Math.max(inward * 0.32, 96), inward * 0.42)
+      : Math.min(Math.max(inward * 0.28, 36), inward * 0.4)
+  return at(cupX + ix * chipIn, cupY + iy * chipIn)
 }
 
 /**
  * Broadcast hero: cards and the dealer button sit in a cluster at the seat.
- * One-table chip stacks sit on the felt, in from the cup. Two-table chips stay
- * beside the hole cards. The stack amount stays with the name.
+ * Chip stacks sit on the felt, in from the cup. The stack amount stays with the name.
  */
 export function broadcastFeltAssetAnchors(
   seatIndex: number,
@@ -271,7 +273,7 @@ export function broadcastFeltAssetAnchors(
       ...at(cupX + ix * cardIn, cupY + iy * cardIn),
       rotateDeg: holeLayout.rotateDeg,
     },
-    chip: broadcastChipPoint(density, at, cupX, cupY, ix, iy, tx, ty, cardIn, side, inward),
+    chip: broadcastChipPoint(density, at, cupX, cupY, ix, iy, inward),
     blind: at(cupX + ix * cardIn + tx * side, cupY + iy * cardIn + ty * side),
   }
 }
@@ -312,8 +314,6 @@ export function broadcastBlindMarkerPct(
     topPct: ((cupY + ty * sideOffsetPx + (nudge?.dy ?? 0)) / h) * 100,
   }
 }
-
-export type BroadcastDensity = 'solo' | 'dual'
 
 /** Max rim-name width — dual uses the inset felt, so labels stay inside the column gutter. */
 export function broadcastRimLabelMaxWidthPx(rimW: number, density: BroadcastDensity = 'solo'): number {

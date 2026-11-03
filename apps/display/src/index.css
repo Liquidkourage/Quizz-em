@@ -225,7 +225,7 @@
   }
 
   .vfd-broadcast-showdown-reveal[data-reveal-variant='winner'] .vfd-broadcast-showdown-reveal__frame {
-    padding-top: clamp(1.75rem, 4.5vmin, 2.75rem);
+    padding-top: clamp(4.1rem, 10.5vmin, 5.15rem);
   }
 
   .vfd-broadcast-showdown-reveal__laurel {
@@ -265,11 +265,11 @@
 
   .vfd-broadcast-showdown-reveal[data-reveal-variant='winner'] .vfd-broadcast-showdown-reveal__crown {
     position: absolute;
-    top: 0;
+    top: 0.7rem;
     left: 50%;
     margin: 0;
-    height: clamp(3.5rem, 10vmin, 6.25rem);
-    transform: translate(-50%, -46%);
+    height: clamp(2.35rem, 6.2vmin, 3.4rem);
+    transform: translate(-50%, 0);
   }
 
   .vfd-broadcast-showdown-reveal__content {
@@ -663,7 +663,7 @@
   [data-form-factor='broadcast-2']
     .vfd-broadcast-showdown-reveal[data-reveal-variant='winner']
     .vfd-broadcast-showdown-reveal__crown {
-    height: clamp(2.65rem, 7.5vmin, 4.75rem);
+    height: clamp(2.05rem, 5.4vmin, 2.85rem);
   }
 
   [data-form-factor='broadcast-2'] .vfd-broadcast-showdown-reveal__laurel {

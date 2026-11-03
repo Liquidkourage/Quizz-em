@@ -121,6 +121,14 @@ describe('host desk viewport', () => {
     )
     expect(html).toContain('text-2xl font-semibold')
     expect(html).toContain('text-4xl font-extrabold')
+    expect(html).toContain('Question')
+  })
+
+  it('shows the live question number from the rundown', () => {
+    const html = renderToStaticMarkup(
+      <HostLiveQuestionCard text="How long was the mission?" answer={195} cueNumber={3} cueTotal={25} />,
+    )
+    expect(html).toContain('Question 3 of 25')
   })
 })
 

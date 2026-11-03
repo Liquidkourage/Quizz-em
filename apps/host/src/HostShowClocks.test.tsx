@@ -33,6 +33,20 @@ describe('host show clocks', () => {
     expect(formatElapsedClock(null, 50_000)).toBe('—')
   })
 
+  it('keeps an hour-long event clock inside the face', () => {
+    const now = 1_000_000
+    const html = renderToStaticMarkup(
+      createElement(HostShowClocks, {
+        showStartedAtMs: now - (3600 + 3 * 60 + 2) * 1000,
+        handStartedAtMs: now - 12_000,
+        nowMs: now,
+      }),
+    )
+    expect(html).toContain('1:03:02')
+    expect(html).toContain('min-w-[8.5rem]')
+    expect(html).toContain('text-2xl')
+  })
+
   it('keeps the hand clock and the event clock together', () => {
     const now = 1_000_000
     const html = renderToStaticMarkup(
@@ -91,7 +105,7 @@ describe('host show clocks', () => {
     const rows = [felt({ turnDeadlineMs: now + 30_000 })]
     expect(soonestNudgeSeconds(rows, now)).toBe(30)
     const html = renderToStaticMarkup(createElement(HostNudgeClock, { rows, nowMs: now }))
-    expect(html).toContain('Nudge')
+    expect(html).toContain('Last call for responses')
     expect(html).toContain('30')
   })
 })

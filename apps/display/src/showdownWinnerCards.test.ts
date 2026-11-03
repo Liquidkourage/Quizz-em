@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -23,6 +24,19 @@ const winner: ShowdownResultRow = {
   ],
   chipPayout: 100,
 }
+
+describe('winner crown clearance', () => {
+  it('keeps the broadcast winner crown inside the plaque', () => {
+    const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+    const start = css.indexOf(
+      ".vfd-broadcast-showdown-reveal[data-reveal-variant='winner'] .vfd-broadcast-showdown-reveal__crown",
+    )
+    const block = css.slice(start, start + 280)
+    expect(block).toContain('top: 0.7rem')
+    expect(block).toContain('translate(-50%, 0)')
+    expect(block).not.toContain('-46%')
+  })
+})
 
 describe('winner screen cards', () => {
   it('leaves the five answer cards off the table winner stage', () => {

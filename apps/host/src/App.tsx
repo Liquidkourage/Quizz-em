@@ -93,7 +93,7 @@ import { HOST_VENUE_ALERT_MS, hostVenueAutoAlertFromToast } from './hostVenueAut
 import { useHostVenueAutoAlerts } from './useHostVenueAutoAlerts'
 import HostVenueAutoAlertBanner from './HostVenueAutoAlertBanner.tsx'
 import HostStillGuessingNotice from './HostStillGuessingNotice'
-import { playersStillGuessing } from './hostStillGuessing'
+import { guessClockCatchUp, playersStillGuessing } from './hostStillGuessing'
 import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
 import { suggestNextHostAction } from './hostPacingCopilot'
 
@@ -194,6 +194,11 @@ function HostApp() {
     if (deadlines.length === 0) return
     const soonest = Math.min(...deadlines)
     const now = nowOnServerClock()
+    const caughtUp = guessClockCatchUp(deadlines, now, guessClockNowMs)
+    if (caughtUp != null) {
+      setGuessClockNowMs(caughtUp)
+      return
+    }
     if (now >= soonest) return
     const id = window.setTimeout(() => setGuessClockNowMs(nowOnServerClock()), Math.max(0, soonest - now))
     return () => window.clearTimeout(id)
@@ -1143,6 +1148,8 @@ function HostApp() {
                 <HostLiveQuestionCard
                   text={hostControlState.round.question.text}
                   answer={hostControlState.round.question.answer}
+                  cueNumber={activeSetlistNextIndex > 0 ? activeSetlistNextIndex : null}
+                  cueTotal={activeSetlist?.questionIds.length ?? null}
                 />
               ) : null
             }

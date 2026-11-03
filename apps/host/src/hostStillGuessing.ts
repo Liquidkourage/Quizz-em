@@ -43,3 +43,21 @@ export function playersStillGuessing(
   out.sort((a, b) => a.tableNum - b.tableNum || a.name.localeCompare(b.name))
   return out
 }
+
+/**
+ * The still-guessing list reads a desk clock that only moves when a timer fires.
+ * If the answer deadline is already past, that timer was cleared and the list stays hidden.
+ * Return the current time so the desk clock catches up.
+ */
+export function guessClockCatchUp(
+  deadlines: readonly number[],
+  nowMs: number,
+  clockNowMs: number,
+): number | null {
+  let soonest = Infinity
+  for (const deadline of deadlines) {
+    if (Number.isFinite(deadline) && deadline < soonest) soonest = deadline
+  }
+  if (!Number.isFinite(soonest) || nowMs < soonest || clockNowMs >= soonest) return null
+  return nowMs
+}

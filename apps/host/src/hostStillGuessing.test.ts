@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueActionRow, HostVenueFeltBeatRow } from '@qhe/net'
 import HostStillGuessingNotice from './HostStillGuessingNotice'
-import { playersStillGuessing } from './hostStillGuessing'
+import { guessClockCatchUp, playersStillGuessing } from './hostStillGuessing'
 
 function row(partial: Partial<HostVenueActionRow> & Pick<HostVenueActionRow, 'tableNum' | 'seats'>): HostVenueActionRow {
   return {
@@ -70,6 +70,20 @@ describe('players still guessing after the clock', () => {
     expect(playersStillGuessing(afterBo, [felt(2, 10_000), felt(4, 10_000)], 10_500)).toEqual([
       { name: 'Cy', tableNum: 4 },
     ])
+  })
+})
+
+describe('guess clock catch-up', () => {
+  it('moves the desk clock to now when the answer deadline is already past', () => {
+    expect(guessClockCatchUp([10_000], 10_500, 9_000)).toBe(10_500)
+  })
+
+  it('leaves the desk clock alone while the answer window is still open', () => {
+    expect(guessClockCatchUp([10_000], 9_000, 8_000)).toBeNull()
+  })
+
+  it('leaves the desk clock alone once it has already passed the deadline', () => {
+    expect(guessClockCatchUp([10_000], 10_500, 10_500)).toBeNull()
   })
 })
 

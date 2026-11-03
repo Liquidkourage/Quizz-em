@@ -26,10 +26,11 @@ describe('venueBroadcastLayout', () => {
     expect(broadcastFeltScale(half, 'dual')).toBeLessThan(broadcastFeltScale(half, 'solo'))
   })
 
-  it('sizes two-table hole cards to the same card as the community board', () => {
+  it('sizes two-table hole cards smaller than that felt’s community board', () => {
     const box = dualBroadcastHoleCardBoxPx(640)
     const communityW = Math.round(76 * broadcastFeltScale(640, 'dual'))
-    expect(box.widthPx).toBe(Math.max(28, communityW))
+    expect(box.widthPx).toBe(Math.max(28, Math.round(communityW * 0.68)))
+    expect(box.widthPx).toBeLessThan(communityW)
     expect(box.heightPx).toBe(Math.round((box.widthPx * 7) / 5))
     expect(box.overlapPx).toBe(Math.max(8, Math.round(box.widthPx * 0.36)))
   })

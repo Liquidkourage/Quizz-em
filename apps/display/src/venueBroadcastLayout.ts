@@ -16,16 +16,21 @@ export function broadcastFeltScale(rimW: number, density: 'solo' | 'dual'): numb
 /** Community card width at scale 1. Matches the two-table board. */
 const DUAL_COMMUNITY_CARD_WIDTH_PX = 76
 
+/** Two-table hole cards are smaller than that felt's community board. */
+const DUAL_HOLE_TO_COMMUNITY = 0.68
+
 /**
- * Two-table hole cards: the same card size as that felt's community board,
- * fanned the way the 3+ mosaic fans them.
+ * Two-table hole cards, fanned the way the 3+ mosaic fans them.
  */
 export function dualBroadcastHoleCardBoxPx(rimW: number): {
   widthPx: number
   heightPx: number
   overlapPx: number
 } {
-  const widthPx = Math.max(28, Math.round(DUAL_COMMUNITY_CARD_WIDTH_PX * broadcastFeltScale(rimW, 'dual')))
+  const widthPx = Math.max(
+    28,
+    Math.round(DUAL_COMMUNITY_CARD_WIDTH_PX * broadcastFeltScale(rimW, 'dual') * DUAL_HOLE_TO_COMMUNITY),
+  )
   const heightPx = Math.round((widthPx * 7) / 5)
   const overlapPx = Math.max(8, Math.round(widthPx * 0.36))
   return { widthPx, heightPx, overlapPx }

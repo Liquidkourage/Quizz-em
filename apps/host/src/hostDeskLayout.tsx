@@ -583,8 +583,8 @@ export function buildHostRunOfShowSteps(
       hint: 'When everyone has checked, called, raised, or folded — close this betting round.',
     },
     'deal-board': {
-      label: 'Open the street',
-      hint: 'Opens the street on every table.',
+      label: 'Deal the street',
+      hint: 'Deals the street on every table.',
     },
     'close-bet-2': {
       label: 'Close betting (2nd round)',
@@ -930,7 +930,7 @@ export function buildHostPhaseDockItems(args: {
       return withRehearsalSkip([
         {
           id: 'deal-board',
-          label: 'Open the street',
+          label: 'Deal the street',
           onClick: onDealCommunity,
           disabled: dealCommunityBlocked,
           variant: 'blue',

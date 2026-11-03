@@ -42,8 +42,8 @@ describe('next question cue', () => {
     gameState.phase = 'betting'
     gameState.round.isBettingOpen = false
     const steps = buildHostRunOfShowSteps(gameState)
-    expect(steps.find((step) => step.id === 'deal-board')?.label).toBe('Open the street')
-    expect(steps.find((step) => step.id === 'deal-board')?.hint.toLowerCase()).toContain('street')
+    expect(steps.find((step) => step.id === 'deal-board')?.label).toBe('Deal the street')
+    expect(steps.find((step) => step.id === 'deal-board')?.hint.toLowerCase()).toContain('deals the street')
     expect(steps.find((step) => step.id === 'close-bet-2')?.hint.toLowerCase()).not.toContain('shared cards')
     const items = buildHostPhaseDockItems({
       gameState,
@@ -63,7 +63,7 @@ describe('next question cue', () => {
       onNextSetlist: noop,
       onNudgeActing: noop,
     })
-    expect(items.find((item) => item.id === 'deal-board')?.label).toBe('Open the street')
+    expect(items.find((item) => item.id === 'deal-board')?.label).toBe('Deal the street')
   })
 
   it('says Start Game before the first question and drops Random question', () => {

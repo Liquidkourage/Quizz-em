@@ -46,4 +46,15 @@ describe('venue tile wagering display', () => {
     expect(displayBettingPhaseLabel(row)).toBe('Wagering')
     expect(venueTileActingSeatIndex(row)).toBe(1)
   })
+
+  it('keeps the 9 o’clock chair when fewer than eight players are seated', () => {
+    const row = {
+      phase: 'betting',
+      seated: 6,
+      isBettingOpen: true,
+      currentPlayerIndex: 6,
+      actingSeatIndex: 6,
+    }
+    expect(venueTileActingSeatIndex(row)).toBe(6)
+  })
 })

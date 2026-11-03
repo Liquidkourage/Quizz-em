@@ -105,4 +105,30 @@ describe('public table status line', () => {
     expect(cardHtml(html, 3)).not.toContain('Lobby')
     expect(cardHtml(html, 4)).not.toContain('Wagering')
   })
+
+  it('names the 9 o’clock player when six people are seated', () => {
+    const names = ['', '', '', '', '', '', 'Maria A.']
+    const spec = resolveVenueFloorSpec({ populatedTableCount: 8 })
+    const html = renderToStaticMarkup(
+      createElement(VenueAerialFloorGrid, {
+        tiles: [
+          tile(1, 'betting', {
+            seated: 6,
+            isBettingOpen: true,
+            currentPlayerIndex: 6,
+            actingSeatIndex: 6,
+            actingCallAmount: 20,
+            seatNames: names,
+          }),
+        ],
+        showHeadline: false,
+        skipMountIntro: true,
+        prefersReducedMotion: true,
+        floorSpec: spec!,
+      }),
+    )
+    const title = titleRowHtml(cardHtml(html, 1))
+    expect(title).toContain('Maria A.')
+    expect(title).toContain('to call')
+  })
 })

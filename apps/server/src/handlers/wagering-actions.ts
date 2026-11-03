@@ -113,6 +113,25 @@ export async function handleWageringAction(
           break
         }
 
+        case 'lastCallForBets': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const requested = payload?.tableNum
+          const tableNum =
+            typeof requested === 'number' && Number.isFinite(requested) ? Math.floor(requested) : null
+          const closed = payload?.closed !== false
+          const changed = g.lastCallForVenueTables(gameState.code, tableNum, closed)
+          const where = tableNum == null ? 'every open table' : `table ${tableNum}`
+          socket.emit(
+            'toast',
+            changed === 0
+              ? 'No open betting table to change.'
+              : closed
+                ? `Last call on ${where}. Players can call or fold.`
+                : `Raises are open again on ${where}.`,
+          )
+          gameState = g.rooms.get(sessionKey)!
+          break
+        }
         case 'nudgeActingPlayers': {
           if (!g.assertVenueHost(socket, gameState)) break
           const vnNudge = g.normalizeVenueCode(gameState.code)

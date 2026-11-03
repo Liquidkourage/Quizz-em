@@ -109,6 +109,40 @@ describe('bettingModel', () => {
     expect(ctx.isMyTurn).toBe(true)
     expect(ctx.canCheck).toBe(true)
   })
+
+  it('hides a raise once the host calls last bets', () => {
+    let gs = createEmptyGame('HOST01', 'host', '1')
+    gs = {
+      ...gs,
+      phase: 'betting',
+      players: [
+        { id: 'a', name: 'Alice', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
+        { id: 'b', name: 'Bob', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
+      ],
+      round: {
+        ...gs.round,
+        isBettingOpen: true,
+        currentPlayerIndex: 0,
+        currentBet: 40,
+        playerBets: { a: 20, b: 40 },
+        bettingRound: 1,
+        raisesClosed: true,
+        lastFullRaiseAmount: 20,
+      },
+      bigBlind: 20,
+      smallBlind: 10,
+    }
+    const ctx = buildBettingContext({
+      gameState: gs,
+      currentPlayer: gs.players[0],
+      myIndex: 0,
+      raiseAmount: 20,
+    })
+    expect(ctx.raisesClosed).toBe(true)
+    expect(ctx.canCall).toBe(true)
+    expect(ctx.canRaise).toBe(false)
+    expect(ctx.canAllIn).toBe(false)
+  })
 })
 
 describe('handSummary', () => {

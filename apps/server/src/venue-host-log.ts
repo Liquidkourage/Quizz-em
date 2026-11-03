@@ -452,7 +452,15 @@ function seatContestAt(tile: DisplayVenueTileSnapshot, index: number, name: stri
   const busted = tile.seatPointsOnly?.[index] === true
   const folded = !busted && tile.seatFolded?.[index] === true
   const reason = busted ? 'busted' : folded ? 'folded' : null
-  const seat: HostVenueSeatContest = { name, kind: reason == null ? 'pot' : 'points', reason }
+  const bankroll = tile.seatBankrolls?.[index]
+  const invested = tile.seatInvested?.[index]
+  const seat: HostVenueSeatContest = {
+    name,
+    kind: reason == null ? 'pot' : 'points',
+    reason,
+    ...(typeof bankroll === 'number' && Number.isFinite(bankroll) ? { bankroll: Math.max(0, Math.floor(bankroll)) } : {}),
+    ...(typeof invested === 'number' && Number.isFinite(invested) ? { invested: Math.max(0, Math.floor(invested)) } : {}),
+  }
   if (tile.phase === 'answering') seat.guessLocked = tile.seatAnswerLocked?.[index] === true
   return seat
 }
@@ -485,6 +493,7 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         seated: tile.seated,
         pot: tile.pot,
         betsClosed: isVenueTileWageringPaused(tile),
+        raisesClosed: tile.raisesClosed === true,
         interestingAction: tile.interestingAction === true,
         actingSeatIndex: idx ?? null,
         actingPlayerName,

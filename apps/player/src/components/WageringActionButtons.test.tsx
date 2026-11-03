@@ -23,6 +23,7 @@ function ctx(overrides: Partial<BettingContext> = {}): BettingContext {
     canRaise: true,
     canAllIn: true,
     canFold: true,
+    raisesClosed: false,
     ...overrides,
   }
 }

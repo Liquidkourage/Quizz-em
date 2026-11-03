@@ -1,4 +1,6 @@
-﻿export type GamePhase = 'lobby' | 'question' | 'betting' | 'answering' | 'reveal' | 'showdown' | 'payout' | 'intermission';
+﻿import { VENUE_WALL_SEAT_SLOTS } from './venueConstants'
+
+export type GamePhase = 'lobby' | 'question' | 'betting' | 'answering' | 'reveal' | 'showdown' | 'payout' | 'intermission';
 
 export type PlayerId = string;
 
@@ -99,6 +101,8 @@ export interface RoundState {
    * Opens at the big blind each street; incomplete all-in raises do not update this.
    */
   lastFullRaiseAmount?: number;
+  /** Host closed further bets and raises. Call, check, and fold still stand. */
+  raisesClosed?: boolean;
 }
 
 /** Contestable pot layer — only `eligiblePlayerIds` may win it (trivia-closest at showdown). */
@@ -709,6 +713,7 @@ export function openBettingRound1(state: GameState): GameState {
         handContributions: {},
         pot: state.round.pot,
         lastFullRaiseAmount: Math.max(state.bigBlind, 0),
+        raisesClosed: false,
         lastSeatBettingAction: Array.from({ length: playersWithHands.length }, () => null),
       },
     };
@@ -777,6 +782,7 @@ export function openBettingRound1(state: GameState): GameState {
       handContributions,
       pot,
       lastFullRaiseAmount: Math.max(state.bigBlind, 0),
+      raisesClosed: false,
       lastSeatBettingAction: Array.from({ length: playersAfterBlinds.length }, () => null),
     },
   };
@@ -970,7 +976,14 @@ export function isVenueTileWageringPaused(row: {
   return false;
 }
 
-/** Acting seat for venue wall tiles — requires an explicitly open clock. */
+function tileChairIndex(raw: number | null | undefined): number | null {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return null;
+  const i = Math.floor(raw);
+  if (i < 0 || i >= VENUE_WALL_SEAT_SLOTS) return null;
+  return i;
+}
+
+/** Acting chair on a venue tile. Chair numbers run around the felt, past the seated count. */
 export function venueTileActingSeatIndex(
   row: {
     phase: string;
@@ -983,21 +996,7 @@ export function venueTileActingSeatIndex(
   const ph = String(row.phase ?? '').trim().toLowerCase();
   if (ph !== 'betting' || row.seated < 1) return null;
   if (row.isBettingOpen !== true) return null;
-  const fromRound = displayActingSeatIndex(row.phase, row.seated, {
-    currentPlayerIndex: row.currentPlayerIndex ?? undefined,
-    isBettingOpen: true,
-  });
-  if (fromRound != null) return fromRound;
-  const legacy = row.actingSeatIndex;
-  if (
-    typeof legacy === 'number' &&
-    Number.isFinite(legacy) &&
-    legacy >= 0 &&
-    legacy < row.seated
-  ) {
-    return Math.floor(legacy);
-  }
-  return null;
+  return tileChairIndex(row.currentPlayerIndex) ?? tileChairIndex(row.actingSeatIndex);
 }
 
 /** After round-1 wagering is closed: deal five community cards and open round-2 wagering. */
@@ -1037,6 +1036,7 @@ export function dealCommunityCards(state: GameState): GameState {
       isBettingOpen,
       playerBets: {},
       lastFullRaiseAmount: Math.max(state.bigBlind, 0),
+      raisesClosed: false,
       lastSeatBettingAction: Array.from({ length: state.players.length }, () => null),
     },
   };
@@ -1293,8 +1293,15 @@ export function playerCall(state: GameState, playerId: string): GameState {
   return isBettingComplete(after) ? { ...after, round: { ...after.round, isBettingOpen: false, currentPlayerIndex: -1 } } : after;
 }
 
+/** Freeze further bets and raises. Calls, checks, and folds stay available. */
+export function setRaisesClosed(state: GameState, closed: boolean): GameState {
+  if ((state.round.raisesClosed === true) === closed) return state;
+  return { ...state, round: { ...state.round, raisesClosed: closed } };
+}
+
 export function playerRaise(state: GameState, playerId: string, raiseAmount: number): GameState {
   if (state.phase !== 'betting' || !state.round.isBettingOpen) return state;
+  if (state.round.raisesClosed === true) return state;
   if (raiseAmount <= 0) return state;
   const seat = getSeatIndexByPlayerId(state, playerId);
   if (seat < 0 || state.players[seat]?.pointsOnly) return state;
@@ -1343,6 +1350,10 @@ export function playerAllIn(state: GameState, playerId: string): GameState {
   if (seat !== state.round.currentPlayerIndex) return state;
   const bankroll = state.players[seat].bankroll;
   if (bankroll <= 0) return state;
+  if (state.round.raisesClosed === true) {
+    const toCall = amountToCall(state, playerId);
+    if (bankroll > toCall) return toCall > 0 ? playerCall(state, playerId) : playerCheck(state, playerId);
+  }
   const prevBet = state.round.currentBet || 0;
   const minRaise = minRaiseByAmount(state);
   let after = placeBet(state, playerId, bankroll);

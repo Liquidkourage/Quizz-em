@@ -65,9 +65,9 @@ export default function WageringActionButtons({
   // Preview affordances from stack/to-call — not gated on whose turn it is.
   const showCheck = ctx.toCall === 0
   const showCall = ctx.toCall > 0 && !shortAllInCall && currentPlayer.bankroll > 0
-  const showRaise = maxRaiseBy >= ctx.minRaise
+  const showRaise = !ctx.raisesClosed && maxRaiseBy >= ctx.minRaise
   const showFold = true
-  const showAllIn = currentPlayer.bankroll > 0
+  const showAllIn = !ctx.raisesClosed && currentPlayer.bankroll > 0
   const hasPrimary = showCheck || showCall || shortAllInCall
   const hasSecondary = showFold || showAllIn
   // Never display a sub-minimum raise (avoids Raise $0 while state catches up).

@@ -193,6 +193,42 @@ describe('venue floor now', () => {
     expect(guessing).not.toContain('Nudge')
   })
 
+  it('offers last call on an open betting table and shows stack and pot investment', () => {
+    const floor = brief()
+    floor.actionRows = [
+      {
+        ...actionRow(1),
+        phase: 'betting',
+        actingPlayerName: 'Ada Lane',
+        pot: 80,
+        seats: [{ name: 'Ada Lane', kind: 'pot', reason: null, bankroll: 1200, invested: 40 }],
+      },
+      { ...actionRow(2), phase: 'betting', betsClosed: true, actingPlayerName: 'Bo' },
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+        onLastCall: () => {},
+      }),
+    )
+    expect(html).toContain('Last call on betting tables')
+    expect(html).toContain('Last call on table 1')
+    expect(html).not.toContain('Last call on table 2')
+    const table = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: floor.actionRows[0]!.seats,
+        recentActions: [],
+        hostPlayerLabel: (name: string) => name,
+        pot: 80,
+      }),
+    )
+    expect(table).toContain('$1,200')
+    expect(table).toContain('in pot')
+    expect(table).toContain('$40')
+  })
+
   it('shows the nudge clock on the table action card that was nudged', () => {
     const floor = brief()
     floor.actionRows = [

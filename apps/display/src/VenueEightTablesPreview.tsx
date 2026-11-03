@@ -297,27 +297,30 @@ function MosaicTableStatusBand({
   kind,
   playerName,
   callAmount,
+  lastCall = false,
   prefersReducedMotion = false,
   gridRowClass = '',
 }: {
   kind: MosaicTableStatusBandKind
   playerName?: string
   callAmount?: number
+  lastCall?: boolean
   prefersReducedMotion?: boolean
   gridRowClass?: string
 }) {
   if (kind === 'to-call' && playerName && callAmount != null) {
     const amount = Math.max(0, Math.floor(callAmount))
+    const cue = lastCall ? 'last call' : 'to call'
     return (
       <div
         className={`vfd-mosaic-status-band vfd-mosaic-status-band--call shrink-0 ${gridRowClass}`}
         aria-live="polite"
-        aria-label={`${playerName} to call ${formatVenueBankroll(amount)}`}
+        aria-label={`${playerName} ${cue} ${formatVenueBankroll(amount)}`}
       >
         <span className="vfd-mosaic-status-band-name" title={playerName}>
           {playerName}
         </span>
-        <span className="vfd-mosaic-status-band-label">to call</span>
+        <span className="vfd-mosaic-status-band-label">{cue}</span>
         <MosaicBungeeDollarAmount
           amount={amount}
           className="vfd-mosaic-status-band-amount vfd-mosaic-dollar--live"
@@ -2133,7 +2136,7 @@ function VenueMosaicTableCard({
           } ${showFloorShowdownOverlay ? 'hidden' : ''}`}
         >
         <div
-          className={`grid shrink-0 gap-x-1 grid-cols-[auto_minmax(0,1fr)] ${floorSize.headerRowClass} ${denseMosaicChrome ? mosaicTypography.titleRowClass : ''} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
+          className={`grid shrink-0 gap-x-1 grid-cols-[auto_minmax(0,1fr)] ${floorSize.headerRowClass} ${mosaicTypography.titleRowClass} ${feltFillsCell ? 'col-start-1 row-start-1 min-w-0' : ''}`}
         >
           {denseMosaicChrome ? (
             <span
@@ -2153,6 +2156,7 @@ function VenueMosaicTableCard({
               kind={statusBandKind}
               playerName={actingPlayerName ?? undefined}
               callAmount={actingCallAmount ?? undefined}
+              lastCall={row.raisesClosed === true}
               prefersReducedMotion={prefersReducedMotion}
               gridRowClass="min-w-0"
             />
@@ -2734,6 +2738,7 @@ export function VenueSingleTableBroadcast({
                   kind={broadcastActionKind}
                   playerName={actingPlayerName ?? undefined}
                   callAmount={actingCallAmount ?? undefined}
+                  lastCall={tile.raisesClosed === true}
                   prefersReducedMotion={_prefersReducedMotion}
                   gridRowClass="min-w-0"
                 />

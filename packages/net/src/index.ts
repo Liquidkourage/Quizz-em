@@ -143,6 +143,10 @@ export type DisplayVenueTileSnapshot = {
   seatAnswerPoints?: number[]
   /** This wagering street only: last check / call / raise / fold / all-in per seat. Omitted by older servers. */
   seatLastBettingAction?: (SeatBettingAction | null)[]
+  /** Host has closed further bets and raises on this street. */
+  raisesClosed?: boolean
+  /** Chips each seat has committed to the pot this hand. Parallel to `seatNames`. */
+  seatInvested?: number[]
   /** Player to act: chips to call (min of facing amount and stack). Omitted when no one is up to wager. */
   actingCallAmount?: number | null
   /** Same player: % of current stack required for that call. Omitted when unknown or not applicable. */
@@ -364,6 +368,10 @@ export type HostVenueSeatContest = {
   name: string
   kind: 'pot' | 'points'
   reason: 'folded' | 'busted' | null
+  /** Chips still in front of this seat. */
+  bankroll?: number
+  /** Chips this seat has committed to the pot this hand. */
+  invested?: number
   /** True when this seat has locked a guess. Set while the table is guessing. */
   guessLocked?: boolean
 }
@@ -375,6 +383,8 @@ export type HostVenueActionRow = {
   pot: number
   /** Betting phase and the wagering clock is closed: no further bets on this street. */
   betsClosed?: boolean
+  /** Host closed further bets and raises. Call, check, and fold remain. */
+  raisesClosed?: boolean
   interestingAction?: boolean
   actingSeatIndex: number | null
   actingPlayerName: string | null

@@ -34,6 +34,7 @@ import {
   answerRevealWaitLabel,
   advanceRevealToShowdown,
   endRound,
+  setRaisesClosed,
   listPointsStandings,
   winnerScreensPayoutHint,
   winnerScreensReadyAt,
@@ -1464,6 +1465,22 @@ export function scheduleHumanTurnTimeout(sessionKey: string, gs: GameState): voi
   humanTurnTimers.set(sessionKey, timer)
 }
 
+/** Close or reopen bets and raises. One table when `tableNum` is set; otherwise every open betting table. */
+export function lastCallForVenueTables(vnRaw: string, tableNum: number | null, closed: boolean): number {
+  const vn = normalizeVenueCode(vnRaw)
+  let changed = 0
+  for (const { tk, n, gs } of venuePlayableSnapshots(vn)) {
+    if (tableNum != null && n !== tableNum) continue
+    if (gs.phase !== 'betting' || gs.round.isBettingOpen !== true) continue
+    const next = setRaisesClosed(gs, closed)
+    if (next === gs) continue
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next)
+    changed++
+  }
+  return changed
+}
+
 /** Host: start a 30s countdown on each table whose acting seat can still bet. One table when `tableNum` is set. */
 export function nudgeActingHumansVenue(
   vnRaw: string,
@@ -2190,6 +2207,10 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       const pts = p.answerPoints
       return typeof pts === 'number' && Number.isFinite(pts) ? Math.max(0, Math.floor(pts)) : 0
     })
+    const seatInvested = scatterRosterToChairs(gs.players, 0, (p) => {
+      const invested = gs.round.handContributions?.[p.id]
+      return typeof invested === 'number' && Number.isFinite(invested) ? Math.max(0, Math.floor(invested)) : 0
+    })
     const seatLastBettingAction = scatterRosterToChairs(gs.players, null, (_p, i) => {
       const arr = gs.round.lastSeatBettingAction
       if (arr != null && i < arr.length) {
@@ -2310,7 +2331,9 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       seatFolded,
       seatPointsOnly,
       seatAnswerPoints,
+      seatInvested,
       seatLastBettingAction,
+      ...(gs.round.raisesClosed === true ? { raisesClosed: true } : {}),
       actingCallAmount,
       actingCallPctOfStack,
       ...(seatHolesDealt.some(Boolean) ? { seatHolesDealt } : {}),
@@ -2801,6 +2824,7 @@ export const VENUE_SYNC_ACTION_TYPES = new Set<string>([
   'alignTablesToRoom',
   'setTablePhase',
   'nudgeActingPlayers',
+  'lastCallForBets',
   'nudgeOpenGuesses',
   'assignTablesFromLobby',
   'movePlayerToTable',

@@ -702,6 +702,20 @@ export function adminAdvanceTurn(callback?: (ack: ServerAck) => void) {
   if (callback) socket.once('ack', callback)
 }
 
+/** Host: close further bets and raises. One table when `tableNum` is set; otherwise every open betting table. */
+export function lastCallForBets(
+  tableNum: number | null,
+  closed = true,
+  callback?: (ack: ServerAck) => void,
+) {
+  if (!socket) return
+  socket.emit('action', {
+    type: 'lastCallForBets',
+    payload: { ...(tableNum != null ? { tableNum } : {}), closed },
+  })
+  if (callback) socket.once('ack', callback)
+}
+
 /** Host: 30s for the acting human, then auto check/fold. One table when `tableNum` is set; otherwise every table. */
 export function nudgeActingPlayers(tableNum?: number, callback?: (ack: ServerAck) => void) {
   if (!socket) return

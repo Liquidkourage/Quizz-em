@@ -18,6 +18,8 @@ export type BettingContext = {
   canRaise: boolean
   canAllIn: boolean
   canFold: boolean
+  /** Host closed further bets and raises on this street. */
+  raisesClosed: boolean
 }
 
 export function resolveMyPlayerIndex(
@@ -61,6 +63,7 @@ export function buildBettingContext(args: {
 
   const canBet =
     isBettingPhase && !!currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded
+  const raisesClosed = gameState.round.raisesClosed === true
 
   return {
     isBettingPhase,
@@ -76,10 +79,12 @@ export function buildBettingContext(args: {
     canCall: isMyTurn && toCall > 0 && bankroll > 0,
     canRaise:
       isMyTurn &&
+      !raisesClosed &&
       bankroll > toCall &&
       raiseAmount >= minRaise &&
       toCall + raiseAmount <= bankroll,
-    canAllIn: isMyTurn && bankroll > 0,
+    canAllIn: isMyTurn && bankroll > 0 && !raisesClosed,
     canFold: isMyTurn && canBet,
+    raisesClosed,
   }
 }

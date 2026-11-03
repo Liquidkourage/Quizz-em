@@ -21,6 +21,7 @@ import {
   alignTablesToRoom,
   setTablePhase,
   nudgeActingPlayers,
+  lastCallForBets,
   nudgeOpenGuesses,
   addVirtualPlayers,
   clearVirtualPlayers,
@@ -1152,6 +1153,7 @@ function HostApp() {
                 onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
                 onRemove={(playerId) => removePlayerFromEvent(playerId)}
                 onNudgeTable={(tableNum) => nudgeActingPlayers(tableNum)}
+                onLastCall={(tableNum, closed) => lastCallForBets(tableNum, closed)}
                 blindCall={
               <HostBlindCall
                 showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}

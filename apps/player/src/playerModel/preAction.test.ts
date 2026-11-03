@@ -18,6 +18,7 @@ function ctx(partial: Partial<BettingContext>): BettingContext {
     canRaise: true,
     canAllIn: true,
     canFold: true,
+    raisesClosed: false,
     ...partial,
   }
 }

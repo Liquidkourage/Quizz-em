@@ -1822,6 +1822,17 @@ function SeatContestRow({
   return (
     <li className="rounded-md bg-black/30 px-2 py-1.5">
       <p className="text-sm font-semibold leading-tight text-white">{hostPlayerLabel(row.seat.name)}</p>
+      {row.seat.bankroll != null ? (
+        <p className="text-xs tabular-nums text-white/70">
+          <ChipText text={formatHostFloorMoney(row.seat.bankroll)} />
+          {row.seat.invested != null ? (
+            <>
+              {' · in pot '}
+              <ChipText text={formatHostFloorMoney(row.seat.invested)} />
+            </>
+          ) : null}
+        </p>
+      ) : null}
       {reason ? <p className="text-xs text-white/55">{reason}</p> : null}
       {row.player && actions ? <SeatMoveControls player={row.player} actions={actions} /> : null}
     </li>
@@ -2042,6 +2053,7 @@ export function HostVenueFloorBriefPanel({
   onMove,
   onRemove,
   onNudgeTable,
+  onLastCall,
   blindCall,
 }: {
   brief: HostVenueFloorBriefPayload | null
@@ -2055,6 +2067,8 @@ export function HostVenueFloorBriefPanel({
   onRemove?: (playerId: string) => void
   /** Start the 30s clock for the human waiting to act at this table. */
   onNudgeTable?: (tableNum: number) => void
+  /** Close further bets and raises. Null table means every open betting table. */
+  onLastCall?: (tableNum: number | null, closed: boolean) => void
   blindCall?: ReactNode
 }) {
   const rows = [...(brief?.actionRows ?? [])].sort((a, b) => a.tableNum - b.tableNum)
@@ -2119,9 +2133,20 @@ export function HostVenueFloorBriefPanel({
                 Game over. {hostPlayerLabel(endgameWinner)} has the last stack.
               </p>
             ) : null}
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
-              Table action
-            </p>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold uppercase tracking-wide text-white/45">
+                Table action
+              </p>
+              {onLastCall ? (
+                <button
+                  type="button"
+                  onClick={() => onLastCall(null, true)}
+                  className="rounded border border-amber-300/70 bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-50"
+                >
+                  Last call on betting tables
+                </button>
+              ) : null}
+            </div>
             {rows.length === 0 ? (
               <p className="text-sm text-white/50">No seated tables yet.</p>
             ) : (
@@ -2212,6 +2237,20 @@ export function HostVenueFloorBriefPanel({
                         className="mt-1 w-full rounded border border-amber-300/70 bg-amber-500/25 px-1 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-50"
                       >
                         Nudge
+                      </button>
+                    ) : null}
+                    {onLastCall && row.phase === 'betting' && !row.betsClosed ? (
+                      <button
+                        type="button"
+                        aria-label={
+                          row.raisesClosed
+                            ? `Open raises on table ${row.tableNum}`
+                            : `Last call on table ${row.tableNum}`
+                        }
+                        onClick={() => onLastCall(row.tableNum, !row.raisesClosed)}
+                        className="mt-1 w-full rounded border border-amber-300/70 bg-amber-500/20 px-1 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-50"
+                      >
+                        {row.raisesClosed ? 'Open raises' : 'Last call'}
                       </button>
                     ) : null}
                     </li>

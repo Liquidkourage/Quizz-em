@@ -563,6 +563,8 @@ export function buildHostVenueFloorBrief(args: {
   lastHandBustCount?: number
   showStartedAtMs?: number | null
   handStartedAtMs?: number | null
+  /** Epoch ms when the current venue phase began. Null before anyone is seated. */
+  phaseStartedAtMs?: number | null
   fieldPeakCount?: number
   wallView?: VenueWallViewMode
   winnerScreensReadyAtMs?: number | null
@@ -602,6 +604,7 @@ export function buildHostVenueFloorBrief(args: {
     medianStack: medianSeatedStack(args.tiles),
     showStartedAtMs: args.showStartedAtMs ?? null,
     handStartedAtMs: args.handStartedAtMs ?? null,
+    phaseStartedAtMs: args.phaseStartedAtMs ?? null,
     fieldPeakCount: Math.max(args.fieldPlayerCount, Math.floor(args.fieldPeakCount ?? 0)),
     wallView: args.wallView ?? 'floor',
     winnerScreensReadyAtMs: args.winnerScreensReadyAtMs ?? null,

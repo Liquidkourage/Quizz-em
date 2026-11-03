@@ -125,11 +125,13 @@ import {
   loadVenueShuffleSettingsFromDisk,
   noteVenueFieldPeak,
   noteVenueHandClock,
+  noteVenuePhaseClock,
   noteVenueShowStarted,
   recordVenueShuffleHandCompleted,
   resetVenueShuffleCounter,
   setVenueShuffleEvery,
   setVenueSkipNextShuffle,
+  venuePhaseClockKey,
 } from './venue-shuffle-settings'
 import {
   fastForwardTableToShowdown,
@@ -2550,7 +2552,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     .map((t) => t.tableNum)
     .sort((a, b) => a - b)
   io.to(hostVenueRoom(vn)).emit('hostVenueGameplayHints', { livelyTableNums })
-  io.to(hostVenueRoom(vn)).emit('hostVenueFeltBeat', buildHostVenueFeltBeatPayload(vn))
+  const felts = buildHostVenueFeltBeatPayload(vn)
+  io.to(hostVenueRoom(vn)).emit('hostVenueFeltBeat', felts)
   io.to(hostVenueRoom(vn)).emit(
     'hostVenueFloorBrief',
     buildHostVenueFloorBrief({
@@ -2562,6 +2565,12 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       handStartedAtMs: noteVenueHandClock(
         vn,
         tiles.some((t) => t.seated > 0 && t.phase !== 'lobby' && t.phase !== 'inactive'),
+      ),
+      phaseStartedAtMs: noteVenuePhaseClock(
+        vn,
+        venuePhaseClockKey(
+          felts.felts.filter((felt) => felt.active && felt.seated > 0).map((felt) => felt.phaseStrictSig),
+        ),
       ),
       fieldPeakCount: noteVenueFieldPeak(vn, condenseCounts.chipSurvivorCount),
       bigBlindHint: blindsSnap.bigBlind,

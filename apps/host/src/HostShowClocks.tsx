@@ -102,10 +102,13 @@ function ClockFace({ label, value, urgent = false }: { label: string; value: str
 export function HostShowClocks({
   showStartedAtMs,
   handStartedAtMs,
+  phaseStartedAtMs = null,
   nowMs,
 }: {
   showStartedAtMs: number | null
   handStartedAtMs: number | null
+  /** How long the current phase, including an open betting street, has been running. */
+  phaseStartedAtMs?: number | null
   nowMs?: number
 }) {
   const now = useClockNow(nowMs)
@@ -113,6 +116,7 @@ export function HostShowClocks({
     <div className="flex shrink-0 gap-2" aria-label="Show clocks">
       <ClockFace label="Event" value={formatElapsedClock(showStartedAtMs, now)} />
       <ClockFace label="Hand" value={formatElapsedClock(handStartedAtMs, now)} />
+      <ClockFace label="Phase" value={formatElapsedClock(phaseStartedAtMs, now)} />
     </div>
   )
 }

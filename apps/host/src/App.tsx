@@ -1132,6 +1132,7 @@ function HostApp() {
             venueFeltBeat={venueFeltBeat}
             showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}
             handStartedAtMs={venueFloorBrief?.handStartedAtMs ?? null}
+            phaseStartedAtMs={venueFloorBrief?.phaseStartedAtMs ?? null}
             questionSlot={
               hostControlState.round.question ? (
                 <HostLiveQuestionCard

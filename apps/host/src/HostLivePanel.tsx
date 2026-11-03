@@ -28,6 +28,7 @@ export function HostLivePanel({
   venueFeltBeat,
   showStartedAtMs = null,
   handStartedAtMs = null,
+  phaseStartedAtMs = null,
   questionSlot,
   handBody,
   floorNow,
@@ -51,6 +52,7 @@ export function HostLivePanel({
   venueFeltBeat: HostVenueFeltBeatRow[] | null
   showStartedAtMs?: number | null
   handStartedAtMs?: number | null
+  phaseStartedAtMs?: number | null
   questionSlot?: ReactNode
   handBody: ReactNode
   /** Venue floor · now, already open. */
@@ -106,7 +108,11 @@ export function HostLivePanel({
 
       <div className="flex min-w-0 items-start gap-2 sm:col-span-2 sm:row-start-2">
         <div className="min-w-0 flex-1">{questionSlot}</div>
-        <HostShowClocks showStartedAtMs={showStartedAtMs} handStartedAtMs={handStartedAtMs} />
+        <HostShowClocks
+          showStartedAtMs={showStartedAtMs}
+          handStartedAtMs={handStartedAtMs}
+          phaseStartedAtMs={phaseStartedAtMs}
+        />
         <HostNudgeClock rows={venueFeltBeat} />
         <HostAnswerClock rows={venueFeltBeat} />
       </div>

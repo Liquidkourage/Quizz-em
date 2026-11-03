@@ -26,6 +26,7 @@ const shuffleEveryByVenue = new Map<string, number>()
 const skipNextShuffleByVenue = new Map<string, boolean>()
 const showStartedAtByVenue = new Map<string, number>()
 const handStartedAtByVenue = new Map<string, number>()
+const phaseClockByVenue = new Map<string, { key: string; startedAtMs: number }>()
 const fieldPeakByVenue = new Map<string, number>()
 
 export function clampVenueShuffleEvery(raw: unknown): number {
@@ -114,6 +115,7 @@ export function resetVenueShuffleCounter(venueCode: string): void {
   skipNextShuffleByVenue.set(vn, false)
   showStartedAtByVenue.delete(vn)
   handStartedAtByVenue.delete(vn)
+  phaseClockByVenue.delete(vn)
   fieldPeakByVenue.delete(vn)
   persistToDisk()
 }
@@ -145,6 +147,47 @@ export function noteVenueHandClock(venueCode: string, handInProgress: boolean, n
   if (existing != null) return existing
   const stamp = Math.floor(nowMs)
   handStartedAtByVenue.set(vn, stamp)
+  return stamp
+}
+
+function mostCommonKey(keys: readonly string[]): string | null {
+  if (keys.length === 0) return null
+  const counts = new Map<string, number>()
+  let best = keys[0]!
+  let bestCount = 0
+  for (const key of keys) {
+    const count = (counts.get(key) ?? 0) + 1
+    counts.set(key, count)
+    if (count > bestCount) {
+      best = key
+      bestCount = count
+    }
+  }
+  return best
+}
+
+/** Open betting wins over a street that already closed, so the clock measures the live bet. */
+export function venuePhaseClockKey(signatures: readonly (string | null | undefined)[]): string | null {
+  const live = signatures.filter((sig): sig is string => typeof sig === 'string' && sig !== '' && sig !== 'inactive')
+  const open = live.filter((sig) => /^bet\|[^|]+\|T\|/.test(sig))
+  return mostCommonKey(open.length > 0 ? open : live)
+}
+
+/** Starts over when the venue phase changes. Same phase keeps the original instant. */
+export function noteVenuePhaseClock(
+  venueCode: string,
+  key: string | null,
+  nowMs = Date.now(),
+): number | null {
+  const vn = normalizeVenueKey(venueCode)
+  if (!vn || key == null || key === '') {
+    if (vn) phaseClockByVenue.delete(vn)
+    return null
+  }
+  const existing = phaseClockByVenue.get(vn)
+  if (existing != null && existing.key === key) return existing.startedAtMs
+  const stamp = Math.floor(nowMs)
+  phaseClockByVenue.set(vn, { key, startedAtMs: stamp })
   return stamp
 }
 

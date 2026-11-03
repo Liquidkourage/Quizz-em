@@ -39,13 +39,16 @@ describe('host show clocks', () => {
       createElement(HostShowClocks, {
         showStartedAtMs: now - 90_000,
         handStartedAtMs: now - 12_000,
+        phaseStartedAtMs: now - 240_000,
         nowMs: now,
       }),
     )
     expect(html).toContain('Event')
     expect(html).toContain('Hand')
+    expect(html).toContain('Phase')
     expect(html).toContain('1:30')
     expect(html).toContain('0:12')
+    expect(html).toContain('4:00')
   })
 
   it('counts from the latest action this hand, or from the hand start', () => {

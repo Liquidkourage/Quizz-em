@@ -1558,9 +1558,14 @@ export function nudgeOpenGuesses(vnRaw: string): { nudged: number; names: string
   const vn = normalizeVenueCode(vnRaw)
   const names: string[] = []
   const fireAt = Date.now() + HUMAN_NUDGE_TIMEOUT_MS
+  let guided = false
   for (const { tk, gs } of venuePlayableSnapshots(vn)) {
     const open = seatsStillGuessing(gs)
     if (open.length === 0) continue
+    if (!guided) {
+      armVenueAnswerGuideDeadline(vn, fireAt)
+      guided = true
+    }
     for (const player of open) {
       names.push(shortPlayerName(player.name))
       if (player.id.startsWith('vp:')) noteGuessNudge(player.id)
@@ -2566,6 +2571,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
         vn,
         tiles.some((t) => t.seated > 0 && t.phase !== 'lobby' && t.phase !== 'inactive'),
       ),
+      serverNowMs: payload.serverNowMs,
       phaseStartedAtMs: noteVenuePhaseClock(
         vn,
         venuePhaseClockKey(

@@ -39,6 +39,7 @@ export default function HostStillGuessingNotice({
           type="button"
           className="mt-2 w-full rounded-lg border border-amber-300/70 bg-amber-400/20 px-3 py-1.5 text-sm font-bold text-amber-50 hover:bg-amber-400/30"
           onClick={onNudge}
+          disabled={onNudge == null}
         >
           Nudge
         </button>

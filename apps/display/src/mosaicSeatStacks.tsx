@@ -1,3 +1,4 @@
+import { publicSeatInitials } from '@qhe/core'
 import {
   ChipMark,
   stadiumMosaicCommunityCardHeightPx,
@@ -26,14 +27,7 @@ function feltWidthPx(tableWidthPx: number): number {
 /** Two-letter seat mark. Empty when that player is out of chips. */
 export function mosaicSeatInitialLabel(name: string, pointsOnly: boolean): string {
   if (pointsOnly) return ''
-  const raw = name.trim()
-  if (!raw) return ''
-  return raw
-    .split(/\s+/)
-    .map((part) => part[0] ?? '')
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  return publicSeatInitials(name)
 }
 
 /** Face-down hole cards stay off a folded seat and off a points-only seat. */

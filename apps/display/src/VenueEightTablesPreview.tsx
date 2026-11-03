@@ -22,6 +22,7 @@ import {
   stadiumSeatPointPx,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
+import { disambiguatePublicNames } from '@qhe/core'
 import {
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
@@ -292,6 +293,16 @@ function VenuePotAmount({
 
 type MosaicTableStatusBandKind = 'to-call' | 'no-more-bets' | 'answering'
 
+function publicBetCue(amount: number, lastCall: boolean): { cue: string; showAmount: boolean } {
+  if (amount > 0) return { cue: lastCall ? 'last call' : 'to call', showAmount: true }
+  return { cue: lastCall ? 'last call' : 'to bet', showAmount: false }
+}
+
+function publicBetAria(playerName: string, amount: number, lastCall: boolean): string {
+  const cue = publicBetCue(amount, lastCall)
+  return cue.showAmount ? `${playerName} ${cue.cue} ${formatVenueBankroll(amount)}` : `${playerName} ${cue.cue}`
+}
+
 /** Table status cue — sits between header and felt (to-call, closed betting, answering). */
 function MosaicTableStatusBand({
   kind,
@@ -310,23 +321,25 @@ function MosaicTableStatusBand({
 }) {
   if (kind === 'to-call' && playerName && callAmount != null) {
     const amount = Math.max(0, Math.floor(callAmount))
-    const cue = lastCall ? 'last call' : 'to call'
+    const cue = publicBetCue(amount, lastCall)
     return (
       <div
         className={`vfd-mosaic-status-band vfd-mosaic-status-band--call shrink-0 ${gridRowClass}`}
         aria-live="polite"
-        aria-label={`${playerName} ${cue} ${formatVenueBankroll(amount)}`}
+        aria-label={publicBetAria(playerName, amount, lastCall)}
       >
         <span className="vfd-mosaic-status-band-name" title={playerName}>
           {playerName}
         </span>
-        <span className="vfd-mosaic-status-band-label">{cue}</span>
-        <MosaicBungeeDollarAmount
-          amount={amount}
-          className="vfd-mosaic-status-band-amount vfd-mosaic-dollar--live"
-          prefersReducedMotion={prefersReducedMotion}
-          pulseOnChange
-        />
+        <span className="vfd-mosaic-status-band-label">{cue.cue}</span>
+        {cue.showAmount ? (
+          <MosaicBungeeDollarAmount
+            amount={amount}
+            className="vfd-mosaic-status-band-amount vfd-mosaic-dollar--live"
+            prefersReducedMotion={prefersReducedMotion}
+            pulseOnChange
+          />
+        ) : null}
       </div>
     )
   }
@@ -445,6 +458,7 @@ function VenueBroadcastCenterStack({
   actionKind,
   actingPlayerName,
   callAmount,
+  lastCall = false,
   communityDigits,
   communityCardWidthPx,
   communityCardHeightPx,
@@ -459,6 +473,7 @@ function VenueBroadcastCenterStack({
   actionKind: MosaicTableStatusBandKind | null
   actingPlayerName?: string | null
   callAmount?: number | null
+  lastCall?: boolean
   communityDigits: number[]
   communityCardWidthPx: number
   communityCardHeightPx: number
@@ -505,6 +520,10 @@ function VenueBroadcastCenterStack({
     actionKind === 'to-call' ||
     actionKind === 'no-more-bets' ||
     actionKind === 'answering'
+  const betCue =
+    actionKind === 'to-call' && callAmount != null
+      ? publicBetCue(Math.max(0, Math.floor(callAmount)), lastCall)
+      : null
   return (
     <div
       className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
@@ -547,7 +566,11 @@ function VenueBroadcastCenterStack({
           <div
             className="vfd-broadcast-center-line vfd-broadcast-center-line--action"
             aria-live="polite"
-            aria-label={`${actingPlayerName} to call ${formatVenueBankroll(callAmount)}`}
+            aria-label={
+              betCue
+                ? publicBetAria(actingPlayerName, Math.max(0, Math.floor(callAmount)), lastCall)
+                : undefined
+            }
           >
             <span
               className="vfd-broadcast-action-name"
@@ -557,14 +580,16 @@ function VenueBroadcastCenterStack({
               {actingPlayerName}
             </span>
             <span className="vfd-broadcast-action-label" style={{ fontSize: centerTypo.actionLabelPx }}>
-              to call
+              {betCue?.cue}
             </span>
-            <BroadcastCenterAmount
-              amount={callAmount}
-              fontSizePx={centerTypo.actionAmountPx}
-              prefersReducedMotion={prefersReducedMotion}
-              pulseOnChange
-            />
+            {betCue?.showAmount ? (
+              <BroadcastCenterAmount
+                amount={callAmount}
+                fontSizePx={centerTypo.actionAmountPx}
+                prefersReducedMotion={prefersReducedMotion}
+                pulseOnChange
+              />
+            ) : null}
           </div>
         ) : actionKind === 'no-more-bets' ? (
           <p
@@ -687,13 +712,14 @@ function VenueMosaicNoMoreBetsWatermark({ offsetClass }: { offsetClass: string }
 }
 
 function padSeatNames(raw: string[] | undefined): string[] {
-  return Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
+  const padded = Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     if (raw != null && raw[i] != null) {
       const t = String(raw[i]).trim()
       return t
     }
     return ''
   })
+  return disambiguatePublicNames(padded)
 }
 
 function padSeatBankrolls(raw: number[] | undefined): number[] {
@@ -1145,6 +1171,7 @@ function SeatRingWithLabels({
   broadcastActionKind = null,
   broadcastActingPlayerName = null,
   broadcastCallAmount = null,
+  broadcastLastCall = false,
   mosaicFluidWidth = false,
   /** Honeycomb floor density — drives legible mosaic seat markers on dense grids. */
   mosaicDensity,
@@ -1220,6 +1247,7 @@ function SeatRingWithLabels({
   broadcastActionKind?: MosaicTableStatusBandKind | null
   broadcastActingPlayerName?: string | null
   broadcastCallAmount?: number | null
+  broadcastLastCall?: boolean
   winnerSeatIndexes?: ReadonlySet<number> | null
   seatHoleDigits?: (readonly [number, number] | null)[]
   seatHolesDealt?: boolean[]
@@ -1410,6 +1438,7 @@ function SeatRingWithLabels({
             actionKind={broadcastActionKind}
             actingPlayerName={broadcastActingPlayerName}
             callAmount={broadcastCallAmount}
+            lastCall={broadcastLastCall}
             communityDigits={communityDigits}
             communityCardWidthPx={broadcastCommunityCardW}
             communityCardHeightPx={broadcastCommunityCardH}
@@ -2100,7 +2129,7 @@ function VenueMosaicTableCard({
 
   const statusBandAria =
     statusBandKind === 'to-call' && actingPlayerName && actingCallAmount != null
-      ? `, ${actingPlayerName} to call ${formatVenueBankroll(actingCallAmount)}`
+      ? `, ${publicBetAria(actingPlayerName, actingCallAmount, row.raisesClosed === true)}`
       : statusBandKind === 'no-more-bets'
         ? ', no more bets'
         : statusBandKind === 'answering'
@@ -2772,6 +2801,7 @@ export function VenueSingleTableBroadcast({
                 broadcastActionKind={isDualDensity ? null : broadcastActionKind}
                 broadcastActingPlayerName={isDualDensity ? null : actingPlayerName}
                 broadcastCallAmount={isDualDensity ? null : actingCallAmount}
+                broadcastLastCall={!isDualDensity && tile.raisesClosed === true}
                 seatHoleDigits={tile.seatHoleDigits}
                 seatHolesDealt={tile.seatHolesDealt}
                 communityDigits={tile.communityDigits}

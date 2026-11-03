@@ -16,7 +16,9 @@ import {
   setVenueRoomHold,
   syncHumanTurnDeadline,
   tableSessionKey,
+  venueShowdownAtMs,
 } from './game-ops'
+import { planVenueWageringOrchestration } from './venue-wagering-orchestration'
 
 vi.mock('./venue-library-db', () => ({
   loadVenueLibraries: async () => new Map(),
@@ -256,5 +258,35 @@ describe('nudge open guesses', () => {
     expect(paid.players.find((p) => p.id === 'bo')!.bankroll).toBe(500)
     expect(paid.players.find((p) => p.id === 'bo')!.answerPoints ?? 0).toBe(0)
     expect(paid.players.find((p) => p.id === 'ada')!.bankroll).toBe(540)
+  })
+
+  it('keeps the extra 30s on the venue clock the TVs are reading', () => {
+    const key = tableSessionKey('NG', '1')
+    venueShowdownAtMs.set('NG', 1_000_000)
+    let gs = createEmptyGame('NG', 'host', '1')
+    gs = addPlayer(gs, 'ada', 'Ada', 500)
+    gs = addPlayer(gs, 'bo', 'Bo', 500)
+    rooms.set(key, {
+      ...gs,
+      phase: 'answering',
+      round: { ...gs.round, answerDeadline: 1_000_000, question: { id: 'q', text: '?', answer: 10 } },
+      players: [
+        { ...gs.players[0]!, submittedAnswer: 10 },
+        { ...gs.players[1]! },
+      ],
+    })
+
+    nudgeOpenGuesses('NG')
+    expect(venueShowdownAtMs.get('NG')).toBe(1_030_000)
+    expect(rooms.get(key)!.round.answerDeadline).toBe(1_030_000)
+
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: [key],
+      getState: (tk) => rooms.get(tk),
+      currentShowdownAtMs: venueShowdownAtMs.get('NG'),
+      nowMs: 1_000_000,
+    })
+    expect(plan.tableUpdates).toEqual([])
+    venueShowdownAtMs.delete('NG')
   })
 })

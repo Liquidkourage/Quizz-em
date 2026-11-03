@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { formatTriviaNumber } from '@qhe/core'
+import { disambiguatePublicNames, formatTriviaNumber, publicSeatInitials } from '@qhe/core'
 import { CardFaceGraphic, PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import {
   formatHoleDigits,
@@ -26,13 +26,7 @@ type ShowdownResultsPanelProps = {
 const SHOWDOWN_SEAT_SLOTS = 8
 
 function seatInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  return parts
-    .map((p) => p[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  return publicSeatInitials(name) || '?'
 }
 
 function showdownRowsToStadiumSeats(
@@ -40,26 +34,27 @@ function showdownRowsToStadiumSeats(
   winnerKeys: ReadonlySet<string>,
   compact: boolean
 ): StadiumTableSeat[] {
-  return rows
-    .filter((r) => r.name.trim() !== '')
-    .map((row) => {
+  const named = rows.filter((r) => r.name.trim() !== '')
+  const labels = disambiguatePublicNames(named.map((row) => row.name))
+  return named.map((row, index) => {
+      const shown = labels[index] ?? row.name
       const isWinner = winnerKeys.has(`${row.seat}:${row.name}`)
       return {
         index: row.seat - 1,
-        label: seatInitials(row.name),
+        label: seatInitials(shown),
         labelClassName: compact ? 'text-[7px] font-black' : 'text-[8px] font-black sm:text-[9px]',
         state: row.hasFolded ? 'folded' : isWinner ? 'winner' : 'default',
         holeDigits: row.holes,
         faceDown: false,
         holeVariant: isWinner ? 'gold' : 'cyan',
-        'aria-label': `${row.name}, seat ${row.seat}`,
+        'aria-label': `${shown}, seat ${row.seat}`,
         nameTag: (
           <span
             className={`max-w-full truncate font-bold text-white ${
               compact ? 'text-[0.55rem] leading-none' : 'text-xs leading-tight'
             }`}
           >
-            {row.name}
+            {shown}
           </span>
         ),
       }
@@ -176,12 +171,14 @@ function AnswerMedallion({ correctAnswer }: { correctAnswer: number | undefined 
 
 function PlayerShowdownRow({
   row,
+  shownName,
   correctAnswer,
   isWinner,
   index,
   compact,
 }: {
   row: ShowdownResultRow
+  shownName: string
   correctAnswer: number | undefined
   isWinner: boolean
   index: number
@@ -198,7 +195,7 @@ function PlayerShowdownRow({
   return (
     <motion.div
       role="row"
-      aria-label={`${row.name}, seat ${row.seat}`}
+      aria-label={`${shownName}, seat ${row.seat}`}
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
@@ -224,7 +221,7 @@ function PlayerShowdownRow({
         {row.seat}
       </span>
 
-      <p className={`min-w-0 truncate font-bold text-white ${DISPLAY_TEXT_PRIMARY_CQ}`}>{row.name}</p>
+      <p className={`min-w-0 truncate font-bold text-white ${DISPLAY_TEXT_PRIMARY_CQ}`}>{shownName}</p>
 
       <motion.div className="flex min-w-0 flex-col gap-0.5">
         <span className={`font-bold uppercase tracking-wider text-white/40 ${DISPLAY_TEXT_SECONDARY_CQ}`}>
@@ -288,6 +285,7 @@ export default function ShowdownResultsPanel({
 }: ShowdownResultsPanelProps) {
   const { rows: sorted, winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '')
+  const activeLabels = disambiguatePublicNames(activeRows.map((row) => row.name))
   const sharedBoard = activeRows[0]?.communityBoard ?? null
   const stadiumSeats = showdownRowsToStadiumSeats(activeRows, winnerKeys, compact)
 
@@ -319,6 +317,7 @@ export default function ShowdownResultsPanel({
             <PlayerShowdownRow
               key={`${row.seat}:${row.name}`}
               row={row}
+              shownName={activeLabels[idx] ?? row.name}
               correctAnswer={correctAnswer}
               isWinner={winnerKeys.has(`${row.seat}:${row.name}`)}
               index={idx}
@@ -393,6 +392,7 @@ export default function ShowdownResultsPanel({
             <PlayerShowdownRow
               key={`${row.seat}:${row.name}`}
               row={row}
+              shownName={activeLabels[idx] ?? row.name}
               correctAnswer={correctAnswer}
               isWinner={winnerKeys.has(`${row.seat}:${row.name}`)}
               index={idx}

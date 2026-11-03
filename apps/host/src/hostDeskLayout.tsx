@@ -12,7 +12,14 @@ import type {
   VenueBlindsSnapshot,
   VenueWallViewMode,
 } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID, playersHaveHoleCards, VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import {
+  disambiguatePublicNames,
+  formatTriviaNumber,
+  LOBBY_TABLE_ID,
+  playersHaveHoleCards,
+  VENUE_NUMBERED_TABLE_MAX,
+} from '@qhe/core'
+import { nowOnServerClock } from './serverClock'
 import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { feltCountdownSec, formatElapsedClock, tableActionClockStart } from './HostShowClocks'
@@ -576,12 +583,12 @@ export function buildHostRunOfShowSteps(
       hint: 'When everyone has checked, called, raised, or folded — close this betting round.',
     },
     'deal-board': {
-      label: 'Reveal shared cards',
-      hint: 'Flips the five shared cards in the middle of every table.',
+      label: 'Open the street',
+      hint: 'Opens the street on every table.',
     },
     'close-bet-2': {
       label: 'Close betting (2nd round)',
-      hint: 'When everyone is done betting on the shared cards — close this round.',
+      hint: 'When everyone is done betting this street — close this round.',
     },
     'start-answer': {
       label: 'Open guessing',
@@ -923,7 +930,7 @@ export function buildHostPhaseDockItems(args: {
       return withRehearsalSkip([
         {
           id: 'deal-board',
-          label: 'Reveal shared cards',
+          label: 'Open the street',
           onClick: onDealCommunity,
           disabled: dealCommunityBlocked,
           variant: 'blue',
@@ -1043,7 +1050,7 @@ export function HostLiveStatusLine({
   const [, setTick] = useState(0)
   useEffect(() => {
     if (phase !== 'answering') return
-    const id = window.setInterval(() => setTick((n) => n + 1), 1000)
+    const id = window.setInterval(() => setTick((n) => n + 1), 250)
     return () => window.clearInterval(id)
   }, [phase])
 
@@ -1096,7 +1103,7 @@ export function HostLiveStatusLine({
       ) : null}
       {phase === 'answering' ? (
         <span className="font-mono text-base font-bold tabular-nums text-casino-gold">
-          {Math.max(0, Math.ceil(((gameState.round.answerDeadline ?? 0) - Date.now()) / 1000))}s left
+          {Math.max(0, Math.ceil(((gameState.round.answerDeadline ?? 0) - nowOnServerClock()) / 1000))}s left
         </span>
       ) : null}
       {phase === 'showdown' && typeof question?.answer === 'number' ? (
@@ -1170,20 +1177,24 @@ function venueFeltBeatLockstep(rows: HostVenueFeltBeatRow[] | null): {
 export function HostFeltPhasePicker({
   tableNum,
   onPick,
+  compact = false,
 }: {
   tableNum: number
   onPick: (signature: string) => void
+  compact?: boolean
 }) {
   return (
-    <div className="mb-2 rounded-lg border border-white/15 bg-black/40 p-2">
+    <div className="rounded-lg border border-white/15 bg-black/40 p-2">
       <p className="mb-1.5 text-xs font-bold text-white/70">Table {tableNum}</p>
-      <div className="grid grid-cols-2 gap-2">
+      <div className={compact ? 'grid grid-cols-4 gap-1.5' : 'grid grid-cols-2 gap-2'}>
         {TABLE_PHASE_OVERRIDES.map((phase) => (
           <button
             key={phase.id}
             type="button"
             onClick={() => onPick(phase.id)}
-            className="rounded-lg border border-white/20 bg-white/10 px-3 py-3 text-sm font-semibold text-white hover:bg-white/15"
+            className={`rounded-lg border border-white/20 bg-white/10 font-semibold text-white hover:bg-white/15 ${
+              compact ? 'px-2 py-1.5 text-xs leading-tight' : 'px-3 py-3 text-sm'
+            }`}
           >
             {phase.label}
           </button>
@@ -1316,7 +1327,7 @@ function HostFeltBeatTile({
 }) {
   const watching = hostTableId.trim() !== LOBBY_TABLE_ID && String(row.tableNum) === hostTableId.trim()
   const phaseLabel = row.phase === 'inactive' ? '—' : HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
-  const countdownSec = feltCountdownSec(row, Date.now())
+  const countdownSec = feltCountdownSec(row, nowOnServerClock())
   const title = feltBeatTileTitle({
     watching,
     seated: row.seated,
@@ -1366,11 +1377,11 @@ export function HostVenueFeltBeatStrip({
   const openRow =
     openTable == null ? undefined : rows?.find((row) => row.tableNum === openTable && row.seated > 0)
 
-  const hasLiveCountdown = rows?.some((r) => feltCountdownSec(r, Date.now()) != null) ?? false
+  const hasLiveCountdown = rows?.some((r) => feltCountdownSec(r, nowOnServerClock()) != null) ?? false
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!hasLiveCountdown) return
-    const id = window.setInterval(() => setTick((n) => n + 1), 1000)
+    const id = window.setInterval(() => setTick((n) => n + 1), 250)
     return () => clearInterval(id)
   }, [hasLiveCountdown])
 
@@ -1762,31 +1773,18 @@ function SeatMoveControls({
 }) {
   const armed = actions.armedId === player.playerId
   return (
-    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+    <div className="flex shrink-0 items-center gap-1.5">
       {actions.onMove ? (
-        <>
-          <select
-            aria-label={`Move ${player.name} to`}
-            value={actions.toTable}
-            onChange={(e) => actions.onToTable(Number(e.target.value))}
-            className="rounded-md border border-white/20 bg-zinc-950 py-1 pl-2 pr-6 text-sm text-white [color-scheme:dark]"
-          >
-            {Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, index) => index + 1).map((n) => (
-              <option key={n} value={n}>
-                Table {n}
-              </option>
-            ))}
-          </select>
-          <NeonButton
-            variant="blue"
-            size="small"
-            type="button"
-            disabled={actions.toTable === actions.tableNum}
-            onClick={() => actions.onMove?.(player.playerId, actions.toTable)}
-          >
-            Move
-          </NeonButton>
-        </>
+        <NeonButton
+          variant="blue"
+          size="small"
+          type="button"
+          aria-label={`Move ${player.name} to table ${actions.toTable}`}
+          disabled={actions.toTable === actions.tableNum}
+          onClick={() => actions.onMove?.(player.playerId, actions.toTable)}
+        >
+          Move
+        </NeonButton>
       ) : null}
       {actions.onRemove ? (
         <NeonButton
@@ -1820,21 +1818,23 @@ function SeatContestRow({
 }) {
   const reason = seatReasonLabel(row.seat.reason)
   return (
-    <li className="rounded-md bg-black/30 px-2 py-1.5">
-      <p className="text-sm font-semibold leading-tight text-white">{hostPlayerLabel(row.seat.name)}</p>
-      {row.seat.bankroll != null ? (
-        <p className="text-xs tabular-nums text-white/70">
-          <ChipText text={formatHostFloorMoney(row.seat.bankroll)} />
-          {row.seat.invested != null ? (
-            <>
-              {' · in pot '}
-              <ChipText text={formatHostFloorMoney(row.seat.invested)} />
-            </>
-          ) : null}
-        </p>
-      ) : null}
-      {reason ? <p className="text-xs text-white/55">{reason}</p> : null}
-      {row.player && actions ? <SeatMoveControls player={row.player} actions={actions} /> : null}
+    <li className="flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold leading-tight text-white">{hostPlayerLabel(row.seat.name)}</p>
+        {row.seat.bankroll != null ? (
+          <p className="text-xs tabular-nums text-white/70">
+            <ChipText text={formatHostFloorMoney(row.seat.bankroll)} />
+            {row.seat.invested != null ? (
+              <>
+                {' · in pot '}
+                <ChipText text={formatHostFloorMoney(row.seat.invested)} />
+              </>
+            ) : null}
+          </p>
+        ) : null}
+        {reason ? <p className="text-xs text-white/55">{reason}</p> : null}
+      </div>
+      {row.player && actions ? <SeatMoveControls player={{ ...row.player, name: row.seat.name }} actions={actions} /> : null}
     </li>
   )
 }
@@ -1896,7 +1896,10 @@ export function HostTableContest({
 }) {
   const [toTable, setToTable] = useState(tableNum === 1 ? 2 : 1)
   const [armedId, setArmedId] = useState<string | null>(null)
-  const { pot, points } = contestRows(seats, players, hostPlayerLabel)
+  const matched = contestRows(seats, players, hostPlayerLabel)
+  const labeled = labelContestRows([...matched.pot, ...matched.points])
+  const pot = labeled.slice(0, matched.pot.length)
+  const points = labeled.slice(matched.pot.length)
   const actions: SeatActionBag | null =
     onMove == null && onRemove == null
       ? null
@@ -1910,6 +1913,24 @@ export function HostTableContest({
           onRemove,
         }
   return (
+    <div>
+      {actions?.onMove ? (
+        <label className="mb-2 flex items-center gap-2 text-sm text-white/80">
+          <span className="text-xs font-bold uppercase tracking-[0.12em] text-white/55">Move to</span>
+          <select
+            aria-label="Table to move a player to"
+            value={actions.toTable}
+            onChange={(e) => actions.onToTable(Number(e.target.value))}
+            className="rounded-md border border-white/20 bg-zinc-950 py-1 pl-2 pr-6 text-sm text-white [color-scheme:dark]"
+          >
+            {Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, index) => index + 1).map((n) => (
+              <option key={n} value={n}>
+                Table {n}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
     <div className="grid grid-cols-2 gap-2" aria-label="Player contest status">
       <SeatContestColumn
         title="In pot"
@@ -1928,12 +1949,95 @@ export function HostTableContest({
         actions={actions}
       />
     </div>
+    </div>
   )
+}
+
+function labelContestRows(rows: ContestRow[]): ContestRow[] {
+  const labels = disambiguatePublicNames(rows.map((row) => row.seat.name))
+  return rows.map((row, index) => {
+    const name = labels[index] ?? row.seat.name
+    if (name === row.seat.name) return row
+    return { ...row, seat: { ...row.seat, name } }
+  })
 }
 
 function recentActionLabel(action: string): string {
   if (action === 'fold') return 'Fold · points'
   return BET_ACTION_LABEL[action] ?? action
+}
+
+function HostTableOpenSummary({
+  phaseLabel,
+  pot,
+  actingSummary,
+}: {
+  phaseLabel?: string
+  pot: number
+  actingSummary?: string | null
+}) {
+  if (!phaseLabel && pot <= 0 && !actingSummary) return null
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-white/70">
+      {phaseLabel ? <p className="font-semibold text-white">{phaseLabel}</p> : null}
+      {pot > 0 ? (
+        <p>
+          Pot <ChipText text={formatHostFloorMoney(pot)} />
+        </p>
+      ) : null}
+      {actingSummary ? (
+        <p className="font-semibold text-amber-100/90">
+          <ChipText text={actingSummary} />
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+function HostTableOpenAside({
+  recentActions,
+  hostPlayerLabel,
+  tableNum,
+  onSetTablePhase,
+  onSpotlight,
+}: {
+  recentActions: HostVenueRecentAction[]
+  hostPlayerLabel: (name: string) => string
+  tableNum?: number
+  onSetTablePhase?: (signature: string) => void
+  onSpotlight?: () => void
+}) {
+  const actionLabels = disambiguatePublicNames(recentActions.map((action) => action.name))
+  return (
+    <div className="flex min-w-0 flex-col gap-3">
+      {recentActions.length > 0 ? (
+        <section>
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Recent actions</p>
+          <ul className="mt-2 space-y-1">
+            {recentActions.map((action, index) => (
+              <li
+                key={`${action.seat}-${index}`}
+                className="flex items-baseline justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5 text-sm"
+              >
+                <span className="font-semibold text-white">
+                  {hostPlayerLabel(actionLabels[index] ?? action.name)}
+                </span>
+                <span className="shrink-0 text-xs text-white/55">{recentActionLabel(action.action)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {tableNum != null && onSetTablePhase ? (
+        <HostFeltPhasePicker tableNum={tableNum} compact onPick={onSetTablePhase} />
+      ) : null}
+      {onSpotlight ? (
+        <NeonButton variant="gold" size="small" type="button" onClick={onSpotlight}>
+          Show on TVs
+        </NeonButton>
+      ) : null}
+    </div>
+  )
 }
 
 /** Contest columns plus this table's recent actions. */
@@ -1964,55 +2068,28 @@ export function HostTableOpen({
   onSetTablePhase?: (signature: string) => void
   onSpotlight?: () => void
 }) {
+  const aside = recentActions.length > 0 || (tableNum != null && onSetTablePhase != null) || onSpotlight != null
   return (
-    <div className="flex flex-col gap-3">
-      {phaseLabel || pot > 0 || actingSummary ? (
-        <p className="text-sm text-white/70">
-          {phaseLabel}
-          {pot > 0 ? (
-            <>
-              {phaseLabel ? ' · pot ' : 'Pot '}
-              <ChipText text={formatHostFloorMoney(pot)} />
-            </>
-          ) : null}
-          {actingSummary ? (
-            <span className="mt-0.5 block font-semibold text-amber-100/90">
-              <ChipText text={actingSummary} />
-            </span>
-          ) : null}
-        </p>
-      ) : null}
-      <HostTableContest
-        seats={seats}
-        hostPlayerLabel={hostPlayerLabel}
-        tableNum={tableNum}
-        players={players}
-        onMove={onMove}
-        onRemove={onRemove}
-      />
-      {recentActions.length > 0 ? (
-        <section>
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Recent actions</p>
-          <ul className="mt-2 space-y-1">
-            {recentActions.map((action, index) => (
-              <li
-                key={`${action.seat}-${index}`}
-                className="flex items-baseline justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5 text-sm"
-              >
-                <span className="font-semibold text-white">{hostPlayerLabel(action.name)}</span>
-                <span className="shrink-0 text-xs text-white/55">{recentActionLabel(action.action)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-      {tableNum != null && onSetTablePhase ? (
-        <HostFeltPhasePicker tableNum={tableNum} onPick={onSetTablePhase} />
-      ) : null}
-      {onSpotlight ? (
-        <NeonButton variant="gold" size="small" type="button" onClick={onSpotlight}>
-          Show on TVs
-        </NeonButton>
+    <div className={aside ? 'grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]' : 'flex flex-col gap-3'}>
+      <div className="flex min-w-0 flex-col gap-3">
+        <HostTableOpenSummary phaseLabel={phaseLabel} pot={pot} actingSummary={actingSummary} />
+        <HostTableContest
+          seats={seats}
+          hostPlayerLabel={hostPlayerLabel}
+          tableNum={tableNum}
+          players={players}
+          onMove={onMove}
+          onRemove={onRemove}
+        />
+      </div>
+      {aside ? (
+        <HostTableOpenAside
+          recentActions={recentActions}
+          hostPlayerLabel={hostPlayerLabel}
+          tableNum={tableNum}
+          onSetTablePhase={onSetTablePhase}
+          onSpotlight={onSpotlight}
+        />
       ) : null}
     </div>
   )
@@ -2077,7 +2154,7 @@ export function HostVenueFloorBriefPanel({
   const [, setNudgeTick] = useState(0)
   useEffect(() => {
     if (!nudgeLive && !actionClockLive) return
-    const id = window.setInterval(() => setNudgeTick((n) => n + 1), 1000)
+    const id = window.setInterval(() => setNudgeTick((n) => n + 1), 250)
     return () => window.clearInterval(id)
   }, [nudgeLive, actionClockLive])
   const soloTable = publicDisplaySoloTable(brief)
@@ -2159,7 +2236,7 @@ export function HostVenueFloorBriefPanel({
                   const clockHidden = tableActionClockHidden(row)
                   const nudgeSec = clockHidden
                     ? null
-                    : nudgeSecondsForTable(feltRows, row.tableNum, Date.now())
+                    : nudgeSecondsForTable(feltRows, row.tableNum, nowOnServerClock())
                   const sinceLast = clockHidden
                     ? null
                     : formatElapsedClock(
@@ -2169,7 +2246,7 @@ export function HostVenueFloorBriefPanel({
                           row.tableNum,
                           brief.handStartedAtMs ?? null,
                         ),
-                        Date.now(),
+                        nowOnServerClock(),
                       )
                   return (
                     <li key={row.tableNum}>
@@ -2886,10 +2963,10 @@ export function soonestAnswerSeconds(
 /** Live guessing countdown. Stays on the desk while the other table controls sit in a popup. */
 export function HostAnswerClock({ rows }: { rows: readonly HostVenueFeltBeatRow[] | null }) {
   const [, setTick] = useState(0)
-  const soonest = soonestAnswerSeconds(rows, Date.now())
+  const soonest = soonestAnswerSeconds(rows, nowOnServerClock())
   useEffect(() => {
     if (soonest == null) return
-    const id = window.setInterval(() => setTick((n) => n + 1), 1000)
+    const id = window.setInterval(() => setTick((n) => n + 1), 250)
     return () => window.clearInterval(id)
   }, [soonest])
   if (soonest == null) return null
@@ -2934,11 +3011,11 @@ export function HostFloorStrip({
   const actionByTable = new Map((brief?.actionRows ?? []).map((r) => [r.tableNum, r]))
   const seated =
     rows?.filter((r) => r.active && r.seated > 0).sort((a, b) => a.tableNum - b.tableNum) ?? []
-  const hasLiveCountdown = rows?.some((r) => feltCountdownSec(r, Date.now()) != null) ?? false
+  const hasLiveCountdown = rows?.some((r) => feltCountdownSec(r, nowOnServerClock()) != null) ?? false
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!hasLiveCountdown) return
-    const id = window.setInterval(() => setTick((n) => n + 1), 1000)
+    const id = window.setInterval(() => setTick((n) => n + 1), 250)
     return () => clearInterval(id)
   }, [hasLiveCountdown])
 
@@ -2975,7 +3052,7 @@ export function HostFloorStrip({
             const action = actionByTable.get(row.tableNum)
             const drift = outlierTableNums.has(row.tableNum)
             const phaseLabel = HOST_PHASE_LABEL[row.phase as GamePhase] ?? row.phase
-            const countdownSec = feltCountdownSec(row, Date.now())
+            const countdownSec = feltCountdownSec(row, nowOnServerClock())
             return (
               <button
                 key={row.tableNum}

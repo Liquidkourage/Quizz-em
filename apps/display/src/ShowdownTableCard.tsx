@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { formatTriviaNumber } from '@qhe/core'
+import { disambiguatePublicNames, formatTriviaNumber, publicSeatInitials } from '@qhe/core'
 import { PokerChip, StadiumTableSeats, ChipText, type StadiumTableSeat } from '@qhe/ui'
 import {
   sortShowdownRowsByDistance,
@@ -25,13 +25,7 @@ function formatChipPayout(amount: number): string {
 }
 
 function seatInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  return parts
-    .map((p) => p[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  return publicSeatInitials(name) || '?'
 }
 
 function rowsToStadiumSeats(
@@ -40,7 +34,9 @@ function rowsToStadiumSeats(
   correctAnswer: number | undefined,
   compact: boolean
 ): StadiumTableSeat[] {
-  return rows.map((row) => {
+  const labels = disambiguatePublicNames(rows.map((row) => row.name))
+  return rows.map((row, index) => {
+    const shown = labels[index] ?? row.name
     const key = `${row.seat}:${row.name}`
     const isWinner = winnerKeys.has(key)
     const hasGuess = row.submitted != null && typeof correctAnswer === 'number'
@@ -54,7 +50,7 @@ function rowsToStadiumSeats(
 
     return {
       index: row.seat - 1,
-      label: seatInitials(row.name),
+      label: seatInitials(shown),
       labelClassName: compact
         ? 'text-[7px] font-black'
         : 'text-[8px] font-black sm:text-[9px]',
@@ -62,10 +58,10 @@ function rowsToStadiumSeats(
       holeDigits: row.holes,
       faceDown: false,
       holeVariant: isWinner ? 'gold' : 'cyan',
-      'aria-label': `${row.name}, seat ${row.seat}${isWinner ? ', winner' : ''}`,
+      'aria-label': `${shown}, seat ${row.seat}${isWinner ? ', winner' : ''}`,
       nameTag: (
         <>
-          <span className={`max-w-full truncate font-bold text-white ${tagText}`}>{row.name}</span>
+          <span className={`max-w-full truncate font-bold text-white ${tagText}`}>{shown}</span>
           <span className={`font-mono font-black tabular-nums text-amber-100 ${guessText}`}>
             {hasGuess ? formatTriviaNumber(row.submitted) : '—'}
           </span>

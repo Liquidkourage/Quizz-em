@@ -442,7 +442,21 @@ describe('venue floor now', () => {
     expect(html).toContain('>Remove<')
   })
 
-  it('puts recent actions on the opened table', () => {
+  it('numbers two players who share a name on the opened table', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [
+          { name: 'Alice C.', kind: 'pot', reason: null },
+          { name: 'Alice C.', kind: 'pot', reason: null },
+        ],
+        recentActions: [],
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    expect(html).toContain('Alice C. 2')
+  })
+
+  it('puts recent actions beside the roster', () => {
     const html = renderToStaticMarkup(
       createElement(HostTableOpen, {
         seats: [],

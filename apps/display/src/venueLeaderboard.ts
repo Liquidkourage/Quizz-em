@@ -28,9 +28,13 @@ export function formatVenueDisplayPlayerName(fullName: string): string {
   if (!t) return ''
   const parts = t.split(/\s+/).filter(Boolean)
   if (parts.length <= 1) return parts[0] ?? t
+  const tail = parts[parts.length - 1]!
+  if (/^\d+$/.test(tail)) {
+    const base = formatVenueDisplayPlayerName(parts.slice(0, -1).join(' '))
+    return base ? `${base} ${tail}` : tail
+  }
   const first = parts[0]!
-  const lastToken = parts[parts.length - 1]!
-  const initial = lastToken.replace(/\./g, '').charAt(0).toUpperCase()
+  const initial = tail.replace(/\./g, '').charAt(0).toUpperCase()
   if (!initial) return first
   return `${first} ${initial}.`
 }

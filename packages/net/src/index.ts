@@ -458,6 +458,8 @@ export type HostVenueFloorBriefPayload = {
   handStartedAtMs?: number | null
   /** Epoch ms when the current venue phase began. Open betting keeps this until the street changes. */
   phaseStartedAtMs?: number | null
+  /** Server clock at the moment this brief was sent. The host desk anchors its countdowns to it. */
+  serverNowMs?: number
   /** Largest seated field seen this night. */
   fieldPeakCount?: number
   /** Players eliminated on the hand that just paid. */

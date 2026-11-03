@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
+import { nowOnServerClock } from './serverClock'
 
 export function formatElapsedClock(startedAtMs: number | null, nowMs: number): string {
   if (startedAtMs == null || !Number.isFinite(startedAtMs)) return '—'
@@ -68,10 +69,10 @@ export function feltCountdownSec(
 }
 
 function useClockNow(nowMs?: number): number {
-  const [ticked, setTicked] = useState(() => nowMs ?? Date.now())
+  const [ticked, setTicked] = useState(() => nowMs ?? nowOnServerClock())
   useEffect(() => {
     if (nowMs != null) return
-    const id = window.setInterval(() => setTicked(Date.now()), 1000)
+    const id = window.setInterval(() => setTicked(nowOnServerClock()), 1000)
     return () => window.clearInterval(id)
   }, [nowMs])
   return nowMs ?? ticked

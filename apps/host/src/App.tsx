@@ -56,6 +56,7 @@ import { HostBlindCall } from './HostBlindCall'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
 import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
+import { nowOnServerClock, recordServerClockSample } from './serverClock'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { readHostVenueCode } from './hostVenueCode'
 import {
@@ -175,24 +176,26 @@ function HostApp() {
   const [blindLevelSummary, setBlindLevelSummary] = useState<string | null>(null)
   const [venueFeltBeat, setVenueFeltBeat] = useState<HostVenueFeltBeatRow[] | null>(null)
   const [venueFloorBrief, setVenueFloorBrief] = useState<HostVenueFloorBriefPayload | null>(null)
-  const [winnerScreenNowMs, setWinnerScreenNowMs] = useState(() => Date.now())
+  const [winnerScreenNowMs, setWinnerScreenNowMs] = useState(() => nowOnServerClock())
   useEffect(() => {
     const readyAt = venueFloorBrief?.winnerScreensReadyAtMs
     if (readyAt == null) return
-    setWinnerScreenNowMs(Date.now())
-    if (Date.now() >= readyAt) return
-    const id = window.setInterval(() => setWinnerScreenNowMs(Date.now()), 1000)
+    const now = nowOnServerClock()
+    setWinnerScreenNowMs(now)
+    if (now >= readyAt) return
+    const id = window.setInterval(() => setWinnerScreenNowMs(nowOnServerClock()), 1000)
     return () => window.clearInterval(id)
   }, [venueFloorBrief?.winnerScreensReadyAtMs])
-  const [guessClockNowMs, setGuessClockNowMs] = useState(() => Date.now())
+  const [guessClockNowMs, setGuessClockNowMs] = useState(() => nowOnServerClock())
   useEffect(() => {
     const deadlines = (venueFeltBeat ?? [])
       .filter((row) => row.active && row.seated > 0 && row.phase === 'answering' && row.answerDeadlineMs != null)
       .map((row) => row.answerDeadlineMs as number)
     if (deadlines.length === 0) return
     const soonest = Math.min(...deadlines)
-    if (Date.now() >= soonest) return
-    const id = window.setTimeout(() => setGuessClockNowMs(Date.now()), Math.max(0, soonest - Date.now()))
+    const now = nowOnServerClock()
+    if (now >= soonest) return
+    const id = window.setTimeout(() => setGuessClockNowMs(nowOnServerClock()), Math.max(0, soonest - now))
     return () => window.clearTimeout(id)
   }, [venueFeltBeat, guessClockNowMs])
   const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
@@ -229,6 +232,7 @@ function HostApp() {
 
   useEffect(() => {
     const unsubscribe = onState((newGameState) => {
+      recordServerClockSample(newGameState.serverNowMs)
       console.log('🎰 Host: State update received - Phase:', newGameState?.phase)
       console.log('🎰 Host: State update received - Question:', newGameState?.round?.question?.text)
       console.log('🎰 Host: State update received - Question ID:', newGameState?.round?.question?.id)
@@ -295,6 +299,7 @@ function HostApp() {
   const shuffleFromServer = useRef<number | null>(null)
   useEffect(() => {
     const off = onHostVenueFloorBrief((p) => {
+      recordServerClockSample(p.serverNowMs)
       setVenueFloorBrief(p)
       const n = p.shuffleEveryHands
       if (typeof n !== 'number' || n <= 0 || shuffleFromServer.current === n) return
@@ -930,7 +935,7 @@ function HostApp() {
         <HostStillGuessingNotice
           players={stillGuessing}
           dropped={venueAutoAlert != null}
-          onNudge={() => nudgeOpenGuesses()}
+          onNudge={connectionStatus === 'connected' ? () => nudgeOpenGuesses() : undefined}
         />
       ) : null}
       <AnimatePresence>

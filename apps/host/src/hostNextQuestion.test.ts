@@ -2,7 +2,13 @@ import { addPlayer, createEmptyGame } from '@qhe/core'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { buildHostPhaseDockItems, hostRunOfShowHeadline, HostRunBar, HostTvBar } from './hostDeskLayout'
+import {
+  buildHostPhaseDockItems,
+  buildHostRunOfShowSteps,
+  hostRunOfShowHeadline,
+  HostRunBar,
+  HostTvBar,
+} from './hostDeskLayout'
 
 const noop = () => {}
 
@@ -30,6 +36,35 @@ describe('next question cue', () => {
       handsCompleted,
     })
   }
+
+  it('calls the board the street', () => {
+    const gameState = addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada')
+    gameState.phase = 'betting'
+    gameState.round.isBettingOpen = false
+    const steps = buildHostRunOfShowSteps(gameState)
+    expect(steps.find((step) => step.id === 'deal-board')?.label).toBe('Open the street')
+    expect(steps.find((step) => step.id === 'deal-board')?.hint.toLowerCase()).toContain('street')
+    expect(steps.find((step) => step.id === 'close-bet-2')?.hint.toLowerCase()).not.toContain('shared cards')
+    const items = buildHostPhaseDockItems({
+      gameState,
+      answerWindowSeconds: 60,
+      dealCommunityBlocked: false,
+      closeBetBlocked: false,
+      startAnswerBlocked: false,
+      communityLen: 0,
+      bettingRound: 1,
+      onStartGame: noop,
+      onAssignFromLobby: noop,
+      onDealCommunity: noop,
+      onStartAnswering: noop,
+      onRevealAnswer: noop,
+      onEndRound: noop,
+      onRandomQuestion: noop,
+      onNextSetlist: noop,
+      onNudgeActing: noop,
+    })
+    expect(items.find((item) => item.id === 'deal-board')?.label).toBe('Open the street')
+  })
 
   it('says Start Game before the first question and drops Random question', () => {
     const items = dock(0)

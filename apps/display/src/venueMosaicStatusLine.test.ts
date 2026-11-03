@@ -131,4 +131,55 @@ describe('public table status line', () => {
     expect(title).toContain('Maria A.')
     expect(title).toContain('to call')
   })
+
+  it('says to bet when the player faces nothing', () => {
+    const spec = resolveVenueFloorSpec({ populatedTableCount: 8 })
+    const html = renderToStaticMarkup(
+      createElement(VenueAerialFloorGrid, {
+        tiles: [
+          tile(1, 'betting', {
+            pot: 200,
+            isBettingOpen: true,
+            currentPlayerIndex: 0,
+            actingSeatIndex: 0,
+            actingCallAmount: 0,
+            seatNames: ['Maria A.', 'Bo K.', 'Cara D.', 'Dee E.'],
+          }),
+        ],
+        showHeadline: false,
+        skipMountIntro: true,
+        prefersReducedMotion: true,
+        floorSpec: spec!,
+      }),
+    )
+    const title = titleRowHtml(cardHtml(html, 1))
+    expect(title).toContain('Maria A.')
+    expect(title).toContain('to bet')
+    expect(title).not.toContain('to call')
+    expect(title).not.toContain('vfd-mosaic-dollar')
+  })
+
+  it('numbers a second player who shares a name', () => {
+    const spec = resolveVenueFloorSpec({ populatedTableCount: 8 })
+    const html = renderToStaticMarkup(
+      createElement(VenueAerialFloorGrid, {
+        tiles: [
+          tile(1, 'betting', {
+            isBettingOpen: true,
+            currentPlayerIndex: 1,
+            actingSeatIndex: 1,
+            actingCallAmount: 20,
+            seatNames: ['Alice C.', 'Alice C.', 'Bo K.'],
+          }),
+        ],
+        showHeadline: false,
+        skipMountIntro: true,
+        prefersReducedMotion: true,
+        floorSpec: spec!,
+      }),
+    )
+    const title = titleRowHtml(cardHtml(html, 1))
+    expect(title).toContain('Alice C. 2')
+    expect(title).toContain('to call')
+  })
 })

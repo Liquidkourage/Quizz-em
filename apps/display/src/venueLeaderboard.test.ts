@@ -118,5 +118,6 @@ describe('formatVenueDisplayPlayerName', () => {
     expect(formatVenueDisplayPlayerName('Alice Chen')).toBe('Alice C.')
     expect(formatVenueDisplayPlayerName('Carla M.')).toBe('Carla M.')
     expect(formatVenueDisplayPlayerName('Grace')).toBe('Grace')
+    expect(formatVenueDisplayPlayerName('Alice C. 2')).toBe('Alice C. 2')
   })
 })

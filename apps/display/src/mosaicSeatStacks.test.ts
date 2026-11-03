@@ -94,6 +94,7 @@ describe('public table initials', () => {
   it('hides the letters when that seat is playing for points', () => {
     expect(mosaicSeatInitialLabel('Ada Lane', false)).toBe('AL')
     expect(mosaicSeatInitialLabel('Bo Kent', true)).toBe('')
+    expect(mosaicSeatInitialLabel('Alice C. 2', false)).toBe('A2')
   })
 
   it('hides the hole-card graphic when that seat is playing for points', () => {

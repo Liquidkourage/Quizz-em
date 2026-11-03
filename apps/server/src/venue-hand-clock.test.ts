@@ -22,7 +22,8 @@ describe('venue hand clock', () => {
     const open = 'bet|1|T|cc0'
     const closed = 'bet|1|F|cc0'
     expect(venuePhaseClockKey([closed, 'answer', open])).toBe(open)
-    expect(venuePhaseClockKey(['answer', 'answer'])).toBe('answer')
+    expect(venuePhaseClockKey([closed])).toBe(closed)
+    expect(venuePhaseClockKey(['answer', 'answer'])).toBeNull()
     expect(venuePhaseClockKey([])).toBeNull()
     expect(noteVenuePhaseClock('PHASE', open, 5_000)).toBe(5_000)
     expect(noteVenuePhaseClock('PHASE', open, 90_000)).toBe(5_000)

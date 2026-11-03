@@ -166,9 +166,9 @@ function mostCommonKey(keys: readonly string[]): string | null {
   return best
 }
 
-/** Open betting wins over a street that already closed, so the clock measures the live bet. */
+/** Open betting wins over a street that already closed. Other phases have no phase clock. */
 export function venuePhaseClockKey(signatures: readonly (string | null | undefined)[]): string | null {
-  const live = signatures.filter((sig): sig is string => typeof sig === 'string' && sig !== '' && sig !== 'inactive')
+  const live = signatures.filter((sig): sig is string => typeof sig === 'string' && sig.startsWith('bet|'))
   const open = live.filter((sig) => /^bet\|[^|]+\|T\|/.test(sig))
   return mostCommonKey(open.length > 0 ? open : live)
 }

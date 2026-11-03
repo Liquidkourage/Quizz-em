@@ -51,6 +51,20 @@ describe('host show clocks', () => {
     expect(html).toContain('4:00')
   })
 
+  it('hides the phase clock outside a betting phase', () => {
+    const now = 1_000_000
+    const html = renderToStaticMarkup(
+      createElement(HostShowClocks, {
+        showStartedAtMs: now - 90_000,
+        handStartedAtMs: now - 12_000,
+        nowMs: now,
+      }),
+    )
+    expect(html).toContain('Event')
+    expect(html).toContain('Hand')
+    expect(html).not.toContain('Phase')
+  })
+
   it('counts from the latest action this hand, or from the hand start', () => {
     const hand = 1_000_000
     const moves = [

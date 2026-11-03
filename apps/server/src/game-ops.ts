@@ -781,6 +781,14 @@ export function getPlayhead(venueCode: string) {
   )
 }
 
+/** Hard reset keeps the rundown and starts again at question 1. */
+export function rewindVenuePlayhead(venueCode: string): void {
+  const k = normalizeVenueCode(venueCode)
+  const ph = venuePlayhead.get(k)
+  if (!ph || ph.nextIndex === 0) return
+  venuePlayhead.set(k, { setlistId: ph.setlistId, nextIndex: 0 })
+}
+
 /** Unset playhead uses the starter list. An explicit clear stays free play. */
 export function activePlayheadForLibrary(
   venueCode: string,

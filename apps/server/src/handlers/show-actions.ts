@@ -500,6 +500,8 @@ export async function handleShowAction(
           g.clearVenueHostLog(vn)
           g.clearPlayerSocketsForIds(droppedPlayerIds)
           g.resetVenueShuffleCounter(vn)
+          g.rewindVenuePlayhead(vn)
+          await g.emitHostLibrary(vn)
           g.emitDisplayVenueSnapshotNow(gameState.code)
           gameState = g.rooms.get(lobbyKey)!
           break

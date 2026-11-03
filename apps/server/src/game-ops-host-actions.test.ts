@@ -22,6 +22,7 @@ import {
   dealCommunityBoardForVenue,
   ensureVenueLibrary,
   getPlayhead,
+  rewindVenuePlayhead,
   moveSeatedPlayer,
   prepareVenuePersistence,
   cpuVpDrainPending,
@@ -97,6 +98,12 @@ describe('winner screens before payout', () => {
 describe('getPlayhead', () => {
   it('starts at the top with no setlist chosen', () => {
     expect(getPlayhead('nowhere')).toEqual({ setlistId: null, nextIndex: 0 })
+  })
+
+  it('puts a hard reset back on question 1 of the same rundown', () => {
+    venuePlayhead.set('RESETQ', { setlistId: 'starter-set', nextIndex: 1 })
+    rewindVenuePlayhead('RESETQ')
+    expect(getPlayhead('RESETQ')).toEqual({ setlistId: 'starter-set', nextIndex: 0 })
   })
 })
 

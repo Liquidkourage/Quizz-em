@@ -167,7 +167,7 @@ describe('seating update', () => {
         busts,
       }),
     )
-    expect(html).toContain('repeat(3, minmax(0, 1fr))')
+    expect(html).toContain('repeat(6, minmax(0, 1fr))')
     expect(html.indexOf('Busted 0')).toBeLessThan(html.indexOf('Maximilian W.'))
     expect(html).toContain('venue-bust-overlay-panel--compact')
     expect(html).toContain('Maximilian W.')
@@ -284,6 +284,40 @@ describe('seating update', () => {
     expect(html).toContain('TABLE BALANCE')
     expect(html).toContain('1 eliminated')
     expect(html).toContain('animation-duration:5210ms')
+  })
+
+  it('lays a crowded update across the screen so every row can fit', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSeatingAnnouncement, {
+        seating: {
+          shuffled: false,
+          tablesBefore: 8,
+          tablesAfter: 6,
+          playerCount: 40,
+          moves: [
+            { name: 'Kim D', fromTableNum: 6, toTableNum: 1, byline: 'TABLE REDUCTION' },
+            { name: 'Liam D', fromTableNum: 6, toTableNum: 3, byline: 'TABLE REDUCTION' },
+            { name: 'Maria D', fromTableNum: 6, toTableNum: 4, byline: 'TABLE REDUCTION' },
+            { name: 'Priya D', fromTableNum: 6, toTableNum: 1, byline: 'TABLE REDUCTION' },
+            { name: 'Elena E', fromTableNum: 7, toTableNum: 4, byline: 'TABLE REDUCTION' },
+            { name: 'Grace B', fromTableNum: 7, toTableNum: 2, byline: 'TABLE REDUCTION' },
+          ],
+          closedTableNums: [6, 7],
+        },
+        busts: [
+          { name: 'Kim B', tableNum: 4 },
+          { name: 'Liam B', tableNum: 4 },
+          { name: 'Noah B', tableNum: 4 },
+          { name: 'Noah D', tableNum: 6 },
+          { name: 'Alice E', tableNum: 6 },
+        ],
+      }),
+    )
+    expect(html).toContain('repeat(5, minmax(0, 1fr))')
+    expect(html).toContain('venue-seating-closures')
+    expect(html).toContain('venue-seating-update--fill')
+    expect(html).toContain('min-h-0')
+    expect(html).toContain('Grace B.')
   })
 
   it('shows a circle for how long the seating update stays up', () => {

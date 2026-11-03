@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo, useRef, type RefObject } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueBustEntry, DisplayVenueSeatingAnnouncement } from '@qhe/net'
@@ -40,13 +40,42 @@ function droppedTableByline(seating: DisplayVenueSeatingAnnouncement, tableNum: 
   return ''
 }
 
-/** A short update is one full-width row so the type can fill the TV. */
+/** Keep a group to one row, then two, so a long update stays on the TV. */
 function seatingColumns(count: number): number {
-  if (count <= 3) return 1
-  if (count <= 8) return 2
-  if (count <= 12) return 3
-  if (count <= 20) return 4
-  return 5
+  if (count <= 1) return 1
+  if (count <= 5) return count
+  if (count <= 10) return 5
+  return 6
+}
+
+function useSeatingCardFit(
+  frameRef: RefObject<HTMLElement | null>,
+  cardRef: RefObject<HTMLElement | null>,
+  layoutKey: string,
+) {
+  useLayoutEffect(() => {
+    const frame = frameRef.current
+    const card = cardRef.current
+    if (!frame || !card) return
+    const fit = () => {
+      card.style.zoom = '1'
+      const needed = card.offsetHeight
+      const available = frame.clientHeight
+      if (needed <= 0 || available <= 0) return
+      const next = needed > available ? Math.max(0.42, available / needed) : 1
+      const zoom = next < 0.995 ? String(Math.round(next * 1000) / 1000) : ''
+      if (card.style.zoom !== zoom) card.style.zoom = zoom
+    }
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(frame)
+    const fonts = document.fonts
+    void fonts?.ready.then(fit)
+    return () => {
+      observer.disconnect()
+      card.style.zoom = ''
+    }
+  }, [cardRef, frameRef, layoutKey])
 }
 
 function samePlayer(a: string, b: string): boolean {
@@ -231,9 +260,14 @@ export default function VenueSeatingAnnouncement({
   const layout = useMemo(() => seatingUpdateLayout(seating, busts), [busts, seating])
   const rowCount = seatingLayoutRowCount(layout)
   const compact = rowCount > 10
+  const fill = rowCount > 8 || layout.closures.length > 1
+  const frameRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  useSeatingCardFit(frameRef, cardRef, `${rowCount}:${layout.closures.length}`)
 
   return (
     <motion.div
+      ref={frameRef}
       className="fixed inset-0 z-[195] flex items-center justify-center overflow-hidden bg-black/78 p-6 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
@@ -250,9 +284,10 @@ export default function VenueSeatingAnnouncement({
       />
 
       <motion.div
-        className={`venue-seating-move venue-seating-update venue-bust-overlay-panel relative z-10 flex max-h-full w-fit min-w-[min(32rem,92vw)] max-w-[min(72rem,92vw)] flex-col border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
+        ref={cardRef}
+        className={`venue-seating-move venue-seating-update venue-bust-overlay-panel relative z-10 flex min-h-0 max-h-full w-fit min-w-[min(32rem,92vw)] max-w-[min(72rem,92vw)] flex-col overflow-hidden border-cyan-400/45 shadow-[0_0_28px_rgba(34,211,238,0.18)] ${
           compact ? 'venue-bust-overlay-panel--compact' : ''
-        }`}
+        } ${fill ? 'venue-seating-update--fill' : ''}`}
         initial={false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={reducedMotion ? undefined : { opacity: 0, y: 10, scale: 0.98 }}
@@ -321,16 +356,20 @@ export default function VenueSeatingAnnouncement({
                 </div>
               </div>
             ) : null}
-            {layout.closures.map((block) => (
-              <div key={block.header.key} className="venue-seating-closure">
-                <SeatingUpdateRow row={block.header} compact={compact} />
-                {block.moves.length > 0 ? (
-                  <div className="venue-seating-closure-moves">
-                    <SeatingUpdateGrid rows={block.moves} compact={compact} />
+            {layout.closures.length > 0 ? (
+              <div className="venue-seating-closures">
+                {layout.closures.map((block) => (
+                  <div key={block.header.key} className="venue-seating-closure">
+                    <SeatingUpdateRow row={block.header} compact={compact} />
+                    {block.moves.length > 0 ? (
+                      <div className="venue-seating-closure-moves">
+                        <SeatingUpdateGrid rows={block.moves} compact={compact} />
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
+                ))}
               </div>
-            ))}
+            ) : null}
             {layout.otherMoves.length > 0 ? (
               <SeatingUpdateGrid rows={layout.otherMoves} compact={compact} />
             ) : null}

@@ -133,6 +133,35 @@ describe('two all-ins that tie', () => {
   })
 })
 
+describe('chips still in the pot when a stack has left', () => {
+  it('pays the unmatched all-in to the players still seated', () => {
+    let gs = createEmptyGame('V', 'h')
+    gs = addPlayer(gs, 'short', 'Short', 0)
+    gs = addPlayer(gs, 'stay', 'Stay', 0)
+    gs = {
+      ...gs,
+      phase: 'showdown',
+      round: {
+        ...gs.round,
+        pot: 600,
+        handContributions: { short: 100, big: 500 },
+        question: { id: 'q', text: '?', answer: 40 },
+      },
+      players: [
+        { ...gs.players[0]!, submittedAnswer: 40, hasFolded: false },
+        { ...gs.players[1]!, submittedAnswer: 50, hasFolded: false },
+      ],
+    }
+
+    const before = totalWealth(gs)
+    const paid = payoutHandWithSidePots(gs)
+    expect(totalWealth(paid)).toBe(before)
+    expect(paid.round.pot).toBe(0)
+    expect(paid.players.find((p) => p.id === 'short')!.bankroll).toBe(600)
+    expect(paid.players.find((p) => p.id === 'stay')!.bankroll).toBe(0)
+  })
+})
+
 describe('endRound with side pots', () => {
   it('conserves chips when handContributions are tracked', () => {
     let gs = createEmptyGame('V', 'h')

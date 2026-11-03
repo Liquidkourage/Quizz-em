@@ -1558,9 +1558,7 @@ export function payoutPotAmountAmong(state: GameState, winnerIds: string[], amou
     const p = state.players.find((x) => x.id === id);
     return p != null && inChipContest(p);
   });
-  if (pay <= 0 || ids.length === 0) {
-    return { ...state, round: { ...state.round, pot: state.round.pot - pay } };
-  }
+  if (pay <= 0 || ids.length === 0) return state;
   const n = ids.length;
   const baseShare = Math.floor(pay / n);
   let remainder = pay - baseShare * n;
@@ -1617,33 +1615,52 @@ function payoutPotToEligibleSurvivors(state: GameState, eligiblePlayerIds: strin
   return recipients.length > 0 ? payoutPotAmountAmong(state, recipients, amount) : state;
 }
 
+/** A contribution with no seat cannot win the pot. Their unmatched chips stay in it. */
+function foldedForSidePots(state: GameState, contributions: Record<string, number>): Record<string, boolean> {
+  const folded: Record<string, boolean> = {};
+  for (const player of state.players) folded[player.id] = player.hasFolded;
+  for (const id of Object.keys(contributions)) {
+    if (folded[id] === undefined) folded[id] = true;
+  }
+  return folded;
+}
+
+/** Uncalled chips go back only when that player is still in the seat. */
+function payReturnToSeatedPlayer(state: GameState, id: string, amount: number): GameState {
+  if (amount <= 0 || !state.players.some((player) => player.id === id)) return state;
+  const pay = Math.min(amount, state.round.pot);
+  if (pay <= 0) return state;
+  return {
+    ...state,
+    round: { ...state.round, pot: state.round.pot - pay },
+    players: state.players.map((player) =>
+      player.id === id ? { ...player, bankroll: player.bankroll + pay } : player,
+    ),
+  };
+}
+
+/** Chips nobody could be handed still belong to the players left in the hand. */
+function awardPotStillOnTable(state: GameState): GameState {
+  if (state.round.pot <= 0) return state;
+  const live = state.players.filter((player) => inChipContest(player) && !player.hasFolded).map((player) => player.id);
+  const ids = live.length > 0 ? live : state.players.filter((player) => inChipContest(player)).map((player) => player.id);
+  if (ids.length === 0) return state;
+  return payoutPotToEligibleSurvivors(state, ids, state.round.pot);
+}
+
 /** Pay the hand using side pots when {@link RoundState.handContributions} is present. */
 export function payoutHandWithSidePots(state: GameState): GameState {
   const contributions = state.round.handContributions ?? {};
   const hasContribs = Object.values(contributions).some((v) => typeof v === 'number' && v > 0);
   if (!hasContribs) return payoutLegacySinglePot(state);
 
-  const foldedByPlayerId: Record<string, boolean> = {};
-  for (const p of state.players) foldedByPlayerId[p.id] = p.hasFolded;
-
-  const { pots, returns } = buildSidePotSettlement(contributions, foldedByPlayerId);
+  const { pots, returns } = buildSidePotSettlement(contributions, foldedForSidePots(state, contributions));
   let s = state;
-
-  for (const [id, amt] of Object.entries(returns)) {
-    if (amt <= 0) continue;
-    const pay = Math.min(amt, s.round.pot);
-    s = {
-      ...s,
-      round: { ...s.round, pot: s.round.pot - pay },
-      players: s.players.map((p) => (p.id === id ? { ...p, bankroll: p.bankroll + pay } : p)),
-    };
-  }
-
+  for (const [id, amt] of Object.entries(returns)) s = payReturnToSeatedPlayer(s, id, amt);
   for (const pot of pots) {
-    if (pot.amount <= 0) continue;
-    s = payoutPotToEligibleSurvivors(s, pot.eligiblePlayerIds, pot.amount);
+    if (pot.amount > 0) s = payoutPotToEligibleSurvivors(s, pot.eligiblePlayerIds, pot.amount);
   }
-
+  s = awardPotStillOnTable(s);
   return { ...s, round: { ...s.round, pot: 0 } };
 }
 

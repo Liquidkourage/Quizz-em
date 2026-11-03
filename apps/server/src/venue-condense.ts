@@ -67,7 +67,18 @@ function collectRosters(deps: VenueCondenseApplyDeps): VenueTableRoster[] {
   return out
 }
 
-/** Audience display: seated headcount across numbered tables. */
+/** Still in the tournament this hand: chips behind, or chips already in the pot. */
+export function playerStillInField(
+  player: { bankroll: number; pointsOnly?: boolean },
+  committed: number,
+): boolean {
+  if (player.pointsOnly === true) return false
+  const stack = Number.isFinite(player.bankroll) ? player.bankroll : 0
+  const inPot = Number.isFinite(committed) ? committed : 0
+  return stack > 0 || inPot > 0
+}
+
+/** Audience display: players still in the tournament across numbered tables. */
 export function venueCondenseSnapshotFromRooms(deps: {
   venueCode: string
   getState: (sessionKey: string) => GameState | undefined
@@ -85,7 +96,8 @@ export function venueCondenseSnapshotFromRooms(deps: {
     if (!gs || gs.players.length === 0) continue
     const n = deps.tableNumFromSessionKey(vn, tk)
     if (n == null) continue
-    const chips = gs.players.filter((p) => p.bankroll > 0).length
+    const committed = gs.round.handContributions ?? {}
+    const chips = gs.players.filter((p) => playerStillInField(p, committed[p.id] ?? 0)).length
     if (chips === 0) continue
     liveTableCount++
     chipSurvivorCount += chips

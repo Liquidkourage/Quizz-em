@@ -5,8 +5,30 @@ import {
   compactVenueTableNumbers,
   noteRenumberedSeatingMoves,
   unsettledAllInPassengers,
+  venueCondenseSnapshotFromRooms,
   type VenueCondenseApplyDeps,
 } from './venue-condense'
+
+describe('venueCondenseSnapshotFromRooms', () => {
+  it('keeps folded and all-in players in the remaining count until the hand pays out', () => {
+    const gs = createEmptyGame('V', 'host', '1')
+    gs.players = [
+      { id: 'fold', name: 'Fold', bankroll: 400, hand: [], hasFolded: true, isAllIn: false },
+      { id: 'shove', name: 'Shove', bankroll: 0, hand: [], hasFolded: false, isAllIn: true },
+      { id: 'stack', name: 'Stack', bankroll: 800, hand: [], hasFolded: false, isAllIn: false },
+      { id: 'bust', name: 'Bust', bankroll: 0, hand: [], hasFolded: false, isAllIn: false, pointsOnly: true },
+    ]
+    gs.round.handContributions = { fold: 20, shove: 600 }
+    const rooms = new Map<string, GameState>([['V:1', gs]])
+    const snap = venueCondenseSnapshotFromRooms({
+      venueCode: 'V',
+      getState: (key) => rooms.get(key),
+      tableNumFromSessionKey: (_code, key) => Number(key.split(':')[1]),
+      allTableSessionKeys: () => [...rooms.keys()],
+    })
+    expect(snap).toEqual({ chipSurvivorCount: 3, liveTableCount: 1 })
+  })
+})
 
 describe('unsettledAllInPassengers', () => {
   it('keeps an all-in player who has not been paid out, and leaves a points-only player off', () => {

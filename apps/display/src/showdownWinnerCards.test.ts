@@ -2,10 +2,13 @@ import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import { BroadcastShowdownPanel } from './BroadcastShowdownPanel'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { ShowdownWinnerCompPanel } from './ShowdownWinnerCompPanel'
 import { showdownRowsFromTile } from './showdownDisplay'
+import { resolveShowdownDisplayPot } from './VenueFloorShowdownOverlay'
+import { resolveShowdownSidePotLines } from './venueFloorSidePotDisplay'
 
 const winner: ShowdownResultRow = {
   seat: 0,
@@ -69,6 +72,69 @@ describe('winner screen cards', () => {
     expect(html).toContain('Ada')
     expect(html).not.toContain('data-showdown-winner-cards')
     expect(html).not.toContain('Winning Answer')
+  })
+})
+
+function allInRow(name: string, seat: number, chipPayout: number): ShowdownResultRow {
+  return {
+    seat,
+    name,
+    holes: [1, 2],
+    submitted: 40,
+    hasFolded: false,
+    communityBoard: [3, 4, 5, 6, 7],
+    answerCommunityIndices: [],
+    answerCards: [],
+    chipPayout,
+  }
+}
+
+describe('unequal all-in split', () => {
+  const short = allInRow('Ada', 1, 100)
+  const big = allInRow('Blake', 2, 500)
+
+  it('does not average two different all-in payouts into one share', () => {
+    expect(
+      resolveShowdownDisplayPot({ pot: 600 } as DisplayVenueTileSnapshot, [short, big], 40),
+    ).toBe(0)
+  })
+
+  it('keeps a tied unequal all-in off the side-pot card', () => {
+    expect(resolveShowdownSidePotLines([big, short], 40)).toBeNull()
+  })
+
+  it('shows each all-in player the chips they actually receive on the broadcast card', () => {
+    const html = renderToStaticMarkup(
+      createElement(BroadcastShowdownPanel, {
+        variant: 'split',
+        winners: [short, big],
+        chipRow: short,
+        pot: 300,
+        correctAnswer: 40,
+        label: 'Split winners',
+      }),
+    )
+    expect(html).toContain('aria-label="$100"')
+    expect(html).toContain('aria-label="$500"')
+    expect(html).not.toContain('aria-label="$300"')
+    expect(html).not.toContain(' each')
+  })
+
+  it('shows each all-in player the chips they actually receive on the table card', () => {
+    const html = renderToStaticMarkup(
+      createElement(ShowdownWinnerCompPanel, {
+        variant: 'split',
+        winners: [short, big],
+        chipRow: short,
+        pot: 300,
+        correctAnswer: 40,
+        showdownStageDensity: 'hero',
+        sizingTableCount: 2,
+      }),
+    )
+    expect(html).toContain('aria-label="$100"')
+    expect(html).toContain('aria-label="$500"')
+    expect(html).not.toContain('$300')
   })
 })
 

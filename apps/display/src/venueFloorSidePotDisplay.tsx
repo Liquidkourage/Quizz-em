@@ -121,6 +121,9 @@ export function resolveShowdownSidePotLines(
     })
     .sort((a, b) => a.distance - b.distance)
 
+  const best = ranked[0]!.distance
+  if (ranked.every((entry) => entry.distance === best)) return null
+
   const main = ranked[0]!.row
   const lines: ShowdownSidePotLine[] = [
     { label: 'Main', amount: main.chipPayout!, name: main.name },

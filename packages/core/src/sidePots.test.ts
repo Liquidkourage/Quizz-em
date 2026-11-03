@@ -103,6 +103,36 @@ describe('payoutHandWithSidePots', () => {
   })
 })
 
+describe('two all-ins that tie', () => {
+  it('gives the short stack half the matched pot and returns the rest to the bigger stack', () => {
+    let gs = createEmptyGame('V', 'h')
+    gs = addPlayer(gs, 'short', 'Short', 0)
+    gs = addPlayer(gs, 'big', 'Big', 0)
+    gs = {
+      ...gs,
+      phase: 'showdown',
+      round: {
+        ...gs.round,
+        pot: 600,
+        handContributions: { short: 100, big: 500 },
+        question: { id: 'q', text: '?', answer: 40 },
+      },
+      players: [
+        { ...gs.players[0]!, id: 'short', submittedAnswer: 40, hasFolded: false },
+        { ...gs.players[1]!, id: 'big', submittedAnswer: 40, hasFolded: false },
+      ],
+    }
+
+    const preview = previewChipPayoutByPlayerId(gs)
+    expect(preview.short).toBe(100)
+    expect(preview.big).toBe(500)
+    const paid = payoutHandWithSidePots(gs)
+    expect(paid.players.find((p) => p.id === 'short')!.bankroll).toBe(100)
+    expect(paid.players.find((p) => p.id === 'big')!.bankroll).toBe(500)
+    expect(paid.round.pot).toBe(0)
+  })
+})
+
 describe('endRound with side pots', () => {
   it('conserves chips when handContributions are tracked', () => {
     let gs = createEmptyGame('V', 'h')

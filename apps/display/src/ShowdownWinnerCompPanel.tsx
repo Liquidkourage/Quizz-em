@@ -6,42 +6,40 @@ import type { ShowdownStageDensityTier } from './showdownStageArtLayout'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankrollDigits } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
+import { splitWinnerPayouts, type SplitWinnerShare } from './VenueFloorShowdownOverlay'
 
-function ShowdownStageSplitLedger({
-  names,
-  amountPerWinner,
-}: {
-  names: readonly string[]
-  amountPerWinner: number
-}) {
-  const visible = names.length > 4 ? names.slice(0, 4) : names
+function ShowdownStageSplitLedger({ shares }: { shares: readonly SplitWinnerShare[] }) {
+  const visible = shares.length > 4 ? shares.slice(0, 4) : shares
   if (visible.length === 0) return null
-
-  const amountLabel = `$${Math.max(0, Math.round(amountPerWinner)).toLocaleString()}`
 
   return (
     <div
       className="vfd-showdown-stage-side-ledger vfd-showdown-stage-side-ledger--split-share"
       data-split-rows={String(visible.length)}
-      aria-label={visible.map((name) => `${name} ${amountLabel}`).join(', ')}
+      aria-label={visible
+        .map((share) => `${share.name} $${Math.max(0, Math.round(share.amount)).toLocaleString()}`)
+        .join(', ')}
     >
       <div className="vfd-showdown-stage-side-ledger-side-stack">
-        {visible.map((name) => (
-          <div key={name} className="vfd-showdown-stage-side-ledger-side-row">
-            <span className="vfd-showdown-stage-side-ledger-label vfd-showdown-stage-side-ledger-label--share">
-              Share
-            </span>
-            <span
-              className="vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--share"
-              title={name}
-            >
-              {name}
-            </span>
-            <span className="vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--share">
-              <ChipText text={amountLabel} />
-            </span>
-          </div>
-        ))}
+        {visible.map((share) => {
+          const amountLabel = `$${Math.max(0, Math.round(share.amount)).toLocaleString()}`
+          return (
+            <div key={share.name} className="vfd-showdown-stage-side-ledger-side-row">
+              <span className="vfd-showdown-stage-side-ledger-label vfd-showdown-stage-side-ledger-label--share">
+                Share
+              </span>
+              <span
+                className="vfd-showdown-stage-side-ledger-name vfd-showdown-stage-side-ledger-name--share"
+                title={share.name}
+              >
+                {share.name}
+              </span>
+              <span className="vfd-showdown-stage-side-ledger-amount vfd-showdown-stage-side-ledger-amount--share">
+                <ChipText text={amountLabel} />
+              </span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -189,6 +187,7 @@ function ShowdownStageTemplate({
   correctAnswer,
   sidePotLines,
   variant,
+  shares,
   showdownStageDensity,
   sizingTableCount,
 }: {
@@ -198,6 +197,7 @@ function ShowdownStageTemplate({
   correctAnswer: number | undefined
   sidePotLines?: readonly ShowdownSidePotLine[] | null
   variant: 'winner' | 'split' | 'side'
+  shares: readonly SplitWinnerShare[]
   showdownStageDensity: ShowdownStageDensityTier
   sizingTableCount: number
 }) {
@@ -212,7 +212,7 @@ function ShowdownStageTemplate({
       </div>
     ) : variant === 'split' ? (
       <div className="vfd-showdown-stage-block vfd-showdown-stage-block--side-ledger">
-        <ShowdownStageSplitLedger names={names} amountPerWinner={pot} />
+        <ShowdownStageSplitLedger shares={shares} />
       </div>
     ) : (
       <>
@@ -263,6 +263,7 @@ export function ShowdownWinnerCompPanel({
   sizingTableCount: number
 }) {
   const names = winners.map((w) => w.name).filter(Boolean)
+  const shares = splitWinnerPayouts(winners, pot)
 
   return (
     <div className="h-full min-h-0 min-w-0 flex-1 overflow-hidden">
@@ -273,6 +274,7 @@ export function ShowdownWinnerCompPanel({
         correctAnswer={correctAnswer}
         sidePotLines={sidePotLines}
         variant={variant}
+        shares={shares}
         showdownStageDensity={showdownStageDensity}
         sizingTableCount={sizingTableCount}
       />

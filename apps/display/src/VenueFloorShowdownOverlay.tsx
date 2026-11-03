@@ -66,6 +66,31 @@ function sumTileSeatChipPayouts(tile: DisplayVenueTileSnapshot): number {
   return sum
 }
 
+export type SplitWinnerShare = { name: string; amount: number }
+
+/** Each split winner's chips. Unequal all-ins keep their own payout, including an uncalled return. */
+export function splitWinnerPayouts(
+  winners: readonly { name: string; chipPayout?: number | null }[],
+  fallbackEach: number,
+): SplitWinnerShare[] {
+  const named = winners.filter((winner) => winner.name.trim() !== '')
+  const known = named.every(
+    (winner) =>
+      typeof winner.chipPayout === 'number' && Number.isFinite(winner.chipPayout) && winner.chipPayout > 0,
+  )
+  if (named.length > 0 && known) {
+    return named.map((winner) => ({ name: winner.name, amount: Math.round(winner.chipPayout!) }))
+  }
+  const each = Math.max(0, Math.round(fallbackEach))
+  return named.map((winner) => ({ name: winner.name, amount: each }))
+}
+
+export function splitSharesMatch(shares: readonly SplitWinnerShare[]): boolean {
+  if (shares.length === 0) return true
+  const first = shares[0]!.amount
+  return shares.every((share) => share.amount === first)
+}
+
 function sumWinnerChipPayouts(winners: readonly ShowdownResultRow[]): number {
   let sum = 0
   for (const r of winners) {
@@ -76,10 +101,25 @@ function sumWinnerChipPayouts(winners: readonly ShowdownResultRow[]): number {
   return sum
 }
 
+function evenSplitHeadline(
+  winners: readonly ShowdownResultRow[],
+  winnerCount: number,
+  tilePot: number,
+  tilePayouts: number,
+): number {
+  const shares = splitWinnerPayouts(winners, 0)
+  if (shares.length > 0 && shares.every((share) => share.amount > 0)) {
+    return splitSharesMatch(shares) ? shares[0]!.amount : 0
+  }
+  if (tilePot > 0) return Math.round(tilePot / winnerCount)
+  if (tilePayouts > 0) return Math.round(tilePayouts / winnerCount)
+  return 0
+}
+
 /**
  * Pot readout for floor showdown overlays. During showdown the engine `pot` field is often
  * already 0; use projected/awarded chip payouts from showdown rows when available.
- * Split pots show each winner's share, not the summed total (avoid implying full pot per winner).
+ * Equal splits show one share. Unequal all-ins list each payout on the card instead.
  */
 export function resolveShowdownDisplayPot(
   tile: DisplayVenueTileSnapshot,
@@ -99,19 +139,7 @@ export function resolveShowdownDisplayPot(
   const tilePot = Math.max(0, Math.floor(Number.isFinite(tile.pot) ? tile.pot : 0))
   const winnerPayoutSum = sumWinnerChipPayouts(winners)
 
-  if (isSplit) {
-    const payouts = winners
-      .map((r) => r.chipPayout)
-      .filter((p): p is number => typeof p === 'number' && p > 0)
-    if (payouts.length > 0 && payouts.every((p) => p === payouts[0])) {
-      return payouts[0]!
-    }
-    if (winnerPayoutSum > 0) return Math.round(winnerPayoutSum / winnerCount)
-    if (tilePot > 0) return Math.round(tilePot / winnerCount)
-    const fromTilePayouts = sumTileSeatChipPayouts(tile)
-    if (fromTilePayouts > 0) return Math.round(fromTilePayouts / winnerCount)
-    return 0
-  }
+  if (isSplit) return evenSplitHeadline(winners, winnerCount, tilePot, sumTileSeatChipPayouts(tile))
 
   if (tilePot > 0) return tilePot
   if (winnerPayoutSum > 0) return winnerPayoutSum

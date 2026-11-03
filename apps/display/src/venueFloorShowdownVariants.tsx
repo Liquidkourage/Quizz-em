@@ -3,6 +3,7 @@ import {
   sortShowdownRowsByDistance,
   type ShowdownResultRow,
 } from './showdownDisplay'
+import { splitSharesMatch, splitWinnerPayouts } from './VenueFloorShowdownOverlay'
 import { resolveShowdownSidePotLines, ShowdownTableBadge, type ShowdownSidePotLine } from './venueFloorSidePotDisplay'
 import { ShowdownWinnerCompPanel } from './ShowdownWinnerCompPanel'
 import { BroadcastShowdownPanel } from './BroadcastShowdownPanel'
@@ -32,6 +33,23 @@ export type FloorShowdownCtx = {
 function formatPot(amount: number): string {
   const n = Number.isFinite(amount) ? Math.round(amount) : 0
   return `$${Math.max(0, n).toLocaleString()}`
+}
+
+function showdownAriaLabel(
+  label: string,
+  winners: readonly ShowdownResultRow[],
+  displayPot: number,
+  displaySplit: boolean,
+  layerSummary: string | null,
+  shares: readonly { name: string; amount: number }[],
+): string {
+  if (layerSummary != null) return `Side pots: ${layerSummary}`
+  const names = winners.map((winner) => winner.name).join(', ')
+  if (!displaySplit) return `${label}: ${names}. Pot ${formatPot(displayPot)}`
+  if (splitSharesMatch(shares)) {
+    return `${label}: ${names}. ${formatPot(shares[0]?.amount ?? displayPot)} each`
+  }
+  return `${label}: ${shares.map((share) => `${share.name} ${formatPot(share.amount)}`).join(', ')}`
 }
 
 function buildCtx(
@@ -67,6 +85,7 @@ function buildCtx(
     sidePotLines != null
       ? sidePotLines.map((l) => `${l.label} ${formatPot(l.amount)} ${l.name}`).join(', ')
       : null
+  const shares = splitWinnerPayouts(winners, displayPot)
 
   const variant: FloorShowdownCardVariant =
     sidePotLines != null ? 'side' : displaySplit ? 'split' : 'winner'
@@ -81,12 +100,7 @@ function buildCtx(
     splitWin: displaySplit,
     sidePotLines,
     variant,
-    ariaLabel:
-      layerSummary != null
-        ? `Side pots: ${layerSummary}`
-        : displaySplit
-          ? `${label}: ${winners.map((w) => w.name).join(', ')}. ${formatPot(displayPot)} each`
-          : `${label}: ${winners.map((w) => w.name).join(', ')}. Pot ${formatPot(displayPot)}`,
+    ariaLabel: showdownAriaLabel(label, winners, displayPot, displaySplit, layerSummary, shares),
   }
 }
 

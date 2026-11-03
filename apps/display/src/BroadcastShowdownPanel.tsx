@@ -8,6 +8,7 @@ import nameplateArt from './assets/showdown/nameplate.png'
 import type { ShowdownResultRow } from './showdownDisplay'
 import { formatVenueBankroll } from './venueLeaderboard'
 import type { ShowdownSidePotLine } from './venueFloorSidePotDisplay'
+import { splitSharesMatch, splitWinnerPayouts, type SplitWinnerShare } from './VenueFloorShowdownOverlay'
 
 type BroadcastShowdownVariant = 'winner' | 'split' | 'side'
 
@@ -46,34 +47,45 @@ function BroadcastFlourishBanner({ variant }: { variant: 'split' | 'side' }) {
   )
 }
 
-function BroadcastSplitWinners({
-  names,
-  amountPerWinner,
-}: {
-  names: readonly string[]
-  amountPerWinner: number
-}) {
-  const shareLabel = formatVenueBankroll(Math.max(0, Math.round(amountPerWinner)))
-  const visible = names.length > 3 ? names.slice(0, 3) : names
-  const extra = Math.max(0, names.length - visible.length)
+function BroadcastSplitWinners({ shares }: { shares: readonly SplitWinnerShare[] }) {
+  const visible = shares.length > 3 ? shares.slice(0, 3) : shares
+  const extra = Math.max(0, shares.length - visible.length)
+  const even = splitSharesMatch(visible)
   return (
     <div className="vfd-broadcast-showdown-reveal__hero vfd-broadcast-showdown-reveal__hero--split">
-      <ul className="vfd-broadcast-showdown-reveal__split-names" aria-label={names.join(', ')}>
-        {visible.map((name) => (
-          <li key={name} className="vfd-broadcast-showdown-reveal__split-name" title={name}>
-            {name}
-          </li>
-        ))}
-        {extra > 0 ? (
-          <li className="vfd-broadcast-showdown-reveal__split-name vfd-broadcast-showdown-reveal__split-name--extra">
-            +{extra} more
-          </li>
-        ) : null}
-      </ul>
-      <p className="vfd-broadcast-showdown-reveal__payout vfd-broadcast-showdown-reveal__payout--split">
-        <ChipText text={shareLabel} />
-        <span className="vfd-broadcast-showdown-reveal__payout-each"> each</span>
-      </p>
+      {even ? (
+        <>
+          <ul className="vfd-broadcast-showdown-reveal__split-names" aria-label={shares.map((share) => share.name).join(', ')}>
+            {visible.map((share) => (
+              <li key={share.name} className="vfd-broadcast-showdown-reveal__split-name" title={share.name}>
+                {share.name}
+              </li>
+            ))}
+            {extra > 0 ? (
+              <li className="vfd-broadcast-showdown-reveal__split-name vfd-broadcast-showdown-reveal__split-name--extra">
+                +{extra} more
+              </li>
+            ) : null}
+          </ul>
+          <p className="vfd-broadcast-showdown-reveal__payout vfd-broadcast-showdown-reveal__payout--split">
+            <ChipText text={formatVenueBankroll(visible[0]?.amount ?? 0)} />
+            <span className="vfd-broadcast-showdown-reveal__payout-each"> each</span>
+          </p>
+        </>
+      ) : (
+        <ul className="vfd-broadcast-showdown-reveal__split-names" aria-label={visible.map((share) => `${share.name} ${formatVenueBankroll(share.amount)}`).join(', ')}>
+          {visible.map((share) => (
+            <li key={share.name} className="vfd-broadcast-showdown-reveal__split-name" title={share.name}>
+              {share.name} <ChipText text={formatVenueBankroll(share.amount)} />
+            </li>
+          ))}
+          {extra > 0 ? (
+            <li className="vfd-broadcast-showdown-reveal__split-name vfd-broadcast-showdown-reveal__split-name--extra">
+              +{extra} more
+            </li>
+          ) : null}
+        </ul>
+      )}
     </div>
   )
 }
@@ -155,7 +167,7 @@ export function BroadcastShowdownPanel({
               {variant === 'side' && sidePotLines != null && sidePotLines.length > 0 ? (
                 <BroadcastSidePotLedger lines={sidePotLines} />
               ) : variant === 'split' ? (
-                <BroadcastSplitWinners names={names} amountPerWinner={pot} />
+                <BroadcastSplitWinners shares={splitWinnerPayouts(winners, pot)} />
               ) : names.length > 0 ? (
                 <div className="vfd-broadcast-showdown-reveal__hero">
                   <p className="vfd-broadcast-showdown-reveal__name">{names[0]}</p>

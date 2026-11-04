@@ -78,6 +78,9 @@ export function normalizeDisplayLayoutPayload(
 /** Shown when the night is over so a phone drops the room instead of refreshing back into it. */
 export const PLAYER_ROOM_CLOSED_MESSAGE = 'This event is over and the room has closed.'
 
+/** Hard reset. The phone returns to the join form instead of staying on the left screen. */
+export const PLAYER_NEW_GAME_MESSAGE = 'The host started a new game.'
+
 /** Lightweight venue context for player phones (mirrors display wall header fields). */
 export type PlayerVenueBrief = {
   setlistCueNumber?: number | null

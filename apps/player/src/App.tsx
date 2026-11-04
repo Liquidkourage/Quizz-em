@@ -23,11 +23,12 @@ import {
   requestSyncState,
   type SocketConnectionStatus,
 } from '@qhe/net'
-import { PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
+import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
 import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, feltSidePotAmount, inChipContest, isAllInRunout } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
-  playerSessionCanResume,
+  playerJoinBoot,
+  playerLeaveScreen,
   readPlayerJoinPrefs,
   persistPlayerJoinPrefs,
   playerDisplayNameFromPrefs,
@@ -77,9 +78,8 @@ import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './compo
 type JoinPhase = 'form' | 'connecting' | 'in_venue'
 
 function bootPlayerJoin(): { prefs: PlayerJoinBootstrap; phase: JoinPhase; nonce: number } {
-  const prefs = readPlayerJoinPrefs()
-  const resume = playerSessionCanResume(prefs)
-  return { prefs, phase: resume ? 'connecting' : 'form', nonce: resume ? 1 : 0 }
+  const boot = playerJoinBoot(readPlayerJoinPrefs())
+  return { prefs: boot.prefs, phase: boot.resume ? 'connecting' : 'form', nonce: boot.resume ? 1 : 0 }
 }
 
 function PlayerApp() {
@@ -185,16 +185,28 @@ function PlayerApp() {
     })
     const offLeft = onEventLeft((info) => {
       if (cancelled) return
-      const roomClosed = info.message === PLAYER_ROOM_CLOSED_MESSAGE
-      departedRef.current = true
-      if (info.message) setLeftMessage(info.message)
-      setJoinPrefs((prev) => {
-        const next = roomClosed
-          ? { ...prev, roomClosed: true, departed: false }
-          : { ...prev, departed: true }
-        persistPlayerJoinPrefs(next)
-        return next
-      })
+      const screen = playerLeaveScreen(info.message ?? '')
+      const message = info.message ?? ''
+      if (screen === 'form') {
+        departedRef.current = false
+        setJoinError(message || PLAYER_NEW_GAME_MESSAGE)
+        setJoinPrefs((prev) => {
+          const next = { ...prev, departed: false, roomClosed: false }
+          persistPlayerJoinPrefs(next)
+          return next
+        })
+      } else {
+        departedRef.current = true
+        if (message) setLeftMessage(message)
+        setJoinPrefs((prev) => {
+          const next =
+            screen === 'closed'
+              ? { ...prev, roomClosed: true, departed: false }
+              : { ...prev, departed: true, roomClosed: false }
+          persistPlayerJoinPrefs(next)
+          return next
+        })
+      }
       setJoinPhase('form')
       disconnect()
     })

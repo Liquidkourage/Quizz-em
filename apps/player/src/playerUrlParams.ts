@@ -1,4 +1,5 @@
 import { LOBBY_TABLE_ID } from '@qhe/core'
+import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE } from '@qhe/net'
 import { composePlayerDisplayName, parsePlayerDisplayName } from './playerJoinName'
 
 const STORAGE_KEY = 'qhe-player-join'
@@ -61,6 +62,23 @@ function resolveNameFields(
 
 export function playerDisplayNameFromPrefs(prefs: Pick<PlayerJoinPrefs, 'firstName' | 'lastInitial'>): string {
   return composePlayerDisplayName(prefs.firstName, prefs.lastInitial)
+}
+
+export type PlayerLeaveScreen = 'form' | 'left' | 'closed'
+
+/** A reload after "you left" opens the join form. A closed night stays closed. */
+export function playerJoinBoot(prefs: PlayerJoinBootstrap): { prefs: PlayerJoinBootstrap; resume: boolean } {
+  if (prefs.departed === true && prefs.roomClosed !== true) {
+    return { prefs: { ...prefs, departed: false }, resume: false }
+  }
+  return { prefs, resume: playerSessionCanResume(prefs) }
+}
+
+/** Quit stays on the left screen. A new game returns to the join form. */
+export function playerLeaveScreen(message: string): PlayerLeaveScreen {
+  if (message === PLAYER_NEW_GAME_MESSAGE) return 'form'
+  if (message === PLAYER_ROOM_CLOSED_MESSAGE) return 'closed'
+  return 'left'
 }
 
 /** A refresh can reconnect this phone. A first visit still needs the name screen. */

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { PLAYER_ROOM_CLOSED_MESSAGE } from '@qhe/net'
+import { PLAYER_NEW_GAME_MESSAGE } from '@qhe/net'
 import { releasePhonesOnHardReset } from './venue-hard-reset'
 
 describe('releasePhonesOnHardReset', () => {
-  it('tells a seated phone and its table that the room has closed', () => {
+  it('tells a seated phone and its table that the host started a new game', () => {
     const phones: string[] = []
     const rooms: string[] = []
     releasePhonesOnHardReset({
@@ -16,9 +16,9 @@ describe('releasePhonesOnHardReset', () => {
           : undefined,
       emitToRoom: (room, _event, payload) => rooms.push(`${room}:${payload.message}`),
     })
-    expect(phones).toEqual([PLAYER_ROOM_CLOSED_MESSAGE])
-    expect(rooms).toContain(`QUIZ:1:${PLAYER_ROOM_CLOSED_MESSAGE}`)
-    expect(rooms).toContain(`QUIZ:LOBBY:${PLAYER_ROOM_CLOSED_MESSAGE}`)
-    expect(rooms).toContain(`PLAYER:QUIZ:${PLAYER_ROOM_CLOSED_MESSAGE}`)
+    expect(phones).toEqual([PLAYER_NEW_GAME_MESSAGE])
+    expect(rooms).toContain(`QUIZ:1:${PLAYER_NEW_GAME_MESSAGE}`)
+    expect(rooms).toContain(`QUIZ:LOBBY:${PLAYER_NEW_GAME_MESSAGE}`)
+    expect(rooms).toContain(`PLAYER:QUIZ:${PLAYER_NEW_GAME_MESSAGE}`)
   })
 })

@@ -1,4 +1,4 @@
-import { PLAYER_ROOM_CLOSED_MESSAGE } from '@qhe/net'
+import { PLAYER_NEW_GAME_MESSAGE } from '@qhe/net'
 
 type PhoneSocket = {
   emit: (event: 'eventLeft', payload: { message: string }) => void
@@ -12,7 +12,7 @@ export function releasePhonesOnHardReset(deps: {
   socketForPlayer: (playerId: string) => PhoneSocket | undefined
   emitToRoom: (room: string, event: 'eventLeft', payload: { message: string }) => void
 }): void {
-  const payload = { message: PLAYER_ROOM_CLOSED_MESSAGE }
+  const payload = { message: PLAYER_NEW_GAME_MESSAGE }
   for (const playerId of deps.playerIds) {
     deps.socketForPlayer(playerId)?.emit('eventLeft', payload)
   }

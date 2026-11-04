@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { adviseBlindCall, type BlindCall } from '@qhe/core'
+import { ChipText } from '@qhe/ui'
 
 export const NIGHT_GOAL_MINUTES = [60, 90, 120, 150, 180, 210, 240] as const
 const GOAL_KEY = 'qhe-night-goal-min'
@@ -185,7 +186,9 @@ export function HostBlindCall({
           <p className="text-base font-semibold text-amber-50">
             {call.verb}
             <span className="ml-2 font-normal text-white/75">
-              {callSentence(call, guideSec)} {Math.round(minutesLeft)} min · {players} players
+              <ChipText
+                text={`${callSentence(call, guideSec)} ${Math.round(minutesLeft)} min · ${players} players`}
+              />
             </span>
           </p>
           {call.verb === 'Hold' ? null : (

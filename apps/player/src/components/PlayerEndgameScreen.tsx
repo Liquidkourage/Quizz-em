@@ -1,4 +1,4 @@
-import { QuizzEmWordmark } from '@qhe/ui'
+import { ChipText, QuizzEmWordmark } from '@qhe/ui'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule, PlayerGoldPanel } from './PlayerGoldChrome'
 
 export default function PlayerEndgameScreen({
@@ -26,7 +26,19 @@ export default function PlayerEndgameScreen({
             <PlayerGoldPanel>
               <p className="player-game-eliminated-title">{selfWon ? 'You won' : 'Game over'}</p>
               <p className="player-game-connecting-text">
-                {selfWon ? `${winnerName}${stack ? ` · ${stack}` : ''}` : `${winnerName} has the last stack.`}
+                {selfWon ? (
+                  <>
+                    {winnerName}
+                    {stack != null ? (
+                      <>
+                        {' · '}
+                        <ChipText text={stack} />
+                      </>
+                    ) : null}
+                  </>
+                ) : (
+                  `${winnerName} has the last stack.`
+                )}
               </p>
             </PlayerGoldPanel>
           </div>

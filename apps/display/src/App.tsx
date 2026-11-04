@@ -1760,7 +1760,9 @@ function DisplayTableLive({
                     Seat {heroDisplayedSeatNumber(player, index + 1)}
                   </div>
                   <div className="mb-1 text-2xl font-bold leading-tight text-yellow-400">{player.name}</div>
-                  <div className="sr-only">${formatHeroStackMoney(player.bankroll)}</div>
+                  <div className="sr-only">
+                    <ChipText text={formatHeroStackMoney(player.bankroll)} />
+                  </div>
                   {player.hasFolded && !hideFoldBanner && (
                     <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 text-red-400 font-black text-xl tracking-wider">FOLDED</div>
                   )}

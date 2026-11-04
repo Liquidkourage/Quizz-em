@@ -37,6 +37,8 @@ describe('player endgame screen', () => {
     expect(won).toContain('You won')
     expect(won).toContain('Ada Lane')
     expect(won).toContain('4,800')
+    expect(won).toContain('chip-mark')
+    expect(won.replace(/aria-label="[^"]*"/g, '')).not.toContain('$')
 
     const lost = renderToStaticMarkup(createElement(PlayerEndgameScreen, {
       winnerName: 'Ada Lane',

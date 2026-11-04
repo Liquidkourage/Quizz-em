@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { QuizzEmWordmark } from '@qhe/ui'
+import { ChipText, QuizzEmWordmark } from '@qhe/ui'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { formatVenueBankroll, formatVenueDisplayPlayerName, formatVenueTriviaPoints } from './venueLeaderboard'
 import type { VenueEndgameScore, VenueEndgameWinner } from './venueEndgame'
@@ -95,7 +95,9 @@ export default function VenueEndgameCard({
         <div className="venue-bust-overlay-row venue-bust-overlay-row--closed">
           <div className="venue-bust-overlay-row-line">
             <span className="venue-endgame-name">{name}</span>
-            <p className="venue-endgame-stack">{formatVenueBankroll(winner.bankroll)}</p>
+            <p className="venue-endgame-stack">
+              <ChipText text={formatVenueBankroll(winner.bankroll)} />
+            </p>
           </div>
         </div>
         {scores.length > 0 ? (

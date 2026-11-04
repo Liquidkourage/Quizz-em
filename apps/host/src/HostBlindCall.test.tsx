@@ -29,7 +29,9 @@ describe('HostBlindCall', () => {
       />,
     )
     expect(html).toContain('Speed up')
-    expect(html).toContain('$15 / $30')
+    expect(html).toContain('aria-label="Set $15 / $30')
+    expect(html.replace(/aria-label="[^"]*"/g, '')).not.toContain('$')
+    expect(html).toContain('chip-mark')
     expect(html).toContain('level every 2 hands')
     expect(html).toContain('40 players')
     expect(html).toContain('Apply')

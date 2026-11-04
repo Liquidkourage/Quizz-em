@@ -103,9 +103,12 @@ describe('public venue wall answer', () => {
     bindGameIo(io.server)
     emitDisplayVenueSnapshotNow('LEAK')
     const snap = io.snapshots.at(-1)
-    const seatedNames = (snap?.tiles ?? []).flatMap((tile) => tile.seatNames ?? [])
-    expect(seatedNames).not.toContain('Bo Kent')
-    expect(snap?.pointsStandings).toEqual([{ name: 'Bo Kent', answerPoints: 100 }])
+    const tile = snap?.tiles.find((row) => (row.seatNames ?? []).includes('Bo Kent'))
+    const seat = tile?.seatNames.indexOf('Bo Kent') ?? -1
+    expect(seat).toBeGreaterThanOrEqual(0)
+    expect(tile?.seatPointsOnly?.[seat]).toBe(true)
+    expect(tile?.seatAnswerPoints?.[seat]).toBe(100)
+    expect(snap?.triviaField?.map((row) => row.name)).toContain('Bo Kent')
   })
 
   it('keeps a busted player on the trivia snapshot after a table shuffle', () => {
@@ -138,7 +141,8 @@ describe('public venue wall answer', () => {
     runVenueCondenseAfterRound('LEAK', 'host', true)
     emitDisplayVenueSnapshotNow('LEAK')
     const snap = io.snapshots.at(-1)
-    expect(snap?.pointsStandings?.map((row) => row.name)).toContain('Bo Kent')
+    const seatedNames = (snap?.tiles ?? []).flatMap((tile) => tile.seatNames ?? [])
+    expect(seatedNames).toContain('Bo Kent')
     expect(snap?.triviaField?.map((row) => row.name)).toContain('Bo Kent')
   })
 

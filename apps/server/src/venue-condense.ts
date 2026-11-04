@@ -145,6 +145,52 @@ export function unsettledAllInPassengers<T extends { pointsOnly?: boolean; bankr
   return players.filter((p) => p.pointsOnly !== true && p.bankroll <= 0)
 }
 
+function gatherPointsOnlyPlayers(deps: VenueCondenseApplyDeps): GameState['players'] {
+  const riders: GameState['players'] = []
+  for (const tk of deps.allTableSessionKeys(deps.venueCode)) {
+    const gs = deps.getState(tk)
+    if (!gs) continue
+    riders.push(...gs.players.filter((player) => player.pointsOnly === true))
+  }
+  return riders
+}
+
+function attachPointsOnlyPlayers(
+  deps: VenueCondenseApplyDeps,
+  riders: readonly GameState['players'][number][],
+  homeTableNum: number,
+): void {
+  if (riders.length === 0) return
+  const tk = deps.tableSessionKey(deps.venueCode, String(homeTableNum))
+  const gs = deps.getState(tk)
+  if (!gs) return
+  const seen = new Set(gs.players.map((player) => player.id))
+  const extra = riders.filter((player) => !seen.has(player.id))
+  if (extra.length === 0) return
+  deps.setState(tk, { ...gs, players: gs.players.concat(extra) })
+  for (const player of extra) {
+    if (player.id.startsWith('vp:')) continue
+    deps.moveHumanSocket(player.id, tk, String(homeTableNum))
+  }
+}
+
+function seatPointsOnlyRiders(
+  assignments: Map<number, GameState['players']>,
+  riders: readonly GameState['players'][number][],
+): void {
+  if (riders.length === 0) return
+  const liveTableNums = [...assignments.keys()]
+    .filter((n) => (assignments.get(n)?.length ?? 0) > 0)
+    .sort((a, b) => a - b)
+  const home = liveTableNums[0]
+  if (home == null) return
+  const list = assignments.get(home) ?? []
+  const seen = new Set(list.map((player) => player.id))
+  const extra = riders.filter((player) => !seen.has(player.id))
+  if (extra.length === 0) return
+  assignments.set(home, list.concat(extra))
+}
+
 function seatUnsettledAllIn(
   assignments: Map<number, GameState['players']>,
   passengers: readonly GameState['players'][number][],
@@ -176,6 +222,7 @@ function applyScheduledMerge(
     passengers.push(...unsettledAllInPassengers(gs.players))
   }
   seatUnsettledAllIn(merge.assignments, passengers)
+  seatPointsOnlyRiders(merge.assignments, gatherPointsOnlyPlayers(deps))
 
   for (let n = 1; n <= VENUE_NUMBERED_TABLE_MAX; n++) {
     const tk = deps.tableSessionKey(vn, String(n))
@@ -284,6 +331,7 @@ export function noteRenumberedSeatingMoves<T extends { toTableNum: number; renum
  * does not keep a missing number.
  */
 export function compactVenueTableNumbers(deps: VenueCondenseApplyDeps): Map<number, number> {
+  const pointsRiders = gatherPointsOnlyPlayers(deps)
   const live = collectRosters(deps)
   const map = compactTableNumbers(live.map((table) => table.tableNum))
   if (live.every((table) => map.get(table.tableNum) === table.tableNum)) return map
@@ -297,6 +345,8 @@ export function compactVenueTableNumbers(deps: VenueCondenseApplyDeps): Map<numb
     writePackedTable(deps, snap, nextNum, hostId)
   }
   clearPackedGaps(deps, snapshots, nextNums)
+  const home = [...nextNums].sort((a, b) => a - b)[0] ?? 1
+  attachPointsOnlyPlayers(deps, pointsRiders, home)
   emitPackedTables(deps, snapshots, nextNums)
   return map
 }

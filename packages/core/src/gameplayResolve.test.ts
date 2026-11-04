@@ -267,8 +267,9 @@ describe('endRound', () => {
     expect(totalWealth(gs)).toBe(before)
     expect(gs.players.find((p) => p.id === 'b')!.bankroll).toBe(600)
     expect(gs.players.find((p) => p.id === 'b')!.answerPoints).toBe(100)
-    expect(gs.players.find((p) => p.id === 'a')).toBeUndefined()
-    expect(gs.pointsStandings).toEqual([{ id: 'a', name: 'A', answerPoints: 100 }])
+    expect(gs.players.find((p) => p.id === 'a')!.pointsOnly).toBe(true)
+    expect(gs.players.find((p) => p.id === 'a')!.answerPoints).toBe(100)
+    expect(gs.players.find((p) => p.id === 'a')!.bankroll).toBe(0)
   })
 })
 

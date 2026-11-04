@@ -37,8 +37,8 @@ export interface PlayerState {
   /** Cumulative trivia score across answered rounds (even when busted off chips). */
   answerPoints?: number;
   /**
-   * Busted off the chip rails. Set when the hand pays out with no stack, then the player leaves the table.
-   * Their trivia total is kept on {@link GameState.pointsStandings}.
+   * Busted off the chip rails. Still seated and still dealt cards, so the phone can guess for points.
+   * Out of blinds, bets, and the chip pot.
    */
   pointsOnly?: boolean;
 }
@@ -1781,27 +1781,9 @@ function answerRoundPointsGained(snapshotPlayer: Pick<PlayerState, 'submittedAns
   return triviaAnswerPoints(snapshotPlayer.submittedAnswer, correct);
 }
 
-/** Seats that still hold a chair. Points-only players do not. */
+/** Seats still in the chip contest. Points-only players stay at the table, but they do not hold the button. */
 export function tableOccupants<T extends { pointsOnly?: boolean }>(players: readonly T[]): T[] {
   return players.filter((p) => p.pointsOnly !== true);
-}
-
-export function pointsStandingsFromRoster(
-  players: readonly Pick<PlayerState, 'id' | 'name' | 'answerPoints' | 'pointsOnly'>[],
-): PointsStanding[] {
-  const rows: PointsStanding[] = [];
-  for (const p of players) {
-    if (p.pointsOnly !== true) continue;
-    const name = p.name.trim();
-    if (!name) continue;
-    const raw = p.answerPoints ?? 0;
-    rows.push({
-      id: p.id,
-      name,
-      answerPoints: Number.isFinite(raw) ? Math.max(0, raw) : 0,
-    });
-  }
-  return rows;
 }
 
 export function mergePointsStandings(
@@ -1816,20 +1798,18 @@ export function mergePointsStandings(
   return [...byId.values()];
 }
 
-/** Button for the next hand: the next player who still has a seat, after the old dealer. */
+/** Button for the next hand: the next chip stack after the old dealer. */
 export function nextDealerOnOccupants(
-  roster: readonly { id: string; pointsOnly?: boolean }[],
+  roster: readonly { pointsOnly?: boolean }[],
   dealerIndex: number,
 ): number {
-  const occupants = tableOccupants(roster);
-  if (occupants.length === 0 || roster.length === 0) return 0;
-  const n = roster.length;
+  const n = roster.length
+  if (n === 0) return 0
   for (let step = 1; step <= n; step++) {
-    const id = roster[(dealerIndex + step) % n]?.id;
-    const at = occupants.findIndex((p) => p.id === id);
-    if (at >= 0) return at;
+    const idx = (dealerIndex + step) % n
+    if (roster[idx]?.pointsOnly !== true) return idx
   }
-  return 0;
+  return 0
 }
 
 export function listPointsStandings(
@@ -1857,7 +1837,7 @@ export function endRound(state: GameState): GameState {
     return {
       ...p,
       bankroll: busted ? 0 : p.bankroll,
-      /** No stack after payout: leave the table. The trivia total is stored on pointsStandings. */
+      /** No stack after payout: stay seated and guess. Chips are over. */
       pointsOnly: busted || p.pointsOnly === true,
       answerPoints,
       hand: [],
@@ -1869,16 +1849,12 @@ export function endRound(state: GameState): GameState {
     };
   });
 
-  const occupants = tableOccupants(clearedPlayers);
   const nextDealer = nextDealerOnOccupants(clearedPlayers, afterPayout.round.dealerIndex);
 
   return {
     ...afterPayout,
     phase: 'lobby',
-    pointsStandings: mergePointsStandings(
-      state.pointsStandings,
-      pointsStandingsFromRoster(clearedPlayers),
-    ),
+    pointsStandings: state.pointsStandings,
     round: {
       roundId: nextRoundId(afterPayout.round.roundId),
       question: null,
@@ -1892,7 +1868,7 @@ export function endRound(state: GameState): GameState {
       playerBets: {},
       handContributions: {},
     },
-    players: occupants,
+    players: clearedPlayers,
   };
 }
 

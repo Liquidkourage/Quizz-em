@@ -37,6 +37,7 @@ import {
   broadcastRimLabelTransform,
   type BroadcastDensity,
   MOSAIC_HOLE_CARD_FAN_DEG,
+  soloBroadcastHoleCardSplay,
 } from './venueMosaicSeatGeometry'
 import {
   broadcastFeltScale,
@@ -1394,6 +1395,7 @@ function SeatRingWithLabels({
   const broadcastCommunityCardW = broadcastCommunityLayout?.widthPx ?? 0
   const broadcastCommunityCardH = broadcastCommunityLayout?.heightPx ?? 0
   const dualHoleCardBox = isDualBroadcast ? dualBroadcastHoleCardBoxPx(rimW) : null
+  const soloHoleSplay = soloBroadcastHoleCardSplay(holeCardScale)
 
   const showFeltBoardCenter =
     !suppressFeltCenter &&
@@ -1734,6 +1736,8 @@ function SeatRingWithLabels({
                   <FeltHoleCardPair
                     rotateDeg={holeLayout.rotateDeg}
                     scale={holeCardScale}
+                    fanDeg={soloHoleSplay.fanDeg}
+                    overlapPx={soloHoleSplay.overlapPx}
                     faceDown
                     digits={seatHoleDigits[i]}
                   />

@@ -81,6 +81,23 @@ export function mosaicSeatStackLayout(
 /** Fan each card from the rail edge; wider spread toward the pot. */
 export const MOSAIC_HOLE_CARD_FAN_DEG = 8
 
+/** Layout width of a `NumericPlayingCard` small, before the felt scale. */
+const SOLO_FELT_HOLE_LAYOUT_WIDTH_PX = 64
+
+/**
+ * One-table broadcast cards use the same slight splay as the other public felts:
+ * an 8° fan and a second card that covers about a third of the first.
+ */
+export function soloBroadcastHoleCardSplay(scale: number): { fanDeg: number; overlapPx: number } {
+  const safeScale = scale > 0 ? scale : 1
+  const visualW = SOLO_FELT_HOLE_LAYOUT_WIDTH_PX * safeScale
+  const centerDistance = visualW * (1 - 0.36)
+  return {
+    fanDeg: MOSAIC_HOLE_CARD_FAN_DEG,
+    overlapPx: Math.round(centerDistance - SOLO_FELT_HOLE_LAYOUT_WIDTH_PX),
+  }
+}
+
 export function mosaicStadiumSeatThetaRad(seatIndex: number): number {
   return (mosaicSeatIndex(seatIndex) / MOSAIC_SEAT_COUNT) * 2 * Math.PI - Math.PI / 2
 }

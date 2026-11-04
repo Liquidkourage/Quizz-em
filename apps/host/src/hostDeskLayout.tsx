@@ -1696,6 +1696,47 @@ function relabelMoveSummary(
   return m.summary
 }
 
+function tableActionHoverStatus(seat: HostVenueSeatContest, acting: boolean): string {
+  if (seat.guessLocked === true) return 'Guess locked'
+  if (seat.guessLocked === false) return 'Guess open'
+  if (seat.reason === 'folded') return 'Folded'
+  if (seat.reason === 'busted') return 'Busted'
+  if (acting) return 'To act'
+  return 'In'
+}
+
+function hoverMoney(amount: number | undefined): string {
+  return typeof amount === 'number' && Number.isFinite(amount) ? formatHostFloorMoney(amount) : '—'
+}
+
+function TableActionHoverRoster({
+  seats,
+  actingPlayerName,
+  hostPlayerLabel,
+}: {
+  seats: HostVenueSeatContest[]
+  actingPlayerName: string | null
+  hostPlayerLabel: (name: string) => string
+}) {
+  if (seats.length === 0) return <p className="text-sm text-white/50">No players seated.</p>
+  const labels = disambiguatePublicNames(seats.map((seat) => seat.name))
+  return (
+    <ul className="space-y-1" aria-label="Table players">
+      {seats.map((seat, index) => (
+        <li key={`${seat.name}-${index}`} className="text-sm leading-tight">
+          <span className="font-semibold text-white">{hostPlayerLabel(labels[index] ?? seat.name)}</span>
+          <span className="mt-0.5 block tabular-nums text-white/75">
+            <ChipText text={hoverMoney(seat.bankroll)} />
+            <span className="text-white/45"> · in pot </span>
+            <ChipText text={hoverMoney(seat.invested)} />
+            <span className="text-white/45"> · {tableActionHoverStatus(seat, seat.name === actingPlayerName)}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function seatReasonLabel(reason: HostVenueSeatContest['reason']): string | null {
   if (reason === 'folded') return 'Folded'
   if (reason === 'busted') return 'Busted'
@@ -2249,7 +2290,7 @@ export function HostVenueFloorBriefPanel({
                         nowOnServerClock(),
                       )
                   return (
-                    <li key={row.tableNum}>
+                    <li key={row.tableNum} className="group relative">
                     <button
                       type="button"
                       aria-label={`Open table ${row.tableNum}`}
@@ -2309,6 +2350,13 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </p>
                     </button>
+                    <div className="pointer-events-none absolute left-0 top-full z-30 mt-1 hidden w-72 rounded-md border border-white/15 bg-zinc-950/95 p-2 shadow-lg group-hover:block group-focus-within:block">
+                      <TableActionHoverRoster
+                        seats={row.seats ?? []}
+                        actingPlayerName={row.actingPlayerName}
+                        hostPlayerLabel={hostPlayerLabel}
+                      />
+                    </div>
                     {nudgeName ? (
                       <button
                         type="button"

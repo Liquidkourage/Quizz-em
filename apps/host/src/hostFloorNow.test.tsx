@@ -51,6 +51,37 @@ function brief(): HostVenueFloorBriefPayload {
 }
 
 describe('venue floor now', () => {
+  it('shows stack, pot commitment, and status when a table action square is hovered', () => {
+    const floor = brief()
+    floor.actionRows = [
+      {
+        ...actionRow(1),
+        phase: 'betting',
+        actingPlayerName: 'Ada Lane',
+        seats: [
+          { name: 'Ada Lane', kind: 'pot', reason: null, bankroll: 1200, invested: 40 },
+          { name: 'Bo', kind: 'points', reason: 'folded', bankroll: 800, invested: 20 },
+        ],
+      },
+    ]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    const card = html.slice(html.indexOf('Open table 1'))
+    expect(card).toContain('group-hover:block')
+    expect(card).toContain('Ada Lane')
+    expect(card).toContain('aria-label="$1,200"')
+    expect(card).toContain('aria-label="$40"')
+    expect(card).toContain('To act')
+    expect(card).toContain('Folded')
+    expect(card).toContain('aria-label="$800"')
+    expect(card).toContain('aria-label="$20"')
+  })
+
   it('shows each table pot on the action square', () => {
     const html = renderToStaticMarkup(
       createElement(HostVenueFloorBriefPanel, {
@@ -102,7 +133,9 @@ describe('venue floor now', () => {
     expect(html).not.toContain('>Open<')
     expect(html).not.toContain('points only')
     expect(html).not.toContain('Answering on phones')
-    expect(html).not.toContain('Ada L.')
+    const hover = html.indexOf('aria-label="Table players"')
+    expect(html.slice(html.indexOf('Open table 1'), hover)).not.toContain('Ada L.')
+    expect(html.slice(hover, html.indexOf('Open table 2'))).toContain('Ada L.')
     expect(html).not.toContain('Ned P.')
     expect(html).not.toContain('>You<')
     expect(html).not.toContain('>Focus<')
@@ -531,8 +564,9 @@ describe('venue floor now', () => {
       }),
     )
     expect(html).toContain('Big wins this session')
-    expect(html.indexOf('Ada L.')).toBeGreaterThan(html.indexOf('Big wins this session'))
-    expect(html.indexOf('Ada L.')).toBeLessThan(html.indexOf('Ned P.'))
+    const wins = html.slice(html.indexOf('Big wins this session'))
+    expect(wins.indexOf('Ada L.')).toBeGreaterThan(-1)
+    expect(wins.indexOf('Ada L.')).toBeLessThan(wins.indexOf('Ned P.'))
   })
 
   it('keeps the blind call on the floor', () => {

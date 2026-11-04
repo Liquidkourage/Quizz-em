@@ -1094,7 +1094,8 @@
 
 @media (min-width: 768px) and (orientation: landscape) {
   .player-game-layout--live-fit .player-game-felt-panel--fill {
-    padding: 2rem 1.75rem 1.75rem;
+    /* Side seats grow a full name tag past an anchor already outside the rail. */
+    padding: 2rem 6rem 1.75rem;
   }
 
   /* Top seat names grow upward off the rail. Keep them out of the status line. */

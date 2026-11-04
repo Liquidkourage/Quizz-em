@@ -2534,6 +2534,48 @@
   box-shadow: none;
 }
 
+.player-game-dock--your-turn {
+  border-top: 3px solid rgb(251 191 36);
+  background: linear-gradient(180deg, rgb(69 26 3 / 0.72) 0%, rgb(8 10 14 / 0.98) 46%);
+  box-shadow: 0 -12px 32px rgb(251 191 36 / 0.32);
+}
+
+.player-game-turn-banner {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: rgb(253 224 71);
+}
+
+.player-game-dock--your-turn .player-game-turn-banner {
+  animation: player-turn-live 1.4s ease-in-out infinite;
+}
+
+.player-game-dock--waiting .player-game-turn-banner {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  color: rgb(255 255 255 / 0.45);
+  animation: none;
+}
+
+@keyframes player-turn-live {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-game-dock--your-turn .player-game-turn-banner {
+    animation: none;
+  }
+}
+
 .player-game-dock-inner {
   margin-inline: auto;
   max-width: 32rem;

@@ -331,7 +331,7 @@ function PlayerApp() {
       setTurnFlash(true)
       try {
         if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-          navigator.vibrate([40, 30, 40])
+          navigator.vibrate([90, 50, 90, 50, 140])
         }
       } catch {
         /* ignore */

@@ -48,10 +48,14 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
   }
 
   return (
-    <div className="player-game-dock player-game-dock--inflow max-lg:block lg:hidden">
+    <div
+      className={`player-game-dock player-game-dock--inflow max-lg:block lg:hidden ${
+        live ? 'player-game-dock--your-turn' : 'player-game-dock--waiting'
+      }`}
+    >
       <div className="player-game-dock-inner">
         <div className="player-game-dock-status" aria-live="polite">
-          <span className={live ? 'player-game-stat-turn' : undefined}>
+          <span className="player-game-turn-banner">
             {live ? 'Your turn' : preAction ? preActionArmedLabel(preAction) : 'Waiting'}
           </span>
           <span>

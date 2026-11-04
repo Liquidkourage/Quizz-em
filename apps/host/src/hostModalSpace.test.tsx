@@ -27,6 +27,19 @@ describe('host popup space', () => {
     expect(html).toContain('flex-1')
   })
 
+  it('keeps the opened table type class on the dialog', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostModal, {
+        title: 'Table 1',
+        open: true,
+        className: 'host-table-open',
+        onClose: () => {},
+        children: createElement('p', null, 'Ada'),
+      }),
+    )
+    expect(html).toContain('host-table-open')
+  })
+
   it('wraps table chips down the dialog instead of one scrolling row', () => {
     const html = renderToStaticMarkup(
       createElement(HostFloorStrip, {

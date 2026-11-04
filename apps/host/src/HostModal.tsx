@@ -11,11 +11,13 @@ export function HostModal({
   title,
   open,
   onClose,
+  className,
   children,
 }: {
   title: ReactNode
   open: boolean
   onClose: () => void
+  className?: string
   children: ReactNode
 }) {
   const depth = useContext(HostModalDepth)
@@ -52,7 +54,7 @@ export function HostModal({
             event.stopPropagation()
             onClose()
           }}
-          className="relative flex h-[min(86vh,48rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#0c1014] shadow-[0_24px_80px_rgba(0,0,0,0.7)] outline-none"
+          className={`relative flex h-[min(86vh,48rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#0c1014] shadow-[0_24px_80px_rgba(0,0,0,0.7)] outline-none${className ? ` ${className}` : ''}`}
         >
           <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-5">
             <div className="min-w-0 text-base font-semibold text-white">{title}</div>

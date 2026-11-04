@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -456,6 +457,24 @@ describe('venue floor now', () => {
     expect(html.indexOf('Ada L.')).toBeGreaterThan(html.indexOf('In pot'))
     expect(html.indexOf('Bo K.')).toBeGreaterThan(html.indexOf('Points only'))
     expect(html).toContain('Folded')
+  })
+
+  it('draws the opened table larger than the raw dialog type', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [{ name: 'Ada Lane', kind: 'pot', reason: null, bankroll: 1200, invested: 40 }],
+        recentActions: [{ seat: 0, name: 'Ada Lane', action: 'call' }],
+        hostPlayerLabel: (name: string) => name,
+        phaseLabel: 'To act',
+        pot: 40,
+      }),
+    )
+    expect(html).toContain('host-table-open')
+    const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+    const names = css.slice(css.indexOf('.host-table-open .text-sm'), css.indexOf('.host-table-open .text-sm') + 160)
+    const labels = css.slice(css.indexOf('.host-table-open .text-xs'), css.indexOf('.host-table-open .text-xs') + 160)
+    expect(names).toContain('font-size: 1.3125rem')
+    expect(labels).toContain('font-size: 1.125rem')
   })
 
   it('moves and removes a player from the contest row they already occupy', () => {

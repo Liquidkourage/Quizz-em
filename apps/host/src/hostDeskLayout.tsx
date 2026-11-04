@@ -2111,7 +2111,7 @@ export function HostTableOpen({
 }) {
   const aside = recentActions.length > 0 || (tableNum != null && onSetTablePhase != null) || onSpotlight != null
   return (
-    <div className={aside ? 'grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]' : 'flex flex-col gap-3'}>
+    <div className={aside ? 'host-table-open grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]' : 'host-table-open flex flex-col gap-3'}>
       <div className="flex min-w-0 flex-col gap-3">
         <HostTableOpenSummary phaseLabel={phaseLabel} pot={pot} actingSummary={actingSummary} />
         <HostTableContest
@@ -2390,6 +2390,7 @@ export function HostVenueFloorBriefPanel({
               title={openRow ? `Table ${openRow.tableNum}` : 'Table'}
               open={openRow != null}
               onClose={() => setOpenTable(null)}
+              className="host-table-open"
             >
               {openRow ? (
                 <HostTableOpen

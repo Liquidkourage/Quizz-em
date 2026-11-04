@@ -228,6 +228,22 @@
   line-height: 2.375rem;
 }
 
+/* The opened table dialog is portaled onto document.body, outside .host-root. */
+.host-table-open .text-xs {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.host-table-open .text-sm {
+  font-size: 1.3125rem;
+  line-height: 1.875rem;
+}
+
+.host-table-open .text-base {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
 /* The desk is one viewport. Mode panels fill the stage; long lists scroll inside a card. */
 .host-desk-stage > * {
   flex: 1 1 auto;

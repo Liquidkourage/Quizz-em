@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { PlayerState } from '@qhe/core'
 import { ChipText } from '@qhe/ui'
 import type { BettingContext } from '../playerModel/bettingModel'
+import { raiseToDraft } from '../playerModel/raiseToDraft'
 import { PlayerGameButton } from './PlayerGoldChrome'
 
 const CONFIRM_TIMEOUT_MS = 3000
@@ -86,12 +87,6 @@ export default function WageringActionButtons({
 
   if (!hasPrimary && !showRaise && !hasSecondary) {
     return null
-  }
-
-  const clampRaiseBy = (n: number) => {
-    if (!live) return
-    const stepped = Math.max(ctx.minRaise, Math.min(maxRaiseBy, Math.floor(n)))
-    onRaiseAmountChange(stepped)
   }
 
   const foldBtn = showFold ? (
@@ -217,24 +212,15 @@ export default function WageringActionButtons({
                     <span className="player-game-raise-compact-min">
                       min <ChipText text={`$${minRaiseTo}`} />
                     </span>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={raiseToTotal}
-                      onChange={(e) => {
-                        const typedTo = Number(e.target.value)
-                        if (!Number.isFinite(typedTo)) {
-                          clampRaiseBy(ctx.minRaise)
-                          return
-                        }
-                        clampRaiseBy(typedTo - ctx.toCall)
-                      }}
-                      min={minRaiseTo}
-                      max={ctx.toCall + maxRaiseBy}
-                      disabled={!live}
+                    <RaiseToField
+                      raiseToTotal={raiseToTotal}
+                      toCall={ctx.toCall}
+                      minRaise={ctx.minRaise}
+                      maxRaiseBy={maxRaiseBy}
+                      live={live}
                       className="player-game-input player-game-input--raise player-game-input--raise-dense"
-                      aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+                      ariaLabel={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+                      onRaiseAmountChange={onRaiseAmountChange}
                     />
                   </div>
                 </div>
@@ -258,24 +244,15 @@ export default function WageringActionButtons({
                       <span className="player-game-raise-compact-min">
                       min <ChipText text={`$${minRaiseTo}`} />
                     </span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={raiseToTotal}
-                        onChange={(e) => {
-                          const typedTo = Number(e.target.value)
-                          if (!Number.isFinite(typedTo)) {
-                            clampRaiseBy(ctx.minRaise)
-                            return
-                          }
-                          clampRaiseBy(typedTo - ctx.toCall)
-                        }}
-                        min={minRaiseTo}
-                        max={ctx.toCall + maxRaiseBy}
-                        disabled={!live}
+                      <RaiseToField
+                        raiseToTotal={raiseToTotal}
+                        toCall={ctx.toCall}
+                        minRaise={ctx.minRaise}
+                        maxRaiseBy={maxRaiseBy}
+                        live={live}
                         className="player-game-input player-game-input--raise player-game-input--raise-dense"
-                        aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+                        ariaLabel={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+                        onRaiseAmountChange={onRaiseAmountChange}
                       />
                     </div>
                   </div>
@@ -371,24 +348,16 @@ export default function WageringActionButtons({
               />
           </p>
           <div className="player-game-raise-row">
-            <input
+            <RaiseToField
               id="player-raise-to-input"
-              type="number"
-              inputMode="numeric"
-              value={raiseToTotal}
-              onChange={(e) => {
-                const typedTo = Number(e.target.value)
-                if (!Number.isFinite(typedTo)) {
-                  clampRaiseBy(ctx.minRaise)
-                  return
-                }
-                clampRaiseBy(typedTo - ctx.toCall)
-              }}
-              min={minRaiseTo}
-              max={ctx.toCall + maxRaiseBy}
-              disabled={!live}
+              raiseToTotal={raiseToTotal}
+              toCall={ctx.toCall}
+              minRaise={ctx.minRaise}
+              maxRaiseBy={maxRaiseBy}
+              live={live}
               className="player-game-input player-game-input--raise"
-              aria-label={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+              ariaLabel={`${wagerVerb} to amount, minimum ${minRaiseTo}`}
+              onRaiseAmountChange={onRaiseAmountChange}
             />
             <PlayerGameButton
               variant="dark"
@@ -412,6 +381,53 @@ export default function WageringActionButtons({
         </div>
       ) : null}
     </div>
+  )
+}
+
+function RaiseToField({
+  id,
+  className,
+  raiseToTotal,
+  toCall,
+  minRaise,
+  maxRaiseBy,
+  live,
+  ariaLabel,
+  onRaiseAmountChange,
+}: {
+  id?: string
+  className: string
+  raiseToTotal: number
+  toCall: number
+  minRaise: number
+  maxRaiseBy: number
+  live: boolean
+  ariaLabel: string
+  onRaiseAmountChange: (n: number) => void
+}) {
+  const [draft, setDraft] = useState<string | null>(null)
+  useEffect(() => {
+    setDraft(null)
+  }, [raiseToTotal])
+  return (
+    <input
+      id={id}
+      type="text"
+      inputMode="numeric"
+      autoComplete="off"
+      pattern="[0-9]*"
+      value={draft ?? String(raiseToTotal)}
+      onChange={(e) => {
+        if (!live) return
+        const next = raiseToDraft(e.target.value, toCall, minRaise, maxRaiseBy)
+        setDraft(next.text)
+        if (next.raiseBy != null) onRaiseAmountChange(next.raiseBy)
+      }}
+      onBlur={() => setDraft(null)}
+      disabled={!live}
+      className={className}
+      aria-label={ariaLabel}
+    />
   )
 }
 

@@ -1,5 +1,8 @@
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
+import VenueLeaderboardPanelGrid from './VenueLeaderboardPanelGrid'
 import {
   captureVenueHandStackBaselines,
   formatVenueBankroll,
@@ -110,6 +113,42 @@ describe('formatVenueBankrollDigits', () => {
     expect(formatVenueBankrollDigits(160)).toBe('160')
     expect(formatVenueBankroll(160)).toBe('$160')
     expect(formatVenueBankrollDigits(7030)).toBe('7,030')
+  })
+})
+
+describe('leaderboard stack change', () => {
+  it('draws the change with the chip mark', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueLeaderboardPanelGrid, {
+        page: {
+          pageNumber: 1,
+          pageCount: 1,
+          rankStart: 1,
+          rankEnd: 1,
+          columnCount: 1,
+          showTopThreePodium: false,
+          columns: [
+            {
+              rankStart: 1,
+              rankEnd: 1,
+              gridRowCount: 1,
+              players: [
+                {
+                  name: 'Ada Lane',
+                  tableNum: 1,
+                  seatNum: 1,
+                  bankroll: 1500,
+                  stackDelta: 300,
+                  rank: 1,
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    )
+    expect(html).toContain('chip-mark')
+    expect(html.replace(/aria-label="[^"]*"/g, '')).not.toContain('$')
   })
 })
 

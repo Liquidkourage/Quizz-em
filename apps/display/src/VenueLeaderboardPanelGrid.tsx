@@ -92,6 +92,8 @@ function LeaderboardRankRow({ row, rank, zebra, podium, trophy }: RowProps) {
   const rankClass = tier > 0 ? 'venue-lb-row-rank-top' : 'venue-lb-row-rank'
   const nameClass = tier > 0 ? 'venue-lb-row-name-top' : 'venue-lb-row-name'
   const stackClass = tier > 0 ? 'venue-lb-row-stack-top' : 'venue-lb-row-stack'
+  const delta =
+    trophy === 'chips' && row.stackDelta != null && row.stackDelta !== 0 ? row.stackDelta : null
 
   return (
     <div className={rowClass} aria-label={`Rank ${rank}, ${row.name}`}>
@@ -106,13 +108,12 @@ function LeaderboardRankRow({ row, rank, zebra, podium, trophy }: RowProps) {
         {given}
         {suffix ? <span className="venue-lb-row-suffix"> {suffix}</span> : null}
       </span>
-      {trophy === 'chips' && row.stackDelta != null && row.stackDelta !== 0 ? (
+      {delta != null ? (
         <span
-          className={`venue-lb-row-delta ${rankClass} ${row.stackDelta > 0 ? 'venue-lb-row-delta--up' : 'venue-lb-row-delta--down'}`}
-          title={formatVenueStackDelta(row.stackDelta)}
+          className={`venue-lb-row-delta ${rankClass} ${delta > 0 ? 'venue-lb-row-delta--up' : 'venue-lb-row-delta--down'}`}
           aria-hidden
         >
-          {row.stackDelta > 0 ? '▲' : '▼'}
+          {delta > 0 ? '▲' : '▼'}
         </span>
       ) : (
         <span className={`venue-lb-row-delta ${rankClass} venue-lb-row-delta--empty`} aria-hidden />
@@ -125,6 +126,13 @@ function LeaderboardRankRow({ row, rank, zebra, podium, trophy }: RowProps) {
               : formatVenueBankroll(row.bankroll)
           }
         />
+        {delta != null ? (
+          <span
+            className={`venue-lb-row-delta-amount ${delta > 0 ? 'venue-lb-row-delta--up' : 'venue-lb-row-delta--down'}`}
+          >
+            <ChipText text={formatVenueStackDelta(delta)} />
+          </span>
+        ) : null}
       </span>
     </div>
   )

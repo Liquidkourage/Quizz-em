@@ -3584,6 +3584,11 @@
     visibility: hidden;
   }
 
+  .venue-lb-row-delta-amount {
+    margin-left: 0.35em;
+    font-size: 0.82em;
+  }
+
   .venue-lb-row-stack-cell {
     flex-shrink: 0;
     font-family: ui-monospace, monospace;

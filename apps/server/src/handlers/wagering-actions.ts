@@ -81,9 +81,9 @@ export async function handleWageringAction(
           for (const { tk } of lockClose) {
             let gs = g.rooms.get(tk)!
             gs = g.adminCloseBetting(gs)
-            gs = g.runVirtualPlayerSimulation(gs)
             g.rooms.set(tk, gs)
             g.emitVenueTableState(tk, gs)
+            g.playVirtualPlayers(tk, gs)
           }
           gameState = g.rooms.get(sessionKey)!
           break
@@ -98,9 +98,9 @@ export async function handleWageringAction(
             if (gs.phase !== 'betting' || !gs.round.isBettingOpen) continue
             g.clearHumanTurnClock(tk)
             let next = g.adminAdvanceTurn(gs)
-            next = g.runVirtualPlayerSimulation(next)
             g.rooms.set(tk, next)
             g.emitVenueTableState(tk, next)
+            g.playVirtualPlayers(tk, next)
             advanced++
           }
           socket.emit(

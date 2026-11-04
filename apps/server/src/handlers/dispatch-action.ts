@@ -38,7 +38,7 @@ export async function dispatchAction(socket: Socket, data: { type?: string; payl
 
     if (!g.VENUE_SYNC_ACTION_TYPES.has(type)) {
       const beforeMoves = g.rooms.get(sessionKey) as GameState
-      gameState = g.runVirtualPlayerSimulation(gameState)
+      gameState = g.playVirtualPlayers(sessionKey, gameState)
       g.commitTableAdvance(sessionKey, beforeMoves, gameState)
       if (type === 'submitAnswer' && gameState.phase === 'answering') {
         g.emitDisplayVenueSnapshotNow(gameState.code)

@@ -171,8 +171,8 @@ export async function handleHello(socket: Socket, data: ClientHello) {
       }
     }
 
-    gameState = g.runVirtualPlayerSimulation(gameState)
     g.rooms.set(emitKey, gameState)
+    gameState = g.playVirtualPlayers(emitKey, gameState)
 
     const ack: ServerAck = {
       ok: true,

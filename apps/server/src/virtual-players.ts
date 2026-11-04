@@ -84,6 +84,11 @@ export function removeAllVirtualPlayers(state: GameState): GameState {
   return s
 }
 
+/** A bot is seated, whether or not a person is seated with them. */
+export function tableHasVirtualSeat(state: GameState): boolean {
+  return state.players.some((p) => isVirtualPlayerId(p.id))
+}
+
 /** Venue / demo fill: roster is exclusively `vp:*` seats — safe to auto-run wagering between snapshots. */
 export function tableIsCpuOnly(state: GameState): boolean {
   return state.players.length > 0 && state.players.every((p) => isVirtualPlayerId(p.id))

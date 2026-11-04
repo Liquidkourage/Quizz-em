@@ -107,6 +107,7 @@ import {
   advanceVirtualBettingStep,
   runVirtualPlayerSimulation as simulateVirtualPlayers,
   tableIsCpuOnly,
+  tableHasVirtualSeat,
   liveVirtualCount,
   noteGuessNudge,
 } from './virtual-players'
@@ -394,13 +395,7 @@ export function dealCommunityBoardForVenue(vnRaw: string): boolean {
     rooms.set(tk, gs)
     if (dealt) {
       emitVenueTableState(tk, gs, { skipOrchestration: true })
-      if (tableIsCpuOnly(gs)) {
-        enqueueCpuOnlyVpDrain(tk)
-      } else {
-        gs = runVirtualPlayerSimulation(gs)
-        rooms.set(tk, gs)
-        emitVenueTableState(tk, gs, { skipOrchestration: true })
-      }
+      playVirtualPlayers(tk, gs)
       io.to(tk).emit('dealingCommunityCards')
       const boardTableNum = tableNumFromSessionKey(gs.code, tk)
       if (boardTableNum != null) {
@@ -755,12 +750,10 @@ export function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, d
     return
   }
 
-  let gsLive = gs
-  gsLive = runVirtualPlayerSimulation(gsLive)
-  rooms.set(watchKey, gsLive)
+  playVirtualPlayers(watchKey, gs)
   const ackDs: ServerAck = { ok: true, message: 'Connected successfully' }
   socket.emit('ack', ackDs)
-  emitVenueTableState(watchKey, gsLive)
+  emitVenueTableState(watchKey, gs)
 }
 
 export async function ensureVenueLibrary(venueCode: string): Promise<VenueLibraryData> {
@@ -1426,13 +1419,9 @@ export function syncHumanTurnDeadline(sessionKey: string, gs: GameState): number
   return typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : undefined
 }
 
-/** After a nudge forces one seat, a CPU-only felt keeps its paced steps. */
+/** After a nudge forces one seat, the next bots keep the same pause as a bot-only table. */
 function continueAfterForcedTurn(sessionKey: string, gs: GameState): GameState {
-  if (tableIsCpuOnly(gs)) {
-    enqueueCpuOnlyVpDrain(sessionKey)
-    return gs
-  }
-  return runVirtualPlayerSimulation(gs)
+  return playVirtualPlayers(sessionKey, gs)
 }
 
 /** Arm auto check/fold only when a host nudge deadline is active for the current actor. */
@@ -1581,7 +1570,7 @@ export function nudgeOpenGuesses(vnRaw: string): { nudged: number; names: string
     rooms.set(tk, next)
     emitVenueTableState(tk, next, { skipOrchestration: true })
     io.to(tk).emit('toast', '30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
-    if (tableIsCpuOnly(next)) enqueueCpuOnlyVpDrain(tk)
+    playVirtualPlayers(tk, next)
   }
   if (names.length > 0) armGuessNudgeTimeout(vn, fireAt)
   return { nudged: names.length, names }
@@ -2674,15 +2663,15 @@ export function emitTablePresence(sessionKey: string): void {
 }
 
 /**
- * Pure `vp:*` felts — advance one bot step at a time with a human-visible pause so the
- * venue wall can be read between decisions (demo / watch mode).
+ * Any felt with a bot — one bot step at a time, with a pause a person can watch,
+ * whether or not a person is seated at that table.
  */
 export const cpuVpDrainPending = new Set<string>()
 /** One wagering/answering VP step per timer tick (not 72 micro-steps at once). */
 export const CPU_VP_STEPS_PER_CHUNK = 1
 
 /**
- * Pace between paced CPU-only wagering steps (`drainCpuVpSessionChain`).
+ * Pace between bot steps (`drainCpuVpSessionChain`), including a table where a person is seated.
  * Default ~3–7s random so the venue wall stays readable during demos.
  * Set **`QHE_CPU_VP_ACTION_DELAY_MS`** on the server to a nonnegative integer (e.g. `0` or `50`)
  * when rehearsing large all-CPU fields (many seats × multiple felts → venue lockstep).
@@ -2704,22 +2693,18 @@ export function enqueueCpuOnlyVpDrain(sessionKey: string) {
   setImmediate(() => drainCpuVpSessionChain(sessionKey))
 }
 
-/**
- * CPU-only answer windows take one phone action per drain tick.
- * Any other table finishes its bots immediately so a human is not waiting on them.
- */
+/** One bot action per pause. A person at the table does not collapse the rest of the bots. */
 export function playVirtualPlayers(sessionKey: string, gs: GameState): GameState {
   if (isVenueHeld(gs.code)) return gs
-  if (gs.phase === 'answering' && tableIsCpuOnly(gs)) {
-    enqueueCpuOnlyVpDrain(sessionKey)
-    return gs
-  }
-  return runVirtualPlayerSimulation(gs)
+  if (!tableHasVirtualSeat(gs)) return gs
+  const botsCanAct = gs.phase === 'answering' || (gs.phase === 'betting' && gs.round.isBettingOpen === true)
+  if (botsCanAct) enqueueCpuOnlyVpDrain(sessionKey)
+  return gs
 }
 
 export function drainCpuVpSessionChain(sessionKey: string) {
   let gs = rooms.get(sessionKey)
-  if (!gs || !tableIsCpuOnly(gs)) {
+  if (!gs || !tableHasVirtualSeat(gs)) {
     cpuVpDrainPending.delete(sessionKey)
     return
   }
@@ -2742,7 +2727,7 @@ export function drainCpuVpSessionChain(sessionKey: string) {
   }
 
   gs = rooms.get(sessionKey)
-  if (!gs || !tableIsCpuOnly(gs)) {
+  if (!gs || !tableHasVirtualSeat(gs)) {
     cpuVpDrainPending.delete(sessionKey)
     return
   }
@@ -2829,13 +2814,7 @@ export function openBettingAfterQuestionOnVenue(venueCode: string): boolean {
     anyOpened = true
     rooms.set(tk, gs)
     emitVenueTableState(tk, gs)
-    if (tableIsCpuOnly(gs)) {
-      enqueueCpuOnlyVpDrain(tk)
-    } else {
-      gs = runVirtualPlayerSimulation(gs)
-      rooms.set(tk, gs)
-      emitVenueTableState(tk, gs)
-    }
+    playVirtualPlayers(tk, gs)
   }
   return anyOpened
 }

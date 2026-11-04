@@ -245,28 +245,64 @@ export function clearTableBlindsOverride(venueCode: string, tableId: string): vo
   persistToDisk()
 }
 
+/** Pace-line save. A new ladder adopts that rung. A hands-only save keeps the live blinds. */
+export function applyBlindScheduleSave(
+  current: VenueBlindSettings,
+  handsPerBlindLevel: number,
+  replacementLevels?: BlindLevel[],
+): VenueBlindSettings {
+  const replaceLadder = replacementLevels != null && replacementLevels.length > 0
+  const nextLevels = replaceLadder
+    ? replacementLevels.map((level) => normalizeLevelPair(level.smallBlind, level.bigBlind))
+    : current.levels
+  const blindLevelIndex = Math.max(0, Math.min(nextLevels.length - 1, current.blindLevelIndex))
+  const rung = levelFromIndex(nextLevels, blindLevelIndex)
+  return {
+    ...current,
+    handsPerBlindLevel: clampHandsPerLevel(handsPerBlindLevel),
+    levels: nextLevels,
+    blindLevelIndex,
+    smallBlind: replaceLadder ? rung.smallBlind : current.smallBlind,
+    bigBlind: replaceLadder ? rung.bigBlind : current.bigBlind,
+    handsAtCurrentLevel: replaceLadder ? 0 : current.handsAtCurrentLevel,
+  }
+}
+
+/** One finished hand. Live blinds stay until the schedule actually changes level. */
+export function advanceBlindLevel(current: VenueBlindSettings): {
+  next: VenueBlindSettings
+  leveledUp: boolean
+} {
+  let handsAtCurrentLevel = current.handsAtCurrentLevel + 1
+  let blindLevelIndex = current.blindLevelIndex
+  let leveledUp = false
+  if (handsAtCurrentLevel >= current.handsPerBlindLevel && blindLevelIndex < current.levels.length - 1) {
+    blindLevelIndex += 1
+    handsAtCurrentLevel = 0
+    leveledUp = true
+  } else if (handsAtCurrentLevel >= current.handsPerBlindLevel) {
+    handsAtCurrentLevel = current.handsPerBlindLevel
+  }
+  const rung = levelFromIndex(current.levels, blindLevelIndex)
+  return {
+    leveledUp,
+    next: {
+      ...current,
+      blindLevelIndex,
+      handsAtCurrentLevel,
+      smallBlind: leveledUp ? rung.smallBlind : current.smallBlind,
+      bigBlind: leveledUp ? rung.bigBlind : current.bigBlind,
+    },
+  }
+}
+
 export function setVenueBlindStructurePersist(
   venueCode: string,
   handsPerBlindLevel: number,
   levels?: BlindLevel[],
 ): VenueBlindSettings {
   const k = normalizeVenueKey(venueCode)
-  const cur = getVenueBlindSettings(k)
-  const nextLevels =
-    levels != null && levels.length > 0
-      ? levels.map((l) => normalizeLevelPair(l.smallBlind, l.bigBlind))
-      : cur.levels
-  const idx = Math.max(0, Math.min(nextLevels.length - 1, cur.blindLevelIndex))
-  const lv = levelFromIndex(nextLevels, idx)
-  const next: VenueBlindSettings = {
-    ...cur,
-    handsPerBlindLevel: clampHandsPerLevel(handsPerBlindLevel),
-    levels: nextLevels,
-    blindLevelIndex: idx,
-    smallBlind: lv.smallBlind,
-    bigBlind: lv.bigBlind,
-    handsAtCurrentLevel: 0,
-  }
+  const next = applyBlindScheduleSave(getVenueBlindSettings(k), handsPerBlindLevel, levels)
   venueSettings.set(k, next)
   persistToDisk()
   return { ...next, levels: next.levels.map((l) => ({ ...l })) }
@@ -275,32 +311,11 @@ export function setVenueBlindStructurePersist(
 /** After a venue-wide hand completes — returns toast message when level increases. */
 export function recordVenueHandCompleted(venueCode: string): string | null {
   const k = normalizeVenueKey(venueCode)
-  const cur = getVenueBlindSettings(k)
-  let handsAtCurrentLevel = cur.handsAtCurrentLevel + 1
-  let blindLevelIndex = cur.blindLevelIndex
-  let leveledUp = false
-
-  if (handsAtCurrentLevel >= cur.handsPerBlindLevel && blindLevelIndex < cur.levels.length - 1) {
-    blindLevelIndex += 1
-    handsAtCurrentLevel = 0
-    leveledUp = true
-  } else if (handsAtCurrentLevel >= cur.handsPerBlindLevel) {
-    handsAtCurrentLevel = cur.handsPerBlindLevel
-  }
-
-  const lv = levelFromIndex(cur.levels, blindLevelIndex)
-  const next: VenueBlindSettings = {
-    ...cur,
-    blindLevelIndex,
-    handsAtCurrentLevel,
-    smallBlind: lv.smallBlind,
-    bigBlind: lv.bigBlind,
-  }
+  const { next, leveledUp } = advanceBlindLevel(getVenueBlindSettings(k))
   venueSettings.set(k, next)
   persistToDisk()
-
   if (!leveledUp) return null
-  return `Blinds increased — level ${blindLevelIndex + 1}: $${lv.smallBlind} / $${lv.bigBlind}`
+  return `Blinds increased — level ${next.blindLevelIndex + 1}: $${next.smallBlind} / $${next.bigBlind}`
 }
 
 export function venueBlindLevelSummary(venueCode: string): {

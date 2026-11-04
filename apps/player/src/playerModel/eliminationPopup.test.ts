@@ -1,7 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { ELIMINATION_POPUP_MS, eliminationPopupHandKey, type EliminationWatch } from './eliminationPopup'
+import {
+  ELIMINATION_POPUP_MS,
+  eliminationPopupHandKey,
+  seatlessPhoneKeepsFelt,
+  type EliminationWatch,
+} from './eliminationPopup'
 
 const inChips: EliminationWatch = { pointsOnly: false, roundId: 'hand-4' }
+
+describe('seatlessPhoneKeepsFelt', () => {
+  it('keeps a numbered table on screen after this phone loses its seat', () => {
+    expect(seatlessPhoneKeepsFelt('1')).toBe(true)
+    expect(seatlessPhoneKeepsFelt('LOBBY')).toBe(false)
+    expect(seatlessPhoneKeepsFelt('')).toBe(false)
+  })
+})
 
 describe('eliminationPopupHandKey', () => {
   it('stays quiet on the first snapshot so a reconnect does not replay the bust', () => {

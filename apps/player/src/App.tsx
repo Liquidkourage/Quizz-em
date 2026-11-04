@@ -48,14 +48,13 @@ import {
 } from './playerModel/answerComposition'
 import { buildBettingContext, resolveMyPlayerIndex } from './playerModel/bettingModel'
 import { nextDealFlash, type DealFlash, type DealSnapshot } from './playerModel/dealFlash'
-import { eliminationPopupHandKey, type EliminationWatch } from './playerModel/eliminationPopup'
+import { eliminationPopupHandKey, seatlessPhoneKeepsFelt, type EliminationWatch } from './playerModel/eliminationPopup'
 import { playerEndgameView } from './playerModel/playerEndgame'
 import { lockedAnswerDisplayText } from './playerModel/lockedAnswerDisplay'
 import { resolvePreAction, type PreAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
-import EliminatedScreen from './components/EliminatedScreen'
 import PlayerEndgameScreen from './components/PlayerEndgameScreen'
 import EliminatedModal from './components/EliminatedModal'
 import PlayerToast from './components/PlayerToast'
@@ -255,8 +254,6 @@ function PlayerApp() {
 
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
   const currentPlayer = gameState && myIndex >= 0 ? gameState.players[myIndex] : undefined
-  const wasSeatedRef = useRef(false)
-  if (currentPlayer) wasSeatedRef.current = true
   const dealSeenRef = useRef<DealSnapshot | null>(null)
   const [dealFlash, setDealFlash] = useState<DealFlash | null>(null)
   const dismissDealFlash = useCallback(() => setDealFlash(null), [])
@@ -453,15 +450,6 @@ function PlayerApp() {
     )
   }
 
-  const isEliminated =
-    !currentPlayer &&
-    (gameState.tableId ?? '') !== LOBBY_TABLE_ID &&
-    (gameState.phase !== 'lobby' || wasSeatedRef.current)
-
-  if (isEliminated) {
-    return <EliminatedScreen />
-  }
-
   const inLobbyWaiting =
     (gameState.tableId ?? '') === LOBBY_TABLE_ID &&
     gameState.phase === 'lobby' &&
@@ -493,7 +481,7 @@ function PlayerApp() {
     gameState.phase === 'betting' && isAllInRunout(gameState) && !preloadAnswer
   const isPointsOnly = currentPlayer?.pointsOnly === true
 
-  const seatedAtTable = (gameState.tableId ?? '') !== LOBBY_TABLE_ID
+  const seatedAtTable = seatlessPhoneKeepsFelt(gameState.tableId)
   const isBettingPhase = gameState.phase === 'betting'
   const chipPotStillContested = chipContestantCount(gameState.players) >= 2
   const needsMobileBetDock =

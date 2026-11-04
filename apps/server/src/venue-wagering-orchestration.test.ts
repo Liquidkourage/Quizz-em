@@ -130,7 +130,7 @@ describe('venue wagering orchestration', () => {
     expect(plan.scheduleShowdownAtMs).toBe(1_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
   })
 
-  it('does not auto-open answering on an all-in runout — host starts the answer window', () => {
+  it('opens answering when the only table is all-in and the board is out', () => {
     const { key, gs } = allInRunoutPostBoardTable()
     const plan = planVenueWageringOrchestration({
       seatedTableKeys: [key],
@@ -138,9 +138,35 @@ describe('venue wagering orchestration', () => {
       currentShowdownAtMs: undefined,
       nowMs: 1_500_000,
     })
-    expect(plan.tableUpdates).toHaveLength(0)
+    expect(plan.tableUpdates).toHaveLength(1)
+    expect(plan.tableUpdates[0]!.gameState.phase).toBe('answering')
+    expect(plan.tableUpdates[0]!.answerDeadlineMs).toBe(1_500_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
+    expect(plan.scheduleShowdownAtMs).toBe(1_500_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
+  })
+
+  it('keeps an all-in table in betting while another table can still bet', () => {
+    const runout = allInRunoutPostBoardTable()
+    let open = createEmptyGame('V', '', '2')
+    open = { ...open, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
+    open = withCallingSeats(addVirtualPlayers(open, 3))
+    open = startGame(open)
+    open = setQuestion(open, SAMPLE_QUESTIONS[0]!)
+    open = dealInitialCards(open)
+    open = runVirtualPlayerSimulation(open)
+    open = dealCommunityCards(open)
+    expect(open.round.isBettingOpen).toBe(true)
+    const states = new Map([
+      [runout.key, runout.gs],
+      ['V:2', open],
+    ])
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: [runout.key, 'V:2'],
+      getState: (tk) => states.get(tk),
+      currentShowdownAtMs: undefined,
+      nowMs: 1_550_000,
+    })
+    expect(plan.tableUpdates.some((u) => u.sessionKey === runout.key)).toBe(false)
     expect(plan.scheduleShowdownAtMs).toBeNull()
-    expect(venueAllPostBoardWageringComplete([key], (tk) => (tk === key ? gs : undefined))).toBe(true)
   })
 
   it('pulls an all-in runout into answering when another table already advanced', () => {

@@ -102,13 +102,19 @@ function venuePeerInAnswerFlow(
   })
 }
 
-function venueAnyAllInRunoutAwaitingHost(
+function venueAnswerWaveStarted(
   seatedTableKeys: string[],
   getState: (sessionKey: string) => GameState | undefined,
 ): boolean {
   return seatedTableKeys.some((tk) => {
     const gs = getState(tk)
-    return gs != null && gs.players.length > 0 && isAllInRunout(gs)
+    if (!gs || gs.players.length === 0) return false
+    return (
+      gs.phase === 'answering' ||
+      gs.phase === 'showdown' ||
+      gs.phase === 'reveal' ||
+      gs.phase === 'payout'
+    )
   })
 }
 
@@ -168,8 +174,7 @@ export function planVenueWageringOrchestration(args: {
 
   let showdownAt = args.currentShowdownAtMs
   let scheduleShowdownAtMs: number | null = null
-  const allInRunoutAwaitingHost = venueAnyAllInRunoutAwaitingHost(args.seatedTableKeys, args.getState)
-  if (allComplete && openWageringCount === 0 && showdownAt == null && !allInRunoutAwaitingHost) {
+  if (allComplete && openWageringCount === 0 && showdownAt == null && !venueAnswerWaveStarted(args.seatedTableKeys, args.getState)) {
     // Soft guide deadline for TV/phone countdowns. Host must revealAnswer to close —
     // the server does not auto-advance when this timestamp elapses.
     showdownAt = nowMs + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS
@@ -181,8 +186,12 @@ export function planVenueWageringOrchestration(args: {
     if (!gs || gs.players.length === 0) continue
 
     if (isPostBoardWageringClosed(gs)) {
-      /** Hold all-in runout for the host unless another felt already advanced (avoid lockstep deadlock). */
-      if (isAllInRunout(gs) && !venuePeerInAnswerFlow(args.seatedTableKeys, args.getState, tk)) {
+      /** Stay with tables that can still bet. Once every felt is done, guessing opens on its own. */
+      if (
+        isAllInRunout(gs) &&
+        !allComplete &&
+        !venuePeerInAnswerFlow(args.seatedTableKeys, args.getState, tk)
+      ) {
         continue
       }
       const deadline = allComplete && showdownAt != null ? showdownAt : null

@@ -893,6 +893,23 @@
   }
 }
 
+/* Wide lobby fills the window. The seated felt keeps its own column. */
+@media (min-width: 768px) {
+  .player-game-layout:not(.player-game-layout--live-fit) {
+    align-items: stretch;
+  }
+
+  .player-game-layout:not(.player-game-layout--live-fit) .player-game-shell {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  .player-game-layout:not(.player-game-layout--live-fit) .player-game-body {
+    justify-content: space-evenly;
+  }
+}
+
 .player-game-header {
   height: clamp(7rem, 18vh, 10rem);
   padding-bottom: 0.15rem;

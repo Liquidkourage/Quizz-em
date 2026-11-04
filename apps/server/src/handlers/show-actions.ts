@@ -1,5 +1,6 @@
 import type { Socket } from 'socket.io'
 import type { GameState, Question } from '@qhe/core'
+import { PLAYER_ROOM_CLOSED_MESSAGE } from '@qhe/net'
 import * as g from '../game-ops'
 import { denyUnlessOwnSeat } from '../own-seat'
 import { soleChipWinnerName } from '../venue-endgame'
@@ -468,8 +469,8 @@ export async function handleShowAction(
             if (!seated) continue
             for (const p of seated.players) droppedPlayerIds.push(p.id)
           }
+          g.io.to(g.playerVenueRoom(vn)).emit('eventLeft', { message: PLAYER_ROOM_CLOSED_MESSAGE })
           for (const tk of g.allTableSessionsInVenue(vn)) {
-            g.io.to(tk).emit('toast', 'Venue reset — use the lobby link to rejoin.')
             g.rooms.delete(tk)
           }
           const freshLobby = g.applyEffectiveBlindsToGameState(

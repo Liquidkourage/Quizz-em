@@ -1,3 +1,4 @@
+import { PLAYER_ROOM_CLOSED_MESSAGE } from '@qhe/net'
 import { ChipText, QuizzEmWordmark } from '@qhe/ui'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule, PlayerGoldPanel } from './PlayerGoldChrome'
 
@@ -40,6 +41,7 @@ export default function PlayerEndgameScreen({
                   `${winnerName} has the last stack.`
                 )}
               </p>
+              <p className="player-game-connecting-text">{PLAYER_ROOM_CLOSED_MESSAGE}</p>
             </PlayerGoldPanel>
           </div>
         </PlayerGameShell>

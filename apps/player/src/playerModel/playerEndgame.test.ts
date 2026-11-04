@@ -35,6 +35,7 @@ describe('player endgame screen', () => {
       bankroll: 4800,
     }))
     expect(won).toContain('You won')
+    expect(won).toContain('This event is over and the room has closed.')
     expect(won).toContain('Ada Lane')
     expect(won).toContain('4,800')
     expect(won).toContain('chip-mark')
@@ -46,6 +47,7 @@ describe('player endgame screen', () => {
       bankroll: null,
     }))
     expect(lost).toContain('Game over')
+    expect(lost).toContain('This event is over and the room has closed.')
     expect(lost).toContain('Ada Lane')
     expect(lost).not.toContain('You won')
   })

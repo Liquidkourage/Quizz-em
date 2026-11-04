@@ -19,6 +19,8 @@ export type PlayerJoinPrefs = {
   playerId: string
   /** Set when this phone quit or was removed, so a refresh does not sit back down. */
   departed?: boolean
+  /** Set once the night is over, so a refresh does not rejoin that room. */
+  roomClosed?: boolean
 }
 
 export type PlayerJoinBootstrap = PlayerJoinPrefs & {
@@ -63,9 +65,9 @@ export function playerDisplayNameFromPrefs(prefs: Pick<PlayerJoinPrefs, 'firstNa
 
 /** A refresh can reconnect this phone. A first visit still needs the name screen. */
 export function playerSessionCanResume(
-  prefs: Pick<PlayerJoinPrefs, 'firstName' | 'lastInitial' | 'roomCode' | 'playerId' | 'departed'>,
+  prefs: Pick<PlayerJoinPrefs, 'firstName' | 'lastInitial' | 'roomCode' | 'playerId' | 'departed' | 'roomClosed'>,
 ): boolean {
-  if (prefs.departed) return false
+  if (prefs.departed || prefs.roomClosed) return false
   return (
     prefs.firstName.trim().length > 0 &&
     prefs.lastInitial.trim().length > 0 &&
@@ -95,6 +97,7 @@ export function readPlayerJoinPrefs(): PlayerJoinBootstrap {
     tableId: tableFromUrl || stored.tableId || LOBBY_TABLE_ID,
     playerId,
     departed: stored.departed === true,
+    roomClosed: stored.roomClosed === true,
     roomFromUrl,
     nameFromUrl,
   }
@@ -113,6 +116,7 @@ export function persistPlayerJoinPrefs(prefs: PlayerJoinPrefs): void {
         tableId: prefs.tableId,
         playerId: prefs.playerId,
         departed: prefs.departed === true,
+        roomClosed: prefs.roomClosed === true,
       }),
     )
   } catch {

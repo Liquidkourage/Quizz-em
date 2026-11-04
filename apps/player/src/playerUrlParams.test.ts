@@ -13,6 +13,18 @@ describe('playerSessionCanResume', () => {
     ).toBe(true)
   })
 
+  it('lets go of a phone after the room has closed', () => {
+    expect(
+      playerSessionCanResume({
+        firstName: 'Ada',
+        lastInitial: 'L',
+        roomCode: 'HOST01',
+        playerId: 'human:ada',
+        roomClosed: true,
+      }),
+    ).toBe(false)
+  })
+
   it('keeps a first visit on the name screen', () => {
     expect(
       playerSessionCanResume({

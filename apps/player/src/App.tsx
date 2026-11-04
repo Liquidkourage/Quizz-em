@@ -23,7 +23,7 @@ import {
   requestSyncState,
   type SocketConnectionStatus,
 } from '@qhe/net'
-import type { PlayerGameStateWire, PlayerVenueBrief } from '@qhe/net'
+import { PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
 import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, feltSidePotAmount, inChipContest, isAllInRunout } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
@@ -127,7 +127,13 @@ function PlayerApp() {
   const handleJoin = () => {
     if (!playerName || !joinPrefs.roomCode.trim()) return
     if (!joinPrefs.firstName.trim() || !joinPrefs.lastInitial.trim()) return
-    const joining = { ...joinPrefs, autoSeat: true, tableId: LOBBY_TABLE_ID, departed: false }
+    const joining = {
+      ...joinPrefs,
+      autoSeat: true,
+      tableId: LOBBY_TABLE_ID,
+      departed: false,
+      roomClosed: false,
+    }
     departedRef.current = false
     setJoinPrefs(joining)
     persistPlayerJoinPrefs(joining)
@@ -180,10 +186,13 @@ function PlayerApp() {
     })
     const offLeft = onEventLeft((info) => {
       if (cancelled) return
+      const roomClosed = info.message === PLAYER_ROOM_CLOSED_MESSAGE
       departedRef.current = true
       if (info.message) setLeftMessage(info.message)
       setJoinPrefs((prev) => {
-        const next = { ...prev, departed: true }
+        const next = roomClosed
+          ? { ...prev, roomClosed: true, departed: false }
+          : { ...prev, departed: true }
         persistPlayerJoinPrefs(next)
         return next
       })
@@ -203,6 +212,16 @@ function PlayerApp() {
       offBrief()
     }
   }, [joinNonce, playerName, joinPrefs.roomCode, joinPrefs.playerId, joinTableId, showToast])
+
+  useEffect(() => {
+    if (!venueBrief?.endgameWinnerName?.trim()) return
+    setJoinPrefs((prev) => {
+      if (prev.roomClosed) return prev
+      const next = { ...prev, roomClosed: true }
+      persistPlayerJoinPrefs(next)
+      return next
+    })
+  }, [venueBrief?.endgameWinnerName])
 
   const handleForceReconnect = useCallback(() => {
     if (socket?.disconnected) {
@@ -396,6 +415,9 @@ function PlayerApp() {
   const leaveEvent = () => quitEvent()
 
   if (joinPhase !== 'in_venue') {
+    if (joinPrefs.roomClosed) {
+      return <PlayerLeftEvent message={PLAYER_ROOM_CLOSED_MESSAGE} onJoinAgain={handleJoin} />
+    }
     if (joinPrefs.departed) {
       return <PlayerLeftEvent message={leftMessage} onJoinAgain={handleJoin} />
     }

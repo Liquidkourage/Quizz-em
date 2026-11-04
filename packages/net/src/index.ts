@@ -75,6 +75,9 @@ export function normalizeDisplayLayoutPayload(
   return { layout: 'venueWall', focusTable, wallView }
 }
 
+/** Shown when the night is over so a phone drops the room instead of refreshing back into it. */
+export const PLAYER_ROOM_CLOSED_MESSAGE = 'This event is over and the room has closed.'
+
 /** Lightweight venue context for player phones (mirrors display wall header fields). */
 export type PlayerVenueBrief = {
   setlistCueNumber?: number | null

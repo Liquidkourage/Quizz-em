@@ -179,11 +179,13 @@ export function buildPlayerTableStatusLine(
 
   if (phase !== 'betting') return null
 
+  const last = lastActionPhrase(gameState, viewerName)
+
   if (isWageringPaused(phase, gameState.round)) {
-    return 'No more bets'
+    return last ? `${last} · No more bets` : 'No more bets'
   }
 
-  if (gameState.round.isBettingOpen !== true) return null
+  if (gameState.round.isBettingOpen !== true) return last
 
   const actingIndex =
     typeof gameState.round.currentPlayerIndex === 'number' &&
@@ -199,25 +201,19 @@ export function buildPlayerTableStatusLine(
   const actorLabel = actor.name === viewerName ? 'You' : firstName(actor.name)
   const toCall = seatToCallAmount(actor, gameState.round.currentBet, gameState.round.playerBets)
 
-  const highlight = pickHighlightSeatAction(
-    gameState.players,
-    gameState.round.lastSeatBettingAction,
-    actingIndex
-  )
-
   const actPart = toCall > 0 ? `${actorLabel} to call $${toCall.toLocaleString()}` : `${actorLabel} to act`
   const clock =
     typeof turnRemainingSec === 'number' && turnRemainingSec >= 0
       ? ` · act in ${turnRemainingSec}s`
       : ''
+  return last ? `${last} · ${actPart}${clock}` : `${actPart}${clock}`
+}
 
-  if (highlight) {
-    const who =
-      gameState.players[highlight.seatIndex]?.name === viewerName
-        ? 'You'
-        : firstName(gameState.players[highlight.seatIndex]?.name ?? 'Player')
-    return `${who} ${SEAT_BETTING_ACTION_VERBS[highlight.action]} · ${actPart}${clock}`
-  }
-
-  return `${actPart}${clock}`
+function lastActionPhrase(gameState: GameState, viewerName: string): string | null {
+  const last = gameState.round.lastPerformedAction
+  if (last == null) return null
+  const player = gameState.players[last.seatIndex]
+  if (player == null) return null
+  const who = player.name === viewerName ? 'You' : firstName(player.name)
+  return `${who} ${SEAT_BETTING_ACTION_VERBS[last.action]}`
 }

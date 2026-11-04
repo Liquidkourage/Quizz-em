@@ -46,6 +46,7 @@ describe('isBettingComplete / BB option', () => {
 
     gs = playerCheck(gs, 'bb')
     expect(gs.round.isBettingOpen).toBe(false)
+    expect(gs.round.lastPerformedAction).toEqual({ seatIndex: 2, action: 'check' })
   })
 
   it('counts the players who still have to act on an open street', () => {

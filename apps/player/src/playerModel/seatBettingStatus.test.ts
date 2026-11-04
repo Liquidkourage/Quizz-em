@@ -48,6 +48,7 @@ function baseState(overrides: Partial<GameState> = {}): GameState {
       currentPlayerIndex: 2,
       playerBets: { a: 20, b: 40, c: 0 },
       lastSeatBettingAction: ['call', 'raise', null],
+      lastPerformedAction: { seatIndex: 1, action: 'raise' },
     },
     ...overrides,
   }
@@ -122,6 +123,29 @@ describe('seatBettingStatus', () => {
     expect(hit).toEqual({ seatIndex: 1, action: 'raise' })
   })
 
+  it('shows the action just taken, not an earlier bigger bet', () => {
+    const gs = baseState({
+      round: {
+        ...baseState().round,
+        lastPerformedAction: { seatIndex: 0, action: 'check' },
+        lastSeatBettingAction: ['check', 'raise', null],
+      },
+    })
+    expect(buildPlayerTableStatusLine(gs, 'Jay')).toBe('Alex checked · You to call $40')
+  })
+
+  it('keeps the last action on screen after betting closes', () => {
+    const gs = baseState({
+      round: {
+        ...baseState().round,
+        isBettingOpen: false,
+        currentPlayerIndex: -1,
+        lastPerformedAction: { seatIndex: 1, action: 'call' },
+      },
+    })
+    expect(buildPlayerTableStatusLine(gs, 'Alex')).toBe('Maya called · No more bets')
+  })
+
   it('builds status line with highlight, to-call, and clock', () => {
     const line = buildPlayerTableStatusLine(baseState(), 'Alex', 18)
     expect(line).toBe('Maya raised · Jay to call $40 · act in 18s')
@@ -135,6 +159,7 @@ describe('seatBettingStatus', () => {
         playerBets: { a: 40, b: 40, c: 40 },
         currentBet: 40,
         lastSeatBettingAction: [null, 'call', null],
+        lastPerformedAction: { seatIndex: 1, action: 'call' },
       },
     })
     expect(buildPlayerTableStatusLine(gs, 'Alex')).toBe('Maya called · You to act')
@@ -146,6 +171,7 @@ describe('seatBettingStatus', () => {
         ...baseState().round,
         isBettingOpen: false,
         currentPlayerIndex: -1,
+        lastPerformedAction: undefined,
       },
     })
     expect(buildPlayerTableStatusLine(gs, 'Alex')).toBe('No more bets')

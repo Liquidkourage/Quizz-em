@@ -94,6 +94,8 @@ export interface RoundState {
   playerBets?: Record<string, number>; // contributions this betting round by playerId
   /** Indexed by `players[]` seat; cleared at each new wagering street. */
   lastSeatBettingAction?: (SeatBettingAction | null)[];
+  /** The action that just happened at this table, in the order it was taken. */
+  lastPerformedAction?: { seatIndex: number; action: SeatBettingAction };
   /** Total chips committed this hand (both wagering rounds); drives side-pot eligibility at payout. */
   handContributions?: Record<string, number>;
   /**
@@ -550,6 +552,7 @@ function stateWithoutSeat(state: GameState, playerId: string): GameState {
       dealerIndex: dealer < 0 ? 0 : dealer,
       currentPlayerIndex: current,
       lastSeatBettingAction: acts == null ? acts : acts.filter((_, index) => index !== dropped),
+      lastPerformedAction: shiftLastPerformedAction(state.round.lastPerformedAction, dropped),
       isBettingOpen: players.length === 0 ? false : state.round.isBettingOpen,
     },
   }
@@ -634,6 +637,7 @@ function roundStateForQuestionSetup(round: RoundState): RoundState {
     handContributions: {},
     bettingRound: 1,
     lastSeatBettingAction: undefined,
+    lastPerformedAction: undefined,
   };
 }
 
@@ -684,6 +688,7 @@ export function dealHoleCards(state: GameState): GameState {
       handContributions: {},
       bettingRound: 1,
       lastSeatBettingAction: undefined,
+      lastPerformedAction: undefined,
     },
   };
 }
@@ -715,6 +720,7 @@ export function openBettingRound1(state: GameState): GameState {
         lastFullRaiseAmount: Math.max(state.bigBlind, 0),
         raisesClosed: false,
         lastSeatBettingAction: Array.from({ length: playersWithHands.length }, () => null),
+        lastPerformedAction: undefined,
       },
     };
   }
@@ -784,6 +790,7 @@ export function openBettingRound1(state: GameState): GameState {
       lastFullRaiseAmount: Math.max(state.bigBlind, 0),
       raisesClosed: false,
       lastSeatBettingAction: Array.from({ length: playersAfterBlinds.length }, () => null),
+      lastPerformedAction: undefined,
     },
   };
 }
@@ -1038,6 +1045,7 @@ export function dealCommunityCards(state: GameState): GameState {
       lastFullRaiseAmount: Math.max(state.bigBlind, 0),
       raisesClosed: false,
       lastSeatBettingAction: Array.from({ length: state.players.length }, () => null),
+      lastPerformedAction: undefined,
     },
   };
 }
@@ -1107,6 +1115,28 @@ export function pctOfStackToCall(state: GameState, playerId: string): number | n
   const br = state.players[seat].bankroll;
   if (br <= 0) return null;
   return (chipsRequiredToCall(state, playerId) / br) * 100;
+}
+
+function shiftLastPerformedAction(
+  action: RoundState['lastPerformedAction'],
+  dropped: number,
+): RoundState['lastPerformedAction'] {
+  if (action == null) return action
+  if (action.seatIndex === dropped) return undefined
+  if (action.seatIndex > dropped) return { ...action, seatIndex: action.seatIndex - 1 }
+  return action
+}
+
+function seatActionRecord(
+  round: RoundState,
+  playerCount: number,
+  seat: number,
+  action: SeatBettingAction,
+): Pick<RoundState, 'lastSeatBettingAction' | 'lastPerformedAction'> {
+  return {
+    lastSeatBettingAction: mergeLastSeatBettingAction(round, playerCount, seat, action),
+    lastPerformedAction: { seatIndex: seat, action },
+  }
 }
 
 function mergeLastSeatBettingAction(
@@ -1266,7 +1296,7 @@ export function playerCheck(state: GameState, playerId: string): GameState {
     round: {
       ...state.round,
       currentPlayerIndex: nextIndex,
-      lastSeatBettingAction: mergeLastSeatBettingAction(state.round, state.players.length, seat, 'check'),
+      ...seatActionRecord(state.round, state.players.length, seat, 'check'),
     },
   };
   return isBettingComplete(nextState) ? { ...nextState, round: { ...nextState.round, isBettingOpen: false, currentPlayerIndex: -1 } } : nextState;
@@ -1287,7 +1317,7 @@ export function playerCall(state: GameState, playerId: string): GameState {
     round: {
       ...after.round,
       currentPlayerIndex: nextIndex,
-      lastSeatBettingAction: mergeLastSeatBettingAction(after.round, after.players.length, seat, 'call'),
+      ...seatActionRecord(after.round, after.players.length, seat, 'call'),
     },
   };
   return isBettingComplete(after) ? { ...after, round: { ...after.round, isBettingOpen: false, currentPlayerIndex: -1 } } : after;
@@ -1335,7 +1365,7 @@ export function playerRaise(state: GameState, playerId: string, raiseAmount: num
     round: {
       ...after.round,
       currentPlayerIndex: nextIndex,
-      lastSeatBettingAction: mergeLastSeatBettingAction(after.round, after.players.length, seat, 'raise'),
+      ...seatActionRecord(after.round, after.players.length, seat, 'raise'),
     },
   };
   return isBettingComplete(after)
@@ -1377,7 +1407,7 @@ export function playerAllIn(state: GameState, playerId: string): GameState {
     round: {
       ...after.round,
       currentPlayerIndex: nextIndex,
-      lastSeatBettingAction: mergeLastSeatBettingAction(after.round, after.players.length, seat, 'allIn'),
+      ...seatActionRecord(after.round, after.players.length, seat, 'allIn'),
     },
   };
   return isBettingComplete(after) ? { ...after, round: { ...after.round, isBettingOpen: false, currentPlayerIndex: -1 } } : after;
@@ -1424,10 +1454,9 @@ export function foldPlayer(state: GameState, playerId: string): GameState {
     round: {
       ...state.round,
       currentPlayerIndex: nextIndex,
-      lastSeatBettingAction:
-        folderIndex >= 0
-          ? mergeLastSeatBettingAction(state.round, updatedPlayers.length, folderIndex, 'fold')
-          : state.round.lastSeatBettingAction,
+      ...(folderIndex >= 0
+        ? seatActionRecord(state.round, updatedPlayers.length, folderIndex, 'fold')
+        : { lastSeatBettingAction: state.round.lastSeatBettingAction }),
     },
   };
   return isBettingComplete(newState) ? { ...newState, round: { ...newState.round, isBettingOpen: false, currentPlayerIndex: -1 } } : newState;

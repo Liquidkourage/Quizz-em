@@ -2276,6 +2276,9 @@ export function HostVenueFloorBriefPanel({
                           </span>
                         ) : null}
                       </span>
+                      <p className="font-mono text-base font-bold tabular-nums text-emerald-100">
+                        <ChipText text={formatHostFloorMoney(row.pot)} />
+                      </p>
                       <p className="text-sm font-semibold">
                         {cue.label}
                         {nudgeSec != null ? (

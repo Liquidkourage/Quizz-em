@@ -51,6 +51,23 @@ function brief(): HostVenueFloorBriefPayload {
 }
 
 describe('venue floor now', () => {
+  it('shows each table pot on the action square', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: brief(),
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    const card = (tableNum: number) => {
+      const start = html.indexOf(`Open table ${tableNum}`)
+      const next = html.indexOf('Open table', start + 1)
+      return html.slice(start, next === -1 ? undefined : next)
+    }
+    expect(card(1)).toContain('aria-label="$1,020"')
+    expect(card(2)).toContain('aria-label="$0"')
+  })
+
   it('lays tables across the width and keeps the notes in one strip', () => {
     const html = renderToStaticMarkup(
       createElement(HostVenueFloorBriefPanel, {
@@ -85,7 +102,6 @@ describe('venue floor now', () => {
     expect(html).not.toContain('>Open<')
     expect(html).not.toContain('points only')
     expect(html).not.toContain('Answering on phones')
-    expect(html).not.toContain('1,020')
     expect(html).not.toContain('Ada L.')
     expect(html).not.toContain('Ned P.')
     expect(html).not.toContain('>You<')

@@ -1096,6 +1096,13 @@
   .player-game-layout--live-fit .player-game-felt-panel--fill {
     padding: 2rem 1.75rem 1.75rem;
   }
+
+  /* Top seat names grow upward off the rail. Keep them out of the status line. */
+  .player-game-layout--live-fit .player-game-table-status {
+    position: relative;
+    z-index: 6;
+    margin-bottom: 4.25rem;
+  }
 }
 
 .player-game-layout--live-fit .player-felt-frame {

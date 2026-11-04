@@ -25,6 +25,15 @@ describe('player table orientation', () => {
     expect(felt).not.toContain('rotate')
   })
 
+  it('leaves room under the status line so a top seat name does not cover it', () => {
+    const landscape = mediaBlock(
+      css.slice(css.lastIndexOf('@media (min-width: 768px) and (orientation: landscape)')),
+      '@media (min-width: 768px) and (orientation: landscape)',
+    )
+    expect(landscape).toContain('.player-game-layout--live-fit .player-game-table-status')
+    expect(landscape).toContain('margin-bottom: 4.25rem')
+  })
+
   it('turns that same felt 90 degrees when the device is portrait', () => {
     const portrait = mediaBlock(css, '@media (orientation: portrait)')
     expect(portrait).toContain('.player-felt-rotate-slot .player-game-felt--fill')

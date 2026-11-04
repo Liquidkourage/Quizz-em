@@ -1644,6 +1644,16 @@ function payoutPotToEligibleSurvivors(state: GameState, eligiblePlayerIds: strin
   return recipients.length > 0 ? payoutPotAmountAmong(state, recipients, amount) : state;
 }
 
+/** Chips in the pot that only some of the players still in the hand can win. */
+export function feltSidePotAmount(state: GameState): number | null {
+  const contributions = state.round.handContributions ?? {}
+  const { pots } = buildSidePotSettlement(contributions, foldedForSidePots(state, contributions))
+  if (pots.length < 2) return null
+  let side = 0
+  for (let i = 1; i < pots.length; i++) side += pots[i]!.amount
+  return side > 0 ? side : null
+}
+
 /** A contribution with no seat cannot win the pot. Their unmatched chips stay in it. */
 function foldedForSidePots(state: GameState, contributions: Record<string, number>): Record<string, boolean> {
   const folded: Record<string, boolean> = {};

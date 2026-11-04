@@ -1,5 +1,5 @@
 import type { GameState, PlayerState } from '@qhe/core'
-import { formatTriviaNumber } from '@qhe/core'
+import { feltSidePotAmount, formatTriviaNumber } from '@qhe/core'
 import { ChipText, NumericPlayingCard } from '@qhe/ui'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
@@ -22,6 +22,7 @@ export default function GameInfoCard({
   hideHoleStrip = false,
 }: GameInfoCardProps) {
   const q = gameState.round.question
+  const sidePot = feltSidePotAmount(gameState)
   const hole = currentPlayer?.hand ?? []
   const board = gameState.round.communityCards
   const showHole = hole.length >= 2 && !hideHoleStrip
@@ -45,6 +46,11 @@ export default function GameInfoCard({
             <p className="player-game-pot-value">
               <ChipText text={`$${gameState.round.pot.toLocaleString()}`} />
             </p>
+            {sidePot != null ? (
+              <p className="player-game-pot-label">
+                Side <ChipText text={`$${sidePot.toLocaleString()}`} />
+              </p>
+            ) : null}
           </div>
           {currentPlayer ? (
             <div className="player-game-info-stat">

@@ -100,6 +100,33 @@ describe('venue floor now', () => {
     expect(card(2)).toContain('aria-label="$0"')
   })
 
+  it('names the side pot on the action square and the opened table', () => {
+    const floor = brief()
+    floor.actionRows = [{ ...actionRow(1), pot: 850, sidePot: 300, phase: 'betting' }]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    const start = html.indexOf('Open table 1')
+    const card = html.slice(start, html.indexOf('</button>', start))
+    expect(card).toContain('Side')
+    expect(card).toContain('aria-label="$300"')
+    const open = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [],
+        recentActions: [],
+        hostPlayerLabel: (name: string) => name,
+        pot: 850,
+        sidePot: 300,
+      }),
+    )
+    expect(open).toContain('Side')
+    expect(open).toContain('aria-label="$300"')
+  })
+
   it('lays tables across the width and keeps the notes in one strip', () => {
     const html = renderToStaticMarkup(
       createElement(HostVenueFloorBriefPanel, {

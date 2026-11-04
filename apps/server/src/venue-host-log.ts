@@ -500,6 +500,7 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         phase: tile.phase,
         seated: tile.seated,
         pot: tile.pot,
+        ...(typeof tile.sidePot === 'number' && tile.sidePot > 0 ? { sidePot: tile.sidePot } : {}),
         betsClosed: isVenueTileWageringPaused(tile),
         raisesClosed: tile.raisesClosed === true,
         interestingAction: tile.interestingAction === true,

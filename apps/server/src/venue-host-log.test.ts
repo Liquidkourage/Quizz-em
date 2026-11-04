@@ -482,6 +482,21 @@ describe('buildHostVenueActionRows seats', () => {
     ])
   })
 
+  it('keeps the side pot on the host row', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 1,
+        seated: 2,
+        pot: 850,
+        sidePot: 300,
+        phase: 'betting',
+        seatNames: ['Ada', 'Bo'],
+      } as never,
+    ])
+    expect(rows[0]?.pot).toBe(850)
+    expect(rows[0]?.sidePot).toBe(300)
+  })
+
   it('restarts the listed-player clock when a different player is on the action', () => {
     clearVenueHostLog('CLK')
     const brief = buildHostVenueFloorBrief({

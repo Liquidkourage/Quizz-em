@@ -110,6 +110,8 @@ export type DisplayVenueTileSnapshot = {
   tableNum: number
   seated: number
   pot: number
+  /** Chips inside `pot` that only some players still in the hand can win. Omitted when there is no side pot. */
+  sidePot?: number
   phase: string
   /** Up to eight seat labels (vacant seats are empty strings), index matches player order on the felt. */
   seatNames: string[]
@@ -381,6 +383,8 @@ export type HostVenueActionRow = {
   phase: string
   seated: number
   pot: number
+  /** Chips inside `pot` that only some players still in the hand can win. */
+  sidePot?: number
   /** Betting phase and the wagering clock is closed: no further bets on this street. */
   betsClosed?: boolean
   /** Host closed further bets and raises. Call, check, and fold remain. */

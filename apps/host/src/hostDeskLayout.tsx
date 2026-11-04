@@ -14,6 +14,7 @@ import type {
 } from '@qhe/net'
 import {
   disambiguatePublicNames,
+  feltSidePotAmount,
   formatTriviaNumber,
   LOBBY_TABLE_ID,
   playersHaveHoleCards,
@@ -1076,6 +1077,8 @@ export function HostLiveStatusLine({
       {!inLobbyPool || pot > 0 ? (
         <span className="font-mono font-bold tabular-nums text-casino-emerald">
           Pot <ChipText text={`$${Math.max(0, Math.round(pot)).toLocaleString()}`} />
+          {' '}
+          <HostSidePot amount={feltSidePotAmount(gameState)} />
         </span>
       ) : null}
       <span className="text-white/50">
@@ -1456,6 +1459,15 @@ const BET_ACTION_LABEL: Record<string, string> = {
   raise: 'Raise',
   fold: 'Fold',
   allIn: 'All-in',
+}
+
+function HostSidePot({ amount }: { amount?: number | null }) {
+  if (amount == null || amount <= 0) return null
+  return (
+    <span className="font-semibold text-amber-100">
+      Side <ChipText text={formatHostFloorMoney(amount)} />
+    </span>
+  )
 }
 
 function formatHostFloorMoney(n: number): string {
@@ -2011,10 +2023,12 @@ function recentActionLabel(action: string): string {
 function HostTableOpenSummary({
   phaseLabel,
   pot,
+  sidePot,
   actingSummary,
 }: {
   phaseLabel?: string
   pot: number
+  sidePot?: number | null
   actingSummary?: string | null
 }) {
   if (!phaseLabel && pot <= 0 && !actingSummary) return null
@@ -2024,6 +2038,8 @@ function HostTableOpenSummary({
       {pot > 0 ? (
         <p>
           Pot <ChipText text={formatHostFloorMoney(pot)} />
+          {' '}
+          <HostSidePot amount={sidePot} />
         </p>
       ) : null}
       {actingSummary ? (
@@ -2088,6 +2104,7 @@ export function HostTableOpen({
   hostPlayerLabel,
   phaseLabel,
   pot = 0,
+  sidePot = null,
   actingSummary,
   tableNum,
   players,
@@ -2101,6 +2118,7 @@ export function HostTableOpen({
   hostPlayerLabel: (name: string) => string
   phaseLabel?: string
   pot?: number
+  sidePot?: number | null
   actingSummary?: string | null
   tableNum?: number
   players?: HostTablePlayerRef[]
@@ -2113,7 +2131,7 @@ export function HostTableOpen({
   return (
     <div className={aside ? 'host-table-open grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]' : 'host-table-open flex flex-col gap-3'}>
       <div className="flex min-w-0 flex-col gap-3">
-        <HostTableOpenSummary phaseLabel={phaseLabel} pot={pot} actingSummary={actingSummary} />
+        <HostTableOpenSummary phaseLabel={phaseLabel} pot={pot} sidePot={sidePot} actingSummary={actingSummary} />
         <HostTableContest
           seats={seats}
           hostPlayerLabel={hostPlayerLabel}
@@ -2320,6 +2338,11 @@ export function HostVenueFloorBriefPanel({
                       <p className="font-mono text-base font-bold tabular-nums text-emerald-100">
                         <ChipText text={formatHostFloorMoney(row.pot)} />
                       </p>
+                      {row.sidePot != null && row.sidePot > 0 ? (
+                        <p className="font-mono text-sm font-bold tabular-nums text-amber-100">
+                          <HostSidePot amount={row.sidePot} />
+                        </p>
+                      ) : null}
                       <p className="text-sm font-semibold">
                         {cue.label}
                         {nudgeSec != null ? (
@@ -2398,6 +2421,7 @@ export function HostVenueFloorBriefPanel({
                   recentActions={openRow.recentActions}
                   phaseLabel={tableActionCue(openRow).label}
                   pot={openRow.pot}
+                  sidePot={openRow.sidePot}
                   actingSummary={openRow.actingSummary}
                   tableNum={openRow.tableNum}
                   onSetTablePhase={
@@ -3152,6 +3176,13 @@ export function HostFloorStrip({
                 ) : action != null && action.pot > 0 ? (
                   <p className="mt-0.5 text-xs text-white/45">
                     Pot <ChipText text={formatHostFloorMoney(action.pot)} />
+                    {' '}
+                    <HostSidePot amount={action.sidePot} />
+                  </p>
+                ) : null}
+                {action?.actingSummary && action.sidePot != null && action.sidePot > 0 ? (
+                  <p className="mt-0.5 text-xs text-white/45">
+                    <HostSidePot amount={action.sidePot} />
                   </p>
                 ) : null}
               </button>

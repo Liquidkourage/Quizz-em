@@ -4,6 +4,7 @@ import {
   buildSidePotSettlement,
   createEmptyGame,
   endRound,
+  feltSidePotAmount,
   payoutHandWithSidePots,
   previewChipPayoutByPlayerId,
 } from './index'
@@ -186,5 +187,27 @@ describe('endRound with side pots', () => {
     expect(totalWealth(gs)).toBe(before)
     expect(gs.players.find((p) => p.id === 'a')!.bankroll).toBe(500)
     expect(gs.players.find((p) => p.id === 'b')!.bankroll).toBe(300)
+  })
+})
+
+describe('feltSidePotAmount', () => {
+  it('reports the side layers when an all-in leaves chips only some players can win', () => {
+    let gs = createEmptyGame('V', 'h')
+    gs = addPlayer(gs, 'a', 'A', 1000)
+    gs = addPlayer(gs, 'b', 'B', 1000)
+    gs = addPlayer(gs, 'c', 'C', 1000)
+    gs = {
+      ...gs,
+      round: { ...gs.round, pot: 850, handContributions: { a: 100, b: 500, c: 250 } },
+    }
+    expect(feltSidePotAmount(gs)).toBe(300)
+  })
+
+  it('stays quiet when the pot is one shared layer', () => {
+    let gs = createEmptyGame('V', 'h')
+    gs = addPlayer(gs, 'a', 'A', 1000)
+    gs = addPlayer(gs, 'b', 'B', 1000)
+    gs = { ...gs, round: { ...gs.round, pot: 200, handContributions: { a: 100, b: 100 } } }
+    expect(feltSidePotAmount(gs)).toBeNull()
   })
 })

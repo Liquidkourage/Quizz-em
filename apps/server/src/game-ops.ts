@@ -70,6 +70,7 @@ import {
   normalizeBettingTurn,
   previewChipPayoutByPlayerId,
   venueWallDisplayPot,
+  feltSidePotAmount,
   venueShuffleDisplayFields,
   VENUE_CONDENSE_MAX_SEATS,
   VENUE_CONDENSE_MIN_SEATS,
@@ -2336,10 +2337,12 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
         return typeof amt === 'number' && Number.isFinite(amt) && amt > 0 ? Math.round(amt) : null
       })
     }
+    const sidePot = feltSidePotAmount(gs)
     tiles.push({
       tableNum: n,
       seated,
       pot: venueWallDisplayPot(gs),
+      ...(sidePot != null ? { sidePot } : {}),
       phase: gs.phase,
       seatNames,
       seatBankrolls,

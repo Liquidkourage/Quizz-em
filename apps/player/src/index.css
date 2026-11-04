@@ -1131,6 +1131,14 @@
   line-height: 1.05;
 }
 
+.player-felt-rotate-slot {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
 .player-game-felt--fill {
   flex: 0 0 auto;
   /* Largest 8:5 box that fits the panel — shrinks width when height is tight. */
@@ -1142,6 +1150,39 @@
   min-height: 0;
   margin-inline: auto;
   overflow: visible;
+}
+
+/* Portrait: same 8:5 graphic, turned 90° so its long side runs with the phone. */
+@media (orientation: portrait) {
+  .player-game-layout--live-fit .player-game-felt-panel--fill {
+    padding: 3.75rem 2.1rem;
+  }
+
+  .player-game-layout--live-fit .player-felt-rotate-slot {
+    width: min(100cqw, calc(100cqh * 5 / 8));
+    height: min(100cqh, calc(100cqw * 8 / 5));
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    container-type: size;
+  }
+
+  .player-game-layout--live-fit .player-felt-rotate-slot .player-game-felt--fill {
+    width: 100cqh;
+    height: 100cqw;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto;
+    margin: 0;
+    min-width: 0;
+    min-height: 0;
+    justify-self: center;
+    transform: rotate(90deg);
+  }
 }
 
 /* Betting: shell + inflow dock share one column; felt shrinks first. */

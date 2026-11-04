@@ -100,11 +100,11 @@ export function StadiumTableSeats({
     const el = wrapRef.current
     if (!el || typeof ResizeObserver === 'undefined') return
     const apply = () => {
-      const r = el.getBoundingClientRect()
-      if (r.width > 0 && r.height > 0) {
-        setRingPx((prev) =>
-          prev.w === r.width && prev.h === r.height ? prev : { w: r.width, h: r.height }
-        )
+      // Layout size, so a portrait rotate on an ancestor does not swap the seat math.
+      const w = el.offsetWidth
+      const h = el.offsetHeight
+      if (w > 0 && h > 0) {
+        setRingPx((prev) => (prev.w === w && prev.h === h ? prev : { w, h }))
       }
     }
     apply()

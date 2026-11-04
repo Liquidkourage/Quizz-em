@@ -222,6 +222,7 @@ export default function TableFeltView({
           {statusLine ? <ChipText text={statusLine} /> : null}
         </p>
       ) : null}
+      <div className="player-felt-rotate-slot">
       <StadiumTableSeats
         feltLayout="player"
         seatCount={MOSAIC_SEAT_COUNT}
@@ -241,6 +242,7 @@ export default function TableFeltView({
           ) : null
         }
       />
+      </div>
       {heroHoles && heroFolded ? (
         <div className="player-hud-hero-cards player-hud-hero-cards--folded" aria-label="Your cards (folded chips)">
           <span className="player-hud-hero-cards-label">Your cards · folded</span>

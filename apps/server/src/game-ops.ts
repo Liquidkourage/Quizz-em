@@ -926,6 +926,14 @@ export function isLobbySessionKey(sessionKey: string): boolean {
   return sessionKey.endsWith(`:${LOBBY_TABLE_ID}`)
 }
 
+/** A numbered felt room. Player, host, and display rooms stay joined across a move. */
+export function isFeltSessionRoom(room: string): boolean {
+  if (!room.includes(':')) return false
+  if (room.startsWith('PLAYER:') || room.startsWith('HOST:') || room.startsWith('DISPLAY:')) return false
+  if (isLobbySessionKey(room)) return false
+  return true
+}
+
 export function allVenueSessionKeys(venueCode: string): string[] {
   const pref = venueSessionKeyPrefix(venueCode)
   return [...rooms.keys()].filter(k => k.startsWith(pref)).sort()
@@ -1055,9 +1063,7 @@ export function moveHumanToTableSession(playerId: string, toSessionKey: string, 
   if (!sock) return
   for (const r of [...sock.rooms]) {
     if (r === sock.id) continue
-    if (typeof r === 'string' && r.includes(':') && !isLobbySessionKey(r)) {
-      sock.leave(r)
-    }
+    if (isFeltSessionRoom(r)) sock.leave(r)
   }
   sock.join(toSessionKey)
   ;(sock.data as { sessionKey?: string }).sessionKey = toSessionKey

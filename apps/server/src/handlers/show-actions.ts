@@ -1,6 +1,6 @@
 import type { Socket } from 'socket.io'
 import type { GameState, Question } from '@qhe/core'
-import { PLAYER_ROOM_CLOSED_MESSAGE } from '@qhe/net'
+import { releasePhonesOnHardReset } from '../venue-hard-reset'
 import * as g from '../game-ops'
 import { denyUnlessOwnSeat } from '../own-seat'
 import { soleChipWinnerName } from '../venue-endgame'
@@ -469,7 +469,15 @@ export async function handleShowAction(
             if (!seated) continue
             for (const p of seated.players) droppedPlayerIds.push(p.id)
           }
-          g.io.to(g.playerVenueRoom(vn)).emit('eventLeft', { message: PLAYER_ROOM_CLOSED_MESSAGE })
+          releasePhonesOnHardReset({
+            playerIds: droppedPlayerIds,
+            sessionKeys: g.allVenueSessionKeys(vn),
+            playerVenueRoom: g.playerVenueRoom(vn),
+            socketForPlayer: (playerId) => g.getSocketForPlayer(playerId),
+            emitToRoom: (room, event, payload) => {
+              g.io.to(room).emit(event, payload)
+            },
+          })
           for (const tk of g.allTableSessionsInVenue(vn)) {
             g.rooms.delete(tk)
           }

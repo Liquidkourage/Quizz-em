@@ -87,6 +87,8 @@ describe('felt side pot', () => {
     expect(card).toContain('repeat(2, minmax(0, 1fr))')
     expect(card).toContain('aria-label="$800"')
     expect(card).toContain('aria-label="$600"')
+    expect(card).toContain('color:#38bdf8')
+    expect(card).toContain('color:#c084fc')
     expect(card).not.toContain('vfd-felt-side-pot')
   })
 })

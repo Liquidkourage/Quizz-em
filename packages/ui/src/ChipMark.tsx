@@ -42,17 +42,40 @@ export function sidePotColor(mark: number): string {
   return SIDE_POT_COLORS[slot] ?? SIDE_POT_COLORS[0]
 }
 
-/** Small number matching the side pot a player can win. Seat marks sit tighter on initials. */
-export function SidePotMark({ mark, seat = false }: { mark?: number | null; seat?: boolean }): ReactNode {
-  if (mark == null || mark <= 0) return null
+/** Small numbers matching each side pot a player can win. Seat marks sit tighter on initials. */
+export function SidePotMark({
+  mark,
+  seat = false,
+}: {
+  mark?: number | readonly number[] | null
+  seat?: boolean
+}): ReactNode {
+  const marks = sidePotMarkList(mark)
+  if (marks.length === 0) return null
   return (
-    <sup
-      className="side-pot-mark"
-      style={{ fontSize: seat ? '0.4em' : '0.55em', lineHeight: 1, color: sidePotColor(mark) }}
-    >
-      {mark}
-    </sup>
+    <>
+      {marks.map((n, index) => (
+        <sup
+          key={n}
+          className="side-pot-mark"
+          style={{
+            fontSize: seat ? '0.4em' : '0.55em',
+            lineHeight: 1,
+            color: sidePotColor(n),
+            marginLeft: index > 0 ? '0.12em' : undefined,
+          }}
+        >
+          {n}
+        </sup>
+      ))}
+    </>
   )
+}
+
+function sidePotMarkList(mark: number | readonly number[] | null | undefined): number[] {
+  if (mark == null) return []
+  const list = typeof mark === 'number' ? [mark] : mark
+  return list.filter((n) => n > 0)
 }
 
 export function ChipText({ text }: { text: string }): ReactNode {

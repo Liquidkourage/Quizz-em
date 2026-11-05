@@ -1868,7 +1868,7 @@ type HostTablePlayerRef = { playerId: string; name: string }
 type ContestRow = {
   seat: HostVenueSeatContest
   player: HostTablePlayerRef | null
-  sideMark: number | null
+  sideMarks: number[]
 }
 
 type SeatActionBag = {
@@ -1924,13 +1924,13 @@ function contestRows(
     const row = {
       seat,
       player: takeMatchingPlayer(seat.name, unused, hostPlayerLabel),
-      sideMark: marks[i] ?? null,
+      sideMarks: marks[i] ?? [],
     }
     if (seat.kind === 'pot') pot.push(row)
     else points.push(row)
   }
   for (const player of unused) {
-    pot.push({ seat: { name: player.name, kind: 'pot', reason: null }, player, sideMark: null })
+    pot.push({ seat: { name: player.name, kind: 'pot', reason: null }, player, sideMarks: [] })
   }
   return { pot, points }
 }
@@ -1993,7 +1993,7 @@ function SeatContestRow({
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold leading-tight text-white">
           {hostPlayerLabel(row.seat.name)}
-          <SidePotMark mark={row.sideMark} seat />
+          <SidePotMark mark={row.sideMarks} seat />
         </p>
         {row.seat.bankroll != null ? (
           <p className="text-xs tabular-nums text-white/70">

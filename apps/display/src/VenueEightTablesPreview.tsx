@@ -282,12 +282,12 @@ function labeledSidePots(money: string, sides: readonly LiveSidePot[]): string {
   return `main ${money}, side ${labeled}`
 }
 
-/** Main pot, plus the side-pot number each seat can win. */
+/** Main pot, plus every side pot each seat can win. */
 function shownFeltPot(
   pot: number,
   invested: number[] | undefined,
   folded: boolean[] | undefined,
-): { pot: number; marks: (number | null)[]; sides: LiveSidePot[] } {
+): { pot: number; marks: number[][]; sides: LiveSidePot[] } {
   const raw = Math.max(0, Math.floor(Number.isFinite(pot) ? pot : 0))
   const amounts = Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     const v = invested?.[i]
@@ -298,14 +298,13 @@ function shownFeltPot(
   return { pot: layers.main > 0 ? layers.main : raw, marks: layers.marks, sides: layers.sides }
 }
 
-function sideMarkAt(marks: readonly (number | null)[] | null, index: number): number | null {
-  if (marks == null) return null
-  return marks[index] ?? null
+function sideMarkAt(marks: readonly (readonly number[])[] | null, index: number): readonly number[] {
+  if (marks == null) return []
+  return marks[index] ?? []
 }
 
-function withSidePotMark(label: string, mark: number | null): ReactNode {
+function withSidePotMark(label: string, mark: number | readonly number[] | null): ReactNode {
   if (!label) return undefined
-  if (mark == null || mark <= 0) return label
   return (
     <>
       {label}
@@ -1324,8 +1323,8 @@ function SeatRingWithLabels({
   mosaicFeltWidthClass?: string
   mosaicFeltMaxHeightCss?: string
   mosaicCenterPot?: number | null
-  /** Side-pot number each seat can win, parallel to `seatNames`. */
-  seatSideMarks?: (number | null)[] | null
+  /** Every side-pot number each seat can win, parallel to `seatNames`. */
+  seatSideMarks?: number[][] | null
   /** Side pots on this felt, labeled by the same number as the seat marks. */
   sideLayers: readonly LiveSidePot[] | undefined
   mosaicCenterPotClass?: string

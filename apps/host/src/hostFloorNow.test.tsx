@@ -178,6 +178,32 @@ describe('venue floor now', () => {
     expect(open).not.toContain('5,020')
   })
 
+  it('marks every side pot a player can win, each in its own color', () => {
+    const seats = [
+      { name: 'Ada', kind: 'pot' as const, reason: null, invested: 100, bankroll: 0 },
+      { name: 'Bea', kind: 'pot' as const, reason: null, invested: 300, bankroll: 0 },
+      { name: 'Cy', kind: 'pot' as const, reason: null, invested: 300, bankroll: 0 },
+      { name: 'Dee', kind: 'pot' as const, reason: null, invested: 600, bankroll: 0 },
+      { name: 'Eve', kind: 'pot' as const, reason: null, invested: 600, bankroll: 0 },
+    ]
+    const open = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats,
+        recentActions: [],
+        hostPlayerLabel: (name: string) => name,
+        pot: 1900,
+      }),
+    )
+    const dee = open.slice(open.indexOf('Dee'), open.indexOf('Dee') + 500)
+    expect(dee).toContain('color:#38bdf8">1</sup>')
+    expect(dee).toContain('color:#c084fc;margin-left:0.12em">2</sup>')
+    const bea = open.slice(open.indexOf('Bea'), open.indexOf('Bea') + 400)
+    expect(bea).toContain('color:#38bdf8">1</sup>')
+    expect(bea).not.toContain('>2</sup>')
+    const ada = open.slice(open.indexOf('Ada'), open.indexOf('Ada') + 80)
+    expect(ada).not.toContain('side-pot-mark')
+  })
+
   it('lays tables across the width and keeps the notes in one strip', () => {
     const html = renderToStaticMarkup(
       createElement(HostVenueFloorBriefPanel, {

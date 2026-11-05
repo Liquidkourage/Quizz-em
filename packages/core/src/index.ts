@@ -861,11 +861,11 @@ export function buildSidePotSettlement(
 
 export type LiveSidePot = { mark: number; amount: number }
 
-/** Highest side-pot number each seat can win. The main pot is the first contested layer. */
+/** Every side-pot number each seat can win. The main pot is the first contested layer. */
 export function livePotLayers(
   amounts: readonly number[],
   folded: readonly boolean[],
-): { main: number; sides: LiveSidePot[]; marks: (number | null)[] } {
+): { main: number; sides: LiveSidePot[]; marks: number[][] } {
   const contributions: Record<string, number> = {}
   const foldedById: Record<string, boolean> = {}
   for (let i = 0; i < amounts.length; i++) {
@@ -873,7 +873,7 @@ export function livePotLayers(
     foldedById[String(i)] = folded[i] === true
   }
   const { pots } = buildSidePotSettlement(contributions, foldedById)
-  const marks: (number | null)[] = amounts.map(() => null)
+  const marks: number[][] = amounts.map(() => [])
   writeSidePotMarks(pots, marks)
   return { main: pots[0]?.amount ?? 0, sides: sidePotTotals(pots), marks }
 }
@@ -886,11 +886,12 @@ function sidePotTotals(pots: SidePot[]): LiveSidePot[] {
   return sides
 }
 
-function writeSidePotMarks(pots: SidePot[], marks: (number | null)[]): void {
+function writeSidePotMarks(pots: SidePot[], marks: number[][]): void {
   for (let layer = 1; layer < pots.length; layer++) {
     for (const id of pots[layer]!.eligiblePlayerIds) {
       const index = Number(id)
-      if (index >= 0 && index < marks.length) marks[index] = layer
+      const seat = marks[index]
+      if (seat != null) seat.push(layer)
     }
   }
 }

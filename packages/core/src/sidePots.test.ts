@@ -47,14 +47,22 @@ describe('livePotLayers', () => {
       [false, false, false, false, false, true],
     )
     expect(main).toBe(120)
-    expect(marks).toEqual([1, 1, 1, 1, 1, null])
+    expect(marks).toEqual([[1], [1], [1], [1], [1], []])
     expect(sides).toEqual([{ mark: 1, amount: 4900 }])
+  })
+
+  it('lists every side pot a seat can win', () => {
+    const { marks } = livePotLayers(
+      [100, 300, 300, 600, 600],
+      [false, false, false, false, false],
+    )
+    expect(marks).toEqual([[], [1], [1], [1, 2], [1, 2]])
   })
 
   it('leaves an even pot unmarked', () => {
     const { main, marks, sides } = livePotLayers([100, 100], [false, false])
     expect(main).toBe(200)
-    expect(marks).toEqual([null, null])
+    expect(marks).toEqual([[], []])
     expect(sides).toEqual([])
   })
 })

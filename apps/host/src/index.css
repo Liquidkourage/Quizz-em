@@ -229,6 +229,15 @@
 }
 
 /* The opened table dialog is portaled onto document.body, outside .host-root. */
+.host-pot-label {
+  font-size: 0.65em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgb(255 251 235 / 0.72);
+}
+
 .host-table-open .text-xs {
   font-size: 1.125rem;
   line-height: 1.75rem;

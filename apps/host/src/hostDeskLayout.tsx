@@ -1,7 +1,7 @@
 import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { HostModal, useHostModalNested } from './HostModal'
-import { ChipText, NeonButton, SidePotMark } from '@qhe/ui'
+import { ChipText, NeonButton, SidePotMark, sidePotColor } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
 import type {
   HostVenueBigBetEntry,
@@ -18,6 +18,7 @@ import {
   displayedMainPot,
   formatTriviaNumber,
   livePotLayers,
+  type LiveSidePot,
   LOBBY_TABLE_ID,
   playersHaveHoleCards,
   VENUE_NUMBERED_TABLE_MAX,
@@ -1468,10 +1469,38 @@ function hostSeatLayers(seats: HostVenueSeatContest[]) {
   )
 }
 
-/** First contested layer when the seats say who put chips in. Otherwise the total. */
-function shownHostPot(pot: number, seats: HostVenueSeatContest[]): number {
-  const { main } = hostSeatLayers(seats)
-  return main > 0 ? main : pot
+function HostMainLabel({ sides }: { sides: readonly LiveSidePot[] }) {
+  if (sides.length === 0) return null
+  return <span className="host-pot-label">Main</span>
+}
+
+function HostSideTotals({ sides }: { sides: readonly LiveSidePot[] }) {
+  if (sides.length === 0) return null
+  return (
+    <span>
+      {' '}
+      <span className="host-pot-label">Side</span>
+      {sides.map((side) => (
+        <span key={side.mark} style={{ color: sidePotColor(side.mark) }}>
+          {' '}
+          <SidePotMark mark={side.mark} /> <ChipText text={formatHostFloorMoney(side.amount)} />
+        </span>
+      ))}
+    </span>
+  )
+}
+
+function HostPotFigure({ pot, seats }: { pot: number; seats: HostVenueSeatContest[] }) {
+  const layers = hostSeatLayers(seats)
+  const main = layers.main > 0 ? layers.main : pot
+  if (main <= 0 && layers.sides.length === 0) return <ChipText text={formatHostFloorMoney(main)} />
+  return (
+    <>
+      <HostMainLabel sides={layers.sides} />{' '}
+      {main > 0 ? <ChipText text={formatHostFloorMoney(main)} /> : null}
+      <HostSideTotals sides={layers.sides} />
+    </>
+  )
 }
 
 function formatHostFloorMoney(n: number): string {
@@ -2127,21 +2156,19 @@ function recentActionLabel(action: string): string {
 function HostTableOpenSummary({
   phaseLabel,
   pot,
+  seats,
   actingSummary,
 }: {
   phaseLabel?: string
   pot: number
+  seats: HostVenueSeatContest[]
   actingSummary?: string | null
 }) {
   if (!phaseLabel && pot <= 0 && !actingSummary) return null
   return (
     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-white/70">
       {phaseLabel ? <p className="font-semibold text-white">{phaseLabel}</p> : null}
-      {pot > 0 ? (
-        <p>
-          Pot <ChipText text={formatHostFloorMoney(pot)} />
-        </p>
-      ) : null}
+      <HostPotFigure pot={pot} seats={seats} />
       {actingSummary ? (
         <p className="font-semibold text-amber-100/90">
           <ChipText text={actingSummary} />
@@ -2231,7 +2258,8 @@ export function HostTableOpen({
       <div className="flex min-w-0 flex-col gap-3">
         <HostTableOpenSummary
           phaseLabel={phaseLabel}
-          pot={shownHostPot(pot, seats)}
+          pot={pot}
+          seats={seats}
           actingSummary={actingSummary}
         />
         <HostTableContest
@@ -2443,7 +2471,7 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </span>
                       <p className="font-mono text-base font-bold tabular-nums text-emerald-100">
-                        <ChipText text={formatHostFloorMoney(shownHostPot(row.pot, row.seats ?? []))} />
+                        <HostPotFigure pot={row.pot} seats={row.seats ?? []} />
                       </p>
                       <p className="text-sm font-semibold">
                         {cue.label}
@@ -3270,7 +3298,7 @@ export function HostFloorStrip({
                   </p>
                 ) : action != null && action.pot > 0 ? (
                   <p className="mt-0.5 text-xs text-white/45">
-                    Pot <ChipText text={formatHostFloorMoney(shownHostPot(action.pot, action.seats ?? []))} />
+                    <HostPotFigure pot={action.pot} seats={action.seats ?? []} />
                   </p>
                 ) : null}
               </button>

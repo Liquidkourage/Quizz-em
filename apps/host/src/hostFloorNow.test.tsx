@@ -151,9 +151,11 @@ describe('venue floor now', () => {
     const start = html.indexOf('Open table 1')
     const card = html.slice(start, html.indexOf('</button>', start))
     expect(card).toContain('aria-label="$120"')
+    expect(card).toContain('>Main<')
+    expect(card).toContain('>Side<')
+    expect(card).toContain('aria-label="$4,900"')
     expect(card).not.toContain('of which')
     expect(card).not.toContain('5,020')
-    expect(card).not.toContain('4,900')
     const open = renderToStaticMarkup(
       createElement(HostTableOpen, {
         seats,
@@ -163,11 +165,13 @@ describe('venue floor now', () => {
       }),
     )
     expect(open).toContain('aria-label="$120"')
+    expect(open).toContain('>Main<')
+    expect(open).toContain('>Side<')
+    expect(open).toContain('aria-label="$4,900"')
     expect(open).toContain('Elena B.<sup class="side-pot-mark" style="font-size:0.4em;line-height:1;color:#38bdf8">1</sup>')
     expect(open).not.toContain('Priya B.<sup')
     expect(open).not.toContain('of which')
     expect(open).not.toContain('5,020')
-    expect(open).not.toContain('4,900')
   })
 
   it('lays tables across the width and keeps the notes in one strip', () => {

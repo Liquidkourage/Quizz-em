@@ -102,6 +102,13 @@ export type PlayerVenueBrief = {
   endgameWinnerName?: string | null
   /** Next scheduled shuffle is postponed one cycle. */
   venueShuffleHeld?: boolean
+  /**
+   * Host is showing chip scores or trivia scores on the TVs.
+   * Null for every other display mode, so phones keep their own screen.
+   */
+  scoresBoard?: 'chips' | 'trivia' | null
+  /** Ranked rows for `scoresBoard`. Chips include a table; trivia is the night's points. */
+  scores?: { name: string; value: number; tableNum: number | null }[]
 }
 
 /** Server `state` payload may include wire-only timing metadata. */

@@ -153,6 +153,7 @@ import {
   shortPlayerName,
   venueWallLastHandFields,
 } from './venue-host-log'
+import { playerPublicScores, publicScoreSeats } from './player-public-scores'
 import {
   coerceImportQuestions,
   pruneSetlistRefs,
@@ -303,7 +304,7 @@ export const rooms = new Map<string, GameState>()
 export const venueShowdownAtMs = new Map<string, number>()
 export const venueOrchestrationGuard = new Set<string>()
 export const venueRevealToShowdownTimers = new Map<string, ReturnType<typeof setTimeout>>()
-export let venueLibraries!: Map<string, VenueLibraryData>
+export let venueLibraries = new Map<string, VenueLibraryData>()
 export const venuePlayhead = new Map<string, { setlistId: string | null; nextIndex: number }>()
 
 export function clearVenueWageringOrchestrationState(venueCode: string) {
@@ -505,6 +506,23 @@ export function playerVenueRoom(venueCode: string): string {
   return `PLAYER:${normalizeVenueCode(venueCode)}`
 }
 
+function scoresOnPlayerBrief(vn: string) {
+  const seatedTables = venuePlayableSnapshots(vn)
+  const layout = venueDisplayLayouts.get(vn)
+  return playerPublicScores(
+    layout ? layout.wallView : undefined,
+    publicScoreSeats(
+      seatedTables
+        .filter((row) => Number.isFinite(row.n))
+        .map((row) => ({ tableNum: row.n, players: row.gs.players })),
+    ),
+    rememberVenueTriviaField(
+      vn,
+      seatedTables.map((row) => row.gs),
+    ),
+  )
+}
+
 export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
   const vn = normalizeVenueCode(vnRaw)
   const blindsSnap = hostLibraryBlindsPayload(vn)
@@ -527,6 +545,7 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
     tableNumFromSessionKey,
     allTableSessionKeys: allTableSessionsInVenue,
   })
+  const publicScores = scoresOnPlayerBrief(vn)
   const shuffleDisplay = venueShuffleDisplayFields({
     handsCompletedAtVenue: getVenueHandsCompleted(vn),
     liveTableCount: condenseCounts.liveTableCount,
@@ -556,6 +575,7 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
           players: row.gs.players,
         })),
     ),
+    ...publicScores,
   }
 }
 

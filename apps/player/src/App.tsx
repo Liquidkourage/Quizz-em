@@ -73,6 +73,7 @@ import TableFeltView from './components/TableFeltView'
 import StickyQuestionBar from './components/StickyQuestionBar'
 import PointsOnlyLifeBanner from './components/PointsOnlyLifeBanner'
 import { PlayerLeftEvent } from './components/PlayerQuitButton'
+import PlayerScoresSheet from './components/PlayerScoresSheet'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './components/PlayerGoldChrome'
 
 type JoinPhase = 'form' | 'connecting' | 'in_venue'
@@ -458,6 +459,7 @@ function PlayerApp() {
           selfWon={endgame.selfWon}
           bankroll={endgame.bankroll}
         />
+        <PlayerScoresSheet brief={venueBrief} />
       </>
     )
   }
@@ -483,6 +485,7 @@ function PlayerApp() {
           onReconnect={handleForceReconnect}
           onQuit={leaveEvent}
         />
+        <PlayerScoresSheet brief={venueBrief} />
       </>
     )
   }
@@ -770,6 +773,7 @@ function PlayerApp() {
           />
         ) : null}
       </AnimatePresence>
+      <PlayerScoresSheet brief={venueBrief} />
     </PlayerGameScreen>
   )
 }

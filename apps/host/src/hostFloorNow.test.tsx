@@ -546,6 +546,26 @@ describe('venue floor now', () => {
     expect(t3).toBeLessThan(t4)
   })
 
+  it('shows who has submitted a guess on the opened table', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [
+          { name: 'Ada', kind: 'pot', reason: null, guessLocked: true },
+          { name: 'Bo', kind: 'pot', reason: null, guessLocked: false },
+        ],
+        recentActions: [],
+        phaseLabel: 'Guessing · 1/2 submitted',
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    const submitted = html.indexOf('>Submitted<')
+    const missing = html.indexOf('>Not submitted<')
+    expect(html.slice(0, submitted)).toContain('Ada')
+    expect(html.slice(submitted, missing)).toContain('Bo')
+    expect(submitted).toBeGreaterThan(-1)
+    expect(missing).toBeGreaterThan(submitted)
+  })
+
   it('opens a table into in-pot and points-only columns', () => {
     const html = renderToStaticMarkup(
       createElement(HostTableContest, {

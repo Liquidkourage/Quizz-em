@@ -2082,12 +2082,15 @@ function tableAnswersReady(gs: GameState, nowMs: number): boolean {
   const deadline = gs.round?.answerDeadline
   const deadlineMs = typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : null
   const players = gs.players ?? []
+  let expected = 0
   let submitted = 0
   for (const player of players) {
+    if (typeof player.name !== 'string' || player.name.trim() === '') continue
+    expected++
     const guessed = typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)
     if (guessed || player.answerForfeited === true) submitted++
   }
-  return answerRevealOpen({ deadlineMs, submitted, expected: players.length, nowMs })
+  return answerRevealOpen({ deadlineMs, submitted, expected, nowMs })
 }
 
 /**

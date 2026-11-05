@@ -52,7 +52,7 @@ import { buildBettingContext, resolveMyPlayerIndex } from './playerModel/betting
 import { nextDealFlash, type DealFlash, type DealSnapshot } from './playerModel/dealFlash'
 import { eliminationPopupHandKey, seatlessPhoneKeepsFelt, type EliminationWatch } from './playerModel/eliminationPopup'
 import { playerEndgameView } from './playerModel/playerEndgame'
-import { lockedAnswerDisplayText } from './playerModel/lockedAnswerDisplay'
+import { lockedAnswerDisplayText, optimisticGuessStillShown } from './playerModel/lockedAnswerDisplay'
 import { resolvePreAction, type PreAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
@@ -117,6 +117,8 @@ function PlayerApp() {
   const [composedAnswer, setComposedAnswer] = useState<ComposedAnswer>(EMPTY_COMPOSED_ANSWER)
   const [selectedCards, setSelectedCards] = useState<SelectedCardRef[]>([])
   const [submittedAnswerDisplay, setSubmittedAnswerDisplay] = useState<string | null>(null)
+  const answerStateEpoch = useRef(0)
+  const optimisticGuessEpoch = useRef(-1)
   const [editingAnswer, setEditingAnswer] = useState(false)
   const socket = useSocket()
 
@@ -278,8 +280,26 @@ function PlayerApp() {
     setEditingAnswer(false)
   }, [gameState?.phase, gameState?.round.roundId])
 
+  useEffect(() => {
+    answerStateEpoch.current += 1
+  }, [gameState])
+
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
   const currentPlayer = gameState && myIndex >= 0 ? gameState.players[myIndex] : undefined
+
+  useEffect(() => {
+    if (
+      optimisticGuessStillShown({
+        optimistic: submittedAnswerDisplay,
+        serverAnswer: currentPlayer?.submittedAnswer,
+        stateEpoch: answerStateEpoch.current,
+        optimisticEpoch: optimisticGuessEpoch.current,
+      })
+    ) {
+      return
+    }
+    if (submittedAnswerDisplay) setSubmittedAnswerDisplay(null)
+  }, [gameState, submittedAnswerDisplay, currentPlayer?.submittedAnswer])
   const dealSeenRef = useRef<DealSnapshot | null>(null)
   const [dealFlash, setDealFlash] = useState<DealFlash | null>(null)
   const dismissDealFlash = useCallback(() => setDealFlash(null), [])
@@ -427,6 +447,7 @@ function PlayerApp() {
     submitAnswer(composedAnswer.value, selectionToComposition(selectedCards), (ack) => {
       if (ack.ok) {
         setEditingAnswer(false)
+        optimisticGuessEpoch.current = answerStateEpoch.current
         setSubmittedAnswerDisplay(display)
         showToast(`Answer submitted: ${display}`)
       } else showToast(`Error: ${ack.message}`, 5000)

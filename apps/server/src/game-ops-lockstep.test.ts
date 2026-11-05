@@ -183,6 +183,24 @@ describe('revealVenueAnswersTogether', () => {
     expect(toasts).toEqual([])
   })
 
+  it('does not wait on a nameless seat when every named player has guessed', () => {
+    seat('L13', '3', 'answering', 2)
+    const key = tableSessionKey('L13', '3')
+    const gs = rooms.get(key)!
+    rooms.set(key, {
+      ...gs,
+      players: [
+        ...gs.players.map((player) => ({ ...player, submittedAnswer: 12 })),
+        { ...gs.players[0]!, id: 'blank', name: '   ' },
+      ],
+      round: { ...gs.round, answerDeadline: Date.now() + 60_000 },
+    })
+    const { socket, toasts } = host()
+    expect(revealVenueAnswersTogether(socket, 'l13')).toBe(true)
+    expect(rooms.get(key)!.phase).toBe('reveal')
+    expect(toasts).toEqual([])
+  })
+
   it('reveals when every player has guessed before the timer ends', () => {
     seat('L10', '1', 'answering', 2)
     const key = tableSessionKey('L10', '1')

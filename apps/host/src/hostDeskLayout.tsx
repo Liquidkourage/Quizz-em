@@ -1729,9 +1729,15 @@ function relabelMoveSummary(
   return m.summary
 }
 
+function guessSubmitLabel(locked: boolean | undefined): string | null {
+  if (locked === true) return 'Submitted'
+  if (locked === false) return 'Not submitted'
+  return null
+}
+
 function tableActionHoverStatus(seat: HostVenueSeatContest, acting: boolean): string {
-  if (seat.guessLocked === true) return 'Guess locked'
-  if (seat.guessLocked === false) return 'Guess open'
+  const guess = guessSubmitLabel(seat.guessLocked)
+  if (guess) return guess
   if (seat.reason === 'folded') return 'Folded'
   if (seat.reason === 'busted') return 'Busted'
   if (acting) return 'To act'
@@ -1988,6 +1994,7 @@ function SeatContestRow({
   actions: SeatActionBag | null
 }) {
   const reason = seatReasonLabel(row.seat.reason)
+  const guess = guessSubmitLabel(row.seat.guessLocked)
   return (
     <li className="flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5">
       <div className="min-w-0">
@@ -2007,6 +2014,7 @@ function SeatContestRow({
           </p>
         ) : null}
         {reason ? <p className="text-xs text-white/55">{reason}</p> : null}
+        {guess ? <p className="text-xs font-semibold text-amber-100/90">{guess}</p> : null}
       </div>
       {row.player && actions ? <SeatMoveControls player={{ ...row.player, name: row.seat.name }} actions={actions} /> : null}
     </li>

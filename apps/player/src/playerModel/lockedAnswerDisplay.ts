@@ -18,3 +18,18 @@ export function lockedAnswerDisplayText(opts: {
   }
   return null
 }
+
+/**
+ * A phone can still say Submitted after a restart restored the table without that guess.
+ * Keep the label until a newer table state arrives, then trust the server.
+ */
+export function optimisticGuessStillShown(opts: {
+  optimistic: string | null
+  serverAnswer: number | null | undefined
+  stateEpoch: number
+  optimisticEpoch: number
+}): boolean {
+  if (!opts.optimistic) return false
+  if (typeof opts.serverAnswer === 'number' && Number.isFinite(opts.serverAnswer)) return true
+  return opts.stateEpoch <= opts.optimisticEpoch
+}

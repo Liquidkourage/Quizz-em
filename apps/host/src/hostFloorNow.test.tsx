@@ -73,6 +73,9 @@ describe('venue floor now', () => {
       }),
     )
     const card = html.slice(html.indexOf('Open table 1'))
+    const rosterAt = card.indexOf('table-action-roster')
+    expect(rosterAt).toBeGreaterThan(-1)
+    expect(card.slice(rosterAt, rosterAt + 160)).not.toContain('absolute')
     expect(card).toContain('group-hover:block')
     expect(card).toContain('Ada Lane')
     expect(card).toContain('aria-label="$1,200"')

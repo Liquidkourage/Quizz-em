@@ -2373,7 +2373,7 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </p>
                     </button>
-                    <div className="pointer-events-none absolute left-0 top-full z-30 mt-1 hidden w-72 rounded-md border border-white/15 bg-zinc-950/95 p-2 shadow-lg group-hover:block group-focus-within:block">
+                    <div className="table-action-roster mt-1 hidden rounded-md border border-white/15 bg-black/50 p-1.5 group-hover:block group-focus-within:block">
                       <TableActionHoverRoster
                         seats={row.seats ?? []}
                         actingPlayerName={row.actingPlayerName}

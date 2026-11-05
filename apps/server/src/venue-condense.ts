@@ -153,6 +153,26 @@ function followersOf(players: GameState['players'], hostId: string): GameState['
   return players.filter((player) => player.pointsOnly === true && player.ghostHostId === hostId)
 }
 
+function stampMissingGhostHost(players: GameState['players']): GameState['players'] {
+  const chip = players.find((player) => player.pointsOnly !== true && player.bankroll > 0)
+  if (!chip) return players
+  const open = players.some((player) => player.pointsOnly === true && !player.ghostHostId)
+  if (!open) return players
+  return players.map((player) =>
+    player.pointsOnly === true && !player.ghostHostId ? { ...player, ghostHostId: chip.id } : player,
+  )
+}
+
+/** A busted player with no host follows a chip player still at their table, before anyone moves. */
+function latchOpenGhosts(deps: VenueCondenseApplyDeps): void {
+  for (const tk of deps.allTableSessionKeys(deps.venueCode)) {
+    const gs = deps.getState(tk)
+    if (!gs) continue
+    const players = stampMissingGhostHost(gs.players)
+    if (players !== gs.players) deps.setState(tk, { ...gs, players })
+  }
+}
+
 function gatherPointsOnlyPlayers(deps: VenueCondenseApplyDeps): GameState['players'] {
   const riders: GameState['players'] = []
   for (const tk of deps.allTableSessionKeys(deps.venueCode)) {
@@ -402,6 +422,7 @@ export function applyVenueCondenseAfterRound(
   options: { shuffle: boolean },
 ): VenueCondenseApplyResult {
   const carriedStandings = readVenuePointsStandings(deps)
+  latchOpenGhosts(deps)
   const hostToasts: string[] = []
   let rosters = collectRosters(deps)
   const tablesBeforeSet = new Set(rosters.map((t) => t.tableNum))

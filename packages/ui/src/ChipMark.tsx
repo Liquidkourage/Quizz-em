@@ -35,7 +35,15 @@ export function ChipMark({ className }: ChipMarkProps) {
  * Screen readers still hear the original text (including “dollar”).
  */
 /** One color per side pot, shared by its numeral and its total. */
-const SIDE_POT_COLORS = ['#38bdf8', '#c084fc', '#fb7185', '#fbbf24', '#4ade80'] as const
+const SIDE_POT_COLORS = [
+  '#7dd3fc',
+  '#ea580c',
+  '#6ee7b7',
+  '#a855f7',
+  '#fde047',
+  '#0d9488',
+  '#f9a8d4',
+] as const
 
 export function sidePotColor(mark: number): string {
   const slot = Math.abs(Math.floor(mark) - 1) % SIDE_POT_COLORS.length

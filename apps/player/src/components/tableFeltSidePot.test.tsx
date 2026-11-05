@@ -41,8 +41,8 @@ describe('player side pot', () => {
     expect(html).toContain('>Main<')
     expect(html).toContain('>Side<')
     expect(html).toContain('player-game-table-side-pot')
-    expect(html).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1;color:#38bdf8">1</sup>')
-    expect(html).toContain('style="color:#38bdf8"')
+    expect(html).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1;color:#7dd3fc">1</sup>')
+    expect(html).toContain('style="color:#7dd3fc"')
     expect(html).not.toContain('of which')
     expect(html).not.toContain('850')
     const even = { ...hand, round: { ...hand.round, pot: 200, handContributions: { a: 100, b: 100, c: 0 } } }

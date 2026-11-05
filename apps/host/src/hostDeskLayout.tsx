@@ -18,7 +18,6 @@ import {
   displayedMainPot,
   formatTriviaNumber,
   livePotLayers,
-  type LiveSidePot,
   LOBBY_TABLE_ID,
   playersHaveHoleCards,
   VENUE_NUMBERED_TABLE_MAX,
@@ -1469,37 +1468,26 @@ function hostSeatLayers(seats: HostVenueSeatContest[]) {
   )
 }
 
-function HostMainLabel({ sides }: { sides: readonly LiveSidePot[] }) {
-  if (sides.length === 0) return null
-  return <span className="host-pot-label">Main</span>
-}
-
-function HostSideTotals({ sides }: { sides: readonly LiveSidePot[] }) {
-  if (sides.length === 0) return null
-  return (
-    <span>
-      {' '}
-      <span className="host-pot-label">Side</span>
-      {sides.map((side) => (
-        <span key={side.mark} style={{ color: sidePotColor(side.mark) }}>
-          {' '}
-          <SidePotMark mark={side.mark} /> <ChipText text={formatHostFloorMoney(side.amount)} />
-        </span>
-      ))}
-    </span>
-  )
-}
-
 function HostPotFigure({ pot, seats }: { pot: number; seats: HostVenueSeatContest[] }) {
   const layers = hostSeatLayers(seats)
   const main = layers.main > 0 ? layers.main : pot
-  if (main <= 0 && layers.sides.length === 0) return <ChipText text={formatHostFloorMoney(main)} />
+  if (layers.sides.length === 0) return <ChipText text={formatHostFloorMoney(main)} />
   return (
-    <>
-      <HostMainLabel sides={layers.sides} />{' '}
-      {main > 0 ? <ChipText text={formatHostFloorMoney(main)} /> : null}
-      <HostSideTotals sides={layers.sides} />
-    </>
+    <span className="inline-flex flex-col items-start gap-0.5">
+      {main > 0 ? (
+        <span className="whitespace-nowrap">
+          <span className="host-pot-label">Main</span> <ChipText text={formatHostFloorMoney(main)} />
+        </span>
+      ) : null}
+      {layers.sides.map((side) => (
+        <span key={side.mark} className="whitespace-nowrap">
+          <span className="host-pot-label">Side</span>{' '}
+          <span style={{ color: sidePotColor(side.mark) }}>
+            <SidePotMark mark={side.mark} /> <ChipText text={formatHostFloorMoney(side.amount)} />
+          </span>
+        </span>
+      ))}
+    </span>
   )
 }
 

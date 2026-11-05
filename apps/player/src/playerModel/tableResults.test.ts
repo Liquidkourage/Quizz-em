@@ -59,6 +59,27 @@ function showdownState(overrides?: {
 }
 
 describe('buildTableResults', () => {
+  it('names the best hand in the seven cards, and when the guess was that hand', () => {
+    const cards = [1, 2, 3, 4, 5, 6, 9].map((digit) => ({ digit })) as {
+      digit: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+    }[]
+    const gs = showdownState({
+      answer: 12_340,
+      players: [
+        { id: 'a', name: 'Ada', submittedAnswer: 12_345 },
+        { id: 'b', name: 'Bo', submittedAnswer: 12_349 },
+      ],
+    })
+    gs.players = gs.players.map((player) => ({ ...player, hand: cards.slice(0, 2) }))
+    gs.round.communityCards = cards.slice(2)
+    const played = buildTableResults(gs, 'a')!
+    const missed = buildTableResults(gs, 'b')!
+    expect(played.yourBestHand).toBe('12,345')
+    expect(played.yourBestHandPlayed).toBe(true)
+    expect(missed.yourBestHand).toBe('12,345')
+    expect(missed.yourBestHandPlayed).toBe(false)
+  })
+
   it('marks pot winner and shows signed chip change for every seat', () => {
     const gs = showdownState({
       answer: 50,

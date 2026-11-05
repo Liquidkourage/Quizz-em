@@ -469,11 +469,32 @@ export function generateAllArrangements(digits: number[]): number[] {
   return results;
 }
 
+/** Closest number the seven digit cards can legally make to `correct`. */
+export function closestComposedAnswer(sevenDigits: readonly number[], correct: number): number | null {
+  if (sevenDigits.length !== 7 || !Number.isFinite(correct)) return null
+  let best: number | null = null
+  let bestDelta = Infinity
+  for (const value of composeNumericAnswersFromSevenDigitCards([...sevenDigits])) {
+    const delta = Math.abs(value - correct)
+    if (best == null || delta < bestDelta) {
+      best = value
+      bestDelta = delta
+    }
+  }
+  return best
+}
+
+/** True when the locked guess is as close as any hand those cards could make. */
+export function guessMatchesBestHand(submitted: number, best: number, correct: number): boolean {
+  if (!Number.isFinite(submitted) || !Number.isFinite(best) || !Number.isFinite(correct)) return false
+  return nearlyEqualNumbers(Math.abs(submitted - correct), Math.abs(best - correct))
+}
+
 export function bestHandDistanceToAnswer(hand: NumericCard[], community: NumericCard[], answer: number): number {
   if (hand.length !== 2 || community.length !== 5) return Infinity;
   const seven = hand.concat(community).map((c) => c.digit);
-  const candidates = [...composeNumericAnswersFromSevenDigitCards(seven)];
-  return compareHandsToAnswer(candidates, answer);
+  const best = closestComposedAnswer(seven, answer)
+  return best == null ? Infinity : Math.abs(best - answer)
 }
 
 export function createEmptyGame(code: string, hostId: string = '', tableId: string = '1'): GameState {

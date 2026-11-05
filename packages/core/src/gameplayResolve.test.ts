@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   addPlayer,
+  closestComposedAnswer,
   composeNumericAnswersFromSevenDigitCards,
+  guessMatchesBestHand,
   createEmptyGame,
   determineChipPotTriviaWinners,
   determineTriviaWinners,
@@ -52,6 +54,18 @@ describe('composeNumericAnswersFromSevenDigitCards', () => {
     const vals = composeNumericAnswersFromSevenDigitCards([1, 2, 3, 4, 5, 6, 7])
     expect(vals.has(12_345)).toBe(true)
     expect([...vals].some((v) => nearlyEqualNumbers(v, 12.345))).toBe(true)
+  })
+})
+
+describe('closest composed hand', () => {
+  it('picks the five-card number closest to the answer', () => {
+    expect(closestComposedAnswer([1, 2, 3, 4, 5, 6, 9], 12_340)).toBe(12_345)
+  })
+
+  it('recognizes a guess that already is that close', () => {
+    const best = closestComposedAnswer([1, 2, 3, 4, 5, 6, 9], 12_340)!
+    expect(guessMatchesBestHand(12_345, best, 12_340)).toBe(true)
+    expect(guessMatchesBestHand(12_349, best, 12_340)).toBe(false)
   })
 })
 

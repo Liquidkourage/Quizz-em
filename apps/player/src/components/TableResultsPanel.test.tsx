@@ -29,5 +29,37 @@ describe('table results panel', () => {
     expect(html.indexOf('Alice')).toBeLessThan(html.indexOf('Cara'))
     expect(html).toContain('>10<')
     expect(html).toContain('>0<')
+    expect(html).not.toContain('Best hand')
+  })
+
+  it('mentions the best hand under your line once the cards are known', () => {
+    let gs = createEmptyGame('HOST01', 'host', '1')
+    const cards = [1, 2, 3, 4, 5, 6, 9].map((digit) => ({ digit })) as {
+      digit: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+    }[]
+    gs = {
+      ...gs,
+      phase: 'showdown',
+      players: [
+        {
+          id: 'a',
+          name: 'Ada',
+          bankroll: 1000,
+          hand: cards.slice(0, 2),
+          hasFolded: false,
+          isAllIn: false,
+          submittedAnswer: 12345,
+        },
+      ],
+      round: {
+        ...gs.round,
+        pot: 0,
+        communityCards: cards.slice(2),
+        question: { id: 'q1', text: 'How many?', answer: 12340 },
+      },
+    }
+    const html = renderToStaticMarkup(createElement(TableResultsPanel, { results: buildTableResults(gs, 'a')! }))
+    expect(html).toContain('Best hand 12,345 — you played it.')
+    expect(html).toContain('player-table-results-best')
   })
 })

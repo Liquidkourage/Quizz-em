@@ -110,6 +110,13 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
             )}
           </p>
         ) : null}
+        {results.yourBestHand ? (
+          <p className="player-table-results-best">
+            {results.yourBestHandPlayed
+              ? `Best hand ${results.yourBestHand} — you played it.`
+              : `Best hand ${results.yourBestHand}`}
+          </p>
+        ) : null}
       </div>
 
       <div className="player-table-results-scroll" role="table" aria-label="Table hand results">

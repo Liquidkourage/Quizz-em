@@ -1,6 +1,8 @@
 import {
+  closestComposedAnswer,
   determineChipPotTriviaWinners,
   formatTriviaNumber,
+  guessMatchesBestHand,
   previewChipPayoutByPlayerId,
   type GamePhase,
   type GameState,
@@ -36,6 +38,9 @@ export type TableResults = {
   winnerNames: string[]
   /** Your trivia points this hand when `myPlayerId` is known. */
   yourTriviaPoints: number | null
+  /** Closest number your seven cards could make. Null without a locked guess or a full deal. */
+  yourBestHand: string | null
+  yourBestHandPlayed: boolean
   rows: TableResultRow[]
 }
 
@@ -114,6 +119,7 @@ export function buildTableResults(
   }
 
   const you = rows.find((r) => r.isYou)
+  const best = bestHandForYou(gameState, myPlayerId, q.answer)
 
   return {
     correctAnswer: q.answer,
@@ -121,7 +127,30 @@ export function buildTableResults(
     winnerIds,
     winnerNames,
     yourTriviaPoints: you ? you.triviaPoints : null,
+    yourBestHand: best?.formatted ?? null,
+    yourBestHandPlayed: best?.played ?? false,
     rows,
+  }
+}
+
+function bestHandForYou(
+  gameState: GameState,
+  myPlayerId: string | null | undefined,
+  correct: number,
+): { formatted: string; played: boolean } | null {
+  if (!myPlayerId) return null
+  const you = gameState.players.find((p) => p.id === myPlayerId)
+  const submitted = you?.submittedAnswer
+  const community = gameState.round.communityCards ?? []
+  if (!you || typeof submitted !== 'number' || you.hand.length !== 2 || community.length !== 5) return null
+  const best = closestComposedAnswer(
+    [...you.hand, ...community].map((card) => card.digit),
+    correct,
+  )
+  if (best == null) return null
+  return {
+    formatted: formatTriviaNumber(best),
+    played: guessMatchesBestHand(submitted, best, correct),
   }
 }
 

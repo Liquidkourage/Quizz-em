@@ -24,16 +24,26 @@ function playerHoleCardSizePx(scale: number): { w: number; h: number } {
   }
 }
 
+/** Face-up cards stay phone-upright. Face-down pairs turn so their tops point at the seat. */
+function playerFeltHoleTurn(faceDown: boolean, rotateDeg: number): string | undefined {
+  if (!faceDown) return undefined
+  return `rotate(${rotateDeg}deg)`
+}
+
+function playerFeltHoleClassName(faceDown: boolean, className: string | undefined): string {
+  const upright = faceDown ? '' : 'player-felt-card-face'
+  return [upright, className].filter(Boolean).join(' ')
+}
+
 /** Player felt — two hole cards in a fixed grid; no overlap layout path. */
 export function PlayerFeltHoleCards({
   scale,
-  rotateDeg: _seatRotateDeg = 0,
+  rotateDeg = 0,
   faceDown = true,
   digits,
   className,
   hidden = false,
 }: PlayerFeltHoleCardsProps) {
-  void _seatRotateDeg
   const { w, h } = playerHoleCardSizePx(scale)
   const pairWidth = w * 2 + PLAYER_FELT_HOLE_CARD_GAP_PX
   const radius = Math.max(4, Math.round(Math.min(w, h) * 0.12))
@@ -44,11 +54,12 @@ export function PlayerFeltHoleCards({
     columnGap: PLAYER_FELT_HOLE_CARD_GAP_PX,
     width: pairWidth,
     opacity: hidden ? 0 : undefined,
+    transform: playerFeltHoleTurn(faceDown, rotateDeg),
   }
 
   return (
     <div
-      className={['player-felt-card-face', className].filter(Boolean).join(' ')}
+      className={playerFeltHoleClassName(faceDown, className)}
       style={shellStyle}
       aria-hidden={hidden || undefined}
       data-hole-layout="player-spread"

@@ -21,4 +21,20 @@ describe('player felt card faces', () => {
     expect(html).toContain('player-felt-card-face')
     expect(html).not.toContain('rotate(')
   })
+
+  it('aims a face-down pair along that seat’s line to the center', () => {
+    const side = mosaicSeatHoleLayout(2, 8, 800, 500)
+    expect(Math.abs(side.rotateDeg)).toBeGreaterThan(45)
+
+    const html = renderToStaticMarkup(
+      createElement(PlayerFeltHoleCards, {
+        scale: 0.4,
+        rotateDeg: side.rotateDeg,
+        faceDown: true,
+      }),
+    )
+
+    expect(html).toContain(`rotate(${side.rotateDeg}deg)`)
+    expect(html).not.toContain('player-felt-card-face')
+  })
 })

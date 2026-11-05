@@ -1209,7 +1209,7 @@
     transform: rotate(90deg);
   }
 
-  /* The felt turns sideways. Card faces turn back so 12 o'clock stays the top of the phone. */
+  /* The felt turns sideways. Readable faces (your cards and the board) turn back so 12 o'clock stays the top of the phone. Face-down backs stay in felt space and turn with their seat. */
   .player-game-layout--live-fit .player-felt-rotate-slot .player-felt-card-face {
     transform: rotate(-90deg);
   }

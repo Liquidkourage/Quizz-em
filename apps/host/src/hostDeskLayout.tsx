@@ -1722,8 +1722,8 @@ function hoverMoney(amount: number | undefined): string {
   return typeof amount === 'number' && Number.isFinite(amount) ? formatHostFloorMoney(amount) : '—'
 }
 
-/** Room kept clear so a tooltip line does not run off the right edge. */
-const TABLE_ACTION_HOVER_WIDTH = 280
+/** Room kept clear so a full line at reading size does not run off the right edge. */
+const TABLE_ACTION_HOVER_WIDTH = 560
 
 export type TableActionHoverOrigin = { top: number; left: number; above: boolean }
 
@@ -1734,7 +1734,7 @@ export function tableActionHoverOrigin(
 ): TableActionHoverOrigin {
   const left = Math.max(8, Math.min(anchor.left, viewport.width - TABLE_ACTION_HOVER_WIDTH - 8))
   const below = anchor.bottom + 6
-  const above = viewport.height - below < 160
+  const above = viewport.height - below < 280
   return { top: above ? anchor.top : below, left, above }
 }
 
@@ -1756,7 +1756,7 @@ export function TableActionHoverSheet({
   return (
     <div
       role="tooltip"
-      className="table-action-roster pointer-events-none fixed z-50 w-max rounded bg-zinc-900 px-2 py-1 text-xs leading-4 text-white shadow-md"
+      className="table-action-roster pointer-events-none fixed z-50 w-max rounded-md bg-zinc-900 px-4 py-3 text-[1.5rem] leading-8 text-white shadow-lg"
       style={{ top, left, transform: above ? 'translateY(calc(-100% - 6px))' : undefined }}
     >
       <TableActionHoverRoster
@@ -1777,10 +1777,10 @@ function TableActionHoverRoster({
   actingPlayerName: string | null
   hostPlayerLabel: (name: string) => string
 }) {
-  if (seats.length === 0) return <p className="text-sm text-white/50">No players seated.</p>
+  if (seats.length === 0) return <p className="text-white/50">No players seated.</p>
   const labels = disambiguatePublicNames(seats.map((seat) => seat.name))
   return (
-    <ul aria-label="Table players">
+    <ul className="space-y-1" aria-label="Table players">
       {seats.map((seat, index) => (
         <li key={`${seat.name}-${index}`} className="whitespace-nowrap">
           <span className="font-semibold">{hostPlayerLabel(labels[index] ?? seat.name)}</span>

@@ -89,8 +89,8 @@ describe('venue floor now', () => {
       }),
     )
     expect(sheet).toContain('role="tooltip"')
-    expect(sheet).toContain('text-xs')
-    expect(sheet).not.toContain('w-96')
+    expect(sheet).toContain('text-[1.5rem]')
+    expect(sheet).not.toContain('text-xs')
     expect(sheet).toContain('Ada Lane')
     expect(sheet).toContain('aria-label="$1,200"')
     expect(sheet).toContain('aria-label="$40"')

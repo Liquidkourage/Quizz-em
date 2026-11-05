@@ -1,5 +1,5 @@
 import type { Socket } from 'socket.io'
-import type { GameState, Question } from '@qhe/core'
+import { mayLockGuess, type GameState, type Question } from '@qhe/core'
 import { releasePhonesOnHardReset } from '../venue-hard-reset'
 import * as g from '../game-ops'
 import { denyUnlessOwnSeat } from '../own-seat'
@@ -327,8 +327,8 @@ export async function handleShowAction(
         case 'submitAnswer': {
           const submitAnswerAction = payload as g.SubmitAnswerAction
           if (denyUnlessOwnSeat(socket, submitAnswerAction.playerId)) break
-          const accepting =
-            gameState.phase === 'answering' || g.canPreloadTriviaAnswer(gameState)
+          const answeringSeat = gameState.players.find((player) => player.id === submitAnswerAction.playerId)
+          const accepting = mayLockGuess(gameState, answeringSeat)
           if (!accepting) {
             socket.emit('toast', 'Not accepting answers right now.')
             socket.emit('ack', { ok: false, message: 'Not accepting answers right now.' })

@@ -24,7 +24,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
-import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, isAllInRunout } from '@qhe/core'
+import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, isAllInRunout, mayLockGuess } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
   playerJoinBoot,
@@ -403,7 +403,7 @@ function PlayerApp() {
     }
     if (!gameState || lockedAnswerDisplay) return
     const err = validateAnswerSubmit(gameState.phase, selectedCards, composedAnswer, {
-      preload: canPreloadTriviaAnswer(gameState),
+      preload: mayLockGuess(gameState, currentPlayer),
     })
     if (err) {
       showToast(err, 4000)
@@ -492,7 +492,7 @@ function PlayerApp() {
   }
 
   const preloadAnswer = canPreloadTriviaAnswer(gameState)
-  const showAnswerModal = (gameState.phase === 'answering' || preloadAnswer) && !!currentPlayer
+  const showAnswerModal = currentPlayer != null && mayLockGuess(gameState, currentPlayer)
   const allInWaitingOnBoard =
     gameState.phase === 'betting' && isAllInRunout(gameState) && !preloadAnswer
   const isPointsOnly = currentPlayer?.pointsOnly === true

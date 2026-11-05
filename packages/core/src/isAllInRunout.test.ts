@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canPreloadTriviaAnswer, createEmptyGame, isAllInRunout, type GameState } from './index'
+import { canPreloadTriviaAnswer, createEmptyGame, isAllInRunout, mayLockGuess, type GameState } from './index'
 
 function runoutTable(): GameState {
   const base = createEmptyGame('V', '', '1')
@@ -54,6 +54,61 @@ describe('isAllInRunout', () => {
     const gs = runoutTable()
     gs.players = [{ id: 'a', name: 'A', bankroll: 0, hand: [], hasFolded: false, isAllIn: true }]
     expect(isAllInRunout(gs)).toBe(false)
+  })
+})
+
+const fiveBoard: GameState['round']['communityCards'] = [
+  { digit: 1 },
+  { digit: 2 },
+  { digit: 3 },
+  { digit: 4 },
+  { digit: 5 },
+]
+
+function bettingWithBoard(): GameState {
+  const base = createEmptyGame('V', '', '1')
+  return {
+    ...base,
+    phase: 'betting',
+    players: [
+      { id: 'live', name: 'Live', bankroll: 400, hand: [], hasFolded: false, isAllIn: false },
+      { id: 'bust', name: 'Bust', bankroll: 0, hand: [], hasFolded: false, isAllIn: false, pointsOnly: true },
+      { id: 'fold', name: 'Fold', bankroll: 200, hand: [], hasFolded: true, isAllIn: false },
+      { id: 'allin', name: 'Allin', bankroll: 0, hand: [], hasFolded: false, isAllIn: true },
+    ],
+    round: {
+      ...base.round,
+      bettingRound: 2,
+      communityCards: fiveBoard,
+      isBettingOpen: true,
+      currentPlayerIndex: 0,
+    },
+  }
+}
+
+describe('mayLockGuess', () => {
+  it('lets a player who is out of the pot lock a guess once the board is out', () => {
+    const gs = bettingWithBoard()
+    const bust = gs.players[1]!
+    const folded = gs.players[2]!
+    const allIn = gs.players[3]!
+    const live = gs.players[0]!
+    expect(mayLockGuess(gs, bust)).toBe(true)
+    expect(mayLockGuess(gs, folded)).toBe(true)
+    expect(mayLockGuess(gs, allIn)).toBe(true)
+    expect(mayLockGuess(gs, live)).toBe(false)
+  })
+
+  it('stays closed until the five community cards are out', () => {
+    const gs = bettingWithBoard()
+    gs.round = { ...gs.round, communityCards: fiveBoard.slice(0, 3) }
+    expect(mayLockGuess(gs, gs.players[1]!)).toBe(false)
+  })
+
+  it('opens for the live bettor once the table is answering', () => {
+    const gs = bettingWithBoard()
+    gs.phase = 'answering'
+    expect(mayLockGuess(gs, gs.players[0]!)).toBe(true)
   })
 })
 

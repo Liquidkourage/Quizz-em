@@ -1303,6 +1303,28 @@ export function canPreloadTriviaAnswer(state: GameState): boolean {
   return isAllInRunout(state) && (state.round.communityCards?.length ?? 0) >= 5;
 }
 
+function boardReadyForGuess(state: GameState): boolean {
+  const cards = state.round.communityCards
+  return Array.isArray(cards) && cards.length >= 5
+}
+
+function seatIsOutOfTheBet(player: Pick<PlayerState, 'pointsOnly' | 'hasFolded' | 'isAllIn'>): boolean {
+  if (!inChipContest(player)) return true
+  if (player.hasFolded) return true
+  return player.isAllIn === true
+}
+
+/** Answering is open, or the board is out and this seat is not still betting the pot. */
+export function mayLockGuess(
+  state: GameState,
+  player: Pick<PlayerState, 'pointsOnly' | 'hasFolded' | 'isAllIn'> | null | undefined,
+): boolean {
+  if (state.phase === 'answering') return true
+  if (state.phase !== 'betting' || player == null) return false
+  if (!boardReadyForGuess(state)) return false
+  return seatIsOutOfTheBet(player)
+}
+
 /**
  * When the action seat is folded, all-in, or off the roster, advance or close wagering so
  * CPU drains and venue lockstep do not stall with an open clock on a dead seat.

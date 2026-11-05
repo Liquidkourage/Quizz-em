@@ -4,12 +4,14 @@ import { describe, expect, it } from 'vitest'
 import EliminatedModal from './EliminatedModal'
 
 describe('EliminatedModal', () => {
-  it('names the hand’s busts without a harsh title', () => {
-    const html = renderToStaticMarkup(createElement(EliminatedModal, { onDone: () => {} }))
+  it('names the player who just busted on this phone', () => {
+    const html = renderToStaticMarkup(
+      createElement(EliminatedModal, { name: 'Ada Lane', onDone: () => {} }),
+    )
     expect(html).toContain('role="dialog"')
-    expect(html).toContain('Players who busted this hand')
-    expect(html).not.toContain('Eliminated')
-    expect(html).not.toContain('out of the chip contest')
+    expect(html).toContain('Ada Lane')
+    expect(html).toContain('Out of chips')
+    expect(html).not.toContain('Players who busted')
     expect(html).not.toContain('Thanks for playing')
   })
 })

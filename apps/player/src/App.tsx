@@ -743,7 +743,7 @@ function PlayerApp() {
       <AnimatePresence>
         {dealFlash ? <DealFlashModal key={`${dealFlash.kind}:${dealFlash.digits.join(',')}`} flash={dealFlash} onDone={dismissDealFlash} /> : null}
         {eliminationHandKey ? (
-          <EliminatedModal key={eliminationHandKey} onDone={dismissElimination} />
+          <EliminatedModal key={eliminationHandKey} name={playerName} onDone={dismissElimination} />
         ) : null}
         {showAnswerModal && currentPlayer ? (
           <AnswerComposerModal

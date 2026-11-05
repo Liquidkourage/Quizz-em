@@ -26,6 +26,15 @@ type AnswerComposerProps = {
   preload?: boolean
 }
 
+function answerClockUrgent(remainingSec: number): boolean {
+  return remainingSec > 0 && remainingSec <= 10
+}
+
+function lockedAnswerHint(remainingSec: number | null): string {
+  if (remainingSec === 0) return 'Locked in.'
+  return 'Locked in. You can edit before time runs out.'
+}
+
 export default function AnswerComposer({
   gameState,
   currentPlayer,
@@ -85,7 +94,7 @@ export default function AnswerComposer({
         </p>
       ) : remainingSec != null ? (
         <p
-          className={`player-game-timer${remainingSec <= 10 ? ' player-game-timer--urgent' : ''}`}
+          className={`player-game-timer${answerClockUrgent(remainingSec) ? ' player-game-timer--urgent' : ''}`}
           aria-live="polite"
         >
           {remainingSec > 0 ? (
@@ -93,7 +102,7 @@ export default function AnswerComposer({
               Time <strong>{remainingSec}</strong>
             </>
           ) : (
-            <>Time is up — keep editing until the host reveals.</>
+            <>Time is up.</>
           )}
         </p>
       ) : null}
@@ -102,7 +111,7 @@ export default function AnswerComposer({
         <div className="player-game-answer-submitted" role="status">
           <p className="player-game-question-label">Submitted</p>
           <div className="player-game-answer-display player-game-answer-display--locked">{submittedDisplay}</div>
-          <p className="player-game-hint">Locked in. You can edit before time runs out.</p>
+          <p className="player-game-hint">{lockedAnswerHint(remainingSec)}</p>
           {onEditSubmitted ? (
             <PlayerGameButton variant="dark" size="large" className="player-game-btn--block" onClick={onEditSubmitted}>
               Edit answer

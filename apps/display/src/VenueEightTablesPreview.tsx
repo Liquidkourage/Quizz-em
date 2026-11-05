@@ -333,53 +333,6 @@ function FeltSideLayers({ sides }: { sides: readonly LiveSidePot[] | undefined }
   )
 }
 
-/** Mosaic captions sit on the pot. They stay out of the street's centered stack. */
-function MosaicSideLines({ sides }: { sides: readonly LiveSidePot[] }) {
-  return (
-    <div className="vfd-mosaic-side-lines">
-      {sides.map((side) => (
-        <p key={side.mark} className="vfd-mosaic-side-line">
-          <span className="vfd-mosaic-side-word">Side</span>
-          <span style={{ color: sidePotColor(side.mark) }}>
-            <SidePotMark mark={side.mark} /> <ChipText text={formatVenueBankroll(side.amount)} />
-          </span>
-        </p>
-      ))}
-    </div>
-  )
-}
-
-function MosaicPotWithSides({
-  amount,
-  className,
-  prefersReducedMotion,
-  potMuted,
-  sides,
-}: {
-  amount: number
-  className: string
-  prefersReducedMotion: boolean
-  potMuted?: 'dim' | 'faint' | 'live'
-  sides: readonly LiveSidePot[] | undefined
-}) {
-  const amountNode = (
-    <VenuePotAmount
-      amount={amount}
-      prefersReducedMotion={prefersReducedMotion}
-      potMuted={potMuted}
-      className={className}
-    />
-  )
-  if (sides == null || sides.length === 0) return amountNode
-  return (
-    <div className="vfd-mosaic-pot-sides">
-      <p className="vfd-felt-pot-label">Main</p>
-      {amountNode}
-      <MosaicSideLines sides={sides} />
-    </div>
-  )
-}
-
 /** Pot dollars — pulses when the venue snapshot posts a new amount. */
 function VenuePotAmount({
   amount,
@@ -476,6 +429,33 @@ function MosaicTableStatusBand({
       aria-label="Answer on your phone"
     >
       <span className="vfd-mosaic-status-band-message">Answer on your phone</span>
+    </div>
+  )
+}
+
+/** Side-pot bar under the felt. One column per side pot, same chrome as the status header. */
+function MosaicSidePotFooter({
+  sides,
+  hidden = false,
+}: {
+  sides: readonly LiveSidePot[] | undefined
+  hidden?: boolean
+}) {
+  if (hidden || sides == null || sides.length === 0) return null
+  return (
+    <div className="vfd-mosaic-side-footer col-start-1 row-start-3 shrink-0">
+      <span className="vfd-mosaic-side-footer-label">Side</span>
+      <div
+        className="vfd-mosaic-side-footer-cols"
+        style={{ gridTemplateColumns: `repeat(${sides.length}, minmax(0, 1fr))` }}
+      >
+        {sides.map((side) => (
+          <p key={side.mark} className="vfd-mosaic-side-footer-col" style={{ color: sidePotColor(side.mark) }}>
+            <SidePotMark mark={side.mark} />
+            <ChipText text={formatVenueBankroll(side.amount)} />
+          </p>
+        ))}
+      </div>
     </div>
   )
 }
@@ -740,7 +720,6 @@ function VenueMosaicFeltCenterStack({
   potClass,
   potMuted,
   prefersReducedMotion,
-  sides,
 }: {
   communityDigits: number[]
   communityCardWidthPx: number
@@ -749,7 +728,6 @@ function VenueMosaicFeltCenterStack({
   potClass?: string
   potMuted?: 'dim' | 'faint' | 'live'
   prefersReducedMotion: boolean
-  sides: readonly LiveSidePot[] | undefined
 }) {
   const feltBounds = venueFeltBoundsFrac()
   const showPot = pot != null && potClass != null
@@ -784,12 +762,11 @@ function VenueMosaicFeltCenterStack({
           </div>
         ) : null}
         {showPot ? (
-          <MosaicPotWithSides
+          <VenuePotAmount
             amount={pot}
-            className={`block max-w-full ${potClass}`}
             prefersReducedMotion={prefersReducedMotion}
             potMuted={potMuted}
-            sides={sides}
+            className={`block max-w-full ${potClass}`}
           />
         ) : null}
       </div>
@@ -1585,7 +1562,6 @@ function SeatRingWithLabels({
             potClass={mosaicCenterPotClass}
             potMuted={mosaicCenterPotMuted}
             prefersReducedMotion={prefersReducedMotion}
-            sides={sideLayers}
           />
         )
       ) : null}
@@ -2388,6 +2364,8 @@ function VenueMosaicTableCard({
             showMosaicSeatStacks={mosaicShowsSeatStacks(ph)}
           />
         </div>
+
+        <MosaicSidePotFooter sides={sides} hidden={inShowdown} />
 
         {showExpandedShowdownPanel ? (
           <div

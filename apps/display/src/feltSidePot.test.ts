@@ -52,15 +52,41 @@ describe('felt side pot', () => {
     const card = html.slice(start, html.indexOf('data-table-tile="2"'))
     expect(card).toContain('main $120, side 1 $4,900')
     expect(card).toContain('$120')
+    expect(card).toContain('vfd-mosaic-side-footer')
+    expect(card).toContain('repeat(1, minmax(0, 1fr))')
     expect(card).toContain('aria-label="$4,900"')
-    expect(card).toContain('vfd-mosaic-pot-sides')
-    expect(card).toContain('>Main<')
-    expect(card).toContain('class="vfd-mosaic-side-line"')
     expect(card).toContain('>Side<')
+    expect(card).not.toContain('>Main<')
+    expect(card).not.toContain('vfd-mosaic-pot-sides')
     expect(card).not.toContain('vfd-felt-side-pot')
     expect(card).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1;color:#38bdf8">1</sup>')
     expect(card).toContain('style="color:#38bdf8"')
     expect(card).not.toContain('of which')
     expect(card).not.toContain('5,020')
+  })
+
+  it('gives each side pot its own footer column', () => {
+    const spec = resolveVenueFloorSpec({ populatedTableCount: 2 })
+    const html = renderToStaticMarkup(
+      createElement(VenueAerialFloorGrid, {
+        tiles: [
+          tile(1, {
+            pot: 1900,
+            seatInvested: [100, 300, 300, 600, 600],
+            seatFolded: [false, false, false, false, false],
+          }),
+          tile(2, { pot: 0, seatInvested: [], seatFolded: [] }),
+        ],
+        floorSpec: spec!,
+        showHeadline: false,
+        skipMountIntro: true,
+        prefersReducedMotion: true,
+      }),
+    )
+    const card = html.slice(html.indexOf('data-table-tile="1"'), html.indexOf('data-table-tile="2"'))
+    expect(card).toContain('repeat(2, minmax(0, 1fr))')
+    expect(card).toContain('aria-label="$800"')
+    expect(card).toContain('aria-label="$600"')
+    expect(card).not.toContain('vfd-felt-side-pot')
   })
 })

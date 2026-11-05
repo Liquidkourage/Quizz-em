@@ -348,14 +348,10 @@ export function setVenueBlindStructurePersist(
   return { ...next, levels: next.levels.map((l) => ({ ...l })) }
 }
 
-/** After a venue-wide hand completes — returns toast message when level increases. */
+/** A finished hand leaves the blinds alone. The host applies a pace suggestion. */
 export function recordVenueHandCompleted(venueCode: string): string | null {
-  const k = normalizeVenueKey(venueCode)
-  const { next, leveledUp } = advanceBlindLevel(getVenueBlindSettings(k))
-  venueSettings.set(k, next)
-  persistToDisk()
-  if (!leveledUp) return null
-  return `Blinds increased — level ${next.blindLevelIndex + 1}: $${next.smallBlind} / $${next.bigBlind}`
+  normalizeVenueKey(venueCode)
+  return null
 }
 
 export function venueBlindLevelSummary(venueCode: string): {
@@ -364,14 +360,10 @@ export function venueBlindLevelSummary(venueCode: string): {
   handsUntilNextLevel: number | null
 } {
   const s = getVenueBlindSettings(venueCode)
-  const atMax = s.blindLevelIndex >= s.levels.length - 1
-  const handsUntilNextLevel = atMax
-    ? null
-    : Math.max(0, s.handsPerBlindLevel - s.handsAtCurrentLevel)
   return {
     levelNumber: s.blindLevelIndex + 1,
     levelCount: s.levels.length,
-    handsUntilNextLevel,
+    handsUntilNextLevel: null,
   }
 }
 

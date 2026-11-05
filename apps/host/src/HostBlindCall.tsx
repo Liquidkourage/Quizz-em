@@ -52,7 +52,7 @@ function PaceNumber({
   )
 }
 
-function callSentence(call: BlindCall, guideNow: number): string {
+export function blindPaceLine(call: BlindCall, guideNow: number): string {
   const blinds = `${money(call.smallBlind)} / ${money(call.bigBlind)}`
   const level = `level every ${call.handsPerLevel} hands`
   if (call.verb === 'Hold') return `Leave ${blinds} and a ${level}.`
@@ -187,7 +187,7 @@ export function HostBlindCall({
             {call.verb}
             <span className="ml-2 font-normal text-white/75">
               <ChipText
-                text={`${callSentence(call, guideSec)} ${Math.round(minutesLeft)} min · ${players} players`}
+                text={`${blindPaceLine(call, guideSec)} ${Math.round(minutesLeft)} min · ${players} players`}
               />
             </span>
           </p>

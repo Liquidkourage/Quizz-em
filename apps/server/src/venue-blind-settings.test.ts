@@ -4,7 +4,9 @@ import {
   applyBlindScheduleSave,
   applyStoredBlinds,
   blindsShownForVenue,
+  getVenueBlindSettings,
   publishedTableBlinds,
+  recordVenueHandCompleted,
   type VenueBlindSettings,
 } from './venue-blind-settings'
 
@@ -45,6 +47,18 @@ describe('manual blind increases', () => {
     expect(next.smallBlind).toBe(15)
     expect(next.bigBlind).toBe(30)
     expect(next.blindLevelIndex).toBe(1)
+  })
+})
+
+describe('a finished hand', () => {
+  it('leaves the blinds where they are', () => {
+    const before = getVenueBlindSettings('PACE')
+    expect(recordVenueHandCompleted('PACE')).toBeNull()
+    const after = getVenueBlindSettings('PACE')
+    expect(after.smallBlind).toBe(before.smallBlind)
+    expect(after.bigBlind).toBe(before.bigBlind)
+    expect(after.blindLevelIndex).toBe(before.blindLevelIndex)
+    expect(after.handsAtCurrentLevel).toBe(before.handsAtCurrentLevel)
   })
 })
 

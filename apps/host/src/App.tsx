@@ -53,6 +53,7 @@ import {
 } from '@qhe/net'
 import type { BlindCall, GameState, Question } from '@qhe/core'
 import { HostBlindCall } from './HostBlindCall'
+import HostBlindPaceNotice, { showBlindPaceNotice } from './HostBlindPaceNotice'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
 import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
@@ -177,6 +178,7 @@ function HostApp() {
   const [venueFeltBeat, setVenueFeltBeat] = useState<HostVenueFeltBeatRow[] | null>(null)
   const [venueFloorBrief, setVenueFloorBrief] = useState<HostVenueFloorBriefPayload | null>(null)
   const [winnerScreenNowMs, setWinnerScreenNowMs] = useState(() => nowOnServerClock())
+  const [dismissedPaceAt, setDismissedPaceAt] = useState<number | null>(null)
   useEffect(() => {
     const readyAt = venueFloorBrief?.winnerScreensReadyAtMs
     if (readyAt == null) return
@@ -927,6 +929,23 @@ function HostApp() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(0,180,120,0.08),transparent_55%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(100,70,160,0.06),transparent_50%)]" />
       </div>
+
+      {showBlindPaceNotice(winnerScreensReadyAtMs, winnerScreenNowMs, dismissedPaceAt) ? (
+        <HostBlindPaceNotice
+          open
+          showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}
+          handsLeft={handsLeft}
+          players={venueFloorBrief?.fieldPlayerCount ?? 0}
+          startedWith={venueFloorBrief?.fieldPeakCount ?? venueFloorBrief?.fieldPlayerCount ?? 0}
+          medianStack={venueFloorBrief?.medianStack ?? null}
+          bigBlind={venueBigBlind}
+          handsPerLevel={handsPerBlindLevel}
+          guideSec={answerWindowSeconds}
+          nowMs={winnerScreenNowMs}
+          onApply={applyBlindCall}
+          onClose={() => setDismissedPaceAt(winnerScreensReadyAtMs)}
+        />
+      ) : null}
 
       {connectionStatus !== 'connected' ? (
         <div

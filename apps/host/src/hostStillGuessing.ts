@@ -5,7 +5,7 @@ export type StillGuessingPlayer = { name: string; tableNum: number }
 function pushOpenGuesses(out: StillGuessingPlayer[], row: HostVenueActionRow): void {
   for (const seat of row.seats) {
     const name = seat.name.trim()
-    if (!name || seat.guessLocked === true) continue
+    if (!name || seat.guessLocked === true || seat.offFelt === true) continue
     out.push({ name, tableNum: row.tableNum })
   }
 }

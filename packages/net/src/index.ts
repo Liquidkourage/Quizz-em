@@ -195,6 +195,8 @@ export type DisplayVenueTileSnapshot = {
   seatSubmittedAnswers?: (number | null)[]
   /** Parallel to `seatNames`: true when that seat has locked an answer (safe during answering). */
   seatAnswerLocked?: boolean[]
+  /** Named players past the eight felt chairs. They are not in `seatNames`. */
+  unseatedNames?: string[]
   /**
    * Parallel to `seatNames`: community board indices (0–4) each player used in their answer.
    * Omitted when unknown / older servers.
@@ -389,6 +391,8 @@ export type HostVenueSeatContest = {
   invested?: number
   /** True when this seat has locked a guess. Set while the table is guessing. */
   guessLocked?: boolean
+  /** Past the eight felt chairs, so this person is not in the 8/8 count. */
+  offFelt?: boolean
 }
 
 export type HostVenueActionRow = {

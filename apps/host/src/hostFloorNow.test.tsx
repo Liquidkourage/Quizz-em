@@ -566,6 +566,21 @@ describe('venue floor now', () => {
     expect(missing).toBeGreaterThan(submitted)
   })
 
+  it('names a player who is past the felt and not part of the guess count', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [
+          { name: 'Ada', kind: 'pot', reason: null, guessLocked: true },
+          { name: 'Ivy', kind: 'points', reason: null, offFelt: true },
+        ],
+        recentActions: [],
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    expect(html).toContain('Not on the felt')
+    expect(html.indexOf('Ada')).toBeLessThan(html.indexOf('Not on the felt'))
+  })
+
   it('opens a table into in-pot and points-only columns', () => {
     const html = renderToStaticMarkup(
       createElement(HostTableContest, {

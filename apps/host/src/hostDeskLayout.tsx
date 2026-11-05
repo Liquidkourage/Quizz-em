@@ -1736,6 +1736,7 @@ function guessSubmitLabel(locked: boolean | undefined): string | null {
 }
 
 function tableActionHoverStatus(seat: HostVenueSeatContest, acting: boolean): string {
+  if (seat.offFelt === true) return 'Not on the felt'
   const guess = guessSubmitLabel(seat.guessLocked)
   if (guess) return guess
   if (seat.reason === 'folded') return 'Folded'
@@ -1994,7 +1995,7 @@ function SeatContestRow({
   actions: SeatActionBag | null
 }) {
   const reason = seatReasonLabel(row.seat.reason)
-  const guess = guessSubmitLabel(row.seat.guessLocked)
+  const guess = row.seat.offFelt === true ? 'Not on the felt' : guessSubmitLabel(row.seat.guessLocked)
   return (
     <li className="flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5">
       <div className="min-w-0">

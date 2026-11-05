@@ -2058,7 +2058,7 @@ export function revealVenueAnswersTogether(socket: Socket, venueCode: string): b
   for (const { tk } of lock) {
     const gs = rooms.get(tk)
     if (!gs) continue
-    rooms.set(tk, revealAnswer(gs))
+    rooms.set(tk, revealAnswer(forfeitGuessesOffTheFelt(gs)))
   }
   return true
 }
@@ -2078,10 +2078,24 @@ function settleExpiredGuessNudges(sessionKeys: readonly string[], nowMs: number)
   }
 }
 
+/** The felt draws eight chairs. Anyone past that is invisible and must not hold Reveal. */
+function forfeitGuessesOffTheFelt(gs: GameState): GameState {
+  if (gs.players.length <= VENUE_WALL_SEAT_COUNT) return gs
+  let changed = false
+  const players = gs.players.map((player, index) => {
+    if (index < VENUE_WALL_SEAT_COUNT) return player
+    if (typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)) return player
+    if (player.answerForfeited === true) return player
+    changed = true
+    return { ...player, answerForfeited: true }
+  })
+  return changed ? { ...gs, players } : gs
+}
+
 function tableAnswersReady(gs: GameState, nowMs: number): boolean {
   const deadline = gs.round?.answerDeadline
   const deadlineMs = typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : null
-  const players = gs.players ?? []
+  const players = (gs.players ?? []).slice(0, VENUE_WALL_SEAT_COUNT)
   let expected = 0
   let submitted = 0
   for (const player of players) {
@@ -2302,6 +2316,10 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     const seatNames = scatterRosterToChairs(gs.players, '', (p) =>
       typeof p.name === 'string' ? p.name.trim() : '',
     )
+    const unseatedNames = gs.players
+      .slice(VENUE_WALL_SEAT_COUNT)
+      .map((player) => (typeof player.name === 'string' ? player.name.trim() : ''))
+      .filter((name) => name !== '')
     const seatBankrolls = scatterRosterToChairs(gs.players, 0, (p) => {
       const br = p.bankroll
       return typeof br === 'number' && Number.isFinite(br) ? br : 0
@@ -2434,6 +2452,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       ...(sidePot != null ? { sidePot } : {}),
       phase: gs.phase,
       seatNames,
+      ...(unseatedNames.length > 0 ? { unseatedNames } : {}),
       seatBankrolls,
       seatFolded,
       seatPointsOnly,

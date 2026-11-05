@@ -201,6 +201,24 @@ describe('revealVenueAnswersTogether', () => {
     expect(toasts).toEqual([])
   })
 
+  it('reveals when the eight felt seats have guessed and someone past the felt has not', () => {
+    seat('L14', '3', 'answering', 9)
+    const key = tableSessionKey('L14', '3')
+    const gs = rooms.get(key)!
+    rooms.set(key, {
+      ...gs,
+      players: gs.players.map((player, index) =>
+        index < 8 ? { ...player, submittedAnswer: 12 } : player,
+      ),
+      round: { ...gs.round, answerDeadline: Date.now() + 60_000 },
+    })
+    const { socket, toasts } = host()
+    expect(revealVenueAnswersTogether(socket, 'l14')).toBe(true)
+    expect(rooms.get(key)!.phase).toBe('reveal')
+    expect(rooms.get(key)!.players[8]?.answerForfeited).toBe(true)
+    expect(toasts).toEqual([])
+  })
+
   it('reveals when every player has guessed before the timer ends', () => {
     seat('L10', '1', 'answering', 2)
     const key = tableSessionKey('L10', '1')

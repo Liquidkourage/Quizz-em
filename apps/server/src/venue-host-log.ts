@@ -495,6 +495,9 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
           : null
       const seats = seatContests(tile)
       const inPotCount = seats.filter((seat) => seat.kind === 'pot').length
+      for (const name of tile.unseatedNames ?? []) {
+        seats.push({ name, kind: 'points', reason: null, offFelt: true })
+      }
       return {
         tableNum: tile.tableNum,
         phase: tile.phase,
@@ -509,7 +512,7 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         actingSummary: formatActingSummary(tile),
         recentActions: recentActionsFromTile(tile),
         inPotCount,
-        pointsOnlyCount: seats.length - inPotCount,
+        pointsOnlyCount: seats.filter((seat) => seat.kind === 'points' && seat.offFelt !== true).length,
         seats,
         ...guessProgress(tile),
       }

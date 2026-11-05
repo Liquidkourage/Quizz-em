@@ -576,6 +576,24 @@ describe('buildHostVenueActionRows seats', () => {
     expect(rows[1]?.answersExpected).toBeUndefined()
   })
 
+  it('lists a player past the eight chairs without counting them in the guess total', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 3,
+        seated: 9,
+        pot: 0,
+        phase: 'answering',
+        seatNames: ['Ada', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay', 'Gus', 'Hal'],
+        seatAnswerLocked: [true, true, true, true, true, true, true, true],
+        unseatedNames: ['Ivy'],
+      } as never,
+    ])
+    expect(rows[0]?.answersSubmitted).toBe(8)
+    expect(rows[0]?.answersExpected).toBe(8)
+    expect(rows[0]?.seats.some((seat) => seat.name === 'Ivy' && seat.offFelt === true)).toBe(true)
+    expect(rows[0]?.pointsOnlyCount).toBe(0)
+  })
+
   it('keeps tables in numerical order when one is interesting', () => {
     const rows = buildHostVenueActionRows([
       { tableNum: 4, seated: 2, pot: 0, phase: 'betting', seatNames: ['Ned'], interestingAction: true } as never,

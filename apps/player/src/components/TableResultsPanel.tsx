@@ -1,19 +1,89 @@
-import type { TableResults } from '../playerModel/tableResults'
-import { formatChipChange, formatStack, formatWinnerLine } from '../playerModel/tableResults'
+import { useState } from 'react'
+import { formatTriviaPoints } from '@qhe/core'
 import { ChipText } from '@qhe/ui'
+import {
+  formatChipChange,
+  formatStack,
+  formatWinnerLine,
+  nextTableResultSort,
+  sortTableResultRows,
+  type TableResultRow,
+  type TableResultSort,
+  type TableResultSortKey,
+  type TableResults,
+} from '../playerModel/tableResults'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type TableResultsPanelProps = {
   results: TableResults
 }
 
+const COLUMNS: { key: TableResultSortKey; label: string; numeric: boolean }[] = [
+  { key: 'name', label: 'Name', numeric: false },
+  { key: 'answer', label: 'Answer', numeric: true },
+  { key: 'off', label: 'Off', numeric: true },
+  { key: 'points', label: 'Pts', numeric: true },
+  { key: 'stack', label: 'Stack', numeric: true },
+  { key: 'change', label: 'Change', numeric: true },
+]
+
+function ariaSort(sort: TableResultSort, key: TableResultSortKey): 'ascending' | 'descending' | 'none' {
+  if (sort.key !== key) return 'none'
+  return sort.dir === 'asc' ? 'ascending' : 'descending'
+}
+
+function ResultRow({ row }: { row: TableResultRow }) {
+  return (
+    <div
+      role="row"
+      className={[
+        'player-table-results-row',
+        row.isYou ? 'player-table-results-row--you' : '',
+        row.isPotWinner ? 'player-table-results-row--winner' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <span className="player-table-results-name" role="cell">
+        {row.name}
+        {row.isYou ? <span className="player-table-results-you">You</span> : null}
+      </span>
+      <span
+        className={`player-table-results-answer player-table-results-num${row.folded ? ' player-table-results-answer--muted' : ''}`}
+        role="cell"
+      >
+        {row.formattedAnswer}
+      </span>
+      <span className="player-table-results-num" role="cell">
+        {row.formattedOff}
+      </span>
+      <span className="player-table-results-num" role="cell">
+        {formatTriviaPoints(row.triviaPoints)}
+      </span>
+      <span className="player-table-results-stack player-table-results-num" role="cell">
+        <ChipText text={formatStack(row.stack)} />
+      </span>
+      <span
+        className={[
+          'player-table-results-change',
+          'player-table-results-num',
+          row.chipChange > 0 ? 'player-table-results-change--up' : '',
+          row.chipChange < 0 ? 'player-table-results-change--down' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        role="cell"
+      >
+        <ChipText text={formatChipChange(row.chipChange)} />
+      </span>
+    </div>
+  )
+}
+
 export default function TableResultsPanel({ results }: TableResultsPanelProps) {
-  const you = results.rows.find((r) => r.isYou)
-  const orderedRows = [
-    ...results.rows.filter((r) => r.isYou),
-    ...results.rows.filter((r) => !r.isYou && r.isPotWinner),
-    ...results.rows.filter((r) => !r.isYou && !r.isPotWinner),
-  ]
+  const [sort, setSort] = useState<TableResultSort>({ key: 'off', dir: 'asc' })
+  const you = results.rows.find((row) => row.isYou)
+  const orderedRows = sortTableResultRows(results.rows, sort.key, sort.dir)
 
   return (
     <PlayerGoldPanel title="Table results">
@@ -31,8 +101,10 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
               <>
                 Your answer{' '}
                 <span className="player-game-result-mono">{you.formattedAnswer}</span>
+                {' · off '}
+                <span className="player-game-result-mono">{you.formattedOff}</span>
                 {' · '}
-                <strong className="player-game-result-mono">{you.triviaPoints}</strong> pts
+                <strong className="player-game-result-mono">{formatTriviaPoints(you.triviaPoints)}</strong> pts
                 {you.folded ? ' · folded chips' : null}
               </>
             )}
@@ -42,49 +114,25 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
 
       <div className="player-table-results-scroll" role="table" aria-label="Table hand results">
         <div className="player-table-results-row player-table-results-row--head" role="row">
-          <span role="columnheader">Name</span>
-          <span role="columnheader">Answer</span>
-          <span role="columnheader">Stack</span>
-          <span role="columnheader">Change</span>
+          {COLUMNS.map((column) => (
+            <span
+              key={column.key}
+              role="columnheader"
+              aria-sort={ariaSort(sort, column.key)}
+              className={column.numeric ? 'player-table-results-num' : undefined}
+            >
+              <button
+                type="button"
+                className="player-table-results-sort"
+                onClick={() => setSort((current) => nextTableResultSort(current, column.key))}
+              >
+                {column.label}
+              </button>
+            </span>
+          ))}
         </div>
         {orderedRows.map((row) => (
-          <div
-            key={row.playerId}
-            role="row"
-            className={[
-              'player-table-results-row',
-              row.isYou ? 'player-table-results-row--you' : '',
-              row.isPotWinner ? 'player-table-results-row--winner' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            <span className="player-table-results-name" role="cell">
-              {row.name}
-              {row.isYou ? <span className="player-table-results-you">You</span> : null}
-            </span>
-            <span
-              className={`player-table-results-answer${row.folded ? ' player-table-results-answer--muted' : ''}`}
-              role="cell"
-            >
-              {row.formattedAnswer}
-            </span>
-            <span className="player-table-results-stack" role="cell">
-              <ChipText text={formatStack(row.stack)} />
-            </span>
-            <span
-              className={[
-                'player-table-results-change',
-                row.chipChange > 0 ? 'player-table-results-change--up' : '',
-                row.chipChange < 0 ? 'player-table-results-change--down' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              role="cell"
-            >
-              <ChipText text={formatChipChange(row.chipChange)} />
-            </span>
-          </div>
+          <ResultRow key={row.playerId} row={row} />
         ))}
       </div>
     </PlayerGoldPanel>

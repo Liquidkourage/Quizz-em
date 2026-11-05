@@ -15,6 +15,9 @@ export type TableResultRow = {
   pointsOnly: boolean
   submitted: number | null
   formattedAnswer: string
+  /** Absolute miss from the correct answer. Null when no guess was locked. */
+  off: number | null
+  formattedOff: string
   /** Stack after this hand’s pot share (bankroll + chipPayout while previewing). */
   stack: number
   /** Chips returned from the pot this hand (gross). */
@@ -34,6 +37,16 @@ export type TableResults = {
   /** Your trivia points this hand when `myPlayerId` is known. */
   yourTriviaPoints: number | null
   rows: TableResultRow[]
+}
+
+function guessOff(submitted: number | null, correct: number): number | null {
+  if (submitted == null) return null
+  return Math.abs(submitted - correct)
+}
+
+function formatOff(off: number | null): string {
+  if (off == null) return '—'
+  return formatTriviaNumber(off)
 }
 
 /** Coerce legacy `payout` into a phase previewChipPayout accepts. */
@@ -69,6 +82,7 @@ export function buildTableResults(
     else if (folded) formattedAnswer = 'Folded'
     else if (pointsOnly) formattedAnswer = 'Points only'
 
+    const off = guessOff(submitted, q.answer)
     const chipPayout = Math.max(0, Math.round(payoutById[p.id] ?? 0))
     const contributed = Math.max(0, Math.round(contributions[p.id] ?? 0))
     const chipChange = pointsOnly ? 0 : chipPayout - contributed
@@ -82,6 +96,8 @@ export function buildTableResults(
       pointsOnly,
       submitted,
       formattedAnswer,
+      off,
+      formattedOff: formatOff(off),
       stack: bankroll + chipPayout,
       chipPayout,
       chipChange,
@@ -130,6 +146,49 @@ export function formatChipChange(amount: number): string {
 
 export function formatStack(amount: number): string {
   return `$${Math.max(0, Math.round(amount)).toLocaleString()}`
+}
+
+export type TableResultSortKey = 'name' | 'answer' | 'off' | 'points' | 'stack' | 'change'
+export type TableResultSortDir = 'asc' | 'desc'
+export type TableResultSort = { key: TableResultSortKey; dir: TableResultSortDir }
+
+export function nextTableResultSort(current: TableResultSort, key: TableResultSortKey): TableResultSort {
+  if (current.key !== key) return { key, dir: 'asc' }
+  return { key, dir: current.dir === 'asc' ? 'desc' : 'asc' }
+}
+
+function compareMissingLast(a: number | null, b: number | null, sign: number): number {
+  if (a == null && b == null) return 0
+  if (a == null) return 1
+  if (b == null) return -1
+  return (a - b) * sign
+}
+
+function sortNumber(row: TableResultRow, key: TableResultSortKey): number | null {
+  if (key === 'answer') return row.submitted
+  if (key === 'off') return row.off
+  if (key === 'points') return row.triviaPoints
+  if (key === 'stack') return row.stack
+  return row.chipChange
+}
+
+function compareTableResultRows(
+  a: TableResultRow,
+  b: TableResultRow,
+  key: TableResultSortKey,
+  sign: number,
+): number {
+  if (key === 'name') return a.name.localeCompare(b.name) * sign
+  return compareMissingLast(sortNumber(a, key), sortNumber(b, key), sign)
+}
+
+export function sortTableResultRows(
+  rows: readonly TableResultRow[],
+  key: TableResultSortKey,
+  dir: TableResultSortDir,
+): TableResultRow[] {
+  const sign = dir === 'asc' ? 1 : -1
+  return [...rows].sort((left, right) => compareTableResultRows(left, right, key, sign))
 }
 
 export function formatWinnerLine(results: TableResults): string {

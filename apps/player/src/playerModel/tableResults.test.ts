@@ -4,7 +4,9 @@ import {
   buildTableResults,
   formatChipChange,
   formatWinnerLine,
+  nextTableResultSort,
   shouldClearTableResults,
+  sortTableResultRows,
 } from './tableResults'
 
 function showdownState(overrides?: {
@@ -87,6 +89,34 @@ describe('buildTableResults', () => {
     expect(formatChipChange(-30)).toBe('-$30')
     expect(formatChipChange(0)).toBe('—')
     expect(bob.stack).toBe(1000 + bob.chipPayout)
+    expect(alice.off).toBe(2)
+    expect(bob.off).toBe(0)
+    expect(cara.off).toBe(10)
+    expect(alice.triviaPoints).toBeGreaterThan(0)
+  })
+
+  it('sorts every results column, with missing guesses last', () => {
+    const gs = showdownState({
+      answer: 50,
+      players: [
+        { id: 'a', name: 'Cara', submittedAnswer: 40 },
+        { id: 'b', name: 'Alice', submittedAnswer: 50 },
+        { id: 'c', name: 'Bob' },
+      ],
+    })
+    const rows = buildTableResults(gs, null)!.rows
+    expect(sortTableResultRows(rows, 'name', 'asc').map((row) => row.name)).toEqual(['Alice', 'Bob', 'Cara'])
+    expect(sortTableResultRows(rows, 'off', 'asc').map((row) => row.playerId)).toEqual(['b', 'a', 'c'])
+    expect(sortTableResultRows(rows, 'answer', 'desc').map((row) => row.playerId)[0]).toBe('b')
+    expect(sortTableResultRows(rows, 'points', 'desc')[0]!.playerId).toBe('b')
+    expect(sortTableResultRows(rows, 'stack', 'asc').map((row) => row.playerId)).toEqual(
+      [...rows].sort((a, b) => a.stack - b.stack).map((row) => row.playerId),
+    )
+    expect(sortTableResultRows(rows, 'change', 'asc').map((row) => row.playerId)).toEqual(
+      [...rows].sort((a, b) => a.chipChange - b.chipChange).map((row) => row.playerId),
+    )
+    expect(nextTableResultSort({ key: 'off', dir: 'asc' }, 'off')).toEqual({ key: 'off', dir: 'desc' })
+    expect(nextTableResultSort({ key: 'off', dir: 'asc' }, 'name')).toEqual({ key: 'name', dir: 'asc' })
   })
 
   it('includes post-hand stack amounts per seat', () => {

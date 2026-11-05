@@ -859,11 +859,13 @@ export function buildSidePotSettlement(
   return { pots, returns };
 }
 
+export type LiveSidePot = { mark: number; amount: number }
+
 /** Highest side-pot number each seat can win. The main pot is the first contested layer. */
 export function livePotLayers(
   amounts: readonly number[],
   folded: readonly boolean[],
-): { main: number; marks: (number | null)[] } {
+): { main: number; sides: LiveSidePot[]; marks: (number | null)[] } {
   const contributions: Record<string, number> = {}
   const foldedById: Record<string, boolean> = {}
   for (let i = 0; i < amounts.length; i++) {
@@ -873,7 +875,15 @@ export function livePotLayers(
   const { pots } = buildSidePotSettlement(contributions, foldedById)
   const marks: (number | null)[] = amounts.map(() => null)
   writeSidePotMarks(pots, marks)
-  return { main: pots[0]?.amount ?? 0, marks }
+  return { main: pots[0]?.amount ?? 0, sides: sidePotTotals(pots), marks }
+}
+
+function sidePotTotals(pots: SidePot[]): LiveSidePot[] {
+  const sides: LiveSidePot[] = []
+  for (let layer = 1; layer < pots.length; layer++) {
+    sides.push({ mark: layer, amount: pots[layer]!.amount })
+  }
+  return sides
 }
 
 function writeSidePotMarks(pots: SidePot[], marks: (number | null)[]): void {

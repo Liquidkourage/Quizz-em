@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { addPlayer, createEmptyGame, displayedMainPot, type GameState } from '@qhe/core'
+import { addPlayer, createEmptyGame, displayedMainPot, livePotLayers, type GameState } from '@qhe/core'
 import GameInfoCard from './GameInfoCard'
 import { PlayerFeltPot } from './TableFeltView'
 import StickyQuestionBar from './StickyQuestionBar'
@@ -24,18 +24,30 @@ function unevenHand(): GameState {
   }
 }
 
+function layersOf(hand: GameState) {
+  return livePotLayers(
+    hand.players.map((player) => hand.round.handContributions?.[player.id] ?? 0),
+    hand.players.map((player) => player.hasFolded === true || player.pointsOnly === true),
+  )
+}
+
 describe('player side pot', () => {
-  it('shows the main pot on the felt', () => {
+  it('shows the main pot and the numbered side pot on the felt', () => {
     const hand = unevenHand()
     const html = renderToStaticMarkup(
-      createElement(PlayerFeltPot, { pot: displayedMainPot(hand) }),
+      createElement(PlayerFeltPot, { pot: displayedMainPot(hand), sides: layersOf(hand).sides }),
     )
     expect(html).toContain('Pot $300')
+    expect(html).toContain('player-game-table-side-pot')
+    expect(html).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1">1</sup>')
     expect(html).not.toContain('of which')
     expect(html).not.toContain('850')
     const even = { ...hand, round: { ...hand.round, pot: 200, handContributions: { a: 100, b: 100, c: 0 } } }
-    const quiet = renderToStaticMarkup(createElement(PlayerFeltPot, { pot: displayedMainPot(even) }))
+    const quiet = renderToStaticMarkup(
+      createElement(PlayerFeltPot, { pot: displayedMainPot(even), sides: layersOf(even).sides }),
+    )
     expect(quiet).toContain('Pot $200')
+    expect(quiet).not.toContain('player-game-table-side-pot')
     expect(quiet).not.toContain('of which')
   })
 

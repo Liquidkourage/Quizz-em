@@ -26,11 +26,12 @@ describe('felt side pot', () => {
         prefersReducedMotion: true,
       }),
     )
-    expect(html).toContain('pot $120')
+    expect(html).toContain('pot $120, 1 $4,900')
     expect(html).toContain('$120')
+    expect(html).toContain('aria-label="$4,900"')
+    expect(html).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1">1</sup>')
     expect(html).not.toContain('of which')
     expect(html).not.toContain('5,020')
-    expect(html).not.toContain('4,900')
   })
 
   it('shows the main pot and a superscript on mosaic initials', () => {
@@ -46,8 +47,10 @@ describe('felt side pot', () => {
     )
     const start = html.indexOf('data-table-tile="1"')
     const card = html.slice(start, html.indexOf('data-table-tile="2"'))
-    expect(card).toContain('pot $120')
+    expect(card).toContain('pot $120, 1 $4,900')
     expect(card).toContain('$120')
+    expect(card).toContain('aria-label="$4,900"')
+    expect(card).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1">1</sup>')
     expect(card).not.toContain('of which')
     expect(card).not.toContain('5,020')
   })

@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
+import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, SidePotMark, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
-import { balancedPhysicalSeats, displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID } from '@qhe/core'
+import { balancedPhysicalSeats, displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID, type LiveSidePot } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 import {
   buildPlayerTableStatusLine,
@@ -54,16 +54,26 @@ function answeringStatus(
   return { pill: { kind: 'acting', label: 'Thinking…' }, locked: false }
 }
 
-function SidePotMark({ mark }: { mark: number | null | undefined }) {
-  if (mark == null || mark <= 0) return null
-  return <sup className="side-pot-mark">{mark}</sup>
+function PlayerSideTotals({ sides }: { sides: readonly LiveSidePot[] }) {
+  if (sides.length === 0) return null
+  return (
+    <span className="player-game-table-side-pot">
+      {sides.map((side) => (
+        <span key={side.mark}>
+          <SidePotMark mark={side.mark} />{' '}
+          <ChipText text={`$${side.amount.toLocaleString()}`} />
+        </span>
+      ))}
+    </span>
+  )
 }
 
-export function PlayerFeltPot({ pot }: { pot: number }) {
-  if (pot <= 0) return null
+export function PlayerFeltPot({ pot, sides = [] }: { pot: number; sides?: readonly LiveSidePot[] }) {
+  if (pot <= 0 && sides.length === 0) return null
   return (
     <span className="player-game-table-pot">
-      <ChipText text={`Pot $${pot.toLocaleString()}`} />
+      {pot > 0 ? <ChipText text={`Pot $${pot.toLocaleString()}`} /> : null}
+      <PlayerSideTotals sides={sides} />
     </span>
   )
 }
@@ -106,10 +116,12 @@ export default function TableFeltView({
   const playerBets = gameState.round.playerBets
   const currentBet = gameState.round.currentBet
   const pot = displayedMainPot(gameState)
-  const sideMarks = livePotLayers(
+  const liveLayers = livePotLayers(
     players.map((player) => gameState.round.handContributions?.[player.id] ?? 0),
     players.map((player) => player.hasFolded === true || player.pointsOnly === true),
-  ).marks
+  )
+  const sideMarks = liveLayers.marks
+  const sideLayers = liveLayers.sides
   const hero = heroIndex >= 0 ? players[heroIndex] : undefined
   const heroHoles =
     hero && hero.hand.length >= 2
@@ -259,7 +271,7 @@ export default function TableFeltView({
             ? 'player-game-felt player-game-felt--fill aspect-[8/5] w-full'
             : 'player-game-felt aspect-[8/5] w-full'
         }
-        centerContent={showCenterPot ? <PlayerFeltPot pot={pot} /> : null}
+        centerContent={showCenterPot ? <PlayerFeltPot pot={pot} sides={sideLayers} /> : null}
       />
       </div>
       {heroHoles && heroFolded ? (

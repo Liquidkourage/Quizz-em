@@ -34,6 +34,16 @@ export function ChipMark({ className }: ChipMarkProps) {
  * Renders a string, swapping each `$` for {@link ChipMark}.
  * Screen readers still hear the original text (including “dollar”).
  */
+/** Small number matching the side pot a player can win. */
+export function SidePotMark({ mark }: { mark?: number | null }): ReactNode {
+  if (mark == null || mark <= 0) return null
+  return (
+    <sup className="side-pot-mark" style={{ fontSize: '0.55em', lineHeight: 1 }}>
+      {mark}
+    </sup>
+  )
+}
+
 export function ChipText({ text }: { text: string }): ReactNode {
   if (!text.includes('$')) return text
   const parts = text.split('$')

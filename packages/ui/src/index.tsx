@@ -254,7 +254,7 @@ export function AnimatedBackground() {
 }
 
 export { PokerChip };
-export { ChipMark, ChipText, type ChipMarkProps } from './ChipMark';
+export { ChipMark, ChipText, SidePotMark, type ChipMarkProps } from './ChipMark';
 export { QuizzEmWordmark, type QuizzEmWordmarkProps } from './QuizzEmWordmark';
 export {
   PokerTableGraphic,

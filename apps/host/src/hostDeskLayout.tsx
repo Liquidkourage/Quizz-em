@@ -1,7 +1,7 @@
 import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { HostModal, useHostModalNested } from './HostModal'
-import { ChipText, NeonButton } from '@qhe/ui'
+import { ChipText, NeonButton, SidePotMark } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
 import type {
   HostVenueBigBetEntry,
@@ -1472,11 +1472,6 @@ function hostSeatLayers(seats: HostVenueSeatContest[]) {
 function shownHostPot(pot: number, seats: HostVenueSeatContest[]): number {
   const { main } = hostSeatLayers(seats)
   return main > 0 ? main : pot
-}
-
-function SidePotMark({ mark }: { mark: number | null | undefined }) {
-  if (mark == null || mark <= 0) return null
-  return <sup className="side-pot-mark">{mark}</sup>
 }
 
 function formatHostFloorMoney(n: number): string {

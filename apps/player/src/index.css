@@ -3465,3 +3465,97 @@
   width: min(100%, 22rem);
   text-align: center;
 }
+
+/* Chip and trivia scores sit in a phone-width card. The list swipes inside it. */
+.player-scores-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(1.25rem, env(safe-area-inset-top, 0px))
+    max(0.85rem, env(safe-area-inset-right, 0px))
+    max(1.25rem, env(safe-area-inset-bottom, 0px))
+    max(0.85rem, env(safe-area-inset-left, 0px));
+}
+
+.player-scores-modal-card {
+  position: relative;
+  z-index: 1;
+  flex: 0 1 auto;
+  width: min(100%, 22rem);
+  max-height: min(70dvh, 32rem);
+  height: auto;
+  padding-top: 0.85rem;
+}
+
+.player-scores-modal-card .player-game-panel-title {
+  flex-shrink: 0;
+  margin-bottom: 0.35rem;
+  padding: 0 0.95rem;
+}
+
+.player-scores-modal-list {
+  margin: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 0 0.95rem 0.75rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+.player-scores-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgb(251 191 36 / 0.16);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+}
+
+.player-scores-rank {
+  width: 1.5rem;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgb(253 224 71 / 0.75);
+}
+
+.player-scores-who {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.player-scores-name {
+  display: block;
+  overflow: hidden;
+  font-size: clamp(1rem, 4.2vw, 1.15rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-scores-table {
+  display: block;
+  margin-top: 0.05rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.5);
+}
+
+.player-scores-value {
+  flex-shrink: 0;
+  font-size: clamp(1rem, 4.2vw, 1.2rem);
+  font-weight: 700;
+  color: rgb(254 243 199);
+}

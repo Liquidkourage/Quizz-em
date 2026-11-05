@@ -5,6 +5,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import PlayerScoresSheet from './PlayerScoresSheet'
+import { scoresSheetIdentity } from './playerScoresIdentity'
 
 const playerCss = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../index.css'), 'utf8')
 
@@ -43,6 +44,36 @@ describe('player scores sheet', () => {
       }),
     )
     expect(html).toBe('')
+  })
+
+  it('highlights this phone’s row, and the matching table when names repeat', () => {
+    const html = renderToStaticMarkup(
+      createElement(PlayerScoresSheet, {
+        brief: {
+          scoresBoard: 'chips',
+          scores: [
+            { name: 'Ada', value: 2000, tableNum: 1 },
+            { name: 'Bo', value: 1500, tableNum: 2 },
+            { name: 'Bo', value: 400, tableNum: 4 },
+          ],
+        },
+        selfName: 'bo',
+        selfTableNum: 4,
+      }),
+    )
+    const rows = html.split('<li ').slice(1)
+    const mine = rows.filter((row) => row.includes('player-scores-row--mine'))
+    expect(mine).toHaveLength(1)
+    expect(mine[0]).toContain('Table 4')
+    expect(mine[0]).toContain('aria-current="true"')
+    const paint = playerCss.slice(playerCss.indexOf('.player-scores-row--mine'))
+    expect(paint.startsWith('.player-scores-row--mine')).toBe(true)
+    expect(paint.slice(0, 280)).toContain('background:')
+  })
+
+  it('uses the numbered table, and the name alone from the lobby', () => {
+    expect(scoresSheetIdentity('Bo', '4')).toEqual({ selfName: 'Bo', selfTableNum: 4 })
+    expect(scoresSheetIdentity('Bo', 'LOBBY')).toEqual({ selfName: 'Bo', selfTableNum: null })
   })
 
   it('scrolls inside a phone-sized popup', () => {

@@ -11,6 +11,23 @@ import {
 } from './index'
 
 describe('venueWallDisplayPot', () => {
+  it('matches the phone pot when chips are already committed during the question', () => {
+    let gs = createEmptyGame('V1', 'h1')
+    gs = addPlayer(gs, 'maria', 'Maria A.', 960)
+    gs = addPlayer(gs, 'priya', 'Priya A.', 820)
+    gs = setQuestion(gs, SAMPLE_QUESTIONS[0]!)
+    gs = {
+      ...gs,
+      round: {
+        ...gs.round,
+        pot: 0,
+        handContributions: { maria: 10, priya: 10 },
+      },
+    }
+    expect(gs.phase).toBe('question')
+    expect(venueWallDisplayPot(gs)).toBe(20)
+  })
+
   it('is zero during question setup before blinds post', () => {
     let gs = createEmptyGame('V1', 'h1')
     gs = addPlayer(gs, 'a', 'Alice')

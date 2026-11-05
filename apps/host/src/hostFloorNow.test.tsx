@@ -97,6 +97,28 @@ describe('venue floor now', () => {
     expect(sheet).toContain('To act')
     expect(sheet).toContain('Folded')
     expect(sheet).toContain('aria-label="$800"')
+    const pointsSheet = renderToStaticMarkup(
+      createElement(TableActionHoverSheet, {
+        top: 20,
+        left: 12,
+        pot: 20,
+        seats: [
+          { name: 'Maria A.', kind: 'pot', reason: null, bankroll: 960, invested: 0 },
+          { name: 'Jamal A.', kind: 'points', reason: 'busted', bankroll: 0, invested: 0, answerPoints: 185.59 },
+          { name: 'Elena C.', kind: 'points', reason: 'busted', bankroll: 0, invested: 0, answerPoints: 281.81 },
+          { name: 'Opal A.', kind: 'points', reason: null, offFelt: true },
+        ],
+        actingPlayerName: null,
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    expect(pointsSheet).toContain('aria-label="$20"')
+    expect(pointsSheet).toContain('aria-label="$960"')
+    expect(pointsSheet).toContain('185.59 pts')
+    expect(pointsSheet).toContain('281.81 pts')
+    expect(pointsSheet).toContain('Points')
+    expect(pointsSheet).not.toContain('Busted')
+    expect(pointsSheet).toContain('Not on the felt')
     expect(sheet).toContain('aria-label="$20"')
   })
 

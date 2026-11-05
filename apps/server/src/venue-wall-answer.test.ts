@@ -1,7 +1,8 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { addPlayer, createEmptyGame, endRound, type GameState } from '@qhe/core'
+import { addPlayer, createEmptyGame, displayedMainPot, endRound, type GameState } from '@qhe/core'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import type { Server } from 'socket.io'
+import { buildHostVenueActionRows } from './venue-host-log'
 import {
   bindGameIo,
   emitDisplayVenueSnapshotNow,
@@ -155,5 +156,47 @@ describe('public venue wall answer', () => {
     const snap = io.snapshots.at(-1)
     expect(snap?.headlineQuestionAnswer).toBe(ANSWER)
     expect(snap?.tiles.map((t) => t.showdownAnswer)).toEqual([ANSWER, ANSWER])
+  })
+
+  it('keeps points-only chairs, their points, and the phone pot on one snapshot', () => {
+    let gs = createEmptyGame('LEAK', 'host', '1')
+    gs = addPlayer(gs, 'maria', 'Maria A.', 960)
+    gs = addPlayer(gs, 'priya', 'Priya A.', 820)
+    gs = addPlayer(gs, 'jamal', 'Jamal A.', 0)
+    gs = addPlayer(gs, 'elena', 'Elena C.', 0)
+    const players = gs.players.map((player) => {
+      if (player.id === 'jamal') return { ...player, pointsOnly: true, answerPoints: 185.59 }
+      if (player.id === 'elena') return { ...player, pointsOnly: true, answerPoints: 281.81 }
+      return player
+    })
+    gs = {
+      ...gs,
+      phase: 'question',
+      players,
+      round: {
+        ...gs.round,
+        question: { id: 'wings', text: 'Wingspan', answer: 224.4 },
+        pot: 0,
+        handContributions: { maria: 10, priya: 10 },
+      },
+    }
+    rooms.set(tableSessionKey('LEAK', '1'), gs)
+    const io = captureIo()
+    bindGameIo(io.server)
+    emitDisplayVenueSnapshotNow('LEAK')
+    const tile = io.snapshots.at(-1)?.tiles.find((row) => row.tableNum === 1)
+    const names = tile?.seatNames ?? []
+    const maria = names.indexOf('Maria A.')
+    const jamal = names.indexOf('Jamal A.')
+    const elena = names.indexOf('Elena C.')
+    expect(tile?.pot).toBe(displayedMainPot(gs))
+    expect(tile?.pot).toBe(20)
+    expect(maria).toBeGreaterThanOrEqual(0)
+    expect(tile?.seatBankrolls?.[maria]).toBe(960)
+    expect(tile?.seatAnswerPoints?.[jamal]).toBe(185.59)
+    expect(tile?.seatAnswerPoints?.[elena]).toBe(281.81)
+    const jamalSeat = buildHostVenueActionRows(tile ? [tile] : [])[0]?.seats.find((seat) => seat.name === 'Jamal A.')
+    expect(jamalSeat?.answerPoints).toBe(185.59)
+    expect(jamalSeat?.kind).toBe('points')
   })
 })

@@ -69,6 +69,7 @@ import {
   pctOfStackToCall,
   normalizeBettingTurn,
   previewChipPayoutByPlayerId,
+  roundTriviaPoints,
   venueWallDisplayPot,
   feltSidePotAmount,
   venueShuffleDisplayFields,
@@ -2335,10 +2336,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     })
     const seatFolded = scatterRosterToChairs(gs.players, false, (p) => p.hasFolded === true)
     const seatPointsOnly = scatterRosterToChairs(gs.players, false, (p) => p.pointsOnly === true)
-    const seatAnswerPoints = scatterRosterToChairs(gs.players, 0, (p) => {
-      const pts = p.answerPoints
-      return typeof pts === 'number' && Number.isFinite(pts) ? Math.max(0, Math.floor(pts)) : 0
-    })
+    const seatAnswerPoints = scatterRosterToChairs(gs.players, 0, (p) => roundTriviaPoints(p.answerPoints ?? 0))
     const seatInvested = scatterRosterToChairs(gs.players, 0, (p) => {
       const invested = gs.round.handContributions?.[p.id]
       return typeof invested === 'number' && Number.isFinite(invested) ? Math.max(0, Math.floor(invested)) : 0

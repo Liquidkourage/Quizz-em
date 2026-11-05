@@ -925,32 +925,36 @@ export function displayedMainPot(state: GameState): number {
  * Use on venue-wall displays with `seatNames[]` indexed the same way; null when absent (no players / one player has no blinds).
  */
 /**
- * Whole-dollar pot for venue-wall tiles — mirrors {@link RoundState.pot} once blinds/bets post,
- * with a defensive fallback to total {@link RoundState.handContributions} when the engine pot reads 0 mid-hand.
+ * Whole-dollar pot for venue-wall tiles. Never lower than the pot on the phone
+ * ({@link displayedMainPot}), so a question with chips already committed does not read as $0.
  */
+const VENUE_POT_FROM_BETS = new Set(['betting', 'answering', 'reveal', 'showdown', 'payout'])
+
+function wholeDollarPot(raw: number | undefined): number {
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) return 0
+  return Math.floor(raw)
+}
+
+function sumCommittedChips(committed: Record<string, number> | undefined): number {
+  if (committed == null) return 0
+  let sum = 0
+  for (const amount of Object.values(committed)) {
+    sum += wholeDollarPot(amount)
+  }
+  return sum
+}
+
 export function venueWallDisplayPot(state: GameState): number {
-  const raw = state.round.pot ?? 0;
-  const pot = Math.max(0, Math.floor(Number.isFinite(raw) ? raw : 0));
-  if (pot > 0) return pot;
+  const posted = postedVenuePot(state)
+  const phone = displayedMainPot(state)
+  return phone > posted ? phone : posted
+}
 
-  const phase = state.phase;
-  if (
-    phase !== 'betting' &&
-    phase !== 'answering' &&
-    phase !== 'reveal' &&
-    phase !== 'showdown' &&
-    phase !== 'payout'
-  ) {
-    return 0;
-  }
-
-  const hc = state.round.handContributions;
-  if (hc == null) return 0;
-  let sum = 0;
-  for (const v of Object.values(hc)) {
-    if (typeof v === 'number' && Number.isFinite(v)) sum += Math.max(0, Math.floor(v));
-  }
-  return sum;
+function postedVenuePot(state: GameState): number {
+  const pot = wholeDollarPot(state.round.pot)
+  if (pot > 0) return pot
+  if (!VENUE_POT_FROM_BETS.has(state.phase)) return 0
+  return sumCommittedChips(state.round.handContributions)
 }
 
 export function displayBlindSeatIndices(

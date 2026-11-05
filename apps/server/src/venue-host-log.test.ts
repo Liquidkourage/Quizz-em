@@ -464,6 +464,32 @@ describe('buildHostVenueFloorBrief busts', () => {
 })
 
 describe('buildHostVenueActionRows seats', () => {
+  it('shows trivia points for a points-only chair instead of a zero stack', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 1,
+        seated: 3,
+        pot: 20,
+        phase: 'question',
+        seatNames: ['Maria A.', 'Jamal A.', 'Elena C.'],
+        seatBankrolls: [960, 0, 0],
+        seatPointsOnly: [false, true, true],
+        seatAnswerPoints: [0, 185.59, 281.81],
+        seatInvested: [0, 0, 0],
+        unseatedNames: ['Opal A.'],
+      } as never,
+    ])
+    const jamal = rows[0]?.seats.find((seat) => seat.name === 'Jamal A.')
+    const elena = rows[0]?.seats.find((seat) => seat.name === 'Elena C.')
+    const late = rows[0]?.seats.find((seat) => seat.name === 'Opal A.')
+    expect(rows[0]?.pot).toBe(20)
+    expect(rows[0]?.seats.find((seat) => seat.name === 'Maria A.')?.bankroll).toBe(960)
+    expect(jamal?.answerPoints).toBe(185.59)
+    expect(elena?.answerPoints).toBe(281.81)
+    expect(jamal?.kind).toBe('points')
+    expect(late?.offFelt).toBe(true)
+  })
+
   it('names who is in the pot and who is points only', () => {
     const rows = buildHostVenueActionRows([
       {

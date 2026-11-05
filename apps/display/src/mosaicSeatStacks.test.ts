@@ -91,9 +91,10 @@ function stackPocketsClear(w: number, h: number, font: number): boolean {
 }
 
 describe('public table initials', () => {
-  it('hides the letters when that seat is playing for points', () => {
+  it('keeps the letters when that seat is playing for points', () => {
     expect(mosaicSeatInitialLabel('Ada Lane', false)).toBe('AL')
-    expect(mosaicSeatInitialLabel('Bo Kent', true)).toBe('')
+    expect(mosaicSeatInitialLabel('Jamal A.', true)).toBe('JA')
+    expect(mosaicSeatInitialLabel('Elena C.', true)).toBe('EC')
     expect(mosaicSeatInitialLabel('Alice C. 2', false)).toBe('A2')
   })
 
@@ -103,9 +104,9 @@ describe('public table initials', () => {
     expect(publicSeatShowsHoleCards(true, true, false, true)).toBe(false)
   })
 
-  it('draws no seat chrome when that player is points only', () => {
+  it('draws the seat when that player is points only', () => {
     expect(publicFeltDrawsSeat(false)).toBe(true)
-    expect(publicFeltDrawsSeat(true)).toBe(false)
+    expect(publicFeltDrawsSeat(true)).toBe(true)
   })
 })
 

@@ -18,6 +18,6 @@ describe('hostContestStatus', () => {
   it('marks busted seats as points only', () => {
     const s = hostContestStatus({ hasFolded: false, pointsOnly: true })
     expect(s.kind).toBe('points')
-    expect(hostContestReasonLabel(s)).toBe('Busted')
+    expect(hostContestReasonLabel(s)).toBe('Points')
   })
 })

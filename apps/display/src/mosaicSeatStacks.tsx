@@ -24,9 +24,8 @@ function feltWidthPx(tableWidthPx: number): number {
   return tableWidthPx > 0 ? tableWidthPx : 220
 }
 
-/** Two-letter seat mark. Empty when that player is out of chips. */
-export function mosaicSeatInitialLabel(name: string, pointsOnly: boolean): string {
-  if (pointsOnly) return ''
+/** Two-letter seat mark. Points-only players keep their letters. */
+export function mosaicSeatInitialLabel(name: string, _pointsOnly: boolean): string {
   return publicSeatInitials(name)
 }
 
@@ -40,9 +39,9 @@ export function publicSeatShowsHoleCards(
   return filled && !folded && !pointsOnly && holesVisible
 }
 
-/** Points-only players stay off the public felt: no cup, glow, name, or cards. */
-export function publicFeltDrawsSeat(pointsOnly: boolean): boolean {
-  return !pointsOnly
+/** A seated player is drawn, including a points-only player still at the chair. */
+export function publicFeltDrawsSeat(_pointsOnly: boolean): boolean {
+  return true
 }
 
 /** Two-letter seat mark, sized from the felt so it reads across the room. */

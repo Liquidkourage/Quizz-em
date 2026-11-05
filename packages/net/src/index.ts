@@ -385,8 +385,10 @@ export type HostVenueSeatContest = {
   name: string
   kind: 'pot' | 'points'
   reason: 'folded' | 'busted' | null
-  /** Chips still in front of this seat. */
+  /** Chips still in front of this seat. Omitted for a points-only chair when {@link answerPoints} is set. */
   bankroll?: number
+  /** Trivia points for a points-only chair. The phone shows this instead of a chip stack. */
+  answerPoints?: number
   /** Chips this seat has committed to the pot this hand. */
   invested?: number
   /** True when this seat has locked a guess. Set while the table is guessing. */

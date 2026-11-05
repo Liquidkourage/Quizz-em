@@ -456,21 +456,46 @@ function guessProgress(tile: DisplayVenueTileSnapshot): { answersSubmitted: numb
   return { answersSubmitted, answersExpected }
 }
 
+function wholeChips(value: number | undefined): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return undefined
+  return Math.max(0, Math.floor(value))
+}
+
+function contestReason(busted: boolean, folded: boolean): HostVenueSeatContest['reason'] {
+  if (busted) return 'busted'
+  if (folded) return 'folded'
+  return null
+}
+
+function finitePoints(value: number | undefined): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return undefined
+  return value
+}
+
 function seatContestAt(tile: DisplayVenueTileSnapshot, index: number, name: string): HostVenueSeatContest {
   const busted = tile.seatPointsOnly?.[index] === true
-  const folded = !busted && tile.seatFolded?.[index] === true
-  const reason = busted ? 'busted' : folded ? 'folded' : null
-  const bankroll = tile.seatBankrolls?.[index]
-  const invested = tile.seatInvested?.[index]
+  const reason = contestReason(busted, !busted && tile.seatFolded?.[index] === true)
   const seat: HostVenueSeatContest = {
     name,
     kind: reason == null ? 'pot' : 'points',
     reason,
-    ...(typeof bankroll === 'number' && Number.isFinite(bankroll) ? { bankroll: Math.max(0, Math.floor(bankroll)) } : {}),
-    ...(typeof invested === 'number' && Number.isFinite(invested) ? { invested: Math.max(0, Math.floor(invested)) } : {}),
+    ...chipFields(wholeChips(tile.seatBankrolls?.[index]), wholeChips(tile.seatInvested?.[index])),
+    ...pointsField(busted, finitePoints(tile.seatAnswerPoints?.[index])),
   }
   if (tile.phase === 'answering') seat.guessLocked = tile.seatAnswerLocked?.[index] === true
   return seat
+}
+
+function chipFields(bankroll: number | undefined, invested: number | undefined): Pick<HostVenueSeatContest, 'bankroll' | 'invested'> {
+  return {
+    ...(bankroll != null ? { bankroll } : {}),
+    ...(invested != null ? { invested } : {}),
+  }
+}
+
+function pointsField(busted: boolean, points: number | undefined): Pick<HostVenueSeatContest, 'answerPoints'> {
+  if (!busted || points == null) return {}
+  return { answerPoints: points }
 }
 
 function seatContests(tile: DisplayVenueTileSnapshot): HostVenueSeatContest[] {

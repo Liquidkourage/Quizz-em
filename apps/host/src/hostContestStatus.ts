@@ -18,7 +18,7 @@ export function hostContestStatus(player: Pick<PlayerState, 'hasFolded' | 'point
       kind: 'points',
       label: 'Points only',
       reason: 'busted',
-      detail: 'Busted — trivia points only (not in the chip pot)',
+      detail: 'Still at the chair — trivia points only (not in the chip pot)',
     }
   }
   if (player.hasFolded) {
@@ -47,6 +47,6 @@ export function hostContestStatus(player: Pick<PlayerState, 'hasFolded' | 'point
 
 export function hostContestReasonLabel(status: HostContestStatus): string | null {
   if (status.reason === 'folded') return 'Folded'
-  if (status.reason === 'busted') return 'Busted'
+  if (status.reason === 'busted') return 'Points'
   return null
 }

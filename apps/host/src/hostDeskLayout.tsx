@@ -17,6 +17,7 @@ import {
   disambiguatePublicNames,
   displayedMainPot,
   formatTriviaNumber,
+  formatTriviaPoints,
   livePotLayers,
   LOBBY_TABLE_ID,
   playersHaveHoleCards,
@@ -1740,9 +1741,16 @@ function tableActionHoverStatus(seat: HostVenueSeatContest, acting: boolean): st
   const guess = guessSubmitLabel(seat.guessLocked)
   if (guess) return guess
   if (seat.reason === 'folded') return 'Folded'
-  if (seat.reason === 'busted') return 'Busted'
+  if (seat.reason === 'busted') return 'Points'
   if (acting) return 'To act'
   return 'In'
+}
+
+function hoverStake(seat: HostVenueSeatContest): string {
+  if (seat.reason === 'busted' && typeof seat.answerPoints === 'number') {
+    return `${formatTriviaPoints(seat.answerPoints)} pts`
+  }
+  return hoverMoney(seat.bankroll)
 }
 
 function hoverMoney(amount: number | undefined): string {
@@ -1769,6 +1777,7 @@ export function TableActionHoverSheet({
   top,
   left,
   above = false,
+  pot,
   seats,
   actingPlayerName,
   hostPlayerLabel,
@@ -1776,6 +1785,7 @@ export function TableActionHoverSheet({
   top: number
   left: number
   above?: boolean
+  pot?: number
   seats: HostVenueSeatContest[]
   actingPlayerName: string | null
   hostPlayerLabel: (name: string) => string
@@ -1786,6 +1796,11 @@ export function TableActionHoverSheet({
       className="table-action-roster pointer-events-none fixed z-50 w-max rounded-md bg-zinc-900 px-4 py-3 text-[1.5rem] leading-8 text-white shadow-lg"
       style={{ top, left, transform: above ? 'translateY(calc(-100% - 6px))' : undefined }}
     >
+      {typeof pot === 'number' ? (
+        <p className="mb-1 font-semibold">
+          Pot <ChipText text={formatHostFloorMoney(pot)} />
+        </p>
+      ) : null}
       <TableActionHoverRoster
         seats={seats}
         actingPlayerName={actingPlayerName}
@@ -1816,7 +1831,11 @@ function TableActionHoverRoster({
           <SidePotMark mark={marks[index]} seat />
           </span>
           <span className="text-white/55"> · </span>
-          <ChipText text={hoverMoney(seat.bankroll)} />
+          {seat.reason === 'busted' && typeof seat.answerPoints === 'number' ? (
+            <span>{hoverStake(seat)}</span>
+          ) : (
+            <ChipText text={hoverMoney(seat.bankroll)} />
+          )}
           <span className="text-white/55"> · in pot </span>
           <ChipText text={hoverMoney(seat.invested)} />
           <span className="text-white/55"> · {tableActionHoverStatus(seat, seat.name === actingPlayerName)}</span>
@@ -1827,11 +1846,13 @@ function TableActionHoverRoster({
 }
 
 function TableActionHoverFrame({
+  pot,
   seats,
   actingPlayerName,
   hostPlayerLabel,
   children,
 }: {
+  pot?: number
   seats: HostVenueSeatContest[]
   actingPlayerName: string | null
   hostPlayerLabel: (name: string) => string
@@ -1853,6 +1874,7 @@ function TableActionHoverFrame({
               top={origin.top}
               left={origin.left}
               above={origin.above}
+              pot={pot}
               seats={seats}
               actingPlayerName={actingPlayerName}
               hostPlayerLabel={hostPlayerLabel}
@@ -1866,7 +1888,7 @@ function TableActionHoverFrame({
 
 function seatReasonLabel(reason: HostVenueSeatContest['reason']): string | null {
   if (reason === 'folded') return 'Folded'
-  if (reason === 'busted') return 'Busted'
+  if (reason === 'busted') return 'Points'
   return null
 }
 
@@ -2003,7 +2025,9 @@ function SeatContestRow({
           {hostPlayerLabel(row.seat.name)}
           <SidePotMark mark={row.sideMarks} seat />
         </p>
-        {row.seat.bankroll != null ? (
+        {row.seat.reason === 'busted' && typeof row.seat.answerPoints === 'number' ? (
+          <p className="text-xs tabular-nums text-white/70">{hoverStake(row.seat)}</p>
+        ) : row.seat.bankroll != null ? (
           <p className="text-xs tabular-nums text-white/70">
             <ChipText text={formatHostFloorMoney(row.seat.bankroll)} />
             {row.seat.invested != null ? (
@@ -2455,6 +2479,7 @@ export function HostVenueFloorBriefPanel({
                   return (
                     <li key={row.tableNum} className="relative">
                     <TableActionHoverFrame
+                      pot={row.pot}
                       seats={row.seats ?? []}
                       actingPlayerName={row.actingPlayerName}
                       hostPlayerLabel={hostPlayerLabel}

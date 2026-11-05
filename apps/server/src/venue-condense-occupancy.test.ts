@@ -77,6 +77,46 @@ describe('compactVenueTableNumbers', () => {
     expect(moved).toContain('cam->V:2')
   })
 
+  it('moves a busted player with the chip player who took the main pot', () => {
+    const rooms = new Map<string, GameState>()
+    const ada = createEmptyGame('V', 'host', '1')
+    ada.players = [{ id: 'ada', name: 'Ada', bankroll: 500, hand: [], hasFolded: false, isAllIn: false }]
+    const cam = createEmptyGame('V', 'host', '3')
+    cam.players = [
+      { id: 'cam', name: 'Cam', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
+      {
+        id: 'boo',
+        name: 'Boo',
+        bankroll: 0,
+        hand: [],
+        hasFolded: false,
+        isAllIn: false,
+        pointsOnly: true,
+        ghostHostId: 'cam',
+      },
+    ]
+    rooms.set('V:1', ada)
+    rooms.set('V:3', cam)
+    const deps = {
+      venueCode: 'V',
+      getState: (key: string) => rooms.get(key),
+      setState: (key: string, gs: GameState) => rooms.set(key, gs),
+      tableSessionKey: (code: string, tableId: string) => `${code}:${tableId}`,
+      tableNumFromSessionKey: (_code: string, key: string) => Number(key.split(':')[1]),
+      allTableSessionKeys: () => [...rooms.keys()],
+      applyEffectiveBlinds: (gs: GameState) => gs,
+      emitTableState: () => {},
+      moveHumanSocket: () => {},
+      io: { to: () => ({ emit: () => {} }) },
+      hostId: 'host',
+    } as unknown as VenueCondenseApplyDeps
+
+    compactVenueTableNumbers(deps)
+
+    expect(rooms.get('V:1')?.players.map((player) => player.id)).toEqual(['ada'])
+    expect(rooms.get('V:2')?.players.map((player) => player.id)).toEqual(['cam', 'boo'])
+  })
+
   it('packs live tables 1, 3, 4, 5 into 1, 2, 3, 4 after the break', () => {
     const rooms = new Map<string, GameState>()
     for (const tableNum of [1, 3, 4, 5]) {

@@ -5,6 +5,7 @@ import {
   VENUE_NUMBERED_TABLE_MAX,
   createEmptyGame,
   mergePointsStandings,
+  seatGhostsBesideHosts,
   nextBigBlindChipIndex,
   compactTableNumbers,
   planVenueCondense,
@@ -121,14 +122,17 @@ function applyPlayerMoveToRooms(
   const pi = fromGs.players.findIndex((p) => p.id === move.playerId)
   if (pi < 0) return null
   const player = fromGs.players[pi]!
-  const nextFrom: GameState = { ...fromGs, players: fromGs.players.filter((_, i) => i !== pi) }
-  const nextTo: GameState = { ...toGs, players: toGs.players.concat(player) }
+  const moving = [player, ...followersOf(fromGs.players, player.id)]
+  const movingIds = new Set(moving.map((seat) => seat.id))
+  const nextFrom: GameState = { ...fromGs, players: fromGs.players.filter((seat) => !movingIds.has(seat.id)) }
+  const nextTo: GameState = { ...toGs, players: toGs.players.concat(moving) }
   deps.setState(fromKey, nextFrom)
   deps.setState(toKey, deps.applyEffectiveBlinds(nextTo, vn, toKey))
   deps.emitTableState(fromKey, nextFrom)
   deps.emitTableState(toKey, deps.getState(toKey)!)
-  if (!player.id.startsWith('vp:')) {
-    deps.moveHumanSocket(player.id, toKey, String(move.toTableNum))
+  for (const seat of moving) {
+    if (seat.id.startsWith('vp:')) continue
+    deps.moveHumanSocket(seat.id, toKey, String(move.toTableNum))
   }
 
   deps.io.to(toKey).emit(
@@ -145,32 +149,56 @@ export function unsettledAllInPassengers<T extends { pointsOnly?: boolean; bankr
   return players.filter((p) => p.pointsOnly !== true && p.bankroll <= 0)
 }
 
+function followersOf(players: GameState['players'], hostId: string): GameState['players'] {
+  return players.filter((player) => player.pointsOnly === true && player.ghostHostId === hostId)
+}
+
 function gatherPointsOnlyPlayers(deps: VenueCondenseApplyDeps): GameState['players'] {
   const riders: GameState['players'] = []
   for (const tk of deps.allTableSessionKeys(deps.venueCode)) {
     const gs = deps.getState(tk)
     if (!gs) continue
-    riders.push(...gs.players.filter((player) => player.pointsOnly === true))
+    const chip = gs.players.find((player) => player.pointsOnly !== true && player.bankroll > 0)
+    for (const player of gs.players) {
+      if (player.pointsOnly !== true) continue
+      if (player.ghostHostId || !chip) {
+        riders.push(player)
+        continue
+      }
+      riders.push({ ...player, ghostHostId: chip.id })
+    }
   }
   return riders
 }
 
-function attachPointsOnlyPlayers(
-  deps: VenueCondenseApplyDeps,
-  riders: readonly GameState['players'][number][],
-  homeTableNum: number,
-): void {
-  if (riders.length === 0) return
-  const tk = deps.tableSessionKey(deps.venueCode, String(homeTableNum))
-  const gs = deps.getState(tk)
-  if (!gs) return
-  const seen = new Set(gs.players.map((player) => player.id))
-  const extra = riders.filter((player) => !seen.has(player.id))
-  if (extra.length === 0) return
-  deps.setState(tk, { ...gs, players: gs.players.concat(extra) })
-  for (const player of extra) {
-    if (player.id.startsWith('vp:')) continue
-    deps.moveHumanSocket(player.id, tk, String(homeTableNum))
+function stripPointsOnlyPlayers(deps: VenueCondenseApplyDeps): void {
+  for (const tk of deps.allTableSessionKeys(deps.venueCode)) {
+    const gs = deps.getState(tk)
+    if (!gs) continue
+    const chip = gs.players.filter((player) => player.pointsOnly !== true)
+    if (chip.length === gs.players.length) continue
+    deps.setState(tk, { ...gs, players: chip })
+  }
+}
+
+function placeGhostsInRooms(deps: VenueCondenseApplyDeps, ghosts: readonly GameState['players'][number][]): void {
+  const tables = new Map<number, GameState['players']>()
+  for (const tk of deps.allTableSessionKeys(deps.venueCode)) {
+    const gs = deps.getState(tk)
+    const tableNum = deps.tableNumFromSessionKey(deps.venueCode, tk)
+    if (!gs || tableNum == null) continue
+    tables.set(tableNum, gs.players.filter((player) => player.pointsOnly !== true))
+  }
+  const seated = seatGhostsBesideHosts(tables, ghosts)
+  for (const [tableNum, players] of seated) {
+    const tk = deps.tableSessionKey(deps.venueCode, String(tableNum))
+    const gs = deps.getState(tk)
+    if (!gs) continue
+    deps.setState(tk, { ...gs, players })
+    for (const player of players) {
+      if (player.pointsOnly !== true || player.id.startsWith('vp:')) continue
+      deps.moveHumanSocket(player.id, tk, String(tableNum))
+    }
   }
 }
 
@@ -179,16 +207,9 @@ function seatPointsOnlyRiders(
   riders: readonly GameState['players'][number][],
 ): void {
   if (riders.length === 0) return
-  const liveTableNums = [...assignments.keys()]
-    .filter((n) => (assignments.get(n)?.length ?? 0) > 0)
-    .sort((a, b) => a - b)
-  const home = liveTableNums[0]
-  if (home == null) return
-  const list = assignments.get(home) ?? []
-  const seen = new Set(list.map((player) => player.id))
-  const extra = riders.filter((player) => !seen.has(player.id))
-  if (extra.length === 0) return
-  assignments.set(home, list.concat(extra))
+  const seated = seatGhostsBesideHosts(assignments, riders)
+  assignments.clear()
+  for (const [tableNum, players] of seated) assignments.set(tableNum, players)
 }
 
 function seatUnsettledAllIn(
@@ -332,9 +353,13 @@ export function noteRenumberedSeatingMoves<T extends { toTableNum: number; renum
  */
 export function compactVenueTableNumbers(deps: VenueCondenseApplyDeps): Map<number, number> {
   const pointsRiders = gatherPointsOnlyPlayers(deps)
+  stripPointsOnlyPlayers(deps)
   const live = collectRosters(deps)
   const map = compactTableNumbers(live.map((table) => table.tableNum))
-  if (live.every((table) => map.get(table.tableNum) === table.tableNum)) return map
+  if (live.every((table) => map.get(table.tableNum) === table.tableNum)) {
+    placeGhostsInRooms(deps, pointsRiders)
+    return map
+  }
 
   const snapshots = snapshotLiveTables(deps, live)
   const hostId = snapshots.find((snap) => snap.gs)?.gs?.hostId ?? deps.hostId
@@ -345,8 +370,7 @@ export function compactVenueTableNumbers(deps: VenueCondenseApplyDeps): Map<numb
     writePackedTable(deps, snap, nextNum, hostId)
   }
   clearPackedGaps(deps, snapshots, nextNums)
-  const home = [...nextNums].sort((a, b) => a - b)[0] ?? 1
-  attachPointsOnlyPlayers(deps, pointsRiders, home)
+  placeGhostsInRooms(deps, pointsRiders)
   emitPackedTables(deps, snapshots, nextNums)
   return map
 }

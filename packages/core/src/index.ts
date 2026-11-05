@@ -1,4 +1,7 @@
 ﻿import { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
+import { assignGhostHosts } from './ghostHost'
+
+export { seatGhostsBesideHosts } from './ghostHost'
 
 export type GamePhase = 'lobby' | 'question' | 'betting' | 'answering' | 'reveal' | 'showdown' | 'payout' | 'intermission';
 
@@ -41,6 +44,11 @@ export interface PlayerState {
    * Out of blinds, bets, and the chip pot.
    */
   pointsOnly?: boolean;
+  /**
+   * Chip player this busted seat follows from table to table.
+   * Set to someone who won a share of the main pot on the hand they busted.
+   */
+  ghostHostId?: string;
 }
 
 /** Chips: blinds, action, pot. Trivia submissions still allowed when false. */
@@ -1763,6 +1771,31 @@ function awardPotStillOnTable(state: GameState): GameState {
   return payoutPotToEligibleSurvivors(state, ids, state.round.pot);
 }
 
+function hasChipContributions(contributions: Record<string, number>): boolean {
+  for (const value of Object.values(contributions)) {
+    if (typeof value === 'number' && value > 0) return true
+  }
+  return false
+}
+
+function layerShareholderIds(state: GameState, eligiblePlayerIds: readonly string[]): string[] {
+  const trivia = determineChipPotTriviaWinnersAmong(state, eligiblePlayerIds)
+  if (trivia && trivia.winnerIds.length > 0) return trivia.winnerIds
+  return unansweredPotRecipients(state, eligiblePlayerIds)
+}
+
+/** Players who take a share of the main pot on this hand. */
+export function mainPotShareholderIds(state: GameState): string[] {
+  const contributions = state.round.handContributions
+  if (contributions == null || !hasChipContributions(contributions)) {
+    return layerShareholderIds(state, state.players.map((player) => player.id))
+  }
+  const { pots } = buildSidePotSettlement(contributions, foldedForSidePots(state, contributions))
+  const main = pots[0]
+  if (!main || main.amount <= 0) return []
+  return layerShareholderIds(state, main.eligiblePlayerIds)
+}
+
 /** Pay the hand using side pots when {@link RoundState.handContributions} is present. */
 export function payoutHandWithSidePots(state: GameState): GameState {
   const contributions = state.round.handContributions ?? {};
@@ -1925,7 +1958,8 @@ export function endRound(state: GameState): GameState {
     };
   });
 
-  const nextDealer = nextDealerOnOccupants(clearedPlayers, afterPayout.round.dealerIndex);
+  const seatedPlayers = assignGhostHosts(state.players, clearedPlayers, mainPotShareholderIds(state))
+  const nextDealer = nextDealerOnOccupants(seatedPlayers, afterPayout.round.dealerIndex);
 
   return {
     ...afterPayout,
@@ -1944,7 +1978,7 @@ export function endRound(state: GameState): GameState {
       playerBets: {},
       handContributions: {},
     },
-    players: clearedPlayers,
+    players: seatedPlayers,
   };
 }
 

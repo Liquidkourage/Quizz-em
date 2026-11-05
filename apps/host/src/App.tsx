@@ -539,7 +539,7 @@ function HostApp() {
     ? venueRevealAnswerBlockedHint(venueFeltBeat, venueFloorBrief?.actionRows, guessClockNowMs)
     : null
   const revealAnswerBlocked = revealAnswerHint != null
-  const stillGuessing = playersStillGuessing(venueFloorBrief?.actionRows, venueFeltBeat, guessClockNowMs)
+  const stillGuessing = playersStillGuessing(venueFloorBrief?.actionRows)
   const winnerScreensReadyAtMs = venueFloorBrief?.winnerScreensReadyAtMs ?? null
   const payWinnersHint = winnerScreensPayoutHint(winnerScreensReadyAtMs, winnerScreenNowMs)
   const payWinnersBlocked = payWinnersHint != null

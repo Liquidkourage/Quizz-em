@@ -7,9 +7,11 @@ import {
   isVenueHeld,
   prepareVenuePersistence,
   restoreRoomsFromSnapshot,
+  cpuVpDrainPending,
   resumeVenueAfterRestartIfHeld,
   rooms,
   setVenueRoomHold,
+  venueShowdownAtMs,
 } from './game-ops'
 import { toSnapshotRows } from './room-snapshot'
 
@@ -86,5 +88,22 @@ describe('resumeVenueAfterRestartIfHeld', () => {
 
   it('does nothing for a venue that was never restored', () => {
     expect(resumeVenueAfterRestartIfHeld('never')).toBe(false)
+  })
+
+  it('lets unanswered bots keep going and restores the answer guide when the host comes back', () => {
+    vi.setSystemTime(61_000)
+    let gs = addPlayer(createEmptyGame('R7', 'old-host', '1'), 'vp:1', 'Ada')
+    gs = {
+      ...gs,
+      phase: 'answering',
+      round: { ...gs.round, answerDeadline: 100_000 },
+    }
+    const rows = toSnapshotRows(new Map([['R7:1', gs]])).map((row) => ({ ...row, savedAtMs: 1_000 }))
+    restoreRoomsFromSnapshot(rows, 61_000)
+    cpuVpDrainPending.delete('R7:1')
+    venueShowdownAtMs.delete('R7')
+    expect(resumeVenueAfterRestartIfHeld('r7')).toBe(true)
+    expect(cpuVpDrainPending.has('R7:1')).toBe(true)
+    expect(venueShowdownAtMs.get('R7')).toBe(160_000)
   })
 })

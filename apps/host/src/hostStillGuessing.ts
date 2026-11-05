@@ -1,23 +1,6 @@
-import type { HostVenueActionRow, HostVenueFeltBeatRow } from '@qhe/net'
+import type { HostVenueActionRow } from '@qhe/net'
 
 export type StillGuessingPlayer = { name: string; tableNum: number }
-
-function answeringClockDone(felt: HostVenueFeltBeatRow, nowMs: number): boolean {
-  if (!felt.active || felt.seated <= 0 || felt.phase !== 'answering') return false
-  const deadline = felt.answerDeadlineMs
-  return typeof deadline === 'number' && Number.isFinite(deadline) && nowMs >= deadline
-}
-
-function tablesWhoseGuessClockIsDone(
-  felts: HostVenueFeltBeatRow[] | null | undefined,
-  nowMs: number,
-): Set<number> {
-  const clockDone = new Set<number>()
-  for (const felt of felts ?? []) {
-    if (answeringClockDone(felt, nowMs)) clockDone.add(felt.tableNum)
-  }
-  return clockDone
-}
 
 function pushOpenGuesses(out: StillGuessingPlayer[], row: HostVenueActionRow): void {
   for (const seat of row.seats) {
@@ -27,17 +10,13 @@ function pushOpenGuesses(out: StillGuessingPlayer[], row: HostVenueActionRow): v
   }
 }
 
-/** Names still out once that table's answer clock has reached 0. */
+/** Names on answering tables that have not locked a guess. The host can nudge them before the guide clock ends. */
 export function playersStillGuessing(
   rows: HostVenueActionRow[] | null | undefined,
-  felts: HostVenueFeltBeatRow[] | null | undefined,
-  nowMs: number,
 ): StillGuessingPlayer[] {
-  const clockDone = tablesWhoseGuessClockIsDone(felts, nowMs)
-  if (clockDone.size === 0) return []
   const out: StillGuessingPlayer[] = []
   for (const row of rows ?? []) {
-    if (row.phase !== 'answering' || !clockDone.has(row.tableNum)) continue
+    if (row.phase !== 'answering') continue
     pushOpenGuesses(out, row)
   }
   out.sort((a, b) => a.tableNum - b.tableNum || a.name.localeCompare(b.name))
@@ -45,8 +24,8 @@ export function playersStillGuessing(
 }
 
 /**
- * The still-guessing list reads a desk clock that only moves when a timer fires.
- * If the answer deadline is already past, that timer was cleared and the list stays hidden.
+ * The desk clock only moves when a timer fires.
+ * If the answer deadline is already past, that timer was cleared.
  * Return the current time so the desk clock catches up.
  */
 export function guessClockCatchUp(

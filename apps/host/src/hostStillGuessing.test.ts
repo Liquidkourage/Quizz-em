@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import type { HostVenueActionRow, HostVenueFeltBeatRow } from '@qhe/net'
+import type { HostVenueActionRow } from '@qhe/net'
 import HostStillGuessingNotice from './HostStillGuessingNotice'
 import { guessClockCatchUp, playersStillGuessing } from './hostStillGuessing'
 
@@ -20,20 +20,7 @@ function row(partial: Partial<HostVenueActionRow> & Pick<HostVenueActionRow, 'ta
   }
 }
 
-function felt(tableNum: number, answerDeadlineMs: number | null): HostVenueFeltBeatRow {
-  return {
-    tableNum,
-    active: true,
-    seated: 2,
-    phase: 'answering',
-    street: 'answer',
-    clock: '',
-    answerDeadlineMs,
-    phaseStrictSig: 'answer',
-  }
-}
-
-describe('players still guessing after the clock', () => {
+describe('players still guessing', () => {
   const rows = [
     row({
       tableNum: 2,
@@ -48,12 +35,15 @@ describe('players still guessing after the clock', () => {
     }),
   ]
 
-  it('stays quiet until the answer clock hits 0', () => {
-    expect(playersStillGuessing(rows, [felt(2, 10_000), felt(4, 10_000)], 9_000)).toEqual([])
+  it('lists who has not locked while the answer window is still open', () => {
+    expect(playersStillGuessing(rows)).toEqual([
+      { name: 'Bo', tableNum: 2 },
+      { name: 'Cy', tableNum: 4 },
+    ])
   })
 
   it('lists who has not submitted, then drops a name when that guess locks', () => {
-    expect(playersStillGuessing(rows, [felt(2, 10_000), felt(4, 10_000)], 10_000)).toEqual([
+    expect(playersStillGuessing(rows)).toEqual([
       { name: 'Bo', tableNum: 2 },
       { name: 'Cy', tableNum: 4 },
     ])
@@ -67,7 +57,7 @@ describe('players still guessing after the clock', () => {
       }),
       rows[1]!,
     ]
-    expect(playersStillGuessing(afterBo, [felt(2, 10_000), felt(4, 10_000)], 10_500)).toEqual([
+    expect(playersStillGuessing(afterBo)).toEqual([
       { name: 'Cy', tableNum: 4 },
     ])
   })

@@ -1104,19 +1104,32 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
   venueHeldByRestart.delete(vn)
   venueHoldStartedAtMs.delete(vn)
   for (const { tk, gs } of venuePlayableSnapshots(vn)) {
-    const deadline = humanTurnDeadlineMs.get(tk)
-    if (deadline != null) humanTurnDeadlineMs.set(tk, deadline + elapsed)
-    const answerDeadline = gs.round.answerDeadline
-    let next = gs
-    if (typeof answerDeadline === 'number' && Number.isFinite(answerDeadline)) {
-      next = { ...gs, round: { ...gs.round, answerDeadline: answerDeadline + elapsed } }
-      rooms.set(tk, next)
-    }
-    if (humanTurnDeadlineMs.has(tk)) scheduleHumanTurnTimeout(tk, next)
-    emitVenueTableState(tk, next)
+    resumeHeldTable(vn, tk, gs, elapsed)
   }
   emitDisplayVenueSnapshotNow(vn)
   return false
+}
+
+function resumeHeldTable(vn: string, tk: string, gs: GameState, elapsed: number): void {
+  const deadline = humanTurnDeadlineMs.get(tk)
+  if (deadline != null) humanTurnDeadlineMs.set(tk, deadline + elapsed)
+  let next = gs
+  const answerDeadline = gs.round.answerDeadline
+  if (typeof answerDeadline === 'number' && Number.isFinite(answerDeadline)) {
+    next = { ...gs, round: { ...gs.round, answerDeadline: answerDeadline + elapsed } }
+    rooms.set(tk, next)
+  }
+  if (humanTurnDeadlineMs.has(tk)) scheduleHumanTurnTimeout(tk, next)
+  emitVenueTableState(tk, next)
+  const resumed = rooms.get(tk) ?? next
+  noteAnswerGuide(vn, resumed.round.answerDeadline)
+  playVirtualPlayers(tk, resumed)
+}
+
+function noteAnswerGuide(venueCode: string, deadline: number | undefined): void {
+  if (typeof deadline !== 'number' || !Number.isFinite(deadline)) return
+  const current = venueShowdownAtMs.get(venueCode)
+  if (current == null || deadline > current) armVenueAnswerGuideDeadline(venueCode, deadline)
 }
 
 /**

@@ -163,7 +163,7 @@ describe('venue floor now', () => {
       }),
     )
     expect(open).toContain('aria-label="$120"')
-    expect(open).toContain('Elena B.<sup class="side-pot-mark" style="font-size:0.55em;line-height:1">1</sup>')
+    expect(open).toContain('Elena B.<sup class="side-pot-mark" style="font-size:0.4em;line-height:1;color:#38bdf8">1</sup>')
     expect(open).not.toContain('Priya B.<sup')
     expect(open).not.toContain('of which')
     expect(open).not.toContain('5,020')

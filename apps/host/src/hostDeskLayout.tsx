@@ -1789,7 +1789,7 @@ function TableActionHoverRoster({
         <li key={`${seat.name}-${index}`} className="whitespace-nowrap">
           <span className="font-semibold">
             {hostPlayerLabel(labels[index] ?? seat.name)}
-            <SidePotMark mark={marks[index]} />
+          <SidePotMark mark={marks[index]} seat />
           </span>
           <span className="text-white/55"> · </span>
           <ChipText text={hoverMoney(seat.bankroll)} />
@@ -1976,7 +1976,7 @@ function SeatContestRow({
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold leading-tight text-white">
           {hostPlayerLabel(row.seat.name)}
-          <SidePotMark mark={row.sideMark} />
+          <SidePotMark mark={row.sideMark} seat />
         </p>
         {row.seat.bankroll != null ? (
           <p className="text-xs tabular-nums text-white/70">

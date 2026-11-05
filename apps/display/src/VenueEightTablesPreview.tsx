@@ -5,6 +5,7 @@ import {
   ChipMark,
   ChipText,
   SidePotMark,
+  sidePotColor,
   FeltHoleCardPair,
   PokerTableGraphic,
   QuizzEmWordmark,
@@ -308,7 +309,7 @@ function withSidePotMark(label: string, mark: number | null): ReactNode {
   return (
     <>
       {label}
-      <SidePotMark mark={mark} />
+      <SidePotMark mark={mark} seat />
     </>
   )
 }
@@ -318,7 +319,7 @@ function FeltSideLayers({ sides }: { sides: readonly LiveSidePot[] | undefined }
   return (
     <div className="vfd-felt-side-pot">
       {sides.map((side) => (
-        <p key={side.mark}>
+        <p key={side.mark} style={{ color: sidePotColor(side.mark) }}>
           <SidePotMark mark={side.mark} /> <ChipText text={formatVenueBankroll(side.amount)} />
         </p>
       ))}

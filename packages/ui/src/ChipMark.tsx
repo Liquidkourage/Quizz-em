@@ -34,11 +34,22 @@ export function ChipMark({ className }: ChipMarkProps) {
  * Renders a string, swapping each `$` for {@link ChipMark}.
  * Screen readers still hear the original text (including “dollar”).
  */
-/** Small number matching the side pot a player can win. */
-export function SidePotMark({ mark }: { mark?: number | null }): ReactNode {
+/** One color per side pot, shared by its numeral and its total. */
+const SIDE_POT_COLORS = ['#38bdf8', '#c084fc', '#fb7185', '#fbbf24', '#4ade80'] as const
+
+export function sidePotColor(mark: number): string {
+  const slot = Math.abs(Math.floor(mark) - 1) % SIDE_POT_COLORS.length
+  return SIDE_POT_COLORS[slot] ?? SIDE_POT_COLORS[0]
+}
+
+/** Small number matching the side pot a player can win. Seat marks sit tighter on initials. */
+export function SidePotMark({ mark, seat = false }: { mark?: number | null; seat?: boolean }): ReactNode {
   if (mark == null || mark <= 0) return null
   return (
-    <sup className="side-pot-mark" style={{ fontSize: '0.55em', lineHeight: 1 }}>
+    <sup
+      className="side-pot-mark"
+      style={{ fontSize: seat ? '0.4em' : '0.55em', lineHeight: 1, color: sidePotColor(mark) }}
+    >
       {mark}
     </sup>
   )

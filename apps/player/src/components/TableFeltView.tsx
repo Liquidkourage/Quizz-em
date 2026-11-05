@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, SidePotMark, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
+import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, SidePotMark, StadiumTableSeats, sidePotColor, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
 import { balancedPhysicalSeats, displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID, type LiveSidePot } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
@@ -59,7 +59,7 @@ function PlayerSideTotals({ sides }: { sides: readonly LiveSidePot[] }) {
   return (
     <span className="player-game-table-side-pot">
       {sides.map((side) => (
-        <span key={side.mark}>
+        <span key={side.mark} style={{ color: sidePotColor(side.mark) }}>
           <SidePotMark mark={side.mark} />{' '}
           <ChipText text={`$${side.amount.toLocaleString()}`} />
         </span>
@@ -180,7 +180,7 @@ export default function TableFeltView({
         label: (
           <>
             {showSeat ? chair + 1 : isMe ? 'You' : rosterDisplayName(player.name).slice(0, 2)}
-            <SidePotMark mark={sideMarks[index]} />
+            <SidePotMark mark={sideMarks[index]} seat />
           </>
         ),
         labelClassName: 'font-mono text-sm tabular-nums sm:text-base font-bold',
@@ -211,7 +211,7 @@ export default function TableFeltView({
           <>
             <span className={`player-seat-name font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'}`}>
               {rosterDisplayName(player.name)}
-              <SidePotMark mark={sideMarks[index]} />
+              <SidePotMark mark={sideMarks[index]} seat />
               {isMe ? <span className="player-hud-you-badge">You</span> : null}
             </span>
             <span className="player-seat-stack font-bold tabular-nums text-amber-300">

@@ -38,6 +38,8 @@ describe('player side pot', () => {
       createElement(PlayerFeltPot, { pot: displayedMainPot(hand), sides: layersOf(hand).sides }),
     )
     expect(html).toContain('Pot $300')
+    expect(html).toContain('>Main<')
+    expect(html).toContain('>Side<')
     expect(html).toContain('player-game-table-side-pot')
     expect(html).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1;color:#38bdf8">1</sup>')
     expect(html).toContain('style="color:#38bdf8"')
@@ -48,6 +50,8 @@ describe('player side pot', () => {
       createElement(PlayerFeltPot, { pot: displayedMainPot(even), sides: layersOf(even).sides }),
     )
     expect(quiet).toContain('Pot $200')
+    expect(quiet).not.toContain('>Main<')
+    expect(quiet).not.toContain('>Side<')
     expect(quiet).not.toContain('player-game-table-side-pot')
     expect(quiet).not.toContain('of which')
   })

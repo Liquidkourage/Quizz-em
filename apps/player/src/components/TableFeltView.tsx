@@ -54,10 +54,16 @@ function answeringStatus(
   return { pill: { kind: 'acting', label: 'Thinking…' }, locked: false }
 }
 
+function PlayerMainLabel({ sides }: { sides: readonly LiveSidePot[] }) {
+  if (sides.length === 0) return null
+  return <span className="player-game-table-pot-label">Main</span>
+}
+
 function PlayerSideTotals({ sides }: { sides: readonly LiveSidePot[] }) {
   if (sides.length === 0) return null
   return (
     <span className="player-game-table-side-pot">
+      <span className="player-game-table-pot-label">Side</span>
       {sides.map((side) => (
         <span key={side.mark} style={{ color: sidePotColor(side.mark) }}>
           <SidePotMark mark={side.mark} />{' '}
@@ -72,6 +78,7 @@ export function PlayerFeltPot({ pot, sides = [] }: { pot: number; sides?: readon
   if (pot <= 0 && sides.length === 0) return null
   return (
     <span className="player-game-table-pot">
+      <PlayerMainLabel sides={sides} />
       {pot > 0 ? <ChipText text={`Pot $${pot.toLocaleString()}`} /> : null}
       <PlayerSideTotals sides={sides} />
     </span>

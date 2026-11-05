@@ -273,13 +273,13 @@ function BroadcastCenterAmount({
 }
 
 function feltPotAria(pot: number, sides: readonly LiveSidePot[] = []): string {
-  return labeledSidePots(`pot ${formatVenueBankroll(pot)}`, sides)
+  return labeledSidePots(formatVenueBankroll(pot), sides)
 }
 
-function labeledSidePots(base: string, sides: readonly LiveSidePot[]): string {
-  if (sides.length === 0) return base
+function labeledSidePots(money: string, sides: readonly LiveSidePot[]): string {
+  if (sides.length === 0) return `pot ${money}`
   const labeled = sides.map((side) => `${side.mark} ${formatVenueBankroll(side.amount)}`).join(', ')
-  return `${base}, ${labeled}`
+  return `main ${money}, side ${labeled}`
 }
 
 /** Main pot, plus the side-pot number each seat can win. */
@@ -314,10 +314,16 @@ function withSidePotMark(label: string, mark: number | null): ReactNode {
   )
 }
 
+function FeltMainLabel({ sides }: { sides: readonly LiveSidePot[] | undefined }) {
+  if (sides == null || sides.length === 0) return null
+  return <p className="vfd-felt-pot-label">Main</p>
+}
+
 function FeltSideLayers({ sides }: { sides: readonly LiveSidePot[] | undefined }) {
   if (sides == null || sides.length === 0) return null
   return (
     <div className="vfd-felt-side-pot">
+      <p className="vfd-felt-pot-label">Side</p>
       {sides.map((side) => (
         <p key={side.mark} style={{ color: sidePotColor(side.mark) }}>
           <SidePotMark mark={side.mark} /> <ChipText text={formatVenueBankroll(side.amount)} />
@@ -613,6 +619,7 @@ function VenueBroadcastCenterStack({
         </div>
       ) : null}
       <div className="vfd-broadcast-pot-stack" style={potStackStyle}>
+        <FeltMainLabel sides={sides} />
         <BroadcastCenterAmount
           amount={pot}
           fontSizePx={centerTypo.potAmountPx}
@@ -730,12 +737,15 @@ function VenueMosaicFeltCenterStack({
           </div>
         ) : null}
         {showPot ? (
-          <VenuePotAmount
-            amount={pot}
-            prefersReducedMotion={prefersReducedMotion}
-            potMuted={potMuted}
-            className={`block max-w-full ${potClass}`}
-          />
+          <>
+            <FeltMainLabel sides={sides} />
+            <VenuePotAmount
+              amount={pot}
+              prefersReducedMotion={prefersReducedMotion}
+              potMuted={potMuted}
+              className={`block max-w-full ${potClass}`}
+            />
+          </>
         ) : null}
         <FeltSideLayers sides={sides} />
       </div>

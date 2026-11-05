@@ -2813,6 +2813,16 @@
   text-shadow: 0 0 10px rgb(251 191 36 / 0.25);
 }
 
+.player-game-table-pot-label {
+  display: block;
+  font-size: 0.68em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgb(255 251 235 / 0.78);
+}
+
 .player-game-table-side-pot {
   display: block;
   margin-top: 0.12rem;

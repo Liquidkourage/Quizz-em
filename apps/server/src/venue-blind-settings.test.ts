@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { advanceBlindLevel, applyBlindScheduleSave, type VenueBlindSettings } from './venue-blind-settings'
+import {
+  advanceBlindLevel,
+  applyBlindScheduleSave,
+  applyStoredBlinds,
+  blindsShownForVenue,
+  publishedTableBlinds,
+  type VenueBlindSettings,
+} from './venue-blind-settings'
 
 function raised(): VenueBlindSettings {
   return {
@@ -38,5 +45,48 @@ describe('manual blind increases', () => {
     expect(next.smallBlind).toBe(15)
     expect(next.bigBlind).toBe(30)
     expect(next.blindLevelIndex).toBe(1)
+  })
+})
+
+describe('blinds during a hand', () => {
+  const raised = { smallBlind: 50, bigBlind: 100 }
+
+  it('keeps the blinds a hand already started with', () => {
+    const betting = { phase: 'betting', smallBlind: 10, bigBlind: 20 }
+    const setup = { phase: 'question', smallBlind: 10, bigBlind: 20 }
+    expect(applyStoredBlinds(betting, raised)).toBe(betting)
+    expect(applyStoredBlinds(setup, raised)).toBe(setup)
+  })
+
+  it('applies a blind change once the table is between hands', () => {
+    expect(applyStoredBlinds({ phase: 'lobby', smallBlind: 10, bigBlind: 20 }, raised)).toEqual({
+      phase: 'lobby',
+      smallBlind: 50,
+      bigBlind: 100,
+    })
+  })
+
+  it('shows the hand blinds until the next hand', () => {
+    const table = publishedTableBlinds(
+      { phase: 'betting', smallBlind: 10, bigBlind: 20 },
+      { ...raised, isTableOverride: true },
+    )
+    expect(table).toEqual({ smallBlind: 10, bigBlind: 20, blindsTableOverride: false })
+    expect(
+      blindsShownForVenue(
+        [{ phase: 'reveal', smallBlind: 10, bigBlind: 20 }],
+        raised,
+      ),
+    ).toEqual({ smallBlind: 10, bigBlind: 20 })
+  })
+
+  it('shows the saved blinds when every table is waiting', () => {
+    expect(
+      publishedTableBlinds(
+        { phase: 'lobby', smallBlind: 10, bigBlind: 20 },
+        { ...raised, isTableOverride: false },
+      ),
+    ).toEqual({ smallBlind: 50, bigBlind: 100, blindsTableOverride: false })
+    expect(blindsShownForVenue([{ phase: 'lobby', smallBlind: 10, bigBlind: 20 }], raised)).toEqual(raised)
   })
 })

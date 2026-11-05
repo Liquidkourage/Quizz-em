@@ -173,9 +173,11 @@ import {
 } from './venue-answer-window-settings'
 import {
   applyEffectiveBlindsToGameState,
+  blindsShownForVenue,
   clearTableBlindsOverride,
   effectiveBlindsForSessionKey,
   hostLibraryBlindsPayload,
+  publishedTableBlinds,
   loadVenueBlindSettingsFromDisk,
   recordVenueHandCompleted,
   setTableBlindsOverride,
@@ -527,6 +529,7 @@ function scoresOnPlayerBrief(vn: string) {
 export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
   const vn = normalizeVenueCode(vnRaw)
   const blindsSnap = hostLibraryBlindsPayload(vn)
+  const blindsOnFelt = blindsShownForVenue(liveTableBlindRows(vn), blindsSnap)
   const ph = getPlayhead(vn)
   const lib = venueLibraries.get(vn)
   let setlistCueNumber: number | null = null
@@ -558,8 +561,8 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
     setlistCueTotal,
     venueChipSurvivorCount: condenseCounts.chipSurvivorCount,
     venueLiveTableCount: condenseCounts.liveTableCount,
-    venueSmallBlind: blindsSnap.smallBlind,
-    venueBigBlind: blindsSnap.bigBlind,
+    venueSmallBlind: blindsOnFelt.smallBlind,
+    venueBigBlind: blindsOnFelt.bigBlind,
     blindLevelNumber: blindsSnap.blindLevelIndex + 1,
     blindLevelCount: blindsSnap.blindLevelCount,
     handsUntilNextBlindLevel: blindsSnap.handsUntilNextLevel,
@@ -850,6 +853,14 @@ export async function buildHostLibraryPayload(venueCode: string) {
     answerWindowSeconds: getVenueAnswerWindowSeconds(k),
     venueBlinds: hostLibraryBlindsPayload(k),
   }
+}
+
+function liveTableBlindRows(vn: string) {
+  return venuePlayableSnapshots(vn).map((row) => ({
+    phase: row.gs.phase,
+    smallBlind: row.gs.smallBlind,
+    bigBlind: row.gs.bigBlind,
+  }))
 }
 
 /** Push persisted venue blinds onto every session (respects per-table overrides). */
@@ -2385,7 +2396,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
         gs.phase === 'answering' ||
         gs.phase === 'reveal' ||
         gs.phase === 'showdown')
-    const blindEff = effectiveBlindsForSessionKey(vn, key)
+    const blindEff = publishedTableBlinds(gs, effectiveBlindsForSessionKey(vn, key))
     const secretsPublic = handSecretsArePublic(gs.phase)
     const seatHolesDealt = scatterRosterToChairs(gs.players, false, (p) => {
       if (p.hand.length < 2) return false
@@ -2528,12 +2539,13 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       })(),
       smallBlind: blindEff.smallBlind,
       bigBlind: blindEff.bigBlind,
-      ...(blindEff.isTableOverride ? { blindsTableOverride: true } : {}),
+      ...(blindEff.blindsTableOverride ? { blindsTableOverride: true } : {}),
       ...(interestingAction ? { interestingAction: true } : {}),
     })
   }
 
   const blindsSnap = hostLibraryBlindsPayload(vn)
+  const blindsOnFelt = blindsShownForVenue(liveTableBlindRows(vn), blindsSnap)
   syncVenueAudienceWelcomeFromTiles(vn, tiles)
 
   const headlineSource = pickVenueHeadlineSource(vn)
@@ -2665,8 +2677,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     headlinePhase,
     setlistCueNumber,
     setlistCueTotal,
-    venueSmallBlind: blindsSnap.smallBlind,
-    venueBigBlind: blindsSnap.bigBlind,
+    venueSmallBlind: blindsOnFelt.smallBlind,
+    venueBigBlind: blindsOnFelt.bigBlind,
     blindLevelNumber: blindsSnap.blindLevelIndex + 1,
     blindLevelCount: blindsSnap.blindLevelCount,
     handsUntilNextBlindLevel: blindsSnap.handsUntilNextLevel,
@@ -2714,7 +2726,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
         ),
       ),
       fieldPeakCount: noteVenueFieldPeak(vn, condenseCounts.chipSurvivorCount),
-      bigBlindHint: blindsSnap.bigBlind,
+      bigBlindHint: blindsOnFelt.bigBlind,
       roster: venueRosterSeats(vn),
       venueHeld: isVenueHeld(vn),
       shuffleEveryHands: shuffleDisplay.shuffleEveryHands,

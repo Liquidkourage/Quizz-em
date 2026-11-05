@@ -193,13 +193,53 @@ export function effectiveBlindsForSessionKey(
   return { smallBlind: v.smallBlind, bigBlind: v.bigBlind, isTableOverride: false }
 }
 
-export function applyEffectiveBlindsToGameState<T extends { smallBlind: number; bigBlind: number }>(
+/** A hand has started once the table leaves the lobby. Its blinds stay put until it returns. */
+export function handBlindsAreLocked(phase: string | undefined): boolean {
+  return phase != null && phase !== 'lobby'
+}
+
+/** Copy saved blinds onto a table. A hand already in progress keeps the blinds it started with. */
+export function applyStoredBlinds<T extends { smallBlind: number; bigBlind: number; phase?: string }>(
+  gs: T,
+  next: { smallBlind: number; bigBlind: number },
+): T {
+  if (handBlindsAreLocked(gs.phase)) return gs
+  if (gs.smallBlind === next.smallBlind && gs.bigBlind === next.bigBlind) return gs
+  return { ...gs, smallBlind: next.smallBlind, bigBlind: next.bigBlind }
+}
+
+export function publishedTableBlinds(
+  gs: { phase?: string; smallBlind: number; bigBlind: number },
+  effective: { smallBlind: number; bigBlind: number; isTableOverride: boolean },
+): { smallBlind: number; bigBlind: number; blindsTableOverride: boolean } {
+  const locked = handBlindsAreLocked(gs.phase)
+  const smallBlind = locked ? gs.smallBlind : effective.smallBlind
+  const bigBlind = locked ? gs.bigBlind : effective.bigBlind
+  const matchesOverride = smallBlind === effective.smallBlind && bigBlind === effective.bigBlind
+  return {
+    smallBlind,
+    bigBlind,
+    blindsTableOverride: effective.isTableOverride && matchesOverride,
+  }
+}
+
+/** Venue strip: the hand in progress, or the saved blinds when every table is waiting. */
+export function blindsShownForVenue(
+  tables: readonly { phase: string; smallBlind: number; bigBlind: number }[],
+  saved: { smallBlind: number; bigBlind: number },
+): { smallBlind: number; bigBlind: number } {
+  const live = tables.find((table) => handBlindsAreLocked(table.phase))
+  if (live) return { smallBlind: live.smallBlind, bigBlind: live.bigBlind }
+  return { smallBlind: saved.smallBlind, bigBlind: saved.bigBlind }
+}
+
+export function applyEffectiveBlindsToGameState<T extends { smallBlind: number; bigBlind: number; phase?: string }>(
   gs: T,
   venueCode: string,
   sessionKey: string,
 ): T {
   const b = effectiveBlindsForSessionKey(venueCode, sessionKey)
-  return { ...gs, smallBlind: b.smallBlind, bigBlind: b.bigBlind }
+  return applyStoredBlinds(gs, b)
 }
 
 /** Venue-wide manual set — clears per-table overrides for this venue. */

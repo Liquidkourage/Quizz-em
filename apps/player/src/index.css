@@ -1184,42 +1184,28 @@
   overflow: visible;
 }
 
-/* Portrait: same 8:5 graphic, turned 90° so its long side runs with the phone. */
+/* Tall window: turn the whole hand with the table. Type, cards, and buttons share its direction. */
 @media (orientation: portrait) {
-  .player-game-layout--live-fit .player-game-felt-panel--fill {
-    padding: 3.75rem 2.1rem;
-  }
-
-  .player-game-layout--live-fit .player-felt-rotate-slot {
-    width: min(100cqw, calc(100cqh * 5 / 8));
-    height: min(100cqh, calc(100cqw * 8 / 5));
-    max-width: 100%;
-    max-height: 100%;
-    min-width: 0;
-    min-height: 0;
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
+  .player-game-screen--fit {
     container-type: size;
+    position: relative;
   }
 
-  .player-game-layout--live-fit .player-felt-rotate-slot .player-game-felt--fill {
+  .player-game-layout--live-fit {
+    position: absolute;
+    top: 0;
+    left: 100%;
     width: 100cqh;
     height: 100cqw;
     max-width: none;
     max-height: none;
-    aspect-ratio: auto;
-    margin: 0;
-    min-width: 0;
-    min-height: 0;
-    justify-self: center;
+    transform-origin: top left;
     transform: rotate(90deg);
   }
 
-  /* The felt turns sideways. Readable faces, seat numbers, and names turn back so 12 o'clock stays the top of the phone. Face-down backs stay in felt space and turn with their seat. */
-  .player-game-layout--live-fit .player-felt-rotate-slot .player-felt-card-face,
-  .player-game-layout--live-fit .player-felt-rotate-slot .player-felt-upright {
-    transform: rotate(-90deg);
+  .player-game-layout--live-fit .player-game-shell,
+  .player-game-layout--live-fit .player-game-dock--inflow {
+    max-width: 100%;
   }
 }
 

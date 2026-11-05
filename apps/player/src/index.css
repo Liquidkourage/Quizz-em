@@ -1184,8 +1184,8 @@
   overflow: visible;
 }
 
-/* Tall window: turn the whole hand with the table. Type, cards, and buttons share its direction. */
-@media (orientation: portrait) {
+/* Touch screen held tall: turn the whole hand with the table. A mouse-driven PC stays flat. */
+@media (orientation: portrait) and (pointer: coarse) {
   .player-game-screen--fit {
     container-type: size;
     position: relative;

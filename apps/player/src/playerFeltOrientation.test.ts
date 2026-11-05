@@ -68,8 +68,9 @@ describe('player table orientation', () => {
     expect(clipped).toBeGreaterThan(1.75 * REM)
   })
 
-  it('turns the question, cards, and buttons with the table when the window is tall', () => {
+  it('turns the question, cards, and buttons with the table when a touch screen is tall', () => {
     const portrait = mediaBlock(css, '@media (orientation: portrait)')
+    expect(portrait.startsWith('@media (orientation: portrait) and (pointer: coarse)')).toBe(true)
     expect(portrait).toContain('.player-game-layout--live-fit')
     expect(portrait).toContain('transform: rotate(90deg)')
     expect(portrait).toContain('width: 100cqh')

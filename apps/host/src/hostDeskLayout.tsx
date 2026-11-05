@@ -1,4 +1,5 @@
-import { Children, useEffect, useState, type ReactNode } from 'react'
+import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { HostModal, useHostModalNested } from './HostModal'
 import { ChipText, NeonButton } from '@qhe/ui'
 import type { GamePhase, GameState } from '@qhe/core'
@@ -1721,6 +1722,51 @@ function hoverMoney(amount: number | undefined): string {
   return typeof amount === 'number' && Number.isFinite(amount) ? formatHostFloorMoney(amount) : '—'
 }
 
+/** Wide enough for one line: name, stack, in pot, status. Matches Tailwind `w-96`. */
+const TABLE_ACTION_HOVER_WIDTH = 384
+
+export type TableActionHoverOrigin = { top: number; left: number; above: boolean }
+
+/** A short window under the square. It flips above the square when the floor runs out. */
+export function tableActionHoverOrigin(
+  anchor: { left: number; top: number; bottom: number },
+  viewport: { width: number; height: number },
+): TableActionHoverOrigin {
+  const left = Math.max(8, Math.min(anchor.left, viewport.width - TABLE_ACTION_HOVER_WIDTH - 8))
+  const below = anchor.bottom + 6
+  const above = viewport.height - below < 160
+  return { top: above ? anchor.top : below, left, above }
+}
+
+export function TableActionHoverSheet({
+  top,
+  left,
+  above = false,
+  seats,
+  actingPlayerName,
+  hostPlayerLabel,
+}: {
+  top: number
+  left: number
+  above?: boolean
+  seats: HostVenueSeatContest[]
+  actingPlayerName: string | null
+  hostPlayerLabel: (name: string) => string
+}) {
+  return (
+    <div
+      className="table-action-roster pointer-events-none fixed z-50 w-96 rounded-md border border-white/15 bg-zinc-950/95 p-2 shadow-lg"
+      style={{ top, left, transform: above ? 'translateY(calc(-100% - 6px))' : undefined }}
+    >
+      <TableActionHoverRoster
+        seats={seats}
+        actingPlayerName={actingPlayerName}
+        hostPlayerLabel={hostPlayerLabel}
+      />
+    </div>
+  )
+}
+
 function TableActionHoverRoster({
   seats,
   actingPlayerName,
@@ -1733,11 +1779,13 @@ function TableActionHoverRoster({
   if (seats.length === 0) return <p className="text-sm text-white/50">No players seated.</p>
   const labels = disambiguatePublicNames(seats.map((seat) => seat.name))
   return (
-    <ul className="space-y-1" aria-label="Table players">
+    <ul className="space-y-0.5" aria-label="Table players">
       {seats.map((seat, index) => (
-        <li key={`${seat.name}-${index}`} className="text-sm leading-tight">
-          <span className="font-semibold text-white">{hostPlayerLabel(labels[index] ?? seat.name)}</span>
-          <span className="mt-0.5 block tabular-nums text-white/75">
+        <li key={`${seat.name}-${index}`} className="flex items-baseline gap-3 text-sm leading-snug">
+          <span className="min-w-0 flex-1 truncate font-semibold text-white">
+            {hostPlayerLabel(labels[index] ?? seat.name)}
+          </span>
+          <span className="shrink-0 tabular-nums text-white/75">
             <ChipText text={hoverMoney(seat.bankroll)} />
             <span className="text-white/45"> · in pot </span>
             <ChipText text={hoverMoney(seat.invested)} />
@@ -1746,6 +1794,44 @@ function TableActionHoverRoster({
         </li>
       ))}
     </ul>
+  )
+}
+
+function TableActionHoverFrame({
+  seats,
+  actingPlayerName,
+  hostPlayerLabel,
+  children,
+}: {
+  seats: HostVenueSeatContest[]
+  actingPlayerName: string | null
+  hostPlayerLabel: (name: string) => string
+  children: ReactNode
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [origin, setOrigin] = useState<TableActionHoverOrigin | null>(null)
+  const open = () => {
+    const rect = ref.current?.getBoundingClientRect()
+    if (!rect || typeof document === 'undefined') return
+    setOrigin(tableActionHoverOrigin(rect, { width: window.innerWidth, height: window.innerHeight }))
+  }
+  return (
+    <div ref={ref} onMouseEnter={open} onMouseLeave={() => setOrigin(null)} onFocus={open} onBlur={() => setOrigin(null)}>
+      {children}
+      {origin
+        ? createPortal(
+            <TableActionHoverSheet
+              top={origin.top}
+              left={origin.left}
+              above={origin.above}
+              seats={seats}
+              actingPlayerName={actingPlayerName}
+              hostPlayerLabel={hostPlayerLabel}
+            />,
+            document.body,
+          )
+        : null}
+    </div>
   )
 }
 
@@ -2308,7 +2394,12 @@ export function HostVenueFloorBriefPanel({
                         nowOnServerClock(),
                       )
                   return (
-                    <li key={row.tableNum} className="group relative">
+                    <li key={row.tableNum} className="relative">
+                    <TableActionHoverFrame
+                      seats={row.seats ?? []}
+                      actingPlayerName={row.actingPlayerName}
+                      hostPlayerLabel={hostPlayerLabel}
+                    >
                     <button
                       type="button"
                       aria-label={`Open table ${row.tableNum}`}
@@ -2373,13 +2464,6 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </p>
                     </button>
-                    <div className="table-action-roster mt-1 hidden rounded-md border border-white/15 bg-black/50 p-1.5 group-hover:block group-focus-within:block">
-                      <TableActionHoverRoster
-                        seats={row.seats ?? []}
-                        actingPlayerName={row.actingPlayerName}
-                        hostPlayerLabel={hostPlayerLabel}
-                      />
-                    </div>
                     {nudgeName ? (
                       <button
                         type="button"
@@ -2404,6 +2488,7 @@ export function HostVenueFloorBriefPanel({
                         {row.raisesClosed ? 'Open raises' : 'Last call'}
                       </button>
                     ) : null}
+                    </TableActionHoverFrame>
                     </li>
                   )
                 })}

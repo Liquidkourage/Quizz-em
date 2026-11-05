@@ -3,7 +3,13 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueActionRow, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
-import { HostTableContest, HostTableOpen, HostVenueFloorBriefPanel } from './hostDeskLayout'
+import {
+  HostTableContest,
+  HostTableOpen,
+  HostVenueFloorBriefPanel,
+  TableActionHoverSheet,
+  tableActionHoverOrigin,
+} from './hostDeskLayout'
 
 function actionRow(tableNum: number): HostVenueActionRow {
   return {
@@ -72,18 +78,39 @@ describe('venue floor now', () => {
         hostTableId: '1',
       }),
     )
-    const card = html.slice(html.indexOf('Open table 1'))
-    const rosterAt = card.indexOf('table-action-roster')
-    expect(rosterAt).toBeGreaterThan(-1)
-    expect(card.slice(rosterAt, rosterAt + 160)).not.toContain('absolute')
-    expect(card).toContain('group-hover:block')
-    expect(card).toContain('Ada Lane')
-    expect(card).toContain('aria-label="$1,200"')
-    expect(card).toContain('aria-label="$40"')
-    expect(card).toContain('To act')
-    expect(card).toContain('Folded')
-    expect(card).toContain('aria-label="$800"')
-    expect(card).toContain('aria-label="$20"')
+    expect(html).not.toContain('table-action-roster')
+    const sheet = renderToStaticMarkup(
+      createElement(TableActionHoverSheet, {
+        top: 20,
+        left: 12,
+        seats: floor.actionRows[0]!.seats ?? [],
+        actingPlayerName: 'Ada Lane',
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    expect(sheet).toContain('fixed')
+    expect(sheet).toContain('w-96')
+    expect(sheet).not.toContain('mt-0.5 block')
+    expect(sheet).toContain('Ada Lane')
+    expect(sheet).toContain('aria-label="$1,200"')
+    expect(sheet).toContain('aria-label="$40"')
+    expect(sheet).toContain('To act')
+    expect(sheet).toContain('Folded')
+    expect(sheet).toContain('aria-label="$800"')
+    expect(sheet).toContain('aria-label="$20"')
+  })
+
+  it('parks the hover window under the square, and above it when the floor runs out', () => {
+    expect(tableActionHoverOrigin({ left: 10, top: 40, bottom: 80 }, { width: 800, height: 600 })).toEqual({
+      top: 86,
+      left: 10,
+      above: false,
+    })
+    const nearEdge = tableActionHoverOrigin({ left: 900, top: 40, bottom: 80 }, { width: 800, height: 600 })
+    expect(nearEdge.left).toBeLessThan(800)
+    expect(
+      tableActionHoverOrigin({ left: 10, top: 520, bottom: 560 }, { width: 800, height: 600 }).above,
+    ).toBe(true)
   })
 
   it('shows each table pot on the action square', () => {
@@ -164,9 +191,8 @@ describe('venue floor now', () => {
     expect(html).not.toContain('>Open<')
     expect(html).not.toContain('points only')
     expect(html).not.toContain('Answering on phones')
-    const hover = html.indexOf('aria-label="Table players"')
-    expect(html.slice(html.indexOf('Open table 1'), hover)).not.toContain('Ada L.')
-    expect(html.slice(hover, html.indexOf('Open table 2'))).toContain('Ada L.')
+    expect(html).not.toContain('Ada L.')
+    expect(html).not.toContain('aria-label="Table players"')
     expect(html).not.toContain('Ned P.')
     expect(html).not.toContain('>You<')
     expect(html).not.toContain('>Focus<')

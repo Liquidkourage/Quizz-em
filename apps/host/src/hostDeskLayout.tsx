@@ -15,8 +15,9 @@ import type {
 } from '@qhe/net'
 import {
   disambiguatePublicNames,
-  feltSidePotAmount,
+  displayedMainPot,
   formatTriviaNumber,
+  livePotLayers,
   LOBBY_TABLE_ID,
   playersHaveHoleCards,
   VENUE_NUMBERED_TABLE_MAX,
@@ -1040,7 +1041,7 @@ export function HostLiveStatusLine({
   hostPlayerLabel: (raw: string) => string
   virtualSeatCount: number
 }) {
-  const pot = gameState.round.pot
+  const pot = displayedMainPot(gameState)
   const question = gameState.round.question
   const phase = gameState.phase
   const bettingRound = gameState.round.bettingRound ?? 0
@@ -1078,8 +1079,6 @@ export function HostLiveStatusLine({
       {!inLobbyPool || pot > 0 ? (
         <span className="font-mono font-bold tabular-nums text-casino-emerald">
           Pot <ChipText text={`$${Math.max(0, Math.round(pot)).toLocaleString()}`} />
-          {' '}
-          <HostSidePot amount={feltSidePotAmount(gameState)} />
         </span>
       ) : null}
       <span className="text-white/50">
@@ -1462,13 +1461,22 @@ const BET_ACTION_LABEL: Record<string, string> = {
   allIn: 'All-in',
 }
 
-function HostSidePot({ amount }: { amount?: number | null }) {
-  if (amount == null || amount <= 0) return null
-  return (
-    <span className="font-semibold text-amber-100">
-      of which <ChipText text={formatHostFloorMoney(amount)} /> is side
-    </span>
+function hostSeatLayers(seats: HostVenueSeatContest[]) {
+  return livePotLayers(
+    seats.map((seat) => seat.invested ?? 0),
+    seats.map((seat) => seat.reason === 'folded' || seat.reason === 'busted'),
   )
+}
+
+/** First contested layer when the seats say who put chips in. Otherwise the total. */
+function shownHostPot(pot: number, seats: HostVenueSeatContest[]): number {
+  const { main } = hostSeatLayers(seats)
+  return main > 0 ? main : pot
+}
+
+function SidePotMark({ mark }: { mark: number | null | undefined }) {
+  if (mark == null || mark <= 0) return null
+  return <sup className="side-pot-mark">{mark}</sup>
 }
 
 function formatHostFloorMoney(n: number): string {
@@ -1779,11 +1787,15 @@ function TableActionHoverRoster({
 }) {
   if (seats.length === 0) return <p className="text-white/50">No players seated.</p>
   const labels = disambiguatePublicNames(seats.map((seat) => seat.name))
+  const marks = hostSeatLayers(seats).marks
   return (
     <ul className="space-y-1" aria-label="Table players">
       {seats.map((seat, index) => (
         <li key={`${seat.name}-${index}`} className="whitespace-nowrap">
-          <span className="font-semibold">{hostPlayerLabel(labels[index] ?? seat.name)}</span>
+          <span className="font-semibold">
+            {hostPlayerLabel(labels[index] ?? seat.name)}
+            <SidePotMark mark={marks[index]} />
+          </span>
           <span className="text-white/55"> · </span>
           <ChipText text={hoverMoney(seat.bankroll)} />
           <span className="text-white/55"> · in pot </span>
@@ -1841,7 +1853,11 @@ function seatReasonLabel(reason: HostVenueSeatContest['reason']): string | null 
 
 type HostTablePlayerRef = { playerId: string; name: string }
 
-type ContestRow = { seat: HostVenueSeatContest; player: HostTablePlayerRef | null }
+type ContestRow = {
+  seat: HostVenueSeatContest
+  player: HostTablePlayerRef | null
+  sideMark: number | null
+}
 
 type SeatActionBag = {
   tableNum: number
@@ -1890,13 +1906,19 @@ function contestRows(
   const unused = [...players]
   const pot: ContestRow[] = []
   const points: ContestRow[] = []
-  for (const seat of seats) {
-    const row = { seat, player: takeMatchingPlayer(seat.name, unused, hostPlayerLabel) }
+  const marks = hostSeatLayers(seats).marks
+  for (let i = 0; i < seats.length; i++) {
+    const seat = seats[i]!
+    const row = {
+      seat,
+      player: takeMatchingPlayer(seat.name, unused, hostPlayerLabel),
+      sideMark: marks[i] ?? null,
+    }
     if (seat.kind === 'pot') pot.push(row)
     else points.push(row)
   }
   for (const player of unused) {
-    pot.push({ seat: { name: player.name, kind: 'pot', reason: null }, player })
+    pot.push({ seat: { name: player.name, kind: 'pot', reason: null }, player, sideMark: null })
   }
   return { pot, points }
 }
@@ -1957,7 +1979,10 @@ function SeatContestRow({
   return (
     <li className="flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5">
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold leading-tight text-white">{hostPlayerLabel(row.seat.name)}</p>
+        <p className="truncate text-sm font-semibold leading-tight text-white">
+          {hostPlayerLabel(row.seat.name)}
+          <SidePotMark mark={row.sideMark} />
+        </p>
         {row.seat.bankroll != null ? (
           <p className="text-xs tabular-nums text-white/70">
             <ChipText text={formatHostFloorMoney(row.seat.bankroll)} />
@@ -2107,12 +2132,10 @@ function recentActionLabel(action: string): string {
 function HostTableOpenSummary({
   phaseLabel,
   pot,
-  sidePot,
   actingSummary,
 }: {
   phaseLabel?: string
   pot: number
-  sidePot?: number | null
   actingSummary?: string | null
 }) {
   if (!phaseLabel && pot <= 0 && !actingSummary) return null
@@ -2122,8 +2145,6 @@ function HostTableOpenSummary({
       {pot > 0 ? (
         <p>
           Pot <ChipText text={formatHostFloorMoney(pot)} />
-          {' '}
-          <HostSidePot amount={sidePot} />
         </p>
       ) : null}
       {actingSummary ? (
@@ -2188,7 +2209,6 @@ export function HostTableOpen({
   hostPlayerLabel,
   phaseLabel,
   pot = 0,
-  sidePot = null,
   actingSummary,
   tableNum,
   players,
@@ -2202,7 +2222,6 @@ export function HostTableOpen({
   hostPlayerLabel: (name: string) => string
   phaseLabel?: string
   pot?: number
-  sidePot?: number | null
   actingSummary?: string | null
   tableNum?: number
   players?: HostTablePlayerRef[]
@@ -2215,7 +2234,11 @@ export function HostTableOpen({
   return (
     <div className={aside ? 'host-table-open grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]' : 'host-table-open flex flex-col gap-3'}>
       <div className="flex min-w-0 flex-col gap-3">
-        <HostTableOpenSummary phaseLabel={phaseLabel} pot={pot} sidePot={sidePot} actingSummary={actingSummary} />
+        <HostTableOpenSummary
+          phaseLabel={phaseLabel}
+          pot={shownHostPot(pot, seats)}
+          actingSummary={actingSummary}
+        />
         <HostTableContest
           seats={seats}
           hostPlayerLabel={hostPlayerLabel}
@@ -2425,13 +2448,8 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </span>
                       <p className="font-mono text-base font-bold tabular-nums text-emerald-100">
-                        <ChipText text={formatHostFloorMoney(row.pot)} />
+                        <ChipText text={formatHostFloorMoney(shownHostPot(row.pot, row.seats ?? []))} />
                       </p>
-                      {row.sidePot != null && row.sidePot > 0 ? (
-                        <p className="font-mono text-sm font-bold tabular-nums text-amber-100">
-                          <HostSidePot amount={row.sidePot} />
-                        </p>
-                      ) : null}
                       <p className="text-sm font-semibold">
                         {cue.label}
                         {nudgeSec != null ? (
@@ -2504,7 +2522,6 @@ export function HostVenueFloorBriefPanel({
                   recentActions={openRow.recentActions}
                   phaseLabel={tableActionCue(openRow).label}
                   pot={openRow.pot}
-                  sidePot={openRow.sidePot}
                   actingSummary={openRow.actingSummary}
                   tableNum={openRow.tableNum}
                   onSetTablePhase={
@@ -3258,14 +3275,7 @@ export function HostFloorStrip({
                   </p>
                 ) : action != null && action.pot > 0 ? (
                   <p className="mt-0.5 text-xs text-white/45">
-                    Pot <ChipText text={formatHostFloorMoney(action.pot)} />
-                    {' '}
-                    <HostSidePot amount={action.sidePot} />
-                  </p>
-                ) : null}
-                {action?.actingSummary && action.sidePot != null && action.sidePot > 0 ? (
-                  <p className="mt-0.5 text-xs text-white/45">
-                    <HostSidePot amount={action.sidePot} />
+                    Pot <ChipText text={formatHostFloorMoney(shownHostPot(action.pot, action.seats ?? []))} />
                   </p>
                 ) : null}
               </button>

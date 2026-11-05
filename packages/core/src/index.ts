@@ -859,6 +859,43 @@ export function buildSidePotSettlement(
   return { pots, returns };
 }
 
+/** Highest side-pot number each seat can win. The main pot is the first contested layer. */
+export function livePotLayers(
+  amounts: readonly number[],
+  folded: readonly boolean[],
+): { main: number; marks: (number | null)[] } {
+  const contributions: Record<string, number> = {}
+  const foldedById: Record<string, boolean> = {}
+  for (let i = 0; i < amounts.length; i++) {
+    contributions[String(i)] = amounts[i] ?? 0
+    foldedById[String(i)] = folded[i] === true
+  }
+  const { pots } = buildSidePotSettlement(contributions, foldedById)
+  const marks: (number | null)[] = amounts.map(() => null)
+  writeSidePotMarks(pots, marks)
+  return { main: pots[0]?.amount ?? 0, marks }
+}
+
+function writeSidePotMarks(pots: SidePot[], marks: (number | null)[]): void {
+  for (let layer = 1; layer < pots.length; layer++) {
+    for (const id of pots[layer]!.eligiblePlayerIds) {
+      const index = Number(id)
+      if (index >= 0 && index < marks.length) marks[index] = layer
+    }
+  }
+}
+
+/** Main pot for a live hand. Falls back to the table total when nobody has committed chips. */
+export function displayedMainPot(state: GameState): number {
+  const { main } = livePotLayers(
+    state.players.map((player) => state.round.handContributions?.[player.id] ?? 0),
+    state.players.map((player) => player.hasFolded === true || player.pointsOnly === true),
+  )
+  if (main > 0) return main
+  const raw = state.round.pot ?? 0
+  return Math.max(0, Math.floor(Number.isFinite(raw) ? raw : 0))
+}
+
 /**
  * Seat indices for dealer + blinds mapped to contiguous `players[0 .. n-1]`, identical to `{@link dealInitialCards}` modulo math.
  * Use on venue-wall displays with `seatNames[]` indexed the same way; null when absent (no players / one player has no blinds).

@@ -4,8 +4,6 @@ import { ChipText } from '@qhe/ui'
 type StickyQuestionBarProps = {
   questionText: string
   pot?: number
-  /** Chips inside the pot that only some players can win. */
-  sidePot?: number
   /** Seated table id so two phones can confirm they share a felt. */
   tableId?: string | null
   /** Busted seats: hide pot, show points-only cue. */
@@ -13,22 +11,10 @@ type StickyQuestionBarProps = {
   answerPoints?: number
 }
 
-function StickySidePot({ amount }: { amount?: number }) {
-  if (typeof amount !== 'number' || amount <= 0) return null
-  return (
-    <>
-      {' · of which '}
-      <ChipText text={`$${amount.toLocaleString()}`} />
-      {' is side'}
-    </>
-  )
-}
-
 /** Keeps the trivia question visible above the fold / near the thumb dock. */
 export default function StickyQuestionBar({
   questionText,
   pot,
-  sidePot,
   tableId,
   pointsOnly = false,
   answerPoints = 0,
@@ -59,7 +45,6 @@ export default function StickyQuestionBar({
           <span className="player-sticky-question-pot">
             {' · Pot '}
             <ChipText text={`$${pot.toLocaleString()}`} />
-            <StickySidePot amount={sidePot} />
           </span>
         ) : null}
       </p>

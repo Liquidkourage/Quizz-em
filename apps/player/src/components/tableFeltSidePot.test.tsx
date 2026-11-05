@@ -1,7 +1,8 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { addPlayer, createEmptyGame, feltSidePotAmount, type GameState } from '@qhe/core'
+import { addPlayer, createEmptyGame, displayedMainPot, type GameState } from '@qhe/core'
+import GameInfoCard from './GameInfoCard'
 import { PlayerFeltPot } from './TableFeltView'
 import StickyQuestionBar from './StickyQuestionBar'
 
@@ -24,33 +25,34 @@ function unevenHand(): GameState {
 }
 
 describe('player side pot', () => {
-  it('prints the side amount on the felt', () => {
+  it('shows the main pot on the felt', () => {
     const hand = unevenHand()
     const html = renderToStaticMarkup(
-      createElement(PlayerFeltPot, { pot: hand.round.pot, sidePot: feltSidePotAmount(hand) }),
+      createElement(PlayerFeltPot, { pot: displayedMainPot(hand) }),
     )
-    expect(html).toContain('Pot')
-    expect(html).toContain('of which')
-    expect(html).toContain('is side')
-    expect(html).toContain('300')
+    expect(html).toContain('Pot $300')
+    expect(html).not.toContain('of which')
+    expect(html).not.toContain('850')
     const even = { ...hand, round: { ...hand.round, pot: 200, handContributions: { a: 100, b: 100, c: 0 } } }
-    const quiet = renderToStaticMarkup(
-      createElement(PlayerFeltPot, { pot: even.round.pot, sidePot: feltSidePotAmount(even) }),
-    )
-    expect(quiet).toContain('Pot')
+    const quiet = renderToStaticMarkup(createElement(PlayerFeltPot, { pot: displayedMainPot(even) }))
+    expect(quiet).toContain('Pot $200')
     expect(quiet).not.toContain('of which')
   })
 
-  it('prints the side amount beside the sticky pot', () => {
-    const html = renderToStaticMarkup(
+  it('shows the main pot on the sticky bar and the info card', () => {
+    const hand = unevenHand()
+    const sticky = renderToStaticMarkup(
       createElement(StickyQuestionBar, {
         questionText: 'How many?',
-        pot: 850,
-        sidePot: 300,
+        pot: displayedMainPot(hand),
       }),
     )
-    expect(html).toContain('of which')
-    expect(html).toContain('is side')
-    expect(html).toContain('300')
+    expect(sticky).toContain('300')
+    expect(sticky).not.toContain('of which')
+    expect(sticky).not.toContain('850')
+    const card = renderToStaticMarkup(createElement(GameInfoCard, { gameState: hand }))
+    expect(card).toContain('300')
+    expect(card).not.toContain('of which')
+    expect(card).not.toContain('850')
   })
 })

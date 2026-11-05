@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
-import { balancedPhysicalSeats, feltSidePotAmount, formatTriviaPoints, LOBBY_TABLE_ID } from '@qhe/core'
+import { balancedPhysicalSeats, displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 import {
   buildPlayerTableStatusLine,
@@ -54,18 +54,16 @@ function answeringStatus(
   return { pill: { kind: 'acting', label: 'Thinking…' }, locked: false }
 }
 
-export function PlayerFeltPot({ pot, sidePot }: { pot: number; sidePot: number | null }) {
+function SidePotMark({ mark }: { mark: number | null | undefined }) {
+  if (mark == null || mark <= 0) return null
+  return <sup className="side-pot-mark">{mark}</sup>
+}
+
+export function PlayerFeltPot({ pot }: { pot: number }) {
   if (pot <= 0) return null
   return (
     <span className="player-game-table-pot">
       <ChipText text={`Pot $${pot.toLocaleString()}`} />
-      {sidePot != null ? (
-        <span className="player-game-table-side-pot">
-          {' of which '}
-          <ChipText text={`$${sidePot.toLocaleString()}`} />
-          {' is side'}
-        </span>
-      ) : null}
     </span>
   )
 }
@@ -107,8 +105,11 @@ export default function TableFeltView({
   const lastActions = gameState.round.lastSeatBettingAction
   const playerBets = gameState.round.playerBets
   const currentBet = gameState.round.currentBet
-  const pot = gameState.round.pot
-  const sidePot = feltSidePotAmount(gameState)
+  const pot = displayedMainPot(gameState)
+  const sideMarks = livePotLayers(
+    players.map((player) => gameState.round.handContributions?.[player.id] ?? 0),
+    players.map((player) => player.hasFolded === true || player.pointsOnly === true),
+  ).marks
   const hero = heroIndex >= 0 ? players[heroIndex] : undefined
   const heroHoles =
     hero && hero.hand.length >= 2
@@ -164,7 +165,12 @@ export default function TableFeltView({
 
       return {
         index: chair,
-        label: showSeat ? chair + 1 : isMe ? 'You' : rosterDisplayName(player.name).slice(0, 2),
+        label: (
+          <>
+            {showSeat ? chair + 1 : isMe ? 'You' : rosterDisplayName(player.name).slice(0, 2)}
+            <SidePotMark mark={sideMarks[index]} />
+          </>
+        ),
         labelClassName: 'font-mono text-sm tabular-nums sm:text-base font-bold',
         state: foldedChips
           ? 'folded'
@@ -193,6 +199,7 @@ export default function TableFeltView({
           <>
             <span className={`player-seat-name font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'}`}>
               {rosterDisplayName(player.name)}
+              <SidePotMark mark={sideMarks[index]} />
               {isMe ? <span className="player-hud-you-badge">You</span> : null}
             </span>
             <span className="player-seat-stack font-bold tabular-nums text-amber-300">
@@ -217,6 +224,7 @@ export default function TableFeltView({
     currentBet,
     playerOnline,
     gameState.phase,
+    sideMarks,
   ])
 
   if (players.length === 0) return null
@@ -251,7 +259,7 @@ export default function TableFeltView({
             ? 'player-game-felt player-game-felt--fill aspect-[8/5] w-full'
             : 'player-game-felt aspect-[8/5] w-full'
         }
-        centerContent={showCenterPot ? <PlayerFeltPot pot={pot} sidePot={sidePot} /> : null}
+        centerContent={showCenterPot ? <PlayerFeltPot pot={pot} /> : null}
       />
       </div>
       {heroHoles && heroFolded ? (

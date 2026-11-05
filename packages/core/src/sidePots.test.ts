@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   addPlayer,
   buildSidePotSettlement,
+  livePotLayers,
   createEmptyGame,
   endRound,
   feltSidePotAmount,
@@ -36,6 +37,23 @@ describe('buildSidePotSettlement', () => {
     expect(pots[0]?.eligiblePlayerIds.sort()).toEqual(['a', 'b'])
     expect(pots[1]?.eligiblePlayerIds).toEqual(['b'])
     expect(returns.b).toBe(250)
+  })
+})
+
+describe('livePotLayers', () => {
+  it('shows the short stack as the main pot and marks who can win the side pot', () => {
+    const { main, marks } = livePotLayers(
+      [1000, 1000, 1000, 1000, 1000, 20],
+      [false, false, false, false, false, true],
+    )
+    expect(main).toBe(120)
+    expect(marks).toEqual([1, 1, 1, 1, 1, null])
+  })
+
+  it('leaves an even pot unmarked', () => {
+    const { main, marks } = livePotLayers([100, 100], [false, false])
+    expect(main).toBe(200)
+    expect(marks).toEqual([null, null])
   })
 })
 

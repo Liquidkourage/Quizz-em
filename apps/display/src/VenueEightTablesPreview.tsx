@@ -22,7 +22,7 @@ import {
   stadiumSeatPointPx,
   type StadiumMosaicDensity,
 } from '@qhe/ui'
-import { disambiguatePublicNames } from '@qhe/core'
+import { disambiguatePublicNames, livePotLayers } from '@qhe/core'
 import {
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
@@ -270,19 +270,40 @@ function BroadcastCenterAmount({
   )
 }
 
-function FeltSidePotLine({ amount }: { amount?: number | null }) {
-  if (amount == null || amount <= 0) return null
-  return (
-    <p className="vfd-felt-side-pot">
-      of which <ChipText text={formatVenueBankroll(amount)} /> is side
-    </p>
-  )
+function feltPotAria(pot: number): string {
+  return `pot ${formatVenueBankroll(pot)}`
 }
 
-function feltPotAria(pot: number, sidePot?: number | null): string {
-  const money = formatVenueBankroll(pot)
-  if (sidePot == null || sidePot <= 0) return `pot ${money}`
-  return `pot ${money}, of which ${formatVenueBankroll(sidePot)} is side`
+/** Main pot, plus the side-pot number each seat can win. */
+function shownFeltPot(
+  pot: number,
+  invested: number[] | undefined,
+  folded: boolean[] | undefined,
+): { pot: number; marks: (number | null)[] } {
+  const raw = Math.max(0, Math.floor(Number.isFinite(pot) ? pot : 0))
+  const amounts = Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
+    const v = invested?.[i]
+    return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0
+  })
+  const folds = Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => folded?.[i] === true)
+  const layers = livePotLayers(amounts, folds)
+  return { pot: layers.main > 0 ? layers.main : raw, marks: layers.marks }
+}
+
+function sideMarkAt(marks: readonly (number | null)[] | null, index: number): number | null {
+  if (marks == null) return null
+  return marks[index] ?? null
+}
+
+function withSidePotMark(label: string, mark: number | null): ReactNode {
+  if (!label) return undefined
+  if (mark == null || mark <= 0) return label
+  return (
+    <>
+      {label}
+      <sup className="side-pot-mark">{mark}</sup>
+    </>
+  )
 }
 
 /** Pot dollars — pulses when the venue snapshot posts a new amount. */
@@ -485,7 +506,6 @@ function VenueBroadcastCenterStack({
   prefersReducedMotion,
   rimW,
   density = 'solo',
-  sidePot = null,
 }: {
   pot: number
   potMuted: 'dim' | 'faint' | 'live'
@@ -501,7 +521,6 @@ function VenueBroadcastCenterStack({
   prefersReducedMotion: boolean
   rimW: number
   density?: 'solo' | 'dual'
-  sidePot?: number | null
 }) {
   const feltBounds = venueFeltBoundsFrac()
   const centerTypo = broadcastCenterTypographyPx(rimW, density)
@@ -579,7 +598,6 @@ function VenueBroadcastCenterStack({
           prefersReducedMotion={prefersReducedMotion}
           pulseOnChange
         />
-        <FeltSidePotLine amount={sidePot} />
       </div>
       {hasActionLine ? (
         <div className="vfd-broadcast-action-stack" style={actionStackStyle}>
@@ -644,7 +662,6 @@ function VenueMosaicFeltCenterStack({
   potClass,
   potMuted,
   prefersReducedMotion,
-  sidePot = null,
 }: {
   communityDigits: number[]
   communityCardWidthPx: number
@@ -653,7 +670,6 @@ function VenueMosaicFeltCenterStack({
   potClass?: string
   potMuted?: 'dim' | 'faint' | 'live'
   prefersReducedMotion: boolean
-  sidePot?: number | null
 }) {
   const feltBounds = venueFeltBoundsFrac()
   const showPot = pot != null && potClass != null
@@ -695,7 +711,6 @@ function VenueMosaicFeltCenterStack({
             className={`block max-w-full ${potClass}`}
           />
         ) : null}
-        <FeltSidePotLine amount={sidePot} />
       </div>
     </div>
   )
@@ -1206,7 +1221,7 @@ function SeatRingWithLabels({
   mosaicFeltWidthClass,
   mosaicFeltMaxHeightCss,
   mosaicCenterPot = null,
-  sidePot = null,
+  seatSideMarks = null,
   mosaicCenterPotClass = '',
   mosaicCenterPotMuted = 'live' as 'dim' | 'faint' | 'live',
   /** Showdown: seat indexes (0-based) that won chip pot / trivia tie — amber rim on mosaic dots. */
@@ -1250,7 +1265,8 @@ function SeatRingWithLabels({
   mosaicFeltWidthClass?: string
   mosaicFeltMaxHeightCss?: string
   mosaicCenterPot?: number | null
-  sidePot?: number | null
+  /** Side-pot number each seat can win, parallel to `seatNames`. */
+  seatSideMarks?: (number | null)[] | null
   mosaicCenterPotClass?: string
   mosaicCenterPotMuted?: 'dim' | 'faint' | 'live'
   /** Spotlight hero: draw mini chip stack + bankroll on the felt by each seated player. */
@@ -1474,7 +1490,6 @@ function SeatRingWithLabels({
             prefersReducedMotion={prefersReducedMotion}
             rimW={rimW}
             density={isDualBroadcast ? 'dual' : 'solo'}
-            sidePot={sidePot}
           />
         ) : (
           <VenueMosaicFeltCenterStack
@@ -1485,7 +1500,6 @@ function SeatRingWithLabels({
             potClass={mosaicCenterPotClass}
             potMuted={mosaicCenterPotMuted}
             prefersReducedMotion={prefersReducedMotion}
-            sidePot={sidePot}
           />
         )
       ) : null}
@@ -1681,7 +1695,7 @@ function SeatRingWithLabels({
               ) : null}
               <SeatCupholderMarker
                 sizePx={cupSizePx}
-                label={isMosaic && filled && mosaicInitials ? mosaicInitials : undefined}
+                label={isMosaic && filled ? withSidePotMark(mosaicInitials, sideMarkAt(seatSideMarks, i)) : undefined}
                 labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
                 labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(rimW) : undefined}
                 labelShiftXPx={
@@ -1925,7 +1939,7 @@ function SeatRingWithLabels({
                 <span
                   className={`block max-w-full truncate ${isFolded ? 'line-through decoration-rose-300/85 decoration-2' : ''}`}
                 >
-                  {rimDisplayName}
+                  {withSidePotMark(rimDisplayName, sideMarkAt(seatSideMarks, i))}
                 </span>
                 {!isBusted && !broadcastRimStack && !(feltSeatStacks && size === 'lg') ? (
                   <span
@@ -2075,7 +2089,7 @@ function VenueMosaicTableCard({
   )
   const tn = row.tableNum
   const seats = row.seated
-  const pot = Math.max(0, Math.floor(Number.isFinite(row.pot) ? row.pot : 0))
+  const { pot, marks: seatSideMarks } = shownFeltPot(row.pot, row.seatInvested, row.seatFolded)
   const ph = String(row.phase ?? '').trim().toLowerCase()
   const seatNames = padSeatNames(row.seatNames)
   const seatBankrolls = padSeatBankrolls(row.seatBankrolls)
@@ -2172,7 +2186,7 @@ function VenueMosaicTableCard({
         ref={tileRef}
         data-table-tile={tn}
         role="group"
-        aria-label={`Table ${tn}, ${feltPotAria(pot, row.sidePot)}${statusBandAria}, venue floor`}
+        aria-label={`Table ${tn}, ${feltPotAria(pot)}${statusBandAria}, venue floor`}
         style={tileTypographyStyle}
         className={`@container/size relative min-h-0 min-w-0 ${mosaicTypography.rootClass} ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           showFloorShowdownOverlay && shrinkWrapRowHeight
@@ -2262,7 +2276,7 @@ function VenueMosaicTableCard({
             mosaicFeltAspectClass={floorSize.feltAspectClass}
             mosaicFeltWidthClass={floorSize.feltWidthClass}
             mosaicCenterPot={potOnFelt ? pot : null}
-            sidePot={row.sidePot}
+            seatSideMarks={seatSideMarks}
             mosaicCenterPotClass={mosaicTypography.feltPot}
             mosaicCenterPotMuted={potMuted}
             seatedCount={seats}
@@ -2696,7 +2710,7 @@ export function VenueSingleTableBroadcast({
   reserveHeadlineSpace?: boolean
 }) {
   const seats = tile.seated
-  const pot = Math.max(0, Math.floor(Number.isFinite(tile.pot) ? tile.pot : 0))
+  const { pot, marks: seatSideMarks } = shownFeltPot(tile.pot, tile.seatInvested, tile.seatFolded)
   const ph = String(tile.phase ?? '').trim().toLowerCase()
   const seatNames = padSeatNames(tile.seatNames)
   const seatBankrolls = padSeatBankrolls(tile.seatBankrolls)
@@ -2776,8 +2790,8 @@ export function VenueSingleTableBroadcast({
         showFloorShowdownOverlay
           ? floorShowdownPresentation?.ariaLabel ?? 'Showdown winner reveal'
           : isDualDensity
-            ? `Table ${tableNum}, ${feltPotAria(pot, tile.sidePot)}`
-            : `Final table, ${feltPotAria(pot, tile.sidePot)}`
+            ? `Table ${tableNum}, ${feltPotAria(pot)}`
+            : `Final table, ${feltPotAria(pot)}`
       }
     >
       {showFloorShowdownOverlay && floorSpec != null ? (
@@ -2829,7 +2843,7 @@ export function VenueSingleTableBroadcast({
                 seatLastBettingAction={seatLastBettingAction}
                 actingCallAmount={tile.actingCallAmount}
                 mosaicCenterPot={pot}
-                sidePot={tile.sidePot}
+                seatSideMarks={seatSideMarks}
                 mosaicCenterPotMuted={potMuted}
                 broadcastActionKind={isDualDensity ? null : broadcastActionKind}
                 broadcastActingPlayerName={isDualDensity ? null : actingPlayerName}

@@ -24,7 +24,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
-import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, feltSidePotAmount, inChipContest, isAllInRunout } from '@qhe/core'
+import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, isAllInRunout } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
   playerJoinBoot,
@@ -649,8 +649,7 @@ function PlayerApp() {
             {showStickyQuestion ? (
               <StickyQuestionBar
                 questionText={questionText}
-                pot={isPointsOnly ? undefined : gameState.round.pot}
-                sidePot={isPointsOnly ? undefined : feltSidePotAmount(gameState) ?? undefined}
+                pot={isPointsOnly ? undefined : displayedMainPot(gameState)}
                 tableId={gameState.tableId}
                 pointsOnly={isPointsOnly}
                 answerPoints={currentPlayer?.answerPoints ?? 0}

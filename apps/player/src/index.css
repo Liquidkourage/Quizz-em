@@ -1171,11 +1171,13 @@
   min-height: 0;
 }
 
-/* Status line sits in this panel. Size the felt to the slot under it, or the oval spills onto the wager panel. */
+/* Status line sits in this panel. The slot takes the leftover height under it. */
 .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
   flex: 1 1 0;
+  width: 100%;
   min-height: 0;
   align-items: center;
+  justify-content: center;
   container-type: size;
 }
 
@@ -1192,8 +1194,11 @@
   overflow: visible;
 }
 
-/* The generic felt cap (18rem) is for the short lobby felt. Live play fills the slot under the status. */
+/* Largest 8:5 oval that fits the slot under the status line. */
 .player-game-layout--live-fit .player-game-felt--fill {
+  width: min(100%, calc(100cqh * 8 / 5));
+  height: min(100cqh, calc(100cqw * 5 / 8));
+  max-width: 100%;
   max-height: 100%;
 }
 
@@ -3445,6 +3450,30 @@
   /* Bottom seat names and hole cards hang past the rail. Keep them above the wager panel. */
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
     padding-bottom: 5.5rem;
+  }
+}
+
+/* Mouse-driven landscape window: the wager panel gives height back so the table stays readable. */
+@media (min-width: 1024px) and (orientation: landscape) and (pointer: fine) {
+  .player-game-layout--live-fit .player-game-felt-panel--fill {
+    min-height: 18rem;
+  }
+
+  .player-game-layout--live-fit .player-game-table-status {
+    margin-bottom: 0.5rem;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    padding-top: 2.25rem;
+    padding-bottom: 2.25rem;
+  }
+
+  .player-game-wager-inline {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 42%;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 

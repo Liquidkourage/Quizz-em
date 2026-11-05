@@ -106,19 +106,22 @@ describe('player table orientation', () => {
     expect(portrait).not.toContain('rotate(-90deg)')
   })
 
-  it('sizes the felt under the status line so the desktop wager panel stays below the table', () => {
-    const slot = css.slice(
-      css.indexOf('.player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {'),
+  it('keeps a wide landscape table in the open space above the wager panel', () => {
+    const felt = css.slice(
+      css.indexOf('.player-game-layout--live-fit .player-game-felt--fill {'),
+      css.indexOf('.player-game-layout--live-fit .player-game-felt--fill {') + 320,
     )
-    const slotRule = slot.slice(0, slot.indexOf('}') + 1)
-    expect(slotRule).toContain('flex: 1 1 0')
-    expect(slotRule).toContain('min-height: 0')
-    expect(slotRule).toContain('container-type: size')
+    expect(felt).toContain('width: min(100%, calc(100cqh * 8 / 5))')
+    expect(felt).toContain('height: min(100cqh, calc(100cqw * 5 / 8))')
+    expect(felt).toContain('max-height: 100%')
 
-    const wide = mediaBlock(css.slice(css.lastIndexOf('@media (min-width: 1024px)')), '@media (min-width: 1024px)')
-    expect(wide).toContain(
-      '.player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill',
-    )
+    const wideHeader = '@media (min-width: 1024px) and (orientation: landscape) and (pointer: fine)'
+    const wide = mediaBlock(css.slice(css.lastIndexOf(wideHeader)), wideHeader)
+    expect(wide).toContain('.player-game-wager-inline')
+    expect(wide).toContain('flex: 0 1 auto')
+    expect(wide).toContain('min-height: 0')
+    expect(wide).toContain('overflow-y: auto')
+    expect(wide).toContain('max-height: 42%')
     const padding = wide.match(/padding-bottom:\s*([0-9.]+)rem/)
     expect(padding).not.toBeNull()
     const feltW = WIDE_COLUMN_PX - 6 * REM * 2

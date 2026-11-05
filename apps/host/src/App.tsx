@@ -626,10 +626,6 @@ function HostApp() {
   const handsLeft = Math.max(0, questionTotal - (venueFloorBrief?.handsCompleted ?? 0))
   const soloPublicTable = publicDisplaySoloTable(venueFloorBrief)
   const applyBlindCall = (call: BlindCall) => {
-    if (call.handsPerLevel !== handsPerBlindLevel) {
-      setHandsPerBlindLevel(call.handsPerLevel)
-      setVenueBlindStructure(call.handsPerLevel)
-    }
     setVenueSmallBlind(call.smallBlind)
     setVenueBigBlind(call.bigBlind)
     setVenueBlinds(call.smallBlind, call.bigBlind)
@@ -1208,7 +1204,6 @@ function HostApp() {
                 onApply={applyBlindCall}
                 onSmallBlind={setVenueSmallBlind}
                 onBigBlind={setVenueBigBlind}
-                onHandsPerLevel={setHandsPerBlindLevel}
                 shuffleEvery={shuffleEvery}
                 onGuideSec={(n) => setAnswerWindowSeconds(clampVenueAnswerWindow(n))}
                 onShuffleEvery={setShuffleEvery}

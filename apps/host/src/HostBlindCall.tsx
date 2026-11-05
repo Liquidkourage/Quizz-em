@@ -54,13 +54,12 @@ function PaceNumber({
 
 export function blindPaceLine(call: BlindCall, guideNow: number): string {
   const blinds = `${money(call.smallBlind)} / ${money(call.bigBlind)}`
-  const level = `level every ${call.handsPerLevel} hands`
-  if (call.verb === 'Hold') return `Leave ${blinds} and a ${level}.`
+  if (call.verb === 'Hold') return `Leave ${blinds}.`
   if (call.verb === 'Cut the guide' || call.verb === 'Stretch the guide') {
     return `Leave ${blinds}. Save a ${call.guideSec}s guessing guide.`
   }
   const guide = call.guideSec === guideNow ? '' : ` Save a ${call.guideSec}s guessing guide.`
-  return `Set ${blinds} and ${level}.${guide}`
+  return `Set ${blinds}.${guide}`
 }
 
 export function HostBlindCall({
@@ -78,7 +77,6 @@ export function HostBlindCall({
   onGoalMinutes,
   onSmallBlind,
   onBigBlind,
-  onHandsPerLevel,
   onGuideSec,
   onSave,
 }: {
@@ -99,7 +97,6 @@ export function HostBlindCall({
   onGoalMinutes?: (minutes: number) => void
   onSmallBlind?: (n: number) => void
   onBigBlind?: (n: number) => void
-  onHandsPerLevel?: (n: number) => void
   onGuideSec?: (n: number) => void
   onShuffleEvery?: (n: number) => void
   onSave?: () => void
@@ -135,12 +132,7 @@ export function HostBlindCall({
     if (typeof localStorage !== 'undefined') localStorage.setItem(GOAL_KEY, String(n))
     onGoalMinutes?.(n)
   }
-  const tune =
-    onSave != null &&
-    onSmallBlind != null &&
-    onBigBlind != null &&
-    onHandsPerLevel != null &&
-    onGuideSec != null
+  const tune = onSave != null && onSmallBlind != null && onBigBlind != null && onGuideSec != null
 
   return (
     <div className="host-blind-call flex flex-col gap-2" aria-live="polite">
@@ -164,7 +156,6 @@ export function HostBlindCall({
         <>
           <PaceNumber label="Small blind" value={smallBlind ?? bigBlind} min={1} onChange={(n) => onSmallBlind?.(n)} />
           <PaceNumber label="Big blind" value={bigBlind} min={1} onChange={(n) => onBigBlind?.(n)} />
-          <PaceNumber label="Level every" value={handsPerLevel} min={1} max={50} onChange={(n) => onHandsPerLevel?.(n)} />
           <PaceNumber label="Guide" value={guideSec} min={15} max={300} step={5} onChange={(n) => onGuideSec?.(n)} />
           <button
             type="button"

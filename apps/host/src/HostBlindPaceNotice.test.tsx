@@ -34,7 +34,7 @@ describe('HostBlindPaceNotice', () => {
     expect(html).toContain('Blind pace')
     expect(html).toContain('While the answer is up')
     expect(html).toContain('Speed up')
-    expect(html).toContain('level every 2 hands')
+    expect(html).not.toContain('level every')
     expect(html).toContain('Apply')
   })
 

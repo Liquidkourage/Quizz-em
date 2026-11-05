@@ -32,7 +32,7 @@ describe('HostBlindCall', () => {
     expect(html).toContain('aria-label="Set $15 / $30')
     expect(html.replace(/aria-label="[^"]*"/g, '')).not.toContain('$')
     expect(html).toContain('chip-mark')
-    expect(html).toContain('level every 2 hands')
+    expect(html).not.toContain('level every')
     expect(html).toContain('40 players')
     expect(html).toContain('Apply')
     expect(html).toContain('host-blind-call')
@@ -43,7 +43,7 @@ describe('HostBlindCall', () => {
     expect(html).not.toContain('>Blind call<')
   })
 
-  it('tunes blinds, level, and the guessing guide from the pace line', () => {
+  it('tunes blinds and the guessing guide from the pace line', () => {
     const html = renderToStaticMarkup(
       <HostBlindCall
         showStartedAtMs={null}
@@ -59,7 +59,6 @@ describe('HostBlindCall', () => {
         onApply={() => {}}
         onSmallBlind={() => {}}
         onBigBlind={() => {}}
-        onHandsPerLevel={() => {}}
         onGuideSec={() => {}}
         onShuffleEvery={() => {}}
         shuffleEvery={5}
@@ -68,7 +67,7 @@ describe('HostBlindCall', () => {
     )
     expect(html).toContain('Small blind')
     expect(html).toContain('Big blind')
-    expect(html).toContain('Level every')
+    expect(html).not.toContain('Level every')
     expect(html).not.toContain('Re-seat every')
     expect(html).not.toContain('Shuffle every')
     expect(html).toContain('Guide')

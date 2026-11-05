@@ -63,6 +63,49 @@ export function assignGhostHosts<T extends GhostSeat>(
   return fillOpenGhosts(stamped, prior, winners)
 }
 
+export type LateEntryTable = {
+  tableNum: number
+  players: readonly GhostSeat[]
+}
+
+function isChipHost(player: GhostSeat): boolean {
+  return player.pointsOnly !== true && player.bankroll > 0
+}
+
+function followersOfHost(tables: readonly LateEntryTable[], hostId: string): number {
+  let count = 0
+  for (const table of tables) {
+    for (const player of table.players) {
+      if (player.pointsOnly === true && player.ghostHostId === hostId) count += 1
+    }
+  }
+  return count
+}
+
+function listChipHosts(tables: readonly LateEntryTable[]): { id: string; tableNum: number; seat: number; followers: number }[] {
+  const hosts: { id: string; tableNum: number; seat: number; followers: number }[] = []
+  for (const table of tables) {
+    table.players.forEach((player, seat) => {
+      if (!isChipHost(player)) return
+      hosts.push({
+        id: player.id,
+        tableNum: table.tableNum,
+        seat,
+        followers: followersOfHost(tables, player.id),
+      })
+    })
+  }
+  return hosts
+}
+
+/** Chip player a late points-only arrival should follow. Spreads arrivals across the field. */
+export function pickLateEntryHost(tables: readonly LateEntryTable[]): string | null {
+  const hosts = listChipHosts(tables)
+  if (hosts.length === 0) return null
+  hosts.sort((a, b) => a.followers - b.followers || a.tableNum - b.tableNum || a.seat - b.seat)
+  return hosts[0]!.id
+}
+
 /** Put each busted player on the table where the chip player they follow is sitting. */
 export function seatGhostsBesideHosts<T extends GhostSeat>(
   tables: ReadonlyMap<number, readonly T[]>,

@@ -1,7 +1,7 @@
 ﻿import { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
 import { assignGhostHosts } from './ghostHost'
 
-export { seatGhostsBesideHosts } from './ghostHost'
+export { pickLateEntryHost, seatGhostsBesideHosts } from './ghostHost'
 
 export type GamePhase = 'lobby' | 'question' | 'betting' | 'answering' | 'reveal' | 'showdown' | 'payout' | 'intermission';
 

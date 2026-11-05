@@ -2,6 +2,38 @@ import type { Socket } from 'socket.io'
 import type { ClientHello, ServerAck } from '@qhe/net'
 import * as g from '../game-ops'
 import { hostHelloFailureMessage } from '../host-auth'
+import { seatLatePointsOnlyPlayer } from '../late-entry'
+
+function helloAckMessage(joinedLate: boolean, reconnected: boolean, tableId: string | undefined): string {
+  if (joinedLate && tableId) return `You're in for points only, at table ${tableId}.`
+  if (!reconnected) return 'Connected successfully'
+  if (tableId && tableId !== g.LOBBY_TABLE_ID) return `Reconnected at table ${tableId}`
+  return 'Reconnected to the venue'
+}
+
+function finishLateEntry(
+  socket: Socket,
+  role: string,
+  alreadySeated: boolean,
+  venueCode: string,
+  playerId: string,
+  name: string,
+  accept: (session: NonNullable<ReturnType<typeof g.findPlayerSessionInVenue>>) => void,
+): boolean {
+  if (role !== 'player' || alreadySeated || !g.venueAudienceWelcomeExpired.has(venueCode)) return false
+  const seated = seatLatePointsOnlyPlayer(venueCode, playerId, name)
+  if (!seated.ok) {
+    socket.emit('ack', { ok: false, message: seated.message })
+    return true
+  }
+  const session = g.findPlayerSessionInVenue(venueCode, playerId)
+  if (!session) {
+    socket.emit('ack', { ok: false, message: 'Could not seat you for points.' })
+    return true
+  }
+  accept(session)
+  return false
+}
 
 export async function handleHello(socket: Socket, data: ClientHello) {
     const { role, name, roomCode } = data
@@ -36,12 +68,12 @@ export async function handleHello(socket: Socket, data: ClientHello) {
     const playerIdRaw =
       role === 'player' && typeof data.playerId === 'string' ? data.playerId.trim() : ''
     const rosterPlayerId = role === 'player' ? playerIdRaw || `human:${socket.id}` : ''
-    const playerReconnect =
+    let playerReconnect =
       role === 'player' && playerIdRaw
         ? g.findPlayerSessionInVenue(venueCode, playerIdRaw)
         : null
+    let joinedLate = false
     const helloSessionKey = g.tableSessionKey(venueCode, tableId)
-    const activeSessionKey = playerReconnect?.sessionKey ?? helloSessionKey
 
     if (role !== 'display') {
       if (role === 'player' && !g.venueHasHost(venueCode)) {
@@ -53,19 +85,15 @@ export async function handleHello(socket: Socket, data: ClientHello) {
       }
 
       /**
-       * Once the show has started (Assign / Start Game / first non-lobby felt),
-       * reject brand-new players. Returning seats with a stored playerId still reconnect.
+       * Once the show has started, a new phone joins for points and follows a chip player.
+       * A stored playerId still reconnects to the seat they already have.
        */
       if (
-        role === 'player' &&
-        !playerReconnect &&
-        g.venueAudienceWelcomeExpired.has(venueCode)
-      ) {
-        socket.emit('ack', {
-          ok: false,
-          message:
-            'This game has already started — new players can’t join. If you were seated earlier, reopen the same join link on this phone to reconnect.',
+        finishLateEntry(socket, role, playerReconnect != null, venueCode, rosterPlayerId, name, (session) => {
+          playerReconnect = session
+          joinedLate = true
         })
+      ) {
         return
       }
 
@@ -112,6 +140,7 @@ export async function handleHello(socket: Socket, data: ClientHello) {
       return
     }
 
+    const activeSessionKey = playerReconnect?.sessionKey ?? helloSessionKey
     socket.join(activeSessionKey)
     sockData.sessionKey = activeSessionKey
     let emitKey = activeSessionKey
@@ -176,13 +205,9 @@ export async function handleHello(socket: Socket, data: ClientHello) {
 
     const ack: ServerAck = {
       ok: true,
-      message: playerReconnect
-        ? restoredTableId && restoredTableId !== g.LOBBY_TABLE_ID
-          ? `Reconnected at table ${restoredTableId}`
-          : 'Reconnected to the venue'
-        : 'Connected successfully',
+      message: helloAckMessage(joinedLate, playerReconnect != null, restoredTableId),
       ...(role === 'player' ? { playerId: rosterPlayerId } : {}),
-      ...(restoredTableId ? { restoredTableId } : {}),
+      ...(restoredTableId && !joinedLate ? { restoredTableId } : {}),
     }
     socket.emit('ack', ack)
 

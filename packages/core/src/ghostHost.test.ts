@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { GhostSeat } from './ghostHost'
-import { addPlayer, createEmptyGame, endRound, seatGhostsBesideHosts } from './index'
+import { addPlayer, createEmptyGame, endRound, pickLateEntryHost, seatGhostsBesideHosts } from './index'
 
 describe('ghost host', () => {
   it('sends a busted player with the player who won the main pot', () => {
@@ -122,5 +122,40 @@ describe('ghost host', () => {
 
     expect(seated.get(1)?.map((player) => player.id)).toEqual(['ada'])
     expect(seated.get(2)?.map((player) => player.id)).toEqual(['cam', 'boo'])
+  })
+})
+
+describe('late entry host', () => {
+  it('sits a new points-only player with the chip player who has the fewest followers', () => {
+    const tables = [
+      {
+        tableNum: 1,
+        players: [
+          { id: 'ada', bankroll: 500, pointsOnly: false },
+          { id: 'boo', bankroll: 0, pointsOnly: true, ghostHostId: 'ada' },
+        ],
+      },
+      {
+        tableNum: 2,
+        players: [{ id: 'cam', bankroll: 500, pointsOnly: false }],
+      },
+    ]
+
+    expect(pickLateEntryHost(tables)).toBe('cam')
+  })
+
+  it('uses the lowest table when every chip player has the same number of followers', () => {
+    const tables = [
+      { tableNum: 2, players: [{ id: 'cam', bankroll: 500, pointsOnly: false }] },
+      { tableNum: 1, players: [{ id: 'ada', bankroll: 500, pointsOnly: false }] },
+    ]
+
+    expect(pickLateEntryHost(tables)).toBe('ada')
+  })
+
+  it('has nobody to follow when every stack is gone', () => {
+    expect(
+      pickLateEntryHost([{ tableNum: 1, players: [{ id: 'boo', bankroll: 0, pointsOnly: true }] }]),
+    ).toBeNull()
   })
 })

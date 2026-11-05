@@ -30,14 +30,15 @@ describe('player side pot', () => {
       createElement(PlayerFeltPot, { pot: hand.round.pot, sidePot: feltSidePotAmount(hand) }),
     )
     expect(html).toContain('Pot')
-    expect(html).toContain('Side')
+    expect(html).toContain('of which')
+    expect(html).toContain('is side')
     expect(html).toContain('300')
     const even = { ...hand, round: { ...hand.round, pot: 200, handContributions: { a: 100, b: 100, c: 0 } } }
     const quiet = renderToStaticMarkup(
       createElement(PlayerFeltPot, { pot: even.round.pot, sidePot: feltSidePotAmount(even) }),
     )
     expect(quiet).toContain('Pot')
-    expect(quiet).not.toContain('Side')
+    expect(quiet).not.toContain('of which')
   })
 
   it('prints the side amount beside the sticky pot', () => {
@@ -48,7 +49,8 @@ describe('player side pot', () => {
         sidePot: 300,
       }),
     )
-    expect(html).toContain('Side')
+    expect(html).toContain('of which')
+    expect(html).toContain('is side')
     expect(html).toContain('300')
   })
 })

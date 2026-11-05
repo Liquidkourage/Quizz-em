@@ -24,9 +24,10 @@ describe('felt side pot', () => {
         prefersReducedMotion: true,
       }),
     )
-    expect(html).toContain('Side')
+    expect(html).toContain('of which')
+    expect(html).toContain('is side')
     expect(html).toContain('300')
-    expect(html).toContain('side $300')
+    expect(html).toContain('of which $300 is side')
   })
 
   it('prints the side amount on a mosaic felt', () => {
@@ -42,7 +43,8 @@ describe('felt side pot', () => {
     )
     const start = html.indexOf('data-table-tile="1"')
     const card = html.slice(start, html.indexOf('data-table-tile="2"'))
-    expect(card).toContain('Side')
+    expect(card).toContain('of which')
+    expect(card).toContain('is side')
     expect(card).toContain('300')
   })
 })

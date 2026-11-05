@@ -61,7 +61,9 @@ export function PlayerFeltPot({ pot, sidePot }: { pot: number; sidePot: number |
       <ChipText text={`Pot $${pot.toLocaleString()}`} />
       {sidePot != null ? (
         <span className="player-game-table-side-pot">
-          <ChipText text={`Side $${sidePot.toLocaleString()}`} />
+          {' of which '}
+          <ChipText text={`$${sidePot.toLocaleString()}`} />
+          {' is side'}
         </span>
       ) : null}
     </span>

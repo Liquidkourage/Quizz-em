@@ -274,7 +274,7 @@ function FeltSidePotLine({ amount }: { amount?: number | null }) {
   if (amount == null || amount <= 0) return null
   return (
     <p className="vfd-felt-side-pot">
-      Side <ChipText text={formatVenueBankroll(amount)} />
+      of which <ChipText text={formatVenueBankroll(amount)} /> is side
     </p>
   )
 }
@@ -282,7 +282,7 @@ function FeltSidePotLine({ amount }: { amount?: number | null }) {
 function feltPotAria(pot: number, sidePot?: number | null): string {
   const money = formatVenueBankroll(pot)
   if (sidePot == null || sidePot <= 0) return `pot ${money}`
-  return `pot ${money}, side ${formatVenueBankroll(sidePot)}`
+  return `pot ${money}, of which ${formatVenueBankroll(sidePot)} is side`
 }
 
 /** Pot dollars — pulses when the venue snapshot posts a new amount. */

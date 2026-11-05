@@ -17,8 +17,9 @@ function StickySidePot({ amount }: { amount?: number }) {
   if (typeof amount !== 'number' || amount <= 0) return null
   return (
     <>
-      {' · Side '}
+      {' · of which '}
       <ChipText text={`$${amount.toLocaleString()}`} />
+      {' is side'}
     </>
   )
 }

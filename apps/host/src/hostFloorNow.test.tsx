@@ -142,7 +142,8 @@ describe('venue floor now', () => {
     )
     const start = html.indexOf('Open table 1')
     const card = html.slice(start, html.indexOf('</button>', start))
-    expect(card).toContain('Side')
+    expect(card).toContain('of which')
+    expect(card).toContain('is side')
     expect(card).toContain('aria-label="$300"')
     const open = renderToStaticMarkup(
       createElement(HostTableOpen, {
@@ -153,7 +154,8 @@ describe('venue floor now', () => {
         sidePot: 300,
       }),
     )
-    expect(open).toContain('Side')
+    expect(open).toContain('of which')
+    expect(open).toContain('is side')
     expect(open).toContain('aria-label="$300"')
   })
 

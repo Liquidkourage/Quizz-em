@@ -48,7 +48,7 @@ export default function GameInfoCard({
             </p>
             {sidePot != null ? (
               <p className="player-game-pot-label">
-                Side <ChipText text={`$${sidePot.toLocaleString()}`} />
+                of which <ChipText text={`$${sidePot.toLocaleString()}`} /> is side
               </p>
             ) : null}
           </div>

@@ -1466,7 +1466,7 @@ function HostSidePot({ amount }: { amount?: number | null }) {
   if (amount == null || amount <= 0) return null
   return (
     <span className="font-semibold text-amber-100">
-      Side <ChipText text={formatHostFloorMoney(amount)} />
+      of which <ChipText text={formatHostFloorMoney(amount)} /> is side
     </span>
   )
 }

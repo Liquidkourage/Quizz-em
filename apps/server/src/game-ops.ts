@@ -1126,8 +1126,26 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
   for (const { tk, gs } of venuePlayableSnapshots(vn)) {
     resumeHeldTable(vn, tk, gs, elapsed)
   }
+  resumeOpenGuessNudge(vn)
   emitDisplayVenueSnapshotNow(vn)
   return false
+}
+
+/** The nudge timer lives in memory. After a restart, finish it if the clock already ran out. */
+function resumeOpenGuessNudge(vn: string): void {
+  let fireAt: number | null = null
+  for (const { gs } of venuePlayableSnapshots(vn)) {
+    if (gs.round.guessNudge !== true) continue
+    const deadline = gs.round.guessNudgeDeadline
+    if (typeof deadline !== 'number' || !Number.isFinite(deadline)) continue
+    if (fireAt == null || deadline < fireAt) fireAt = deadline
+  }
+  if (fireAt == null) return
+  if (fireAt <= Date.now()) {
+    forfeitOpenGuessesOnVenue(vn)
+    return
+  }
+  armGuessNudgeTimeout(vn, fireAt)
 }
 
 function resumeHeldTable(vn: string, tk: string, gs: GameState, elapsed: number): void {
@@ -2027,7 +2045,11 @@ export function revealVenueAnswersTogether(socket: Socket, venueCode: string): b
   )
   if (!lock) return false
   const nowMs = Date.now()
-  const stillGuessing = lock.filter((row) => !tableAnswersReady(row.gs, nowMs))
+  settleExpiredGuessNudges(lock.map((row) => row.tk), nowMs)
+  const stillGuessing = lock.filter((row) => {
+    const gs = rooms.get(row.tk)
+    return gs == null || !tableAnswersReady(gs, nowMs)
+  })
   if (stillGuessing.length > 0) {
     socket.emit('toast', answerRevealWaitLabel(stillGuessing.map((row) => row.n)))
     return false
@@ -2041,13 +2063,29 @@ export function revealVenueAnswersTogether(socket: Socket, venueCode: string): b
   return true
 }
 
+function guessNudgeHasRunOut(gs: GameState, nowMs: number): boolean {
+  if (gs.round.guessNudge !== true) return false
+  const deadline = gs.round.guessNudgeDeadline
+  return typeof deadline === 'number' && Number.isFinite(deadline) && nowMs >= deadline
+}
+
+function settleExpiredGuessNudges(sessionKeys: readonly string[], nowMs: number): void {
+  for (const tk of sessionKeys) {
+    const gs = rooms.get(tk)
+    if (gs == null || !guessNudgeHasRunOut(gs, nowMs)) continue
+    const next = forfeitOpenGuesses(gs)
+    if (next !== gs) rooms.set(tk, next)
+  }
+}
+
 function tableAnswersReady(gs: GameState, nowMs: number): boolean {
   const deadline = gs.round?.answerDeadline
   const deadlineMs = typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : null
   const players = gs.players ?? []
   let submitted = 0
   for (const player of players) {
-    if (typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)) submitted++
+    const guessed = typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)
+    if (guessed || player.answerForfeited === true) submitted++
   }
   return answerRevealOpen({ deadlineMs, submitted, expected: players.length, nowMs })
 }

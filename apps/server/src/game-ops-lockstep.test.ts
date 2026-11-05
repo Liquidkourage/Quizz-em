@@ -143,6 +143,46 @@ describe('revealVenueAnswersTogether', () => {
     expect(toasts).toEqual([])
   })
 
+  it('reveals when a missed guess was already forfeited', () => {
+    seat('L11', '3', 'answering', 2)
+    const key = tableSessionKey('L11', '3')
+    const gs = rooms.get(key)!
+    rooms.set(key, {
+      ...gs,
+      players: gs.players.map((player, index) =>
+        index === 0 ? { ...player, submittedAnswer: 12 } : { ...player, answerForfeited: true },
+      ),
+      round: { ...gs.round, answerDeadline: Date.now() + 60_000 },
+    })
+    const { socket, toasts } = host()
+    expect(revealVenueAnswersTogether(socket, 'l11')).toBe(true)
+    expect(rooms.get(key)!.phase).toBe('reveal')
+    expect(toasts).toEqual([])
+  })
+
+  it('forfeits a missed guess when the nudge clock already ran out', () => {
+    seat('L12', '3', 'answering', 2)
+    const key = tableSessionKey('L12', '3')
+    const gs = rooms.get(key)!
+    rooms.set(key, {
+      ...gs,
+      players: gs.players.map((player, index) =>
+        index === 0 ? { ...player, submittedAnswer: 12 } : player,
+      ),
+      round: {
+        ...gs.round,
+        answerDeadline: Date.now() + 60_000,
+        guessNudge: true,
+        guessNudgeDeadline: Date.now() - 1_000,
+      },
+    })
+    const { socket, toasts } = host()
+    expect(revealVenueAnswersTogether(socket, 'l12')).toBe(true)
+    expect(rooms.get(key)!.phase).toBe('reveal')
+    expect(rooms.get(key)!.players[1]?.answerForfeited).toBe(true)
+    expect(toasts).toEqual([])
+  })
+
   it('reveals when every player has guessed before the timer ends', () => {
     seat('L10', '1', 'answering', 2)
     const key = tableSessionKey('L10', '1')

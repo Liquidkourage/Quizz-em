@@ -90,6 +90,29 @@ describe('resumeVenueAfterRestartIfHeld', () => {
     expect(resumeVenueAfterRestartIfHeld('never')).toBe(false)
   })
 
+  it('forfeits an open guess when the nudge clock ran out during the outage', () => {
+    vi.setSystemTime(61_000)
+    let gs = addPlayer(createEmptyGame('R8', 'old-host', '3'), 'p1', 'Ann')
+    gs = addPlayer(gs, 'p2', 'Bo')
+    gs = {
+      ...gs,
+      phase: 'answering',
+      players: gs.players.map((player, index) =>
+        index === 0 ? { ...player, submittedAnswer: 8 } : player,
+      ),
+      round: {
+        ...gs.round,
+        answerDeadline: 100_000,
+        guessNudge: true,
+        guessNudgeDeadline: 1_000,
+      },
+    }
+    const rows = toSnapshotRows(new Map([['R8:3', gs]])).map((row) => ({ ...row, savedAtMs: 1_000 }))
+    restoreRoomsFromSnapshot(rows, 61_000)
+    expect(resumeVenueAfterRestartIfHeld('r8')).toBe(true)
+    expect(rooms.get('R8:3')?.players.find((player) => player.id === 'p2')?.answerForfeited).toBe(true)
+  })
+
   it('lets unanswered bots keep going and restores the answer guide when the host comes back', () => {
     vi.setSystemTime(61_000)
     let gs = addPlayer(createEmptyGame('R7', 'old-host', '1'), 'vp:1', 'Ada')

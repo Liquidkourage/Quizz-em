@@ -54,7 +54,7 @@ import {
 import type { BlindCall, GameState, Question } from '@qhe/core'
 import { HostBlindCall } from './HostBlindCall'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
+import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
 import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
 import { nowOnServerClock, recordServerClockSample } from './serverClock'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
@@ -503,7 +503,7 @@ function HostApp() {
   const inVenueRehearsalLobby =
     (gameState.tableId ?? '') === LOBBY_TABLE_ID && gameState.phase === 'lobby'
   const showVenueRehearsalPreview = inVenueRehearsalLobby || rehearsalCpuOnly
-  const atPlayerCap = gameState.players.length >= gameState.maxPlayers
+  const atPlayerCap = gameState.players.length >= rosterMaxPlayers(gameState.tableId)
   const hasVenueFeltBeat =
     venueFeltBeat != null && venueFeltBeat.some((r) => r.active && r.seated > 0)
 

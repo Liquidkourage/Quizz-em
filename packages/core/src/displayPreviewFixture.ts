@@ -151,7 +151,7 @@ export function buildDisplayPreviewGameState(code: string, rawTableId: string): 
     bigBlind: 20,
     smallBlind: 10,
     minPlayers: 2,
-    maxPlayers: 32,
+    maxPlayers: VENUE_WALL_SEAT_SLOTS,
     players,
     round: {
       roundId: 'preview-r1',

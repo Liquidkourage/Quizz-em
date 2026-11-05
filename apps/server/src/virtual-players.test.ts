@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  LOBBY_TABLE_ID,
   advanceRevealToShowdown,
   composeNumericAnswersFromSevenDigitCards,
   createEmptyGame,
@@ -34,6 +35,22 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+})
+
+describe('CPU roster cap', () => {
+  it('keeps adding in the lobby after 32 seats', () => {
+    let gs = createEmptyGame('V', 'h', LOBBY_TABLE_ID)
+    gs = { ...gs, maxPlayers: 32, players: [] }
+    gs = addVirtualPlayers(gs, 33)
+    expect(gs.players).toHaveLength(33)
+  })
+
+  it('stops a felt at 8 seats', () => {
+    let gs = createEmptyGame('V', 'h', '1')
+    gs = { ...gs, maxPlayers: 32 }
+    gs = addVirtualPlayers(gs, 20)
+    expect(gs.players).toHaveLength(8)
+  })
 })
 
 describe('CPU forced action', () => {

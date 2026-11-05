@@ -1,4 +1,4 @@
-﻿import { VENUE_WALL_SEAT_SLOTS } from './venueConstants'
+﻿import { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
 
 export type GamePhase = 'lobby' | 'question' | 'betting' | 'answering' | 'reveal' | 'showdown' | 'payout' | 'intermission';
 
@@ -147,6 +147,13 @@ export const DIGITS: ReadonlyArray<0|1|2|3|4|5|6|7|8|9> = Object.freeze([0,1,2,3
 
 /** Sentinel table id — everyone joins here for auto-seating; host runs assign to split into numbered tables. */
 export const LOBBY_TABLE_ID = 'LOBBY' as const;
+
+/** Lobby holds every felt. A numbered table holds one felt. */
+export function rosterMaxPlayers(tableId: string | null | undefined): number {
+  const id = (tableId ?? '').trim()
+  if (id === LOBBY_TABLE_ID) return VENUE_NUMBERED_TABLE_MAX * VENUE_WALL_SEAT_SLOTS
+  return VENUE_WALL_SEAT_SLOTS
+}
 
 /**
  * Chooses how many tables to use for N players given per-table min/max.
@@ -467,8 +474,7 @@ export function createEmptyGame(code: string, hostId: string = '', tableId: stri
     bigBlind: 20,
     smallBlind: 10,
     minPlayers: 2,
-    /** Large enough for test sessions (many CPU seats); lobby split still shards by venue rules. */
-    maxPlayers: 32,
+    maxPlayers: rosterMaxPlayers(table),
     round: {
       roundId: 'r1',
       question: null,

@@ -15,6 +15,7 @@ import {
   nearestLegalAnswerToTarget,
   releasePlayer,
   rehearsalSeatDisplayName,
+  rosterMaxPlayers,
   normalizeBettingTurn,
   type GameState,
   type PlayerState,
@@ -61,8 +62,9 @@ function takeNudgedGuess(state: GameState): GameState | null {
 }
 
 export function addVirtualPlayers(state: GameState, requested: number): GameState {
-  const room = Math.max(0, state.maxPlayers - state.players.length)
-  if (room <= 0) return state
+  const cap = rosterMaxPlayers(state.tableId)
+  const room = Math.max(0, cap - state.players.length)
+  if (room <= 0) return { ...state, maxPlayers: cap }
   const want = Math.floor(Number(requested) || 1)
   const n = Math.max(1, Math.min(room, want))
   let s = state
@@ -71,7 +73,7 @@ export function addVirtualPlayers(state: GameState, requested: number): GameStat
     const slot = liveVirtualCount(s)
     s = addPlayer(s, id, rehearsalSeatDisplayName(slot))
   }
-  return s
+  return { ...s, maxPlayers: cap }
 }
 
 /** Remove every virtual seat in one shot (host tooling). */

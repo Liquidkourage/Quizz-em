@@ -2891,6 +2891,56 @@
     text-shadow: 0 1px 3px rgb(0 0 0 / 0.9);
   }
 
+  /** Mosaic: Main and Side ride the pot, so the street stays centered. */
+  .vfd-mosaic-pot-sides {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0.32em;
+    font-size: var(--vfd-stack-size);
+  }
+
+  .vfd-mosaic-pot-sides > .vfd-felt-pot-label {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin: 0;
+    transform: translateX(-50%);
+    font-size: 0.28em;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+  }
+
+  .vfd-mosaic-side-lines {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 0.04em;
+    transform: translateX(-50%);
+  }
+
+  .vfd-mosaic-side-line {
+    margin: 0;
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    font-size: 0.36em;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgb(0 0 0 / 0.9);
+  }
+
+  .vfd-mosaic-side-word {
+    margin-right: 0.35em;
+    font-size: 0.72em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(255 251 235 / 0.78);
+  }
+
   .vfd-broadcast-center-amount {
     font-family: ui-monospace, monospace;
     font-weight: 800;

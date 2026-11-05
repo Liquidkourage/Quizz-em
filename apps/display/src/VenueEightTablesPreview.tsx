@@ -333,6 +333,53 @@ function FeltSideLayers({ sides }: { sides: readonly LiveSidePot[] | undefined }
   )
 }
 
+/** Mosaic captions sit on the pot. They stay out of the street's centered stack. */
+function MosaicSideLines({ sides }: { sides: readonly LiveSidePot[] }) {
+  return (
+    <div className="vfd-mosaic-side-lines">
+      {sides.map((side) => (
+        <p key={side.mark} className="vfd-mosaic-side-line">
+          <span className="vfd-mosaic-side-word">Side</span>
+          <span style={{ color: sidePotColor(side.mark) }}>
+            <SidePotMark mark={side.mark} /> <ChipText text={formatVenueBankroll(side.amount)} />
+          </span>
+        </p>
+      ))}
+    </div>
+  )
+}
+
+function MosaicPotWithSides({
+  amount,
+  className,
+  prefersReducedMotion,
+  potMuted,
+  sides,
+}: {
+  amount: number
+  className: string
+  prefersReducedMotion: boolean
+  potMuted?: 'dim' | 'faint' | 'live'
+  sides: readonly LiveSidePot[] | undefined
+}) {
+  const amountNode = (
+    <VenuePotAmount
+      amount={amount}
+      prefersReducedMotion={prefersReducedMotion}
+      potMuted={potMuted}
+      className={className}
+    />
+  )
+  if (sides == null || sides.length === 0) return amountNode
+  return (
+    <div className="vfd-mosaic-pot-sides">
+      <p className="vfd-felt-pot-label">Main</p>
+      {amountNode}
+      <MosaicSideLines sides={sides} />
+    </div>
+  )
+}
+
 /** Pot dollars — pulses when the venue snapshot posts a new amount. */
 function VenuePotAmount({
   amount,
@@ -737,17 +784,14 @@ function VenueMosaicFeltCenterStack({
           </div>
         ) : null}
         {showPot ? (
-          <>
-            <FeltMainLabel sides={sides} />
-            <VenuePotAmount
-              amount={pot}
-              prefersReducedMotion={prefersReducedMotion}
-              potMuted={potMuted}
-              className={`block max-w-full ${potClass}`}
-            />
-          </>
+          <MosaicPotWithSides
+            amount={pot}
+            className={`block max-w-full ${potClass}`}
+            prefersReducedMotion={prefersReducedMotion}
+            potMuted={potMuted}
+            sides={sides}
+          />
         ) : null}
-        <FeltSideLayers sides={sides} />
       </div>
     </div>
   )

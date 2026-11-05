@@ -109,6 +109,20 @@ describe('still guessing notice', () => {
     expect(html).toContain('Nudge')
     expect(html).toContain('scores 0')
     expect(html).toContain('cannot win the pot')
+    expect(html).toContain('Close still guessing')
+  })
+
+  it('tucks the notice away so the host can reopen it', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostStillGuessingNotice, {
+        players: [{ name: 'Bo', tableNum: 2 }],
+        startClosed: true,
+      }),
+    )
+    expect(html).toContain('Show still guessing')
+    expect(html).toContain('Still guessing')
+    expect(html).not.toContain('Nudge gives them')
+    expect(html).not.toContain('w-[min(24rem')
   })
 
   it('uses two columns when many players are still guessing', () => {

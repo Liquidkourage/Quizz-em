@@ -289,6 +289,10 @@ export function onToast(callback: (message: string) => void) {
   return subscribeSocket('toast', callback)
 }
 
+export function onPlayerNudge(callback: (message: string) => void) {
+  return subscribeSocket('playerNudge', callback)
+}
+
 export function onDealingCards(callback: (payload?: { tableNum: number }) => void) {
   return subscribeSocket('dealingCards', callback)
 }

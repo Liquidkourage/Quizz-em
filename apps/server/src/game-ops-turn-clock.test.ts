@@ -174,6 +174,27 @@ describe('nudgeActingHumansVenue', () => {
     expect(humanTurnDeadlineMs.has(a.key)).toBe(false)
     expect(humanTurnDeadlineMs.get(b.key)).toBe(1_030_000)
   })
+
+  it('tells only the acting player to act, on their own phone', () => {
+    put('N5', '1')
+    const heard: Record<string, string[]> = { ann: [], bo: [] }
+    initPlayerSocketRegistry({
+      sockets: {
+        sockets: new Map([
+          ['ann-sock', { emit: (event: string, msg: unknown) => { if (event === 'playerNudge') heard.ann!.push(String(msg)) } }],
+          ['bo-sock', { emit: (event: string, msg: unknown) => { if (event === 'playerNudge') heard.bo!.push(String(msg)) } }],
+        ]),
+      },
+    } as unknown as Server)
+    registerPlayerSocket('N5-p1', 'ann-sock')
+    registerPlayerSocket('N5-p2', 'bo-sock')
+
+    nudgeActingHumansVenue('n5')
+
+    expect(heard.ann).toEqual(['You have 30 seconds to act. Then you check or fold.'])
+    expect(heard.bo).toEqual([])
+    expect(toasts).not.toContain('You have 30 seconds to act. Then you check or fold.')
+  })
 })
 
 describe('auto check or fold after a nudge', () => {
@@ -255,8 +276,8 @@ describe('nudge open guesses', () => {
     initPlayerSocketRegistry({
       sockets: {
         sockets: new Map([
-          ['ada-sock', { emit: (event: string, msg: unknown) => { if (event === 'toast') heard.ada!.push(String(msg)) } }],
-          ['bo-sock', { emit: (event: string, msg: unknown) => { if (event === 'toast') heard.bo!.push(String(msg)) } }],
+          ['ada-sock', { emit: (event: string, msg: unknown) => { if (event === 'playerNudge') heard.ada!.push(String(msg)) } }],
+          ['bo-sock', { emit: (event: string, msg: unknown) => { if (event === 'playerNudge') heard.bo!.push(String(msg)) } }],
         ]),
       },
     } as unknown as Server)
@@ -267,9 +288,9 @@ describe('nudge open guesses', () => {
     expect(rooms.get(key)!.round.answerDeadline).toBe(1_000_000)
     expect(rooms.get(key)!.round.guessNudgeDeadline).toBe(1_030_000)
     expect(rooms.get(key)!.round.guessNudge).toBe(true)
-    expect(heard.bo).toContain('30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
+    expect(heard.bo).toEqual(['Lock a guess in 30 seconds, or you score 0 and cannot win this pot.'])
     expect(heard.ada).toEqual([])
-    expect(toasts).not.toContain('30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
+    expect(toasts).not.toContain('Lock a guess in 30 seconds, or you score 0 and cannot win this pot.')
 
     await vi.advanceTimersByTimeAsync(HUMAN_NUDGE_TIMEOUT_MS)
     const after = rooms.get(key)!

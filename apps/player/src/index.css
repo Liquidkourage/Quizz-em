@@ -1039,6 +1039,59 @@
   }
 }
 
+.player-nudge-alert {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(1rem, env(safe-area-inset-top, 0px))
+    0.75rem
+    max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.player-nudge-alert-flash {
+  position: absolute;
+  inset: 0;
+  background: rgb(251 191 36 / 0.92);
+  animation: player-nudge-flash 0.7s ease-out forwards;
+  pointer-events: none;
+}
+
+.player-nudge-alert-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  text-align: center;
+}
+
+.player-nudge-alert-copy {
+  margin: 0.35rem 0 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.15rem, 4.6vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: rgb(255 251 235);
+}
+
+@keyframes player-nudge-flash {
+  0% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.05;
+  }
+  55% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.55;
+    background: rgb(0 0 0 / 0.72);
+  }
+}
+
 .player-game-btn--muted {
   opacity: 0.42;
 }

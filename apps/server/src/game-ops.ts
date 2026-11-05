@@ -1607,10 +1607,7 @@ export function nudgeActingHumansVenue(
     nudged += 1
     names.push(shortPlayerName(actor.playerName))
     emitVenueTableState(tk, gs, { skipOrchestration: true })
-    io.to(tk).emit(
-      'toast',
-      `${shortPlayerName(actor.playerName)} — host nudge: 30s to act (then auto check/fold).`,
-    )
+    tellPlayerNudge(actor.playerId, 'You have 30 seconds to act. Then you check or fold.')
   }
   return { nudged, names }
 }
@@ -1640,15 +1637,17 @@ function forfeitOpenGuessesOnVenue(vn: string): void {
   }
 }
 
+function tellPlayerNudge(playerId: string, message: string): void {
+  if (playerId.startsWith('vp:')) return
+  getSocketForPlayer(playerId)?.emit('playerNudge', message)
+}
+
 function tellGuessNudge(playerId: string): void {
   if (playerId.startsWith('vp:')) {
     noteGuessNudge(playerId)
     return
   }
-  getSocketForPlayer(playerId)?.emit(
-    'toast',
-    '30 seconds to lock a guess. No guess scores 0 and cannot win the pot.',
-  )
+  tellPlayerNudge(playerId, 'Lock a guess in 30 seconds, or you score 0 and cannot win this pot.')
 }
 
 function armGuessNudgeTimeout(vn: string, fireAt: number): void {

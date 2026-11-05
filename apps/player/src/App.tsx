@@ -5,6 +5,7 @@ import {
   disconnect,
   onState,
   onToast,
+  onPlayerNudge,
   onSeated,
   onEventLeft,
   onPlayerVenueBrief,
@@ -63,6 +64,7 @@ import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
 import PlayerEndgameScreen from './components/PlayerEndgameScreen'
 import EliminatedModal from './components/EliminatedModal'
+import PlayerNudgeAlert from './components/PlayerNudgeAlert'
 import PlayerToast from './components/PlayerToast'
 import { PlayerTableHeader, PlayerGameStatusBar } from './components/PlayerTableHeader'
 import VenueStatusStrip from './components/VenueStatusStrip'
@@ -111,6 +113,7 @@ function PlayerApp() {
   const [gameState, setGameState] = useState<PlayerGameStateWire | null>(null)
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [nudgeAlert, setNudgeAlert] = useState<{ text: string; id: number } | null>(null)
   const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
     getSocketConnectionStatus(),
   )
@@ -137,6 +140,8 @@ function PlayerApp() {
     setToastMessage(message)
     window.setTimeout(() => setToastMessage(null), ms)
   }, [])
+
+  const dismissNudge = useCallback(() => setNudgeAlert(null), [])
 
   const handleJoinPrefsChange = useCallback((next: PlayerJoinBootstrap) => {
     setJoinPrefs(next)
@@ -198,6 +203,17 @@ function PlayerApp() {
       setGameState(state)
     })
     const offToast = onToast((message) => showToast(message))
+    const offNudge = onPlayerNudge((message) => {
+      if (departedRef.current) return
+      try {
+        if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+          navigator.vibrate([140, 70, 140, 70, 220])
+        }
+      } catch {
+        /* ignore */
+      }
+      setNudgeAlert({ text: message, id: Date.now() })
+    })
     const offSeated = onSeated(({ tableId }) => {
       if (departedRef.current) return
       setLastTableId(tableId)
@@ -238,6 +254,7 @@ function PlayerApp() {
       stopKeepalive()
       offState()
       offToast()
+      offNudge()
       offSeated()
       offLeft()
       offBrief()
@@ -651,6 +668,9 @@ function PlayerApp() {
         .join(' ')}
     >
       <PlayerToast message={toastMessage} />
+      {nudgeAlert ? (
+        <PlayerNudgeAlert key={nudgeAlert.id} message={nudgeAlert.text} onDone={dismissNudge} />
+      ) : null}
 
       <div className={layoutClass}>
         <PlayerGameShell>

@@ -19,6 +19,11 @@ import {
   venueShowdownAtMs,
 } from './game-ops'
 import { planVenueWageringOrchestration } from './venue-wagering-orchestration'
+import {
+  clearPlayerSocketRegistry,
+  initPlayerSocketRegistry,
+  registerPlayerSocket,
+} from './player-socket-registry'
 
 vi.mock('./venue-library-db', () => ({
   loadVenueLibraries: async () => new Map(),
@@ -65,6 +70,7 @@ beforeEach(() => {
 afterEach(() => {
   for (const key of rooms.keys()) clearHumanTurnClock(key)
   clearGuessNudgeClocks()
+  clearPlayerSocketRegistry()
   vi.useRealTimers()
 })
 
@@ -245,9 +251,24 @@ describe('nudge open guesses', () => {
       ],
     })
 
+    const heard: Record<string, string[]> = { ada: [], bo: [] }
+    initPlayerSocketRegistry({
+      sockets: {
+        sockets: new Map([
+          ['ada-sock', { emit: (event: string, msg: unknown) => { if (event === 'toast') heard.ada!.push(String(msg)) } }],
+          ['bo-sock', { emit: (event: string, msg: unknown) => { if (event === 'toast') heard.bo!.push(String(msg)) } }],
+        ]),
+      },
+    } as unknown as Server)
+    registerPlayerSocket('ada', 'ada-sock')
+    registerPlayerSocket('bo', 'bo-sock')
+
     expect(nudgeOpenGuesses('NG')).toEqual({ nudged: 1, names: ['Bo'] })
     expect(rooms.get(key)!.round.answerDeadline).toBe(1_030_000)
-    expect(toasts).toContain('30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
+    expect(rooms.get(key)!.round.guessNudge).toBe(true)
+    expect(heard.bo).toContain('30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
+    expect(heard.ada).toEqual([])
+    expect(toasts).not.toContain('30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
 
     await vi.advanceTimersByTimeAsync(HUMAN_NUDGE_TIMEOUT_MS)
     const after = rooms.get(key)!

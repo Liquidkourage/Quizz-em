@@ -35,6 +35,7 @@ import {
   type PlayerJoinBootstrap,
 } from './playerUrlParams'
 import { useAnswerCountdown } from './hooks/useAnswerCountdown'
+import { answerClockDeadline } from './playerModel/answerClockDeadline'
 import { useHandSummary } from './hooks/useHandSummary'
 import { useTableResults } from './hooks/useTableResults'
 import {
@@ -305,7 +306,7 @@ function PlayerApp() {
   }, [gameState, currentPlayer])
   const handSummary = useHandSummary(gameState, currentPlayer)
   const tableResults = useTableResults(gameState, currentPlayer?.id ?? joinPrefs.playerId)
-  const remainingSec = useAnswerCountdown(gameState?.round.answerDeadline)
+  const remainingSec = useAnswerCountdown(answerClockDeadline(gameState?.round, currentPlayer))
   const turnRemainingSec = useAnswerCountdown(gameState?.round.turnDeadlineMs)
 
   const bettingCtx = useMemo(

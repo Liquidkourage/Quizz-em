@@ -89,6 +89,8 @@ export interface RoundState {
   pot: number;
   dealerIndex: number;
   answerDeadline?: number;
+  /** Host nudge: this deadline is only for seats that have not locked a guess. */
+  guessNudge?: boolean;
   /**
    * Epoch ms when the acting human’s shot clock expires (server-authoritative).
    * Cleared when wagering is closed or no human is on the clock.

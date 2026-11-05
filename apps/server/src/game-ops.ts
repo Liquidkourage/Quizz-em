@@ -1571,6 +1571,17 @@ function forfeitOpenGuessesOnVenue(vn: string): void {
   }
 }
 
+function tellGuessNudge(playerId: string): void {
+  if (playerId.startsWith('vp:')) {
+    noteGuessNudge(playerId)
+    return
+  }
+  getSocketForPlayer(playerId)?.emit(
+    'toast',
+    '30 seconds to lock a guess. No guess scores 0 and cannot win the pot.',
+  )
+}
+
 function armGuessNudgeTimeout(vn: string, fireAt: number): void {
   const prev = guessNudgeTimers.get(vn)
   if (prev) clearTimeout(prev)
@@ -1597,12 +1608,11 @@ export function nudgeOpenGuesses(vnRaw: string): { nudged: number; names: string
     }
     for (const player of open) {
       names.push(shortPlayerName(player.name))
-      if (player.id.startsWith('vp:')) noteGuessNudge(player.id)
+      tellGuessNudge(player.id)
     }
-    const next = { ...gs, round: { ...gs.round, answerDeadline: fireAt } }
+    const next = { ...gs, round: { ...gs.round, answerDeadline: fireAt, guessNudge: true } }
     rooms.set(tk, next)
     emitVenueTableState(tk, next, { skipOrchestration: true })
-    io.to(tk).emit('toast', '30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
     playVirtualPlayers(tk, next)
   }
   if (names.length > 0) armGuessNudgeTimeout(vn, fireAt)

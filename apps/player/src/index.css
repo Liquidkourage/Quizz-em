@@ -1208,6 +1208,11 @@
     justify-self: center;
     transform: rotate(90deg);
   }
+
+  /* The felt turns sideways. Card faces turn back so 12 o'clock stays the top of the phone. */
+  .player-game-layout--live-fit .player-felt-rotate-slot .player-felt-card-face {
+    transform: rotate(-90deg);
+  }
 }
 
 /* Betting: shell + inflow dock share one column; felt shrinks first. */

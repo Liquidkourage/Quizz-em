@@ -72,6 +72,8 @@ describe('player table orientation', () => {
     const portrait = mediaBlock(css, '@media (orientation: portrait)')
     expect(portrait).toContain('.player-felt-rotate-slot .player-game-felt--fill')
     expect(portrait).toContain('transform: rotate(90deg)')
+    expect(portrait).toContain('.player-felt-card-face')
+    expect(portrait).toContain('transform: rotate(-90deg)')
     expect(portrait).toContain('width: 100cqh')
     expect(portrait).toContain('height: 100cqw')
   })

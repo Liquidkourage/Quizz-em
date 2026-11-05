@@ -158,7 +158,12 @@ export function StadiumTableSeats({
         >
           {centerContent}
           {communityDigits != null && communityDigits.length > 0 ? (
-            <div className={clsx('flex items-center', isPlayerLayout ? 'gap-1' : 'gap-0.5')}>
+            <div
+              className={clsx(
+                'flex items-center',
+                isPlayerLayout ? 'player-felt-card-face gap-1' : 'gap-0.5',
+              )}
+            >
               {communityDigits.slice(0, 5).map((digit, i) => {
                 const cardW = communityCardSize?.w ?? Math.max(14, cupSizePx * 0.55)
                 const cardH = communityCardSize?.h ?? Math.max(20, cupSizePx * 0.77)

@@ -27,12 +27,13 @@ function playerHoleCardSizePx(scale: number): { w: number; h: number } {
 /** Player felt — two hole cards in a fixed grid; no overlap layout path. */
 export function PlayerFeltHoleCards({
   scale,
-  rotateDeg = 0,
+  rotateDeg: _seatRotateDeg = 0,
   faceDown = true,
   digits,
   className,
   hidden = false,
 }: PlayerFeltHoleCardsProps) {
+  void _seatRotateDeg
   const { w, h } = playerHoleCardSizePx(scale)
   const pairWidth = w * 2 + PLAYER_FELT_HOLE_CARD_GAP_PX
   const radius = Math.max(4, Math.round(Math.min(w, h) * 0.12))
@@ -42,13 +43,12 @@ export function PlayerFeltHoleCards({
     gridTemplateColumns: `${w}px ${w}px`,
     columnGap: PLAYER_FELT_HOLE_CARD_GAP_PX,
     width: pairWidth,
-    transform: `rotate(${rotateDeg}deg)`,
     opacity: hidden ? 0 : undefined,
   }
 
   return (
     <div
-      className={className}
+      className={['player-felt-card-face', className].filter(Boolean).join(' ')}
       style={shellStyle}
       aria-hidden={hidden || undefined}
       data-hole-layout="player-spread"

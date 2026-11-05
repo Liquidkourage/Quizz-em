@@ -303,6 +303,19 @@ describe('nudge open guesses', () => {
     expect(paid.players.find((p) => p.id === 'ada')!.bankroll).toBe(540)
   })
 
+  it('does nothing while the answer timer is still running', () => {
+    const key = tableSessionKey('NG', '1')
+    let gs = createEmptyGame('NG', 'host', '1')
+    gs = addPlayer(gs, 'bo', 'Bo', 500)
+    rooms.set(key, {
+      ...gs,
+      phase: 'answering',
+      round: { ...gs.round, answerDeadline: 1_045_000, question: { id: 'q', text: '?', answer: 10 } },
+    })
+    expect(nudgeOpenGuesses('NG')).toEqual({ nudged: 0, names: [], waitingOnTimer: true })
+    expect(rooms.get(key)!.round.guessNudge).not.toBe(true)
+  })
+
   it('leaves the shared 45s answer window on the venue clock the TVs are reading', () => {
     const key = tableSessionKey('NG', '1')
     venueShowdownAtMs.set('NG', 1_000_000)

@@ -157,7 +157,11 @@ export async function handleWageringAction(
         }
         case 'nudgeOpenGuesses': {
           if (!g.assertVenueHost(socket, gameState)) break
-          const { nudged, names } = g.nudgeOpenGuesses(gameState.code)
+          const { nudged, names, waitingOnTimer } = g.nudgeOpenGuesses(gameState.code)
+          if (waitingOnTimer) {
+            socket.emit('toast', 'Wait for the answer timer before nudging.')
+            break
+          }
           if (nudged === 0) {
             socket.emit('toast', 'Nobody is still guessing — nothing to nudge.')
           } else {

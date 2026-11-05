@@ -32,12 +32,15 @@ export default function HostStillGuessingNotice({
   pointsOnly,
   dropped = false,
   onNudge,
+  nudgeReady = false,
   startClosed = false,
 }: {
   contest: StillGuessingPlayer[]
   pointsOnly: StillGuessingPlayer[]
   dropped?: boolean
   onNudge?: () => void
+  /** True after the 45s answer timer has finished. */
+  nudgeReady?: boolean
   /** First paint only. The host can close and reopen after that. */
   startClosed?: boolean
 }) {
@@ -90,17 +93,21 @@ export default function HostStillGuessingNotice({
             <GuessNames players={pointsOnly} twoColumns={twoColumns} />
           </div>
         ) : null}
-        <p className="mt-2 text-xs leading-snug text-amber-100/90">
-          Nudge gives them 30 seconds. No guess scores 0 and cannot win the pot. Then reveal.
-        </p>
-        <button
-          type="button"
-          className="mt-2 w-full rounded-lg border border-amber-300/70 bg-amber-400/20 px-3 py-1.5 text-sm font-bold text-amber-50 hover:bg-amber-400/30"
-          onClick={onNudge}
-          disabled={onNudge == null}
-        >
-          Nudge
-        </button>
+        {nudgeReady ? (
+          <>
+            <p className="mt-2 text-xs leading-snug text-amber-100/90">
+              Nudge gives them 30 seconds. No guess scores 0 and cannot win the pot. Then reveal.
+            </p>
+            <button
+              type="button"
+              className="mt-2 w-full rounded-lg border border-amber-300/70 bg-amber-400/20 px-3 py-1.5 text-sm font-bold text-amber-50 hover:bg-amber-400/30"
+              onClick={onNudge}
+              disabled={onNudge == null}
+            >
+              Nudge
+            </button>
+          </>
+        ) : null}
       </div>
     </div>
   )

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueActionRow } from '@qhe/net'
 import HostStillGuessingNotice from './HostStillGuessingNotice'
-import { guessClockCatchUp, playersStillGuessing } from './hostStillGuessing'
+import { guessClockCatchUp, guessNudgeReady, playersStillGuessing } from './hostStillGuessing'
 import { venueRevealAnswerBlockedHint } from './hostVenueActionGates'
 
 function row(partial: Partial<HostVenueActionRow> & Pick<HostVenueActionRow, 'tableNum' | 'seats'>): HostVenueActionRow {
@@ -140,6 +140,22 @@ describe('guess clock catch-up', () => {
   })
 })
 
+describe('guess nudge timing', () => {
+  it('waits until the answer timer has finished', () => {
+    expect(guessNudgeReady([45_000], 44_999)).toBe(false)
+    expect(guessNudgeReady([45_000], 45_000)).toBe(true)
+  })
+
+  it('waits for the last table still on the timer', () => {
+    expect(guessNudgeReady([40_000, 45_000], 42_000)).toBe(false)
+    expect(guessNudgeReady([40_000, 45_000], 45_000)).toBe(true)
+  })
+
+  it('stays closed when no answer timer is running', () => {
+    expect(guessNudgeReady([], 45_000)).toBe(false)
+  })
+})
+
 describe('still guessing notice', () => {
   it('shows the players who have not submitted', () => {
     const html = renderToStaticMarkup(
@@ -149,6 +165,7 @@ describe('still guessing notice', () => {
           { name: 'Cy', tableNum: 4 },
         ],
         pointsOnly: [],
+        nudgeReady: true,
       }),
     )
     expect(html).toContain('Still guessing')
@@ -173,6 +190,7 @@ describe('still guessing notice', () => {
           { name: 'Jamal A.', tableNum: 1 },
           { name: 'Ivy', tableNum: 1 },
         ],
+        nudgeReady: true,
       }),
     )
     const bo = html.indexOf('Bo')
@@ -197,6 +215,19 @@ describe('still guessing notice', () => {
     expect(html).not.toContain('Points only')
   })
 
+  it('hides the nudge until the answer timer has finished', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostStillGuessingNotice, {
+        contest: [{ name: 'Bo', tableNum: 2 }],
+        pointsOnly: [],
+        nudgeReady: false,
+      }),
+    )
+    expect(html).toContain('Still guessing')
+    expect(html).toContain('Bo')
+    expect(html).not.toContain('Nudge')
+  })
+
   it('tucks the notice away so the host can reopen it', () => {
     const html = renderToStaticMarkup(
       createElement(HostStillGuessingNotice, {
@@ -213,7 +244,9 @@ describe('still guessing notice', () => {
 
   it('uses two columns when many players are still guessing', () => {
     const contest = Array.from({ length: 8 }, (_, i) => ({ name: `Player ${i}`, tableNum: i + 1 }))
-    const html = renderToStaticMarkup(createElement(HostStillGuessingNotice, { contest, pointsOnly: [] }))
+    const html = renderToStaticMarkup(
+      createElement(HostStillGuessingNotice, { contest, pointsOnly: [], nudgeReady: true }),
+    )
     expect(html).toContain('grid-cols-2')
     expect(html).toContain('Player 7')
     expect(html).not.toContain('max-h-64')

@@ -1661,9 +1661,20 @@ function armGuessNudgeTimeout(vn: string, fireAt: number): void {
   guessNudgeTimers.set(vn, timer)
 }
 
+function answerWindowStillOpen(vn: string): boolean {
+  const now = Date.now()
+  for (const { gs } of venuePlayableSnapshots(vn)) {
+    if (gs.phase !== 'answering') continue
+    const deadline = gs.round.answerDeadline
+    if (typeof deadline === 'number' && Number.isFinite(deadline) && now < deadline) return true
+  }
+  return false
+}
+
 /** Host: 30s for every open guess, then those seats score 0. The shared answer window stays put. */
-export function nudgeOpenGuesses(vnRaw: string): { nudged: number; names: string[] } {
+export function nudgeOpenGuesses(vnRaw: string): { nudged: number; names: string[]; waitingOnTimer?: boolean } {
   const vn = normalizeVenueCode(vnRaw)
+  if (answerWindowStillOpen(vn)) return { nudged: 0, names: [], waitingOnTimer: true }
   const names: string[] = []
   const fireAt = Date.now() + HUMAN_NUDGE_TIMEOUT_MS
   for (const { tk, gs } of venuePlayableSnapshots(vn)) {

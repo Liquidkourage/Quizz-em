@@ -49,6 +49,18 @@ export function playersStillGuessing(
  * If the answer deadline is already past, that timer was cleared.
  * Return the current time so the desk clock catches up.
  */
+/** The nudge is available once every answering table's timer has reached its deadline. */
+export function guessNudgeReady(deadlines: readonly number[], nowMs: number): boolean {
+  let latest = -Infinity
+  let any = false
+  for (const deadline of deadlines) {
+    if (!Number.isFinite(deadline)) continue
+    any = true
+    if (deadline > latest) latest = deadline
+  }
+  return any && nowMs >= latest
+}
+
 export function guessClockCatchUp(
   deadlines: readonly number[],
   nowMs: number,

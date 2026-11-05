@@ -93,7 +93,7 @@ import { HOST_VENUE_ALERT_MS, hostVenueAutoAlertFromToast } from './hostVenueAut
 import { useHostVenueAutoAlerts } from './useHostVenueAutoAlerts'
 import HostVenueAutoAlertBanner from './HostVenueAutoAlertBanner.tsx'
 import HostStillGuessingNotice from './HostStillGuessingNotice'
-import { guessClockCatchUp, playersStillGuessing } from './hostStillGuessing'
+import { guessClockCatchUp, guessNudgeReady, playersStillGuessing } from './hostStillGuessing'
 import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
 import { suggestNextHostAction } from './hostPacingCopilot'
 
@@ -540,6 +540,10 @@ function HostApp() {
     : null
   const revealAnswerBlocked = revealAnswerHint != null
   const stillGuessing = playersStillGuessing(venueFloorBrief?.actionRows)
+  const answerDeadlines = (venueFeltBeat ?? [])
+    .filter((row) => row.active && row.seated > 0 && row.phase === 'answering' && row.answerDeadlineMs != null)
+    .map((row) => row.answerDeadlineMs as number)
+  const nudgeReady = guessNudgeReady(answerDeadlines, guessClockNowMs)
   const winnerScreensReadyAtMs = venueFloorBrief?.winnerScreensReadyAtMs ?? null
   const payWinnersHint = winnerScreensPayoutHint(winnerScreensReadyAtMs, winnerScreenNowMs)
   const payWinnersBlocked = payWinnersHint != null
@@ -941,7 +945,10 @@ function HostApp() {
           contest={stillGuessing.contest}
           pointsOnly={stillGuessing.pointsOnly}
           dropped={venueAutoAlert != null}
-          onNudge={connectionStatus === 'connected' ? () => nudgeOpenGuesses() : undefined}
+          nudgeReady={nudgeReady}
+          onNudge={
+            connectionStatus === 'connected' && nudgeReady ? () => nudgeOpenGuesses() : undefined
+          }
         />
       ) : null}
       <AnimatePresence>

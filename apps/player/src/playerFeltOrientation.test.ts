@@ -23,6 +23,7 @@ function sideNameOverflowPx(seatIndex: number, sidePadPx: number): number {
 }
 
 const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+const feltView = readFileSync(new URL('./components/TableFeltView.tsx', import.meta.url), 'utf8')
 
 function mediaBlock(source: string, header: string): string {
   const start = source.indexOf(header)
@@ -73,7 +74,9 @@ describe('player table orientation', () => {
     expect(portrait).toContain('.player-felt-rotate-slot .player-game-felt--fill')
     expect(portrait).toContain('transform: rotate(90deg)')
     expect(portrait).toContain('.player-felt-card-face')
+    expect(portrait).toContain('.player-felt-upright')
     expect(portrait).toContain('transform: rotate(-90deg)')
+    expect(feltView).toContain('player-felt-upright')
     expect(portrait).toContain('width: 100cqh')
     expect(portrait).toContain('height: 100cqw')
   })

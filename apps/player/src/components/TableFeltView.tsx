@@ -185,10 +185,10 @@ export default function TableFeltView({
       return {
         index: chair,
         label: (
-          <>
+          <span className="player-felt-upright">
             {showSeat ? chair + 1 : isMe ? 'You' : rosterDisplayName(player.name).slice(0, 2)}
             <SidePotMark mark={sideMarks[index]} seat />
-          </>
+          </span>
         ),
         labelClassName: 'font-mono text-sm tabular-nums sm:text-base font-bold',
         state: foldedChips
@@ -215,7 +215,7 @@ export default function TableFeltView({
           .filter(Boolean)
           .join(', '),
         nameTag: (
-          <>
+          <span className="player-felt-upright">
             <span className={`player-seat-name font-bold ${isMe ? 'text-amber-300' : 'text-emerald-200'}`}>
               {rosterDisplayName(player.name)}
               <SidePotMark mark={sideMarks[index]} seat />
@@ -228,7 +228,7 @@ export default function TableFeltView({
                 <ChipText text={`$${player.bankroll.toLocaleString()}`} />
               )}
             </span>
-          </>
+          </span>
         ),
       }
     })

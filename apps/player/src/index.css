@@ -1139,6 +1139,13 @@
   gap: 0.02rem;
 }
 
+.player-seat-tag .player-felt-upright {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+}
+
 .player-seat-name,
 .player-seat-stack {
   max-width: 100%;
@@ -1209,8 +1216,9 @@
     transform: rotate(90deg);
   }
 
-  /* The felt turns sideways. Readable faces (your cards and the board) turn back so 12 o'clock stays the top of the phone. Face-down backs stay in felt space and turn with their seat. */
-  .player-game-layout--live-fit .player-felt-rotate-slot .player-felt-card-face {
+  /* The felt turns sideways. Readable faces, seat numbers, and names turn back so 12 o'clock stays the top of the phone. Face-down backs stay in felt space and turn with their seat. */
+  .player-game-layout--live-fit .player-felt-rotate-slot .player-felt-card-face,
+  .player-game-layout--live-fit .player-felt-rotate-slot .player-felt-upright {
     transform: rotate(-90deg);
   }
 }

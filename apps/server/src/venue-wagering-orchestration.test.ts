@@ -184,7 +184,7 @@ describe('venue wagering orchestration', () => {
       nowMs: 1_600_000,
     })
     expect(plan.tableUpdates.some((u) => u.sessionKey === runout.key && u.gameState.phase === 'answering')).toBe(true)
-    expect(plan.scheduleShowdownAtMs).toBeNull()
+    expect(plan.scheduleShowdownAtMs).toBe(1_600_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
   })
 
   it('waits for the last table before arming the venue showdown timer', () => {
@@ -224,6 +224,34 @@ describe('venue wagering orchestration', () => {
     })
     expect(plan2.scheduleShowdownAtMs).toBe(2_000_500 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
     expect(venueAllPostBoardWageringComplete(['V:1', 'V:2'], (tk) => states.get(tk))).toBe(true)
+  })
+
+  it('arms the 45s guide when every table is already answering and the deadline was lost', () => {
+    const seated = postBoardClosedTable()
+    const answering = openAnsweringPhase(seated.gs, null)
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: [seated.key],
+      getState: (tk) => (tk === seated.key ? answering : undefined),
+      currentShowdownAtMs: undefined,
+      nowMs: 5_000_000,
+    })
+    expect(plan.scheduleShowdownAtMs).toBe(5_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS)
+    expect(plan.tableUpdates[0]?.gameState.round.answerDeadline).toBe(
+      5_000_000 + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS,
+    )
+  })
+
+  it('keeps a stored answer deadline instead of starting another 45s', () => {
+    const seated = postBoardClosedTable()
+    const answering = openAnsweringPhase(seated.gs, 5_010_000)
+    const plan = planVenueWageringOrchestration({
+      seatedTableKeys: [seated.key],
+      getState: (tk) => (tk === seated.key ? answering : undefined),
+      currentShowdownAtMs: undefined,
+      nowMs: 5_000_000,
+    })
+    expect(plan.scheduleShowdownAtMs).toBe(5_010_000)
+    expect(plan.tableUpdates).toHaveLength(0)
   })
 
   it('does not arm the timer while one table still has the post-board clock open', () => {

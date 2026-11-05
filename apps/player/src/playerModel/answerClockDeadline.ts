@@ -6,6 +6,19 @@ function guessIsLocked(player: Pick<PlayerState, 'submittedAnswer' | 'answerLock
   return typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)
 }
 
+/** Felt status clock. Guessing shows the shared answer window. Betting shows the turn clock. */
+export function feltStatusClockDeadline(
+  phase: string | undefined,
+  round: { answerDeadline?: number; turnDeadlineMs?: number } | null | undefined,
+): number | undefined {
+  if (phase === 'answering') {
+    const deadline = round?.answerDeadline
+    return typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : undefined
+  }
+  const turn = round?.turnDeadlineMs
+  return typeof turn === 'number' && Number.isFinite(turn) ? turn : undefined
+}
+
 /** Shared answer window. A locked guess can still be edited until this deadline. */
 export function answerClockDeadline(
   round: Pick<RoundState, 'answerDeadline'> | null | undefined,

@@ -1127,8 +1127,17 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
     resumeHeldTable(vn, tk, gs, elapsed)
   }
   resumeOpenGuessNudge(vn)
+  restoreAnswerGuideIfGuessing(vn)
   emitDisplayVenueSnapshotNow(vn)
   return false
+}
+
+/** Guessing tables with no shared clock get the stored deadline, or a fresh 45s guide. */
+function restoreAnswerGuideIfGuessing(vn: string): void {
+  const rows = venuePlayableSnapshots(vn)
+  if (rows.length === 0) return
+  if (rows.some((row) => row.gs.phase !== 'answering')) return
+  applyVenueWageringOrchestration(vn)
 }
 
 /** The nudge timer lives in memory. After a restart, finish it if the clock already ran out. */

@@ -2291,6 +2291,22 @@ function nudgeSecondsForTable(
   return Math.max(0, Math.ceil((deadline - nowMs) / 1000))
 }
 
+function answerSecondsForTable(
+  feltRows: readonly HostVenueFeltBeatRow[] | null,
+  tableNum: number,
+  nowMs: number,
+): number | null {
+  const row = feltRows?.find((felt) => felt.tableNum === tableNum)
+  if (row == null || row.phase !== 'answering' || row.answerDeadlineMs == null) return null
+  return Math.max(0, Math.ceil((row.answerDeadlineMs - nowMs) / 1000))
+}
+
+function feltHasAnswerClock(feltRows: readonly HostVenueFeltBeatRow[] | null): boolean {
+  return (feltRows ?? []).some(
+    (row) => row.phase === 'answering' && row.answerDeadlineMs != null,
+  )
+}
+
 function feltHasNudgeClock(feltRows: readonly HostVenueFeltBeatRow[] | null): boolean {
   return (feltRows ?? []).some(
     (row) => typeof row.turnDeadlineMs === 'number' && Number.isFinite(row.turnDeadlineMs),
@@ -2336,13 +2352,14 @@ export function HostVenueFloorBriefPanel({
 }) {
   const rows = [...(brief?.actionRows ?? [])].sort((a, b) => a.tableNum - b.tableNum)
   const nudgeLive = feltHasNudgeClock(feltRows)
+  const answerLive = feltHasAnswerClock(feltRows)
   const actionClockLive = rows.some((row) => !tableActionClockHidden(row))
   const [, setNudgeTick] = useState(0)
   useEffect(() => {
-    if (!nudgeLive && !actionClockLive) return
+    if (!nudgeLive && !answerLive && !actionClockLive) return
     const id = window.setInterval(() => setNudgeTick((n) => n + 1), 250)
     return () => window.clearInterval(id)
-  }, [nudgeLive, actionClockLive])
+  }, [nudgeLive, answerLive, actionClockLive])
   const soloTable = publicDisplaySoloTable(brief)
   const endgameWinner = hostEndgameWinnerName(brief)
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
@@ -2420,6 +2437,7 @@ export function HostVenueFloorBriefPanel({
                   const drift = outlierTableNums.has(row.tableNum)
                   const nudgeName = onNudgeTable ? actingNudgeName(row) : null
                   const clockHidden = tableActionClockHidden(row)
+                  const answerSec = answerSecondsForTable(feltRows, row.tableNum, nowOnServerClock())
                   const nudgeSec = clockHidden
                     ? null
                     : nudgeSecondsForTable(feltRows, row.tableNum, nowOnServerClock())
@@ -2472,6 +2490,16 @@ export function HostVenueFloorBriefPanel({
                       </p>
                       <p className="text-sm font-semibold">
                         {cue.label}
+                        {answerSec != null ? (
+                          <span
+                            className={`ml-1 font-mono text-base font-black tabular-nums ${
+                              answerSec <= 10 ? 'text-rose-200' : 'text-amber-200'
+                            }`}
+                            aria-label={`Answer clock ${answerSec}`}
+                          >
+                            {answerSec}
+                          </span>
+                        ) : null}
                         {nudgeSec != null ? (
                           <span
                             className={`ml-1 font-mono text-base font-black tabular-nums ${

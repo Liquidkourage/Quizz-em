@@ -323,6 +323,33 @@ describe('venue floor now', () => {
     expect(betting).not.toContain('submitted')
   })
 
+  it('shows the shared answer clock on a guessing table card', () => {
+    const floor = brief()
+    floor.actionRows = [{ ...actionRow(3), phase: 'answering', answersSubmitted: 8, answersExpected: 8 }]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: floor,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+        feltRows: [
+          {
+            tableNum: 3,
+            active: true,
+            seated: 8,
+            phase: 'answering',
+            street: 'Trivia lock-in',
+            clock: 'Countdown',
+            answerDeadlineMs: Date.now() + 12_000,
+            turnDeadlineMs: null,
+            phaseStrictSig: 'answer',
+          },
+        ],
+      }),
+    )
+    expect(html).toContain('Answer clock')
+    expect(html).toMatch(/Answer clock \d+/)
+  })
+
   it('offers a nudge on the table that is waiting for a player to act', () => {
     const floor = brief()
     floor.actionRows = [

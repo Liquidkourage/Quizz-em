@@ -102,20 +102,37 @@ function venuePeerInAnswerFlow(
   })
 }
 
-function venueAnswerWaveStarted(
+function soonestAnswerDeadline(
   seatedTableKeys: string[],
   getState: (sessionKey: string) => GameState | undefined,
-): boolean {
-  return seatedTableKeys.some((tk) => {
-    const gs = getState(tk)
-    if (!gs || gs.players.length === 0) return false
-    return (
-      gs.phase === 'answering' ||
-      gs.phase === 'showdown' ||
-      gs.phase === 'reveal' ||
-      gs.phase === 'payout'
-    )
-  })
+): number | null {
+  let soonest: number | null = null
+  for (const tk of seatedTableKeys) {
+    const deadline = getState(tk)?.round?.answerDeadline
+    if (typeof deadline !== 'number' || !Number.isFinite(deadline)) continue
+    soonest = soonest == null ? deadline : Math.min(soonest, deadline)
+  }
+  return soonest
+}
+
+/** One shared 45s guide. A restart drops the in-memory copy; keep a stored deadline, or arm a new one. */
+function sharedAnswerGuide(
+  seatedTableKeys: string[],
+  getState: (sessionKey: string) => GameState | undefined,
+  currentShowdownAtMs: number | undefined,
+  allComplete: boolean,
+  openWageringCount: number,
+  nowMs: number,
+): { showdownAt: number | undefined; scheduleShowdownAtMs: number | null } {
+  if (typeof currentShowdownAtMs === 'number' && Number.isFinite(currentShowdownAtMs)) {
+    return { showdownAt: currentShowdownAtMs, scheduleShowdownAtMs: null }
+  }
+  if (!allComplete || openWageringCount > 0) {
+    return { showdownAt: undefined, scheduleShowdownAtMs: null }
+  }
+  const existing = soonestAnswerDeadline(seatedTableKeys, getState)
+  const showdownAt = existing ?? nowMs + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS
+  return { showdownAt, scheduleShowdownAtMs: showdownAt }
 }
 
 export function venueAllPostBoardWageringComplete(
@@ -172,14 +189,16 @@ export function planVenueWageringOrchestration(args: {
   const openWageringCount = countOpenPostBoardWageringTables(args.seatedTableKeys, args.getState)
   const dealCommunityBoard = venueAllPreBoardWageringComplete(args.seatedTableKeys, args.getState)
 
-  let showdownAt = args.currentShowdownAtMs
-  let scheduleShowdownAtMs: number | null = null
-  if (allComplete && openWageringCount === 0 && showdownAt == null && !venueAnswerWaveStarted(args.seatedTableKeys, args.getState)) {
-    // Soft guide deadline for TV/phone countdowns. Host must revealAnswer to close —
-    // the server does not auto-advance when this timestamp elapses.
-    showdownAt = nowMs + VENUE_POST_BOARD_SHOWDOWN_GRACE_MS
-    scheduleShowdownAtMs = showdownAt
-  }
+  const guide = sharedAnswerGuide(
+    args.seatedTableKeys,
+    args.getState,
+    args.currentShowdownAtMs,
+    allComplete,
+    openWageringCount,
+    nowMs,
+  )
+  const showdownAt = guide.showdownAt
+  const scheduleShowdownAtMs = guide.scheduleShowdownAtMs
 
   for (const tk of args.seatedTableKeys) {
     const gs = args.getState(tk)

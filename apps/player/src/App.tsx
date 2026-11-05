@@ -35,7 +35,11 @@ import {
   type PlayerJoinBootstrap,
 } from './playerUrlParams'
 import { useAnswerCountdown } from './hooks/useAnswerCountdown'
-import { answerClockDeadline, nudgeClockDeadline } from './playerModel/answerClockDeadline'
+import {
+  answerClockDeadline,
+  feltStatusClockDeadline,
+  nudgeClockDeadline,
+} from './playerModel/answerClockDeadline'
 import { useHandSummary } from './hooks/useHandSummary'
 import { useTableResults } from './hooks/useTableResults'
 import {
@@ -340,7 +344,9 @@ function PlayerApp() {
   const phoneClocks = phoneClockDeadlines(gameState, currentPlayer)
   const remainingSec = useAnswerCountdown(phoneClocks.answer)
   const nudgeRemainingSec = useAnswerCountdown(phoneClocks.nudge)
-  const turnRemainingSec = useAnswerCountdown(gameState?.round.turnDeadlineMs)
+  const turnRemainingSec = useAnswerCountdown(
+    feltStatusClockDeadline(gameState?.phase, gameState?.round),
+  )
 
   const bettingCtx = useMemo(
     () =>

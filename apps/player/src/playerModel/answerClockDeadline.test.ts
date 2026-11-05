@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { answerClockDeadline, nudgeClockDeadline } from './answerClockDeadline'
+import { answerClockDeadline, feltStatusClockDeadline, nudgeClockDeadline } from './answerClockDeadline'
 
 describe('answer clock on a phone', () => {
   it('keeps the shared answer window on a locked phone during a nudge', () => {
@@ -14,6 +14,19 @@ describe('answer clock on a phone', () => {
 
   it('keeps the answer window visible after a guess is locked', () => {
     expect(answerClockDeadline({ answerDeadline: 1_045_000 })).toBe(1_045_000)
+  })
+
+  it('puts the shared answer window on the felt while guessing', () => {
+    expect(
+      feltStatusClockDeadline('answering', {
+        answerDeadline: 1_045_000,
+        turnDeadlineMs: 1_010_000,
+      }),
+    ).toBe(1_045_000)
+  })
+
+  it('keeps the betting turn clock on the felt outside the answer window', () => {
+    expect(feltStatusClockDeadline('betting', { turnDeadlineMs: 1_010_000 })).toBe(1_010_000)
   })
 
   it('shows the nudge countdown only to a player who has not locked a guess', () => {

@@ -88,9 +88,9 @@ describe('venue floor now', () => {
         hostPlayerLabel: (name: string) => name,
       }),
     )
-    expect(sheet).toContain('fixed')
-    expect(sheet).toContain('w-96')
-    expect(sheet).not.toContain('mt-0.5 block')
+    expect(sheet).toContain('role="tooltip"')
+    expect(sheet).toContain('text-xs')
+    expect(sheet).not.toContain('w-96')
     expect(sheet).toContain('Ada Lane')
     expect(sheet).toContain('aria-label="$1,200"')
     expect(sheet).toContain('aria-label="$40"')

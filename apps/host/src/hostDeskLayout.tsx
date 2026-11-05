@@ -1722,12 +1722,12 @@ function hoverMoney(amount: number | undefined): string {
   return typeof amount === 'number' && Number.isFinite(amount) ? formatHostFloorMoney(amount) : '—'
 }
 
-/** Wide enough for one line: name, stack, in pot, status. Matches Tailwind `w-96`. */
-const TABLE_ACTION_HOVER_WIDTH = 384
+/** Room kept clear so a tooltip line does not run off the right edge. */
+const TABLE_ACTION_HOVER_WIDTH = 280
 
 export type TableActionHoverOrigin = { top: number; left: number; above: boolean }
 
-/** A short window under the square. It flips above the square when the floor runs out. */
+/** A tooltip under the square. It flips above the square when the floor runs out. */
 export function tableActionHoverOrigin(
   anchor: { left: number; top: number; bottom: number },
   viewport: { width: number; height: number },
@@ -1755,7 +1755,8 @@ export function TableActionHoverSheet({
 }) {
   return (
     <div
-      className="table-action-roster pointer-events-none fixed z-50 w-96 rounded-md border border-white/15 bg-zinc-950/95 p-2 shadow-lg"
+      role="tooltip"
+      className="table-action-roster pointer-events-none fixed z-50 w-max rounded bg-zinc-900 px-2 py-1 text-xs leading-4 text-white shadow-md"
       style={{ top, left, transform: above ? 'translateY(calc(-100% - 6px))' : undefined }}
     >
       <TableActionHoverRoster
@@ -1779,18 +1780,15 @@ function TableActionHoverRoster({
   if (seats.length === 0) return <p className="text-sm text-white/50">No players seated.</p>
   const labels = disambiguatePublicNames(seats.map((seat) => seat.name))
   return (
-    <ul className="space-y-0.5" aria-label="Table players">
+    <ul aria-label="Table players">
       {seats.map((seat, index) => (
-        <li key={`${seat.name}-${index}`} className="flex items-baseline gap-3 text-sm leading-snug">
-          <span className="min-w-0 flex-1 truncate font-semibold text-white">
-            {hostPlayerLabel(labels[index] ?? seat.name)}
-          </span>
-          <span className="shrink-0 tabular-nums text-white/75">
-            <ChipText text={hoverMoney(seat.bankroll)} />
-            <span className="text-white/45"> · in pot </span>
-            <ChipText text={hoverMoney(seat.invested)} />
-            <span className="text-white/45"> · {tableActionHoverStatus(seat, seat.name === actingPlayerName)}</span>
-          </span>
+        <li key={`${seat.name}-${index}`} className="whitespace-nowrap">
+          <span className="font-semibold">{hostPlayerLabel(labels[index] ?? seat.name)}</span>
+          <span className="text-white/55"> · </span>
+          <ChipText text={hoverMoney(seat.bankroll)} />
+          <span className="text-white/55"> · in pot </span>
+          <ChipText text={hoverMoney(seat.invested)} />
+          <span className="text-white/55"> · {tableActionHoverStatus(seat, seat.name === actingPlayerName)}</span>
         </li>
       ))}
     </ul>

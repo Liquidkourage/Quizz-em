@@ -35,6 +35,18 @@ describe('players still guessing', () => {
     }),
   ]
 
+  it('stays quiet while any table is still betting', () => {
+    const mixed = [
+      rows[0]!,
+      row({
+        tableNum: 3,
+        phase: 'betting',
+        seats: [{ name: 'Dee', kind: 'pot', reason: null }],
+      }),
+    ]
+    expect(playersStillGuessing(mixed)).toEqual([])
+  })
+
   it('lists who has not locked while the answer window is still open', () => {
     expect(playersStillGuessing(rows)).toEqual([
       { name: 'Bo', tableNum: 2 },

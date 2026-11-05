@@ -10,12 +10,18 @@ function pushOpenGuesses(out: StillGuessingPlayer[], row: HostVenueActionRow): v
   }
 }
 
-/** Names on answering tables that have not locked a guess. The host can nudge them before the guide clock ends. */
+function venueStillBetting(rows: readonly HostVenueActionRow[]): boolean {
+  return rows.some((row) => row.phase === 'betting')
+}
+
+/** Names still guessing once every table has left the betting round. */
 export function playersStillGuessing(
   rows: HostVenueActionRow[] | null | undefined,
 ): StillGuessingPlayer[] {
+  const list = rows ?? []
+  if (venueStillBetting(list)) return []
   const out: StillGuessingPlayer[] = []
-  for (const row of rows ?? []) {
+  for (const row of list) {
     if (row.phase !== 'answering') continue
     pushOpenGuesses(out, row)
   }

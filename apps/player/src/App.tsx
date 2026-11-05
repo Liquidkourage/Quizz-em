@@ -716,7 +716,7 @@ function PlayerApp() {
             ) : null}
 
             {needsMobileBetDock && bettingCtx && currentPlayer ? (
-              <div className={needsMobileBetDock ? 'hidden lg:block' : ''}>
+              <div className="player-game-wager-inline hidden lg:block">
                 <BettingActions
                   currentPlayer={currentPlayer}
                   ctx={bettingCtx}

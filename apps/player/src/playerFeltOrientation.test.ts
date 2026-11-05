@@ -1,9 +1,18 @@
 import { readFileSync } from 'node:fs'
-import { mosaicFeltCenterPct, mosaicSeatLabelPct, stadiumPlayerCupholderSizePx } from '@qhe/ui'
+import {
+  mosaicFeltCenterPct,
+  mosaicSeatHoleLayout,
+  mosaicSeatLabelPct,
+  mosaicSeatPlayerHoleInwardFrac,
+  stadiumPlayerCupholderSizePx,
+  stadiumPlayerSeatHoleCardScale,
+} from '@qhe/ui'
 import { describe, expect, it } from 'vitest'
 
 const REM = 16
 const NAME_TAG_PX = 3.35 * REM
+const BOTTOM_TAG_PX = 1.5 * REM
+const HOLE_CARD_PX = 64
 const WIDE_COLUMN_PX = 40 * REM
 
 /** How far a side name extends past the felt, the way the phone tag is translated. */
@@ -20,6 +29,23 @@ function sideNameOverflowPx(seatIndex: number, sidePadPx: number): number {
     return Math.max(NAME_TAG_PX / 2 - anchorX, anchorX + NAME_TAG_PX / 2 - feltW, 0)
   }
   return dx > 0 ? anchorX + NAME_TAG_PX - feltW : NAME_TAG_PX - anchorX
+}
+
+/** How far the bottom seat's name and hole cards hang past the felt box. */
+function bottomSeatOverflowPx(feltW: number): number {
+  const feltH = (feltW * 5) / 8
+  const outward = Math.max(20, Math.round(stadiumPlayerCupholderSizePx(feltW) * 0.95))
+  let past = 0
+  for (let seat = 0; seat < 8; seat++) {
+    const label = mosaicSeatLabelPct(seat, feltW, feltH, outward)
+    const anchorY = (label.topPct / 100) * feltH
+    past = Math.max(past, anchorY + BOTTOM_TAG_PX - feltH)
+    const hole = mosaicSeatHoleLayout(seat, 8, feltW, feltH, mosaicSeatPlayerHoleInwardFrac(seat))
+    const cardH = HOLE_CARD_PX * stadiumPlayerSeatHoleCardScale(feltW, 8, true) * (7 / 5)
+    const cardBottom = (hole.topPct / 100) * feltH + cardH / 2
+    past = Math.max(past, cardBottom - feltH)
+  }
+  return past
 }
 
 const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
@@ -78,5 +104,24 @@ describe('player table orientation', () => {
     expect(portrait).not.toContain('.player-game-felt--fill')
     expect(portrait).not.toContain('player-felt-card-face')
     expect(portrait).not.toContain('rotate(-90deg)')
+  })
+
+  it('sizes the felt under the status line so the desktop wager panel stays below the table', () => {
+    const slot = css.slice(
+      css.indexOf('.player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {'),
+    )
+    const slotRule = slot.slice(0, slot.indexOf('}') + 1)
+    expect(slotRule).toContain('flex: 1 1 0')
+    expect(slotRule).toContain('min-height: 0')
+    expect(slotRule).toContain('container-type: size')
+
+    const wide = mediaBlock(css.slice(css.lastIndexOf('@media (min-width: 1024px)')), '@media (min-width: 1024px)')
+    expect(wide).toContain(
+      '.player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill',
+    )
+    const padding = wide.match(/padding-bottom:\s*([0-9.]+)rem/)
+    expect(padding).not.toBeNull()
+    const feltW = WIDE_COLUMN_PX - 6 * REM * 2
+    expect(Number(padding?.[1]) * REM).toBeGreaterThanOrEqual(bottomSeatOverflowPx(feltW))
   })
 })

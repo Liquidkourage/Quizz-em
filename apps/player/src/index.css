@@ -1171,6 +1171,14 @@
   min-height: 0;
 }
 
+/* Status line sits in this panel. Size the felt to the slot under it, or the oval spills onto the wager panel. */
+.player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+  flex: 1 1 0;
+  min-height: 0;
+  align-items: center;
+  container-type: size;
+}
+
 .player-game-felt--fill {
   flex: 0 0 auto;
   /* Largest 8:5 box that fits the panel — shrinks width when height is tight. */
@@ -1182,6 +1190,11 @@
   min-height: 0;
   margin-inline: auto;
   overflow: visible;
+}
+
+/* The generic felt cap (18rem) is for the short lobby felt. Live play fills the slot under the status. */
+.player-game-layout--live-fit .player-game-felt--fill {
+  max-height: 100%;
 }
 
 /* Touch screen held tall: turn the whole hand with the table. A mouse-driven PC stays flat. */
@@ -3418,10 +3431,20 @@
   }
 }
 
+.player-game-wager-inline {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
 @media (min-width: 1024px) {
   /* Wide desktop uses inline BettingActions; hide the phone dock. */
   .player-game-dock--inflow {
     display: none;
+  }
+
+  /* Bottom seat names and hole cards hang past the rail. Keep them above the wager panel. */
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    padding-bottom: 5.5rem;
   }
 }
 

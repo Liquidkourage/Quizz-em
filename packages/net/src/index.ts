@@ -197,6 +197,8 @@ export type DisplayVenueTileSnapshot = {
   seatAnswerLocked?: boolean[]
   /** Named players past the eight felt chairs. They are not in `seatNames`. */
   unseatedNames?: string[]
+  /** Parallel to `unseatedNames`: true when that person has locked or forfeited a guess. */
+  unseatedGuessLocked?: boolean[]
   /**
    * Parallel to `seatNames`: community board indices (0–4) each player used in their answer.
    * Omitted when unknown / older servers.

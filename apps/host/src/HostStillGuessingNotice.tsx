@@ -8,13 +8,34 @@ function noticePlace(dropped: boolean): string {
   return `pointer-events-auto fixed left-1/2 z-[72] -translate-x-1/2 ${dropped ? 'top-28' : 'top-4'}`
 }
 
-export default function HostStillGuessingNotice({
+function GuessNames({
   players,
+  twoColumns,
+}: {
+  players: StillGuessingPlayer[]
+  twoColumns: boolean
+}) {
+  if (players.length === 0) return null
+  return (
+    <ul className={twoColumns ? 'mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5' : 'mt-1 space-y-0.5'}>
+      {players.map((player, index) => (
+        <li key={`${player.tableNum}:${index}:${player.name}`} className="text-xs leading-snug text-white/80">
+          {player.name} · Table {player.tableNum}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+export default function HostStillGuessingNotice({
+  contest,
+  pointsOnly,
   dropped = false,
   onNudge,
   startClosed = false,
 }: {
-  players: StillGuessingPlayer[]
+  contest: StillGuessingPlayer[]
+  pointsOnly: StillGuessingPlayer[]
   dropped?: boolean
   onNudge?: () => void
   /** First paint only. The host can close and reopen after that. */
@@ -22,6 +43,7 @@ export default function HostStillGuessingNotice({
 }) {
   const [closed, setClosed] = useState(startClosed)
   const place = noticePlace(dropped)
+  const count = contest.length + pointsOnly.length
 
   if (closed) {
     return (
@@ -31,12 +53,12 @@ export default function HostStillGuessingNotice({
         onClick={() => setClosed(false)}
         aria-label="Show still guessing"
       >
-        Still guessing · {players.length}
+        Still guessing · {count}
       </button>
     )
   }
 
-  const twoColumns = players.length >= NUDGE_POPUP_TWO_COLUMNS_AT
+  const twoColumns = count >= NUDGE_POPUP_TWO_COLUMNS_AT
   return (
     <div
       className={`${place} ${
@@ -61,13 +83,13 @@ export default function HostStillGuessingNotice({
             Close
           </button>
         </div>
-        <ul className={twoColumns ? 'mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5' : 'mt-1 space-y-0.5'}>
-          {players.map((player, index) => (
-            <li key={`${player.tableNum}:${index}:${player.name}`} className="text-xs leading-snug text-white/80">
-              {player.name} · Table {player.tableNum}
-            </li>
-          ))}
-        </ul>
+        <GuessNames players={contest} twoColumns={twoColumns} />
+        {pointsOnly.length > 0 ? (
+          <div className="mt-2">
+            <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-amber-200/90">Points only</p>
+            <GuessNames players={pointsOnly} twoColumns={twoColumns} />
+          </div>
+        ) : null}
         <p className="mt-2 text-xs leading-snug text-amber-100/90">
           Nudge gives them 30 seconds. No guess scores 0 and cannot win the pot. Then reveal.
         </p>

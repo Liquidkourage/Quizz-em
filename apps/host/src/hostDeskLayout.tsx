@@ -1469,8 +1469,12 @@ function hostSeatLayers(seats: HostVenueSeatContest[]) {
   )
 }
 
+function seatsOnFelt(seats: readonly HostVenueSeatContest[]): HostVenueSeatContest[] {
+  return seats.filter((seat) => seat.offFelt !== true)
+}
+
 function HostPotFigure({ pot, seats }: { pot: number; seats: HostVenueSeatContest[] }) {
-  const layers = hostSeatLayers(seats)
+  const layers = hostSeatLayers(seatsOnFelt(seats))
   const main = layers.main > 0 ? layers.main : pot
   if (layers.sides.length === 0) return <ChipText text={formatHostFloorMoney(main)} />
   return (
@@ -1737,7 +1741,6 @@ function guessSubmitLabel(locked: boolean | undefined): string | null {
 }
 
 function tableActionHoverStatus(seat: HostVenueSeatContest, acting: boolean): string {
-  if (seat.offFelt === true) return 'Not on the felt'
   const guess = guessSubmitLabel(seat.guessLocked)
   if (guess) return guess
   if (seat.reason === 'folded') return 'Folded'
@@ -1819,12 +1822,13 @@ function TableActionHoverRoster({
   actingPlayerName: string | null
   hostPlayerLabel: (name: string) => string
 }) {
-  if (seats.length === 0) return <p className="text-white/50">No players seated.</p>
-  const labels = disambiguatePublicNames(seats.map((seat) => seat.name))
-  const marks = hostSeatLayers(seats).marks
+  const shown = seatsOnFelt(seats)
+  if (shown.length === 0) return <p className="text-white/50">No players seated.</p>
+  const labels = disambiguatePublicNames(shown.map((seat) => seat.name))
+  const marks = hostSeatLayers(shown).marks
   return (
     <ul className="space-y-1" aria-label="Table players">
-      {seats.map((seat, index) => (
+      {shown.map((seat, index) => (
         <li key={`${seat.name}-${index}`} className="whitespace-nowrap">
           <span className="font-semibold">
             {hostPlayerLabel(labels[index] ?? seat.name)}
@@ -1945,11 +1949,15 @@ function contestRows(
   hostPlayerLabel: (name: string) => string,
 ): { pot: ContestRow[]; points: ContestRow[] } {
   const unused = [...players]
+  for (const seat of seats) {
+    if (seat.offFelt === true) takeMatchingPlayer(seat.name, unused, hostPlayerLabel)
+  }
+  const onFelt = seatsOnFelt(seats)
   const pot: ContestRow[] = []
   const points: ContestRow[] = []
-  const marks = hostSeatLayers(seats).marks
-  for (let i = 0; i < seats.length; i++) {
-    const seat = seats[i]!
+  const marks = hostSeatLayers(onFelt).marks
+  for (let i = 0; i < onFelt.length; i++) {
+    const seat = onFelt[i]!
     const row = {
       seat,
       player: takeMatchingPlayer(seat.name, unused, hostPlayerLabel),
@@ -2017,7 +2025,7 @@ function SeatContestRow({
   actions: SeatActionBag | null
 }) {
   const reason = seatReasonLabel(row.seat.reason)
-  const guess = row.seat.offFelt === true ? 'Not on the felt' : guessSubmitLabel(row.seat.guessLocked)
+  const guess = guessSubmitLabel(row.seat.guessLocked)
   return (
     <li className="flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5">
       <div className="min-w-0">

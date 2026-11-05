@@ -1,32 +1,47 @@
-import type { HostVenueActionRow } from '@qhe/net'
+import type { HostVenueActionRow, HostVenueSeatContest } from '@qhe/net'
 
 export type StillGuessingPlayer = { name: string; tableNum: number }
 
-function pushOpenGuesses(out: StillGuessingPlayer[], row: HostVenueActionRow): void {
-  for (const seat of row.seats) {
-    const name = seat.name.trim()
-    if (!name || seat.guessLocked === true || seat.offFelt === true) continue
-    out.push({ name, tableNum: row.tableNum })
-  }
+export type StillGuessingGroups = {
+  contest: StillGuessingPlayer[]
+  pointsOnly: StillGuessingPlayer[]
 }
 
 function venueStillBetting(rows: readonly HostVenueActionRow[]): boolean {
   return rows.some((row) => row.phase === 'betting')
 }
 
+function guessGroup(seat: HostVenueSeatContest): 'skip' | 'contest' | 'points' {
+  if (seat.name.trim() === '' || seat.guessLocked === true) return 'skip'
+  if (seat.offFelt === true || seat.kind === 'points') return 'points'
+  return 'contest'
+}
+
+function byTableThenName(a: StillGuessingPlayer, b: StillGuessingPlayer): number {
+  return a.tableNum - b.tableNum || a.name.localeCompare(b.name)
+}
+
 /** Names still guessing once every table has left the betting round. */
 export function playersStillGuessing(
   rows: HostVenueActionRow[] | null | undefined,
-): StillGuessingPlayer[] {
+): StillGuessingGroups {
   const list = rows ?? []
-  if (venueStillBetting(list)) return []
-  const out: StillGuessingPlayer[] = []
+  if (venueStillBetting(list)) return { contest: [], pointsOnly: [] }
+  const contest: StillGuessingPlayer[] = []
+  const pointsOnly: StillGuessingPlayer[] = []
   for (const row of list) {
     if (row.phase !== 'answering') continue
-    pushOpenGuesses(out, row)
+    for (const seat of row.seats) {
+      const group = guessGroup(seat)
+      if (group === 'skip') continue
+      const player = { name: seat.name.trim(), tableNum: row.tableNum }
+      if (group === 'points') pointsOnly.push(player)
+      else contest.push(player)
+    }
   }
-  out.sort((a, b) => a.tableNum - b.tableNum || a.name.localeCompare(b.name))
-  return out
+  contest.sort(byTableThenName)
+  pointsOnly.sort(byTableThenName)
+  return { contest, pointsOnly }
 }
 
 /**

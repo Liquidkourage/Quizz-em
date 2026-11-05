@@ -936,9 +936,10 @@ function HostApp() {
       ) : null}
 
       {/* Toast Messages */}
-      {stillGuessing.length > 0 ? (
+      {stillGuessing.contest.length + stillGuessing.pointsOnly.length > 0 ? (
         <HostStillGuessingNotice
-          players={stillGuessing}
+          contest={stillGuessing.contest}
+          pointsOnly={stillGuessing.pointsOnly}
           dropped={venueAutoAlert != null}
           onNudge={connectionStatus === 'connected' ? () => nudgeOpenGuesses() : undefined}
         />

@@ -39,9 +39,9 @@ export function publicSeatShowsHoleCards(
   return filled && !folded && !pointsOnly && holesVisible
 }
 
-/** A seated player is drawn, including a points-only player still at the chair. */
-export function publicFeltDrawsSeat(_pointsOnly: boolean): boolean {
-  return true
+/** A chip-contest player is drawn. A points-only player leaves an empty chair. */
+export function publicFeltDrawsSeat(pointsOnly: boolean): boolean {
+  return !pointsOnly
 }
 
 /** Two-letter seat mark, sized from the felt so it reads across the room. */

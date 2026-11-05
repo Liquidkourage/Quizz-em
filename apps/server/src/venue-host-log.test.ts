@@ -620,6 +620,33 @@ describe('buildHostVenueActionRows seats', () => {
     expect(rows[0]?.pointsOnlyCount).toBe(0)
   })
 
+  it('records whether a player past the felt still owes a guess', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 3,
+        seated: 10,
+        pot: 0,
+        phase: 'answering',
+        seatNames: ['Ada', 'Bo', 'Cy', 'Dee', 'Eve', 'Fay', 'Gus', 'Hal'],
+        seatAnswerLocked: [true, true, true, true, true, true, true, true],
+        unseatedNames: ['Ivy', 'Opal'],
+        unseatedGuessLocked: [false, true],
+      } as never,
+    ])
+    expect(rows[0]?.answersSubmitted).toBe(8)
+    expect(rows[0]?.answersExpected).toBe(8)
+    expect(rows[0]?.pointsOnlyCount).toBe(0)
+    expect(rows[0]?.seats.find((seat) => seat.name === 'Ivy')).toMatchObject({
+      offFelt: true,
+      kind: 'points',
+      guessLocked: false,
+    })
+    expect(rows[0]?.seats.find((seat) => seat.name === 'Opal')).toMatchObject({
+      offFelt: true,
+      guessLocked: true,
+    })
+  })
+
   it('keeps tables in numerical order when one is interesting', () => {
     const rows = buildHostVenueActionRows([
       { tableNum: 4, seated: 2, pot: 0, phase: 'betting', seatNames: ['Ned'], interestingAction: true } as never,

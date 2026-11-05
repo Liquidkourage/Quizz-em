@@ -199,4 +199,40 @@ describe('public venue wall answer', () => {
     expect(jamalSeat?.answerPoints).toBe(185.59)
     expect(jamalSeat?.kind).toBe('points')
   })
+
+  it('marks a late entry past the felt without adding them to the guess count', () => {
+    let gs = createEmptyGame('LEAK', 'host', '1')
+    for (let i = 0; i < 8; i++) gs = addPlayer(gs, `p${i}`, `Player ${i}`)
+    gs = addPlayer(gs, 'ivy', 'Ivy', 0)
+    gs = addPlayer(gs, 'opal', 'Opal', 0)
+    gs = {
+      ...gs,
+      phase: 'answering',
+      players: gs.players.map((player) => {
+        if (player.id === 'ivy') return { ...player, pointsOnly: true, ghostHostId: 'p0' }
+        if (player.id === 'opal') {
+          return { ...player, pointsOnly: true, ghostHostId: 'p0', submittedAnswer: 12 }
+        }
+        return { ...player, submittedAnswer: 12 }
+      }),
+      round: {
+        ...gs.round,
+        question: { id: 'q', text: '?', answer: 10 },
+        answerDeadline: Date.now() + 60_000,
+      },
+    }
+    rooms.set(tableSessionKey('LEAK', '1'), gs)
+    const io = captureIo()
+    bindGameIo(io.server)
+    emitDisplayVenueSnapshotNow('LEAK')
+    const tile = io.snapshots.at(-1)?.tiles.find((row) => row.tableNum === 1)
+    expect(tile?.unseatedNames).toEqual(['Ivy', 'Opal'])
+    expect(tile?.unseatedGuessLocked).toEqual([false, true])
+    expect(tile?.seatNames).not.toContain('Ivy')
+    const hostRow = buildHostVenueActionRows(tile ? [tile] : [])[0]
+    expect(hostRow?.answersSubmitted).toBe(8)
+    expect(hostRow?.answersExpected).toBe(8)
+    expect(hostRow?.seats.find((seat) => seat.name === 'Ivy')?.guessLocked).toBe(false)
+    expect(hostRow?.seats.find((seat) => seat.name === 'Opal')?.guessLocked).toBe(true)
+  })
 })

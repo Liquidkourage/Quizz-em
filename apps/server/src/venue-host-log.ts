@@ -498,6 +498,19 @@ function pointsField(busted: boolean, points: number | undefined): Pick<HostVenu
   return { answerPoints: points }
 }
 
+function appendOffFeltSeats(seats: HostVenueSeatContest[], tile: DisplayVenueTileSnapshot): void {
+  const names = tile.unseatedNames ?? []
+  const locks = tile.unseatedGuessLocked ?? []
+  const answering = tile.phase === 'answering'
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i]?.trim()
+    if (!name) continue
+    const seat: HostVenueSeatContest = { name, kind: 'points', reason: null, offFelt: true }
+    if (answering) seat.guessLocked = locks[i] === true
+    seats.push(seat)
+  }
+}
+
 function seatContests(tile: DisplayVenueTileSnapshot): HostVenueSeatContest[] {
   const seats: HostVenueSeatContest[] = []
   const names = tile.seatNames ?? []
@@ -520,9 +533,7 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
           : null
       const seats = seatContests(tile)
       const inPotCount = seats.filter((seat) => seat.kind === 'pot').length
-      for (const name of tile.unseatedNames ?? []) {
-        seats.push({ name, kind: 'points', reason: null, offFelt: true })
-      }
+      appendOffFeltSeats(seats, tile)
       return {
         tableNum: tile.tableNum,
         phase: tile.phase,

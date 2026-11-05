@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, SidePotMark, StadiumTableSeats, sidePotColor, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
-import { balancedPhysicalSeats, displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID, type LiveSidePot } from '@qhe/core'
+import { displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID, type LiveSidePot } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 import {
   buildPlayerTableStatusLine,
@@ -11,6 +11,7 @@ import {
   seatToCallAmount,
   type SeatStatusPill,
 } from '../playerModel/seatBettingStatus'
+import { playerFeltRoster } from '../playerModel/playerFeltRoster'
 
 type TableFeltViewProps = {
   gameState: GameState
@@ -150,9 +151,7 @@ export default function TableFeltView({
   )
 
   const seats = useMemo((): StadiumTableSeat[] => {
-    const seatOf = balancedPhysicalSeats(players.length)
-    return players.map((player, index) => {
-      const chair = seatOf[index] ?? index
+    return playerFeltRoster(players).map(({ player, rosterIndex: index, chair }) => {
       const isMe = index === heroIndex
       const isActing = actingIndex === index && !player.hasFolded
       const isAway = playerOnline?.[player.id] === false

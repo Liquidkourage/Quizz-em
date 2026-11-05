@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import type { HostVenueActionRow } from '@qhe/net'
 import HostStillGuessingNotice from './HostStillGuessingNotice'
 import { guessClockCatchUp, playersStillGuessing } from './hostStillGuessing'
+import { venueRevealAnswerBlockedHint } from './hostVenueActionGates'
 
 function row(partial: Partial<HostVenueActionRow> & Pick<HostVenueActionRow, 'tableNum' | 'seats'>): HostVenueActionRow {
   return {
@@ -44,22 +45,28 @@ describe('players still guessing', () => {
         seats: [{ name: 'Dee', kind: 'pot', reason: null }],
       }),
     ]
-    expect(playersStillGuessing(mixed)).toEqual([])
+    expect(playersStillGuessing(mixed)).toEqual({ contest: [], pointsOnly: [] })
   })
 
-  it('lists who has not locked while the answer window is still open', () => {
-    expect(playersStillGuessing(rows)).toEqual([
-      { name: 'Bo', tableNum: 2 },
-      { name: 'Cy', tableNum: 4 },
-    ])
+  it('keeps chip-contest guesses in the main list and points-only guesses in their own', () => {
+    expect(playersStillGuessing(rows)).toEqual({
+      contest: [{ name: 'Bo', tableNum: 2 }],
+      pointsOnly: [{ name: 'Cy', tableNum: 4 }],
+    })
   })
 
-  it('lists who has not submitted, then drops a name when that guess locks', () => {
-    expect(playersStillGuessing(rows)).toEqual([
-      { name: 'Bo', tableNum: 2 },
-      { name: 'Cy', tableNum: 4 },
-    ])
+  it('drops a name when that guess locks and keeps a busted seat with the late entries', () => {
     const afterBo = [
+      row({
+        tableNum: 1,
+        seats: [
+          { name: 'Ada', kind: 'pot', reason: null, guessLocked: true },
+          { name: 'Jamal', kind: 'points', reason: 'busted', guessLocked: false },
+          { name: 'Elena', kind: 'points', reason: 'busted', guessLocked: true },
+          { name: 'Ivy', kind: 'points', reason: null, offFelt: true, guessLocked: false },
+          { name: 'Opal', kind: 'points', reason: null, offFelt: true, guessLocked: true },
+        ],
+      }),
       row({
         tableNum: 2,
         seats: [
@@ -69,9 +76,53 @@ describe('players still guessing', () => {
       }),
       rows[1]!,
     ]
-    expect(playersStillGuessing(afterBo)).toEqual([
-      { name: 'Cy', tableNum: 4 },
-    ])
+    expect(playersStillGuessing(afterBo)).toEqual({
+      contest: [],
+      pointsOnly: [
+        { name: 'Ivy', tableNum: 1 },
+        { name: 'Jamal', tableNum: 1 },
+        { name: 'Cy', tableNum: 4 },
+      ],
+    })
+  })
+})
+
+describe('reveal stays open for a late entry', () => {
+  it('lists an open late entry under points only without holding Reveal', () => {
+    expect(
+      playersStillGuessing([
+        row({
+          tableNum: 1,
+          answersSubmitted: 8,
+          answersExpected: 8,
+          seats: [
+            { name: 'Ada', kind: 'pot', reason: null, guessLocked: true },
+            { name: 'Ivy', kind: 'points', reason: null, offFelt: true, guessLocked: false },
+          ],
+        }),
+      ]),
+    ).toEqual({
+      contest: [],
+      pointsOnly: [{ name: 'Ivy', tableNum: 1 }],
+    })
+    expect(
+      venueRevealAnswerBlockedHint(
+        [
+          {
+            tableNum: 1,
+            active: true,
+            seated: 8,
+            phase: 'answering',
+            street: 'Answer',
+            clock: 'Countdown',
+            answerDeadlineMs: 10_000,
+            phaseStrictSig: 'answer',
+          },
+        ],
+        [{ tableNum: 1, answersSubmitted: 8, answersExpected: 8 }],
+        1_000,
+      ),
+    ).toBeNull()
   })
 })
 
@@ -93,10 +144,11 @@ describe('still guessing notice', () => {
   it('shows the players who have not submitted', () => {
     const html = renderToStaticMarkup(
       createElement(HostStillGuessingNotice, {
-        players: [
+        contest: [
           { name: 'Bo', tableNum: 2 },
           { name: 'Cy', tableNum: 4 },
         ],
+        pointsOnly: [],
       }),
     )
     expect(html).toContain('Still guessing')
@@ -110,12 +162,46 @@ describe('still guessing notice', () => {
     expect(html).toContain('scores 0')
     expect(html).toContain('cannot win the pot')
     expect(html).toContain('Close still guessing')
+    expect(html).not.toContain('Points only')
+  })
+
+  it('lists points-only players under their own heading', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostStillGuessingNotice, {
+        contest: [{ name: 'Bo', tableNum: 2 }],
+        pointsOnly: [
+          { name: 'Jamal A.', tableNum: 1 },
+          { name: 'Ivy', tableNum: 1 },
+        ],
+      }),
+    )
+    const bo = html.indexOf('Bo')
+    const heading = html.indexOf('Points only')
+    const jamal = html.indexOf('Jamal A.')
+    expect(bo).toBeGreaterThan(-1)
+    expect(heading).toBeGreaterThan(bo)
+    expect(jamal).toBeGreaterThan(heading)
+    expect(html).toContain('Ivy')
+    expect(html).toContain('Table 1')
+  })
+
+  it('counts both groups when the notice is tucked away', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostStillGuessingNotice, {
+        contest: [{ name: 'Bo', tableNum: 2 }],
+        pointsOnly: [{ name: 'Ivy', tableNum: 1 }],
+        startClosed: true,
+      }),
+    )
+    expect(html).toContain('Still guessing · 2')
+    expect(html).not.toContain('Points only')
   })
 
   it('tucks the notice away so the host can reopen it', () => {
     const html = renderToStaticMarkup(
       createElement(HostStillGuessingNotice, {
-        players: [{ name: 'Bo', tableNum: 2 }],
+        contest: [{ name: 'Bo', tableNum: 2 }],
+        pointsOnly: [],
         startClosed: true,
       }),
     )
@@ -126,8 +212,8 @@ describe('still guessing notice', () => {
   })
 
   it('uses two columns when many players are still guessing', () => {
-    const players = Array.from({ length: 8 }, (_, i) => ({ name: `Player ${i}`, tableNum: i + 1 }))
-    const html = renderToStaticMarkup(createElement(HostStillGuessingNotice, { players }))
+    const contest = Array.from({ length: 8 }, (_, i) => ({ name: `Player ${i}`, tableNum: i + 1 }))
+    const html = renderToStaticMarkup(createElement(HostStillGuessingNotice, { contest, pointsOnly: [] }))
     expect(html).toContain('grid-cols-2')
     expect(html).toContain('Player 7')
     expect(html).not.toContain('max-h-64')

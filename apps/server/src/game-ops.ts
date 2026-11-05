@@ -997,6 +997,24 @@ export function welcomeWallSeatCount(gs: GameState): number {
   return gs.players.length
 }
 
+function guessLockedOnSeat(player: GameState['players'][number]): boolean {
+  const submitted = player.submittedAnswer
+  return (typeof submitted === 'number' && Number.isFinite(submitted)) || player.answerForfeited === true
+}
+
+/** Players past the eight felt chairs. They are not part of the reveal count. */
+function namesPastTheFelt(players: GameState['players']): { names: string[]; guessLocked: boolean[] } {
+  const names: string[] = []
+  const guessLocked: boolean[] = []
+  for (const player of players.slice(VENUE_WALL_SEAT_COUNT)) {
+    const name = typeof player.name === 'string' ? player.name.trim() : ''
+    if (name === '') continue
+    names.push(name)
+    guessLocked.push(guessLockedOnSeat(player))
+  }
+  return { names, guessLocked }
+}
+
 /** Place a dense roster onto the 8 chairs with as even a ring as the count allows. */
 function scatterRosterToChairs<T>(
   players: GameState['players'],
@@ -2326,10 +2344,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     const seatNames = scatterRosterToChairs(gs.players, '', (p) =>
       typeof p.name === 'string' ? p.name.trim() : '',
     )
-    const unseatedNames = gs.players
-      .slice(VENUE_WALL_SEAT_COUNT)
-      .map((player) => (typeof player.name === 'string' ? player.name.trim() : ''))
-      .filter((name) => name !== '')
+    const unseated = namesPastTheFelt(gs.players)
     const seatBankrolls = scatterRosterToChairs(gs.players, 0, (p) => {
       const br = p.bankroll
       return typeof br === 'number' && Number.isFinite(br) ? br : 0
@@ -2459,7 +2474,9 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       ...(sidePot != null ? { sidePot } : {}),
       phase: gs.phase,
       seatNames,
-      ...(unseatedNames.length > 0 ? { unseatedNames } : {}),
+      ...(unseated.names.length > 0
+        ? { unseatedNames: unseated.names, unseatedGuessLocked: unseated.guessLocked }
+        : {}),
       seatBankrolls,
       seatFolded,
       seatPointsOnly,

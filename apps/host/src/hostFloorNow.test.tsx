@@ -118,7 +118,10 @@ describe('venue floor now', () => {
     expect(pointsSheet).toContain('281.81 pts')
     expect(pointsSheet).toContain('Points')
     expect(pointsSheet).not.toContain('Busted')
-    expect(pointsSheet).toContain('Not on the felt')
+    expect(pointsSheet).toContain('Jamal A.')
+    expect(pointsSheet).toContain('Elena C.')
+    expect(pointsSheet).not.toContain('Opal A.')
+    expect(pointsSheet).not.toContain('Not on the felt')
     expect(sheet).toContain('aria-label="$20"')
   })
 
@@ -615,19 +618,24 @@ describe('venue floor now', () => {
     expect(missing).toBeGreaterThan(submitted)
   })
 
-  it('names a player who is past the felt and not part of the guess count', () => {
+  it('leaves a player past the felt off the opened table', () => {
     const html = renderToStaticMarkup(
       createElement(HostTableOpen, {
         seats: [
           { name: 'Ada', kind: 'pot', reason: null, guessLocked: true },
           { name: 'Ivy', kind: 'points', reason: null, offFelt: true },
         ],
+        players: [
+          { playerId: 'human:a', name: 'Ada' },
+          { playerId: 'human:i', name: 'Ivy' },
+        ],
         recentActions: [],
         hostPlayerLabel: (name: string) => name,
       }),
     )
-    expect(html).toContain('Not on the felt')
-    expect(html.indexOf('Ada')).toBeLessThan(html.indexOf('Not on the felt'))
+    expect(html).toContain('Ada')
+    expect(html).not.toContain('Ivy')
+    expect(html).not.toContain('Not on the felt')
   })
 
   it('opens a table into in-pot and points-only columns', () => {

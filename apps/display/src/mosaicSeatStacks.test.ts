@@ -104,9 +104,9 @@ describe('public table initials', () => {
     expect(publicSeatShowsHoleCards(true, true, false, true)).toBe(false)
   })
 
-  it('draws the seat when that player is points only', () => {
+  it('leaves a points-only player off the public felt', () => {
     expect(publicFeltDrawsSeat(false)).toBe(true)
-    expect(publicFeltDrawsSeat(true)).toBe(true)
+    expect(publicFeltDrawsSeat(true)).toBe(false)
   })
 })
 

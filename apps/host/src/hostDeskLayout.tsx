@@ -2890,15 +2890,12 @@ export function formatVenueBlindsSummary(
 export function HostBlindsControls({
   venueSmallBlind,
   venueBigBlind,
-  handsPerBlindLevel,
   blindLevelSummary,
   tableNum,
   hostTableId,
   onVenueSmallBlindChange,
   onVenueBigBlindChange,
-  onHandsPerLevelChange,
   onSaveVenueBlinds,
-  onSaveBlindStructure,
   onSaveTableBlinds,
   onClearTableBlinds,
   showTableOverride = true,
@@ -2906,15 +2903,12 @@ export function HostBlindsControls({
 }: {
   venueSmallBlind: number
   venueBigBlind: number
-  handsPerBlindLevel: number
   blindLevelSummary: string | null
   tableNum: number
   hostTableId: string
   onVenueSmallBlindChange: (n: number) => void
   onVenueBigBlindChange: (n: number) => void
-  onHandsPerLevelChange: (n: number) => void
   onSaveVenueBlinds: () => void
-  onSaveBlindStructure: () => void
   onSaveTableBlinds: () => void
   onClearTableBlinds: () => void
   showTableOverride?: boolean
@@ -2956,24 +2950,6 @@ export function HostBlindsControls({
         </div>
         <NeonButton variant="gold" size={compact ? 'small' : 'normal'} type="button" onClick={onSaveVenueBlinds}>
           Save venue blinds
-        </NeonButton>
-      </div>
-      <div className="flex flex-wrap items-end gap-2 border-t border-white/10 pt-2">
-        <div className="flex flex-col gap-0.5">
-          <label className="text-xs font-semibold uppercase tracking-wide text-white/48">
-            Level up every (hands)
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={50}
-            value={handsPerBlindLevel}
-            onChange={(e) => onHandsPerLevelChange(Number(e.target.value))}
-            className={inputClass}
-          />
-        </div>
-        <NeonButton variant="blue" size={compact ? 'small' : 'normal'} type="button" onClick={onSaveBlindStructure}>
-          Save schedule
         </NeonButton>
       </div>
       {showTableOverride ? (

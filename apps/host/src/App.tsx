@@ -42,7 +42,6 @@ import {
   releaseDisplay,
   setVenueAnswerWindowSeconds,
   setVenueBlinds,
-  setVenueBlindStructure,
   setTableBlinds,
   setQuestion as pushQuestionToVenue,
   questionBankAdd,
@@ -638,9 +637,6 @@ function HostApp() {
   const saveVenueBlinds = () => {
     setVenueBlinds(Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
   }
-  const saveBlindStructure = () => {
-    setVenueBlindStructure(Math.max(1, Math.min(50, handsPerBlindLevel)))
-  }
   const saveTableBlindsOverride = () => {
     setTableBlinds(hostTableNum, Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
   }
@@ -650,15 +646,12 @@ function HostApp() {
   const hostBlindsControlProps = {
     venueSmallBlind,
     venueBigBlind,
-    handsPerBlindLevel,
     blindLevelSummary,
     tableNum: hostTableNum,
     hostTableId: gameState.tableId ?? '1',
     onVenueSmallBlindChange: setVenueSmallBlind,
     onVenueBigBlindChange: setVenueBigBlind,
-    onHandsPerLevelChange: setHandsPerBlindLevel,
     onSaveVenueBlinds: saveVenueBlinds,
-    onSaveBlindStructure: saveBlindStructure,
     onSaveTableBlinds: saveTableBlindsOverride,
     onClearTableBlinds: clearTableBlindsOverride,
   }
@@ -1209,7 +1202,6 @@ function HostApp() {
                 onShuffleEvery={setShuffleEvery}
                 onSave={() => {
                   saveVenueBlinds()
-                  saveBlindStructure()
                   setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
                   setVenueShuffleEvery(Math.min(20, Math.max(1, Math.floor(shuffleEvery) || 5)))
                 }}

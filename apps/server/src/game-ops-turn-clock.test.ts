@@ -264,7 +264,8 @@ describe('nudge open guesses', () => {
     registerPlayerSocket('bo', 'bo-sock')
 
     expect(nudgeOpenGuesses('NG')).toEqual({ nudged: 1, names: ['Bo'] })
-    expect(rooms.get(key)!.round.answerDeadline).toBe(1_030_000)
+    expect(rooms.get(key)!.round.answerDeadline).toBe(1_000_000)
+    expect(rooms.get(key)!.round.guessNudgeDeadline).toBe(1_030_000)
     expect(rooms.get(key)!.round.guessNudge).toBe(true)
     expect(heard.bo).toContain('30 seconds to lock a guess. No guess scores 0 and cannot win the pot.')
     expect(heard.ada).toEqual([])
@@ -281,7 +282,7 @@ describe('nudge open guesses', () => {
     expect(paid.players.find((p) => p.id === 'ada')!.bankroll).toBe(540)
   })
 
-  it('keeps the extra 30s on the venue clock the TVs are reading', () => {
+  it('leaves the shared 45s answer window on the venue clock the TVs are reading', () => {
     const key = tableSessionKey('NG', '1')
     venueShowdownAtMs.set('NG', 1_000_000)
     let gs = createEmptyGame('NG', 'host', '1')
@@ -298,8 +299,9 @@ describe('nudge open guesses', () => {
     })
 
     nudgeOpenGuesses('NG')
-    expect(venueShowdownAtMs.get('NG')).toBe(1_030_000)
-    expect(rooms.get(key)!.round.answerDeadline).toBe(1_030_000)
+    expect(venueShowdownAtMs.get('NG')).toBe(1_000_000)
+    expect(rooms.get(key)!.round.answerDeadline).toBe(1_000_000)
+    expect(rooms.get(key)!.round.guessNudgeDeadline).toBe(1_030_000)
 
     const plan = planVenueWageringOrchestration({
       seatedTableKeys: [key],

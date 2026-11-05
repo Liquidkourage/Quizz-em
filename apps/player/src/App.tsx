@@ -35,7 +35,7 @@ import {
   type PlayerJoinBootstrap,
 } from './playerUrlParams'
 import { useAnswerCountdown } from './hooks/useAnswerCountdown'
-import { answerClockDeadline } from './playerModel/answerClockDeadline'
+import { answerClockDeadline, nudgeClockDeadline } from './playerModel/answerClockDeadline'
 import { useHandSummary } from './hooks/useHandSummary'
 import { useTableResults } from './hooks/useTableResults'
 import {
@@ -83,6 +83,17 @@ type JoinPhase = 'form' | 'connecting' | 'in_venue'
 function bootPlayerJoin(): { prefs: PlayerJoinBootstrap; phase: JoinPhase; nonce: number } {
   const boot = playerJoinBoot(readPlayerJoinPrefs())
   return { prefs: boot.prefs, phase: boot.resume ? 'connecting' : 'form', nonce: boot.resume ? 1 : 0 }
+}
+
+function phoneClockDeadlines(
+  gameState: PlayerGameStateWire | null,
+  player: Parameters<typeof nudgeClockDeadline>[1],
+) {
+  const round = gameState?.round
+  return {
+    answer: answerClockDeadline(round),
+    nudge: nudgeClockDeadline(round, player),
+  }
 }
 
 function PlayerApp() {
@@ -306,7 +317,9 @@ function PlayerApp() {
   }, [gameState, currentPlayer])
   const handSummary = useHandSummary(gameState, currentPlayer)
   const tableResults = useTableResults(gameState, currentPlayer?.id ?? joinPrefs.playerId)
-  const remainingSec = useAnswerCountdown(answerClockDeadline(gameState?.round, currentPlayer))
+  const phoneClocks = phoneClockDeadlines(gameState, currentPlayer)
+  const remainingSec = useAnswerCountdown(phoneClocks.answer)
+  const nudgeRemainingSec = useAnswerCountdown(phoneClocks.nudge)
   const turnRemainingSec = useAnswerCountdown(gameState?.round.turnDeadlineMs)
 
   const bettingCtx = useMemo(
@@ -754,6 +767,7 @@ function PlayerApp() {
             composed={composedAnswer}
             selectedCards={selectedCards}
             remainingSec={remainingSec}
+            nudgeRemainingSec={nudgeRemainingSec}
             submittedDisplay={lockedAnswerDisplay}
             onSelectCard={handleCardSelect}
             onToggleDecimal={() => {

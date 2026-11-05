@@ -15,6 +15,8 @@ type AnswerComposerProps = {
   composed: ComposedAnswer
   selectedCards: SelectedCardRef[]
   remainingSec: number | null
+  /** Host nudge. Present only for a seat that has not locked a guess. */
+  nudgeRemainingSec?: number | null
   submittedDisplay?: string | null
   onSelectCard: (type: 'hand' | 'community', index: number) => void
   onToggleDecimal: () => void
@@ -35,12 +37,28 @@ function lockedAnswerHint(remainingSec: number | null): string {
   return 'Locked in. You can edit before time runs out.'
 }
 
+function NudgeLockClock({
+  forfeited,
+  seconds,
+}: {
+  forfeited: boolean
+  seconds: number | null | undefined
+}) {
+  if (forfeited || seconds == null) return null
+  return (
+    <p className="player-game-hint" role="status">
+      Lock a guess <strong>{seconds}</strong>
+    </p>
+  )
+}
+
 export default function AnswerComposer({
   gameState,
   currentPlayer,
   composed,
   selectedCards,
   remainingSec,
+  nudgeRemainingSec = null,
   submittedDisplay,
   onSelectCard,
   onToggleDecimal,
@@ -106,6 +124,7 @@ export default function AnswerComposer({
           )}
         </p>
       ) : null}
+      <NudgeLockClock forfeited={currentPlayer.answerForfeited === true} seconds={nudgeRemainingSec} />
 
       {currentPlayer.answerForfeited ? null : locked ? (
         <div className="player-game-answer-submitted" role="status">

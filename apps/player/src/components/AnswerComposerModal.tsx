@@ -10,6 +10,7 @@ type AnswerComposerModalProps = {
   composed: ComposedAnswer
   selectedCards: SelectedCardRef[]
   remainingSec: number | null
+  nudgeRemainingSec?: number | null
   submittedDisplay?: string | null
   onSelectCard: (type: 'hand' | 'community', index: number) => void
   onToggleDecimal: () => void

@@ -1136,7 +1136,14 @@ function resumeHeldTable(vn: string, tk: string, gs: GameState, elapsed: number)
   let next = gs
   const answerDeadline = gs.round.answerDeadline
   if (typeof answerDeadline === 'number' && Number.isFinite(answerDeadline)) {
-    next = { ...gs, round: { ...gs.round, answerDeadline: answerDeadline + elapsed } }
+    next = {
+      ...gs,
+      round: {
+        ...gs.round,
+        answerDeadline: answerDeadline + elapsed,
+        guessNudgeDeadline: shiftEpoch(gs.round.guessNudgeDeadline, elapsed),
+      },
+    }
     rooms.set(tk, next)
   }
   if (humanTurnDeadlineMs.has(tk)) scheduleHumanTurnTimeout(tk, next)
@@ -1144,6 +1151,11 @@ function resumeHeldTable(vn: string, tk: string, gs: GameState, elapsed: number)
   const resumed = rooms.get(tk) ?? next
   noteAnswerGuide(vn, resumed.round.answerDeadline)
   playVirtualPlayers(tk, resumed)
+}
+
+function shiftEpoch(value: number | undefined, elapsed: number): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return value
+  return value + elapsed
 }
 
 function noteAnswerGuide(venueCode: string, deadline: number | undefined): void {
@@ -1593,24 +1605,22 @@ function armGuessNudgeTimeout(vn: string, fireAt: number): void {
   guessNudgeTimers.set(vn, timer)
 }
 
-/** Host: 30s more on every answering table that still has an open guess, then those seats score 0. */
+/** Host: 30s for every open guess, then those seats score 0. The shared answer window stays put. */
 export function nudgeOpenGuesses(vnRaw: string): { nudged: number; names: string[] } {
   const vn = normalizeVenueCode(vnRaw)
   const names: string[] = []
   const fireAt = Date.now() + HUMAN_NUDGE_TIMEOUT_MS
-  let guided = false
   for (const { tk, gs } of venuePlayableSnapshots(vn)) {
     const open = seatsStillGuessing(gs)
     if (open.length === 0) continue
-    if (!guided) {
-      armVenueAnswerGuideDeadline(vn, fireAt)
-      guided = true
-    }
     for (const player of open) {
       names.push(shortPlayerName(player.name))
       tellGuessNudge(player.id)
     }
-    const next = { ...gs, round: { ...gs.round, answerDeadline: fireAt, guessNudge: true } }
+    const next = {
+      ...gs,
+      round: { ...gs.round, guessNudge: true, guessNudgeDeadline: fireAt },
+    }
     rooms.set(tk, next)
     emitVenueTableState(tk, next, { skipOrchestration: true })
     playVirtualPlayers(tk, next)

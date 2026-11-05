@@ -60,4 +60,50 @@ describe('answer composer clock', () => {
     expect(html).not.toContain('before time runs out')
     expect(html).not.toContain('keep editing')
   })
+
+  it('keeps the shared answer window and the edit control while time is left', () => {
+    const gs = answering()
+    const html = renderToStaticMarkup(
+      createElement(AnswerComposer, {
+        gameState: gs,
+        currentPlayer: gs.players[0]!,
+        composed: EMPTY_COMPOSED_ANSWER,
+        selectedCards: [],
+        remainingSec: 22,
+        submittedDisplay: '42',
+        onSelectCard: () => {},
+        onToggleDecimal: () => {},
+        onBackspace: () => {},
+        onClear: () => {},
+        onSubmit: () => {},
+        onEditSubmitted: () => {},
+      }),
+    )
+    expect(html).toContain('Time')
+    expect(html).toContain('22')
+    expect(html).toContain('Edit answer')
+    expect(html).not.toContain('Lock a guess')
+  })
+
+  it('shows the nudge countdown only beside an unlocked guess', () => {
+    const gs = answering()
+    const html = renderToStaticMarkup(
+      createElement(AnswerComposer, {
+        gameState: gs,
+        currentPlayer: gs.players[0]!,
+        composed: EMPTY_COMPOSED_ANSWER,
+        selectedCards: [],
+        remainingSec: 40,
+        nudgeRemainingSec: 12,
+        onSelectCard: () => {},
+        onToggleDecimal: () => {},
+        onBackspace: () => {},
+        onClear: () => {},
+        onSubmit: () => {},
+      }),
+    )
+    expect(html).toContain('>40<')
+    expect(html).toContain('Lock a guess')
+    expect(html).toContain('>12<')
+  })
 })

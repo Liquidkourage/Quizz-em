@@ -454,6 +454,42 @@ export function mosaicSidePotsThatFit(sideCount: number, tileWidthPx: number): n
   return fit
 }
 
+type MosaicChipDimple = { x: number; y: number; rot: number }
+
+const MOSAIC_CHIP_DIMPLE_COUNT = 22
+
+/** Even dimples around a stadium rim. Local up points outward so each spot sits in the clay. */
+function mosaicChipDimples(count = MOSAIC_CHIP_DIMPLE_COUNT): MosaicChipDimple[] {
+  const x0 = 14
+  const y0 = 11
+  const w = 212
+  const h = 78
+  const r = h / 2
+  const straight = w - h
+  const arc = Math.PI * r
+  const perimeter = straight * 2 + arc * 2
+  const cy = y0 + r
+  const left = x0 + r
+  const right = x0 + w - r
+  const turn = 180 / Math.PI
+  return Array.from({ length: count }, (_, index) => {
+    let d = ((index + 0.5) / count) * perimeter
+    if (d <= straight) return { x: left + d, y: y0, rot: 0 }
+    d -= straight
+    if (d <= arc) {
+      const angle = -Math.PI / 2 + d / r
+      return { x: right + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, rot: (angle + Math.PI / 2) * turn }
+    }
+    d -= arc
+    if (d <= straight) return { x: right - d, y: y0 + h, rot: 180 }
+    d -= straight
+    const angle = Math.PI / 2 + d / r
+    return { x: left + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, rot: (angle + Math.PI / 2) * turn }
+  })
+}
+
+const MOSAIC_CHIP_DIMPLES = mosaicChipDimples()
+
 /** Chip plaque for one side pot on a mosaic felt. Color matches that pot's seat badges. */
 export function MosaicSidePotPlaques({
   sides,
@@ -473,9 +509,14 @@ export function MosaicSidePotPlaques({
           aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
           style={{ '--vfd-side-pot': sidePotColor(side.mark) } as CSSProperties}
         >
-          <svg className="vfd-mosaic-side-plaque-rim" viewBox="0 0 240 100" preserveAspectRatio="none" aria-hidden>
-            <rect x="11" y="12" width="218" height="78" rx="39" fill="none" stroke="rgb(0 0 0 / 0.4)" strokeWidth="13" strokeDasharray="15 10" />
-            <rect x="11" y="10" width="218" height="78" rx="39" fill="none" stroke="#fff" strokeWidth="11" strokeDasharray="15 10" />
+          <svg className="vfd-mosaic-side-plaque-rim" viewBox="0 0 240 100" aria-hidden>
+            {MOSAIC_CHIP_DIMPLES.map((spot, index) => (
+              <g key={index} transform={`translate(${spot.x.toFixed(1)} ${spot.y.toFixed(1)}) rotate(${spot.rot.toFixed(1)})`}>
+                <rect className="vfd-mosaic-side-plaque-socket" x="-7.6" y="-5" width="15.2" height="11.6" rx="2.8" />
+                <rect x="-6.2" y="-4.2" width="12.4" height="8.8" rx="2.1" fill="#eef3f7" />
+                <rect x="-5.3" y="-3.8" width="10.6" height="2.6" rx="1.2" fill="#fff" />
+              </g>
+            ))}
           </svg>
           <span className="vfd-mosaic-side-plaque-face">
             <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>

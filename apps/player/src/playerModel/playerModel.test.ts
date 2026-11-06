@@ -143,6 +143,40 @@ describe('bettingModel', () => {
     expect(ctx.canRaise).toBe(false)
     expect(ctx.canAllIn).toBe(false)
   })
+
+  it('hides a raise when a short all-in is all that is left to call', () => {
+    let gs = createEmptyGame('HOST01', 'host', '1')
+    gs = {
+      ...gs,
+      phase: 'betting',
+      bigBlind: 20,
+      smallBlind: 10,
+      players: [
+        { id: 'a', name: 'Alice', bankroll: 500, hand: [], hasFolded: false, isAllIn: false },
+        { id: 'b', name: 'Bob', bankroll: 0, hand: [], hasFolded: false, isAllIn: true },
+      ],
+      round: {
+        ...gs.round,
+        isBettingOpen: true,
+        currentPlayerIndex: 0,
+        currentBet: 30,
+        playerBets: { a: 20, b: 30 },
+        lastFullRaiseAmount: 20,
+        lastSeatBettingAction: ['raise', 'allIn'],
+        bettingRound: 1,
+      },
+    }
+    const ctx = buildBettingContext({
+      gameState: gs,
+      currentPlayer: gs.players[0],
+      myIndex: 0,
+      raiseAmount: 20,
+    })
+    expect(ctx.toCall).toBe(10)
+    expect(ctx.canCall).toBe(true)
+    expect(ctx.canRaise).toBe(false)
+    expect(ctx.canAllIn).toBe(false)
+  })
 })
 
 describe('handSummary', () => {

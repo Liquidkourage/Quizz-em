@@ -1497,6 +1497,27 @@ export function playerCall(state: GameState, playerId: string): GameState {
   return isBettingComplete(after) ? { ...after, round: { ...after.round, isBettingOpen: false, currentPlayerIndex: -1 } } : after;
 }
 
+/**
+ * A full raise is open when this seat has not acted, or the chips they still
+ * owe are at least the last full raise. A short all-in does not reopen it.
+ */
+export function fullRaiseIsOpen(state: GameState, playerId: string): boolean {
+  if (state.round.raisesClosed === true) return false
+  const seat = getSeatIndexByPlayerId(state, playerId)
+  if (seat < 0) return false
+  if (state.round.lastSeatBettingAction?.[seat] == null) return true
+  return amountToCall(state, playerId) >= minRaiseByAmount(state)
+}
+
+/** When a raise is closed, extra chips stay behind and the seat calls or checks. */
+function matchWithoutRaising(state: GameState, playerId: string, seat: number): GameState | null {
+  if (fullRaiseIsOpen(state, playerId)) return null
+  const bankroll = state.players[seat]?.bankroll ?? 0
+  const toCall = amountToCall(state, playerId)
+  if (bankroll <= toCall) return null
+  return toCall > 0 ? playerCall(state, playerId) : playerCheck(state, playerId)
+}
+
 /** Freeze further bets and raises. Calls, checks, and folds stay available. */
 export function setRaisesClosed(state: GameState, closed: boolean): GameState {
   if ((state.round.raisesClosed === true) === closed) return state;
@@ -1505,7 +1526,7 @@ export function setRaisesClosed(state: GameState, closed: boolean): GameState {
 
 export function playerRaise(state: GameState, playerId: string, raiseAmount: number): GameState {
   if (state.phase !== 'betting' || !state.round.isBettingOpen) return state;
-  if (state.round.raisesClosed === true) return state;
+  if (!fullRaiseIsOpen(state, playerId)) return state;
   if (raiseAmount <= 0) return state;
   const seat = getSeatIndexByPlayerId(state, playerId);
   if (seat < 0 || state.players[seat]?.pointsOnly) return state;
@@ -1554,10 +1575,8 @@ export function playerAllIn(state: GameState, playerId: string): GameState {
   if (seat !== state.round.currentPlayerIndex) return state;
   const bankroll = state.players[seat].bankroll;
   if (bankroll <= 0) return state;
-  if (state.round.raisesClosed === true) {
-    const toCall = amountToCall(state, playerId);
-    if (bankroll > toCall) return toCall > 0 ? playerCall(state, playerId) : playerCheck(state, playerId);
-  }
+  const matched = matchWithoutRaising(state, playerId, seat)
+  if (matched != null) return matched
   const prevBet = state.round.currentBet || 0;
   const minRaise = minRaiseByAmount(state);
   let after = placeBet(state, playerId, bankroll);

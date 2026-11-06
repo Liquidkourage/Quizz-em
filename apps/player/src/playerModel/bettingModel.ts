@@ -1,5 +1,5 @@
 import type { GameState, PlayerState } from '@qhe/core'
-import { inChipContest, minRaiseByAmount } from '@qhe/core'
+import { fullRaiseIsOpen, inChipContest, minRaiseByAmount } from '@qhe/core'
 import { getActivePlayerId } from '@qhe/net'
 
 export type BettingContext = {
@@ -64,6 +64,7 @@ export function buildBettingContext(args: {
   const canBet =
     isBettingPhase && !!currentPlayer && inChipContest(currentPlayer) && !currentPlayer.hasFolded
   const raisesClosed = gameState.round.raisesClosed === true
+  const raiseOpen = !!currentPlayer && fullRaiseIsOpen(gameState, currentPlayer.id)
 
   return {
     isBettingPhase,
@@ -79,11 +80,11 @@ export function buildBettingContext(args: {
     canCall: isMyTurn && toCall > 0 && bankroll > 0,
     canRaise:
       isMyTurn &&
-      !raisesClosed &&
+      raiseOpen &&
       bankroll > toCall &&
       raiseAmount >= minRaise &&
       toCall + raiseAmount <= bankroll,
-    canAllIn: isMyTurn && bankroll > 0 && !raisesClosed,
+    canAllIn: isMyTurn && bankroll > 0 && (raiseOpen || bankroll <= toCall),
     canFold: isMyTurn && canBet,
     raisesClosed,
   }

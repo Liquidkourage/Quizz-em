@@ -118,6 +118,28 @@ describe('felt side pot', () => {
     expect(html).not.toContain('Side pot')
   })
 
+  it('docks the final table side pots to the bottom corners of the table', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSingleTableBroadcast, {
+        tile: tile(1, {
+          pot: 1900,
+          seatInvested: [100, 300, 300, 600, 600],
+          seatFolded: [false, false, false, false, false],
+          seatBankrolls: [0, 0, 0, 400, 400],
+          isBettingOpen: true,
+        }),
+        prefersReducedMotion: true,
+      }),
+    )
+    expect(html).toContain('vfd-mosaic-side-lane--corners')
+    expect(html).toContain('vfd-mosaic-side-plaque--left')
+    expect(html).toContain('vfd-mosaic-side-plaque--right')
+    expect(html).toContain('aria-label="Side pot 1 $800"')
+    expect(html).toContain('aria-label="Side pot 2 $600"')
+    expect(html).not.toContain('vfd-felt-side-pot')
+    expect(html).not.toContain('>Main<')
+  })
+
   it('docks one side pot to the bottom left and the second to the bottom right', () => {
     const one = renderToStaticMarkup(
       createElement(MosaicSidePotPlaques, { sides: [{ mark: 1, amount: 40 }] }),

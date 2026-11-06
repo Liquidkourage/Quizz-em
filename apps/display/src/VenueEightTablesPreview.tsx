@@ -1868,7 +1868,7 @@ function SeatRingWithLabels({
             prefersReducedMotion={prefersReducedMotion}
             rimW={rimW}
             density={isDualBroadcast ? 'dual' : 'solo'}
-            sides={sideLayers}
+            sides={isDualBroadcast ? sideLayers : undefined}
           />
         ) : (
           <VenueMosaicFeltCenterStack
@@ -3232,7 +3232,7 @@ export function VenueSingleTableBroadcast({
 
   return (
     <div
-      className={`venue-single-table-broadcast flex min-h-0 flex-1 flex-col items-stretch justify-center overflow-hidden px-0 pb-0 pt-0${
+      className={`venue-single-table-broadcast relative flex min-h-0 flex-1 flex-col items-stretch justify-center overflow-hidden px-0 pb-0 pt-0${
         isDualDensity ? ` venue-single-table-broadcast--dual relative min-w-0 ${dualFrame}` : ''
       }${reserveHeadlineSpace && !isDualDensity ? ' venue-single-table-broadcast--headline-cap' : ''}`}
       aria-label={
@@ -3314,6 +3314,11 @@ export function VenueSingleTableBroadcast({
           </div>
         </>
       )}
+      {!isDualDensity ? (
+        <div className="vfd-mosaic-side-lane vfd-mosaic-side-lane--corners">
+          <MosaicSidePotPlaques sides={sides} hidden={inShowdown} />
+        </div>
+      ) : null}
     </div>
   )
 }

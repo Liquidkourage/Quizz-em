@@ -3023,7 +3023,8 @@
     pointer-events: none;
   }
 
-  .vfd-mosaic-tile > .vfd-mosaic-side-lane.vfd-mosaic-side-lane--corners {
+  .vfd-mosaic-tile > .vfd-mosaic-side-lane.vfd-mosaic-side-lane--corners,
+  .venue-single-table-broadcast > .vfd-mosaic-side-lane.vfd-mosaic-side-lane--corners {
     position: absolute;
     z-index: 8;
     left: 0;

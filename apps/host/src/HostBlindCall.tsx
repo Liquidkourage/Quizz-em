@@ -55,13 +55,9 @@ export function blindPaceRows(pace: BlindPace): {
   const rows: { label: string; estimate: BlindLevelEstimate; apply: boolean }[] = [
     { label: 'Now', estimate: pace.current, apply: false },
   ]
-  const next = pace.nextLevel
-  const closest = pace.closestIncrease
-  if (next && closest && next.bigBlind === closest.bigBlind) {
-    rows.push({ label: 'Next level, closest', estimate: next, apply: true })
-  } else {
-    if (next) rows.push({ label: 'Next level', estimate: next, apply: false })
-    if (closest) rows.push({ label: 'Closest increase', estimate: closest, apply: true })
+  if (pace.nextLevel) rows.push({ label: 'Next level', estimate: pace.nextLevel, apply: false })
+  if (pace.closestIncrease) {
+    rows.push({ label: 'Closest increase', estimate: pace.closestIncrease, apply: true })
   }
   return rows.map((row) => ({
     ...row,

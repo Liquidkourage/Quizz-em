@@ -11,9 +11,9 @@ import {
 } from './venueBroadcastLayout'
 
 describe('venueBroadcastLayout', () => {
-  it('caps the broadcast floor at the final table', () => {
+  it('keeps one table on the mosaic floor', () => {
     expect(VENUE_BROADCAST_TABLE_MAX).toBe(1)
-    expect(isVenueBroadcastFloor(1, null)).toBe(true)
+    expect(isVenueBroadcastFloor(1, null)).toBe(false)
     expect(isVenueBroadcastFloor(2, null)).toBe(false)
     expect(isVenueBroadcastFloor(3, null)).toBe(false)
     expect(isVenueBroadcastFloor(2, 1)).toBe(false)
@@ -36,13 +36,13 @@ describe('venueBroadcastLayout', () => {
   })
 
   it('splits single vs dual broadcast modes', () => {
-    expect(isVenueSingleTableBroadcast(1, null)).toBe(true)
+    expect(isVenueSingleTableBroadcast(1, null)).toBe(false)
     expect(isVenueDualTableBroadcast(1, null)).toBe(false)
     expect(isVenueSingleTableBroadcast(2, null)).toBe(false)
     expect(isVenueDualTableBroadcast(2, null)).toBe(false)
   })
 
-  it('builds final-table meta for n=1', () => {
+  it('leaves the broadcast strip unused for the one-table mosaic', () => {
     expect(
       buildVenueBroadcastMetaLine([{ tableNum: 1, seated: 7 } as never], {
         survivors: 7,
@@ -53,7 +53,7 @@ describe('venueBroadcastLayout', () => {
         shuffleEveryHands: 5,
         shuffleFillPct: 0,
       })
-    ).toBe('Final table · 7 players')
+    ).toBeNull()
   })
 
   it('leaves the broadcast strip unused once two tables share the mosaic headline', () => {

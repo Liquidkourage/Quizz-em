@@ -59,16 +59,14 @@ export type VenueFloorSpecTierDefinition = {
 export const VENUE_FLOOR_SPEC_TIERS: Readonly<Record<VenueFloorSpecId, VenueFloorSpecTierDefinition>> = {
   'broadcast-1': {
     id: 'broadcast-1',
-    renderer: 'broadcast',
-    uiScale: 'broadcast',
-    headline: 'broadcast-strip',
-    ringMode: 'broadcast',
-    broadcastDensity: 'solo',
-    showdown: 'broadcast-reveal',
-    typographyProfile: 'broadcast',
+    renderer: 'mosaic',
+    uiScale: 'mosaic',
+    headline: 'full',
+    ringMode: 'mosaic',
+    showdown: 'mosaic-overlay',
+    typographyProfile: 'spacious',
     compactHeadline: false,
     ultraCompactHeadline: false,
-    broadcastMetaTemplate: 'final-table',
   },
   'broadcast-2': {
     id: 'broadcast-2',

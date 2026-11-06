@@ -16,6 +16,46 @@ function tile(tableNum: number): DisplayVenueTileSnapshot {
   }
 }
 
+describe('one-table floor', () => {
+  it('draws the final table with the same mosaic card as the two-table floor', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueFloorBody, {
+        floorSpec: resolveVenueFloorSpec({ populatedTableCount: 1 }),
+        floorTiles: [
+          {
+            ...tile(1),
+            phase: 'betting',
+            pot: 1900,
+            seatInvested: [100, 300, 300, 600, 600],
+            seatFolded: [false, false, false, false, false],
+            seatBankrolls: [0, 0, 0, 400, 400],
+            isBettingOpen: true,
+            actingSeatIndex: 0,
+            actingCallAmount: 40,
+          },
+        ],
+        showHeroSpotlight: false,
+        hostFocusTable: null,
+        featuredTile: null,
+        companionTiles: [],
+        showHeadline: false,
+        skipMountIntro: true,
+        prefersReducedMotion: true,
+      }),
+    )
+    expect(html).toContain('data-table-tile="1"')
+    expect(html).toContain('vfd-mosaic-table-num')
+    expect(html).toContain('vfd-mosaic-status-band--call')
+    expect(html).toContain('Ada L. to call $40')
+    expect(html).toContain('vfd-mosaic-side-plaque--left')
+    expect(html).toContain('vfd-mosaic-side-plaque--right')
+    expect(html).not.toContain('venue-single-table-broadcast')
+    expect(html).not.toContain('vfd-broadcast-action-stack')
+    expect(html).not.toContain('vfd-felt-side-pot')
+    expect(html).not.toContain('>Main<')
+  })
+})
+
 describe('two-table floor', () => {
   it('draws two tables with the same mosaic seating as the rest of the floor', () => {
     const html = renderToStaticMarkup(

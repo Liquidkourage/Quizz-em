@@ -31,19 +31,23 @@ describe('resolveVenueFloorSpec', () => {
     expect(resolveVenueFloorSpec({ populatedTableCount: 0 })).toBeNull()
   })
 
-  it('uses the final-table broadcast for one table and the mosaic seating for two', () => {
+  it('uses the same mosaic seating for one table as for two', () => {
     const one = resolveVenueFloorSpec({ populatedTableCount: 1 })!
     expect(one.id).toBe('broadcast-1')
-    expect(one.renderer).toBe('broadcast')
-    expect(one.typographyProfile).toBe('broadcast')
-    expect(one.typographyRootClass).toBe('venue-floor-typography-broadcast')
-    expect(one.showdown).toBe('broadcast-reveal')
+    expect(one.renderer).toBe('mosaic')
+    expect(one.headline).toBe('full')
+    expect(one.ringMode).toBe('mosaic')
+    expect(one.showdown).toBe('mosaic-overlay')
+    expect(one.typographyProfile).toBe('spacious')
+    expect(one.typographyRootClass).toBe('venue-floor-typography-spacious')
+    expect(one.layoutPlan.rowSizes).toEqual([1])
 
     const two = resolveVenueFloorSpec({ populatedTableCount: 2 })!
     const three = resolveVenueFloorSpec({ populatedTableCount: 3 })!
     expect(two.id).toBe('hero-3-4')
     expect(two.renderer).toBe('mosaic')
     expect(two.ringMode).toBe('mosaic')
+    expect(one.ringMode).toBe(two.ringMode)
     expect(two.ringMode).toBe(three.ringMode)
     expect(two.layoutPlan.rowSizes).toEqual([2])
   })
@@ -68,7 +72,7 @@ describe('resolveVenueFloorSpec', () => {
     expect(venueFloorSpecUsesBroadcastUiScale(pinned)).toBe(false)
   })
 
-  it('builds broadcast meta from spec template', () => {
+  it('leaves the final-table strip off the one-table mosaic headline', () => {
     const spec = resolveVenueFloorSpec({ populatedTableCount: 1 })!
     expect(
       buildVenueFloorHeadlineMeta(spec, [{ tableNum: 1, seated: 7 } as never], {
@@ -80,22 +84,7 @@ describe('resolveVenueFloorSpec', () => {
         shuffleEveryHands: 5,
         shuffleFillPct: 0,
       })
-    ).toBe('Final table · 7 players')
-  })
-
-  it('counts players still standing when the roster is larger', () => {
-    const spec = resolveVenueFloorSpec({ populatedTableCount: 1 })!
-    expect(
-      buildVenueFloorHeadlineMeta(spec, [{ tableNum: 1, seated: 7 } as never], {
-        survivors: 1,
-        peakSurvivors: 20,
-        liveTables: 1,
-        fillPct: 5,
-        handsUntilShuffle: null,
-        shuffleEveryHands: 5,
-        shuffleFillPct: 0,
-      }),
-    ).toBe('Final table · 1 player')
+    ).toBeNull()
   })
 })
 

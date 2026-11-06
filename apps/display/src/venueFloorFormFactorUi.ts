@@ -49,7 +49,7 @@ export function venueFloorFormFactorMosaicDensity(
 export function venueFloorFormFactorIdLabel(id: VenueFloorSpecId): string {
   switch (id) {
     case 'broadcast-1':
-      return 'Final table broadcast'
+      return 'Final table mosaic'
     case 'broadcast-2':
       return 'Dual table broadcast'
     case 'hero-3-4':

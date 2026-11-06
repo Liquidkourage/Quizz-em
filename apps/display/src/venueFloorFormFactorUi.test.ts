@@ -10,11 +10,11 @@ import {
 
 describe('venueFloorSpec UI accessors', () => {
   it('derives broadcast headline and ui scale from spec', () => {
-    const broadcast = resolveVenueFloorSpec({ populatedTableCount: 1 })!
+    const one = resolveVenueFloorSpec({ populatedTableCount: 1 })!
     const mosaic = resolveVenueFloorSpec({ populatedTableCount: 6 })!
 
-    expect(venueFloorSpecUsesBroadcastHeadline(broadcast)).toBe(true)
-    expect(venueFloorSpecUsesBroadcastUiScale(broadcast)).toBe(true)
+    expect(venueFloorSpecUsesBroadcastHeadline(one)).toBe(false)
+    expect(venueFloorSpecUsesBroadcastUiScale(one)).toBe(false)
     expect(venueFloorSpecUsesBroadcastHeadline(mosaic)).toBe(false)
     expect(venueFloorSpecUsesBroadcastUiScale(mosaic)).toBe(false)
   })
@@ -23,7 +23,7 @@ describe('venueFloorSpec UI accessors', () => {
     const one = resolveVenueFloorSpec({ populatedTableCount: 1 })!
     const nine = resolveVenueFloorSpec({ populatedTableCount: 9 })!
 
-    expect(showdownStageViewportFromSpec(one)).toBe('broadcast')
+    expect(showdownStageViewportFromSpec(one)).toBe('mosaic')
     expect(showdownStageViewportFromSpec(nine)).toBe('mosaic')
     expect(showdownLayoutTableCountFromSpec(one)).toBe(1)
     expect(showdownLayoutTableCountFromSpec(resolveVenueFloorSpec({ populatedTableCount: 2 })!)).toBe(2)

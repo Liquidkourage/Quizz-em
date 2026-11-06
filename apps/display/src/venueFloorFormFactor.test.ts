@@ -34,19 +34,19 @@ describe('resolveVenueFloorFormFactor', () => {
     expect(resolveVenueFloorFormFactor({ populatedTableCount: 0 })).toBeNull()
   })
 
-  it('uses the final-table broadcast for one table and the mosaic seating for two', () => {
+  it('uses the same mosaic seating for one table as for two', () => {
     const one = resolveVenueFloorFormFactor({ populatedTableCount: 1 })
     expect(one?.id).toBe('broadcast-1')
-    expect(one?.renderer).toBe('broadcast')
-    expect(one?.broadcastDensity).toBe('solo')
-    expect(one?.uiScale).toBe('broadcast')
-    expect(one?.headline).toBe('broadcast-strip')
-    expect(one?.showdown).toBe('broadcast-reveal')
+    expect(one?.renderer).toBe('mosaic')
+    expect(one?.uiScale).toBe('mosaic')
+    expect(one?.headline).toBe('full')
+    expect(one?.ringMode).toBe('mosaic')
+    expect(one?.showdown).toBe('mosaic-overlay')
 
     const two = resolveVenueFloorFormFactor({ populatedTableCount: 2 })
     expect(two?.id).toBe('hero-3-4')
     expect(two?.renderer).toBe('mosaic')
-    expect(two?.ringMode).toBe('mosaic')
+    expect(two?.ringMode).toBe(one?.ringMode)
   })
 
   it('falls back to mosaic when host pins a table', () => {
@@ -82,7 +82,7 @@ describe('form factor helpers', () => {
     const two = resolveVenueFloorFormFactor({ populatedTableCount: 2 })!
     const three = resolveVenueFloorFormFactor({ populatedTableCount: 3 })!
 
-    expect(isBroadcastVenueFloorFormFactor(one)).toBe(true)
+    expect(isBroadcastVenueFloorFormFactor(one)).toBe(false)
     expect(isSingleTableVenueFloorFormFactor(one)).toBe(true)
     expect(isDualTableVenueFloorFormFactor(one)).toBe(false)
 

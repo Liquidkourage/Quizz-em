@@ -13,6 +13,14 @@ describe('mosaic cosmetic preview', () => {
     expect(wall.tiles.map((tile) => tile.tableNum)).toEqual([1, 2, 3, 4, 5, 6])
     expect(new Set(wall.tiles.map((tile) => tile.phase)).size).toBeGreaterThan(1)
     expect(wall.tiles.some((tile) => tile.phase === 'answering')).toBe(true)
+    expect(wall.tiles.map((tile) => tile.communityDigits)).toEqual([
+      [0, 1, 3, 5, 9],
+      [0, 1, 3, 5, 9],
+      [0, 1, 3, 5, 9],
+      [0, 1, 3, 5, 9],
+      [0, 1, 3, 5, 9],
+      [0, 1, 3, 5, 9],
+    ])
     expect(wall.tiles.some((tile) => tile.phase === 'betting' && tile.isBettingOpen === false)).toBe(true)
 
     const spec = resolveVenueFloorSpec({ populatedTableCount: wall.tiles.length })

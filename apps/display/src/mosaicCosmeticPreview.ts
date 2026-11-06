@@ -125,6 +125,8 @@ function answeringTile(tableNum: number): DisplayVenueTileSnapshot {
   }
 }
 
+const PREVIEW_STREET = [0, 1, 3, 5, 9] as const
+
 const TILE_HANDS = [openBettingTile, oneSideTile, twoSideTile, closedBettingTile, answeringTile] as const
 
 /** Dev-server mosaic count from `?mosaic=`. Production never calls this. */
@@ -139,7 +141,10 @@ export function mosaicPreviewCountFromSearch(search: string): number | null {
 /** Fake venue wall. The live rooms are not read and not changed. */
 export function mosaicCosmeticWall(tableCount: number): DisplayVenueWallSnapshot {
   const count = previewCount(tableCount)
-  const tiles = Array.from({ length: count }, (_, index) => TILE_HANDS[index % TILE_HANDS.length]!(index + 1))
+  const tiles = Array.from({ length: count }, (_, index) => ({
+    ...TILE_HANDS[index % TILE_HANDS.length]!(index + 1),
+    communityDigits: [...PREVIEW_STREET],
+  }))
   return {
     tiles,
     headlineQuestionText: COSMETIC_QUESTION,

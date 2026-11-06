@@ -449,11 +449,14 @@ export function MosaicSidePotPlaques({
           className="vfd-mosaic-side-plaque"
           role="listitem"
           aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
-          style={{ background: sidePotColor(side.mark) }}
+          style={{ '--vfd-side-pot': sidePotColor(side.mark) } as CSSProperties}
         >
-          <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>
-          <span className="vfd-mosaic-side-plaque-amount">
-            <ChipText text={formatVenueBankroll(side.amount)} />
+          <span className="vfd-mosaic-side-plaque-spots" aria-hidden />
+          <span className="vfd-mosaic-side-plaque-face">
+            <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>
+            <span className="vfd-mosaic-side-plaque-amount">
+              <ChipText text={formatVenueBankroll(side.amount)} />
+            </span>
           </span>
         </div>
       ))}
@@ -509,7 +512,7 @@ export function MosaicSeatFace({
       key={mark}
       className="vfd-mosaic-side-badge"
       aria-label={`Side pot ${mark}`}
-      style={{ background: sidePotColor(mark) }}
+      style={{ '--vfd-side-pot': sidePotColor(mark) } as CSSProperties}
     >
       {mark}
     </span>

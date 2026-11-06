@@ -83,7 +83,7 @@ describe('felt side pot', () => {
       }),
     )
     const card = html.slice(html.indexOf('data-table-tile="1"'), html.indexOf('data-table-tile="2"'))
-    expect(card).toContain('vfd-mosaic-side-plaque')
+    expect(card).toContain('vfd-mosaic-side-plaque-face')
     expect(card).toContain('aria-label="Side pot 1 $800"')
     expect(card).toContain('aria-label="Side pot 2 $600"')
     expect(card).toContain('>Side pot 1<')
@@ -111,8 +111,8 @@ describe('felt side pot', () => {
     expect(both).toContain('>NB<')
     expect(both).toContain('aria-label="Side pot 1"')
     expect(both).toContain('aria-label="Side pot 2"')
-    expect(both).toContain('background:#7dd3fc')
-    expect(both).toContain('background:#ea580c')
+    expect(both).toContain('--vfd-side-pot:#7dd3fc')
+    expect(both).toContain('--vfd-side-pot:#ea580c')
     const rightRail = renderToStaticMarkup(
       createElement(MosaicSeatFace, { initials: 'BB', marks: [1, 2], folded: false, allIn: true, seatIndex: 2 }),
     )

@@ -80,12 +80,11 @@ import {
   mosaicSeatStackFontForAmount,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
-  mosaicBoardGapPx,
+  mosaicCommunityBoardPx,
   mosaicHoleCardFitPx,
   mosaicPotFontPx,
   mosaicShowsSeatStacks,
   mosaicStreetCardBoxPx,
-  mosaicStreetCardFitPx,
 } from './mosaicSeatStacks'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import {
@@ -978,6 +977,7 @@ function VenueMosaicFeltCenterStack({
   potClass,
   potMuted,
   potFontCapPx = null,
+  boardLiftPx = 0,
   prefersReducedMotion,
 }: {
   communityDigits: number[]
@@ -987,6 +987,7 @@ function VenueMosaicFeltCenterStack({
   potClass?: string
   potMuted?: 'dim' | 'faint' | 'live'
   potFontCapPx?: number | null
+  boardLiftPx?: number
   prefersReducedMotion: boolean
 }) {
   const feltBounds = venueFeltBoundsFrac()
@@ -998,7 +999,6 @@ function VenueMosaicFeltCenterStack({
     top: `${feltBounds.cy * 100}%`,
     maxWidth: '92%',
   }
-  const boardLiftPx = mosaicBoardGapPx(potFontCapPx ?? 0) + Math.round((potFontCapPx ?? 0) / 2)
   return (
     <div
       className={`pointer-events-none absolute inset-0 ${SEAT_LAYER_FELT_POT}`}
@@ -1024,19 +1024,22 @@ function VenueMosaicFeltCenterStack({
         </div>
       ) : null}
       {showPot ? (
-        <VenuePotAmount
-          amount={pot}
-          prefersReducedMotion={prefersReducedMotion}
-          potMuted={potMuted}
-          className={`block max-w-full text-center ${potClass}`}
-          style={{
-            ...center,
-            transform: 'translate(-50%, -50%)',
-            ...(potFontCapPx != null
-              ? { fontSize: `min(var(--vfd-stack-size), ${potFontCapPx}px)` }
-              : {}),
-          }}
-        />
+        <span
+          className="block max-w-full text-center"
+          style={{ ...center, transform: 'translate(-50%, -50%)' }}
+        >
+          <VenuePotAmount
+            amount={pot}
+            prefersReducedMotion={prefersReducedMotion}
+            potMuted={potMuted}
+            className={`block max-w-full text-center leading-none ${potClass}`}
+            style={
+              potFontCapPx != null
+                ? { fontSize: `min(var(--vfd-stack-size), ${potFontCapPx}px)` }
+                : undefined
+            }
+          />
+        </span>
       ) : null}
     </div>
   )
@@ -1549,6 +1552,7 @@ function SeatRingWithLabels({
   mosaicFeltWidthClass,
   mosaicFeltMaxHeightCss,
   mosaicCenterPot = null,
+  mosaicStackPx = 0,
   seatSideMarks = null,
   sideLayers,
   mosaicCenterPotClass = '',
@@ -1594,6 +1598,8 @@ function SeatRingWithLabels({
   mosaicFeltWidthClass?: string
   mosaicFeltMaxHeightCss?: string
   mosaicCenterPot?: number | null
+  /** Painted pot size from the tile's stack token. The board lift uses this, not a taller budget. */
+  mosaicStackPx?: number
   /** Every side-pot number each seat can win, parallel to `seatNames`. */
   seatSideMarks?: number[][] | null
   /** Side pots on this felt, labeled by the same number as the seat marks. */
@@ -1770,13 +1776,13 @@ function SeatRingWithLabels({
     : 0
   const mosaicPotFontCap =
     isMosaic && rimW > 0 && rimH > 0 && mosaicCenterPot != null
-      ? mosaicPotFontPx(rimW, rimH, 999, formatVenueBankroll(mosaicCenterPot))
+      ? mosaicPotFontPx(rimW, rimH, mosaicStackPx > 0 ? mosaicStackPx : 48, formatVenueBankroll(mosaicCenterPot))
       : null
-  const mosaicStreetCard = isMosaic
-    ? mosaicStreetCardFitPx(mosaicStreetCardBoxPx(rimW, mosaicDensityTier), rimH, mosaicPotFontCap ?? 0)
+  const mosaicCommunityBoard = isMosaic
+    ? mosaicCommunityBoardPx(mosaicStreetCardBoxPx(rimW, mosaicDensityTier), rimH, mosaicPotFontCap ?? 0)
     : null
-  const mosaicCommunityCardW = mosaicStreetCard?.widthPx ?? 0
-  const mosaicCommunityCardH = mosaicStreetCard?.heightPx ?? 0
+  const mosaicCommunityCardW = mosaicCommunityBoard?.widthPx ?? 0
+  const mosaicCommunityCardH = mosaicCommunityBoard?.heightPx ?? 0
   /** Physical seat slots (0–7) on the stadium artwork. */
   const seatCountForLayout = VENUE_SEAT_SLOTS
 
@@ -1856,6 +1862,7 @@ function SeatRingWithLabels({
             potClass={mosaicCenterPotClass}
             potMuted={mosaicCenterPotMuted}
             potFontCapPx={mosaicPotFontCap}
+            boardLiftPx={mosaicCommunityBoard?.liftPx ?? 0}
             prefersReducedMotion={prefersReducedMotion}
           />
         )
@@ -2676,6 +2683,7 @@ function VenueMosaicTableCard({
             mosaicFeltAspectClass={floorSize.feltAspectClass}
             mosaicFeltWidthClass={floorSize.feltWidthClass}
             mosaicCenterPot={potOnFelt ? pot : null}
+            mosaicStackPx={Number.parseFloat(String((tileTypographyStyle as Record<string, unknown>)['--vfd-stack-size'] ?? '')) || 0}
             seatSideMarks={shownMarks}
             sideLayers={shownSides}
             mosaicCenterPotClass={mosaicTypography.feltPot}

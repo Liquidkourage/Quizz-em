@@ -100,10 +100,40 @@ export function mosaicBoardGapPx(potPx: number): number {
   return Math.max(8, Math.round(potPx * 0.45))
 }
 
-/** Hole cards track a short felt. A six-table felt is left at the width size. */
-export function mosaicHoleCardFitPx(cardPx: number, feltHeightPx: number): number {
-  if (!(cardPx > 0) || !(feltHeightPx > 0) || feltHeightPx >= 220) return cardPx
-  return Math.max(10, Math.round(cardPx * (feltHeightPx / 220)))
+/** Matches the felt anchor in venueFeltBoundsFrac. */
+const FELT_CENTER_Y = 0.485
+/** Top of the felt belongs to the top-seat name. */
+const TOP_NAME_BAND = 0.24
+
+function fitCommunityBoard(
+  box: { widthPx: number; heightPx: number },
+  feltHeightPx: number,
+  potPx: number,
+  gapPx: number,
+): { widthPx: number; heightPx: number; liftPx: number } {
+  const anchor = feltHeightPx * FELT_CENTER_Y
+  const liftPx = gapPx + potPx / 2
+  const room = Math.floor(anchor - feltHeightPx * TOP_NAME_BAND - liftPx)
+  if (room >= box.heightPx) return { widthPx: box.widthPx, heightPx: box.heightPx, liftPx }
+  const heightPx = Math.max(12, room)
+  return { widthPx: Math.max(8, Math.round((heightPx * 5) / 7)), heightPx, liftPx }
+}
+
+/**
+ * Community cards sit above the pot and below the top name.
+ * A tight pocket shortens the cards instead of laying them on the initials.
+ */
+export function mosaicCommunityBoardPx(
+  box: { widthPx: number; heightPx: number },
+  feltHeightPx: number,
+  potPx: number,
+): { widthPx: number; heightPx: number; liftPx: number } {
+  const pot = Math.max(0, potPx)
+  const gap = mosaicBoardGapPx(pot)
+  if (!(feltHeightPx > 0)) return { widthPx: box.widthPx, heightPx: box.heightPx, liftPx: gap + pot / 2 }
+  const fitted = fitCommunityBoard(box, feltHeightPx, pot, gap)
+  if (fitted.heightPx >= 28 || gap <= 8) return fitted
+  return fitCommunityBoard(box, feltHeightPx, pot, 8)
 }
 
 /** Shrink the community board once it and the pot would fill the felt. */
@@ -112,11 +142,12 @@ export function mosaicStreetCardFitPx(
   feltHeightPx: number,
   potPx: number,
 ): { widthPx: number; heightPx: number } {
-  if (!(feltHeightPx > 0) || feltHeightPx >= 220) return box
-  const room = Math.floor(feltHeightPx / 2 - Math.max(0, potPx) / 2) - mosaicBoardGapPx(potPx)
-  if (room >= box.heightPx) return box
-  const heightPx = Math.max(12, room)
-  return { widthPx: Math.max(8, Math.round((heightPx * 5) / 7)), heightPx }
+  const board = mosaicCommunityBoardPx(box, feltHeightPx, potPx)
+  return { widthPx: board.widthPx, heightPx: board.heightPx }
+}
+export function mosaicHoleCardFitPx(cardPx: number, feltHeightPx: number): number {
+  if (!(cardPx > 0) || !(feltHeightPx > 0) || feltHeightPx >= 220) return cardPx
+  return Math.max(10, Math.round(cardPx * (feltHeightPx / 220)))
 }
 
 /** Half-width of a two-letter initial, including the dark stroke, in em. */

@@ -19,6 +19,7 @@ import {
   mosaicBoardGapPx,
   mosaicHoleCardFitPx,
   mosaicPotFontPx,
+  mosaicCommunityBoardPx,
   mosaicStreetCardBoxPx,
   mosaicStreetCardFitPx,
   MOSAIC_STACK_LABEL_EM,
@@ -209,13 +210,28 @@ describe('mosaic seat stacks', () => {
     expect(twenty).toBeLessThanOrEqual(Math.round(102 * 0.16))
     expect(mosaicSeatInitialFontPx(174, 102)).toBeLessThan(mosaicSeatInitialFontPx(174, 160))
     const wideCard = mosaicStreetCardBoxPx(403, 'large')
-    expect(mosaicStreetCardFitPx(wideCard, 237, 61)).toEqual(wideCard)
+    const fittedWide = mosaicStreetCardFitPx(wideCard, 237, 61)
+    const wideBoard = mosaicCommunityBoardPx(wideCard, 237, 61)
+    expect(237 * 0.485 - wideBoard.liftPx - fittedWide.heightPx).toBeGreaterThanOrEqual(237 * 0.24 - 1)
+    expect(fittedWide.heightPx).toBeLessThanOrEqual(wideCard.heightPx)
     const shortCard = mosaicStreetCardFitPx(mosaicStreetCardBoxPx(124, 'micro'), 73, twenty)
     expect(shortCard.heightPx).toBeLessThan(wideCard.heightPx)
     expect(shortCard.heightPx + twenty).toBeLessThanOrEqual(Math.floor(73 * 0.58))
     expect(mosaicBoardGapPx(61)).toBeGreaterThanOrEqual(Math.round(61 * 0.4))
     expect(mosaicBoardGapPx(0)).toBe(8)
     expect(mosaicHoleCardFitPx(21, 139)).toBeLessThan(21)
+  })
+
+  it('keeps the community board below the top name on a six-table felt', () => {
+    const feltH = 305
+    const pot = 61
+    const box = mosaicStreetCardBoxPx(520, 'large')
+    const board = mosaicCommunityBoardPx(box, feltH, pot)
+    const anchor = feltH * 0.485
+    const boardTop = anchor - board.liftPx - board.heightPx
+    expect(boardTop).toBeGreaterThanOrEqual(feltH * 0.24 - 1)
+    expect(board.heightPx).toBeGreaterThanOrEqual(28)
+    expect(anchor - board.liftPx).toBeLessThanOrEqual(anchor - pot / 2)
   })
 
   it('sizes street cards at least as large as the initials', () => {

@@ -155,7 +155,7 @@ describe('venue floor now', () => {
     expect(card(2)).toContain('aria-label="$0"')
   })
 
-  it('shows the main pot and marks who can win the side pot', () => {
+  it('keeps a folded short stack inside the one pot everyone still in can win', () => {
     const seats = [
       { name: 'Elena B.', kind: 'pot' as const, reason: null, invested: 1000, bankroll: 0 },
       { name: 'Blake C.', kind: 'pot' as const, reason: null, invested: 1000, bankroll: 0 },
@@ -165,7 +165,7 @@ describe('venue floor now', () => {
       { name: 'Priya B.', kind: 'points' as const, reason: 'folded' as const, invested: 20, bankroll: 980 },
     ]
     const floor = brief()
-    floor.actionRows = [{ ...actionRow(1), pot: 5020, sidePot: 4900, phase: 'betting', seats }]
+    floor.actionRows = [{ ...actionRow(1), pot: 5020, phase: 'betting', seats }]
     const html = renderToStaticMarkup(
       createElement(HostVenueFloorBriefPanel, {
         brief: floor,
@@ -175,16 +175,10 @@ describe('venue floor now', () => {
     )
     const start = html.indexOf('Open table 1')
     const card = html.slice(start, html.indexOf('</button>', start))
-    expect(card).toContain('aria-label="$120"')
-    expect(card).toContain('inline-flex flex-col')
-    const lines = card.split('whitespace-nowrap').slice(1)
-    expect(lines[0]).toContain('>Main<')
-    expect(lines[0]).toContain('aria-label="$120"')
-    expect(lines[0]).not.toContain('>Side<')
-    expect(lines[1]).toContain('>Side<')
-    expect(lines[1]).toContain('aria-label="$4,900"')
+    expect(card).toContain('aria-label="$5,020"')
+    expect(card).not.toContain('>Main<')
+    expect(card).not.toContain('>Side<')
     expect(card).not.toContain('of which')
-    expect(card).not.toContain('5,020')
     const open = renderToStaticMarkup(
       createElement(HostTableOpen, {
         seats,
@@ -193,14 +187,12 @@ describe('venue floor now', () => {
         pot: 5020,
       }),
     )
-    expect(open).toContain('aria-label="$120"')
-    expect(open).toContain('>Main<')
-    expect(open).toContain('>Side<')
-    expect(open).toContain('aria-label="$4,900"')
-    expect(open).toContain('Elena B.<sup class="side-pot-mark" style="font-size:0.4em;line-height:1;color:#7dd3fc">1</sup>')
+    expect(open).toContain('aria-label="$5,020"')
+    expect(open).not.toContain('>Main<')
+    expect(open).not.toContain('>Side<')
+    expect(open).not.toContain('Elena B.<sup')
     expect(open).not.toContain('Priya B.<sup')
     expect(open).not.toContain('of which')
-    expect(open).not.toContain('5,020')
   })
 
   it('marks every side pot a player can win, each in its own color', () => {

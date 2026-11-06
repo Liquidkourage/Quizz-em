@@ -19,22 +19,19 @@ function tile(tableNum: number, extra: Partial<DisplayVenueTileSnapshot> = {}): 
 }
 
 describe('felt side pot', () => {
-  it('shows the main pot and marks who can win the side pot on the one-table felt', () => {
+  it('keeps a folded short stack inside the one pot everyone still in can win', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSingleTableBroadcast, {
         tile: tile(1),
         prefersReducedMotion: true,
       }),
     )
-    expect(html).toContain('main $120, side 1 $4,900')
-    expect(html).toContain('$120')
-    expect(html).toContain('aria-label="$4,900"')
-    expect(html).toContain('>Main<')
-    expect(html).toContain('>Side<')
-    expect(html).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1;color:#7dd3fc">1</sup>')
-    expect(html).toContain('style="color:#7dd3fc"')
+    expect(html).toContain('pot $5,020')
+    expect(html).toContain('$5,020')
+    expect(html).not.toContain('>Main<')
+    expect(html).not.toContain('>Side<')
+    expect(html).not.toContain('side-pot-mark')
     expect(html).not.toContain('of which')
-    expect(html).not.toContain('5,020')
   })
 
   it('shows the main pot and a superscript on mosaic initials', () => {
@@ -50,19 +47,15 @@ describe('felt side pot', () => {
     )
     const start = html.indexOf('data-table-tile="1"')
     const card = html.slice(start, html.indexOf('data-table-tile="2"'))
-    expect(card).toContain('main $120, side 1 $4,900')
-    expect(card).toContain('$120')
-    expect(card).toContain('vfd-mosaic-side-footer')
-    expect(card).toContain('repeat(1, minmax(0, 1fr))')
-    expect(card).toContain('aria-label="$4,900"')
-    expect(card).toContain('>Side<')
+    expect(card).toContain('pot $5,020')
+    expect(card).toContain('$5,020')
+    expect(card).not.toContain('vfd-mosaic-side-footer')
+    expect(card).not.toContain('>Side<')
     expect(card).not.toContain('>Main<')
     expect(card).not.toContain('vfd-mosaic-pot-sides')
     expect(card).not.toContain('vfd-felt-side-pot')
-    expect(card).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1;color:#7dd3fc">1</sup>')
-    expect(card).toContain('style="color:#7dd3fc"')
+    expect(card).not.toContain('side-pot-mark')
     expect(card).not.toContain('of which')
-    expect(card).not.toContain('5,020')
   })
 
   it('gives each side pot its own footer column', () => {

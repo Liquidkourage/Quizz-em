@@ -847,6 +847,7 @@ export function dealInitialCards(state: GameState): GameState {
 /**
  * Build main + side pots from unequal all-ins. Folded players' chips stay in the pot but they are not eligible to win.
  * Single-eligible layers (uncalled overbet) are returned instead of contested.
+ * Layers the same players can win are one pot.
  */
 export function buildSidePotSettlement(
   contributions: Record<string, number>,
@@ -890,7 +891,30 @@ export function buildSidePotSettlement(
     prev = level;
   }
 
-  return { pots, returns };
+  return { pots: mergePotsSameWinners(pots), returns };
+}
+
+function sameWinners(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) return false
+  const left = [...a].sort()
+  const right = [...b].sort()
+  for (let i = 0; i < left.length; i++) {
+    if (left[i] !== right[i]) return false
+  }
+  return true
+}
+
+function mergePotsSameWinners(pots: SidePot[]): SidePot[] {
+  const merged: SidePot[] = []
+  for (const pot of pots) {
+    const prev = merged[merged.length - 1]
+    if (prev != null && sameWinners(prev.eligiblePlayerIds, pot.eligiblePlayerIds)) {
+      prev.amount += pot.amount
+      continue
+    }
+    merged.push({ amount: pot.amount, eligiblePlayerIds: [...pot.eligiblePlayerIds] })
+  }
+  return merged
 }
 
 export type LiveSidePot = { mark: number; amount: number }

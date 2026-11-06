@@ -41,14 +41,24 @@ describe('buildSidePotSettlement', () => {
 })
 
 describe('livePotLayers', () => {
-  it('shows the short stack as the main pot and marks who can win the side pot', () => {
+  it('folds a short stack into the main pot when the same players can win both layers', () => {
     const { main, marks, sides } = livePotLayers(
       [1000, 1000, 1000, 1000, 1000, 20],
       [false, false, false, false, false, true],
     )
-    expect(main).toBe(120)
-    expect(marks).toEqual([[1], [1], [1], [1], [1], []])
-    expect(sides).toEqual([{ mark: 1, amount: 4900 }])
+    expect(main).toBe(5020)
+    expect(marks).toEqual([[], [], [], [], [], []])
+    expect(sides).toEqual([])
+  })
+
+  it('keeps a side pot only where a player is out of the higher layer', () => {
+    const { main, marks, sides } = livePotLayers(
+      [960, 960, 960, 160, 20, 0],
+      [false, false, false, false, true, true],
+    )
+    expect(main).toBe(660)
+    expect(sides).toEqual([{ mark: 1, amount: 2400 }])
+    expect(marks).toEqual([[1], [1], [1], [], [], []])
   })
 
   it('lists every side pot a seat can win', () => {

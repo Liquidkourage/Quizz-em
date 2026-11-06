@@ -27,7 +27,9 @@ import {
 import { disambiguatePublicNames, livePotLayers, type LiveSidePot } from '@qhe/core'
 import {
   mosaicSeatRail,
+  mosaicSidePotAmountFontPx,
   mosaicSidePotOverflowLabel,
+  mosaicPlaqueWithinLane,
   mosaicSidePotPlaqueMetrics,
   mosaicSidePotsThatFit,
   mosaicTileFrame,
@@ -532,9 +534,15 @@ export function mosaicChipInlay(): {
 
 const MOSAIC_CHIP_INLAY = mosaicChipInlay()
 
-function plaqueFitStyle(metrics: MosaicPlaqueMetrics | undefined): CSSProperties | undefined {
+function plaqueFitStyle(
+  metrics: MosaicPlaqueMetrics | undefined,
+  amountLabel?: string,
+): CSSProperties | undefined {
   if (metrics == null) return undefined
-  const fontPx = Math.max(11, Math.round(metrics.heightPx * 0.38))
+  const fontPx =
+    amountLabel != null
+      ? mosaicSidePotAmountFontPx(metrics.heightPx, amountLabel)
+      : Math.max(12, Math.round(metrics.heightPx * 0.46))
   return {
     '--vfd-plaque-w': `${metrics.widthPx}px`,
     '--vfd-plaque-h': `${metrics.heightPx}px`,
@@ -560,7 +568,7 @@ export function MosaicSidePotPlaques({
   const shown = sides ?? []
   const overflow = mosaicSidePotOverflowLabel(hiddenCount)
   if (hidden || (shown.length === 0 && overflow === '')) return null
-  const fitStyle = plaqueFitStyle(metrics)
+  const overflowStyle = plaqueFitStyle(metrics)
   return (
     <div
       className="vfd-mosaic-side-plaques col-start-1 row-start-3 shrink-0"
@@ -573,7 +581,12 @@ export function MosaicSidePotPlaques({
           className={`vfd-mosaic-side-plaque${metrics != null ? ' vfd-mosaic-side-plaque--fit' : ''}`}
           role="listitem"
           aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
-          style={{ '--vfd-side-pot': sidePotColor(side.mark), ...fitStyle } as CSSProperties}
+          style={
+            {
+              '--vfd-side-pot': sidePotColor(side.mark),
+              ...plaqueFitStyle(metrics, formatVenueBankrollDigits(side.amount)),
+            } as CSSProperties
+          }
         >
           <svg className="vfd-mosaic-side-plaque-rim" viewBox="0 0 240 100" preserveAspectRatio="xMidYMid meet" aria-hidden>
             <defs>
@@ -591,9 +604,9 @@ export function MosaicSidePotPlaques({
             </g>
           </svg>
           <span className="vfd-mosaic-side-plaque-face">
-            {metrics == null || metrics.showTitle ? (
-              <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>
-            ) : null}
+            <span className="vfd-mosaic-side-plaque-mark" aria-hidden>
+              {side.mark}
+            </span>
             <span className="vfd-mosaic-side-plaque-amount">{formatVenueBankrollDigits(side.amount)}</span>
           </span>
         </div>
@@ -603,7 +616,7 @@ export function MosaicSidePotPlaques({
           className="vfd-mosaic-side-overflow"
           role="listitem"
           aria-label={`${hiddenCount} more side pots`}
-          style={fitStyle}
+          style={overflowStyle}
         >
           {overflow}
         </div>
@@ -2427,7 +2440,10 @@ function VenueMosaicTableCard({
   const plaqueSlots = shownSides.length + (hiddenSideCount > 0 ? 1 : 0)
   const plaqueMetrics =
     tilePx.w > 0 && plaqueSlots > 0
-      ? mosaicSidePotPlaqueMetrics(tilePx.w, tilePx.h, plaqueSlots)
+      ? mosaicPlaqueWithinLane(
+          mosaicSidePotPlaqueMetrics(tilePx.w, tilePx.h, plaqueSlots),
+          tileFrame.plaqueLanePx,
+        )
       : undefined
   const shownMarks = seatSideMarks.map((seat) => seat.filter((mark) => mark <= shownSideCount))
   const ph = String(row.phase ?? '').trim().toLowerCase()

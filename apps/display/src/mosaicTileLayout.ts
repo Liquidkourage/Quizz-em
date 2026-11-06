@@ -15,8 +15,6 @@ export type MosaicPlaqueMetrics = {
   widthPx: number
   heightPx: number
   gapPx: number
-  /** Drop the "Side pot N" line once the chip is too short to carry it. */
-  showTitle: boolean
 }
 
 export type MosaicSeatRail = 'top' | 'bottom' | 'left' | 'right'
@@ -85,8 +83,41 @@ export function mosaicSidePotPlaqueMetrics(
     widthPx: Math.max(1, Math.round(width)),
     heightPx: Math.max(1, Math.round(height)),
     gapPx,
-    showTitle: height >= 46,
   }
+}
+
+/**
+ * Amount size inside one chip. A long figure shrinks to stay on the chip;
+ * the chip itself does not grow.
+ */
+export function mosaicSidePotAmountFontPx(heightPx: number, amountLabel: string): number {
+  const h = heightPx > 0 ? heightPx : 36
+  const chars = Math.max(1, amountLabel.trim().length)
+  const preferred = h * 0.62
+  const mark = preferred * 0.72
+  const inner = h * PLAQUE_ASPECT * 0.78 - mark - h * 0.08
+  const fitted = inner / (chars * 0.55)
+  return Math.round(clamp(Math.min(preferred, fitted), Math.min(12, preferred), preferred))
+}
+
+/** Shrink a chip so it stays inside the reserved lane. A lane that already fits is unchanged. */
+export function mosaicPlaqueWithinLane(
+  metrics: MosaicPlaqueMetrics,
+  lanePx: number,
+): MosaicPlaqueMetrics {
+  if (!(lanePx > 0) || metrics.heightPx <= lanePx) return metrics
+  const scale = lanePx / metrics.heightPx
+  return {
+    widthPx: Math.max(1, Math.round(metrics.widthPx * scale)),
+    heightPx: Math.max(1, Math.round(lanePx)),
+    gapPx: metrics.gapPx,
+  }
+}
+
+/** Air between the header and top labels, and between bottom labels and plaques. */
+export function mosaicAnnotationClearancePx(tileHeightPx: number): number {
+  if (!(tileHeightPx > 0)) return 0
+  return Math.round(clamp(tileHeightPx * 0.028, 8, 18))
 }
 
 export function mosaicSidePotOverflowLabel(hiddenCount: number): string {
@@ -155,21 +186,24 @@ export function mosaicTileFrame(tileWidthPx: number, tileHeightPx: number): Mosa
   const initials = Math.min(52, Math.max(30, feltW * 0.105))
   const statusH = mosaicStatusPillHeightPx(mosaicSeatStatusFontPx(feltW))
   const badgeH = Math.ceil(initials * 0.42)
-  const gap = Math.max(4, Math.round(tileHeightPx * 0.012))
+  const clearance = mosaicAnnotationClearancePx(tileHeightPx)
   const plaque = mosaicSidePotPlaqueMetrics(tileWidthPx, tileHeightPx, 1)
-  let top = statusH + badgeH + gap
-  const lane = plaque.heightPx + gap
-  const cap = tileHeightPx * 0.28
-  const used = top + top + lane
+  let band = statusH + badgeH
+  let lane = plaque.heightPx
+  const cap = tileHeightPx * 0.4
+  const used = band + clearance + band + clearance + lane
   if (used > cap && used > 0) {
-    const scale = cap / used
-    top = Math.floor(top * scale)
-    const lanePx = Math.floor(cap - top - top)
-    return { topStatusPx: top, bottomStatusPx: top, plaqueLanePx: Math.max(0, lanePx) }
+    const room = Math.max(0, cap - clearance * 2)
+    const bands = band + band
+    if (room > bands) lane = Math.floor(room - bands)
+    else {
+      band = Math.floor(room / 2)
+      lane = 0
+    }
   }
   return {
-    topStatusPx: Math.round(top),
-    bottomStatusPx: Math.round(top),
-    plaqueLanePx: Math.round(lane),
+    topStatusPx: Math.round(band + clearance),
+    bottomStatusPx: Math.round(band + clearance),
+    plaqueLanePx: Math.max(0, Math.round(lane)),
   }
 }

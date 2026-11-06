@@ -4,8 +4,11 @@ import {
   mosaicSeatStatusFontPx,
   mosaicSidePotOverflowLabel,
   mosaicSidePotOverflowWidthPx,
+  mosaicSidePotAmountFontPx,
+  mosaicPlaqueWithinLane,
   mosaicSidePotPlaqueMetrics,
   mosaicSidePotsThatFit,
+  mosaicAnnotationClearancePx,
   mosaicTileFrame,
 } from './mosaicTileLayout'
 
@@ -30,9 +33,16 @@ describe('mosaic side-pot plaques', () => {
     expect(roomy.heightPx).toBeGreaterThan(dense.heightPx)
     expect(roomy.heightPx).toBeGreaterThanOrEqual(60)
     expect(roomy.heightPx).toBeLessThanOrEqual(88)
-    expect(roomy.showTitle).toBe(true)
     expect(dense.heightPx).toBeLessThanOrEqual(42)
-    expect(dense.showTitle).toBe(false)
+    const shortAmount = mosaicSidePotAmountFontPx(roomy.heightPx, '2,400')
+    const longAmount = mosaicSidePotAmountFontPx(roomy.heightPx, '1,234,567')
+    expect(shortAmount).toBeGreaterThan(roomy.heightPx * 0.4)
+    expect(longAmount).toBeLessThan(shortAmount)
+    expect(longAmount).toBeGreaterThanOrEqual(12)
+    const lane = mosaicPlaqueWithinLane(roomy, roomy.heightPx - 10)
+    expect(lane.heightPx).toBe(roomy.heightPx - 10)
+    expect(lane.widthPx).toBeLessThan(roomy.widthPx)
+    expect(mosaicPlaqueWithinLane(roomy, roomy.heightPx + 4)).toEqual(roomy)
     expect(roomy.widthPx / roomy.heightPx).toBeCloseTo(2.5, 1)
     expect(dense.widthPx / dense.heightPx).toBeCloseTo(2.5, 1)
   })
@@ -83,8 +93,13 @@ describe('mosaic tile frame', () => {
     expect(frame.bottomStatusPx).toBe(frame.topStatusPx)
     expect(frame.plaqueLanePx).toBeGreaterThan(0)
     const chrome = frame.topStatusPx + frame.bottomStatusPx + frame.plaqueLanePx
-    expect(chrome).toBeLessThanOrEqual(400 * 0.28 + 1)
+    expect(chrome).toBeLessThanOrEqual(400 * 0.4 + 1)
     expect(mosaicTileFrame(0, 0)).toEqual({ topStatusPx: 0, bottomStatusPx: 0, plaqueLanePx: 0 })
+    const clearance = mosaicAnnotationClearancePx(520)
+    expect(clearance).toBeGreaterThanOrEqual(12)
+    const six = mosaicTileFrame(680, 520)
+    expect(six.topStatusPx).toBeGreaterThanOrEqual(clearance + 24)
+    expect(six.bottomStatusPx).toBe(six.topStatusPx)
   })
 
   it('keeps the status caption smaller than the initials and on one scale for every rail', () => {

@@ -90,8 +90,11 @@ describe('felt side pot', () => {
     expect(card).toContain('vfd-mosaic-side-plaque-face')
     expect(card).toContain('aria-label="Side pot 1 $800"')
     expect(card).toContain('aria-label="Side pot 2 $600"')
-    expect(card).toContain('>Side pot 1<')
-    expect(card).toContain('>Side pot 2<')
+    expect(card).toContain('vfd-mosaic-side-plaque-mark')
+    expect(card).not.toContain('>Side pot 1<')
+    expect(card).not.toContain('>Side pot 2<')
+    expect(card).toContain('>800<')
+    expect(card).toContain('>600<')
     expect(card).not.toContain('side-pot-mark')
     expect(card).not.toContain('vfd-mosaic-side-footer')
     expect(card).not.toContain('>Main<')
@@ -220,7 +223,7 @@ describe('felt side pot', () => {
       createElement(MosaicSidePotPlaques, {
         sides: [{ mark: 1, amount: 40 }],
         hiddenCount: 2,
-        metrics: { widthPx: 72, heightPx: 29, gapPx: 4, showTitle: false },
+        metrics: { widthPx: 72, heightPx: 29, gapPx: 4 },
       }),
     )
     expect(crowded).toContain('+2 MORE')

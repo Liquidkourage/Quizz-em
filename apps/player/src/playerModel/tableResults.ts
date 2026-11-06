@@ -44,6 +44,16 @@ export type TableResults = {
   rows: TableResultRow[]
 }
 
+/** Chip seats on the hand you are still in. Points-only passengers show up once that is you. */
+function resultsRoster<T extends { id: string; pointsOnly?: boolean }>(
+  players: readonly T[],
+  myPlayerId: string | null | undefined,
+): T[] {
+  const you = myPlayerId ? players.find((p) => p.id === myPlayerId) : undefined
+  if (you?.pointsOnly === true) return [...players]
+  return players.filter((p) => p.pointsOnly !== true)
+}
+
 function guessOff(submitted: number | null, correct: number): number | null {
   if (submitted == null) return null
   return Math.abs(submitted - correct)
@@ -78,7 +88,7 @@ export function buildTableResults(
     .map((id) => gameState.players.find((p) => p.id === id)?.name?.trim())
     .filter((n): n is string => Boolean(n))
 
-  const rows: TableResultRow[] = gameState.players.map((p) => {
+  const rows: TableResultRow[] = resultsRoster(gameState.players, myPlayerId).map((p) => {
     const folded = p.hasFolded
     const pointsOnly = p.pointsOnly === true
     const submitted = typeof p.submittedAnswer === 'number' ? p.submittedAnswer : null

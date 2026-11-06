@@ -187,7 +187,7 @@ describe('buildTableResults', () => {
     expect(results.winnerIds).toEqual(['a'])
   })
 
-  it('excludes pointsOnly from pot winners and labels unanswered points-only seats', () => {
+  it('keeps the bust hand to the chip table, then lists points-only seats on a later hand', () => {
     const gs = showdownState({
       answer: 10,
       players: [
@@ -196,12 +196,16 @@ describe('buildTableResults', () => {
         { id: 'c', name: 'Chris', pointsOnly: true, bankroll: 0 },
       ],
     })
-    const results = buildTableResults(gs, null)!
-    expect(results.winnerIds).toEqual(['a'])
-    expect(results.rows.find((r) => r.playerId === 'b')!.isPotWinner).toBe(false)
-    expect(results.rows.find((r) => r.playerId === 'b')!.chipChange).toBe(0)
-    expect(results.rows.find((r) => r.playerId === 'b')!.formattedAnswer).not.toBe('Points only')
-    expect(results.rows.find((r) => r.playerId === 'c')!.formattedAnswer).toBe('Points only')
+    const bustHand = buildTableResults(gs, 'a')!
+    expect(bustHand.winnerIds).toEqual(['a'])
+    expect(bustHand.rows.map((r) => r.playerId)).toEqual(['a'])
+
+    const laterHand = buildTableResults(gs, 'b')!
+    expect(laterHand.rows.map((r) => r.playerId)).toEqual(['a', 'b', 'c'])
+    expect(laterHand.rows.find((r) => r.playerId === 'b')!.isPotWinner).toBe(false)
+    expect(laterHand.rows.find((r) => r.playerId === 'b')!.chipChange).toBe(0)
+    expect(laterHand.rows.find((r) => r.playerId === 'b')!.formattedAnswer).not.toBe('Points only')
+    expect(laterHand.rows.find((r) => r.playerId === 'c')!.formattedAnswer).toBe('Points only')
   })
 
   it('supports payout phase via coerced preview', () => {

@@ -10,6 +10,8 @@ import {
   mosaicSidePotsThatFit,
   mosaicAnnotationClearancePx,
   mosaicFeltFitPx,
+  mosaicFeltFillWidthPx,
+  mosaicFeltReservePx,
   mosaicFeltWidthPx,
   mosaicTileFrame,
 } from './mosaicTileLayout'
@@ -145,5 +147,24 @@ describe('mosaic tile frame', () => {
     expect(mosaicFeltWidthPx(671, 671, 270)).toBe(459)
     expect(mosaicFeltWidthPx(671, 459, 270)).toBeNull()
     expect(mosaicFeltWidthPx(394, 394, 118)).toBe(201)
+  })
+
+  it('gives a tall card back to the felt while the chip still fits under it', () => {
+    const frame = mosaicTileFrame(681, 484)
+    const reserve = mosaicFeltReservePx(frame, 681, 484)
+    const felt = mosaicFeltFitPx(671, 430 - reserve.topPx - reserve.lanePx)
+    expect(felt.widthPx).toBeGreaterThan(500)
+    expect(felt.widthPx / felt.heightPx).toBeCloseTo(1.7, 1)
+    expect(reserve.topPx).toBeGreaterThanOrEqual(12)
+    expect(reserve.topPx).toBeLessThan(frame.topStatusPx)
+    const budget = frame.bottomStatusPx + frame.plaqueLanePx - 16
+    const chip = mosaicReadablePlaqueMetrics(681, 484, 1, budget)
+    expect(reserve.lanePx).toBeGreaterThanOrEqual(chip.heightPx)
+    expect(reserve.lanePx).toBeLessThan(frame.bottomStatusPx + frame.plaqueLanePx)
+    expect(mosaicFeltFillWidthPx(671, 430, reserve.topPx, reserve.lanePx)).toBe(felt.widthPx)
+    const short = mosaicTileFrame(404, 244)
+    const shortReserve = mosaicFeltReservePx(short, 404, 244)
+    expect(shortReserve.topPx).toBe(short.topStatusPx)
+    expect(shortReserve.lanePx).toBe(short.bottomStatusPx + short.plaqueLanePx)
   })
 })

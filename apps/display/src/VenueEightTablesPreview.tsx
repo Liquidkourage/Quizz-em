@@ -29,7 +29,8 @@ import {
   mosaicSeatRail,
   mosaicSidePotAmountFontPx,
   mosaicSidePotOverflowLabel,
-  mosaicFeltWidthPx,
+  mosaicFeltFillWidthPx,
+  mosaicFeltReservePx,
   mosaicReadablePlaqueMetrics,
   mosaicSidePotsThatFit,
   mosaicTileFrame,
@@ -1693,10 +1694,13 @@ function SeatRingWithLabels({
 
     const apply = () => {
       const r = el.getBoundingClientRect()
-      const slotW = el.parentElement?.getBoundingClientRect().width ?? 0
       if (mosaicFillHeight) {
-        const width = mosaicFeltWidthPx(slotW, r.width, r.height)
-        if (width != null && el.style.width !== `${width}px`) {
+        const stage = el.parentElement?.parentElement
+        const pad = stage ? Number.parseFloat(getComputedStyle(stage).paddingTop) || 0 : 0
+        const laneEl = stage?.querySelector(':scope > .vfd-mosaic-side-lane')
+        const laneH = laneEl instanceof HTMLElement ? laneEl.offsetHeight : 0
+        const width = mosaicFeltFillWidthPx(stage?.clientWidth ?? 0, stage?.clientHeight ?? 0, pad, laneH)
+        if (width > 0 && el.style.width !== `${width}px`) {
           el.style.width = `${width}px`
           return
         }
@@ -2472,6 +2476,7 @@ function VenueMosaicTableCard({
     row.seatBankrolls != null,
   )
   const tileFrame = mosaicTileFrame(tilePx.w, tilePx.h)
+  const feltReserve = mosaicFeltReservePx(tileFrame, tilePx.w, tilePx.h)
   const shownSideCount = mosaicSidePotsThatFit(sides.length, tilePx.w, tilePx.h)
   const shownSides = sides.slice(0, shownSideCount)
   const hiddenSideCount = Math.max(0, sides.length - shownSides.length)
@@ -2659,16 +2664,9 @@ function VenueMosaicTableCard({
                   ? 'flex shrink-0 flex-col justify-center'
                   : 'flex h-full min-h-0 flex-1 flex-col justify-center'
           }`}
-          style={tileFrame.topStatusPx > 0 ? { paddingTop: tileFrame.topStatusPx } : undefined}
+          style={feltReserve.topPx > 0 ? { paddingTop: feltReserve.topPx } : undefined}
         >
-          <div
-            className="flex w-full min-h-0 items-end justify-center"
-            style={
-              tileFrame.plaqueLanePx > 0
-                ? { maxHeight: `calc(100% - ${tileFrame.bottomStatusPx + tileFrame.plaqueLanePx}px)` }
-                : undefined
-            }
-          >
+          <div className="flex w-full min-h-0 items-end justify-center">
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb || floorFillHeight}
@@ -2709,10 +2707,10 @@ function VenueMosaicTableCard({
           <div
             className="vfd-mosaic-side-lane shrink-0"
             style={
-              tileFrame.plaqueLanePx > 0
+              feltReserve.lanePx > 0
                 ? {
-                    height: tileFrame.bottomStatusPx + tileFrame.plaqueLanePx,
-                    minHeight: tileFrame.bottomStatusPx + tileFrame.plaqueLanePx,
+                    height: feltReserve.lanePx,
+                    minHeight: feltReserve.lanePx,
                   }
                 : undefined
             }

@@ -234,3 +234,36 @@ export function mosaicFeltWidthPx(slotWidthPx: number, boxWidthPx: number, boxHe
   if (boxWidthPx / boxHeightPx <= 17 / 10 + 0.05) return null
   return mosaicFeltFitPx(slotWidthPx, boxHeightPx).widthPx
 }
+
+const FELT_AIR_PX = 16
+/** Shorter cards already use their height for the oval. Giving the band back crowds the names. */
+const FELT_GROW_MIN_TILE_PX = 290
+
+/**
+ * Space the felt yields around itself.
+ * On a tall card the labels sit on the oval, so the felt keeps a short gap and the chip
+ * instead of a full status band.
+ */
+export function mosaicFeltReservePx(
+  frame: MosaicTileFrame,
+  tileWidthPx: number,
+  tileHeightPx: number,
+): { topPx: number; lanePx: number } {
+  const fullLane = frame.bottomStatusPx + frame.plaqueLanePx
+  const full = { topPx: frame.topStatusPx, lanePx: fullLane }
+  if (!(tileHeightPx >= FELT_GROW_MIN_TILE_PX) || !(tileWidthPx > 0) || !(fullLane > 0)) return full
+  const budget = fullLane - 16
+  const chip = budget > 0 ? mosaicReadablePlaqueMetrics(tileWidthPx, tileHeightPx, 1, budget).heightPx : 0
+  if (!(chip > 0)) return full
+  return { topPx: Math.min(frame.topStatusPx, FELT_AIR_PX), lanePx: Math.min(fullLane, chip + FELT_AIR_PX) }
+}
+
+/** Felt width that fills the stage left after the reserve, still at 17:10. */
+export function mosaicFeltFillWidthPx(
+  stageWidthPx: number,
+  stageHeightPx: number,
+  topPx: number,
+  lanePx: number,
+): number {
+  return mosaicFeltFitPx(stageWidthPx, stageHeightPx - topPx - lanePx).widthPx
+}

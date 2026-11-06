@@ -7,6 +7,7 @@ import {
   MosaicSidePotPlaques,
   VenueAerialFloorGrid,
   VenueSingleTableBroadcast,
+  mosaicChipInlay,
   mosaicSeatIsAllIn,
   mosaicSidePotsThatFit,
 } from './VenueEightTablesPreview'
@@ -159,6 +160,20 @@ describe('felt side pot', () => {
       folded: false,
       pointsOnly: false,
     })).toBe(false)
+  })
+
+  it('spaces side-pot inlays evenly along one closed stadium rim', () => {
+    const inlay = mosaicChipInlay()
+    const [dash, gap] = inlay.dasharray.split(' ').map(Number)
+    const perimeter = 2 * 140 + 2 * Math.PI * 39
+    expect(inlay.count * (dash + gap)).toBeCloseTo(perimeter, 1)
+    expect(inlay.d).toContain('A ')
+    expect(inlay.d.trim().endsWith('Z')).toBe(true)
+    const html = renderToStaticMarkup(
+      createElement(MosaicSidePotPlaques, { sides: [{ mark: 1, amount: 600 }] }),
+    )
+    expect(html).toContain(`stroke-dasharray="${inlay.dasharray}"`)
+    expect(html).not.toContain('rotate(')
   })
 
   it('keeps only the side pots that fit on one mosaic row', () => {

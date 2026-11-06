@@ -3030,8 +3030,10 @@
     pointer-events: none;
   }
 
-  .vfd-mosaic-side-plaque-socket {
-    fill: color-mix(in srgb, var(--vfd-plaque-lo) 40%, black);
+  .vfd-mosaic-side-plaque-inlay {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: butt;
   }
 
   .vfd-mosaic-side-plaque-face {

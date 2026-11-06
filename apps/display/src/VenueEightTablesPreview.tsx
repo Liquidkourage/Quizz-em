@@ -454,41 +454,39 @@ export function mosaicSidePotsThatFit(sideCount: number, tileWidthPx: number): n
   return fit
 }
 
-type MosaicChipDimple = { x: number; y: number; rot: number }
+const MOSAIC_CHIP_INLAYS = 16
 
-const MOSAIC_CHIP_DIMPLE_COUNT = 22
-
-/** Even dimples around a stadium rim. Local up points outward so each spot sits in the clay. */
-function mosaicChipDimples(count = MOSAIC_CHIP_DIMPLE_COUNT): MosaicChipDimple[] {
-  const x0 = 14
-  const y0 = 11
-  const w = 212
+/**
+ * White inlays for one stadium rim. Dash plus gap times the count is the centerline length,
+ * so the pattern closes without a leftover gap. The stroke is centered on that path.
+ */
+export function mosaicChipInlay(count = MOSAIC_CHIP_INLAYS): {
+  d: string
+  dasharray: string
+  count: number
+  width: number
+} {
+  const x = 11
+  const y = 11
+  const w = 218
   const h = 78
   const r = h / 2
   const straight = w - h
-  const arc = Math.PI * r
-  const perimeter = straight * 2 + arc * 2
-  const cy = y0 + r
-  const left = x0 + r
-  const right = x0 + w - r
-  const turn = 180 / Math.PI
-  return Array.from({ length: count }, (_, index) => {
-    let d = ((index + 0.5) / count) * perimeter
-    if (d <= straight) return { x: left + d, y: y0, rot: 0 }
-    d -= straight
-    if (d <= arc) {
-      const angle = -Math.PI / 2 + d / r
-      return { x: right + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, rot: (angle + Math.PI / 2) * turn }
-    }
-    d -= arc
-    if (d <= straight) return { x: right - d, y: y0 + h, rot: 180 }
-    d -= straight
-    const angle = Math.PI / 2 + d / r
-    return { x: left + Math.cos(angle) * r, y: cy + Math.sin(angle) * r, rot: (angle + Math.PI / 2) * turn }
-  })
+  const perimeter = straight * 2 + Math.PI * h
+  const period = perimeter / count
+  const dash = period * 0.66
+  const gap = period - dash
+  const left = x + r
+  const right = x + w - r
+  const cx = x + w / 2
+  const top = y
+  const bottom = y + h
+  const n = (value: number) => value.toFixed(2)
+  const d = `M ${n(cx)} ${n(top)} H ${n(right)} A ${n(r)} ${n(r)} 0 0 1 ${n(right)} ${n(bottom)} H ${n(left)} A ${n(r)} ${n(r)} 0 0 1 ${n(left)} ${n(top)} H ${n(cx)} Z`
+  return { d, dasharray: `${dash.toFixed(3)} ${gap.toFixed(3)}`, count, width: 15 }
 }
 
-const MOSAIC_CHIP_DIMPLES = mosaicChipDimples()
+const MOSAIC_CHIP_INLAY = mosaicChipInlay()
 
 /** Chip plaque for one side pot on a mosaic felt. Color matches that pot's seat badges. */
 export function MosaicSidePotPlaques({
@@ -509,14 +507,8 @@ export function MosaicSidePotPlaques({
           aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
           style={{ '--vfd-side-pot': sidePotColor(side.mark) } as CSSProperties}
         >
-          <svg className="vfd-mosaic-side-plaque-rim" viewBox="0 0 240 100" aria-hidden>
-            {MOSAIC_CHIP_DIMPLES.map((spot, index) => (
-              <g key={index} transform={`translate(${spot.x.toFixed(1)} ${spot.y.toFixed(1)}) rotate(${spot.rot.toFixed(1)})`}>
-                <rect className="vfd-mosaic-side-plaque-socket" x="-7.6" y="-5" width="15.2" height="11.6" rx="2.8" />
-                <rect x="-6.2" y="-4.2" width="12.4" height="8.8" rx="2.1" fill="#eef3f7" />
-                <rect x="-5.3" y="-3.8" width="10.6" height="2.6" rx="1.2" fill="#fff" />
-              </g>
-            ))}
+          <svg className="vfd-mosaic-side-plaque-rim" viewBox="0 0 240 100" preserveAspectRatio="xMidYMid meet" aria-hidden>
+            <path className="vfd-mosaic-side-plaque-inlay" d={MOSAIC_CHIP_INLAY.d} strokeWidth={MOSAIC_CHIP_INLAY.width} strokeDasharray={MOSAIC_CHIP_INLAY.dasharray} />
           </svg>
           <span className="vfd-mosaic-side-plaque-face">
             <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>

@@ -1,6 +1,6 @@
 import type { GameState, PlayerState } from '@qhe/core'
 import { displayedMainPot, formatTriviaNumber } from '@qhe/core'
-import { ChipText, NumericPlayingCard } from '@qhe/ui'
+import { cardsInDigitOrder, ChipText, NumericPlayingCard } from '@qhe/ui'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
 type GameInfoCardProps = {
@@ -63,7 +63,7 @@ export default function GameInfoCard({
             <div className="player-game-info-card-group">
               <p className="player-game-card-section-label">Your cards</p>
               <div className="player-game-info-card-row">
-                {hole.slice(0, 2).map((card, i) => (
+                {cardsInDigitOrder(hole.slice(0, 2)).map(({ card }, i) => (
                   <span key={`hole-${i}-${card.digit}`} className="player-game-info-card-slot">
                     <NumericPlayingCard
                       digit={card.digit}
@@ -81,7 +81,7 @@ export default function GameInfoCard({
             <div className="player-game-info-card-group">
               <p className="player-game-card-section-label">Board</p>
               <div className="player-game-info-card-row">
-                {board.map((card, i) => (
+                {cardsInDigitOrder(board).map(({ card }, i) => (
                   <span key={`board-${i}-${card.digit}`} className="player-game-info-card-slot">
                     <NumericPlayingCard
                       digit={card.digit}

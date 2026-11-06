@@ -2,6 +2,7 @@ import type { Ref } from 'react'
 import { clsx } from 'clsx'
 import { CardBackSvg } from './CardBackSvg'
 import { CardFaceGraphic } from './CardFaceGraphic'
+import { digitsAscending } from './digitCardOrder'
 import { NumericPlayingCard } from './NumericPlayingCard'
 import { stadiumHoleCardOverlapPx } from './stadiumSeatLayout'
 
@@ -55,6 +56,7 @@ export function FeltHoleCardPair({
 }: FeltHoleCardPairProps) {
   void variant
   const overlapPx = overlapPxProp ?? stadiumHoleCardOverlapPx(scale)
+  const orderedDigits = digits != null ? digitsAscending(digits) : null
   const spread = gapPx != null
   const spreadGapPx = spread ? gapPx : 0
   const spreadSize = spread ? spreadCardSizePx(scale) : null
@@ -81,7 +83,7 @@ export function FeltHoleCardPair({
               <CardBackSvg className="absolute inset-0 h-full w-full" />
             ) : (
               <CardFaceGraphic
-                digit={digits?.[cardIndex] ?? 0}
+                digit={orderedDigits?.[cardIndex] ?? 0}
                 className="absolute inset-0 h-full w-full"
                 alt=""
               />
@@ -112,7 +114,7 @@ export function FeltHoleCardPair({
           }}
         >
           <NumericPlayingCard
-            digit={digits?.[cardIndex] ?? 0}
+            digit={orderedDigits?.[cardIndex] ?? 0}
             variant={variant}
             size="small"
             faceDown={faceDown}

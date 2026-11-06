@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { NumericPlayingCard } from '@qhe/ui'
+import { cardsInDigitOrder, NumericPlayingCard } from '@qhe/ui'
 import { formatTriviaPoints, type GameState, type PlayerState } from '@qhe/core'
 import {
   ANSWER_CARD_COUNT,
@@ -152,7 +152,7 @@ export default function AnswerComposer({
             <div className="player-game-card-group">
               <p className="player-game-card-section-label">Hole cards</p>
               <div className="player-game-card-pair">
-                {currentPlayer.hand.map((card, i) => {
+                {cardsInDigitOrder(currentPlayer.hand).map(({ card, index: i }) => {
                   const isSelected = selectedCards.some((sc) => sc.type === 'hand' && sc.index === i)
                   return (
                     <motion.div
@@ -182,7 +182,7 @@ export default function AnswerComposer({
               <p className="player-game-card-section-label">Board</p>
               {boardDealt ? (
                 <div className="player-game-card-pair">
-                  {gameState.round.communityCards.map((card, i) => {
+                  {cardsInDigitOrder(gameState.round.communityCards).map(({ card, index: i }) => {
                     const isSelected = selectedCards.some((sc) => sc.type === 'community' && sc.index === i)
                     return (
                       <motion.div

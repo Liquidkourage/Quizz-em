@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { addPlayer, createEmptyGame, type GameState } from '@qhe/core'
+import { addPlayer, createEmptyGame, type GameState, type NumericCard } from '@qhe/core'
 import { EMPTY_COMPOSED_ANSWER } from '../playerModel/answerComposition'
 import AnswerComposer from './AnswerComposer'
 
@@ -14,6 +14,47 @@ function answering(): GameState {
     round: { ...gs.round, question: { id: 'q', text: 'How many?', answer: 4 } },
   }
 }
+
+describe('answer composer cards', () => {
+  it('shows the hole cards low to high and the street low to high', () => {
+    const gs = answering()
+    gs.round.communityCards = [
+      { digit: 5 },
+      { digit: 1 },
+      { digit: 0 },
+      { digit: 3 },
+      { digit: 9 },
+    ] as NumericCard[]
+    const player = {
+      ...gs.players[0]!,
+      hand: [{ digit: 9 }, { digit: 7 }] as NumericCard[],
+    }
+    const html = renderToStaticMarkup(
+      createElement(AnswerComposer, {
+        gameState: gs,
+        currentPlayer: player,
+        composed: EMPTY_COMPOSED_ANSWER,
+        selectedCards: [],
+        remainingSec: 30,
+        onSelectCard: () => {},
+        onToggleDecimal: () => {},
+        onBackspace: () => {},
+        onClear: () => {},
+        onSubmit: () => {},
+      }),
+    )
+    const hole = html.slice(html.indexOf('Hole cards'), html.indexOf('Board'))
+    const street = html.slice(html.indexOf('>Board<'), html.indexOf('Keys'))
+    expect(hole.indexOf('Card 7')).toBeGreaterThanOrEqual(0)
+    expect(hole.indexOf('Card 7')).toBeLessThan(hole.indexOf('Card 9'))
+    let at = 0
+    for (const digit of [0, 1, 3, 5, 9]) {
+      const next = street.indexOf(`Card ${digit}`, at)
+      expect(next).toBeGreaterThanOrEqual(0)
+      at = next + 1
+    }
+  })
+})
 
 describe('answer composer clock', () => {
   it('says time is up without inviting another edit', () => {

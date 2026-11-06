@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ChipText, MOSAIC_SEAT_COUNT, NumericPlayingCard, SidePotMark, StadiumTableSeats, sidePotColor, type StadiumTableSeat } from '@qhe/ui'
+import { ChipText, digitsAscending, MOSAIC_SEAT_COUNT, NumericPlayingCard, SidePotMark, StadiumTableSeats, sidePotColor, type StadiumTableSeat } from '@qhe/ui'
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
 import { displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID, type LiveSidePot } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
@@ -141,7 +141,7 @@ export default function TableFeltView({
   const communityDigits = useMemo(
     () =>
       gameState.round.communityCards.length > 0
-        ? gameState.round.communityCards.map((c) => c.digit)
+        ? digitsAscending(gameState.round.communityCards.map((c) => c.digit))
         : undefined,
     [gameState.round.communityCards],
   )
@@ -285,8 +285,8 @@ export default function TableFeltView({
         <div className="player-hud-hero-cards player-hud-hero-cards--folded" aria-label="Your cards (folded chips)">
           <span className="player-hud-hero-cards-label">Your cards · folded</span>
           <div className="player-hud-hero-cards-pair">
-            <NumericPlayingCard digit={heroHoles[0]} size="normal" compact animated={false} />
-            <NumericPlayingCard digit={heroHoles[1]} size="normal" compact animated={false} />
+            <NumericPlayingCard digit={digitsAscending(heroHoles)[0]!} size="normal" compact animated={false} />
+            <NumericPlayingCard digit={digitsAscending(heroHoles)[1]!} size="normal" compact animated={false} />
           </div>
         </div>
       ) : null}

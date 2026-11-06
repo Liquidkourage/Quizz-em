@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { digitsAscending } from './digitCardOrder'
 import { CardBackSvg } from './CardBackSvg'
 import { CardFaceGraphic } from './CardFaceGraphic'
 
@@ -45,6 +46,7 @@ export function PlayerFeltHoleCards({
   hidden = false,
 }: PlayerFeltHoleCardsProps) {
   const { w, h } = playerHoleCardSizePx(scale)
+  const orderedDigits = digits != null ? digitsAscending(digits) : null
   const pairWidth = w * 2 + PLAYER_FELT_HOLE_CARD_GAP_PX
   const radius = Math.max(4, Math.round(Math.min(w, h) * 0.12))
 
@@ -79,7 +81,7 @@ export function PlayerFeltHoleCards({
             <CardBackSvg className="block h-full w-full" />
           ) : (
             <CardFaceGraphic
-              digit={digits?.[cardIndex] ?? 0}
+              digit={orderedDigits?.[cardIndex] ?? 0}
               className="block h-full w-full object-cover"
               alt=""
             />

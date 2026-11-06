@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CardFaceGraphic,
+  digitsAscending,
   ChipMark,
   ChipText,
   SidePotMark,
@@ -1660,8 +1661,9 @@ function SeatRingWithLabels({
   const seatHolesDealt = padSeatHolesDealt(seatHolesDealtIn)
   const seatSubmittedAnswers = padSeatSubmittedAnswers(seatSubmittedAnswersIn)
   const seatAnswerLocked = padSeatAnswerLocked(seatAnswerLockedIn)
-  const communityDigits =
-    communityDigitsIn?.filter((d) => Number.isInteger(d) && d >= 0 && d <= 9) ?? []
+  const communityDigits = digitsAscending(
+    communityDigitsIn?.filter((d) => Number.isInteger(d) && d >= 0 && d <= 9) ?? [],
+  )
   const prefersReducedMotion = usePrefersReducedMotion()
   const isMosaic = ringMode === 'mosaic'
   const isBroadcast = ringMode === 'broadcast'

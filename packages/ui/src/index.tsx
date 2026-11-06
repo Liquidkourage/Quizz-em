@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { PokerChip } from './PokerChip';
 import { ChipText } from './ChipMark';
 export { NumericPlayingCard } from './NumericPlayingCard';
+export { cardsInDigitOrder, digitsAscending } from './digitCardOrder';
 export {
   CardFaceGraphic,
   cardFaceInlineSizeStyle,

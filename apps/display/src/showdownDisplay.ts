@@ -9,6 +9,7 @@ import {
   type NumericCard,
 } from '@qhe/core'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
+import { digitsAscending } from '@qhe/ui'
 
 export type ShowdownCardUsed = { digit: number; source: 'hole' | 'community' }
 
@@ -415,5 +416,6 @@ export function sortShowdownRowsByDistance(
 
 export function formatHoleDigits(holes: readonly [number, number] | null): string {
   if (holes == null) return '—'
-  return `${holes[0]} · ${holes[1]}`
+  const [low, high] = digitsAscending(holes)
+  return `${low} · ${high}`
 }

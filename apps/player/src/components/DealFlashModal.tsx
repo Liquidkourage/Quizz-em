@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { NumericPlayingCard } from '@qhe/ui'
+import { digitsAscending, NumericPlayingCard } from '@qhe/ui'
 import { DEAL_FLASH_MS, type DealFlash } from '../playerModel/dealFlash'
 
 type DealFlashModalProps = {
@@ -22,7 +22,7 @@ export default function DealFlashModal({ flash, onDone }: DealFlashModalProps) {
       <div className="player-deal-flash-card">
         <p className="player-deal-flash-title">{title}</p>
         <div className={board ? 'player-deal-flash-cards player-deal-flash-cards--board' : 'player-deal-flash-cards'}>
-          {flash.digits.map((digit, i) => (
+          {digitsAscending(flash.digits).map((digit, i) => (
             <NumericPlayingCard
               key={`${flash.kind}-${i}-${digit}`}
               digit={digit}

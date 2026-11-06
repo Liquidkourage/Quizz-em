@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { disambiguatePublicNames, formatTriviaNumber, publicSeatInitials } from '@qhe/core'
-import { CardFaceGraphic, PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
+import { CardFaceGraphic, cardsInDigitOrder, digitsAscending, PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import {
   formatHoleDigits,
   sortShowdownRowsByDistance,
@@ -105,8 +105,8 @@ function HoleChipPair({
       className="flex shrink-0 items-center gap-0.5"
       aria-label={`Hole cards ${formatHoleDigits(holes)}`}
     >
-      <DigitChip digit={holes[0]} active size={size} />
-      <DigitChip digit={holes[1]} active size={size} />
+      <DigitChip digit={digitsAscending(holes)[0]!} active size={size} />
+      <DigitChip digit={digitsAscending(holes)[1]!} active size={size} />
     </motion.div>
   )
 }
@@ -127,11 +127,11 @@ function BoardPickChips({
     return <span className={`text-white/35 ${DISPLAY_TEXT_SECONDARY_CQ}`}>—</span>
   }
   const chosen = new Set(chosenIndices)
-  const slots = board.slice(0, 5)
+  const slots = cardsInDigitOrder(board.slice(0, 5).map((digit) => ({ digit })))
   return (
     <motion.div className="flex shrink-0 flex-wrap items-center gap-0.5">
-      {slots.map((digit, i) => (
-        <DigitChip key={i} digit={digit} active={chosen.has(i)} size={size} />
+      {slots.map(({ card, index }) => (
+        <DigitChip key={index} digit={card.digit} active={chosen.has(index)} size={size} />
       ))}
     </motion.div>
   )

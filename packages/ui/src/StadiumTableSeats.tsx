@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { clsx } from 'clsx'
+import { digitsAscending } from './digitCardOrder'
 import { FeltHoleCardPair } from './feltHoleCards'
 import { PlayerFeltHoleCards } from './playerFeltHoleCards'
 import {
@@ -164,7 +165,7 @@ export function StadiumTableSeats({
                 isPlayerLayout ? 'player-felt-card-face gap-1' : 'gap-0.5',
               )}
             >
-              {communityDigits.slice(0, 5).map((digit, i) => {
+              {digitsAscending(communityDigits.slice(0, 5)).map((digit, i) => {
                 const cardW = communityCardSize?.w ?? Math.max(14, cupSizePx * 0.55)
                 const cardH = communityCardSize?.h ?? Math.max(20, cupSizePx * 0.77)
                 return (

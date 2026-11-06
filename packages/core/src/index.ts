@@ -2134,5 +2134,11 @@ export {
   type VenueCondenseSoloMove,
   type VenueTableRoster,
 } from './venueCondense'
-export { adviseBlindCall, medianSeatedStack, type BlindCall, type BlindCallInput, type BlindCallVerb } from './blindCall'
+export {
+  adviseBlindCall,
+  medianSeatedStack,
+  type BlindCallInput,
+  type BlindLevelEstimate,
+  type BlindPace,
+} from './blindCall'
 export { disambiguatePublicNames, publicSeatInitials } from './publicSeatNames'

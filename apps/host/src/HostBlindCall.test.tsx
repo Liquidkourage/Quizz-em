@@ -19,17 +19,16 @@ describe('HostBlindCall', () => {
         showStartedAtMs={null}
         handsLeft={15}
         players={40}
-        startedWith={40}
         medianStack={1000}
         bigBlind={20}
-        handsPerLevel={5}
         onApply={() => {}}
       />,
     )
     expect(html).toContain('120 min')
     expect(html).not.toContain('aria-label="Night length"')
-    expect(html).toContain('Slow down')
-    expect(html).toContain('aria-label="Set $10 / $20')
+    expect(html).toContain('Now')
+    expect(html).toContain('Next level, closest')
+    expect(html).not.toContain('Slow down')
     expect(html).not.toContain('guessing guide')
     expect(html.replace(/aria-label="[^"]*"/g, '')).not.toContain('$')
     expect(html).toContain('chip-mark')
@@ -50,11 +49,9 @@ describe('HostBlindCall', () => {
         showStartedAtMs={null}
         handsLeft={15}
         players={40}
-        startedWith={40}
         medianStack={1000}
         smallBlind={10}
         bigBlind={20}
-        handsPerLevel={5}
         onApply={() => {}}
         onSmallBlind={() => {}}
         onBigBlind={() => {}}
@@ -71,7 +68,7 @@ describe('HostBlindCall', () => {
     expect(html).not.toContain('aria-label="Guide"')
     expect(html).not.toContain('aria-label="Night length"')
     expect(html).toContain('>Save<')
-    expect(html.indexOf('Small blind')).toBeLessThan(html.indexOf('Slow down'))
+    expect(html.indexOf('Small blind')).toBeLessThan(html.indexOf('Now'))
   })
 
   it('waits for seated stacks instead of asking for them', () => {
@@ -80,10 +77,8 @@ describe('HostBlindCall', () => {
         showStartedAtMs={null}
         handsLeft={25}
         players={0}
-        startedWith={0}
         medianStack={null}
         bigBlind={20}
-        handsPerLevel={3}
         onApply={() => {}}
       />,
     )

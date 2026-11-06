@@ -51,7 +51,7 @@ import {
   selectTriviaSetlist,
   setlistSave,
 } from '@qhe/net'
-import type { BlindCall, GameState, Question } from '@qhe/core'
+import type { BlindLevelEstimate, GameState, Question } from '@qhe/core'
 import { HostBlindCall } from './HostBlindCall'
 import HostBlindPaceNotice, { showBlindPaceNotice } from './HostBlindPaceNotice'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
@@ -170,7 +170,6 @@ function HostApp() {
   const [livelyGameplayTableNums, setLivelyGameplayTableNums] = useState<number[]>([])
   const [venueSmallBlind, setVenueSmallBlind] = useState(10)
   const [venueBigBlind, setVenueBigBlind] = useState(20)
-  const [handsPerBlindLevel, setHandsPerBlindLevel] = useState(3)
   const [shuffleEvery, setShuffleEvery] = useState(5)
   const [blindLevelSummary, setBlindLevelSummary] = useState<string | null>(null)
   const [venueFeltBeat, setVenueFeltBeat] = useState<HostVenueFeltBeatRow[] | null>(null)
@@ -282,7 +281,6 @@ function HostApp() {
       if (snap.venueBlinds) {
         setVenueSmallBlind(Math.max(1, Math.floor(snap.venueBlinds.smallBlind)))
         setVenueBigBlind(Math.max(1, Math.floor(snap.venueBlinds.bigBlind)))
-        setHandsPerBlindLevel(Math.max(1, Math.floor(snap.venueBlinds.handsPerBlindLevel)))
         setBlindLevelSummary(formatVenueBlindsSummary(snap.venueBlinds))
       }
     })
@@ -623,10 +621,10 @@ function HostApp() {
   const questionTotal = activeSetlist?.questionIds.length || 25
   const handsLeft = Math.max(0, questionTotal - (venueFloorBrief?.handsCompleted ?? 0))
   const soloPublicTable = publicDisplaySoloTable(venueFloorBrief)
-  const applyBlindCall = (call: BlindCall) => {
-    setVenueSmallBlind(call.smallBlind)
-    setVenueBigBlind(call.bigBlind)
-    setVenueBlinds(call.smallBlind, call.bigBlind)
+  const applyBlindCall = (estimate: BlindLevelEstimate) => {
+    setVenueSmallBlind(estimate.smallBlind)
+    setVenueBigBlind(estimate.bigBlind)
+    setVenueBlinds(estimate.smallBlind, estimate.bigBlind)
   }
   const saveVenueBlinds = () => {
     setVenueBlinds(Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
@@ -926,10 +924,9 @@ function HostApp() {
           showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}
           handsLeft={handsLeft}
           players={venueFloorBrief?.fieldPlayerCount ?? 0}
-          startedWith={venueFloorBrief?.fieldPeakCount ?? venueFloorBrief?.fieldPlayerCount ?? 0}
           medianStack={venueFloorBrief?.medianStack ?? null}
+          smallBlind={venueSmallBlind}
           bigBlind={venueBigBlind}
-          handsPerLevel={handsPerBlindLevel}
           nowMs={winnerScreenNowMs}
           onApply={applyBlindCall}
           onClose={() => setDismissedPaceAt(winnerScreensReadyAtMs)}
@@ -1188,11 +1185,9 @@ function HostApp() {
                 showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}
                 handsLeft={handsLeft}
                 players={venueFloorBrief?.fieldPlayerCount ?? 0}
-                startedWith={venueFloorBrief?.fieldPeakCount ?? venueFloorBrief?.fieldPlayerCount ?? 0}
                 medianStack={venueFloorBrief?.medianStack ?? null}
                 smallBlind={venueSmallBlind}
                 bigBlind={venueBigBlind}
-                handsPerLevel={handsPerBlindLevel}
                 onApply={applyBlindCall}
                 onSmallBlind={setVenueSmallBlind}
                 onBigBlind={setVenueBigBlind}

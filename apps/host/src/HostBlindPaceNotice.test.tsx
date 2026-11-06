@@ -20,10 +20,9 @@ describe('HostBlindPaceNotice', () => {
         showStartedAtMs: null,
         handsLeft: 15,
         players: 40,
-        startedWith: 40,
         medianStack: 1000,
+        smallBlind: 10,
         bigBlind: 20,
-        handsPerLevel: 5,
         nowMs: 1_000,
         onApply: () => {},
         onClose: () => {},
@@ -31,7 +30,9 @@ describe('HostBlindPaceNotice', () => {
     )
     expect(html).toContain('Blind pace')
     expect(html).toContain('While the answer is up')
-    expect(html).toContain('Slow down')
+    expect(html).toContain('Now')
+    expect(html).toContain('Next level, closest')
+    expect(html).not.toContain('Slow down')
     expect(html).toContain('120 min')
     expect(html).not.toContain('guessing guide')
     expect(html).not.toContain('level every')
@@ -45,10 +46,9 @@ describe('HostBlindPaceNotice', () => {
         showStartedAtMs: null,
         handsLeft: 15,
         players: 40,
-        startedWith: 40,
         medianStack: 1000,
+        smallBlind: 10,
         bigBlind: 20,
-        handsPerLevel: 5,
         nowMs: 1_000,
         onApply: () => {},
         onClose: () => {},

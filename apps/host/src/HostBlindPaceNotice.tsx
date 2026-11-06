@@ -1,6 +1,5 @@
-import { adviseBlindCall, type BlindCall } from '@qhe/core'
-import { ChipText } from '@qhe/ui'
-import { GUIDE_SECONDS, NIGHT_MINUTES, blindPaceLine, lockBlindGuide, minutesLeftOnClock } from './HostBlindCall'
+import { adviseBlindCall, type BlindLevelEstimate } from '@qhe/core'
+import { BlindPaceReadout, GUIDE_SECONDS, NIGHT_MINUTES, minutesLeftOnClock } from './HostBlindCall'
 
 export function showBlindPaceNotice(
   readyAtMs: number | null | undefined,
@@ -16,10 +15,9 @@ export default function HostBlindPaceNotice({
   showStartedAtMs,
   handsLeft,
   players,
-  startedWith,
   medianStack,
+  smallBlind,
   bigBlind,
-  handsPerLevel,
   nowMs,
   onApply,
   onClose,
@@ -28,28 +26,24 @@ export default function HostBlindPaceNotice({
   showStartedAtMs: number | null
   handsLeft: number
   players: number
-  startedWith: number
   medianStack: number | null
+  smallBlind?: number
   bigBlind: number
-  handsPerLevel: number
   nowMs: number
-  onApply: (call: BlindCall) => void
+  onApply: (estimate: BlindLevelEstimate) => void
   onClose: () => void
 }) {
   if (!open || medianStack == null || players < 2 || handsLeft < 1 || bigBlind < 1) return null
   const minutesLeft = minutesLeftOnClock(NIGHT_MINUTES, showStartedAtMs, nowMs)
-  const advised = adviseBlindCall({
+  const pace = adviseBlindCall({
     minutesLeft,
     handsLeft,
     players,
-    startedWith: Math.max(players, startedWith),
     medianStack,
+    smallBlind: smallBlind ?? bigBlind,
     bigBlind,
-    handsPerLevel,
     guideSec: GUIDE_SECONDS,
   })
-  const call = lockBlindGuide(advised, GUIDE_SECONDS, bigBlind, handsPerLevel)
-  const line = `${blindPaceLine(call, GUIDE_SECONDS)} ${Math.round(minutesLeft)} min left.`
 
   return (
     <div
@@ -62,7 +56,9 @@ export default function HostBlindPaceNotice({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[0.65rem] font-bold uppercase tracking-[0.16em] text-amber-300/90">While the answer is up</p>
-            <p className="text-base font-bold leading-snug text-white">{call.verb}</p>
+            <p className="text-base font-bold leading-snug text-white">
+              Goal {Math.round(minutesLeft)} min · {players} players
+            </p>
           </div>
           <button
             type="button"
@@ -73,18 +69,9 @@ export default function HostBlindPaceNotice({
             Close
           </button>
         </div>
-        <p className="mt-2 text-sm leading-snug text-amber-50">
-          <ChipText text={line} />
-        </p>
-        {call.verb === 'Hold' ? null : (
-          <button
-            type="button"
-            className="mt-2 w-full rounded-lg border border-amber-300/70 bg-amber-400/20 px-3 py-1.5 text-sm font-bold text-amber-50 hover:bg-amber-400/30"
-            onClick={() => onApply(call)}
-          >
-            Apply
-          </button>
-        )}
+        <div className="mt-2">
+          <BlindPaceReadout pace={pace} onApply={onApply} />
+        </div>
       </div>
     </div>
   )

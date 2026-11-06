@@ -1,0 +1,25 @@
+---
+description: Advise against any public-display change until the user lifts the freeze or the debut week has concluded.
+alwaysApply: true
+---
+
+# Public display is frozen for debut week
+
+The **public display** (`apps/display`, and any shared code whose change would alter what a paired TV renders) is **locked** from **Friday, November 6, 2026** through the debut.
+
+## Hold until one of these is true
+
+- The user **explicitly** countermands this freeze in the current message (for example “change the display anyway”, “lift the display freeze”).
+- The debut has **concluded**. That is expected around **Friday, November 13, 2026**. After that date, confirm the debut is over before the first display edit. The calendar date alone does not lift the freeze.
+
+## What to do when a change would touch the display
+
+Stop. Advise against it in one or two sentences: the TV look is frozen until they say otherwise or the debut week is over. Do **not** implement, retune, refactor, or “drive-by” the display.
+
+Scope of that turn only. Do not broaden a countermand.
+
+## Still allowed
+
+- Read-only investigation and answers about how the display works
+- Player, host, and server work that does **not** change what the public display renders
+- Crash fixes **only** if the user explicitly asks to fix that display crash

@@ -76,6 +76,7 @@ describe('felt side pot', () => {
             seatInvested: [100, 300, 300, 600, 600],
             seatFolded: [false, false, false, false, false],
             seatBankrolls: [0, 0, 0, 400, 400],
+            isBettingOpen: true,
           }),
           tile(2, { pot: 0, seatInvested: [], seatFolded: [] }),
         ],
@@ -133,13 +134,21 @@ describe('felt side pot', () => {
     expect(both).toContain('aria-label="Side pot 2"')
     expect(both).toContain('--vfd-side-pot:#7dd3fc')
     expect(both).toContain('--vfd-side-pot:#ea580c')
-    expect(both.indexOf('aria-label="Side pot 1"')).toBeLessThan(both.indexOf('>NB<'))
+    expect(both.indexOf('>NB<')).toBeLessThan(both.indexOf('aria-label="Side pot 1"'))
+    expect(both.indexOf('aria-label="Side pot 1"')).toBeLessThan(both.indexOf('aria-label="Side pot 2"'))
+    expect(both).toContain('vfd-mosaic-seat-face--bottom')
     const rightRail = renderToStaticMarkup(
       createElement(MosaicSeatFace, { initials: 'BB', marks: [1, 2], folded: false, allIn: true, seatIndex: 2 }),
     )
-    expect(rightRail.indexOf('>All-in<')).toBeLessThan(rightRail.indexOf('>BB<'))
-    expect(rightRail.indexOf('>BB<')).toBeLessThan(rightRail.indexOf('aria-label="Side pot 1"'))
-    expect(rightRail).toContain('vfd-mosaic-seat-face--status-above')
+    expect(rightRail).toContain('vfd-mosaic-seat-face--right')
+    expect(rightRail).toContain('whitespace-nowrap')
+    expect(rightRail.indexOf('>All-in<')).toBeLessThan(rightRail.indexOf('aria-label="Side pot 1"'))
+    expect(rightRail.indexOf('aria-label="Side pot 1"')).toBeLessThan(rightRail.indexOf('>BB<'))
+    const leftRail = renderToStaticMarkup(
+      createElement(MosaicSeatFace, { initials: 'EA', marks: [], folded: true, allIn: false, seatIndex: 6 }),
+    )
+    expect(leftRail).toContain('vfd-mosaic-seat-face--left')
+    expect(leftRail.indexOf('>Folded<')).toBeLessThan(leftRail.indexOf('>EA<'))
     expect(both).not.toContain('>Folded<')
     expect(both).not.toContain('>All-in<')
 
@@ -205,9 +214,18 @@ describe('felt side pot', () => {
 
   it('keeps only the side pots that fit on one mosaic row', () => {
     expect(mosaicSidePotsThatFit(3, 0)).toBe(3)
-    expect(mosaicSidePotsThatFit(3, 160)).toBe(1)
-    expect(mosaicSidePotsThatFit(3, 340)).toBe(2)
-    expect(mosaicSidePotsThatFit(3, 520)).toBe(3)
-    expect(mosaicSidePotsThatFit(2, 100)).toBe(0)
+    expect(mosaicSidePotsThatFit(2, 100, 80)).toBe(0)
+    expect(mosaicSidePotsThatFit(3, 900, 720)).toBe(3)
+    const crowded = renderToStaticMarkup(
+      createElement(MosaicSidePotPlaques, {
+        sides: [{ mark: 1, amount: 40 }],
+        hiddenCount: 2,
+        metrics: { widthPx: 72, heightPx: 29, gapPx: 4, showTitle: false },
+      }),
+    )
+    expect(crowded).toContain('+2 MORE')
+    expect(crowded).toContain('2 more side pots')
+    expect(crowded).not.toContain('>Side pot 1<')
+    expect(crowded).toContain('40')
   })
 })

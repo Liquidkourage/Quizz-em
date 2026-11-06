@@ -77,12 +77,30 @@ function mosaicActingInitialClass(state: SeatCupholderState, labelClassName?: st
  * One consistent cupholder render — same graphic, size, and label treatment in every state.
  * State is shown with an outer ring only (acting / answer locked / winner) or dimming (folded / empty).
  */
+const CUP_LABEL_CLASS =
+  'absolute text-center font-black leading-none tracking-tight text-amber-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95),0_0_6px_rgba(0,0,0,0.85)]'
+
+function cupLabelTransform(labelFree: boolean, labelShiftXPx: number | undefined): string | undefined {
+  if (labelFree) {
+    const shift = labelShiftXPx ?? 0
+    return `translate(calc(-50% + ${shift}px), -50%)`
+  }
+  if (labelShiftXPx != null && labelShiftXPx !== 0) return `translateX(${labelShiftXPx}px)`
+  return undefined
+}
+
+function cupLabelClass(labelFree: boolean): string {
+  if (labelFree) return `pointer-events-none left-1/2 top-1/2 z-[1] w-max max-w-none ${CUP_LABEL_CLASS}`
+  return `inset-0 flex items-center justify-center px-0.5 ${CUP_LABEL_CLASS}`
+}
+
 export function SeatCupholderMarker({
   state = 'default',
   label,
   labelClassName,
   labelFontSizePx,
   labelShiftXPx,
+  labelFree = false,
   sizePx,
   sizeClassName,
   className,
@@ -97,6 +115,11 @@ export function SeatCupholderMarker({
   labelFontSizePx?: number
   /** Horizontal nudge so side-seat initials stay inside the card. */
   labelShiftXPx?: number
+  /**
+   * Let the label size to its text. The default pins the label to the cup,
+   * which wraps a one-line status pill. Mosaic seats opt in.
+   */
+  labelFree?: boolean
   /** Fixed square size in px — preferred for mosaic / hero felts. */
   sizePx?: number
   /** Tailwind size classes when px sizing is not used (e.g. spotlight hero). */
@@ -108,6 +131,7 @@ export function SeatCupholderMarker({
 }) {
   const dimmed = state === 'folded' || state === 'empty'
   const actingInitialClass = mosaicActingInitialClass(state, labelClassName)
+  const labelTransform = cupLabelTransform(labelFree, labelShiftXPx)
 
   return (
     <div
@@ -127,16 +151,10 @@ export function SeatCupholderMarker({
       <CupholderGraphic dimmed={dimmed} className="absolute inset-0 h-full w-full overflow-hidden rounded-full" />
       {label != null && String(label).length > 0 ? (
         <span
-          className={clsx(
-            'absolute inset-0 flex items-center justify-center px-0.5 text-center font-black leading-none tracking-tight text-amber-50 drop-shadow-[0_1px_2px_rgba(0,0,0,0.95),0_0_6px_rgba(0,0,0,0.85)]',
-            labelClassName,
-            actingInitialClass
-          )}
+          className={clsx(cupLabelClass(labelFree), labelClassName, actingInitialClass)}
           style={{
             ...(labelFontSizePx != null ? { fontSize: labelFontSizePx } : undefined),
-            ...(labelShiftXPx != null && labelShiftXPx !== 0
-              ? { transform: `translateX(${labelShiftXPx}px)` }
-              : undefined),
+            ...(labelTransform != null ? { transform: labelTransform } : undefined),
           }}
         >
           {label}

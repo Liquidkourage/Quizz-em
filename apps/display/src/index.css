@@ -2812,30 +2812,61 @@
   .vfd-mosaic-seat-face {
     position: relative;
     display: flex;
+    width: max-content;
+    max-width: none;
     flex-direction: column;
     align-items: center;
     overflow: visible;
     line-height: 1;
+    white-space: nowrap;
+  }
+
+  .vfd-mosaic-seat-face--left,
+  .vfd-mosaic-seat-face--right {
+    flex-direction: row;
+    gap: 0.1em;
   }
 
   .vfd-mosaic-seat-badges {
     display: inline-flex;
+    flex: none;
     align-items: center;
     justify-content: center;
     gap: 0.1em;
+    white-space: nowrap;
   }
 
-  .vfd-mosaic-seat-face--status-above .vfd-mosaic-seat-status {
-    margin-top: 0;
-    margin-bottom: 0.14em;
+  .vfd-mosaic-seat-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.08em;
   }
 
-  .vfd-mosaic-seat-face--status-above .vfd-mosaic-seat-badges {
-    margin-top: 0.12em;
+  .vfd-mosaic-seat-face--top .vfd-mosaic-seat-rail {
+    margin-bottom: 0.08em;
   }
 
-  .vfd-mosaic-seat-face:not(.vfd-mosaic-seat-face--status-above) .vfd-mosaic-seat-badges {
-    margin-bottom: 0.12em;
+  .vfd-mosaic-seat-face--bottom .vfd-mosaic-seat-rail {
+    margin-top: 0.08em;
+  }
+
+  /* Side seats keep the pill and chips on the rail, pinned to the outer edge. */
+  .vfd-mosaic-seat-face--left .vfd-mosaic-seat-rail,
+  .vfd-mosaic-seat-face--right .vfd-mosaic-seat-rail {
+    position: absolute;
+    bottom: calc(100% + 0.12em);
+    gap: 0.06em;
+  }
+
+  .vfd-mosaic-seat-face--left .vfd-mosaic-seat-rail {
+    left: 0;
+    align-items: flex-start;
+  }
+
+  .vfd-mosaic-seat-face--right .vfd-mosaic-seat-rail {
+    right: 0;
+    align-items: flex-end;
   }
 
   .vfd-mosaic-seat-face .vfd-mosaic-seat-initial--folded {
@@ -2867,14 +2898,16 @@
 
   .vfd-mosaic-seat-status {
     display: inline-block;
-    margin-top: 0.12em;
+    flex: none;
     border-radius: 999px;
-    padding: 0.16em 0.42em;
-    font-size: 0.3em;
+    padding: 0.18em 0.46em;
+    font-size: 0.34em;
     font-weight: 900;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     line-height: 1;
     text-transform: uppercase;
+    white-space: nowrap;
+    word-break: keep-all;
     -webkit-text-stroke: 0;
     paint-order: normal;
     text-shadow: none;
@@ -2970,35 +3003,56 @@
     text-shadow: 0 1px 3px rgb(0 0 0 / 0.9);
   }
 
+  /**
+   * Reserved under every mosaic felt, whether or not a side pot exists.
+   * Plaques fill it; an empty lane is the clearance that keeps the felt from jumping.
+   */
+  .vfd-mosaic-side-lane {
+    container-type: inline-size;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+
   /** Mosaic side pots — glossy stadium chip, inlaid edge spots, dark well. */
   .vfd-mosaic-side-plaques {
-    container-type: inline-size;
     display: flex;
     flex-wrap: nowrap;
     justify-content: center;
-    align-items: stretch;
-    gap: clamp(0.35rem, 2cqi, 0.75rem);
-    margin-top: 0.35rem;
+    align-items: center;
+    gap: clamp(0.25rem, 1.6cqi, 0.55rem);
+    width: 100%;
     min-width: 0;
+    max-width: 100%;
   }
 
-  .vfd-mosaic-side-plaque {
+  .vfd-mosaic-side-plaque,
+  .vfd-mosaic-side-overflow {
     --vfd-side-pot: #2563eb;
     --vfd-plaque-hi: oklch(from var(--vfd-side-pot) 0.7 0.14 h);
     --vfd-plaque-rim: oklch(from var(--vfd-side-pot) 0.5 0.17 h);
     --vfd-plaque-lo: oklch(from var(--vfd-side-pot) 0.36 0.12 h);
     --vfd-plaque-well: oklch(from var(--vfd-side-pot) 0.2 0.05 h);
     --vfd-plaque-num: oklch(from var(--vfd-side-pot) 0.88 0.1 h);
+  }
+
+  .vfd-mosaic-side-plaque {
     position: relative;
     display: flex;
-    min-width: 8.25rem;
-    flex: 1 1 8.75rem;
-    max-width: 15rem;
-    aspect-ratio: 2.4 / 1;
+    width: min(34cqi, 11.5rem);
+    max-width: 100%;
+    flex: 0 0 auto;
+    aspect-ratio: 2.5 / 1;
+    max-height: 5.5rem;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     border-radius: 999px;
+    font-size: clamp(0.85rem, 2.4cqi, 1.35rem);
     background: linear-gradient(180deg, var(--vfd-plaque-hi) 0%, var(--vfd-plaque-rim) 34%, var(--vfd-plaque-lo) 100%);
     box-shadow:
       inset 0 2px 0 rgb(255 255 255 / 0.7),
@@ -3006,6 +3060,15 @@
       0 0 0 1px rgb(0 0 0 / 0.55),
       0 1px 0 rgb(255 255 255 / 0.2),
       0 7px 12px rgb(0 0 0 / 0.48);
+  }
+
+  .vfd-mosaic-side-plaque--fit {
+    width: var(--vfd-plaque-w);
+    height: var(--vfd-plaque-h);
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto;
+    font-size: var(--vfd-plaque-font);
   }
 
   .vfd-mosaic-side-plaque::before {
@@ -3055,9 +3118,9 @@
 
   .vfd-mosaic-side-plaque-title {
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.68rem, 3cqi, 0.95rem);
+    font-size: 0.46em;
     font-weight: 800;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     line-height: 1;
     text-transform: uppercase;
     color: #fff;
@@ -3066,7 +3129,7 @@
 
   .vfd-mosaic-side-plaque-amount {
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(1.7rem, 9.2cqi, 2.7rem);
+    font-size: 1em;
     font-weight: 900;
     line-height: 0.85;
     letter-spacing: -0.03em;
@@ -3076,6 +3139,27 @@
     background-clip: text;
     color: transparent;
     filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.65));
+  }
+
+  .vfd-mosaic-side-overflow {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    height: var(--vfd-plaque-h, 1.7rem);
+    padding: 0 0.7em;
+    border-radius: 999px;
+    background: rgb(15 23 42 / 0.92);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.28),
+      0 2px 6px rgb(0 0 0 / 0.45);
+    font-family: Rajdhani, sans-serif;
+    font-size: var(--vfd-plaque-font, 0.8rem);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    white-space: nowrap;
+    color: #fff;
   }
 
   .vfd-broadcast-center-amount {

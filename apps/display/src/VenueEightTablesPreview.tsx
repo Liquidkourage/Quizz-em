@@ -26,6 +26,15 @@ import {
 } from '@qhe/ui'
 import { disambiguatePublicNames, livePotLayers, type LiveSidePot } from '@qhe/core'
 import {
+  mosaicSeatRail,
+  mosaicSidePotOverflowLabel,
+  mosaicSidePotPlaqueMetrics,
+  mosaicSidePotsThatFit,
+  mosaicTileFrame,
+  type MosaicPlaqueMetrics,
+  type MosaicSeatRail,
+} from './mosaicTileLayout'
+import {
   mosaicSeatDotPct,
   mosaicSeatHoleLayout,
   mosaicSeatLabelPct,
@@ -444,27 +453,7 @@ function MosaicTableStatusBand({
   )
 }
 
-/** Clay chip refuses to shrink below `.vfd-mosaic-side-plaque`. */
-const MOSAIC_SIDE_POT_CHIP_PX = 8.25 * 16
-const MOSAIC_SIDE_POT_GAP_PX = 0.75 * 16
-const MOSAIC_SIDE_POT_INSET_PX = 24
-
-/**
- * How many side pots fit on one row of this mosaic tile.
- * An unmeasured tile keeps every pot until its width is known.
- */
-export function mosaicSidePotsThatFit(sideCount: number, tileWidthPx: number): number {
-  const count = Math.max(0, Math.floor(sideCount))
-  if (count === 0 || !(tileWidthPx > 0)) return count
-  const row = tileWidthPx - MOSAIC_SIDE_POT_INSET_PX
-  let fit = 0
-  while (fit < count) {
-    const width = (fit + 1) * MOSAIC_SIDE_POT_CHIP_PX + fit * MOSAIC_SIDE_POT_GAP_PX
-    if (width > row) break
-    fit += 1
-  }
-  return fit
-}
+export { mosaicSidePotsThatFit } from './mosaicTileLayout'
 
 type MosaicChipSector = { d: string; cx: number; cy: number; a0: number; a1: number }
 type MosaicChipStraight = { x: number; y: number; w: number; h: number }
@@ -543,25 +532,48 @@ export function mosaicChipInlay(): {
 
 const MOSAIC_CHIP_INLAY = mosaicChipInlay()
 
+function plaqueFitStyle(metrics: MosaicPlaqueMetrics | undefined): CSSProperties | undefined {
+  if (metrics == null) return undefined
+  const fontPx = Math.max(11, Math.round(metrics.heightPx * 0.38))
+  return {
+    '--vfd-plaque-w': `${metrics.widthPx}px`,
+    '--vfd-plaque-h': `${metrics.heightPx}px`,
+    '--vfd-plaque-font': `${fontPx}px`,
+  } as CSSProperties
+}
+
 /** Chip plaque for one side pot on a mosaic felt. Color matches that pot's seat badges. */
 export function MosaicSidePotPlaques({
   sides,
   hidden = false,
+  hiddenCount = 0,
+  metrics,
 }: {
   sides: readonly LiveSidePot[] | undefined
   hidden?: boolean
+  /** Established pots that did not fit on this row. */
+  hiddenCount?: number
+  /** Measured tile box. Unmeasured tiles keep the CSS fallback size. */
+  metrics?: MosaicPlaqueMetrics
 }) {
   const clipId = useId().replace(/:/g, '')
-  if (hidden || sides == null || sides.length === 0) return null
+  const shown = sides ?? []
+  const overflow = mosaicSidePotOverflowLabel(hiddenCount)
+  if (hidden || (shown.length === 0 && overflow === '')) return null
+  const fitStyle = plaqueFitStyle(metrics)
   return (
-    <div className="vfd-mosaic-side-plaques col-start-1 row-start-3 shrink-0" role="list">
-      {sides.map((side) => (
+    <div
+      className="vfd-mosaic-side-plaques col-start-1 row-start-3 shrink-0"
+      role="list"
+      style={metrics != null ? ({ gap: `${metrics.gapPx}px` } as CSSProperties) : undefined}
+    >
+      {shown.map((side) => (
         <div
           key={side.mark}
-          className="vfd-mosaic-side-plaque"
+          className={`vfd-mosaic-side-plaque${metrics != null ? ' vfd-mosaic-side-plaque--fit' : ''}`}
           role="listitem"
           aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
-          style={{ '--vfd-side-pot': sidePotColor(side.mark) } as CSSProperties}
+          style={{ '--vfd-side-pot': sidePotColor(side.mark), ...fitStyle } as CSSProperties}
         >
           <svg className="vfd-mosaic-side-plaque-rim" viewBox="0 0 240 100" preserveAspectRatio="xMidYMid meet" aria-hidden>
             <defs>
@@ -579,11 +591,23 @@ export function MosaicSidePotPlaques({
             </g>
           </svg>
           <span className="vfd-mosaic-side-plaque-face">
-            <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>
+            {metrics == null || metrics.showTitle ? (
+              <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>
+            ) : null}
             <span className="vfd-mosaic-side-plaque-amount">{formatVenueBankrollDigits(side.amount)}</span>
           </span>
         </div>
       ))}
+      {overflow !== '' ? (
+        <div
+          className="vfd-mosaic-side-overflow"
+          role="listitem"
+          aria-label={`${hiddenCount} more side pots`}
+          style={fitStyle}
+        >
+          {overflow}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -605,10 +629,43 @@ export function mosaicSeatIsAllIn(args: {
   )
 }
 
-/** Top and side seats put status on the rail, clear of the hole cards. */
-export function mosaicSeatStatusAbove(seatIndex: number): boolean {
-  const seat = ((Math.floor(seatIndex) % 8) + 8) % 8
-  return seat === 0 || seat === 1 || seat === 2 || seat === 6 || seat === 7
+function mosaicSeatStatusNode(folded: boolean, allIn: boolean): ReactNode {
+  if (folded) {
+    return (
+      <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--folded whitespace-nowrap">Folded</span>
+    )
+  }
+  if (!allIn) return null
+  return <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--allin whitespace-nowrap">All-in</span>
+}
+
+function mosaicSeatBadgeRow(marks: readonly number[]): ReactNode {
+  if (marks.length === 0) return null
+  return (
+    <span className="vfd-mosaic-seat-badges">
+      {marks.map((mark) => (
+        <span
+          key={mark}
+          className="vfd-mosaic-side-badge"
+          aria-label={`Side pot ${mark}`}
+          style={{ '--vfd-side-pot': sidePotColor(mark) } as CSSProperties}
+        >
+          {mark}
+        </span>
+      ))}
+    </span>
+  )
+}
+
+function mosaicSeatRailStack(rail: MosaicSeatRail, status: ReactNode, badgeRow: ReactNode): ReactNode {
+  if (status == null && badgeRow == null) return null
+  const statusFirst = rail !== 'bottom'
+  return (
+    <span className="vfd-mosaic-seat-rail">
+      {statusFirst ? status : badgeRow}
+      {statusFirst ? badgeRow : status}
+    </span>
+  )
 }
 
 /** Initials, side-pot chips, and folded / all-in status for one mosaic seat. */
@@ -625,29 +682,14 @@ export function MosaicSeatFace({
   allIn: boolean
   seatIndex?: number
 }) {
-  const badges = marks.map((mark) => (
-    <span
-      key={mark}
-      className="vfd-mosaic-side-badge"
-      aria-label={`Side pot ${mark}`}
-      style={{ '--vfd-side-pot': sidePotColor(mark) } as CSSProperties}
-    >
-      {mark}
-    </span>
-  ))
-  const status = folded ? (
-    <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--folded">Folded</span>
-  ) : allIn ? (
-    <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--allin">All-in</span>
-  ) : null
-  const statusAbove = mosaicSeatStatusAbove(seatIndex)
-  const badgeRow =
-    badges.length > 0 ? <span className="vfd-mosaic-seat-badges">{badges}</span> : null
+  const rail = mosaicSeatRail(seatIndex)
+  const railStack = mosaicSeatRailStack(rail, mosaicSeatStatusNode(folded, allIn), mosaicSeatBadgeRow(marks))
+  const initialsFirst = rail === 'bottom'
   return (
-    <span className={`vfd-mosaic-seat-face${statusAbove ? ' vfd-mosaic-seat-face--status-above' : ''}`}>
-      {statusAbove ? status : badgeRow}
+    <span className={`vfd-mosaic-seat-face vfd-mosaic-seat-face--${rail}`}>
+      {initialsFirst ? null : railStack}
       <span className={folded ? 'vfd-mosaic-seat-initial--folded' : undefined}>{initials}</span>
-      {statusAbove ? badgeRow : status}
+      {initialsFirst ? railStack : null}
     </span>
   )
 }
@@ -1977,6 +2019,7 @@ function SeatRingWithLabels({
                 }
                 labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
                 labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(rimW) : undefined}
+                labelFree={isMosaic}
                 labelShiftXPx={
                   isMosaic
                     ? mosaicSeatInitialShiftXPx(i, rimW, rimH, mosaicSeatInitialFontPx(rimW))
@@ -2377,8 +2420,15 @@ function VenueMosaicTableCard({
     row.seatPointsOnly,
     row.seatBankrolls != null,
   )
-  const shownSideCount = mosaicSidePotsThatFit(sides.length, tilePx.w)
+  const tileFrame = mosaicTileFrame(tilePx.w, tilePx.h)
+  const shownSideCount = mosaicSidePotsThatFit(sides.length, tilePx.w, tilePx.h)
   const shownSides = sides.slice(0, shownSideCount)
+  const hiddenSideCount = Math.max(0, sides.length - shownSides.length)
+  const plaqueSlots = shownSides.length + (hiddenSideCount > 0 ? 1 : 0)
+  const plaqueMetrics =
+    tilePx.w > 0 && plaqueSlots > 0
+      ? mosaicSidePotPlaqueMetrics(tilePx.w, tilePx.h, plaqueSlots)
+      : undefined
   const shownMarks = seatSideMarks.map((seat) => seat.filter((mark) => mark <= shownSideCount))
   const ph = String(row.phase ?? '').trim().toLowerCase()
   const seatNames = padSeatNames(row.seatNames)
@@ -2549,14 +2599,23 @@ function VenueMosaicTableCard({
             floorFillHeight && denseMosaicChrome ? mosaicTypography.feltMaxHeightClass : ''
           } ${
             floorFillHeight
-              ? 'flex min-h-0 flex-1 items-center justify-center'
+              ? 'flex h-full min-h-0 flex-1 flex-col justify-center'
               : feltFillsCell
-                ? `${feltGridRow} flex min-h-0 flex-1 items-center justify-center`
+                ? `${feltGridRow} flex h-full min-h-0 flex-1 flex-col justify-center`
                 : mosaicShrinkWrap
-                  ? 'shrink-0'
-                  : 'flex min-h-0 flex-1 items-center justify-center'
+                  ? 'flex shrink-0 flex-col justify-center'
+                  : 'flex h-full min-h-0 flex-1 flex-col justify-center'
           }`}
+          style={tileFrame.topStatusPx > 0 ? { paddingTop: tileFrame.topStatusPx } : undefined}
         >
+          <div
+            className="flex w-full min-h-0 items-end justify-center"
+            style={
+              tileFrame.plaqueLanePx > 0
+                ? { maxHeight: `calc(100% - ${tileFrame.bottomStatusPx + tileFrame.plaqueLanePx}px)` }
+                : undefined
+            }
+          >
           <SeatRingWithLabels
             ringMode="mosaic"
             mosaicFluidWidth={floorHoneycomb || floorFillHeight}
@@ -2593,9 +2652,26 @@ function VenueMosaicTableCard({
             answeringPhase={ph === 'answering'}
             showMosaicSeatStacks={mosaicShowsSeatStacks(ph)}
           />
+          </div>
+          <div
+            className="vfd-mosaic-side-lane shrink-0"
+            style={
+              tileFrame.plaqueLanePx > 0
+                ? {
+                    height: tileFrame.bottomStatusPx + tileFrame.plaqueLanePx,
+                    minHeight: tileFrame.bottomStatusPx + tileFrame.plaqueLanePx,
+                  }
+                : undefined
+            }
+          >
+            <MosaicSidePotPlaques
+              sides={shownSides}
+              hidden={inShowdown}
+              hiddenCount={hiddenSideCount}
+              metrics={plaqueMetrics}
+            />
+          </div>
         </div>
-
-        <MosaicSidePotPlaques sides={shownSides} hidden={inShowdown} />
 
         {showExpandedShowdownPanel ? (
           <div

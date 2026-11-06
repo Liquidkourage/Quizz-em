@@ -75,6 +75,7 @@ describe('felt side pot', () => {
             pot: 1900,
             seatInvested: [100, 300, 300, 600, 600],
             seatFolded: [false, false, false, false, false],
+            seatBankrolls: [0, 0, 0, 400, 400],
           }),
           tile(2, { pot: 0, seatInvested: [], seatFolded: [] }),
         ],
@@ -94,6 +95,23 @@ describe('felt side pot', () => {
     expect(card).not.toContain('vfd-mosaic-side-footer')
     expect(card).not.toContain('>Main<')
     expect(card).not.toContain('vfd-felt-side-pot')
+  })
+
+  it('keeps an unmatched raise in the one pot while the short stack can still call', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSingleTableBroadcast, {
+        tile: tile(1, {
+          pot: 700,
+          seatInvested: [100, 300, 300],
+          seatFolded: [false, false, false],
+          seatBankrolls: [400, 200, 200],
+        }),
+        prefersReducedMotion: true,
+      }),
+    )
+    expect(html).toContain('pot $700')
+    expect(html).not.toContain('vfd-mosaic-side-plaque')
+    expect(html).not.toContain('Side pot')
   })
 
   it('draws one plaque when the hand has one side pot and none when it has zero', () => {

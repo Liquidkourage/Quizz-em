@@ -55,6 +55,7 @@ describe('livePotLayers', () => {
     const { main, marks, sides } = livePotLayers(
       [960, 960, 960, 160, 20, 0],
       [false, false, false, false, true, true],
+      [false, false, false, true, false, false],
     )
     expect(main).toBe(660)
     expect(sides).toEqual([{ mark: 1, amount: 2400 }])
@@ -65,6 +66,7 @@ describe('livePotLayers', () => {
     const { marks } = livePotLayers(
       [100, 300, 300, 600, 600],
       [false, false, false, false, false],
+      [true, true, true, false, false],
     )
     expect(marks).toEqual([[], [1], [1], [1, 2], [1, 2]])
   })
@@ -74,6 +76,18 @@ describe('livePotLayers', () => {
     expect(main).toBe(200)
     expect(marks).toEqual([[], []])
     expect(sides).toEqual([])
+  })
+
+  it('keeps an unmatched raise in the main pot until a player is all-in short', () => {
+    const open = livePotLayers([100, 300, 300], [false, false, false], [false, false, false])
+    expect(open.main).toBe(700)
+    expect(open.sides).toEqual([])
+    expect(open.marks).toEqual([[], [], []])
+
+    const capped = livePotLayers([100, 300, 300], [false, false, false], [true, false, false])
+    expect(capped.main).toBe(300)
+    expect(capped.sides).toEqual([{ mark: 1, amount: 400 }])
+    expect(capped.marks).toEqual([[], [1], [1]])
   })
 })
 
@@ -237,6 +251,7 @@ describe('feltSidePotAmount', () => {
     gs = {
       ...gs,
       round: { ...gs.round, pot: 850, handContributions: { a: 100, b: 500, c: 250 } },
+      players: gs.players.map((player) => (player.id === 'a' ? { ...player, isAllIn: true, bankroll: 0 } : player)),
     }
     expect(feltSidePotAmount(gs)).toBe(300)
   })

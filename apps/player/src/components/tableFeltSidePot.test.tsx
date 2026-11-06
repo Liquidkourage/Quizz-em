@@ -28,12 +28,22 @@ function layersOf(hand: GameState) {
   return livePotLayers(
     hand.players.map((player) => hand.round.handContributions?.[player.id] ?? 0),
     hand.players.map((player) => player.hasFolded === true || player.pointsOnly === true),
+    hand.players.map((player) => player.isAllIn === true),
   )
 }
 
 describe('player side pot', () => {
   it('shows the main pot and the numbered side pot on the felt', () => {
-    const hand = unevenHand()
+    const open = unevenHand()
+    const quietRaise = renderToStaticMarkup(
+      createElement(PlayerFeltPot, { pot: displayedMainPot(open), sides: layersOf(open).sides }),
+    )
+    expect(quietRaise).toContain('Pot $600')
+    expect(quietRaise).not.toContain('>Side<')
+    const hand = {
+      ...open,
+      players: open.players.map((player) => (player.id === 'a' ? { ...player, isAllIn: true, bankroll: 0 } : player)),
+    }
     const html = renderToStaticMarkup(
       createElement(PlayerFeltPot, { pot: displayedMainPot(hand), sides: layersOf(hand).sides }),
     )
@@ -57,7 +67,11 @@ describe('player side pot', () => {
   })
 
   it('shows the main pot on the sticky bar and the info card', () => {
-    const hand = unevenHand()
+    const open = unevenHand()
+    const hand = {
+      ...open,
+      players: open.players.map((player) => (player.id === 'a' ? { ...player, isAllIn: true, bankroll: 0 } : player)),
+    }
     const sticky = renderToStaticMarkup(
       createElement(StickyQuestionBar, {
         questionText: 'How many?',

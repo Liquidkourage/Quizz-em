@@ -127,6 +127,7 @@ export default function TableFeltView({
   const liveLayers = livePotLayers(
     players.map((player) => gameState.round.handContributions?.[player.id] ?? 0),
     players.map((player) => player.hasFolded === true || player.pointsOnly === true),
+    players.map((player) => player.isAllIn === true),
   )
   const sideMarks = liveLayers.marks
   const sideLayers = liveLayers.sides

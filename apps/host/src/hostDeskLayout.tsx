@@ -1466,6 +1466,7 @@ function hostSeatLayers(seats: HostVenueSeatContest[]) {
   return livePotLayers(
     seats.map((seat) => seat.invested ?? 0),
     seats.map((seat) => seat.reason === 'folded' || seat.reason === 'busted'),
+    seats.map((seat) => seat.reason == null && seat.bankroll === 0 && (seat.invested ?? 0) > 0),
   )
 }
 

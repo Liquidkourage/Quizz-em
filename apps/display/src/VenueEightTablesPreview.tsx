@@ -287,14 +287,26 @@ function shownFeltPot(
   pot: number,
   invested: number[] | undefined,
   folded: boolean[] | undefined,
+  bankrolls: number[] | undefined,
+  pointsOnly: boolean[] | undefined,
+  stacksKnown: boolean,
 ): { pot: number; marks: number[][]; sides: LiveSidePot[] } {
   const raw = Math.max(0, Math.floor(Number.isFinite(pot) ? pot : 0))
   const amounts = Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
     const v = invested?.[i]
     return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0
   })
-  const folds = Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => folded?.[i] === true)
-  const layers = livePotLayers(amounts, folds)
+  const folds = Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => folded?.[i] === true || pointsOnly?.[i] === true)
+  const allIn = amounts.map((amount, i) =>
+    mosaicSeatIsAllIn({
+      stacksKnown,
+      bankroll: bankrolls?.[i] ?? 0,
+      invested: amount,
+      folded: folds[i] === true,
+      pointsOnly: pointsOnly?.[i] === true,
+    }),
+  )
+  const layers = livePotLayers(amounts, folds, allIn)
   return { pot: layers.main > 0 ? layers.main : raw, marks: layers.marks, sides: layers.sides }
 }
 
@@ -2357,7 +2369,14 @@ function VenueMosaicTableCard({
   )
   const tn = row.tableNum
   const seats = row.seated
-  const { pot, marks: seatSideMarks, sides } = shownFeltPot(row.pot, row.seatInvested, row.seatFolded)
+  const { pot, marks: seatSideMarks, sides } = shownFeltPot(
+    row.pot,
+    row.seatInvested,
+    row.seatFolded,
+    row.seatBankrolls,
+    row.seatPointsOnly,
+    row.seatBankrolls != null,
+  )
   const shownSideCount = mosaicSidePotsThatFit(sides.length, tilePx.w)
   const shownSides = sides.slice(0, shownSideCount)
   const shownMarks = seatSideMarks.map((seat) => seat.filter((mark) => mark <= shownSideCount))
@@ -2986,7 +3005,14 @@ export function VenueSingleTableBroadcast({
   reserveHeadlineSpace?: boolean
 }) {
   const seats = tile.seated
-  const { pot, marks: seatSideMarks, sides } = shownFeltPot(tile.pot, tile.seatInvested, tile.seatFolded)
+  const { pot, marks: seatSideMarks, sides } = shownFeltPot(
+    tile.pot,
+    tile.seatInvested,
+    tile.seatFolded,
+    tile.seatBankrolls,
+    tile.seatPointsOnly,
+    tile.seatBankrolls != null,
+  )
   const ph = String(tile.phase ?? '').trim().toLowerCase()
   const seatNames = padSeatNames(tile.seatNames)
   const seatBankrolls = padSeatBankrolls(tile.seatBankrolls)

@@ -919,21 +919,56 @@ function mergePotsSameWinners(pots: SidePot[]): SidePot[] {
 
 export type LiveSidePot = { mark: number; amount: number }
 
+/**
+ * A higher layer is a side pot only when every live player it excludes is all-in.
+ * Chips a player can still call stay in the pot they can still win.
+ */
+function sideLayerIsCertain(
+  pot: SidePot,
+  covered: readonly string[],
+  allInById: Readonly<Record<string, boolean>>,
+): boolean {
+  for (const id of covered) {
+    if (pot.eligiblePlayerIds.includes(id)) continue
+    if (allInById[id] === true) continue
+    return false
+  }
+  return true
+}
+
+function holdUncertainSides(pots: readonly SidePot[], allInById: Readonly<Record<string, boolean>>): SidePot[] {
+  const kept: SidePot[] = []
+  for (const pot of pots) {
+    const prev = kept[kept.length - 1]
+    if (prev == null || sideLayerIsCertain(pot, prev.eligiblePlayerIds, allInById)) {
+      kept.push({ amount: pot.amount, eligiblePlayerIds: [...pot.eligiblePlayerIds] })
+      continue
+    }
+    prev.amount += pot.amount
+  }
+  return kept
+}
+
 /** Every side-pot number each seat can win. The main pot is the first contested layer. */
 export function livePotLayers(
   amounts: readonly number[],
   folded: readonly boolean[],
+  allIn: readonly boolean[] = [],
 ): { main: number; sides: LiveSidePot[]; marks: number[][] } {
   const contributions: Record<string, number> = {}
   const foldedById: Record<string, boolean> = {}
+  const allInById: Record<string, boolean> = {}
   for (let i = 0; i < amounts.length; i++) {
-    contributions[String(i)] = amounts[i] ?? 0
-    foldedById[String(i)] = folded[i] === true
+    const id = String(i)
+    contributions[id] = amounts[i] ?? 0
+    foldedById[id] = folded[i] === true
+    allInById[id] = allIn[i] === true
   }
   const { pots } = buildSidePotSettlement(contributions, foldedById)
+  const settled = holdUncertainSides(pots, allInById)
   const marks: number[][] = amounts.map(() => [])
-  writeSidePotMarks(pots, marks)
-  return { main: pots[0]?.amount ?? 0, sides: sidePotTotals(pots), marks }
+  writeSidePotMarks(settled, marks)
+  return { main: settled[0]?.amount ?? 0, sides: sidePotTotals(settled), marks }
 }
 
 function sidePotTotals(pots: SidePot[]): LiveSidePot[] {
@@ -959,6 +994,7 @@ export function displayedMainPot(state: GameState): number {
   const { main } = livePotLayers(
     state.players.map((player) => state.round.handContributions?.[player.id] ?? 0),
     state.players.map((player) => player.hasFolded === true || player.pointsOnly === true),
+    state.players.map((player) => player.isAllIn === true),
   )
   if (main > 0) return main
   const raw = state.round.pot ?? 0
@@ -1785,7 +1821,10 @@ function payoutPotToEligibleSurvivors(state: GameState, eligiblePlayerIds: strin
 /** Chips in the pot that only some of the players still in the hand can win. */
 export function feltSidePotAmount(state: GameState): number | null {
   const contributions = state.round.handContributions ?? {}
-  const { pots } = buildSidePotSettlement(contributions, foldedForSidePots(state, contributions))
+  const allInById: Record<string, boolean> = {}
+  for (const player of state.players) allInById[player.id] = player.isAllIn === true
+  const { pots: built } = buildSidePotSettlement(contributions, foldedForSidePots(state, contributions))
+  const pots = holdUncertainSides(built, allInById)
   if (pots.length < 2) return null
   let side = 0
   for (let i = 1; i < pots.length; i++) side += pots[i]!.amount

@@ -162,18 +162,27 @@ describe('felt side pot', () => {
     })).toBe(false)
   })
 
-  it('spaces side-pot inlays evenly along one closed stadium rim', () => {
-    const inlay = mosaicChipInlay()
-    const [dash, gap] = inlay.dasharray.split(' ').map(Number)
-    const perimeter = 2 * 140 + 2 * Math.PI * 39
-    expect(inlay.count * (dash + gap)).toBeCloseTo(perimeter, 1)
-    expect(inlay.d).toContain('A ')
-    expect(inlay.d.trim().endsWith('Z')).toBe(true)
+  it('sets three radial inlays on each semicircular end', () => {
+    const rim = mosaicChipInlay()
+    const right = rim.sectors.filter((sector) => sector.cx === 190)
+    const left = rim.sectors.filter((sector) => sector.cx === 50)
+    expect(right.map((sector) => (sector.a0 + sector.a1) / 2)).toEqual([-60, 0, 60])
+    expect(left.map((sector) => (sector.a0 + sector.a1) / 2)).toEqual([120, 180, 240])
+    expect(new Set(rim.sectors.map((sector) => sector.a1 - sector.a0))).toEqual(new Set([28]))
+    for (const sector of rim.sectors) {
+      expect(sector.d).toContain(`A ${rim.outer}`)
+      expect(sector.d).toContain(`A ${rim.inner}`)
+      expect(sector.d.endsWith('Z')).toBe(true)
+    }
+    const top = rim.straights.filter((bar) => bar.y < 50)
+    expect(top).toHaveLength(4)
+    const gaps = top.slice(1).map((bar, index) => bar.x - (top[index].x + top[index].w))
+    expect(gaps[0]).toBeCloseTo(gaps[1], 2)
     const html = renderToStaticMarkup(
       createElement(MosaicSidePotPlaques, { sides: [{ mark: 1, amount: 600 }] }),
     )
-    expect(html).toContain(`stroke-dasharray="${inlay.dasharray}"`)
-    expect(html).not.toContain('rotate(')
+    expect(html).toContain('clip-path="url(#')
+    expect(html).not.toContain('stroke-dasharray')
   })
 
   it('keeps only the side pots that fit on one mosaic row', () => {

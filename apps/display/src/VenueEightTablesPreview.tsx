@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CardFaceGraphic,
@@ -454,36 +454,79 @@ export function mosaicSidePotsThatFit(sideCount: number, tileWidthPx: number): n
   return fit
 }
 
-const MOSAIC_CHIP_INLAYS = 16
+type MosaicChipSector = { d: string; cx: number; cy: number; a0: number; a1: number }
+type MosaicChipStraight = { x: number; y: number; w: number; h: number }
+
+const CHIP_RIM_CY = 50
+const CHIP_RIM_LEFT = 50
+const CHIP_RIM_RIGHT = 190
+const CHIP_RIM_OUTER = 47
+const CHIP_RIM_INNER = 30
+const CHIP_END_SPAN = 28
+const CHIP_STRAIGHT_COUNT = 4
+const CHIP_STRAIGHT_W = 18
+const CHIP_STRAIGHT_END_GAP = 7.15
+const CHIP_STRAIGHT_GAP = 17.9
+
+function chipRimPoint(cx: number, cy: number, radius: number, degrees: number): string {
+  const radians = (degrees * Math.PI) / 180
+  const x = cx + radius * Math.cos(radians)
+  const y = cy - radius * Math.sin(radians)
+  return `${x.toFixed(2)} ${y.toFixed(2)}`
+}
+
+/** Annular sector. Angles are math degrees, y-up, around the semicircle center. */
+function chipAnnularSector(cx: number, cy: number, center: number, span: number): MosaicChipSector {
+  const a0 = center - span / 2
+  const a1 = center + span / 2
+  const outer = CHIP_RIM_OUTER
+  const inner = CHIP_RIM_INNER
+  const d = [
+    `M ${chipRimPoint(cx, cy, outer, a0)}`,
+    `A ${outer} ${outer} 0 0 0 ${chipRimPoint(cx, cy, outer, a1)}`,
+    `L ${chipRimPoint(cx, cy, inner, a1)}`,
+    `A ${inner} ${inner} 0 0 1 ${chipRimPoint(cx, cy, inner, a0)}`,
+    'Z',
+  ].join(' ')
+  return { d, cx, cy, a0, a1 }
+}
+
+function chipStadium(radius: number): string {
+  const top = (CHIP_RIM_CY - radius).toFixed(2)
+  const bottom = (CHIP_RIM_CY + radius).toFixed(2)
+  const left = CHIP_RIM_LEFT.toFixed(2)
+  const right = CHIP_RIM_RIGHT.toFixed(2)
+  const r = radius.toFixed(2)
+  return `M ${left} ${top} H ${right} A ${r} ${r} 0 0 1 ${right} ${bottom} H ${left} A ${r} ${r} 0 0 1 ${left} ${top} Z`
+}
 
 /**
- * White inlays for one stadium rim. Dash plus gap times the count is the centerline length,
- * so the pattern closes without a leftover gap. The stroke is centered on that path.
+ * Straight rectangles plus three annular sectors on each end.
+ * End centers sit at -60°, 0°, and +60° from the outward horizontal.
  */
-export function mosaicChipInlay(count = MOSAIC_CHIP_INLAYS): {
-  d: string
-  dasharray: string
-  count: number
-  width: number
+export function mosaicChipInlay(): {
+  mask: string
+  outer: number
+  inner: number
+  sectors: MosaicChipSector[]
+  straights: MosaicChipStraight[]
 } {
-  const x = 11
-  const y = 11
-  const w = 218
-  const h = 78
-  const r = h / 2
-  const straight = w - h
-  const perimeter = straight * 2 + Math.PI * h
-  const period = perimeter / count
-  const dash = period * 0.66
-  const gap = period - dash
-  const left = x + r
-  const right = x + w - r
-  const cx = x + w / 2
-  const top = y
-  const bottom = y + h
-  const n = (value: number) => value.toFixed(2)
-  const d = `M ${n(cx)} ${n(top)} H ${n(right)} A ${n(r)} ${n(r)} 0 0 1 ${n(right)} ${n(bottom)} H ${n(left)} A ${n(r)} ${n(r)} 0 0 1 ${n(left)} ${n(top)} H ${n(cx)} Z`
-  return { d, dasharray: `${dash.toFixed(3)} ${gap.toFixed(3)}`, count, width: 15 }
+  const right = [-60, 0, 60].map((center) => chipAnnularSector(CHIP_RIM_RIGHT, CHIP_RIM_CY, center, CHIP_END_SPAN))
+  const left = [120, 180, 240].map((center) => chipAnnularSector(CHIP_RIM_LEFT, CHIP_RIM_CY, center, CHIP_END_SPAN))
+  const height = CHIP_RIM_OUTER - CHIP_RIM_INNER
+  const straights: MosaicChipStraight[] = []
+  for (let index = 0; index < CHIP_STRAIGHT_COUNT; index += 1) {
+    const x = CHIP_RIM_LEFT + CHIP_STRAIGHT_END_GAP + index * (CHIP_STRAIGHT_W + CHIP_STRAIGHT_GAP)
+    straights.push({ x, y: CHIP_RIM_CY - CHIP_RIM_OUTER, w: CHIP_STRAIGHT_W, h: height })
+    straights.push({ x, y: CHIP_RIM_CY + CHIP_RIM_INNER, w: CHIP_STRAIGHT_W, h: height })
+  }
+  return {
+    mask: `${chipStadium(49)} ${chipStadium(28)}`,
+    outer: CHIP_RIM_OUTER,
+    inner: CHIP_RIM_INNER,
+    sectors: [...right, ...left],
+    straights,
+  }
 }
 
 const MOSAIC_CHIP_INLAY = mosaicChipInlay()
@@ -496,6 +539,7 @@ export function MosaicSidePotPlaques({
   sides: readonly LiveSidePot[] | undefined
   hidden?: boolean
 }) {
+  const clipId = useId().replace(/:/g, '')
   if (hidden || sides == null || sides.length === 0) return null
   return (
     <div className="vfd-mosaic-side-plaques col-start-1 row-start-3 shrink-0" role="list">
@@ -508,7 +552,19 @@ export function MosaicSidePotPlaques({
           style={{ '--vfd-side-pot': sidePotColor(side.mark) } as CSSProperties}
         >
           <svg className="vfd-mosaic-side-plaque-rim" viewBox="0 0 240 100" preserveAspectRatio="xMidYMid meet" aria-hidden>
-            <path className="vfd-mosaic-side-plaque-inlay" d={MOSAIC_CHIP_INLAY.d} strokeWidth={MOSAIC_CHIP_INLAY.width} strokeDasharray={MOSAIC_CHIP_INLAY.dasharray} />
+            <defs>
+              <clipPath id={`${clipId}-${side.mark}`}>
+                <path d={MOSAIC_CHIP_INLAY.mask} fillRule="evenodd" />
+              </clipPath>
+            </defs>
+            <g clipPath={`url(#${clipId}-${side.mark})`}>
+              {MOSAIC_CHIP_INLAY.sectors.map((sector) => (
+                <path key={`${sector.cx}-${sector.a0}`} className="vfd-mosaic-side-plaque-inlay" d={sector.d} />
+              ))}
+              {MOSAIC_CHIP_INLAY.straights.map((bar) => (
+                <rect key={`${bar.x}-${bar.y}`} className="vfd-mosaic-side-plaque-inlay" x={bar.x} y={bar.y} width={bar.w} height={bar.h} />
+              ))}
+            </g>
           </svg>
           <span className="vfd-mosaic-side-plaque-face">
             <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>

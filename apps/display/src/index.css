@@ -3031,9 +3031,8 @@
   }
 
   .vfd-mosaic-side-plaque-inlay {
-    fill: none;
-    stroke: #fff;
-    stroke-linecap: butt;
+    fill: #fff;
+    stroke: none;
   }
 
   .vfd-mosaic-side-plaque-face {

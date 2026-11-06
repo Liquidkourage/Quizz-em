@@ -521,6 +521,24 @@ describe('buildHostVenueActionRows seats', () => {
     ])
   })
 
+  it('puts the chips a seat has in the pot on that recent action', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 1,
+        seated: 2,
+        pot: 160,
+        phase: 'betting',
+        seatNames: ['Ada', 'Bo'],
+        seatLastBettingAction: ['call', 'raise'],
+        seatInvested: [40, 120],
+      } as never,
+    ])
+    expect(rows[0]?.recentActions).toEqual([
+      { seat: 1, name: 'Ada', action: 'call', amount: 40 },
+      { seat: 2, name: 'Bo', action: 'raise', amount: 120 },
+    ])
+  })
+
   it('keeps the side pot on the host row', () => {
     const rows = buildHostVenueActionRows([
       {

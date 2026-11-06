@@ -438,7 +438,13 @@ function recentActionsFromTile(tile: DisplayVenueTileSnapshot): HostVenueActionR
     if (action == null) continue
     const name = tile.seatNames[i]?.trim()
     if (!name) continue
-    out.push({ seat: i + 1, name, action })
+    const invested = wholeChips(tile.seatInvested?.[i])
+    out.push({
+      seat: i + 1,
+      name,
+      action,
+      ...(invested != null && invested > 0 ? { amount: invested } : {}),
+    })
   }
   return out.slice(-4)
 }

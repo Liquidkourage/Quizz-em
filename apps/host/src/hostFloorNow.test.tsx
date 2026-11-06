@@ -715,7 +715,7 @@ describe('venue floor now', () => {
     const html = renderToStaticMarkup(
       createElement(HostTableOpen, {
         seats: [],
-        recentActions: [{ seat: 1, name: 'Ned P.', action: 'call' }],
+        recentActions: [{ seat: 1, name: 'Ned P.', action: 'call', amount: 40 }],
         phaseLabel: 'Guessing',
         pot: 1020,
         actingSummary: 'Answering on phones',
@@ -724,6 +724,8 @@ describe('venue floor now', () => {
     )
     expect(html).toContain('Ned P.')
     expect(html).toContain('Call')
+    expect(html).toContain('grid-cols-3')
+    expect(html).toContain('aria-label="$40"')
     expect(html).toContain('Answering on phones')
     expect(html).toContain('1,020')
   })

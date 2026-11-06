@@ -363,6 +363,8 @@ export type HostVenueRecentAction = {
   seat: number
   name: string
   action: SeatBettingAction
+  /** Chips this seat has committed to the pot this hand. Omitted when none. */
+  amount?: number
 }
 
 /** Chronological player move for the host action log (all tables). */

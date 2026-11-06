@@ -2227,16 +2227,21 @@ function HostTableOpenAside({
       {recentActions.length > 0 ? (
         <section>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Recent actions</p>
-          <ul className="mt-2 space-y-1">
+          <ul className="mt-2 grid grid-cols-3 gap-1">
             {recentActions.map((action, index) => (
               <li
                 key={`${action.seat}-${index}`}
-                className="flex items-baseline justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5 text-sm"
+                className="min-w-0 rounded-md bg-black/30 px-2 py-1.5 text-sm"
               >
-                <span className="font-semibold text-white">
+                <p className="truncate font-semibold text-white">
                   {hostPlayerLabel(actionLabels[index] ?? action.name)}
-                </span>
-                <span className="shrink-0 text-xs text-white/55">{recentActionLabel(action.action)}</span>
+                </p>
+                <p className="text-xs text-white/55">{recentActionLabel(action.action)}</p>
+                {action.amount != null && action.amount > 0 ? (
+                  <p className="text-xs font-semibold tabular-nums text-amber-100">
+                    <ChipText text={formatHostFloorMoney(action.amount)} />
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -2284,7 +2289,7 @@ export function HostTableOpen({
 }) {
   const aside = recentActions.length > 0 || (tableNum != null && onSetTablePhase != null) || onSpotlight != null
   return (
-    <div className={aside ? 'host-table-open grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]' : 'host-table-open flex flex-col gap-3'}>
+    <div className={aside ? 'host-table-open grid items-start gap-4 lg:grid-cols-2' : 'host-table-open flex flex-col gap-3'}>
       <div className="flex min-w-0 flex-col gap-3">
         <HostTableOpenSummary
           phaseLabel={phaseLabel}

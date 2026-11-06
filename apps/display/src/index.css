@@ -2965,7 +2965,7 @@
   .vfd-mosaic-side-plaques {
     container-type: inline-size;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
     align-items: stretch;
     gap: clamp(0.35rem, 2cqi, 0.75rem);

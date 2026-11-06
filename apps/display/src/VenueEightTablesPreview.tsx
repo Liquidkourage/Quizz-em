@@ -432,6 +432,28 @@ function MosaicTableStatusBand({
   )
 }
 
+/** Clay chip refuses to shrink below `.vfd-mosaic-side-plaque`. */
+const MOSAIC_SIDE_POT_CHIP_PX = 8.25 * 16
+const MOSAIC_SIDE_POT_GAP_PX = 0.75 * 16
+const MOSAIC_SIDE_POT_INSET_PX = 24
+
+/**
+ * How many side pots fit on one row of this mosaic tile.
+ * An unmeasured tile keeps every pot until its width is known.
+ */
+export function mosaicSidePotsThatFit(sideCount: number, tileWidthPx: number): number {
+  const count = Math.max(0, Math.floor(sideCount))
+  if (count === 0 || !(tileWidthPx > 0)) return count
+  const row = tileWidthPx - MOSAIC_SIDE_POT_INSET_PX
+  let fit = 0
+  while (fit < count) {
+    const width = (fit + 1) * MOSAIC_SIDE_POT_CHIP_PX + fit * MOSAIC_SIDE_POT_GAP_PX
+    if (width > row) break
+    fit += 1
+  }
+  return fit
+}
+
 /** Chip plaque for one side pot on a mosaic felt. Color matches that pot's seat badges. */
 export function MosaicSidePotPlaques({
   sides,
@@ -2252,6 +2274,9 @@ function VenueMosaicTableCard({
   const tn = row.tableNum
   const seats = row.seated
   const { pot, marks: seatSideMarks, sides } = shownFeltPot(row.pot, row.seatInvested, row.seatFolded)
+  const shownSideCount = mosaicSidePotsThatFit(sides.length, tilePx.w)
+  const shownSides = sides.slice(0, shownSideCount)
+  const shownMarks = seatSideMarks.map((seat) => seat.filter((mark) => mark <= shownSideCount))
   const ph = String(row.phase ?? '').trim().toLowerCase()
   const seatNames = padSeatNames(row.seatNames)
   const seatBankrolls = padSeatBankrolls(row.seatBankrolls)
@@ -2348,7 +2373,7 @@ function VenueMosaicTableCard({
         ref={tileRef}
         data-table-tile={tn}
         role="group"
-        aria-label={`Table ${tn}, ${feltPotAria(pot, sides)}${statusBandAria}, venue floor`}
+        aria-label={`Table ${tn}, ${feltPotAria(pot, shownSides)}${statusBandAria}, venue floor`}
         style={tileTypographyStyle}
         className={`@container/size relative min-h-0 min-w-0 ${mosaicTypography.rootClass} ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           showFloorShowdownOverlay && shrinkWrapRowHeight
@@ -2438,8 +2463,8 @@ function VenueMosaicTableCard({
             mosaicFeltAspectClass={floorSize.feltAspectClass}
             mosaicFeltWidthClass={floorSize.feltWidthClass}
             mosaicCenterPot={potOnFelt ? pot : null}
-            seatSideMarks={seatSideMarks}
-            sideLayers={sides}
+            seatSideMarks={shownMarks}
+            sideLayers={shownSides}
             mosaicCenterPotClass={mosaicTypography.feltPot}
             mosaicCenterPotMuted={potMuted}
             seatedCount={seats}
@@ -2467,7 +2492,7 @@ function VenueMosaicTableCard({
           />
         </div>
 
-        <MosaicSidePotPlaques sides={sides} hidden={inShowdown} />
+        <MosaicSidePotPlaques sides={shownSides} hidden={inShowdown} />
 
         {showExpandedShowdownPanel ? (
           <div

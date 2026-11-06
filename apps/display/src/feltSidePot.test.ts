@@ -8,6 +8,7 @@ import {
   VenueAerialFloorGrid,
   VenueSingleTableBroadcast,
   mosaicSeatIsAllIn,
+  mosaicSidePotsThatFit,
 } from './VenueEightTablesPreview'
 import { resolveVenueFloorSpec } from './venueFloorSpec'
 
@@ -156,5 +157,13 @@ describe('felt side pot', () => {
       folded: false,
       pointsOnly: false,
     })).toBe(false)
+  })
+
+  it('keeps only the side pots that fit on one mosaic row', () => {
+    expect(mosaicSidePotsThatFit(3, 0)).toBe(3)
+    expect(mosaicSidePotsThatFit(3, 160)).toBe(1)
+    expect(mosaicSidePotsThatFit(3, 340)).toBe(2)
+    expect(mosaicSidePotsThatFit(3, 520)).toBe(3)
+    expect(mosaicSidePotsThatFit(2, 100)).toBe(0)
   })
 })

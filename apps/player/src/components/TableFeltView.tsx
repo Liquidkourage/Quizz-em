@@ -281,9 +281,14 @@ export default function TableFeltView({
         centerContent={showCenterPot ? <PlayerFeltPot pot={pot} sides={sideLayers} /> : null}
       />
       </div>
-      {heroHoles && heroFolded ? (
-        <div className="player-hud-hero-cards player-hud-hero-cards--folded" aria-label="Your cards (folded chips)">
-          <span className="player-hud-hero-cards-label">Your cards · folded</span>
+      {heroHoles && (heroFolded || hero?.pointsOnly === true) ? (
+        <div
+          className={`player-hud-hero-cards${heroFolded ? ' player-hud-hero-cards--folded' : ''}`}
+          aria-label={heroFolded ? 'Your cards (folded chips)' : 'Your cards'}
+        >
+          <span className="player-hud-hero-cards-label">
+            {heroFolded ? 'Your cards · folded' : 'Your cards'}
+          </span>
           <div className="player-hud-hero-cards-pair">
             <NumericPlayingCard digit={digitsAscending(heroHoles)[0]!} size="normal" compact animated={false} />
             <NumericPlayingCard digit={digitsAscending(heroHoles)[1]!} size="normal" compact animated={false} />

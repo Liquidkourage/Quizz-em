@@ -192,16 +192,20 @@ describe('mosaic tile frame', () => {
     expect(grown).toBeGreaterThan(banded + 40)
   })
 
-  it('leaves a little room under the felt for 5-8 and 13-15 tables', () => {
+  it('clears the corner chips without lifting seven and eight tables', () => {
     expect(mosaicCornerDockPx(4, 40)).toBe(0)
     expect(mosaicCornerDockPx(5, 40)).toBe(32)
     expect(mosaicCornerDockPx(6, 40)).toBe(32)
-    expect(mosaicCornerDockPx(8, 40)).toBe(48)
+    expect(mosaicCornerDockPx(7, 40)).toBe(0)
+    expect(mosaicCornerDockPx(8, 40)).toBe(0)
     expect(mosaicCornerDockPx(9, 40)).toBe(0)
-    expect(mosaicCornerDockPx(12, 54)).toBe(0)
+    expect(mosaicCornerDockPx(10, 40)).toBe(28)
+    expect(mosaicCornerDockPx(12, 54)).toBe(38)
     expect(mosaicCornerDockPx(13, 36)).toBe(44)
     expect(mosaicCornerDockPx(15, 36)).toBe(44)
     expect(mosaicCornerDockPx(16, 36)).toBe(0)
+    expect(mosaicCornerDockPx(17, 36)).toBe(25)
+    expect(mosaicCornerDockPx(20, 36)).toBe(25)
     expect(mosaicCornerDockPx(6, 0)).toBe(0)
   })
 

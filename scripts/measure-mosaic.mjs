@@ -80,6 +80,8 @@ function measureLayout() {
       n: Number(tile.getAttribute('data-table-tile')),
       tile: `${Math.round(tileBox.width)}x${Math.round(tileBox.height)}`,
       felt: feltBox ? `${Math.round(feltBox.width)}x${Math.round(feltBox.height)}` : 'missing',
+      feltTop: feltBox ? Math.round(feltBox.top - tileBox.top) : 0,
+      feltBelow: feltBox ? Math.round(tileBox.bottom - feltBox.bottom) : 0,
       share: feltBox && tileBox.width > 0 ? Math.round((100 * feltBox.width) / tileBox.width) : 0,
       corners: Boolean(lane && lane.className.includes('corners')),
       laneH: lane ? Math.round(lane.getBoundingClientRect().height) : 0,
@@ -141,7 +143,9 @@ function printCase(item, layout) {
     const lane = tile.corners ? 'corners' : `lane ${tile.laneH}`
     const chips = tile.chips.length > 0 ? `chips ${tile.chips.join(' ')}` : 'no chips'
     const pot = tile.potH == null ? '' : `  pot ${tile.potH} dx ${tile.potDx}`
-    console.log(`  t${tile.n}  tile ${tile.tile}  felt ${tile.felt} (${tile.share}%)  ${lane}  ${chips}${pot}`)
+    console.log(
+      `  t${tile.n}  tile ${tile.tile}  felt ${tile.felt} (${tile.share}%) top ${tile.feltTop} below ${tile.feltBelow}  ${lane}  ${chips}${pot}`,
+    )
   }
   if (layout.hits.length === 0) {
     console.log('  names clear')

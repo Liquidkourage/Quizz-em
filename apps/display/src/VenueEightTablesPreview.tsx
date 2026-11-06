@@ -2692,9 +2692,7 @@ function VenueMosaicTableCard({
           }`}
           style={{
             ...(feltReserve.topPx > 0 ? { paddingTop: feltReserve.topPx } : {}),
-            ...(cornerDockPx > 0
-              ? { paddingBottom: cornerDockPx, justifyContent: 'flex-start' as const }
-              : {}),
+            ...(cornerDockPx > 0 ? { paddingBottom: cornerDockPx } : {}),
           }}
         >
           <div className="flex w-full min-h-0 items-end justify-center">

@@ -255,14 +255,24 @@ export function mosaicFeltReservePx(
 const CORNER_DOCK_AIR_PX = 8
 /** Five and six tables give a little of the corner gap back to the felt. */
 const FIVE_SIX_DOCK_GIVEBACK_PX = 16
+/** Share of the chip kept clear where the felt only barely covers it. */
+const SLIGHT_POT_CLEAR_SHARE = 0.7
+
+function cornerDockKind(count: number): 'slight' | 'short' | 'full' | 'none' {
+  if ((count >= 10 && count <= 12) || (count >= 17 && count <= 20)) return 'slight'
+  if (count === 5 || count === 6) return 'short'
+  if (count >= 13 && count <= 15) return 'full'
+  return 'none'
+}
 
 /** Extra room under the felt on the counts that fill the card. Side pots sit in it. */
 export function mosaicCornerDockPx(tableCount: number, chipHeightPx: number): number {
-  const count = Math.floor(tableCount)
-  const tight = (count >= 5 && count <= 8) || (count >= 13 && count <= 15)
-  if (!tight || !(chipHeightPx > 0)) return 0
+  if (!(chipHeightPx > 0)) return 0
+  const kind = cornerDockKind(Math.floor(tableCount))
+  if (kind === 'none') return 0
+  if (kind === 'slight') return Math.round(chipHeightPx * SLIGHT_POT_CLEAR_SHARE)
   const dock = Math.round(chipHeightPx + CORNER_DOCK_AIR_PX)
-  if (count === 5 || count === 6) return Math.max(0, dock - FIVE_SIX_DOCK_GIVEBACK_PX)
+  if (kind === 'short') return Math.max(0, dock - FIVE_SIX_DOCK_GIVEBACK_PX)
   return dock
 }
 

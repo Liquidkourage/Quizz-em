@@ -5,7 +5,7 @@ import {
   mosaicSidePotOverflowLabel,
   mosaicSidePotOverflowWidthPx,
   mosaicSidePotAmountFontPx,
-  mosaicPlaqueWithinLane,
+  mosaicReadablePlaqueMetrics,
   mosaicSidePotPlaqueMetrics,
   mosaicSidePotsThatFit,
   mosaicAnnotationClearancePx,
@@ -34,17 +34,27 @@ describe('mosaic side-pot plaques', () => {
     expect(roomy.heightPx).toBeGreaterThanOrEqual(60)
     expect(roomy.heightPx).toBeLessThanOrEqual(88)
     expect(dense.heightPx).toBeLessThanOrEqual(42)
-    const shortAmount = mosaicSidePotAmountFontPx(roomy.heightPx, '2,400')
+    const shortAmount = mosaicSidePotAmountFontPx(roomy.heightPx, '6,320')
     const longAmount = mosaicSidePotAmountFontPx(roomy.heightPx, '1,234,567')
-    expect(shortAmount).toBeGreaterThan(roomy.heightPx * 0.4)
+    expect(shortAmount).toBeGreaterThan(roomy.heightPx * 0.45)
     expect(longAmount).toBeLessThan(shortAmount)
-    expect(longAmount).toBeGreaterThanOrEqual(12)
-    const lane = mosaicPlaqueWithinLane(roomy, roomy.heightPx - 10)
-    expect(lane.heightPx).toBe(roomy.heightPx - 10)
-    expect(lane.widthPx).toBeLessThan(roomy.widthPx)
-    expect(mosaicPlaqueWithinLane(roomy, roomy.heightPx + 4)).toEqual(roomy)
+    expect(longAmount).toBeGreaterThanOrEqual(18)
     expect(roomy.widthPx / roomy.heightPx).toBeCloseTo(2.5, 1)
     expect(dense.widthPx / dense.heightPx).toBeCloseTo(2.5, 1)
+  })
+
+  it('keeps a six-table plaque readable instead of shrinking it into the spare lane', () => {
+    const frame = mosaicTileFrame(681, 518)
+    const budget = frame.bottomStatusPx + frame.plaqueLanePx - 16
+    const one = mosaicReadablePlaqueMetrics(681, 518, 1, budget)
+    const two = mosaicReadablePlaqueMetrics(681, 518, 2, budget)
+    expect(one.heightPx).toBeGreaterThanOrEqual(64)
+    expect(one.heightPx).toBeLessThanOrEqual(80)
+    expect(one.widthPx).toBeGreaterThanOrEqual(150)
+    expect(two.heightPx).toBe(one.heightPx)
+    expect(two.widthPx * 2 + two.gapPx).toBeLessThanOrEqual(681 - 16)
+    expect(mosaicSidePotAmountFontPx(two.heightPx, '6,320')).toBeGreaterThanOrEqual(36)
+    expect(mosaicSidePotsThatFit(4, 280, 400)).toBeLessThan(4)
   })
 
   it('shrinks each plaque once a full-size row would overflow the tile', () => {

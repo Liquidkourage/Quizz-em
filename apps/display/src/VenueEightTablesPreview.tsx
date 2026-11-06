@@ -29,8 +29,7 @@ import {
   mosaicSeatRail,
   mosaicSidePotAmountFontPx,
   mosaicSidePotOverflowLabel,
-  mosaicPlaqueWithinLane,
-  mosaicSidePotPlaqueMetrics,
+  mosaicReadablePlaqueMetrics,
   mosaicSidePotsThatFit,
   mosaicTileFrame,
   type MosaicPlaqueMetrics,
@@ -2438,12 +2437,11 @@ function VenueMosaicTableCard({
   const shownSides = sides.slice(0, shownSideCount)
   const hiddenSideCount = Math.max(0, sides.length - shownSides.length)
   const plaqueSlots = shownSides.length + (hiddenSideCount > 0 ? 1 : 0)
+  const plaqueLaneBudget =
+    tileFrame.plaqueLanePx > 0 ? tileFrame.bottomStatusPx + tileFrame.plaqueLanePx - 16 : 0
   const plaqueMetrics =
     tilePx.w > 0 && plaqueSlots > 0
-      ? mosaicPlaqueWithinLane(
-          mosaicSidePotPlaqueMetrics(tilePx.w, tilePx.h, plaqueSlots),
-          tileFrame.plaqueLanePx,
-        )
+      ? mosaicReadablePlaqueMetrics(tilePx.w, tilePx.h, plaqueSlots, plaqueLaneBudget)
       : undefined
   const shownMarks = seatSideMarks.map((seat) => seat.filter((mark) => mark <= shownSideCount))
   const ph = String(row.phase ?? '').trim().toLowerCase()

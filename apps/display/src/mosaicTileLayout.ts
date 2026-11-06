@@ -5,7 +5,6 @@
  */
 
 const PLAQUE_ASPECT = 2.5
-const LEGIBLE_PLAQUE_PX = 22
 
 function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n))
@@ -86,32 +85,51 @@ export function mosaicSidePotPlaqueMetrics(
   }
 }
 
+const READABLE_PLAQUE_MIN = 34
+
+/** Largest chip that stays a caption under the felt. The felt's lane is unchanged. */
+function readablePlaqueMaxPx(tileHeightPx: number): number {
+  const h = tileHeightPx > 0 ? tileHeightPx : 480
+  return Math.round(clamp(h * 0.145, 40, 80))
+}
+
 /**
- * Amount size inside one chip. A long figure shrinks to stay on the chip;
- * the chip itself does not grow.
+ * Chip size for the amounts actually drawn.
+ * Extra pots fall off the row once a chip would drop below a readable height.
+ */
+export function mosaicReadablePlaqueMetrics(
+  tileWidthPx: number,
+  tileHeightPx: number,
+  plaquesInRow: number,
+  laneBudgetPx: number,
+): MosaicPlaqueMetrics {
+  const count = Math.max(1, Math.floor(plaquesInRow))
+  const { w, h } = tileBox(tileWidthPx, tileHeightPx)
+  const gapPx = Math.round(clamp(w * 0.012, 4, 10))
+  let height = readablePlaqueMaxPx(h)
+  if (laneBudgetPx > 0) height = Math.min(height, laneBudgetPx)
+  if (h > 0 && height > h * 0.2) height = 0
+  if (height < READABLE_PLAQUE_MIN) height = 0
+  void count
+  return {
+    widthPx: Math.max(1, Math.round(height * PLAQUE_ASPECT)),
+    heightPx: Math.max(0, Math.round(height)),
+    gapPx,
+  }
+}
+
+/**
+ * Amount size inside one chip. A long figure shrinks a little;
+ * it does not collapse into a caption.
  */
 export function mosaicSidePotAmountFontPx(heightPx: number, amountLabel: string): number {
   const h = heightPx > 0 ? heightPx : 36
   const chars = Math.max(1, amountLabel.trim().length)
-  const preferred = h * 0.62
-  const mark = preferred * 0.72
-  const inner = h * PLAQUE_ASPECT * 0.78 - mark - h * 0.08
-  const fitted = inner / (chars * 0.55)
-  return Math.round(clamp(Math.min(preferred, fitted), Math.min(12, preferred), preferred))
-}
-
-/** Shrink a chip so it stays inside the reserved lane. A lane that already fits is unchanged. */
-export function mosaicPlaqueWithinLane(
-  metrics: MosaicPlaqueMetrics,
-  lanePx: number,
-): MosaicPlaqueMetrics {
-  if (!(lanePx > 0) || metrics.heightPx <= lanePx) return metrics
-  const scale = lanePx / metrics.heightPx
-  return {
-    widthPx: Math.max(1, Math.round(metrics.widthPx * scale)),
-    heightPx: Math.max(1, Math.round(lanePx)),
-    gapPx: metrics.gapPx,
-  }
+  const preferred = h * 0.72
+  const circle = preferred * 0.5
+  const inner = h * PLAQUE_ASPECT * 0.8 - circle - h * 0.05
+  const fitted = inner / (chars * 0.48)
+  return Math.round(clamp(Math.min(preferred, fitted), Math.min(22, preferred), preferred))
 }
 
 /** Air between the header and top labels, and between bottom labels and plaques. */
@@ -136,21 +154,6 @@ export function mosaicSidePotOverflowWidthPx(
   return Math.ceil(Math.max(metrics.heightPx * 1.7, fromLabel))
 }
 
-function plaqueRowWidthPx(
-  tileWidthPx: number,
-  tileHeightPx: number,
-  fit: number,
-  hidden: number,
-): { widthPx: number; heightPx: number } {
-  const slots = fit + (hidden > 0 ? 1 : 0)
-  const metrics = mosaicSidePotPlaqueMetrics(tileWidthPx, tileHeightPx, slots)
-  const widthPx =
-    fit * metrics.widthPx +
-    mosaicSidePotOverflowWidthPx(metrics, hidden) +
-    Math.max(0, slots - 1) * metrics.gapPx
-  return { widthPx, heightPx: metrics.heightPx }
-}
-
 /**
  * How many established side pots fit on one row.
  * An unmeasured tile (width 0) keeps every pot until its box is known.
@@ -167,9 +170,14 @@ export function mosaicSidePotsThatFit(
   const budget = w - inset * 2
   for (let fit = count; fit >= 1; fit -= 1) {
     const hidden = count - fit
-    const row = plaqueRowWidthPx(tileWidthPx, tileHeightPx, fit, hidden)
-    if (row.heightPx < LEGIBLE_PLAQUE_PX) continue
-    if (row.widthPx <= budget + 0.5) return fit
+    const slots = fit + (hidden > 0 ? 1 : 0)
+    const box = mosaicReadablePlaqueMetrics(tileWidthPx, tileHeightPx, slots, 0)
+    if (box.heightPx < READABLE_PLAQUE_MIN) continue
+    const row =
+      fit * box.widthPx +
+      mosaicSidePotOverflowWidthPx(box, hidden) +
+      Math.max(0, slots - 1) * box.gapPx
+    if (row <= budget + 0.5) return fit
   }
   return 0
 }

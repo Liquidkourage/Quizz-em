@@ -94,6 +94,14 @@ export function mosaicPotFontPx(
   return Math.max(12, Math.round(fitted))
 }
 
+/** A little larger on a four-table floor or smaller. Denser mosaics keep the fitted size. */
+const FEW_TABLE_POT_SCALE = 1.15
+
+export function mosaicPotPxForTableCount(potPx: number, tableCount: number): number {
+  if (!(potPx > 0) || !(tableCount >= 1 && tableCount <= 4)) return potPx
+  return Math.round(potPx * FEW_TABLE_POT_SCALE)
+}
+
 /** Space between the community board and the pot, enough for the dollar glyph to clear the cards. */
 export function mosaicBoardGapPx(potPx: number): number {
   if (!(potPx > 0)) return 8

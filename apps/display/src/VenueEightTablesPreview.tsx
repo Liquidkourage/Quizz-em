@@ -86,6 +86,7 @@ import {
   mosaicCommunityBoardPx,
   mosaicHoleCardFitPx,
   mosaicPotFontPx,
+  mosaicPotPxForTableCount,
   mosaicShowsSeatStacks,
   mosaicStreetCardBoxPx,
 } from './mosaicSeatStacks'
@@ -1046,7 +1047,7 @@ function VenueMosaicFeltCenterStack({
             className={`block max-w-full text-center leading-none ${potClass}`}
             style={
               potFontCapPx != null
-                ? { fontSize: `min(var(--vfd-stack-size), ${potFontCapPx}px)` }
+                ? { fontSize: `${potFontCapPx}px` }
                 : undefined
             }
           />
@@ -1564,6 +1565,7 @@ function SeatRingWithLabels({
   mosaicFeltMaxHeightCss,
   mosaicCenterPot = null,
   mosaicStackPx = 0,
+  mosaicTableCount = 0,
   seatSideMarks = null,
   sideLayers,
   mosaicCenterPotClass = '',
@@ -1611,6 +1613,8 @@ function SeatRingWithLabels({
   mosaicCenterPot?: number | null
   /** Painted pot size from the tile's stack token. The board lift uses this, not a taller budget. */
   mosaicStackPx?: number
+  /** Populated tables on this floor. Four or fewer draw a slightly larger pot and street. */
+  mosaicTableCount?: number
   /** Every side-pot number each seat can win, parallel to `seatNames`. */
   seatSideMarks?: number[][] | null
   /** Side pots on this felt, labeled by the same number as the seat marks. */
@@ -1797,7 +1801,10 @@ function SeatRingWithLabels({
     : 0
   const mosaicPotFontCap =
     isMosaic && rimW > 0 && rimH > 0 && mosaicCenterPot != null
-      ? mosaicPotFontPx(rimW, rimH, mosaicStackPx > 0 ? mosaicStackPx : 48, formatVenueBankroll(mosaicCenterPot))
+      ? mosaicPotPxForTableCount(
+          mosaicPotFontPx(rimW, rimH, mosaicStackPx > 0 ? mosaicStackPx : 48, formatVenueBankroll(mosaicCenterPot)),
+          mosaicTableCount,
+        )
       : null
   const mosaicCommunityBoard = isMosaic
     ? mosaicCommunityBoardPx(
@@ -2716,6 +2723,7 @@ function VenueMosaicTableCard({
             mosaicFeltWidthClass={floorSize.feltWidthClass}
             mosaicCenterPot={potOnFelt ? pot : null}
             mosaicStackPx={Number.parseFloat(String((tileTypographyStyle as Record<string, unknown>)['--vfd-stack-size'] ?? '')) || 0}
+            mosaicTableCount={floorSpec.populatedTableCount}
             seatSideMarks={shownMarks}
             sideLayers={shownSides}
             mosaicCenterPotClass={mosaicTypography.feltPot}

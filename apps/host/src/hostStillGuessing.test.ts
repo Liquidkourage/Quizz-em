@@ -215,17 +215,28 @@ describe('still guessing notice', () => {
     expect(html).not.toContain('Points only')
   })
 
-  it('hides the nudge until the answer timer has finished', () => {
-    const html = renderToStaticMarkup(
+  it('starts tucked away until the answer timer has finished', () => {
+    const waiting = renderToStaticMarkup(
       createElement(HostStillGuessingNotice, {
         contest: [{ name: 'Bo', tableNum: 2 }],
         pointsOnly: [],
         nudgeReady: false,
       }),
     )
-    expect(html).toContain('Still guessing')
-    expect(html).toContain('Bo')
-    expect(html).not.toContain('Nudge')
+    expect(waiting).toContain('Still guessing · 1')
+    expect(waiting).toContain('Show still guessing')
+    expect(waiting).not.toContain('Bo')
+    expect(waiting).not.toContain('Nudge')
+
+    const ready = renderToStaticMarkup(
+      createElement(HostStillGuessingNotice, {
+        contest: [{ name: 'Bo', tableNum: 2 }],
+        pointsOnly: [],
+        nudgeReady: true,
+      }),
+    )
+    expect(ready).toContain('Bo')
+    expect(ready).toContain('Nudge')
   })
 
   it('tucks the notice away so the host can reopen it', () => {

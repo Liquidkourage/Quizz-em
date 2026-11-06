@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { StillGuessingPlayer } from './hostStillGuessing'
 
 /** One column grows with the list. Past this, a second column keeps the popup on screen. */
@@ -44,7 +44,10 @@ export default function HostStillGuessingNotice({
   /** First paint only. The host can close and reopen after that. */
   startClosed?: boolean
 }) {
-  const [closed, setClosed] = useState(startClosed)
+  const [closed, setClosed] = useState(startClosed || !nudgeReady)
+  useEffect(() => {
+    if (nudgeReady) setClosed(false)
+  }, [nudgeReady])
   const place = noticePlace(dropped)
   const count = contest.length + pointsOnly.length
 

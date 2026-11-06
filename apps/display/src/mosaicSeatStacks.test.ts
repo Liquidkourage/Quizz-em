@@ -130,6 +130,15 @@ describe('mosaic seat stacks', () => {
     expect(mosaicSeatStackFontPx(feltPx)).toBeGreaterThan(Math.round(cupPx * 0.46))
   })
 
+  it('shrinks initials on a short felt so neighboring seats stay apart', () => {
+    const wide = mosaicSeatInitialFontPx(394)
+    const short = mosaicSeatInitialFontPx(394, 118)
+    expect(short).toBeLessThan(wide)
+    expect(short).toBeGreaterThanOrEqual(16)
+    expect(short).toBeLessThanOrEqual(Math.round(118 * 0.22))
+    expect(mosaicSeatInitialFontPx(480, 270)).toBe(mosaicSeatInitialFontPx(480))
+  })
+
   it('fits a full-table stack inside the gap between neighboring cups', () => {
     const w = 480
     const h = 255

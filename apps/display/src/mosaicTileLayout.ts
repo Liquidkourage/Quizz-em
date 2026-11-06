@@ -215,3 +215,18 @@ export function mosaicTileFrame(tileWidthPx: number, tileHeightPx: number): Mosa
     plaqueLanePx: Math.max(0, Math.round(lane)),
   }
 }
+
+/** Felt size that stays 17:10 inside the slot. A wide short slot narrows the felt. */
+export function mosaicFeltFitPx(slotWidthPx: number, slotHeightPx: number): { widthPx: number; heightPx: number } {
+  if (!(slotWidthPx > 0) || !(slotHeightPx > 0)) return { widthPx: 0, heightPx: 0 }
+  const aspect = 17 / 10
+  const widthPx = Math.min(slotWidthPx, slotHeightPx * aspect)
+  return { widthPx: Math.round(widthPx), heightPx: Math.round(widthPx / aspect) }
+}
+
+/** Width that restores 17:10. A felt that is already that shape is left alone. */
+export function mosaicFeltWidthPx(slotWidthPx: number, boxWidthPx: number, boxHeightPx: number): number | null {
+  if (!(slotWidthPx > 0) || !(boxWidthPx > 0) || !(boxHeightPx > 0)) return null
+  if (boxWidthPx / boxHeightPx <= 17 / 10 + 0.05) return null
+  return mosaicFeltFitPx(slotWidthPx, boxHeightPx).widthPx
+}

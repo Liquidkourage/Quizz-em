@@ -9,6 +9,8 @@ import {
   mosaicSidePotPlaqueMetrics,
   mosaicSidePotsThatFit,
   mosaicAnnotationClearancePx,
+  mosaicFeltFitPx,
+  mosaicFeltWidthPx,
   mosaicTileFrame,
 } from './mosaicTileLayout'
 
@@ -125,5 +127,16 @@ describe('mosaic tile frame', () => {
     expect(mosaicSeatRail(4)).toBe('bottom')
     expect(mosaicSeatRail(5)).toBe('bottom')
     expect(mosaicSeatRail(10)).toBe('right')
+  })
+
+  it('keeps the felt at 17:10 when a tile is short and wide', () => {
+    const short = mosaicFeltFitPx(394, 118)
+    expect(short.widthPx / short.heightPx).toBeCloseTo(1.7, 1)
+    expect(short.widthPx).toBeLessThan(394)
+    const exemplar = mosaicFeltFitPx(459, 270)
+    expect(exemplar).toEqual({ widthPx: 459, heightPx: 270 })
+    expect(mosaicFeltWidthPx(671, 671, 270)).toBe(459)
+    expect(mosaicFeltWidthPx(671, 459, 270)).toBeNull()
+    expect(mosaicFeltWidthPx(394, 394, 118)).toBe(201)
   })
 })

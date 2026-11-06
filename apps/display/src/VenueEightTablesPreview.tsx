@@ -29,6 +29,7 @@ import {
   mosaicSeatRail,
   mosaicSidePotAmountFontPx,
   mosaicSidePotOverflowLabel,
+  mosaicFeltWidthPx,
   mosaicReadablePlaqueMetrics,
   mosaicSidePotsThatFit,
   mosaicTileFrame,
@@ -1672,17 +1673,27 @@ function SeatRingWithLabels({
 
     const apply = () => {
       const r = el.getBoundingClientRect()
-      const ww = r.width
-      const hh = r.height
-      if (ww > 0 && hh > 0)
-        setRingPx((prev) => (prev.w === ww && prev.h === hh ? prev : { w: ww, h: hh }))
+      const slotW = el.parentElement?.getBoundingClientRect().width ?? 0
+      if (mosaicFillHeight) {
+        const width = mosaicFeltWidthPx(slotW, r.width, r.height)
+        if (width != null && el.style.width !== `${width}px`) {
+          el.style.width = `${width}px`
+          return
+        }
+      }
+      if (r.width > 0 && r.height > 0)
+        setRingPx((prev) => (prev.w === r.width && prev.h === r.height ? prev : { w: r.width, h: r.height }))
     }
 
     apply()
     const ro = new ResizeObserver(apply)
     ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
+    if (el.parentElement) ro.observe(el.parentElement)
+    return () => {
+      ro.disconnect()
+      el.style.width = ''
+    }
+  }, [mosaicFillHeight])
 
   const labelAnchorsPct = useMemo(() => {
     if (isMosaic) {
@@ -1767,12 +1778,13 @@ function SeatRingWithLabels({
 
   return (
     <div
+      ref={ringElRef}
       className={`${isMosaic ? '@container' : ''} relative ${
         isDualBroadcast ? 'venue-broadcast-dual-frame overflow-hidden' : 'overflow-visible'
       } ${wrap}`}
       style={ringWrapStyle}
     >
-      <div ref={ringElRef} className={isDualBroadcast ? 'venue-broadcast-dual-stage' : 'absolute inset-0'}>
+      <div className={isDualBroadcast ? 'venue-broadcast-dual-stage' : 'absolute inset-0'}>
       <div className="absolute inset-0" aria-hidden>
         <PokerTableGraphic
           className={`h-full w-full drop-shadow-md ${
@@ -2030,11 +2042,11 @@ function SeatRingWithLabels({
                     : undefined
                 }
                 labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
-                labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(rimW) : undefined}
+                labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(rimW, rimH) : undefined}
                 labelFree={isMosaic}
                 labelShiftXPx={
                   isMosaic
-                    ? mosaicSeatInitialShiftXPx(i, rimW, rimH, mosaicSeatInitialFontPx(rimW))
+                    ? mosaicSeatInitialShiftXPx(i, rimW, rimH, mosaicSeatInitialFontPx(rimW, rimH))
                     : undefined
                 }
                 state={

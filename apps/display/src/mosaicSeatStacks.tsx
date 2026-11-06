@@ -45,9 +45,12 @@ export function publicFeltDrawsSeat(pointsOnly: boolean): boolean {
 }
 
 /** Two-letter seat mark, sized from the felt so it reads across the room. */
-export function mosaicSeatInitialFontPx(tableWidthPx: number): number {
+export function mosaicSeatInitialFontPx(tableWidthPx: number, tableHeightPx = 0): number {
   const w = feltWidthPx(tableWidthPx)
-  return Math.round(Math.min(52, Math.max(30, w * 0.105)))
+  const fromWidth = Math.min(52, Math.max(30, w * 0.105))
+  if (!(tableHeightPx > 0)) return Math.round(fromWidth)
+  const fromHeight = Math.max(16, tableHeightPx * 0.2)
+  return Math.round(Math.min(fromWidth, fromHeight))
 }
 
 /** Street cards on the mosaic felt, at least as wide and tall as the initials. */

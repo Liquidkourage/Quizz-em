@@ -94,12 +94,15 @@ export function mosaicPotFontPx(
   return Math.max(12, Math.round(fitted))
 }
 
-/** A little larger on a four-table floor or smaller. Denser mosaics keep the fitted size. */
+/** One felt fills the screen, so the pot and street can double. Two to four stay a little larger. */
+const ONE_TABLE_POT_SCALE = 2
 const FEW_TABLE_POT_SCALE = 1.15
 
 export function mosaicPotPxForTableCount(potPx: number, tableCount: number): number {
-  if (!(potPx > 0) || !(tableCount >= 1 && tableCount <= 4)) return potPx
-  return Math.round(potPx * FEW_TABLE_POT_SCALE)
+  if (!(potPx > 0) || !(tableCount >= 1)) return potPx
+  if (tableCount === 1) return Math.round(potPx * ONE_TABLE_POT_SCALE)
+  if (tableCount <= 4) return Math.round(potPx * FEW_TABLE_POT_SCALE)
+  return potPx
 }
 
 /** Space between the community board and the pot, enough for the dollar glyph to clear the cards. */

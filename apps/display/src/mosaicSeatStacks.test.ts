@@ -204,7 +204,8 @@ describe('mosaic seat stacks', () => {
 
   it('keeps a short felt pot on one line and leaves the six-table amount alone', () => {
     expect(mosaicPotFontPx(403, 237, 61, '$1,200')).toBe(61)
-    expect(mosaicPotPxForTableCount(70, 1)).toBe(81)
+    expect(mosaicPotPxForTableCount(70, 1)).toBe(140)
+    expect(mosaicPotPxForTableCount(70, 2)).toBe(81)
     expect(mosaicPotPxForTableCount(70, 4)).toBe(81)
     expect(mosaicPotPxForTableCount(54, 5)).toBe(54)
     expect(mosaicPotPxForTableCount(40, 20)).toBe(40)

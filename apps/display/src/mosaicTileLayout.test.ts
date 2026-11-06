@@ -11,6 +11,7 @@ import {
   mosaicAnnotationClearancePx,
   mosaicFeltFitPx,
   mosaicFeltFillWidthPx,
+  mosaicCornerDockPx,
   mosaicFeltReservePx,
   mosaicFeltWidthPx,
   mosaicSidePotCornerPlan,
@@ -189,6 +190,18 @@ describe('mosaic tile frame', () => {
     const grown = mosaicFeltFillWidthPx(671, 265, reserve.topPx, reserve.lanePx)
     expect(reserve.lanePx).toBe(0)
     expect(grown).toBeGreaterThan(banded + 40)
+  })
+
+  it('leaves a little room under the felt for 5-8 and 13-15 tables', () => {
+    expect(mosaicCornerDockPx(4, 40)).toBe(0)
+    expect(mosaicCornerDockPx(5, 40)).toBe(48)
+    expect(mosaicCornerDockPx(8, 40)).toBe(48)
+    expect(mosaicCornerDockPx(9, 40)).toBe(0)
+    expect(mosaicCornerDockPx(12, 54)).toBe(0)
+    expect(mosaicCornerDockPx(13, 36)).toBe(44)
+    expect(mosaicCornerDockPx(15, 36)).toBe(44)
+    expect(mosaicCornerDockPx(16, 36)).toBe(0)
+    expect(mosaicCornerDockPx(6, 0)).toBe(0)
   })
 
   it('puts at most two side pots in the bottom corners', () => {

@@ -29,6 +29,7 @@ import {
   mosaicSeatRail,
   mosaicSidePotAmountFontPx,
   mosaicSidePotOverflowLabel,
+  mosaicCornerDockPx,
   mosaicFeltFillWidthPx,
   mosaicFeltReservePx,
   mosaicReadablePlaqueMetrics,
@@ -1709,10 +1710,17 @@ function SeatRingWithLabels({
       const r = el.getBoundingClientRect()
       if (mosaicFillHeight) {
         const stage = el.parentElement?.parentElement
-        const pad = stage ? Number.parseFloat(getComputedStyle(stage).paddingTop) || 0 : 0
+        const stageStyle = stage ? getComputedStyle(stage) : null
+        const padTop = stageStyle ? Number.parseFloat(stageStyle.paddingTop) || 0 : 0
+        const padBottom = stageStyle ? Number.parseFloat(stageStyle.paddingBottom) || 0 : 0
         const laneEl = stage?.querySelector(':scope > .vfd-mosaic-side-lane')
         const laneH = laneEl instanceof HTMLElement ? laneEl.offsetHeight : 0
-        const width = mosaicFeltFillWidthPx(stage?.clientWidth ?? 0, stage?.clientHeight ?? 0, pad, laneH)
+        const width = mosaicFeltFillWidthPx(
+          stage?.clientWidth ?? 0,
+          stage?.clientHeight ?? 0,
+          padTop + padBottom,
+          laneH,
+        )
         if (width > 0 && el.style.width !== `${width}px`) {
           el.style.width = `${width}px`
           return
@@ -2493,6 +2501,10 @@ function VenueMosaicTableCard({
   )
   const tileFrame = mosaicTileFrame(tilePx.w, tilePx.h)
   const feltReserve = mosaicFeltReservePx(tileFrame, tilePx.w, tilePx.h)
+  const cornerDockPx = mosaicCornerDockPx(
+    floorSpec.populatedTableCount,
+    tilePx.h > 0 ? mosaicReadablePlaqueMetrics(tilePx.w, tilePx.h, 1, 0).heightPx : 0,
+  )
   const shownSideCount = mosaicSidePotsThatFit(sides.length, tilePx.w, tilePx.h)
   const shownSides = sides.slice(0, shownSideCount)
   const hiddenSideCount = Math.max(0, sides.length - shownSides.length)
@@ -2678,7 +2690,10 @@ function VenueMosaicTableCard({
                   ? 'flex shrink-0 flex-col justify-center'
                   : 'flex h-full min-h-0 flex-1 flex-col justify-center'
           }`}
-          style={feltReserve.topPx > 0 ? { paddingTop: feltReserve.topPx } : undefined}
+          style={{
+            ...(feltReserve.topPx > 0 ? { paddingTop: feltReserve.topPx } : {}),
+            ...(cornerDockPx > 0 ? { justifyContent: 'flex-start' } : {}),
+          }}
         >
           <div className="flex w-full min-h-0 items-end justify-center">
           <SeatRingWithLabels
@@ -2722,12 +2737,11 @@ function VenueMosaicTableCard({
           <div
             className={`vfd-mosaic-side-lane shrink-0${feltReserve.lanePx === 0 ? ' vfd-mosaic-side-lane--corners' : ''}`}
             style={
-              feltReserve.lanePx > 0
-                ? {
-                    height: feltReserve.lanePx,
-                    minHeight: feltReserve.lanePx,
-                  }
-                : undefined
+              cornerDockPx > 0
+                ? { height: cornerDockPx, minHeight: cornerDockPx }
+                : feltReserve.lanePx > 0
+                  ? { height: feltReserve.lanePx, minHeight: feltReserve.lanePx }
+                  : undefined
             }
           >
             <MosaicSidePotPlaques

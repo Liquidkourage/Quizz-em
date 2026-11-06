@@ -15,6 +15,18 @@ const CASES = [
   { name: '20 tv', width: 1920, height: 1080, count: 20 },
 ]
 
+function cases() {
+  const flag = process.argv.indexOf('--counts')
+  if (flag < 0) return CASES
+  const raw = process.argv[flag + 1] ?? ''
+  const counts = raw.split(',').map((part) => Number(part.trim())).filter((count) => Number.isInteger(count) && count >= 1 && count <= 20)
+  if (counts.length === 0) {
+    console.error('Usage: node scripts/measure-mosaic.mjs [--counts 2,3,5,6,8,13,15]')
+    process.exit(1)
+  }
+  return counts.map((count) => ({ name: `${count} tv`, width: 1920, height: 1080, count }))
+}
+
 function displayUrl() {
   const flag = process.argv.indexOf('--url')
   const raw = flag >= 0 ? process.argv[flag + 1] : 'http://localhost:7780/display/'
@@ -69,7 +81,8 @@ function measureLayout() {
         const chipBox = plaque.getBoundingClientRect()
         const x = Math.round(chipBox.left - tileBox.left)
         const y = Math.round(chipBox.top - tileBox.top)
-        return `${x},${y} ${Math.round(chipBox.width)}x${Math.round(chipBox.height)}`
+        const fromBottom = Math.round(tileBox.bottom - chipBox.bottom)
+        return `${x},${y} ${Math.round(chipBox.width)}x${Math.round(chipBox.height)} bottom ${fromBottom}`
       }),
       hits: [...new Set(hits)],
       potH: potBox ? Math.round(potBox.height) : null,
@@ -89,7 +102,7 @@ function measureLayout() {
   return {
     inner: [window.innerWidth, window.innerHeight],
     rows: [...bands.keys()].sort((a, b) => a - b).map((top) => bands.get(top)),
-    samples: tiles.filter((tile) => tile.n === 1 || tile.n === 3),
+    samples: tiles.filter((tile) => tile.n === 1 || tile.n === 2 || tile.n === 3),
     hits: tiles.filter((tile) => tile.hits.length > 0).map((tile) => ({ n: tile.n, hits: tile.hits })),
   }
 }
@@ -145,7 +158,7 @@ async function main() {
   })
   try {
     const page = await browser.newPage()
-    for (const item of CASES) {
+    for (const item of cases()) {
       await page.setViewport({ width: item.width, height: item.height, deviceScaleFactor: 1 })
       await page.goto(previewUrl(base, item.count), { waitUntil: 'domcontentloaded' })
       const layout = await settle(page)

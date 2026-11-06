@@ -596,6 +596,11 @@ export function recordVenueHostHandResults(
   return handBusts
 }
 
+function publishedWinnerName(name: string | null | undefined): string | null {
+  const trimmed = name?.trim() ?? ''
+  return trimmed.length > 0 ? trimmed : null
+}
+
 export function buildHostVenueFloorBrief(args: {
   venueCode: string
   tiles: DisplayVenueTileSnapshot[]
@@ -619,6 +624,7 @@ export function buildHostVenueFloorBrief(args: {
   winnerScreensReadyAtMs?: number | null
   scoresHint?: string | null
   scoresBlockNextQuestion?: boolean
+  endgameWinnerName?: string | null
 }): HostVenueFloorBriefPayload {
   const log = logForVenue(args.venueCode)
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
@@ -660,5 +666,6 @@ export function buildHostVenueFloorBrief(args: {
     winnerScreensReadyAtMs: args.winnerScreensReadyAtMs ?? null,
     scoresHint: args.scoresHint ?? null,
     scoresBlockNextQuestion: args.scoresBlockNextQuestion === true,
+    endgameWinnerName: publishedWinnerName(args.endgameWinnerName),
   }
 }

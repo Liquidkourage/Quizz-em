@@ -527,6 +527,20 @@ function scoresOnPlayerBrief(vn: string) {
   )
 }
 
+/** Same winner the player phones and the public display already use. */
+export function venueEndgameWinnerName(venueCode: string): string | null {
+  const vn = normalizeVenueCode(venueCode)
+  return soleChipWinnerName(
+    getVenueHandsCompleted(vn),
+    venuePlayableSnapshots(vn)
+      .filter((row) => Number.isFinite(row.n))
+      .map((row) => ({
+        phase: row.gs.phase,
+        players: row.gs.players,
+      })),
+  )
+}
+
 export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
   const vn = normalizeVenueCode(vnRaw)
   const blindsSnap = hostLibraryBlindsPayload(vn)
@@ -571,15 +585,7 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
     venueShuffleEveryHands: shuffleDisplay.shuffleEveryHands,
     venueHeld: isVenueHeld(vn),
     venueShuffleHeld: isVenueShuffleHeld(vn),
-    endgameWinnerName: soleChipWinnerName(
-      getVenueHandsCompleted(vn),
-      venuePlayableSnapshots(vn)
-        .filter((row) => Number.isFinite(row.n))
-        .map((row) => ({
-          phase: row.gs.phase,
-          players: row.gs.players,
-        })),
-    ),
+    endgameWinnerName: venueEndgameWinnerName(vn),
     ...publicScores,
   }
 }
@@ -2775,6 +2781,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       scoresHint: venueScoresCue(vn).hint,
       scoresBlockNextQuestion: venueScoresCue(vn).blocked,
       winnerScreensReadyAtMs: venueWinnerScreensReadyAtFor(vn),
+      endgameWinnerName: venueEndgameWinnerName(vn),
     }),
   )
 }

@@ -3,19 +3,9 @@ import { mayLockGuess, type GameState, type Question } from '@qhe/core'
 import { releasePhonesOnHardReset } from '../venue-hard-reset'
 import * as g from '../game-ops'
 import { denyUnlessOwnSeat } from '../own-seat'
-import { soleChipWinnerName } from '../venue-endgame'
-import { getVenueHandsCompleted } from '../venue-shuffle-settings'
 
 function refuseFinishedTournament(socket: Socket, code: string): boolean {
-  const winner = soleChipWinnerName(
-    getVenueHandsCompleted(code),
-    g.venuePlayableSnapshots(code)
-      .filter((row) => Number.isFinite(row.n))
-      .map((row) => ({
-        phase: row.gs.phase,
-        players: row.gs.players,
-      })),
-  )
+  const winner = g.venueEndgameWinnerName(code)
   if (winner == null) return false
   socket.emit('toast', `${winner} has the last stack. The tournament is over.`)
   return true

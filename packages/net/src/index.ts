@@ -497,6 +497,8 @@ export type HostVenueFloorBriefPayload = {
   scoresHint?: string | null
   /** Next question waits until chip scores or trivia scores have been shown. */
   scoresBlockNextQuestion?: boolean
+  /** Last chip stack, once the room is between hands. Null while the night is still going. */
+  endgameWinnerName?: string | null
 }
 
 export const ClientHello = z.object({

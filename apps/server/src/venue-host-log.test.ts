@@ -153,6 +153,19 @@ describe('recordVenueMovesBetweenStates', () => {
       wallView: 'leaderboard',
     })
     expect(brief.wallView).toBe('leaderboard')
+    expect(brief.endgameWinnerName).toBeNull()
+  })
+
+  it('keeps the winner name the room published', () => {
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'TV',
+      tiles: [],
+      fieldPlayerCount: 1,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+      endgameWinnerName: 'Ada Lane',
+    })
+    expect(brief.endgameWinnerName).toBe('Ada Lane')
   })
 
   it('keeps raises, calls, and all-ins that clear the big-win bar', () => {

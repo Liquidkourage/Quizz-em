@@ -2578,6 +2578,7 @@
 
   .vfd-mosaic-stack {
     font-size: var(--vfd-stack-size);
+    white-space: nowrap;
   }
 
   .vfd-mosaic-table-num {

@@ -79,8 +79,11 @@ import {
   mosaicSeatStackFontForAmount,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
+  mosaicHoleCardFitPx,
+  mosaicPotFontPx,
   mosaicShowsSeatStacks,
   mosaicStreetCardBoxPx,
+  mosaicStreetCardFitPx,
 } from './mosaicSeatStacks'
 import ShowdownResultsPanel from './ShowdownResultsPanel'
 import {
@@ -184,11 +187,13 @@ function MosaicBungeeDollarAmount({
   className,
   prefersReducedMotion = false,
   pulseOnChange = false,
+  style,
 }: {
   amount: number
   className?: string
   prefersReducedMotion?: boolean
   pulseOnChange?: boolean
+  style?: CSSProperties
 }) {
   const label = formatVenueBankroll(amount)
   const digits = formatVenueBankrollDigits(amount)
@@ -206,6 +211,7 @@ function MosaicBungeeDollarAmount({
       <motion.span
         key={label}
         className={className}
+        style={style}
         aria-label={label}
         initial={{ scale: 1.12, opacity: 0.72 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -217,7 +223,7 @@ function MosaicBungeeDollarAmount({
   }
 
   return (
-    <span className={className} aria-label={label}>
+    <span className={className} style={style} aria-label={label}>
       {body}
     </span>
   )
@@ -361,11 +367,13 @@ function VenuePotAmount({
   className,
   prefersReducedMotion,
   potMuted = 'live',
+  style,
 }: {
   amount: number
   className: string
   prefersReducedMotion: boolean
   potMuted?: 'dim' | 'faint' | 'live'
+  style?: CSSProperties
 }) {
   return (
     <MosaicBungeeDollarAmount
@@ -373,6 +381,7 @@ function VenuePotAmount({
       className={`${className} ${mosaicBungeeDollarColorClass(potMuted)}`}
       prefersReducedMotion={prefersReducedMotion}
       pulseOnChange
+      style={style}
     />
   )
 }
@@ -966,6 +975,7 @@ function VenueMosaicFeltCenterStack({
   pot,
   potClass,
   potMuted,
+  potFontCapPx = null,
   prefersReducedMotion,
 }: {
   communityDigits: number[]
@@ -974,6 +984,7 @@ function VenueMosaicFeltCenterStack({
   pot?: number | null
   potClass?: string
   potMuted?: 'dim' | 'faint' | 'live'
+  potFontCapPx?: number | null
   prefersReducedMotion: boolean
 }) {
   const feltBounds = venueFeltBoundsFrac()
@@ -1014,6 +1025,11 @@ function VenueMosaicFeltCenterStack({
             prefersReducedMotion={prefersReducedMotion}
             potMuted={potMuted}
             className={`block max-w-full ${potClass}`}
+            style={
+              potFontCapPx != null
+                ? { fontSize: `min(var(--vfd-stack-size), ${potFontCapPx}px)` }
+                : undefined
+            }
           />
         ) : null}
       </div>
@@ -1736,15 +1752,21 @@ function SeatRingWithLabels({
     ? stadiumMosaicHoleCardScale(rimW, mosaicDensityTier)
     : stadiumHoleCardScale(rimW)
   const mosaicHoleCardW = isMosaic
-    ? stadiumMosaicHoleCardWidthPx(rimW, mosaicDensityTier)
+    ? mosaicHoleCardFitPx(stadiumMosaicHoleCardWidthPx(rimW, mosaicDensityTier), rimH)
     : 0
   const mosaicHoleCardH = isMosaic
-    ? stadiumMosaicHoleCardHeightPx(rimW, mosaicDensityTier)
+    ? mosaicHoleCardFitPx(stadiumMosaicHoleCardHeightPx(rimW, mosaicDensityTier), rimH)
     : 0
   const mosaicHoleCardOverlap = isMosaic
     ? stadiumMosaicHoleCardOverlapPx(mosaicHoleCardW)
     : 0
-  const mosaicStreetCard = isMosaic ? mosaicStreetCardBoxPx(rimW, mosaicDensityTier) : null
+  const mosaicPotFontCap =
+    isMosaic && rimW > 0 && rimH > 0 && mosaicCenterPot != null
+      ? mosaicPotFontPx(rimW, rimH, 999, formatVenueBankroll(mosaicCenterPot))
+      : null
+  const mosaicStreetCard = isMosaic
+    ? mosaicStreetCardFitPx(mosaicStreetCardBoxPx(rimW, mosaicDensityTier), rimH, mosaicPotFontCap ?? 0)
+    : null
   const mosaicCommunityCardW = mosaicStreetCard?.widthPx ?? 0
   const mosaicCommunityCardH = mosaicStreetCard?.heightPx ?? 0
   /** Physical seat slots (0–7) on the stadium artwork. */
@@ -1825,6 +1847,7 @@ function SeatRingWithLabels({
             pot={mosaicCenterPot}
             potClass={mosaicCenterPotClass}
             potMuted={mosaicCenterPotMuted}
+            potFontCapPx={mosaicPotFontCap}
             prefersReducedMotion={prefersReducedMotion}
           />
         )

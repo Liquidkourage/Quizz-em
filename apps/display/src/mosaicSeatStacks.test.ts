@@ -16,7 +16,10 @@ import {
   mosaicSeatStackFontPx,
   mosaicSeatStackFontForAmount,
   mosaicShowsSeatStacks,
+  mosaicHoleCardFitPx,
+  mosaicPotFontPx,
   mosaicStreetCardBoxPx,
+  mosaicStreetCardFitPx,
   MOSAIC_STACK_LABEL_EM,
   mosaicStackLabelEm,
 } from './mosaicSeatStacks'
@@ -194,6 +197,22 @@ describe('mosaic seat stacks', () => {
         expect(gap, `${w} seat ${seat}`).toBeGreaterThanOrEqual(14)
       }
     }
+  })
+
+  it('keeps a short felt pot on one line and leaves the six-table amount alone', () => {
+    expect(mosaicPotFontPx(403, 237, 61, '$1,200')).toBe(61)
+    const ten = mosaicPotFontPx(236, 139, 49, '$1,200')
+    expect(ten).toBeLessThanOrEqual(Math.round(139 * 0.22))
+    expect(ten).toBeGreaterThanOrEqual(12)
+    const twenty = mosaicPotFontPx(124, 73, 41, '$1,200')
+    expect(twenty).toBeLessThanOrEqual(Math.round(73 * 0.34))
+    const wideCard = mosaicStreetCardBoxPx(403, 'large')
+    expect(mosaicStreetCardFitPx(wideCard, 237, 61)).toEqual(wideCard)
+    const shortCard = mosaicStreetCardFitPx(mosaicStreetCardBoxPx(124, 'micro'), 73, twenty)
+    expect(shortCard.heightPx).toBeLessThan(wideCard.heightPx)
+    expect(shortCard.heightPx + twenty).toBeLessThanOrEqual(Math.floor(73 * 0.58))
+    expect(mosaicHoleCardFitPx(27, 237)).toBe(27)
+    expect(mosaicHoleCardFitPx(21, 139)).toBeLessThan(21)
   })
 
   it('sizes street cards at least as large as the initials', () => {

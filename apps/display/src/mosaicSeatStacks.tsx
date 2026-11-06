@@ -67,6 +67,51 @@ export function mosaicStreetCardBoxPx(
   return { widthPx, heightPx }
 }
 
+/** Chip mark plus one Bungee figure, as a fraction of the pot font size. */
+function mosaicPotEm(amountLabel: string): number {
+  const digits = amountLabel.replace(/\D/g, '').length || 1
+  const commas = Math.max(0, Math.floor((digits - 1) / 3))
+  return 0.42 + (digits + commas) * 0.66
+}
+
+/**
+ * Pot size that stays one line on the felt.
+ * A six-table amount is already inside the budget, so the preferred size is kept.
+ */
+export function mosaicPotFontPx(
+  feltWidthPx: number,
+  feltHeightPx: number,
+  preferredPx: number,
+  amountLabel: string,
+): number {
+  if (!(preferredPx > 0)) return 0
+  const widthBudget = Math.max(0, feltWidthPx) * 0.7
+  const fromWidth = widthBudget > 0 ? widthBudget / mosaicPotEm(amountLabel) : preferredPx
+  const heightShare = feltHeightPx > 0 && feltHeightPx < 220 ? 0.22 : 0.32
+  const heightBudget = Math.max(0, feltHeightPx) * heightShare
+  const fitted = Math.min(preferredPx, fromWidth, heightBudget > 0 ? heightBudget : preferredPx)
+  return Math.max(12, Math.round(fitted))
+}
+
+/** Hole cards track a short felt. A six-table felt is left at the width size. */
+export function mosaicHoleCardFitPx(cardPx: number, feltHeightPx: number): number {
+  if (!(cardPx > 0) || !(feltHeightPx > 0) || feltHeightPx >= 220) return cardPx
+  return Math.max(10, Math.round(cardPx * (feltHeightPx / 220)))
+}
+
+/** Shrink the community board once it and the pot would fill the felt. */
+export function mosaicStreetCardFitPx(
+  box: { widthPx: number; heightPx: number },
+  feltHeightPx: number,
+  potPx: number,
+): { widthPx: number; heightPx: number } {
+  if (!(feltHeightPx > 0) || feltHeightPx >= 220) return box
+  const budget = Math.floor(feltHeightPx * 0.42) - Math.max(0, potPx) - 4
+  if (budget >= box.heightPx) return box
+  const heightPx = Math.max(12, budget)
+  return { widthPx: Math.max(8, Math.round((heightPx * 5) / 7)), heightPx }
+}
+
 /** Half-width of a two-letter initial, including the dark stroke, in em. */
 const MOSAIC_INITIAL_HALF_EM = 0.78
 

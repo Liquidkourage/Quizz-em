@@ -1,5 +1,5 @@
 import type { Socket } from 'socket.io'
-import type { GameState } from '@qhe/core'
+import { parseMosaicPreviewCount, type GameState } from '@qhe/core'
 import type { ClientHello } from '@qhe/net'
 import * as g from '../game-ops'
 
@@ -34,6 +34,7 @@ export async function handleDisplayTransport(
         const layout = g.venueDisplayLayouts.get(vn)
         if (layout) socket.emit('displayLayout', layout)
         g.emitDisplayVenueSnapshotNow(vn)
+        g.emitMosaicPreview(vn)
       } else if (sockData.role === 'host') {
         g.emitDisplayVenueSnapshotNow(vn)
         socket.emit('hostLibrary', await g.buildHostLibraryPayload(vn))
@@ -83,6 +84,29 @@ export async function handleDisplayTransport(
       g.noteVenuePublicScores(g.normalizeVenueCode(gsCtl.code), nextLayout.wallView ?? 'floor')
       g.io.to(g.displayVenueRoom(gsCtl.code)).emit('displayLayout', nextLayout)
       g.emitDisplayVenueSnapshotNow(gsCtl.code)
+      return true
+    }
+
+    if (type === 'displayMosaicPreview') {
+      const sessionKey = g.getActiveSessionKey(socket)
+      if (!sessionKey) {
+        socket.emit('toast', 'No room found')
+        return true
+      }
+      const gsCtl = g.rooms.get(sessionKey)
+      if (!gsCtl) {
+        socket.emit('toast', 'Game not found')
+        return true
+      }
+      if (!g.assertVenueHost(socket, gsCtl)) return true
+      const raw = payload && typeof payload === 'object' ? payload.tableCount : undefined
+      const count = parseMosaicPreviewCount(raw)
+      if (count === undefined) {
+        socket.emit('toast', `Pick a mosaic from 1 to ${g.VENUE_NUMBERED_TABLE_MAX}, or close it.`)
+        return true
+      }
+      g.setVenueMosaicPreview(gsCtl.code, count)
+      g.emitMosaicPreview(gsCtl.code)
       return true
     }
 

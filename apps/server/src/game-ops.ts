@@ -58,6 +58,7 @@ import {
   STARTER_SETLIST_ID,
   createStarterSetlist,
   buildDisplayPreviewGameState,
+  parseMosaicPreviewCount,
   VENUE_NUMBERED_TABLE_MAX,
   VENUE_WALL_SEAT_SLOTS,
   rehearsalSeatDisplayName,
@@ -589,6 +590,29 @@ export function emitPlayerVenueBriefNow(vnRaw: string) {
 
 export const venueDisplayLayouts = new Map<string, DisplayLayoutPayload>()
 
+/** Cosmetic TV mosaic. Not a game room and not the stored wall layout. */
+export const venueMosaicPreview = new Map<string, number>()
+
+export function setVenueMosaicPreview(venueCode: string, tableCount: number | null): number | null {
+  const vn = normalizeVenueCode(venueCode)
+  if (tableCount == null) {
+    venueMosaicPreview.delete(vn)
+    return null
+  }
+  const count = parseMosaicPreviewCount(tableCount)
+  if (count == null) return venueMosaicPreview.get(vn) ?? null
+  venueMosaicPreview.set(vn, count)
+  return count
+}
+
+export function emitMosaicPreview(venueCode: string) {
+  if (!io) return
+  const vn = normalizeVenueCode(venueCode)
+  const payload = { tableCount: venueMosaicPreview.get(vn) ?? null }
+  io.to(displayVenueRoom(vn)).emit('displayMosaicPreview', payload)
+  io.to(hostVenueRoom(vn)).emit('displayMosaicPreview', payload)
+}
+
 export function normalizeDisplayFocusTable(raw: unknown): number | null {
   if (raw == null) return null
   if (typeof raw === 'number' && Number.isInteger(raw)) {
@@ -753,6 +777,7 @@ export function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, d
     const ackWall: ServerAck = { ok: true, message: 'Connected successfully' }
     socket.emit('ack', ackWall)
     emitDisplayVenueSnapshotNow(vn)
+    emitMosaicPreview(vn)
     return
   }
 
@@ -771,6 +796,7 @@ export function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, d
     socket.emit('ack', { ok: true, message: 'Connected successfully' } satisfies ServerAck)
     emitStateToSocket(socket, runVirtualPlayerSimulation(synthetic))
     emitDisplayVenueSnapshotNow(vn)
+    emitMosaicPreview(vn)
     return
   }
 
@@ -778,6 +804,7 @@ export function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, d
   const ackDs: ServerAck = { ok: true, message: 'Connected successfully' }
   socket.emit('ack', ackDs)
   emitVenueTableState(watchKey, gs)
+  emitMosaicPreview(vn)
 }
 
 export async function ensureVenueLibrary(venueCode: string): Promise<VenueLibraryData> {

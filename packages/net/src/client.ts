@@ -337,6 +337,17 @@ export function onDisplayVenueSnapshot(callback: (payload: DisplayVenueWallSnaps
   return subscribeSocket('displayVenueSnapshot', callback)
 }
 
+export function onDisplayMosaicPreview(
+  callback: (payload: { tableCount: number | null }) => void,
+) {
+  return subscribeSocket('displayMosaicPreview', callback)
+}
+
+export function displayMosaicPreview(tableCount: number | null) {
+  if (!socket) return
+  socket.emit('action', { type: 'displayMosaicPreview', payload: { tableCount } })
+}
+
 /** When `keepConnected`, drop pairing listeners only (venue handoff reuse). */
 export type DisplayPairingTeardown = (opts?: { keepConnected?: boolean }) => void
 

@@ -631,6 +631,8 @@ export interface ServerToClientEvents {
   displayLayout: (layout: DisplayLayoutPayload) => void
   /** Venue wall mosaic + current question / answer timer */
   displayVenueSnapshot: (payload: DisplayVenueWallSnapshot) => void
+  /** Cosmetic mosaic on the TVs. Null puts the previous screen back. The game is not involved. */
+  displayMosaicPreview: (payload: { tableCount: number | null }) => void
   /** Player phones: venue-wide blinds, cue, survivor counts (updates with venue wall). */
   playerVenueBrief: (payload: PlayerVenueBrief) => void
   /** Display pairing: TV shows this 4-character code until the host claims it */

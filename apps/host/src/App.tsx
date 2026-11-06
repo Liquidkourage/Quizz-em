@@ -37,6 +37,8 @@ import {
   setVenueSkipNextShuffle,
   shuffleTablesNow,
   displaySetLayout,
+  displayMosaicPreview,
+  onDisplayMosaicPreview,
   onHostDisplays,
   pairDisplayWithHost,
   releaseDisplay,
@@ -77,6 +79,7 @@ import { HostModeNav } from './HostModeNav'
 import { HostDeskShell } from './HostDeskShell'
 import { hostDeskFrameStyle } from './hostDeskScale'
 import { HostMoreMenu } from './HostMoreMenu'
+import { HostMosaicPreviewPanel } from './HostMosaicPreviewPanel'
 import { HostConnectedDisplays } from './HostConnectedDisplays'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
@@ -203,6 +206,7 @@ function HostApp() {
   const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
     getSocketConnectionStatus(),
   )
+  const [mosaicPreviewCount, setMosaicPreviewCount] = useState<number | null>(null)
 
   const viteHostSecret =
     typeof import.meta.env.VITE_HOST_SECRET === 'string' ? import.meta.env.VITE_HOST_SECRET.trim() : ''
@@ -210,6 +214,10 @@ function HostApp() {
   const effectiveHostSecret = viteHostSecret || (import.meta.env.DEV ? 'quizzem-local-host' : undefined)
 
   useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
+  useEffect(
+    () => onDisplayMosaicPreview((payload) => setMosaicPreviewCount(payload.tableCount)),
+    [],
+  )
 
   useEffect(() => {
     const cleanup = connect('host', 'HOST', hostVenueCode, socketTableId, {
@@ -667,6 +675,13 @@ function HostApp() {
                     onRelease={(socketId) => releaseDisplay(socketId)}
                   />
                 </div>
+                <HostMosaicPreviewPanel
+                  activeCount={mosaicPreviewCount}
+                  onShow={(count) => {
+                    setMosaicPreviewCount(count)
+                    displayMosaicPreview(count)
+                  }}
+                />
                 <HostRoomControls
                   brief={venueFloorBrief}
                   onShuffleEvery={(every) => setVenueShuffleEvery(every)}

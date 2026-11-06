@@ -4,6 +4,7 @@ import type { DisplayLayoutPayload, DisplayVenueWallSnapshot } from '@qhe/net'
 import {
   connect,
   onDisplayLayout,
+  onDisplayMosaicPreview,
   onDisplayReleased,
   onDisplayVenueSnapshot,
   onSocketConnectionStatus,
@@ -38,6 +39,7 @@ import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 import VenueEndgameCard from './VenueEndgameCard.tsx'
 import { endgameCoversFloor, venueEndgameTriviaTop, venueEndgameWinner } from './venueEndgame'
 import { triviaLeaderboardSource } from './venueLeaderboard'
+import { mosaicCosmeticWall } from './mosaicCosmeticPreview'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -94,6 +96,11 @@ export default function DisplayRouter({
   layoutRef.current = layout
 
   const [venueWall, setVenueWall] = useState<DisplayVenueWallSnapshot | null>(null)
+  const [mosaicPreviewCount, setMosaicPreviewCount] = useState<number | null>(null)
+  const mosaicPreviewWall = useMemo(
+    () => (mosaicPreviewCount == null ? null : mosaicCosmeticWall(mosaicPreviewCount)),
+    [mosaicPreviewCount],
+  )
   const [mosaicForcedByHost, setMosaicForcedByHost] = useState(false)
   const venueMosaicWasShownRef = useRef(false)
   const prevAudienceWelcomeRef = useRef<boolean | undefined>(undefined)
@@ -330,6 +337,13 @@ export default function DisplayRouter({
   }, [connectFingerprint])
 
   useEffect(() => {
+    return onDisplayMosaicPreview((payload) => {
+      const count = payload?.tableCount
+      setMosaicPreviewCount(typeof count === 'number' ? count : null)
+    })
+  }, [])
+
+  useEffect(() => {
     if (onVenueWallLayout && !audienceBriefing && !showSeatingChart && !showLeaderboard && venueWall != null) {
       venueMosaicWasShownRef.current = true
     }
@@ -491,6 +505,11 @@ export default function DisplayRouter({
         </motion.div>
       )}
     </AnimatePresence>
+    {mosaicPreviewWall ? (
+      <div className="fixed inset-0 z-[220] bg-[#050806]">
+        <VenueEightTablesPreview wall={mosaicPreviewWall} skipMountIntro />
+      </div>
+    ) : null}
     </>
   )
 }

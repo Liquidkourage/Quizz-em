@@ -101,6 +101,33 @@ describe('selectVenueFloorLayout', () => {
     expect(plan.rowCount).toBe(3)
   })
 
+  it('keeps nine tables on three rows when a television has room for them', () => {
+    const plan = selectVenueFloorLayout({
+      tableCount: 9,
+      withHeadline: true,
+      viewport: { widthPx: 1920, heightPx: 1080 },
+    })
+    expect(plan.rowSizes).toEqual([3, 3, 3])
+  })
+
+  it('uses two taller rows for nine tables on a wide floor', () => {
+    const plan = selectVenueFloorLayout({
+      tableCount: 9,
+      withHeadline: true,
+      viewport: { widthPx: 2150, heightPx: 992 },
+    })
+    expect(plan.rowSizes).toEqual([5, 4])
+  })
+
+  it('keeps nine tables on three rows when five across would crowd the names', () => {
+    const plan = selectVenueFloorLayout({
+      tableCount: 9,
+      withHeadline: true,
+      viewport: { widthPx: 1559, heightPx: 650 },
+    })
+    expect(plan.rowSizes).toEqual([3, 3, 3])
+  })
+
   it('uses a three-four-three stagger for ten tables', () => {
     const plan = selectVenueFloorLayout({ tableCount: 10 })
     expect(plan.rowSizes).toEqual([3, 4, 3])

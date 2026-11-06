@@ -1719,6 +1719,8 @@ function SeatRingWithLabels({
     const ro = new ResizeObserver(apply)
     ro.observe(el)
     if (el.parentElement) ro.observe(el.parentElement)
+    const stage = el.parentElement?.parentElement
+    if (stage) ro.observe(stage)
     return () => {
       ro.disconnect()
       el.style.width = ''

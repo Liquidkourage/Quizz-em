@@ -167,4 +167,15 @@ describe('mosaic tile frame', () => {
     expect(shortReserve.topPx).toBe(short.topStatusPx)
     expect(shortReserve.lanePx).toBe(short.bottomStatusPx + short.plaqueLanePx)
   })
+
+  it('grows the felt on a wide short card without crowding a narrow one', () => {
+    const frame = mosaicTileFrame(490, 205)
+    const reserve = mosaicFeltReservePx(frame, 490, 205)
+    const fullLane = frame.bottomStatusPx + frame.plaqueLanePx
+    const full = mosaicFeltFillWidthPx(480, 154, frame.topStatusPx, fullLane)
+    const grown = mosaicFeltFillWidthPx(480, 154, reserve.topPx, reserve.lanePx)
+    expect(reserve.topPx).toBeLessThan(frame.topStatusPx)
+    expect(grown).toBeGreaterThan(full + 30)
+    expect(grown / 490).toBeLessThan(0.5)
+  })
 })

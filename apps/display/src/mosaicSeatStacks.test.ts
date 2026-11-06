@@ -211,8 +211,10 @@ describe('mosaic seat stacks', () => {
     expect(mosaicSeatInitialFontPx(174, 102)).toBeLessThan(mosaicSeatInitialFontPx(174, 160))
     const wideCard = mosaicStreetCardBoxPx(403, 'large')
     const wideBoard = mosaicCommunityBoardPx(wideCard, 403, 237, 61)
-    const wideTop = 237 * 0.485 - wideBoard.liftPx - wideBoard.heightPx
-    expect(wideTop).toBeGreaterThanOrEqual(237 * 0.22 - 1)
+    const wideCenter = 237 * 0.485
+    const widePotBottom = wideCenter + wideBoard.potDropPx + 61 / 2
+    const wideCardTop = wideCenter - wideBoard.liftPx - wideBoard.heightPx
+    expect(wideCardTop).toBeGreaterThan(widePotBottom)
     const shortCard = mosaicStreetCardFitPx(mosaicStreetCardBoxPx(124, 'micro'), 124, 73, twenty)
     expect(shortCard.heightPx).toBeLessThan(wideCard.heightPx)
     expect(mosaicBoardGapPx(61)).toBeGreaterThanOrEqual(Math.round(61 * 0.4))
@@ -237,9 +239,10 @@ describe('mosaic seat stacks', () => {
       const potTop = center + board.potDropPx - pot / 2
       const potBottom = center + board.potDropPx + pot / 2
       expect(board.heightPx, `${feltW}x${feltH}`).toBeGreaterThanOrEqual(pot)
-      expect(cardTop, `${feltW} top`).toBeGreaterThanOrEqual(feltH * 0.2 - 1)
-      expect(potTop - cardBottom, `${feltW} gap`).toBeGreaterThanOrEqual(4)
-      expect(potBottom, `${feltW} bottom`).toBeLessThanOrEqual(feltH * 0.8 + 1)
+      expect(cardTop - potBottom, `${feltW} gap`).toBeGreaterThanOrEqual(3.5)
+      expect(Math.abs((potTop + cardBottom) / 2 - center), `${feltW} center`).toBeLessThanOrEqual(1)
+      expect(potTop, `${feltW} top`).toBeGreaterThanOrEqual(feltH * 0.18)
+      expect(cardBottom, `${feltW} bottom`).toBeLessThanOrEqual(feltH * 0.82)
     }
   })
 

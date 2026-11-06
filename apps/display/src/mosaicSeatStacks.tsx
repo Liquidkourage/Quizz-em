@@ -125,20 +125,10 @@ function mosaicStreetNameEdgesPx(
   }
 }
 
-/** How far the pot can drop before it meets the bottom name. */
-function streetPotDropCap(feltHeightPx: number, potPx: number, bottomPx: number): number {
-  return Math.max(0, bottomPx - streetCenter(feltHeightPx) - potPx / 2)
-}
-
-/** Card height that still clears the top name when the pot has dropped. */
-function streetCardRoom(feltHeightPx: number, potPx: number, dropPx: number, topPx: number): number {
-  const potTop = streetCenter(feltHeightPx) + dropPx - potPx / 2
-  return potTop - STREET_CLEAR_PX - topPx
-}
-
 /**
- * Community cards sit above the pot and below the top name.
- * They grow to the pot's height, and the pot eases down when that is the room they need.
+ * Pot above the street, both centered as one block on the felt.
+ * `liftPx` is how far the card bottoms sit above the felt center (negative when they hang below).
+ * `potDropPx` is how far the pot center sits below the felt center (negative when the pot rides above).
  */
 export function mosaicCommunityBoardPx(
   box: { widthPx: number; heightPx: number },
@@ -148,24 +138,28 @@ export function mosaicCommunityBoardPx(
 ): { widthPx: number; heightPx: number; liftPx: number; potDropPx: number } {
   const pot = Math.max(0, potPx)
   const target = pot > 0 ? pot : box.heightPx
+  const gap = pot > 0 ? STREET_CLEAR_PX : 0
   if (!(feltHeightPx > 0) || !(feltWidthPx > 0)) {
+    const block = pot + gap + target
     return {
       widthPx: Math.max(8, Math.round((target * 5) / 7)),
       heightPx: target,
-      liftPx: STREET_CLEAR_PX + pot / 2,
-      potDropPx: 0,
+      liftPx: -block / 2,
+      potDropPx: pot / 2 - block / 2,
     }
   }
   const names = mosaicStreetNameEdgesPx(feltWidthPx, feltHeightPx)
-  const dropCap = streetPotDropCap(feltHeightPx, pot, names.bottom)
-  const atCenter = streetCardRoom(feltHeightPx, pot, 0, names.top)
-  const potDropPx = Math.min(dropCap, Math.max(0, target - atCenter))
-  const heightPx = Math.max(8, Math.round(Math.min(target, streetCardRoom(feltHeightPx, pot, potDropPx, names.top))))
+  const room = Math.max(0, names.bottom - names.top)
+  const heightPx = Math.max(8, Math.round(Math.min(target, room - pot - gap)))
+  const block = pot + gap + heightPx
+  let blockTop = streetCenter(feltHeightPx) - block / 2
+  if (blockTop < names.top) blockTop = names.top
+  if (blockTop + block > names.bottom) blockTop = names.bottom - block
   return {
     widthPx: Math.max(8, Math.round((heightPx * 5) / 7)),
     heightPx,
-    liftPx: STREET_CLEAR_PX + pot / 2 - potDropPx,
-    potDropPx,
+    liftPx: streetCenter(feltHeightPx) - (blockTop + block),
+    potDropPx: blockTop + pot / 2 - streetCenter(feltHeightPx),
   }
 }
 

@@ -49,7 +49,7 @@ import {
 } from './venueFloorSpec'
 
 /** Populated felts that use sports-bar broadcast (not mosaic floor). */
-export const VENUE_BROADCAST_TABLE_MAX = 2
+export const VENUE_BROADCAST_TABLE_MAX = 1
 
 export function isVenueBroadcastFloor(
   populatedTableCount: number,

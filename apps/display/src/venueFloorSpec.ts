@@ -191,7 +191,6 @@ export type ResolveVenueFloorSpecInput = {
 export function venueFloorSpecIdForCount(populatedTableCount: number): VenueFloorSpecId {
   const n = Math.max(0, Math.floor(populatedTableCount))
   if (n <= 1) return 'broadcast-1'
-  if (n === 2) return 'broadcast-2'
   if (n <= 4) return 'hero-3-4'
   if (n <= 8) return 'banquet-5-8'
   if (n <= 12) return 'wall-9-12'

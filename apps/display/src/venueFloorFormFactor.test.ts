@@ -11,7 +11,7 @@ import {
 describe('venueFloorFormFactorIdForCount', () => {
   it.each([
     [1, 'broadcast-1'],
-    [2, 'broadcast-2'],
+    [2, 'hero-3-4'],
     [3, 'hero-3-4'],
     [4, 'hero-3-4'],
     [5, 'banquet-5-8'],
@@ -34,7 +34,7 @@ describe('resolveVenueFloorFormFactor', () => {
     expect(resolveVenueFloorFormFactor({ populatedTableCount: 0 })).toBeNull()
   })
 
-  it('uses broadcast renderer for one and two tables without host focus', () => {
+  it('uses the final-table broadcast for one table and the mosaic seating for two', () => {
     const one = resolveVenueFloorFormFactor({ populatedTableCount: 1 })
     expect(one?.id).toBe('broadcast-1')
     expect(one?.renderer).toBe('broadcast')
@@ -44,8 +44,9 @@ describe('resolveVenueFloorFormFactor', () => {
     expect(one?.showdown).toBe('broadcast-reveal')
 
     const two = resolveVenueFloorFormFactor({ populatedTableCount: 2 })
-    expect(two?.id).toBe('broadcast-2')
-    expect(two?.broadcastDensity).toBe('dual')
+    expect(two?.id).toBe('hero-3-4')
+    expect(two?.renderer).toBe('mosaic')
+    expect(two?.ringMode).toBe('mosaic')
   })
 
   it('falls back to mosaic when host pins a table', () => {
@@ -85,14 +86,15 @@ describe('form factor helpers', () => {
     expect(isSingleTableVenueFloorFormFactor(one)).toBe(true)
     expect(isDualTableVenueFloorFormFactor(one)).toBe(false)
 
-    expect(isDualTableVenueFloorFormFactor(two)).toBe(true)
+    expect(isDualTableVenueFloorFormFactor(two)).toBe(false)
+    expect(isBroadcastVenueFloorFormFactor(two)).toBe(false)
     expect(isBroadcastVenueFloorFormFactor(three)).toBe(false)
   })
 
   it('builds body animation keys', () => {
-    const dual = resolveVenueFloorFormFactor({ populatedTableCount: 2 })!
-    expect(venueFloorFormFactorBodyKey(dual, { showHeroSpotlight: false, hostFocusTable: null })).toBe(
-      'broadcast-2'
+    const two = resolveVenueFloorFormFactor({ populatedTableCount: 2 })!
+    expect(venueFloorFormFactorBodyKey(two, { showHeroSpotlight: false, hostFocusTable: null })).toBe(
+      'floor-hero-3-4'
     )
 
     const mosaic = resolveVenueFloorFormFactor({ populatedTableCount: 6 })!

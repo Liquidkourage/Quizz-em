@@ -53,7 +53,7 @@ export function venueFloorFormFactorIdLabel(id: VenueFloorSpecId): string {
     case 'broadcast-2':
       return 'Dual table broadcast'
     case 'hero-3-4':
-      return 'Hero mosaic (3–4 tables)'
+      return 'Hero mosaic (2–4 tables)'
     case 'banquet-5-8':
       return 'Banquet mosaic (5–8 tables)'
     case 'wall-9-12':

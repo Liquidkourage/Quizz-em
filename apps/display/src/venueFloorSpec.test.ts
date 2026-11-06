@@ -16,7 +16,7 @@ import {
 describe('venueFloorSpecIdForCount', () => {
   it.each([
     [1, 'broadcast-1'],
-    [2, 'broadcast-2'],
+    [2, 'hero-3-4'],
     [3, 'hero-3-4'],
     [8, 'banquet-5-8'],
     [14, 'wall-13-16'],
@@ -31,7 +31,7 @@ describe('resolveVenueFloorSpec', () => {
     expect(resolveVenueFloorSpec({ populatedTableCount: 0 })).toBeNull()
   })
 
-  it('uses broadcast renderer for one and two tables without host focus', () => {
+  it('uses the final-table broadcast for one table and the mosaic seating for two', () => {
     const one = resolveVenueFloorSpec({ populatedTableCount: 1 })!
     expect(one.id).toBe('broadcast-1')
     expect(one.renderer).toBe('broadcast')
@@ -40,8 +40,12 @@ describe('resolveVenueFloorSpec', () => {
     expect(one.showdown).toBe('broadcast-reveal')
 
     const two = resolveVenueFloorSpec({ populatedTableCount: 2 })!
-    expect(two.id).toBe('broadcast-2')
-    expect(two.broadcastDensity).toBe('dual')
+    const three = resolveVenueFloorSpec({ populatedTableCount: 3 })!
+    expect(two.id).toBe('hero-3-4')
+    expect(two.renderer).toBe('mosaic')
+    expect(two.ringMode).toBe('mosaic')
+    expect(two.ringMode).toBe(three.ringMode)
+    expect(two.layoutPlan.rowSizes).toEqual([2])
   })
 
   it('uses sizing table count for mosaic typography and felt density', () => {

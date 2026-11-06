@@ -11,10 +11,10 @@ import {
 } from './venueBroadcastLayout'
 
 describe('venueBroadcastLayout', () => {
-  it('caps broadcast floor at two populated tables', () => {
-    expect(VENUE_BROADCAST_TABLE_MAX).toBe(2)
+  it('caps the broadcast floor at the final table', () => {
+    expect(VENUE_BROADCAST_TABLE_MAX).toBe(1)
     expect(isVenueBroadcastFloor(1, null)).toBe(true)
-    expect(isVenueBroadcastFloor(2, null)).toBe(true)
+    expect(isVenueBroadcastFloor(2, null)).toBe(false)
     expect(isVenueBroadcastFloor(3, null)).toBe(false)
     expect(isVenueBroadcastFloor(2, 1)).toBe(false)
   })
@@ -39,7 +39,7 @@ describe('venueBroadcastLayout', () => {
     expect(isVenueSingleTableBroadcast(1, null)).toBe(true)
     expect(isVenueDualTableBroadcast(1, null)).toBe(false)
     expect(isVenueSingleTableBroadcast(2, null)).toBe(false)
-    expect(isVenueDualTableBroadcast(2, null)).toBe(true)
+    expect(isVenueDualTableBroadcast(2, null)).toBe(false)
   })
 
   it('builds final-table meta for n=1', () => {
@@ -56,7 +56,7 @@ describe('venueBroadcastLayout', () => {
     ).toBe('Final table · 7 players')
   })
 
-  it('builds condense meta for n=2', () => {
+  it('leaves the broadcast strip unused once two tables share the mosaic headline', () => {
     expect(
       buildVenueBroadcastMetaLine(
         [{ tableNum: 1, seated: 4 } as never, { tableNum: 2, seated: 5 } as never],
@@ -70,6 +70,6 @@ describe('venueBroadcastLayout', () => {
           shuffleFillPct: 40,
         }
       )
-    ).toBe('2 tables · 91 remaining · Shuffle in 3 hands')
+    ).toBeNull()
   })
 })

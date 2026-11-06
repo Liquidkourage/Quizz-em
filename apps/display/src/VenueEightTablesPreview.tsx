@@ -987,6 +987,7 @@ function VenueMosaicFeltCenterStack({
   potMuted,
   potFontCapPx = null,
   boardLiftPx = 0,
+  potDropPx = 0,
   prefersReducedMotion,
 }: {
   communityDigits: number[]
@@ -997,6 +998,7 @@ function VenueMosaicFeltCenterStack({
   potMuted?: 'dim' | 'faint' | 'live'
   potFontCapPx?: number | null
   boardLiftPx?: number
+  potDropPx?: number
   prefersReducedMotion: boolean
 }) {
   const feltBounds = venueFeltBoundsFrac()
@@ -1035,7 +1037,7 @@ function VenueMosaicFeltCenterStack({
       {showPot ? (
         <span
           className="block max-w-full text-center"
-          style={{ ...center, transform: 'translate(-50%, -50%)' }}
+          style={{ ...center, transform: `translate(-50%, calc(-50% + ${potDropPx}px))` }}
         >
           <VenuePotAmount
             amount={pot}
@@ -1798,7 +1800,12 @@ function SeatRingWithLabels({
       ? mosaicPotFontPx(rimW, rimH, mosaicStackPx > 0 ? mosaicStackPx : 48, formatVenueBankroll(mosaicCenterPot))
       : null
   const mosaicCommunityBoard = isMosaic
-    ? mosaicCommunityBoardPx(mosaicStreetCardBoxPx(rimW, mosaicDensityTier), rimH, mosaicPotFontCap ?? 0)
+    ? mosaicCommunityBoardPx(
+        mosaicStreetCardBoxPx(rimW, mosaicDensityTier),
+        rimW,
+        rimH,
+        mosaicPotFontCap ?? 0,
+      )
     : null
   const mosaicCommunityCardW = mosaicCommunityBoard?.widthPx ?? 0
   const mosaicCommunityCardH = mosaicCommunityBoard?.heightPx ?? 0
@@ -1882,6 +1889,7 @@ function SeatRingWithLabels({
             potMuted={mosaicCenterPotMuted}
             potFontCapPx={mosaicPotFontCap}
             boardLiftPx={mosaicCommunityBoard?.liftPx ?? 0}
+            potDropPx={communityDigits.length > 0 ? (mosaicCommunityBoard?.potDropPx ?? 0) : 0}
             prefersReducedMotion={prefersReducedMotion}
           />
         )

@@ -102,47 +102,81 @@ export function mosaicBoardGapPx(potPx: number): number {
 
 /** Matches the felt anchor in venueFeltBoundsFrac. */
 const FELT_CENTER_Y = 0.485
-/** Top of the felt belongs to the top-seat name. */
-const TOP_NAME_BAND = 0.24
+const STREET_CLEAR_PX = 4
+const STREET_NAME_PAD_PX = 2
 
-function fitCommunityBoard(
-  box: { widthPx: number; heightPx: number },
+function streetCenter(feltHeightPx: number): number {
+  return feltHeightPx * FELT_CENTER_Y
+}
+
+/** Pixel edges of the top and bottom initials. */
+function mosaicStreetNameEdgesPx(
+  feltWidthPx: number,
   feltHeightPx: number,
-  potPx: number,
-  gapPx: number,
-): { widthPx: number; heightPx: number; liftPx: number } {
-  const anchor = feltHeightPx * FELT_CENTER_Y
-  const liftPx = gapPx + potPx / 2
-  const room = Math.floor(anchor - feltHeightPx * TOP_NAME_BAND - liftPx)
-  if (room >= box.heightPx) return { widthPx: box.widthPx, heightPx: box.heightPx, liftPx }
-  const heightPx = Math.max(12, room)
-  return { widthPx: Math.max(8, Math.round((heightPx * 5) / 7)), heightPx, liftPx }
+): { top: number; bottom: number } {
+  const font = mosaicSeatInitialFontPx(feltWidthPx, feltHeightPx)
+  const topCup = mosaicSeatDotPct(0, 8, feltWidthPx, feltHeightPx)
+  const bottomCup = mosaicSeatDotPct(4, 8, feltWidthPx, feltHeightPx)
+  const topY = (topCup.topPct / 100) * feltHeightPx
+  const bottomY = (bottomCup.topPct / 100) * feltHeightPx
+  return {
+    top: topY + font * 0.5 + STREET_NAME_PAD_PX,
+    bottom: bottomY - font * 0.5 - STREET_NAME_PAD_PX,
+  }
+}
+
+/** How far the pot can drop before it meets the bottom name. */
+function streetPotDropCap(feltHeightPx: number, potPx: number, bottomPx: number): number {
+  return Math.max(0, bottomPx - streetCenter(feltHeightPx) - potPx / 2)
+}
+
+/** Card height that still clears the top name when the pot has dropped. */
+function streetCardRoom(feltHeightPx: number, potPx: number, dropPx: number, topPx: number): number {
+  const potTop = streetCenter(feltHeightPx) + dropPx - potPx / 2
+  return potTop - STREET_CLEAR_PX - topPx
 }
 
 /**
  * Community cards sit above the pot and below the top name.
- * A tight pocket shortens the cards instead of laying them on the initials.
+ * They grow to the pot's height, and the pot eases down when that is the room they need.
  */
 export function mosaicCommunityBoardPx(
   box: { widthPx: number; heightPx: number },
+  feltWidthPx: number,
   feltHeightPx: number,
   potPx: number,
-): { widthPx: number; heightPx: number; liftPx: number } {
+): { widthPx: number; heightPx: number; liftPx: number; potDropPx: number } {
   const pot = Math.max(0, potPx)
-  const gap = mosaicBoardGapPx(pot)
-  if (!(feltHeightPx > 0)) return { widthPx: box.widthPx, heightPx: box.heightPx, liftPx: gap + pot / 2 }
-  const fitted = fitCommunityBoard(box, feltHeightPx, pot, gap)
-  if (fitted.heightPx >= 28 || gap <= 8) return fitted
-  return fitCommunityBoard(box, feltHeightPx, pot, 8)
+  const target = pot > 0 ? pot : box.heightPx
+  if (!(feltHeightPx > 0) || !(feltWidthPx > 0)) {
+    return {
+      widthPx: Math.max(8, Math.round((target * 5) / 7)),
+      heightPx: target,
+      liftPx: STREET_CLEAR_PX + pot / 2,
+      potDropPx: 0,
+    }
+  }
+  const names = mosaicStreetNameEdgesPx(feltWidthPx, feltHeightPx)
+  const dropCap = streetPotDropCap(feltHeightPx, pot, names.bottom)
+  const atCenter = streetCardRoom(feltHeightPx, pot, 0, names.top)
+  const potDropPx = Math.min(dropCap, Math.max(0, target - atCenter))
+  const heightPx = Math.max(8, Math.round(Math.min(target, streetCardRoom(feltHeightPx, pot, potDropPx, names.top))))
+  return {
+    widthPx: Math.max(8, Math.round((heightPx * 5) / 7)),
+    heightPx,
+    liftPx: STREET_CLEAR_PX + pot / 2 - potDropPx,
+    potDropPx,
+  }
 }
 
 /** Shrink the community board once it and the pot would fill the felt. */
 export function mosaicStreetCardFitPx(
   box: { widthPx: number; heightPx: number },
+  feltWidthPx: number,
   feltHeightPx: number,
   potPx: number,
 ): { widthPx: number; heightPx: number } {
-  const board = mosaicCommunityBoardPx(box, feltHeightPx, potPx)
+  const board = mosaicCommunityBoardPx(box, feltWidthPx, feltHeightPx, potPx)
   return { widthPx: board.widthPx, heightPx: board.heightPx }
 }
 export function mosaicHoleCardFitPx(cardPx: number, feltHeightPx: number): number {

@@ -39,7 +39,7 @@ import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 import VenueEndgameCard from './VenueEndgameCard.tsx'
 import { endgameCoversFloor, venueEndgameTriviaTop, venueEndgameWinner } from './venueEndgame'
 import { triviaLeaderboardSource } from './venueLeaderboard'
-import { mosaicCosmeticWall } from './mosaicCosmeticPreview'
+import { mosaicCosmeticWall, mosaicPreviewCountFromSearch } from './mosaicCosmeticPreview'
 
 function normalizeVenueWallTiles(
   tiles: DisplayVenueWallSnapshot['tiles'] | undefined
@@ -96,7 +96,11 @@ export default function DisplayRouter({
   layoutRef.current = layout
 
   const [venueWall, setVenueWall] = useState<DisplayVenueWallSnapshot | null>(null)
-  const [mosaicPreviewCount, setMosaicPreviewCount] = useState<number | null>(null)
+  const [mosaicPreviewCount, setMosaicPreviewCount] = useState<number | null>(() =>
+    import.meta.env.DEV && typeof window !== 'undefined'
+      ? mosaicPreviewCountFromSearch(window.location.search)
+      : null,
+  )
   const mosaicPreviewWall = useMemo(
     () => (mosaicPreviewCount == null ? null : mosaicCosmeticWall(mosaicPreviewCount)),
     [mosaicPreviewCount],

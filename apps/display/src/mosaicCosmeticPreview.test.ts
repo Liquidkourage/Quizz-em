@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { VenueAerialFloorGrid } from './VenueEightTablesPreview'
 import { resolveVenueFloorSpec } from './venueFloorSpec'
-import { mosaicCosmeticWall } from './mosaicCosmeticPreview'
+import { mosaicCosmeticWall, mosaicPreviewCountFromSearch } from './mosaicCosmeticPreview'
 
 describe('mosaic cosmetic preview', () => {
   it('fills a chosen count with mixed hands and leaves the live game out of it', () => {
@@ -34,5 +34,16 @@ describe('mosaic cosmetic preview', () => {
   it('clamps the mosaic to the numbered tables', () => {
     expect(mosaicCosmeticWall(0).tiles).toHaveLength(1)
     expect(mosaicCosmeticWall(99).tiles).toHaveLength(20)
+  })
+
+  it('reads a mosaic count only from a numbered preview query', () => {
+    expect(mosaicPreviewCountFromSearch('')).toBeNull()
+    expect(mosaicPreviewCountFromSearch('?room=PREVIEW')).toBeNull()
+    expect(mosaicPreviewCountFromSearch('?room=PREVIEW&mosaic=9')).toBe(9)
+    expect(mosaicPreviewCountFromSearch('?mosaic=1')).toBe(1)
+    expect(mosaicPreviewCountFromSearch('?mosaic=20')).toBe(20)
+    expect(mosaicPreviewCountFromSearch('?mosaic=0')).toBeNull()
+    expect(mosaicPreviewCountFromSearch('?mosaic=21')).toBeNull()
+    expect(mosaicPreviewCountFromSearch('?mosaic=abc')).toBeNull()
   })
 })

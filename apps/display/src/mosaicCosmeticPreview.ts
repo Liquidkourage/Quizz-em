@@ -127,6 +127,15 @@ function answeringTile(tableNum: number): DisplayVenueTileSnapshot {
 
 const TILE_HANDS = [openBettingTile, oneSideTile, twoSideTile, closedBettingTile, answeringTile] as const
 
+/** Dev-server mosaic count from `?mosaic=`. Production never calls this. */
+export function mosaicPreviewCountFromSearch(search: string): number | null {
+  const raw = new URLSearchParams(search).get('mosaic')
+  if (raw == null || raw === '') return null
+  const count = Number(raw)
+  if (!Number.isInteger(count) || count < 1 || count > VENUE_NUMBERED_TABLE_MAX) return null
+  return count
+}
+
 /** Fake venue wall. The live rooms are not read and not changed. */
 export function mosaicCosmeticWall(tableCount: number): DisplayVenueWallSnapshot {
   const count = previewCount(tableCount)

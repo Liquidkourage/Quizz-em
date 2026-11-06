@@ -31,6 +31,7 @@
     "trim-logo": "node scripts/trim-quizzem-logo.mjs",
     "sim:lobby": "node scripts/sim-venue-lobby-joiners.mjs",
     "sim:dry-run": "node scripts/venue-convention-dry-run.mjs",
+    "measure:mosaic": "node scripts/measure-mosaic.mjs",
     "build:question-packs": "node scripts/build-question-packs.mjs"
   },
   "devDependencies": {

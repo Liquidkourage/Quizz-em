@@ -473,12 +473,9 @@ export function MosaicSidePotPlaques({
           aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
           style={{ '--vfd-side-pot': sidePotColor(side.mark) } as CSSProperties}
         >
-          <span className="vfd-mosaic-side-plaque-spots" aria-hidden />
           <span className="vfd-mosaic-side-plaque-face">
             <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>
-            <span className="vfd-mosaic-side-plaque-amount">
-              <ChipText text={formatVenueBankroll(side.amount)} />
-            </span>
+            <span className="vfd-mosaic-side-plaque-amount">{formatVenueBankrollDigits(side.amount)}</span>
           </span>
         </div>
       ))}
@@ -501,12 +498,6 @@ export function mosaicSeatIsAllIn(args: {
     args.bankroll === 0 &&
     args.invested > 0
   )
-}
-
-/** Right-rail seats keep eligibility chips toward the felt so they stay on the card. */
-export function mosaicSeatBadgesLead(seatIndex: number): boolean {
-  const seat = ((Math.floor(seatIndex) % 8) + 8) % 8
-  return seat === 1 || seat === 2 || seat === 3
 }
 
 /** Top and side seats put status on the rail, clear of the hole cards. */
@@ -544,14 +535,14 @@ export function MosaicSeatFace({
   ) : allIn ? (
     <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--allin">All-in</span>
   ) : null
+  const statusAbove = mosaicSeatStatusAbove(seatIndex)
+  const badgeRow =
+    badges.length > 0 ? <span className="vfd-mosaic-seat-badges">{badges}</span> : null
   return (
-    <span className={`vfd-mosaic-seat-face${mosaicSeatStatusAbove(seatIndex) ? ' vfd-mosaic-seat-face--status-above' : ''}`}>
-      <span className="vfd-mosaic-seat-face-row">
-        {mosaicSeatBadgesLead(seatIndex) ? badges : null}
-        <span className={folded ? 'vfd-mosaic-seat-initial--folded' : undefined}>{initials}</span>
-        {mosaicSeatBadgesLead(seatIndex) ? null : badges}
-      </span>
-      {status}
+    <span className={`vfd-mosaic-seat-face${statusAbove ? ' vfd-mosaic-seat-face--status-above' : ''}`}>
+      {statusAbove ? status : badgeRow}
+      <span className={folded ? 'vfd-mosaic-seat-initial--folded' : undefined}>{initials}</span>
+      {statusAbove ? badgeRow : status}
     </span>
   )
 }

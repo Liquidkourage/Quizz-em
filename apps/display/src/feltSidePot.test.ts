@@ -114,10 +114,12 @@ describe('felt side pot', () => {
     expect(both).toContain('aria-label="Side pot 2"')
     expect(both).toContain('--vfd-side-pot:#7dd3fc')
     expect(both).toContain('--vfd-side-pot:#ea580c')
+    expect(both.indexOf('aria-label="Side pot 1"')).toBeLessThan(both.indexOf('>NB<'))
     const rightRail = renderToStaticMarkup(
       createElement(MosaicSeatFace, { initials: 'BB', marks: [1, 2], folded: false, allIn: true, seatIndex: 2 }),
     )
-    expect(rightRail.indexOf('aria-label="Side pot 1"')).toBeLessThan(rightRail.indexOf('>BB<'))
+    expect(rightRail.indexOf('>All-in<')).toBeLessThan(rightRail.indexOf('>BB<'))
+    expect(rightRail.indexOf('>BB<')).toBeLessThan(rightRail.indexOf('aria-label="Side pot 1"'))
     expect(rightRail).toContain('vfd-mosaic-seat-face--status-above')
     expect(both).not.toContain('>Folded<')
     expect(both).not.toContain('>All-in<')

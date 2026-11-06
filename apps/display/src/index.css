@@ -3023,12 +3023,15 @@
     pointer-events: none;
   }
 
-  .vfd-mosaic-side-lane--corners {
+  .vfd-mosaic-tile > .vfd-mosaic-side-lane.vfd-mosaic-side-lane--corners {
     position: absolute;
+    z-index: 8;
+    left: 0;
     right: 0;
     bottom: 0;
-    left: 0;
+    width: auto;
     height: 0;
+    min-height: 0;
   }
 
   /** Mosaic side pots — glossy stadium chip, inlaid edge spots, dark well. */

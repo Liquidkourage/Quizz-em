@@ -2612,7 +2612,7 @@ function VenueMosaicTableCard({
         role="group"
         aria-label={`Table ${tn}, ${feltPotAria(pot, shownSides)}${statusBandAria}, venue floor`}
         style={tileTypographyStyle}
-        className={`@container/size relative min-h-0 min-w-0 ${mosaicTypography.rootClass} ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
+        className={`vfd-mosaic-tile @container/size relative min-h-0 min-w-0 ${mosaicTypography.rootClass} ${showFloorShowdownOverlay ? 'vfd-mosaic-tile--showdown-overlay' : 'backdrop-blur-md'} ${floorSize.tileInsetClass} ${floorSize.cardPaddingClass} ${cardShell} ${
           showFloorShowdownOverlay && shrinkWrapRowHeight
             ? 'vfd-mosaic-tile--showdown-aspect flex w-full flex-col'
             : floorFillHeight
@@ -2692,7 +2692,9 @@ function VenueMosaicTableCard({
           }`}
           style={{
             ...(feltReserve.topPx > 0 ? { paddingTop: feltReserve.topPx } : {}),
-            ...(cornerDockPx > 0 ? { justifyContent: 'flex-start' } : {}),
+            ...(cornerDockPx > 0
+              ? { paddingBottom: cornerDockPx, justifyContent: 'flex-start' as const }
+              : {}),
           }}
         >
           <div className="flex w-full min-h-0 items-end justify-center">
@@ -2734,23 +2736,6 @@ function VenueMosaicTableCard({
             showMosaicSeatStacks={mosaicShowsSeatStacks(ph)}
           />
           </div>
-          <div
-            className={`vfd-mosaic-side-lane shrink-0${feltReserve.lanePx === 0 ? ' vfd-mosaic-side-lane--corners' : ''}`}
-            style={
-              cornerDockPx > 0
-                ? { height: cornerDockPx, minHeight: cornerDockPx }
-                : feltReserve.lanePx > 0
-                  ? { height: feltReserve.lanePx, minHeight: feltReserve.lanePx }
-                  : undefined
-            }
-          >
-            <MosaicSidePotPlaques
-              sides={shownSides}
-              hidden={inShowdown}
-              hiddenCount={hiddenSideCount}
-              metrics={plaqueMetrics}
-            />
-          </div>
         </div>
 
         {showExpandedShowdownPanel ? (
@@ -2783,6 +2768,14 @@ function VenueMosaicTableCard({
         {showNoMoreBets && seats >= 2 && !showFloorShowdownOverlay && statusBandKind !== 'no-more-bets' ? (
           <VenueMosaicNoMoreBetsWatermark offsetClass={mosaicTypography.noMoreBetsOffsetClass} />
         ) : null}
+        <div className="vfd-mosaic-side-lane vfd-mosaic-side-lane--corners">
+          <MosaicSidePotPlaques
+            sides={shownSides}
+            hidden={inShowdown}
+            hiddenCount={hiddenSideCount}
+            metrics={plaqueMetrics}
+          />
+        </div>
       </article>
   )
 }

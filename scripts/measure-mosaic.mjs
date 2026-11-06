@@ -24,7 +24,13 @@ function cases() {
     console.error('Usage: node scripts/measure-mosaic.mjs [--counts 2,3,5,6,8,13,15]')
     process.exit(1)
   }
-  return counts.map((count) => ({ name: `${count} tv`, width: 1920, height: 1080, count }))
+  const sizeFlag = process.argv.indexOf('--size')
+  const [width, height] = sizeFlag >= 0 ? (process.argv[sizeFlag + 1] ?? '').split('x').map(Number) : [1920, 1080]
+  if (!(width > 0) || !(height > 0)) {
+    console.error('Usage: node scripts/measure-mosaic.mjs [--counts 3,6] [--size 1920x1080]')
+    process.exit(1)
+  }
+  return counts.map((count) => ({ name: `${count} ${width}x${height}`, width, height, count }))
 }
 
 function displayUrl() {
@@ -82,7 +88,9 @@ function measureLayout() {
         const x = Math.round(chipBox.left - tileBox.left)
         const y = Math.round(chipBox.top - tileBox.top)
         const fromBottom = Math.round(tileBox.bottom - chipBox.bottom)
-        return `${x},${y} ${Math.round(chipBox.width)}x${Math.round(chipBox.height)} bottom ${fromBottom}`
+        const fromLeft = Math.round(chipBox.left - tileBox.left)
+        const fromRight = Math.round(tileBox.right - chipBox.right)
+        return `${Math.round(chipBox.width)}x${Math.round(chipBox.height)} L${fromLeft} R${fromRight} B${fromBottom}`
       }),
       hits: [...new Set(hits)],
       potH: potBox ? Math.round(potBox.height) : null,

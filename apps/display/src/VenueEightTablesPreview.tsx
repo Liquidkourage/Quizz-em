@@ -432,8 +432,8 @@ function MosaicTableStatusBand({
   )
 }
 
-/** Side-pot bar under the felt. One column per side pot, same chrome as the status header. */
-function MosaicSidePotFooter({
+/** Chip plaque for one side pot on a mosaic felt. Color matches that pot's seat badges. */
+export function MosaicSidePotPlaques({
   sides,
   hidden = false,
 }: {
@@ -442,20 +442,92 @@ function MosaicSidePotFooter({
 }) {
   if (hidden || sides == null || sides.length === 0) return null
   return (
-    <div className="vfd-mosaic-side-footer col-start-1 row-start-3 shrink-0">
-      <span className="vfd-mosaic-side-footer-label">Side</span>
-      <div
-        className="vfd-mosaic-side-footer-cols"
-        style={{ gridTemplateColumns: `repeat(${sides.length}, minmax(0, 1fr))` }}
-      >
-        {sides.map((side) => (
-          <p key={side.mark} className="vfd-mosaic-side-footer-col" style={{ color: sidePotColor(side.mark) }}>
-            <SidePotMark mark={side.mark} />
+    <div className="vfd-mosaic-side-plaques col-start-1 row-start-3 shrink-0" role="list">
+      {sides.map((side) => (
+        <div
+          key={side.mark}
+          className="vfd-mosaic-side-plaque"
+          role="listitem"
+          aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
+          style={{ background: sidePotColor(side.mark) }}
+        >
+          <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>
+          <span className="vfd-mosaic-side-plaque-amount">
             <ChipText text={formatVenueBankroll(side.amount)} />
-          </p>
-        ))}
-      </div>
+          </span>
+        </div>
+      ))}
     </div>
+  )
+}
+
+/** A seat with a zero stack that has chips in the pot is all-in. */
+export function mosaicSeatIsAllIn(args: {
+  stacksKnown: boolean
+  bankroll: number
+  invested: number
+  folded: boolean
+  pointsOnly: boolean
+}): boolean {
+  return (
+    args.stacksKnown &&
+    !args.folded &&
+    !args.pointsOnly &&
+    args.bankroll === 0 &&
+    args.invested > 0
+  )
+}
+
+/** Right-rail seats keep eligibility chips toward the felt so they stay on the card. */
+export function mosaicSeatBadgesLead(seatIndex: number): boolean {
+  const seat = ((Math.floor(seatIndex) % 8) + 8) % 8
+  return seat === 1 || seat === 2 || seat === 3
+}
+
+/** Top and side seats put status on the rail, clear of the hole cards. */
+export function mosaicSeatStatusAbove(seatIndex: number): boolean {
+  const seat = ((Math.floor(seatIndex) % 8) + 8) % 8
+  return seat === 0 || seat === 1 || seat === 2 || seat === 6 || seat === 7
+}
+
+/** Initials, side-pot chips, and folded / all-in status for one mosaic seat. */
+export function MosaicSeatFace({
+  initials,
+  marks,
+  folded,
+  allIn,
+  seatIndex = 4,
+}: {
+  initials: string
+  marks: readonly number[]
+  folded: boolean
+  allIn: boolean
+  seatIndex?: number
+}) {
+  const badges = marks.map((mark) => (
+    <span
+      key={mark}
+      className="vfd-mosaic-side-badge"
+      aria-label={`Side pot ${mark}`}
+      style={{ background: sidePotColor(mark) }}
+    >
+      {mark}
+    </span>
+  ))
+  const status = folded ? (
+    <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--folded">Folded</span>
+  ) : allIn ? (
+    <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--allin">All-in</span>
+  ) : null
+  return (
+    <span className={`vfd-mosaic-seat-face${mosaicSeatStatusAbove(seatIndex) ? ' vfd-mosaic-seat-face--status-above' : ''}`}>
+      <span className="vfd-mosaic-seat-face-row">
+        {mosaicSeatBadgesLead(seatIndex) ? badges : null}
+        <span className={folded ? 'vfd-mosaic-seat-initial--folded' : undefined}>{initials}</span>
+        {mosaicSeatBadgesLead(seatIndex) ? null : badges}
+      </span>
+      {status}
+    </span>
   )
 }
 
@@ -1259,6 +1331,8 @@ function SeatRingWithLabels({
   feltSeatStacks = false,
   blindSeats = null,
   seatFolded: seatFoldedIn,
+  seatInvested: seatInvestedIn,
+  seatStacksKnown = false,
   seatPointsOnly: seatPointsOnlyIn,
   actingSeatIndex = null,
   showSeatBettingActions = false,
@@ -1335,6 +1409,10 @@ function SeatRingWithLabels({
   blindSeats?: VenueWallBlindSeats | null
   /** Folded seats this hand (same indexing as `seatNames`); absent means none. */
   seatFolded?: boolean[]
+  /** Chips committed this hand. Used with a known zero stack to mark all-in. */
+  seatInvested?: number[]
+  /** False when the snapshot omitted stacks, so a padded zero is not all-in. */
+  seatStacksKnown?: boolean
   /** Busted (points-only) seats — hide chip stack graphic. */
   seatPointsOnly?: boolean[]
   /** Pulse this seat rim during open betting; null hides. Matches `seatNames` index. */
@@ -1648,6 +1726,13 @@ function SeatRingWithLabels({
         const chips = seatBankrolls[i] ?? 0
         const isFolded = filled && seatFolded[i] === true
         const isBusted = filled && seatPointsOnly[i] === true
+        const isAllIn = mosaicSeatIsAllIn({
+          stacksKnown: seatStacksKnown,
+          bankroll: chips,
+          invested: seatInvestedIn?.[i] ?? 0,
+          folded: isFolded,
+          pointsOnly: isBusted,
+        })
         const mosaicInitials = isMosaic ? mosaicSeatInitialLabel(raw, isBusted) : ''
         const isActing =
           filled && actingSeatIndex != null && actingSeatIndex === i && !isFolded && !isBusted
@@ -1756,7 +1841,19 @@ function SeatRingWithLabels({
               ) : null}
               <SeatCupholderMarker
                 sizePx={cupSizePx}
-                label={isMosaic && filled ? withSidePotMark(mosaicInitials, sideMarkAt(seatSideMarks, i)) : undefined}
+                label={
+                  isMosaic && filled
+                    ? (
+                      <MosaicSeatFace
+                        initials={mosaicInitials}
+                        marks={sideMarkAt(seatSideMarks, i)}
+                        folded={isFolded}
+                        allIn={isAllIn}
+                        seatIndex={i}
+                      />
+                    )
+                    : undefined
+                }
                 labelClassName={mosaicSeatInitialsClass(mosaicDensity)}
                 labelFontSizePx={isMosaic ? mosaicSeatInitialFontPx(rimW) : undefined}
                 labelShiftXPx={
@@ -1783,6 +1880,7 @@ function SeatRingWithLabels({
                         answerLocked ? 'answer locked in' : null,
                         isWinner ? 'won the hand' : null,
                         isFolded ? 'folded' : null,
+                        isAllIn ? 'all-in' : null,
                         showActingCallLine
                           ? formatActingCallHint(actingCallAmount ?? 0)
                           : null,
@@ -2316,7 +2414,7 @@ function VenueMosaicTableCard({
         </div>
 
         <div
-          className={`@container/size relative z-[1] w-full overflow-hidden ${floorSize.ringScaleClass} ${
+          className={`@container/size relative z-[1] w-full overflow-visible ${floorSize.ringScaleClass} ${
             floorFillHeight && denseMosaicChrome ? mosaicTypography.feltMaxHeightClass : ''
           } ${
             floorFillHeight
@@ -2346,6 +2444,8 @@ function VenueMosaicTableCard({
             seatBankrolls={seatBankrolls}
             blindSeats={blindSeatSnapshot}
             seatFolded={seatFolded}
+            seatInvested={row.seatInvested}
+            seatStacksKnown={row.seatBankrolls != null}
             seatPointsOnly={seatPointsOnly}
             actingSeatIndex={actingSeat}
             showSeatBettingActions={false}
@@ -2364,7 +2464,7 @@ function VenueMosaicTableCard({
           />
         </div>
 
-        <MosaicSidePotFooter sides={sides} hidden={inShowdown} />
+        <MosaicSidePotPlaques sides={sides} hidden={inShowdown} />
 
         {showExpandedShowdownPanel ? (
           <div

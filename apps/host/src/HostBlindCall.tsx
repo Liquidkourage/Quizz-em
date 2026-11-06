@@ -2,18 +2,12 @@ import { useEffect, useState } from 'react'
 import { adviseBlindCall, type BlindCall } from '@qhe/core'
 import { ChipText } from '@qhe/ui'
 
-export const NIGHT_GOAL_MINUTES = [60, 90, 120, 150, 180, 210, 240] as const
-const GOAL_KEY = 'qhe-night-goal-min'
+export const NIGHT_MINUTES = 120
+export const GUIDE_SECONDS = 45
 
 export function minutesLeftOnClock(goalMin: number, showStartedAtMs: number | null, nowMs: number): number {
   if (showStartedAtMs == null) return goalMin
   return Math.max(0, goalMin - (nowMs - showStartedAtMs) / 60_000)
-}
-
-function readStoredGoal(): number {
-  if (typeof localStorage === 'undefined') return 120
-  const n = Number(localStorage.getItem(GOAL_KEY))
-  return (NIGHT_GOAL_MINUTES as readonly number[]).includes(n) ? n : 120
 }
 
 function money(n: number): string {
@@ -52,6 +46,13 @@ function PaceNumber({
   )
 }
 
+/** The guessing guide stays put. A call that only retimes it is a hold. */
+export function lockBlindGuide(call: BlindCall, guideSec: number, bigBlind: number, handsPerLevel: number): BlindCall {
+  const sameStructure = call.bigBlind === bigBlind && call.handsPerLevel === handsPerLevel
+  const guideOnly = sameStructure && call.guideSec !== guideSec
+  return { ...call, guideSec, verb: guideOnly ? 'Hold' : call.verb }
+}
+
 export function blindPaceLine(call: BlindCall, guideNow: number): string {
   const blinds = `${money(call.smallBlind)} / ${money(call.bigBlind)}`
   if (call.verb === 'Hold') return `Leave ${blinds}.`
@@ -71,13 +72,9 @@ export function HostBlindCall({
   smallBlind,
   bigBlind,
   handsPerLevel,
-  guideSec,
-  goalMinutes,
   onApply,
-  onGoalMinutes,
   onSmallBlind,
   onBigBlind,
-  onGuideSec,
   onSave,
 }: {
   showStartedAtMs: number | null
@@ -88,33 +85,23 @@ export function HostBlindCall({
   smallBlind?: number
   bigBlind: number
   handsPerLevel: number
-  guideSec: number
   /** Hands between table shuffles. Omitted until the desk is ready to edit it. */
   shuffleEvery?: number
-  /** Overrides the remembered night length. The desk leaves this unset and uses local storage. */
-  goalMinutes?: number
   onApply: (call: BlindCall) => void
-  onGoalMinutes?: (minutes: number) => void
   onSmallBlind?: (n: number) => void
   onBigBlind?: (n: number) => void
-  onGuideSec?: (n: number) => void
   onShuffleEvery?: (n: number) => void
   onSave?: () => void
 }) {
-  const [storedGoal, setStoredGoal] = useState(120)
   const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    setStoredGoal(readStoredGoal())
-  }, [])
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 15_000)
     return () => window.clearInterval(id)
   }, [])
 
-  const goal = goalMinutes ?? storedGoal
-  const minutesLeft = minutesLeftOnClock(goal, showStartedAtMs, now)
+  const minutesLeft = minutesLeftOnClock(NIGHT_MINUTES, showStartedAtMs, now)
   const ready = players >= 2 && medianStack != null && handsLeft >= 1 && bigBlind >= 1
-  const call = ready
+  const advised = ready
     ? adviseBlindCall({
         minutesLeft,
         handsLeft,
@@ -123,40 +110,23 @@ export function HostBlindCall({
         medianStack,
         bigBlind,
         handsPerLevel,
-        guideSec,
+        guideSec: GUIDE_SECONDS,
       })
     : null
+  const call = advised == null ? null : lockBlindGuide(advised, GUIDE_SECONDS, bigBlind, handsPerLevel)
 
-  const chooseGoal = (n: number) => {
-    setStoredGoal(n)
-    if (typeof localStorage !== 'undefined') localStorage.setItem(GOAL_KEY, String(n))
-    onGoalMinutes?.(n)
-  }
-  const tune = onSave != null && onSmallBlind != null && onBigBlind != null && onGuideSec != null
+  const tune = onSave != null && onSmallBlind != null && onBigBlind != null
 
   return (
     <div className="host-blind-call flex flex-col gap-2" aria-live="polite">
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      <label className="flex items-center gap-2 text-base text-white/60">
-        Night
-        <select
-          aria-label="Night length"
-          value={String(goal)}
-          onChange={(e) => chooseGoal(Number(e.target.value))}
-          className="rounded-md border border-white/20 bg-zinc-950 py-1 pl-2 pr-8 text-base font-semibold text-white [color-scheme:dark]"
-        >
-          {NIGHT_GOAL_MINUTES.map((n) => (
-            <option key={n} value={n}>
-              {n} min
-            </option>
-          ))}
-        </select>
-      </label>
+      <p className="text-base text-white/60">
+        Night <span className="text-base font-semibold text-white">{NIGHT_MINUTES} min</span>
+      </p>
       {tune ? (
         <>
           <PaceNumber label="Small blind" value={smallBlind ?? bigBlind} min={1} onChange={(n) => onSmallBlind?.(n)} />
           <PaceNumber label="Big blind" value={bigBlind} min={1} onChange={(n) => onBigBlind?.(n)} />
-          <PaceNumber label="Guide" value={guideSec} min={15} max={300} step={5} onChange={(n) => onGuideSec?.(n)} />
           <button
             type="button"
             className="rounded-md border border-white/20 bg-white/10 px-3 py-1.5 text-base font-bold text-white hover:bg-white/15"
@@ -178,7 +148,7 @@ export function HostBlindCall({
             {call.verb}
             <span className="ml-2 font-normal text-white/75">
               <ChipText
-                text={`${blindPaceLine(call, guideSec)} ${Math.round(minutesLeft)} min · ${players} players`}
+                text={`${blindPaceLine(call, GUIDE_SECONDS)} ${Math.round(minutesLeft)} min · ${players} players`}
               />
             </span>
           </p>

@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react'
 import { adviseBlindCall, type BlindCall } from '@qhe/core'
 import { ChipText } from '@qhe/ui'
-import { blindPaceLine, minutesLeftOnClock } from './HostBlindCall'
-
-const GOAL_KEY = 'qhe-night-goal-min'
+import { GUIDE_SECONDS, NIGHT_MINUTES, blindPaceLine, lockBlindGuide, minutesLeftOnClock } from './HostBlindCall'
 
 export function showBlindPaceNotice(
   readyAtMs: number | null | undefined,
@@ -12,12 +9,6 @@ export function showBlindPaceNotice(
 ): boolean {
   if (readyAtMs == null || dismissedReadyAt === readyAtMs) return false
   return nowMs < readyAtMs
-}
-
-function storedGoal(): number {
-  if (typeof localStorage === 'undefined') return 120
-  const n = Number(localStorage.getItem(GOAL_KEY))
-  return n === 60 || n === 90 || n === 120 || n === 150 || n === 180 || n === 210 || n === 240 ? n : 120
 }
 
 export default function HostBlindPaceNotice({
@@ -29,9 +20,7 @@ export default function HostBlindPaceNotice({
   medianStack,
   bigBlind,
   handsPerLevel,
-  guideSec,
   nowMs,
-  goalMinutes,
   onApply,
   onClose,
 }: {
@@ -43,30 +32,24 @@ export default function HostBlindPaceNotice({
   medianStack: number | null
   bigBlind: number
   handsPerLevel: number
-  guideSec: number
   nowMs: number
-  goalMinutes?: number
   onApply: (call: BlindCall) => void
   onClose: () => void
 }) {
-  const [stored, setStored] = useState(120)
-  useEffect(() => {
-    setStored(storedGoal())
-  }, [open])
-  const goal = goalMinutes ?? stored
-
   if (!open || medianStack == null || players < 2 || handsLeft < 1 || bigBlind < 1) return null
-  const call = adviseBlindCall({
-    minutesLeft: minutesLeftOnClock(goal, showStartedAtMs, nowMs),
+  const minutesLeft = minutesLeftOnClock(NIGHT_MINUTES, showStartedAtMs, nowMs)
+  const advised = adviseBlindCall({
+    minutesLeft,
     handsLeft,
     players,
     startedWith: Math.max(players, startedWith),
     medianStack,
     bigBlind,
     handsPerLevel,
-    guideSec,
+    guideSec: GUIDE_SECONDS,
   })
-  const line = `${blindPaceLine(call, guideSec)} ${Math.round(minutesLeftOnClock(goal, showStartedAtMs, nowMs))} min left.`
+  const call = lockBlindGuide(advised, GUIDE_SECONDS, bigBlind, handsPerLevel)
+  const line = `${blindPaceLine(call, GUIDE_SECONDS)} ${Math.round(minutesLeft)} min left.`
 
   return (
     <div

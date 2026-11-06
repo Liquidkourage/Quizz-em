@@ -13,7 +13,7 @@ describe('minutesLeftOnClock', () => {
 })
 
 describe('HostBlindCall', () => {
-  it('reads the field and tells the host to speed the blinds up', () => {
+  it('reads a 120 minute night and leaves the guessing guide alone', () => {
     const html = renderToStaticMarkup(
       <HostBlindCall
         showStartedAtMs={null}
@@ -23,13 +23,14 @@ describe('HostBlindCall', () => {
         medianStack={1000}
         bigBlind={20}
         handsPerLevel={5}
-        guideSec={45}
-        goalMinutes={60}
         onApply={() => {}}
       />,
     )
-    expect(html).toContain('Speed up')
-    expect(html).toContain('aria-label="Set $15 / $30')
+    expect(html).toContain('120 min')
+    expect(html).not.toContain('aria-label="Night length"')
+    expect(html).toContain('Slow down')
+    expect(html).toContain('aria-label="Set $10 / $20')
+    expect(html).not.toContain('guessing guide')
     expect(html.replace(/aria-label="[^"]*"/g, '')).not.toContain('$')
     expect(html).toContain('chip-mark')
     expect(html).not.toContain('level every')
@@ -54,12 +55,9 @@ describe('HostBlindCall', () => {
         smallBlind={10}
         bigBlind={20}
         handsPerLevel={5}
-        guideSec={45}
-        goalMinutes={60}
         onApply={() => {}}
         onSmallBlind={() => {}}
         onBigBlind={() => {}}
-        onGuideSec={() => {}}
         onShuffleEvery={() => {}}
         shuffleEvery={5}
         onSave={() => {}}
@@ -70,9 +68,10 @@ describe('HostBlindCall', () => {
     expect(html).not.toContain('Level every')
     expect(html).not.toContain('Re-seat every')
     expect(html).not.toContain('Shuffle every')
-    expect(html).toContain('Guide')
+    expect(html).not.toContain('aria-label="Guide"')
+    expect(html).not.toContain('aria-label="Night length"')
     expect(html).toContain('>Save<')
-    expect(html.indexOf('Small blind')).toBeLessThan(html.indexOf('Speed up'))
+    expect(html.indexOf('Small blind')).toBeLessThan(html.indexOf('Slow down'))
   })
 
   it('waits for seated stacks instead of asking for them', () => {
@@ -85,7 +84,6 @@ describe('HostBlindCall', () => {
         medianStack={null}
         bigBlind={20}
         handsPerLevel={3}
-        guideSec={45}
         onApply={() => {}}
       />,
     )

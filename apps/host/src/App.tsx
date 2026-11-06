@@ -40,7 +40,6 @@ import {
   onHostDisplays,
   pairDisplayWithHost,
   releaseDisplay,
-  setVenueAnswerWindowSeconds,
   setVenueBlinds,
   setTableBlinds,
   setQuestion as pushQuestionToVenue,
@@ -123,10 +122,8 @@ function openVenueWindow(path: 'display' | 'player', roomCode: string) {
   window.open(url.toString(), `qhe-${path}`)
 }
 
-/** Match server clamp in apps/server venue-answer-window-settings. */
-function clampVenueAnswerWindow(v: number): number {
-  return Math.min(300, Math.max(15, Math.floor(Number.isFinite(v) ? v : 45)))
-}
+/** Guessing guide. Fixed for the night; the pace line does not retune it. */
+const ANSWER_GUIDE_SEC = 45
 
 function HostApp() {
   const [gameState, setGameState] = useState<GameState | null>(null)
@@ -168,7 +165,6 @@ function HostApp() {
   const [tvPairCode, setTvPairCode] = useState('')
   const [attachedDisplays, setAttachedDisplays] = useState<HostDisplayRoster['displays']>([])
   const [livelyGameplayTableNums, setLivelyGameplayTableNums] = useState<number[]>([])
-  const [answerWindowSeconds, setAnswerWindowSeconds] = useState(45)
   const [venueSmallBlind, setVenueSmallBlind] = useState(10)
   const [venueBigBlind, setVenueBigBlind] = useState(20)
   const [handsPerBlindLevel, setHandsPerBlindLevel] = useState(3)
@@ -275,9 +271,6 @@ function HostApp() {
       setSetlists(snap.setlists)
       setActiveSetlistId(snap.activeSetlistId)
       setActiveSetlistNextIndex(snap.activeSetlistNextIndex)
-      if (typeof snap.answerWindowSeconds === 'number' && Number.isFinite(snap.answerWindowSeconds)) {
-        setAnswerWindowSeconds(clampVenueAnswerWindow(snap.answerWindowSeconds))
-      }
       if (snap.venueBlinds) {
         setVenueSmallBlind(Math.max(1, Math.floor(snap.venueBlinds.smallBlind)))
         setVenueBigBlind(Math.max(1, Math.floor(snap.venueBlinds.bigBlind)))
@@ -437,9 +430,7 @@ function HostApp() {
   }
 
   const handleStartAnswering = () => {
-    const sec = clampVenueAnswerWindow(answerWindowSeconds)
-    setAnswerWindowSeconds(sec)
-    startAnswering({ answerWindowSeconds: sec })
+    startAnswering({ answerWindowSeconds: ANSWER_GUIDE_SEC })
   }
 
   const handleEndRound = () => {
@@ -558,7 +549,7 @@ function HostApp() {
   const endgameWinner = hostEndgameWinnerName(venueFloorBrief)
   const phaseDockItems = buildHostPhaseDockItems({
     gameState: hostControlState,
-    answerWindowSeconds,
+    answerWindowSeconds: ANSWER_GUIDE_SEC,
     dealCommunityBlocked,
     closeBetBlocked,
     startAnswerBlocked,
@@ -628,11 +619,6 @@ function HostApp() {
     setVenueSmallBlind(call.smallBlind)
     setVenueBigBlind(call.bigBlind)
     setVenueBlinds(call.smallBlind, call.bigBlind)
-    if (call.guideSec !== answerWindowSeconds) {
-      const sec = clampVenueAnswerWindow(call.guideSec)
-      setAnswerWindowSeconds(sec)
-      setVenueAnswerWindowSeconds(sec)
-    }
   }
   const saveVenueBlinds = () => {
     setVenueBlinds(Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
@@ -929,7 +915,6 @@ function HostApp() {
           medianStack={venueFloorBrief?.medianStack ?? null}
           bigBlind={venueBigBlind}
           handsPerLevel={handsPerBlindLevel}
-          guideSec={answerWindowSeconds}
           nowMs={winnerScreenNowMs}
           onApply={applyBlindCall}
           onClose={() => setDismissedPaceAt(winnerScreensReadyAtMs)}
@@ -1193,16 +1178,13 @@ function HostApp() {
                 smallBlind={venueSmallBlind}
                 bigBlind={venueBigBlind}
                 handsPerLevel={handsPerBlindLevel}
-                guideSec={answerWindowSeconds}
                 onApply={applyBlindCall}
                 onSmallBlind={setVenueSmallBlind}
                 onBigBlind={setVenueBigBlind}
                 shuffleEvery={shuffleEvery}
-                onGuideSec={(n) => setAnswerWindowSeconds(clampVenueAnswerWindow(n))}
                 onShuffleEvery={setShuffleEvery}
                 onSave={() => {
                   saveVenueBlinds()
-                  setVenueAnswerWindowSeconds(clampVenueAnswerWindow(answerWindowSeconds))
                   setVenueShuffleEvery(Math.min(20, Math.max(1, Math.floor(shuffleEvery) || 5)))
                 }}
               />

@@ -24,16 +24,16 @@ describe('HostBlindPaceNotice', () => {
         medianStack: 1000,
         bigBlind: 20,
         handsPerLevel: 5,
-        guideSec: 45,
         nowMs: 1_000,
-        goalMinutes: 60,
         onApply: () => {},
         onClose: () => {},
       }),
     )
     expect(html).toContain('Blind pace')
     expect(html).toContain('While the answer is up')
-    expect(html).toContain('Speed up')
+    expect(html).toContain('Slow down')
+    expect(html).toContain('120 min')
+    expect(html).not.toContain('guessing guide')
     expect(html).not.toContain('level every')
     expect(html).toContain('Apply')
   })
@@ -49,7 +49,6 @@ describe('HostBlindPaceNotice', () => {
         medianStack: 1000,
         bigBlind: 20,
         handsPerLevel: 5,
-        guideSec: 45,
         nowMs: 1_000,
         onApply: () => {},
         onClose: () => {},

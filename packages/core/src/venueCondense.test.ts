@@ -23,6 +23,29 @@ function p(id: string, bankroll: number): PlayerState {
   }
 }
 
+function mulberry(seed: number): () => number {
+  let state = seed >>> 0
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0
+    let t = Math.imul(state ^ (state >>> 15), 1 | state)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function assignedTables(stacks: number[], seed: number) {
+  const players = stacks.map((bankroll, index) => p(`p${index}`, bankroll))
+  const mid = Math.ceil(players.length / 2)
+  const plan = planVenueCondense(
+    [
+      { tableNum: 1, players: players.slice(0, mid) },
+      { tableNum: 2, players: players.slice(mid) },
+    ],
+    { shuffle: true, rng: mulberry(seed) },
+  )
+  return [...plan.scheduledMerge!.assignments.values()]
+}
+
 function roster(tableNum: number, count: number) {
   return {
     tableNum,
@@ -173,6 +196,42 @@ describe('planVenueCondense', () => {
   it('skips shuffle on a single table', () => {
     const plan = planVenueCondense([roster(1, 6)], { shuffle: true, rng: () => 0 })
     expect(plan.scheduledMerge).toBeNull()
+  })
+
+  it('spreads large and small stacks across both tables on a scheduled shuffle', () => {
+    const stacks = [5000, 4500, 4000, 3500, 3000, 2500, 40, 35, 30, 25, 20, 15]
+    for (let seed = 1; seed <= 20; seed++) {
+      const tables = assignedTables(stacks, seed)
+      expect(tables.map((table) => table.length).sort((a, b) => b - a)).toEqual([6, 6])
+      for (const table of tables) {
+        expect(table.filter((player) => player.bankroll >= 2500)).toHaveLength(3)
+        expect(table.filter((player) => player.bankroll <= 40)).toHaveLength(3)
+      }
+    }
+  })
+
+  it('does not seat the same stack mix together on every shuffle', () => {
+    const stacks = [5000, 4500, 4000, 3500, 3000, 2500, 40, 35, 30, 25, 20, 15]
+    const crews = new Set<string>()
+    const leadSeats = new Set<number>()
+    for (let seed = 1; seed <= 24; seed++) {
+      const tables = assignedTables(stacks, seed)
+      const home = tables.find((table) => table.some((player) => player.id === 'p0'))!
+      crews.add(home.map((player) => player.id).sort().join(','))
+      leadSeats.add(home.findIndex((player) => player.id === 'p0'))
+    }
+    expect(crews.size).toBeGreaterThan(1)
+    expect(leadSeats.size).toBeGreaterThan(1)
+  })
+
+  it('keeps a full shuffle fair when the field does not split evenly', () => {
+    const stacks = [9000, 8000, 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 5]
+    const tables = assignedTables(stacks, 3)
+    const counts = tables.map((table) => table.length).sort((a, b) => b - a)
+    expect(counts[0]! - counts[1]!).toBe(1)
+    expect(tables.flat()).toHaveLength(13)
+    const whale = tables.find((table) => table.some((player) => player.bankroll === 9000))!
+    expect(whale.some((player) => player.bankroll <= 100)).toBe(true)
   })
 
   it('does not shuffle between scheduled hands', () => {

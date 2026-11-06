@@ -285,6 +285,58 @@ export function compactTableNumbers(tableNums: readonly number[]): Map<number, n
   return map
 }
 
+function chipStack(player: PlayerState): number {
+  const stack = player.bankroll
+  return typeof stack === 'number' && Number.isFinite(stack) ? stack : 0
+}
+
+function rankByStack(players: PlayerState[], rng: () => number): PlayerState[] {
+  return shuffleWithRng(players, rng).sort((a, b) => chipStack(b) - chipStack(a))
+}
+
+function openSeatOrder(seatLeft: readonly number[], order: readonly number[], forward: boolean): number[] {
+  const open = order.filter((index) => (seatLeft[index] ?? 0) > 0)
+  return forward ? open : open.reverse()
+}
+
+function dealRankChunk(
+  tables: PlayerState[][],
+  seatLeft: number[],
+  sweep: readonly number[],
+  ranked: readonly PlayerState[],
+  cursor: number,
+  rng: () => number,
+): number {
+  const chunk = shuffleWithRng(ranked.slice(cursor, cursor + sweep.length), rng)
+  sweep.forEach((tableIndex, offset) => {
+    const player = chunk[offset]
+    if (player == null) return
+    tables[tableIndex]!.push(player)
+    seatLeft[tableIndex] = (seatLeft[tableIndex] ?? 0) - 1
+  })
+  return cursor + chunk.length
+}
+
+/**
+ * One player from each stack band per table, bands dealt in a snake.
+ * Seat order inside a table is shuffled after the deal.
+ */
+function dealBalancedStacks(players: PlayerState[], sizes: readonly number[], rng: () => number): PlayerState[][] {
+  const ranked = rankByStack(players, rng)
+  const tables = sizes.map(() => [] as PlayerState[])
+  const seatLeft = sizes.slice()
+  const order = shuffleWithRng(sizes.map((_, index) => index), rng)
+  let cursor = 0
+  let forward = true
+  while (cursor < ranked.length) {
+    const sweep = openSeatOrder(seatLeft, order, forward)
+    if (sweep.length === 0) break
+    cursor = dealRankChunk(tables, seatLeft, sweep, ranked, cursor, rng)
+    forward = !forward
+  }
+  return tables.map((table) => shuffleWithRng(table, rng))
+}
+
 function buildScheduledMerge(
   tables: VenueTableRoster[],
   rng: () => number,
@@ -293,15 +345,9 @@ function buildScheduledMerge(
   const n = survivors.length
   const targetTableCount = mergeTargetTableCount(n)
   const sizes = splitIntoTableSizes(n, targetTableCount)
-  const shuffled = shuffleWithRng(survivors, rng)
+  const dealt = dealBalancedStacks(survivors, sizes, rng)
   const assignments = new Map<number, PlayerState[]>()
-  let offset = 0
-  for (let i = 0; i < targetTableCount; i++) {
-    const tableNum = i + 1
-    const size = sizes[i] ?? 0
-    assignments.set(tableNum, shuffled.slice(offset, offset + size))
-    offset += size
-  }
+  dealt.forEach((players, index) => assignments.set(index + 1, players))
   return { targetTableCount, sizes, assignments }
 }
 

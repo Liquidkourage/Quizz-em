@@ -13,6 +13,7 @@ import {
   mosaicFeltFillWidthPx,
   mosaicFeltReservePx,
   mosaicFeltWidthPx,
+  mosaicSidePotCornerPlan,
   mosaicTileFrame,
 } from './mosaicTileLayout'
 
@@ -177,5 +178,22 @@ describe('mosaic tile frame', () => {
     expect(reserve.topPx).toBeLessThan(frame.topStatusPx)
     expect(grown).toBeGreaterThan(full + 30)
     expect(grown / 490).toBeLessThan(0.5)
+    expect(reserve.lanePx).toBe(0)
+  })
+
+  it('drops the center lane on a wide three-across card so the oval can grow', () => {
+    const frame = mosaicTileFrame(681, 319)
+    const reserve = mosaicFeltReservePx(frame, 681, 319)
+    const banded = mosaicFeltFillWidthPx(671, 265, frame.topStatusPx, frame.bottomStatusPx + frame.plaqueLanePx)
+    const grown = mosaicFeltFillWidthPx(671, 265, reserve.topPx, reserve.lanePx)
+    expect(reserve.lanePx).toBe(0)
+    expect(grown).toBeGreaterThan(banded + 40)
+  })
+
+  it('puts at most two side pots in the bottom corners', () => {
+    expect(mosaicSidePotCornerPlan(0)).toEqual({ pots: 0, overflow: 0 })
+    expect(mosaicSidePotCornerPlan(1)).toEqual({ pots: 1, overflow: 0 })
+    expect(mosaicSidePotCornerPlan(2)).toEqual({ pots: 2, overflow: 0 })
+    expect(mosaicSidePotCornerPlan(4)).toEqual({ pots: 1, overflow: 3 })
   })
 })

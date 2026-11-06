@@ -238,15 +238,7 @@ export function mosaicFeltWidthPx(slotWidthPx: number, boxWidthPx: number, boxHe
 const FELT_AIR_PX = 16
 /** Shorter cards already use their height for the oval. Giving the band back crowds the names. */
 const FELT_GROW_MIN_TILE_PX = 290
-/** A grown felt under this share of the card still leaves the side names off the pot. */
-const FELT_WIDE_CARD_SHARE = 0.45
 const FELT_HEADER_PX = 52
-
-function feltReserveChipPx(tileWidthPx: number, tileHeightPx: number, fullLanePx: number): number {
-  const budget = fullLanePx - FELT_AIR_PX
-  if (!(budget > 0)) return 0
-  return mosaicReadablePlaqueMetrics(tileWidthPx, tileHeightPx, 1, budget).heightPx
-}
 
 function feltWidthForReserve(
   tileWidthPx: number,
@@ -260,9 +252,10 @@ function feltWidthForReserve(
 
 /**
  * Space the felt yields around itself.
- * On a tall card the labels sit on the oval, so the felt keeps a short gap and the chip
- * instead of a full status band. A wide short card does the same when the oval would
- * otherwise be a small island and the side names still clear the pot.
+ * When the grown oval still leaves a side gap as wide as one chip, the center
+ * lane is given back and side pots sit in the bottom corners.
+ * Otherwise a tall card keeps a chip-tall band under the middle, and a short
+ * card keeps the full name band.
  */
 export function mosaicFeltReservePx(
   frame: MosaicTileFrame,
@@ -272,23 +265,39 @@ export function mosaicFeltReservePx(
   const fullLane = frame.bottomStatusPx + frame.plaqueLanePx
   const full = { topPx: frame.topStatusPx, lanePx: fullLane }
   if (!(tileWidthPx > 0) || !(tileHeightPx > 0) || !(fullLane > 0)) return full
-  const chip = feltReserveChipPx(tileWidthPx, tileHeightPx, fullLane)
+  if (cornerChipsFitBesideFelt(tileWidthPx, tileHeightPx, frame)) {
+    return { topPx: Math.min(frame.topStatusPx, FELT_AIR_PX), lanePx: 0 }
+  }
   if (tileHeightPx >= FELT_GROW_MIN_TILE_PX) {
+    const budget = fullLane - FELT_AIR_PX
+    const chip = budget > 0 ? mosaicReadablePlaqueMetrics(tileWidthPx, tileHeightPx, 1, budget).heightPx : 0
     if (!(chip > 0)) return full
     return {
       topPx: Math.min(frame.topStatusPx, FELT_AIR_PX),
       lanePx: Math.min(fullLane, chip + FELT_AIR_PX),
     }
   }
-  const wideChip = mosaicReadablePlaqueMetrics(tileWidthPx, tileHeightPx, 1, READABLE_PLAQUE_MIN).heightPx
-  if (!(wideChip > 0)) return full
-  const wide = {
-    topPx: Math.min(frame.topStatusPx, FELT_AIR_PX),
-    lanePx: Math.min(fullLane, wideChip),
-  }
-  const feltW = feltWidthForReserve(tileWidthPx, tileHeightPx, wide)
-  if (feltW > 0 && feltW < tileWidthPx * FELT_WIDE_CARD_SHARE) return wide
   return full
+}
+
+/** The grown oval leaves a side gap wide enough for one corner chip. */
+function cornerChipsFitBesideFelt(
+  tileWidthPx: number,
+  tileHeightPx: number,
+  frame: MosaicTileFrame,
+): boolean {
+  const lane = { topPx: Math.min(frame.topStatusPx, FELT_AIR_PX), lanePx: 0 }
+  const feltW = feltWidthForReserve(tileWidthPx, tileHeightPx, lane)
+  const chipW = mosaicReadablePlaqueMetrics(tileWidthPx, tileHeightPx, 1, READABLE_PLAQUE_MIN).widthPx
+  const stageW = Math.max(0, tileWidthPx - 10)
+  return feltW > 0 && chipW > 0 && (stageW - feltW) / 2 + 1 >= chipW
+}
+
+/** At most two corner readouts. A third side pot collapses into the overflow chip. */
+export function mosaicSidePotCornerPlan(sideCount: number): { pots: number; overflow: number } {
+  const count = Math.max(0, Math.floor(sideCount))
+  if (count <= 2) return { pots: count, overflow: 0 }
+  return { pots: 1, overflow: count - 1 }
 }
 
 /** Felt width that fills the stage left after the reserve, still at 17:10. */

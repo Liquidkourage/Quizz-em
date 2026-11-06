@@ -118,6 +118,37 @@ describe('felt side pot', () => {
     expect(html).not.toContain('Side pot')
   })
 
+  it('docks one side pot to the bottom left and the second to the bottom right', () => {
+    const one = renderToStaticMarkup(
+      createElement(MosaicSidePotPlaques, { sides: [{ mark: 1, amount: 40 }] }),
+    )
+    expect(one).toContain('vfd-mosaic-side-plaque--left')
+    expect(one).not.toContain('vfd-mosaic-side-plaque--right')
+    const two = renderToStaticMarkup(
+      createElement(MosaicSidePotPlaques, {
+        sides: [
+          { mark: 1, amount: 40 },
+          { mark: 2, amount: 80 },
+        ],
+      }),
+    )
+    expect(two).toContain('vfd-mosaic-side-plaque--left')
+    expect(two).toContain('vfd-mosaic-side-plaque--right')
+    expect(two).not.toContain('+')
+    const three = renderToStaticMarkup(
+      createElement(MosaicSidePotPlaques, {
+        sides: [
+          { mark: 1, amount: 40 },
+          { mark: 2, amount: 80 },
+          { mark: 3, amount: 120 },
+        ],
+      }),
+    )
+    expect(three).toContain('Side pot 1 $40')
+    expect(three).not.toContain('Side pot 2')
+    expect(three).toContain('+2 MORE')
+  })
+
   it('draws one plaque when the hand has one side pot and none when it has zero', () => {
     const one = renderToStaticMarkup(
       createElement(MosaicSidePotPlaques, { sides: [{ mark: 1, amount: 40 }] }),

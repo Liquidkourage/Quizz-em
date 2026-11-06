@@ -3005,11 +3005,12 @@
   }
 
   /**
-   * Reserved under every mosaic felt, whether or not a side pot exists.
-   * Plaques fill it; an empty lane is the clearance that keeps the felt from jumping.
+   * Band under the felt. On a wide card the chips move to the bottom corners
+   * and this band collapses so the oval can use the height.
    */
   .vfd-mosaic-side-lane {
-    container-type: inline-size;
+    position: relative;
+    z-index: 3;
     display: flex;
     flex: 0 0 auto;
     align-items: flex-end;
@@ -3017,6 +3018,13 @@
     width: 100%;
     min-width: 0;
     min-height: 0;
+    overflow: visible;
+    container-type: inline-size;
+    pointer-events: none;
+  }
+
+  .vfd-mosaic-side-lane--corners {
+    height: 0;
   }
 
   /** Mosaic side pots — glossy stadium chip, inlaid edge spots, dark well. */
@@ -3029,6 +3037,12 @@
     width: 100%;
     min-width: 0;
     max-width: 100%;
+    pointer-events: none;
+  }
+
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-plaques {
+    display: block;
+    height: 0;
   }
 
   .vfd-mosaic-side-plaque,
@@ -3168,6 +3182,27 @@
     line-height: 1;
     white-space: nowrap;
     color: #fff;
+  }
+
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-plaque.vfd-mosaic-side-plaque--left,
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-plaque.vfd-mosaic-side-plaque--right,
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-overflow.vfd-mosaic-side-plaque--left,
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-overflow.vfd-mosaic-side-plaque--right {
+    position: absolute;
+    bottom: 0;
+    pointer-events: auto;
+  }
+
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-plaque.vfd-mosaic-side-plaque--left,
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-overflow.vfd-mosaic-side-plaque--left {
+    left: 0;
+    right: auto;
+  }
+
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-plaque.vfd-mosaic-side-plaque--right,
+  .vfd-mosaic-side-lane--corners .vfd-mosaic-side-overflow.vfd-mosaic-side-plaque--right {
+    right: 0;
+    left: auto;
   }
 
   .vfd-broadcast-center-amount {

@@ -32,6 +32,7 @@ import {
   mosaicFeltFillWidthPx,
   mosaicFeltReservePx,
   mosaicReadablePlaqueMetrics,
+  mosaicSidePotCornerPlan,
   mosaicSidePotsThatFit,
   mosaicTileFrame,
   type MosaicPlaqueMetrics,
@@ -576,19 +577,24 @@ export function MosaicSidePotPlaques({
 }) {
   const clipId = useId().replace(/:/g, '')
   const shown = sides ?? []
-  const overflow = mosaicSidePotOverflowLabel(hiddenCount)
-  if (hidden || (shown.length === 0 && overflow === '')) return null
+  const plan = mosaicSidePotCornerPlan(shown.length + hiddenCount)
+  const cornerSides = shown.slice(0, plan.pots)
+  const overflow = plan.overflow > 0 ? mosaicSidePotOverflowLabel(plan.overflow) : ''
+  if (hidden || (cornerSides.length === 0 && overflow === '')) return null
   const overflowStyle = plaqueFitStyle(metrics)
+  const slots = cornerSides.length + (overflow !== '' ? 1 : 0)
   return (
     <div
       className="vfd-mosaic-side-plaques col-start-1 row-start-3 shrink-0"
       role="list"
       style={metrics != null ? ({ gap: `${metrics.gapPx}px` } as CSSProperties) : undefined}
     >
-      {shown.map((side) => (
+      {cornerSides.map((side, index) => {
+        const corner = slots === 1 || index === 0 ? 'left' : 'right'
+        return (
         <div
           key={side.mark}
-          className={`vfd-mosaic-side-plaque${metrics != null ? ' vfd-mosaic-side-plaque--fit' : ''}`}
+          className={`vfd-mosaic-side-plaque vfd-mosaic-side-plaque--${corner}${metrics != null ? ' vfd-mosaic-side-plaque--fit' : ''}`}
           role="listitem"
           aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
           style={
@@ -620,12 +626,13 @@ export function MosaicSidePotPlaques({
             <span className="vfd-mosaic-side-plaque-amount">{formatVenueBankrollDigits(side.amount)}</span>
           </span>
         </div>
-      ))}
+        )
+      })}
       {overflow !== '' ? (
         <div
-          className="vfd-mosaic-side-overflow"
+          className={`vfd-mosaic-side-overflow vfd-mosaic-side-plaque--${cornerSides.length === 0 ? 'left' : 'right'}`}
           role="listitem"
-          aria-label={`${hiddenCount} more side pots`}
+          aria-label={`${plan.overflow} more side pots`}
           style={overflowStyle}
         >
           {overflow}
@@ -2715,7 +2722,7 @@ function VenueMosaicTableCard({
           />
           </div>
           <div
-            className="vfd-mosaic-side-lane shrink-0"
+            className={`vfd-mosaic-side-lane shrink-0${feltReserve.lanePx === 0 ? ' vfd-mosaic-side-lane--corners' : ''}`}
             style={
               feltReserve.lanePx > 0
                 ? {

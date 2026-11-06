@@ -236,26 +236,10 @@ export function mosaicFeltWidthPx(slotWidthPx: number, boxWidthPx: number, boxHe
 }
 
 const FELT_AIR_PX = 16
-/** Shorter cards already use their height for the oval. Giving the band back crowds the names. */
-const FELT_GROW_MIN_TILE_PX = 290
-const FELT_HEADER_PX = 52
-
-function feltWidthForReserve(
-  tileWidthPx: number,
-  tileHeightPx: number,
-  reserve: { topPx: number; lanePx: number },
-): number {
-  const stageH = tileHeightPx - FELT_HEADER_PX
-  const stageW = Math.max(0, tileWidthPx - 10)
-  return mosaicFeltFitPx(stageW, stageH - reserve.topPx - reserve.lanePx).widthPx
-}
 
 /**
  * Space the felt yields around itself.
- * When the grown oval still leaves a side gap as wide as one chip, the center
- * lane is given back and side pots sit in the bottom corners.
- * Otherwise a tall card keeps a chip-tall band under the middle, and a short
- * card keeps the full name band.
+ * Side pots sit in the bottom corners on every card, so the center lane is given back.
  */
 export function mosaicFeltReservePx(
   frame: MosaicTileFrame,
@@ -265,32 +249,7 @@ export function mosaicFeltReservePx(
   const fullLane = frame.bottomStatusPx + frame.plaqueLanePx
   const full = { topPx: frame.topStatusPx, lanePx: fullLane }
   if (!(tileWidthPx > 0) || !(tileHeightPx > 0) || !(fullLane > 0)) return full
-  if (cornerChipsFitBesideFelt(tileWidthPx, tileHeightPx, frame)) {
-    return { topPx: Math.min(frame.topStatusPx, FELT_AIR_PX), lanePx: 0 }
-  }
-  if (tileHeightPx >= FELT_GROW_MIN_TILE_PX) {
-    const budget = fullLane - FELT_AIR_PX
-    const chip = budget > 0 ? mosaicReadablePlaqueMetrics(tileWidthPx, tileHeightPx, 1, budget).heightPx : 0
-    if (!(chip > 0)) return full
-    return {
-      topPx: Math.min(frame.topStatusPx, FELT_AIR_PX),
-      lanePx: Math.min(fullLane, chip + FELT_AIR_PX),
-    }
-  }
-  return full
-}
-
-/** The grown oval leaves a side gap wide enough for one corner chip. */
-function cornerChipsFitBesideFelt(
-  tileWidthPx: number,
-  tileHeightPx: number,
-  frame: MosaicTileFrame,
-): boolean {
-  const lane = { topPx: Math.min(frame.topStatusPx, FELT_AIR_PX), lanePx: 0 }
-  const feltW = feltWidthForReserve(tileWidthPx, tileHeightPx, lane)
-  const chipW = mosaicReadablePlaqueMetrics(tileWidthPx, tileHeightPx, 1, READABLE_PLAQUE_MIN).widthPx
-  const stageW = Math.max(0, tileWidthPx - 10)
-  return feltW > 0 && chipW > 0 && (stageW - feltW) / 2 + 1 >= chipW
+  return { topPx: Math.min(frame.topStatusPx, FELT_AIR_PX), lanePx: 0 }
 }
 
 /** At most two corner readouts. A third side pot collapses into the overflow chip. */

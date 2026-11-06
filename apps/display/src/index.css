@@ -3005,8 +3005,8 @@
   }
 
   /**
-   * Band under the felt. On a wide card the chips move to the bottom corners
-   * and this band collapses so the oval can use the height.
+   * Band under the felt. Side pots sit in the bottom corners and this band
+   * collapses so the oval can use the height.
    */
   .vfd-mosaic-side-lane {
     position: relative;

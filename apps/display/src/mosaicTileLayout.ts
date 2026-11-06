@@ -108,7 +108,11 @@ export function mosaicReadablePlaqueMetrics(
   const gapPx = Math.round(clamp(w * 0.012, 4, 10))
   let height = readablePlaqueMaxPx(h)
   if (laneBudgetPx > 0) height = Math.min(height, laneBudgetPx)
-  if (h > 0 && height > h * 0.2) height = 0
+  if (h > 0 && height > h * 0.2) {
+    const minimumFits =
+      READABLE_PLAQUE_MIN <= h * 0.22 && (laneBudgetPx <= 0 || laneBudgetPx >= READABLE_PLAQUE_MIN)
+    height = minimumFits ? READABLE_PLAQUE_MIN : 0
+  }
   if (height < READABLE_PLAQUE_MIN) height = 0
   void count
   return {

@@ -79,6 +79,7 @@ import {
   mosaicSeatStackFontForAmount,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
+  mosaicBoardGapPx,
   mosaicHoleCardFitPx,
   mosaicPotFontPx,
   mosaicShowsSeatStacks,
@@ -990,49 +991,52 @@ function VenueMosaicFeltCenterStack({
   const feltBounds = venueFeltBoundsFrac()
   const showPot = pot != null && potClass != null
   if (communityDigits.length === 0 && !showPot) return null
+  const center = {
+    position: 'absolute' as const,
+    left: `${feltBounds.cx * 100}%`,
+    top: `${feltBounds.cy * 100}%`,
+    maxWidth: '92%',
+  }
+  const boardLiftPx = mosaicBoardGapPx(potFontCapPx ?? 0) + Math.round((potFontCapPx ?? 0) / 2)
   return (
     <div
-      className={`pointer-events-none absolute inset-0 flex items-center justify-center ${SEAT_LAYER_FELT_POT}`}
+      className={`pointer-events-none absolute inset-0 ${SEAT_LAYER_FELT_POT}`}
       aria-hidden={communityDigits.length === 0 && !showPot}
     >
-      <div
-        className="flex max-w-[92%] flex-col items-center justify-center gap-1 text-center"
-        style={{
-          position: 'absolute',
-          left: `${feltBounds.cx * 100}%`,
-          top: `${feltBounds.cy * 100}%`,
-          transform: 'translate(-50%, -50%)',
-        }}
-      >
-        {communityDigits.length > 0 ? (
-          <div
-            className="flex items-center justify-center"
-            style={{ gap: Math.max(2, Math.round(communityCardWidthPx * 0.07)) }}
-          >
-            {communityDigits.map((digit, i) => (
-              <MosaicDigitCard
-                key={`${i}-${digit}`}
-                digit={digit}
-                widthPx={communityCardWidthPx}
-                heightPx={communityCardHeightPx}
-              />
-            ))}
-          </div>
-        ) : null}
-        {showPot ? (
-          <VenuePotAmount
-            amount={pot}
-            prefersReducedMotion={prefersReducedMotion}
-            potMuted={potMuted}
-            className={`block max-w-full ${potClass}`}
-            style={
-              potFontCapPx != null
-                ? { fontSize: `min(var(--vfd-stack-size), ${potFontCapPx}px)` }
-                : undefined
-            }
-          />
-        ) : null}
-      </div>
+      {communityDigits.length > 0 ? (
+        <div
+          className="flex items-center justify-center"
+          style={{
+            ...center,
+            transform: `translate(-50%, calc(-100% - ${boardLiftPx}px))`,
+            gap: Math.max(2, Math.round(communityCardWidthPx * 0.07)),
+          }}
+        >
+          {communityDigits.map((digit, i) => (
+            <MosaicDigitCard
+              key={`${i}-${digit}`}
+              digit={digit}
+              widthPx={communityCardWidthPx}
+              heightPx={communityCardHeightPx}
+            />
+          ))}
+        </div>
+      ) : null}
+      {showPot ? (
+        <VenuePotAmount
+          amount={pot}
+          prefersReducedMotion={prefersReducedMotion}
+          potMuted={potMuted}
+          className={`block max-w-full text-center ${potClass}`}
+          style={{
+            ...center,
+            transform: 'translate(-50%, -50%)',
+            ...(potFontCapPx != null
+              ? { fontSize: `min(var(--vfd-stack-size), ${potFontCapPx}px)` }
+              : {}),
+          }}
+        />
+      ) : null}
     </div>
   )
 }

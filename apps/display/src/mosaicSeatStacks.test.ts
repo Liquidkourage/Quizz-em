@@ -16,6 +16,7 @@ import {
   mosaicSeatStackFontPx,
   mosaicSeatStackFontForAmount,
   mosaicShowsSeatStacks,
+  mosaicBoardGapPx,
   mosaicHoleCardFitPx,
   mosaicPotFontPx,
   mosaicStreetCardBoxPx,
@@ -204,14 +205,16 @@ describe('mosaic seat stacks', () => {
     const ten = mosaicPotFontPx(236, 139, 49, '$1,200')
     expect(ten).toBeLessThanOrEqual(Math.round(139 * 0.22))
     expect(ten).toBeGreaterThanOrEqual(12)
-    const twenty = mosaicPotFontPx(124, 73, 41, '$1,200')
-    expect(twenty).toBeLessThanOrEqual(Math.round(73 * 0.34))
+    const twenty = mosaicPotFontPx(174, 102, 41, '$1,200')
+    expect(twenty).toBeLessThanOrEqual(Math.round(102 * 0.16))
+    expect(mosaicSeatInitialFontPx(174, 102)).toBeLessThan(mosaicSeatInitialFontPx(174, 160))
     const wideCard = mosaicStreetCardBoxPx(403, 'large')
     expect(mosaicStreetCardFitPx(wideCard, 237, 61)).toEqual(wideCard)
     const shortCard = mosaicStreetCardFitPx(mosaicStreetCardBoxPx(124, 'micro'), 73, twenty)
     expect(shortCard.heightPx).toBeLessThan(wideCard.heightPx)
     expect(shortCard.heightPx + twenty).toBeLessThanOrEqual(Math.floor(73 * 0.58))
-    expect(mosaicHoleCardFitPx(27, 237)).toBe(27)
+    expect(mosaicBoardGapPx(61)).toBeGreaterThanOrEqual(Math.round(61 * 0.4))
+    expect(mosaicBoardGapPx(0)).toBe(8)
     expect(mosaicHoleCardFitPx(21, 139)).toBeLessThan(21)
   })
 

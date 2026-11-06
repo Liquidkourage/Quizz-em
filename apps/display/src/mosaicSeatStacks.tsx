@@ -49,7 +49,7 @@ export function mosaicSeatInitialFontPx(tableWidthPx: number, tableHeightPx = 0)
   const w = feltWidthPx(tableWidthPx)
   const fromWidth = Math.min(52, Math.max(30, w * 0.105))
   if (!(tableHeightPx > 0)) return Math.round(fromWidth)
-  const fromHeight = Math.max(16, tableHeightPx * 0.2)
+  const fromHeight = Math.max(16, tableHeightPx * (tableHeightPx < 120 ? 0.14 : 0.2))
   return Math.round(Math.min(fromWidth, fromHeight))
 }
 
@@ -87,10 +87,17 @@ export function mosaicPotFontPx(
   if (!(preferredPx > 0)) return 0
   const widthBudget = Math.max(0, feltWidthPx) * 0.7
   const fromWidth = widthBudget > 0 ? widthBudget / mosaicPotEm(amountLabel) : preferredPx
-  const heightShare = feltHeightPx > 0 && feltHeightPx < 220 ? 0.22 : 0.32
+  const heightShare =
+    feltHeightPx > 0 && feltHeightPx < 120 ? 0.16 : feltHeightPx > 0 && feltHeightPx < 220 ? 0.22 : 0.32
   const heightBudget = Math.max(0, feltHeightPx) * heightShare
   const fitted = Math.min(preferredPx, fromWidth, heightBudget > 0 ? heightBudget : preferredPx)
   return Math.max(12, Math.round(fitted))
+}
+
+/** Space between the community board and the pot, enough for the dollar glyph to clear the cards. */
+export function mosaicBoardGapPx(potPx: number): number {
+  if (!(potPx > 0)) return 8
+  return Math.max(8, Math.round(potPx * 0.45))
 }
 
 /** Hole cards track a short felt. A six-table felt is left at the width size. */
@@ -106,9 +113,9 @@ export function mosaicStreetCardFitPx(
   potPx: number,
 ): { widthPx: number; heightPx: number } {
   if (!(feltHeightPx > 0) || feltHeightPx >= 220) return box
-  const budget = Math.floor(feltHeightPx * 0.42) - Math.max(0, potPx) - 4
-  if (budget >= box.heightPx) return box
-  const heightPx = Math.max(12, budget)
+  const room = Math.floor(feltHeightPx / 2 - Math.max(0, potPx) / 2) - mosaicBoardGapPx(potPx)
+  if (room >= box.heightPx) return box
+  const heightPx = Math.max(12, room)
   return { widthPx: Math.max(8, Math.round((heightPx * 5) / 7)), heightPx }
 }
 

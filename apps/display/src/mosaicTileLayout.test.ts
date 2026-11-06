@@ -84,6 +84,13 @@ describe('mosaic side-pot plaques', () => {
     }
   })
 
+  it('keeps a readable chip on a twenty-table tile and none on a tiny one', () => {
+    const chip = mosaicReadablePlaqueMetrics(360, 190, 1, 48)
+    expect(chip.heightPx).toBeGreaterThanOrEqual(34)
+    expect(mosaicSidePotsThatFit(1, 360, 190)).toBe(1)
+    expect(mosaicSidePotsThatFit(2, 100, 80)).toBe(0)
+  })
+
   it('uses a shorter tile to drop plaques before a taller tile of the same width does', () => {
     const short = mosaicSidePotsThatFit(3, 520, 110)
     const tall = mosaicSidePotsThatFit(3, 520, 480)

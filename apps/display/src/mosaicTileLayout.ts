@@ -253,13 +253,17 @@ export function mosaicFeltReservePx(
 }
 
 const CORNER_DOCK_AIR_PX = 8
+/** Five and six tables give a little of the corner gap back to the felt. */
+const FIVE_SIX_DOCK_GIVEBACK_PX = 16
 
 /** Extra room under the felt on the counts that fill the card. Side pots sit in it. */
 export function mosaicCornerDockPx(tableCount: number, chipHeightPx: number): number {
   const count = Math.floor(tableCount)
   const tight = (count >= 5 && count <= 8) || (count >= 13 && count <= 15)
   if (!tight || !(chipHeightPx > 0)) return 0
-  return Math.round(chipHeightPx + CORNER_DOCK_AIR_PX)
+  const dock = Math.round(chipHeightPx + CORNER_DOCK_AIR_PX)
+  if (count === 5 || count === 6) return Math.max(0, dock - FIVE_SIX_DOCK_GIVEBACK_PX)
+  return dock
 }
 
 /** At most two corner readouts. A third side pot collapses into the overflow chip. */

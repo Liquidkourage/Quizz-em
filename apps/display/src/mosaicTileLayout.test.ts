@@ -194,7 +194,8 @@ describe('mosaic tile frame', () => {
 
   it('leaves a little room under the felt for 5-8 and 13-15 tables', () => {
     expect(mosaicCornerDockPx(4, 40)).toBe(0)
-    expect(mosaicCornerDockPx(5, 40)).toBe(48)
+    expect(mosaicCornerDockPx(5, 40)).toBe(32)
+    expect(mosaicCornerDockPx(6, 40)).toBe(32)
     expect(mosaicCornerDockPx(8, 40)).toBe(48)
     expect(mosaicCornerDockPx(9, 40)).toBe(0)
     expect(mosaicCornerDockPx(12, 54)).toBe(0)

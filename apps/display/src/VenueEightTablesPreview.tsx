@@ -473,6 +473,10 @@ export function MosaicSidePotPlaques({
           aria-label={`Side pot ${side.mark} ${formatVenueBankroll(side.amount)}`}
           style={{ '--vfd-side-pot': sidePotColor(side.mark) } as CSSProperties}
         >
+          <svg className="vfd-mosaic-side-plaque-rim" viewBox="0 0 240 100" preserveAspectRatio="none" aria-hidden>
+            <rect x="11" y="12" width="218" height="78" rx="39" fill="none" stroke="rgb(0 0 0 / 0.4)" strokeWidth="13" strokeDasharray="15 10" />
+            <rect x="11" y="10" width="218" height="78" rx="39" fill="none" stroke="#fff" strokeWidth="11" strokeDasharray="15 10" />
+          </svg>
           <span className="vfd-mosaic-side-plaque-face">
             <span className="vfd-mosaic-side-plaque-title">Side pot {side.mark}</span>
             <span className="vfd-mosaic-side-plaque-amount">{formatVenueBankrollDigits(side.amount)}</span>

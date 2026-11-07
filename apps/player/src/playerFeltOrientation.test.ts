@@ -158,6 +158,13 @@ describe('player table orientation', () => {
     expect(waiting).toContain('.player-game-dock--waiting')
     expect(waiting).toContain('max-height: none')
     expect(waiting).toContain('grid-template-columns: 1fr')
+
+    const peek = short.slice(short.indexOf('.player-hole-peek'))
+    expect(peek).toContain('flex: 0 0 auto')
+    expect(peek).toContain('min-height: 2.75rem')
+    const slot = short.slice(short.indexOf('.player-felt-rotate-slot'))
+    expect(slot).toContain('flex: 1 1 0')
+    expect(slot).not.toContain('flex: 1 1 auto')
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {

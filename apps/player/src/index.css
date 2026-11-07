@@ -1449,7 +1449,7 @@
   }
 
   .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-height: 0;
     height: auto;
   }
@@ -1481,6 +1481,8 @@
     left: auto;
     bottom: auto;
     z-index: 7;
+    flex: 0 0 auto;
+    min-height: 2.75rem;
     margin: 0.15rem auto 0;
     padding: 0.12rem 0.35rem;
     transform: none;

@@ -777,7 +777,7 @@ function PlayerApp() {
             {seatedAtTable && !showTableResults && !showLastHand ? feltView : null}
 
             {!seatedAtTable ? (
-              <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} />
+              <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} hideHoleStrip />
             ) : null}
 
             {needsMobileBetDock && bettingCtx && currentPlayer ? (

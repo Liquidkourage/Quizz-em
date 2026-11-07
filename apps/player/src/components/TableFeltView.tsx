@@ -3,6 +3,7 @@ import { ChipText, digitsAscending, MOSAIC_SEAT_COUNT, NumericPlayingCard, SideP
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
 import { displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID, type LiveSidePot } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
+import { HolePeek } from './HolePeek'
 import {
   buildPlayerTableStatusLine,
   resolveSeatStatusPill,
@@ -166,7 +167,7 @@ export default function TableFeltView({
           : null
       const pointsOnly = player.pointsOnly === true
       const foldedChips = player.hasFolded && !pointsOnly
-      const showFaceUp = (isMe || revealCards) && knownDigits != null
+      const showFaceUp = revealCards && knownDigits != null
       const holeDigits: readonly [number, number] | null =
         knownDigits != null && !foldedChips ? knownDigits : null
       const holeBacks = holeDigits == null && !foldedChips && player.holesDealt === true
@@ -285,7 +286,8 @@ export default function TableFeltView({
         centerContent={showCenterPot ? <PlayerFeltPot pot={pot} sides={sideLayers} /> : null}
       />
       </div>
-      {heroHoles && (heroFolded || hero?.pointsOnly === true) ? (
+      {heroHoles && !revealCards ? <HolePeek digits={heroHoles} /> : null}
+      {heroHoles && revealCards && (heroFolded || hero?.pointsOnly === true) ? (
         <div
           className={`player-hud-hero-cards${heroFolded ? ' player-hud-hero-cards--folded' : ''}`}
           aria-label={heroFolded ? 'Your cards (folded chips)' : 'Your cards'}

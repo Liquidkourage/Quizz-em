@@ -24,9 +24,10 @@ describe('points-only hole cards', () => {
     const html = renderToStaticMarkup(
       createElement(TableFeltView, { gameState: felt(true), playerName: 'Joy', myPlayerId: 'me' }),
     )
-    expect(html).toContain('Your cards')
-    expect(html).toContain('Card 7')
-    expect(html).toContain('Card 9')
+    expect(html).toContain('Hold to peek')
+    expect(html).not.toContain('Card 7')
+    expect(html).not.toContain('Card 9')
+    expect(html).not.toContain('digit-7')
     expect(html).not.toContain('Your cards · folded')
   })
 
@@ -34,6 +35,8 @@ describe('points-only hole cards', () => {
     const html = renderToStaticMarkup(
       createElement(TableFeltView, { gameState: felt(false), playerName: 'Joy', myPlayerId: 'me' }),
     )
+    expect(html).toContain('Hold to peek')
+    expect(html).not.toContain('digit-7')
     expect(html).not.toContain('player-hud-hero-cards')
   })
 })

@@ -16,7 +16,7 @@ describe('nextDealFlash', () => {
     ).toBeNull()
   })
 
-  it('pops the two hole cards when they are dealt', () => {
+  it('leaves a new hole pair for the peek instead of popping it', () => {
     expect(
       nextDealFlash(seen, {
         roundId: 'r1',
@@ -25,7 +25,7 @@ describe('nextDealFlash', () => {
         holeDigits: [4, 1],
         boardDigits: [],
       }),
-    ).toEqual({ kind: 'holes', digits: [4, 1] })
+    ).toBeNull()
   })
 
   it('pops the board when the street is dealt', () => {
@@ -54,7 +54,7 @@ describe('nextDealFlash', () => {
     expect(nextDealFlash({ roundId: 'r1', holeKey: '4,1', boardKey: '8,0,2,6,3' }, now)).toBeNull()
   })
 
-  it('pops the next hand when the hole cards change', () => {
+  it('leaves the next hand’s hole cards for the peek', () => {
     expect(
       nextDealFlash(
         { roundId: 'r1', holeKey: '4,1', boardKey: '' },
@@ -66,7 +66,7 @@ describe('nextDealFlash', () => {
           boardDigits: [],
         },
       ),
-    ).toEqual({ kind: 'holes', digits: [9, 2] })
+    ).toBeNull()
   })
 
   it('holds the popup for 3 seconds', () => {

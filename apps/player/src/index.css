@@ -3069,6 +3069,45 @@
   text-align: center;
 }
 
+.player-hole-peek {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0.4rem auto 0;
+  padding: 0.28rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgb(251 191 36 / 0.4);
+  background: rgb(8 12 10 / 0.9);
+  color: rgb(253 224 71);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.player-hole-peek-label {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.player-hole-peek-pair {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.player-hole-peek-back {
+  width: 1.7rem;
+  height: 2.4rem;
+  border-radius: 0.2rem;
+}
+
 .player-hud-hero-cards {
   flex: 0 0 auto;
   display: flex;

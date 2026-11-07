@@ -132,8 +132,11 @@ describe('player table orientation', () => {
     const foldHeader = '@media (max-height: 320px)'
     const fold = mediaBlock(css.slice(css.indexOf(foldHeader)), foldHeader)
     expect(fold.startsWith(foldHeader)).toBe(true)
-    expect(fold).toContain('min-height: 6rem')
-    expect(css.lastIndexOf('max-height: 4.6rem')).toBeGreaterThan(shortDock)
+    expect(fold).toContain('min-height: 4.75rem')
+    expect(fold).toContain('margin: 0 0 1.15rem')
+    expect(fold).toContain('padding: 0 1rem 2.35rem')
+    expect(fold).toContain('max-height: 3.5rem')
+    expect(css.indexOf(foldHeader)).toBeGreaterThan(shortDock)
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {

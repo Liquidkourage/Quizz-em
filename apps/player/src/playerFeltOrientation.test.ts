@@ -115,14 +115,19 @@ describe('player table orientation', () => {
       true,
     )
 
-    const header = '@media (orientation: landscape) and (max-height: 520px)'
+    const header = '@media (max-height: 520px)'
     const short = mediaBlock(css.slice(css.indexOf(header)), header)
     expect(short.startsWith(header)).toBe(true)
     expect(short).toContain('(orientation: portrait) and (pointer: coarse) and (max-width: 520px)')
-    expect(short).toContain('padding: 0.15rem 2.6rem 0.1rem')
+    expect(short).toContain('padding: 0.1rem 2.6rem 2.5rem')
+    expect(short).toContain('margin: 0 0 1.5rem')
     expect(short).toContain('max-height: 3.4rem')
     expect(short).not.toContain('margin-bottom: 4.25rem')
     expect(short).not.toContain('padding: 2rem 6rem 1.75rem')
+    const dockCap = css.indexOf('max-height: min(42%, 16rem)')
+    const shortDock = css.lastIndexOf('max-height: 6.5rem')
+    expect(dockCap).toBeGreaterThan(0)
+    expect(shortDock).toBeGreaterThan(dockCap)
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {

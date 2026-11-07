@@ -1326,7 +1326,7 @@
  * The wide-screen name gutters and a tall question leave no room for the oval,
  * so names, the pot, and the peek land on top of each other.
  */
-@media (orientation: landscape) and (max-height: 520px),
+@media (max-height: 520px),
   (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
   .player-game-layout--live-fit .player-game-header--live-min {
     height: 1.45rem;
@@ -1346,26 +1346,22 @@
 
   .player-game-layout--live-fit .player-game-felt-panel--fill,
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
-    padding: 0.15rem 2.6rem 0.1rem;
+    padding: 0.1rem 2.6rem 2.5rem;
   }
 
   .player-game-layout--live-fit .player-game-table-status {
-    margin: 0 0 0.15rem;
+    margin: 0 0 1.5rem;
     padding: 0.12rem 0.4rem;
   }
 
   .player-game-layout--live-fit .player-hole-peek {
-    margin-top: 0.1rem;
+    position: absolute;
+    left: 50%;
+    bottom: 0.15rem;
+    z-index: 7;
+    margin: 0;
     padding: 0.12rem 0.35rem;
-  }
-
-  .player-game-layout--live-fit .player-game-dock--inflow {
-    max-height: 7.5rem;
-  }
-
-  .player-game-layout--live-fit .player-game-dock--inflow .player-game-dock-inner {
-    padding-top: 0.2rem;
-    padding-bottom: 0.25rem;
+    transform: translateX(-50%);
   }
 
   .player-game-layout--live-fit .player-game-turn-banner {
@@ -1385,6 +1381,18 @@
   -webkit-overflow-scrolling: touch;
   border-top: 1px solid rgb(251 191 36 / 0.35);
   background: linear-gradient(180deg, rgb(8 10 14 / 0.97) 0%, rgb(5 8 6 / 0.98) 100%);
+}
+
+@media (max-height: 520px),
+  (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
+  .player-game-layout--live-fit .player-game-dock--inflow {
+    max-height: 6.5rem;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-dock-inner {
+    padding-top: 0.2rem;
+    padding-bottom: 0.25rem;
+  }
 }
 
 .player-game-wager-actions--preact-dim {

@@ -94,16 +94,11 @@ describe('player table orientation', () => {
     expect(clipped).toBeGreaterThan(1.75 * REM)
   })
 
-  it('turns the question, cards, and buttons with the table when a touch screen is tall', () => {
-    const portrait = mediaBlock(css, '@media (orientation: portrait)')
-    expect(portrait.startsWith('@media (orientation: portrait) and (pointer: coarse)')).toBe(true)
-    expect(portrait).toContain('.player-game-layout--live-fit')
-    expect(portrait).toContain('transform: rotate(90deg)')
-    expect(portrait).toContain('width: 100cqh')
-    expect(portrait).toContain('height: 100cqw')
-    expect(portrait).not.toContain('.player-game-felt--fill')
-    expect(portrait).not.toContain('player-felt-card-face')
-    expect(portrait).not.toContain('rotate(-90deg)')
+  it('keeps a portrait touch screen upright, question then felt then bets', () => {
+    expect(css).not.toContain('rotate(90deg)')
+    expect(css).not.toContain('(orientation: portrait) and (pointer: coarse)')
+    const layout = css.slice(css.indexOf('.player-game-layout {'), css.indexOf('.player-game-layout {') + 500)
+    expect(layout).toContain('flex-direction: column')
   })
 
   it('keeps a short landscape phone from using the wide-screen gutters', () => {
@@ -115,10 +110,10 @@ describe('player table orientation', () => {
       true,
     )
 
-    const header = '@media (max-height: 520px),'
-    const short = mediaBlock(css.slice(css.indexOf(header)), header)
-    expect(short.startsWith(header)).toBe(true)
-    expect(short).toContain('(orientation: portrait) and (pointer: coarse) and (max-width: 520px)')
+    const feltPad = 'padding: 0.1rem 2.6rem 2.5rem'
+    const short = mediaBlock(css.slice(css.lastIndexOf('@media', css.indexOf(feltPad))), '@media')
+    expect(short).toContain('max-height: 520px')
+    expect(short).not.toContain('pointer: coarse')
     expect(short).toContain('padding: 0.1rem 2.6rem 2.5rem')
     expect(short).toContain('padding-top: 2.15rem')
     expect(short).toContain('margin: 0 0 1.5rem')
@@ -126,38 +121,34 @@ describe('player table orientation', () => {
     expect(short).not.toContain('margin-bottom: 4.25rem')
     expect(short).not.toContain('padding: 2rem 6rem 1.75rem')
     const dockCap = css.indexOf('max-height: min(42%, 16rem)')
-    const shortDock = css.lastIndexOf('max-height: 6.5rem')
+    const shortDock = css.lastIndexOf('max-height: 9.5rem')
     expect(dockCap).toBeGreaterThan(0)
     expect(shortDock).toBeGreaterThan(dockCap)
 
     const foldHeader = '@media (max-height: 320px)'
     const fold = mediaBlock(css.slice(css.indexOf(foldHeader)), foldHeader)
     expect(fold.startsWith(foldHeader)).toBe(true)
-    expect(fold).toContain('min-height: 4.75rem')
     expect(fold).toContain('margin: 0 0 1.15rem')
     expect(fold).toContain('padding: 0 1rem 2.35rem')
     expect(fold).toContain('padding-top: 2.15rem')
-    expect(fold).toContain('max-height: 3.5rem')
+    expect(fold).toContain('font-size: 1rem')
+    expect(fold).toContain('max-height: none')
+    expect(fold).toContain('position: static')
+    expect(fold).not.toContain('display: none')
+    expect(fold).not.toContain('position: absolute')
+    expect(fold).not.toContain('bottom: -')
     expect(css.indexOf(foldHeader)).toBeGreaterThan(shortDock)
-    const foldButtons = mediaBlock(css.slice(css.lastIndexOf(foldHeader)), foldHeader)
-    expect(foldButtons).toContain('min-height: 1.85rem')
-    expect(css.lastIndexOf(foldHeader)).toBeGreaterThan(css.indexOf('min-height: 2.75rem'))
-    expect(foldButtons).toContain('grid-template-columns: 5.75rem minmax(0, 1fr) 5.75rem')
-    expect(foldButtons).toContain('display: contents')
-    expect(foldButtons).toContain('padding-bottom: 3.5rem')
+    expect(css.lastIndexOf('min-height: 1.7rem')).toBe(-1)
+    expect(css.lastIndexOf('min-height: 1.85rem')).toBe(-1)
+    expect(css).not.toContain('grid-template-columns: 5.75rem minmax(0, 1fr) 5.75rem')
 
-    const phoneFitHeader =
-      '@media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px)'
+    const phoneFitHeader = '@media (max-height: 520px)'
     const phoneFitAt = css.lastIndexOf(phoneFitHeader)
     const phoneFit = mediaBlock(css.slice(phoneFitAt), phoneFitHeader)
     expect(phoneFitAt).toBeGreaterThan(css.indexOf('min-height: 2.75rem'))
-    expect(phoneFitAt).toBeLessThan(css.lastIndexOf(foldHeader))
-    expect(phoneFit).toContain('min-height: 1.7rem')
+    expect(phoneFit).not.toContain('min-height: 1.7rem')
+    expect(phoneFit).not.toContain('pointer: coarse')
     expect(phoneFit).toContain('padding-bottom: 1.35rem')
-    expect(phoneFit).not.toContain('grid-template-columns: 5.75rem')
-    expect(foldButtons).toContain('bottom: -1.7rem')
-    expect(foldButtons).toContain('z-index: 8')
-    expect(foldButtons).toContain('padding-bottom: 0')
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {

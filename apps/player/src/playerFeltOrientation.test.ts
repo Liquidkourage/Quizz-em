@@ -143,6 +143,19 @@ describe('player table orientation', () => {
     expect(foldButtons).toContain('grid-template-columns: 5.75rem minmax(0, 1fr) 5.75rem')
     expect(foldButtons).toContain('display: contents')
     expect(foldButtons).toContain('padding-bottom: 3.5rem')
+
+    const phoneFitHeader =
+      '@media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px)'
+    const phoneFitAt = css.lastIndexOf(phoneFitHeader)
+    const phoneFit = mediaBlock(css.slice(phoneFitAt), phoneFitHeader)
+    expect(phoneFitAt).toBeGreaterThan(css.indexOf('min-height: 2.75rem'))
+    expect(phoneFitAt).toBeLessThan(css.lastIndexOf(foldHeader))
+    expect(phoneFit).toContain('min-height: 1.7rem')
+    expect(phoneFit).toContain('padding-bottom: 1.35rem')
+    expect(phoneFit).not.toContain('grid-template-columns: 5.75rem')
+    expect(foldButtons).toContain('bottom: -1.7rem')
+    expect(foldButtons).toContain('z-index: 8')
+    expect(foldButtons).toContain('padding-bottom: 0')
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {
@@ -159,7 +172,10 @@ describe('player table orientation', () => {
     expect(wide).toContain('.player-game-wager-inline')
     expect(wide).toContain('flex: 0 1 auto')
     expect(wide).toContain('min-height: 0')
+    expect(wide).toContain('.player-game-wager-scroll')
     expect(wide).toContain('overflow-y: auto')
+    expect(wide).toContain('.player-game-wager-inline .player-game-wager-actions')
+    expect(wide).toContain('flex: 0 0 auto')
     expect(wide).toContain('max-height: 42%')
     const padding = wide.match(/padding-bottom:\s*([0-9.]+)rem/)
     expect(padding).not.toBeNull()

@@ -2124,6 +2124,48 @@
   gap: 0.45rem;
 }
 
+/* Short phones: both action rows stay inside the 6.5rem bar, and the oval stops above the cards. */
+@media (max-height: 520px), (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    padding-bottom: 1.35rem;
+    box-sizing: border-box;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-dock-status {
+    margin-bottom: 0.1rem;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-wager-actions,
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-wager-dense,
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-dense-top {
+    gap: 0.15rem;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-raise-amount-col {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.1rem 0.25rem;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-raise-compact-label,
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-raise-compact-min {
+    width: auto;
+    margin: 0;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-input--raise-dense {
+    flex: 1 0 100%;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-btn,
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-input--raise-dense {
+    min-height: 1.7rem;
+    padding: 0.15rem 0.3rem;
+    font-size: 0.8rem;
+  }
+}
+
 /*
  * Fold landscape is ~650px wide and 280px tall. The bottom bar cannot hold
  * Call and Raise, so those controls sit in the empty gutters beside the column.
@@ -2234,6 +2276,16 @@
   .player-game-layout--live-fit .player-game-btn,
   .player-game-layout--live-fit .player-game-raise-amount-col,
   .player-game-layout--live-fit .player-game-preact {
+    pointer-events: auto;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    padding-bottom: 0;
+  }
+
+  .player-game-layout--live-fit .player-hole-peek {
+    bottom: -1.7rem;
+    z-index: 8;
     pointer-events: auto;
   }
 
@@ -3871,6 +3923,32 @@
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
     padding-bottom: 5.5rem;
   }
+
+  .player-game-wager-inline {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: 46%;
+    overflow: hidden;
+  }
+
+  .player-game-wager-inline > .player-game-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-game-wager-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .player-game-wager-inline .player-game-wager-actions {
+    flex: 0 0 auto;
+  }
 }
 
 /* Mouse-driven landscape window: the wager panel gives height back so the table stays readable. */
@@ -3889,11 +3967,30 @@
   }
 
   .player-game-wager-inline {
+    display: flex;
+    flex-direction: column;
     flex: 0 1 auto;
     min-height: 0;
     max-height: 42%;
-    overflow-x: hidden;
+    overflow: hidden;
+  }
+
+  .player-game-wager-inline > .player-game-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-game-wager-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+  }
+
+  .player-game-wager-inline .player-game-wager-actions {
+    flex: 0 0 auto;
   }
 }
 

@@ -35,33 +35,35 @@ export default function BettingActions({
 
   return (
     <PlayerGoldPanel title="Wagering">
-      <div className="player-game-wager-stack">
-        <p className="player-game-stack-label">Your stack</p>
-        <p className="player-game-stack-value">
-          <ChipText text={`$${currentPlayer.bankroll}`} />
-        </p>
-        {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
-      </div>
-
-      {ctx.isBettingPhase ? (
-        <div className="player-game-stat-grid">
-          <div>
-            Round <strong>{ctx.isBettingOpen ? 'open' : 'closed'}</strong>
-          </div>
-          <div>
-            To call <strong><ChipText text={`$${ctx.toCall}`} /></strong>
-          </div>
-          <div>
-            Min raise <strong><ChipText text={`$${ctx.minRaise}`} /></strong>
-          </div>
-          <div>
-            Turn{' '}
-            <strong className={ctx.isMyTurn ? 'player-game-stat-turn' : ''}>
-              {ctx.isMyTurn ? 'Yours' : 'Waiting'}
-            </strong>
-          </div>
+      <div className="player-game-wager-scroll">
+        <div className="player-game-wager-stack">
+          <p className="player-game-stack-label">Your stack</p>
+          <p className="player-game-stack-value">
+            <ChipText text={`$${currentPlayer.bankroll}`} />
+          </p>
+          {currentPlayer.hasFolded ? <p className="player-game-folded">Folded this hand</p> : null}
         </div>
-      ) : null}
+
+        {ctx.isBettingPhase ? (
+          <div className="player-game-stat-grid">
+            <div>
+              Round <strong>{ctx.isBettingOpen ? 'open' : 'closed'}</strong>
+            </div>
+            <div>
+              To call <strong><ChipText text={`$${ctx.toCall}`} /></strong>
+            </div>
+            <div>
+              Min raise <strong><ChipText text={`$${ctx.minRaise}`} /></strong>
+            </div>
+            <div>
+              Turn{' '}
+              <strong className={ctx.isMyTurn ? 'player-game-stat-turn' : ''}>
+                {ctx.isMyTurn ? 'Yours' : 'Waiting'}
+              </strong>
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       <div className="player-game-wager-actions">
         <WageringActionButtons

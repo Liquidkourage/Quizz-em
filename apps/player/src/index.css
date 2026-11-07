@@ -2124,19 +2124,139 @@
   gap: 0.45rem;
 }
 
-/* Fold landscape: the 2.75rem buttons are taller than the bar, so Call and Raise were clipped. */
+/*
+ * Fold landscape is ~650px wide and 280px tall. The bottom bar cannot hold
+ * Call and Raise, so those controls sit in the empty gutters beside the column.
+ * The shell keeps the old bar's height so the oval does not grow into the names.
+ */
 @media (max-height: 320px) {
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-shell {
+    padding-bottom: 3.5rem;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow,
+  .player-game-layout--live-fit .player-game-dock--inflow.player-game-dock--your-turn,
+  .player-game-layout--live-fit .player-game-dock--inflow.player-game-dock--waiting {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    pointer-events: none;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-dock-inner {
+    display: grid;
+    grid-template-columns: 5.75rem minmax(0, 1fr) 5.75rem;
+    grid-template-rows: auto auto auto;
+    align-content: center;
+    gap: 0.2rem 0.3rem;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0.15rem;
+    pointer-events: none;
+  }
+
+  .player-game-layout--live-fit .player-game-wager-actions,
+  .player-game-layout--live-fit .player-game-wager-dense,
+  .player-game-layout--live-fit .player-game-dense-top,
+  .player-game-layout--live-fit .player-game-raise-compact-pair,
+  .player-game-layout--live-fit .player-game-actions {
+    display: contents;
+  }
+
+  .player-game-layout--live-fit .player-game-dock-status {
+    grid-column: 1;
+    grid-row: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.05rem;
+    margin: 0;
+    font-size: 0.62rem;
+  }
+
+  .player-game-layout--live-fit .player-game-btn--gold {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .player-game-layout--live-fit .player-game-btn--fold {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .player-game-layout--live-fit .player-game-raise-amount-col {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .player-game-layout--live-fit .player-game-btn--dark {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .player-game-layout--live-fit .player-game-btn--allin {
+    grid-column: 3;
+    grid-row: 3;
+  }
+
+  .player-game-layout--live-fit .player-game-preact-heading,
+  .player-game-layout--live-fit .player-game-preact-hint {
+    display: none;
+  }
+
+  .player-game-layout--live-fit .player-game-preact {
+    grid-column: 3;
+    grid-row: 1 / span 3;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0;
+  }
+
+  .player-game-layout--live-fit .player-game-preact-chip {
+    min-height: 1.7rem;
+    padding: 0.15rem 0.2rem;
+  }
+
+  .player-game-layout--live-fit .player-game-preact-sub {
+    display: none;
+  }
+
+  .player-game-layout--live-fit .player-game-dock-status,
+  .player-game-layout--live-fit .player-game-btn,
+  .player-game-layout--live-fit .player-game-raise-amount-col,
+  .player-game-layout--live-fit .player-game-preact {
+    pointer-events: auto;
+  }
+
   .player-game-layout--live-fit .player-game-btn,
   .player-game-layout--live-fit .player-game-dense-top .player-game-btn,
   .player-game-layout--live-fit .player-game-input--raise-dense {
+    width: 100%;
+    min-width: 0;
     min-height: 1.85rem;
     padding: 0.2rem 0.35rem;
     font-size: 0.75rem;
+    line-height: 1.1;
+    white-space: normal;
   }
 
   .player-game-layout--live-fit .player-game-raise-compact-label,
   .player-game-layout--live-fit .player-game-raise-compact-min {
     font-size: 0.55rem;
+  }
+
+  .player-game-layout--live-fit .player-game-turn-banner {
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
   }
 }
 

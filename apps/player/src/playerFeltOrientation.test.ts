@@ -140,6 +140,9 @@ describe('player table orientation', () => {
     const foldButtons = mediaBlock(css.slice(css.lastIndexOf(foldHeader)), foldHeader)
     expect(foldButtons).toContain('min-height: 1.85rem')
     expect(css.lastIndexOf(foldHeader)).toBeGreaterThan(css.indexOf('min-height: 2.75rem'))
+    expect(foldButtons).toContain('grid-template-columns: 5.75rem minmax(0, 1fr) 5.75rem')
+    expect(foldButtons).toContain('display: contents')
+    expect(foldButtons).toContain('padding-bottom: 3.5rem')
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {

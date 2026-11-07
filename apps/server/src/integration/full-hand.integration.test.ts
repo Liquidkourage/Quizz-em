@@ -64,6 +64,46 @@ function answerFor(client: TestClient, playerId: string): number {
   return Number(digits.slice(0, 5).join(''))
 }
 
+/** From an open first betting round to a paid hand: one wager, the board, guesses, reveal, payout. */
+async function playOutHand(t: Table, betting: any, startingChips: number): Promise<void> {
+  // One real wager, then the host closes the round.
+  const { client, actor, verb } = actingClient(t, betting)
+  client.act(verb, { playerId: actor.id })
+  await sleep(300)
+  t.host.act('adminCloseBetting')
+  await t.host.waitForState((s) => s.phase === 'betting' && s.round?.isBettingOpen === false, 'first round closed')
+
+  t.host.act('dealCommunityCards')
+  await t.host.waitForState((s) => (s.round?.communityCards?.length ?? 0) >= 5, 'five shared cards', 20_000)
+  t.host.act('adminCloseBetting')
+  await t.host.waitForState(
+    (s) => s.phase === 'betting' && s.round?.isBettingOpen === false && s.round?.bettingRound === 2,
+    'second round closed',
+    20_000,
+  )
+
+  t.host.act('startAnswering', {})
+  await t.host.waitForState((s) => s.phase === 'answering', 'guessing open')
+  for (const [i, p] of t.players.entries()) {
+    await p.waitForState((s) => s.phase === 'answering', 'player sees guessing open')
+    p.act('submitAnswer', { playerId: t.ids[i], answer: answerFor(p, t.ids[i]!) })
+  }
+  await sleep(300)
+
+  t.host.act('revealAnswer')
+  await t.host.waitForState((s) => s.phase === 'reveal' || s.phase === 'showdown', 'answer revealed', 20_000)
+  expect(chips(t.host.latest)).toBe(startingChips)
+
+  // Paying winners is held while the answer stays on the screens, so ask again until it goes through.
+  const deadline = Date.now() + 40_000
+  const left = (s: any) => !['reveal', 'showdown', 'answering', 'betting'].includes(s.phase)
+  while (!left(t.host.latest) && Date.now() < deadline) {
+    t.host.act('endRound')
+    await sleep(1_500)
+  }
+  await t.host.waitForState(left, 'hand finished', 5_000)
+}
+
 describe('a whole hand', () => {
   it('goes from seating to payout, and no chips appear or vanish', async () => {
     const t = await seatedTable('HAND1')
@@ -73,44 +113,39 @@ describe('a whole hand', () => {
     const betting = await dealIntoBetting(t)
     expect(chips(betting)).toBe(startingChips)
 
-    // One real wager, then the host closes the round.
-    const { client, actor, verb } = actingClient(t, betting)
-    client.act(verb, { playerId: actor.id })
-    await sleep(300)
-    t.host.act('adminCloseBetting')
-    await t.host.waitForState((s) => s.phase === 'betting' && s.round?.isBettingOpen === false, 'first round closed')
-
-    t.host.act('dealCommunityCards')
-    await t.host.waitForState((s) => (s.round?.communityCards?.length ?? 0) >= 5, 'five shared cards', 20_000)
-    t.host.act('adminCloseBetting')
-    await t.host.waitForState(
-      (s) => s.phase === 'betting' && s.round?.isBettingOpen === false && s.round?.bettingRound === 2,
-      'second round closed',
-      20_000,
-    )
-
-    t.host.act('startAnswering', {})
-    await t.host.waitForState((s) => s.phase === 'answering', 'guessing open')
-    for (const [i, p] of t.players.entries()) {
-      await p.waitForState((s) => s.phase === 'answering', 'player sees guessing open')
-      p.act('submitAnswer', { playerId: t.ids[i], answer: answerFor(p, t.ids[i]!) })
-    }
-    await sleep(300)
-
-    t.host.act('revealAnswer')
-    await t.host.waitForState((s) => s.phase === 'reveal' || s.phase === 'showdown', 'answer revealed', 20_000)
-    expect(chips(t.host.latest)).toBe(startingChips)
-
-    // Paying winners is held while the answer stays on the screens, so ask again until it goes through.
-    const deadline = Date.now() + 40_000
-    const left = (s: any) => !['reveal', 'showdown', 'answering', 'betting'].includes(s.phase)
-    while (!left(t.host.latest) && Date.now() < deadline) {
-      t.host.act('endRound')
-      await sleep(1_500)
-    }
-    await t.host.waitForState(left, 'hand finished', 5_000)
+    await playOutHand(t, betting, startingChips)
     await sleep(500)
     expect(chips(t.host.latest)).toBe(startingChips)
+  }, 120_000)
+})
+
+
+describe('a latecomer during a hand', () => {
+  it('joins for points only, and the hand still pays out with chips conserved', async () => {
+    const t = await seatedTable('LATE1')
+    const startingChips = chips(t.host.latest)
+    const betting = await dealIntoBetting(t)
+
+    const lateId = 'human:LATE1-cara'
+    const cara = track(await connectClient(server.url, { role: 'player', name: 'Cara', roomCode: t.room, tableId: LOBBY, playerId: lateId }))
+    await cara.waitForState((s) => s.players.some((p: any) => p.id === lateId && p.pointsOnly === true), 'Cara seated for points')
+
+    const seat = [...rooms.entries()]
+      .filter(([key]) => key.startsWith('LATE1:'))
+      .flatMap(([, gs]) => gs.players)
+      .find((p) => p.id === lateId)!
+    expect(seat.bankroll).toBe(0)
+    expect(seat.ghostHostId).toBeTruthy()
+    expect(chips(t.host.latest)).toBe(startingChips)
+
+    // Cara holds no cards this hand, so the host must be able to reveal without her guess.
+    await playOutHand(t, betting, startingChips)
+    expect(chips(t.host.latest)).toBe(startingChips)
+    const after = [...rooms.entries()]
+      .filter(([key]) => key.startsWith('LATE1:'))
+      .flatMap(([, gs]) => gs.players)
+      .find((p) => p.id === lateId)!
+    expect(after.bankroll).toBe(0)
   }, 120_000)
 })
 

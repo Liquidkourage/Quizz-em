@@ -65,7 +65,7 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
 
         {!live ? (
           <>
-            <p className="player-game-preact-heading">When it’s your turn, auto…</p>
+            <p className="player-game-preact-heading">Auto-play on your turn</p>
             <div className="player-game-preact" role="group" aria-label="Pre-action">
               <button
                 type="button"

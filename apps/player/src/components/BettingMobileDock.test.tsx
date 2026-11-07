@@ -59,6 +59,8 @@ describe('betting turn cue', () => {
     const html = renderDock(false)
     expect(html).toContain('player-game-dock--waiting')
     expect(html).toContain('Waiting')
+    expect(html).toContain('Auto-play on your turn')
+    expect(html).not.toContain('auto…')
     expect(html).not.toContain('player-game-dock--your-turn')
   })
 })

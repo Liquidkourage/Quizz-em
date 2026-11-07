@@ -154,6 +154,10 @@ describe('player table orientation', () => {
     expect(phoneFit).not.toContain('min-height: 1.7rem')
     expect(phoneFit).not.toContain('pointer: coarse')
     expect(phoneFit).toContain('padding: 1.15rem 0.35rem 1.35rem')
+    const waiting = css.slice(css.indexOf('max-height: 9.5rem'), css.indexOf('max-height: 9.5rem') + 700)
+    expect(waiting).toContain('.player-game-dock--waiting')
+    expect(waiting).toContain('max-height: none')
+    expect(waiting).toContain('grid-template-columns: 1fr')
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {

@@ -25,4 +25,15 @@ describe('player lobby on a wide window', () => {
     expect(short).toContain('height: clamp(3.2rem, 18vh, 5rem)')
     expect(css.slice(wideHeader, wideHeader + 900)).toContain('height: clamp(9rem, 14vh, 11.5rem)')
   })
+
+  it('keeps Join Game on a short landscape phone', () => {
+    const start = css.indexOf('Short join form')
+    const block = start < 0 ? '' : css.slice(start, start + 900)
+    expect(block).toContain('@media (max-height: 520px)')
+    expect(block).toContain('.player-join-shell')
+    expect(block).toContain('max-height: 100%')
+    expect(block).toContain('height: clamp(2.4rem, 14vh, 3.6rem)')
+    expect(block).toContain('.player-join-body')
+    expect(block).toContain('overflow-y: auto')
+  })
 })

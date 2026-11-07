@@ -23,7 +23,7 @@ describe('adviseBlindCall', () => {
     expect(pace.closestIncrease!.bigBlind).toBeGreaterThan(pace.current.bigBlind)
   })
 
-  it('keeps a short clock on the current blinds and only offers a higher level', () => {
+  it('keeps a short clock on the current blinds when a raise would finish even sooner', () => {
     const pace = adviseBlindCall({
       minutesLeft: 90,
       handsLeft: 10,
@@ -35,8 +35,7 @@ describe('adviseBlindCall', () => {
     })
     expect(pace.current.bigBlind).toBe(100)
     expect(pace.nextLevel).toMatchObject({ smallBlind: 60, bigBlind: 120 })
-    expect(pace.closestIncrease).toMatchObject({ bigBlind: 120 })
-    expect(pace.closestIncrease!.bigBlind).toBeGreaterThanOrEqual(pace.current.bigBlind)
+    expect(pace.closestIncrease).toBeNull()
     expect(pace.nextLevel!.bigBlind).toBeGreaterThan(pace.current.bigBlind)
   })
 
@@ -61,6 +60,21 @@ describe('adviseBlindCall', () => {
       ...typical,
     })
     expect(fromHundred.nextLevel).toMatchObject({ smallBlind: 60, bigBlind: 120 })
+  })
+
+  it('does not suggest a raise that lands farther from the goal than the blinds in play', () => {
+    const pace = adviseBlindCall({
+      minutesLeft: 113,
+      handsLeft: 24,
+      players: 17,
+      medianStack: 800,
+      smallBlind: 20,
+      bigBlind: 40,
+      ...typical,
+    })
+    expect(pace.current.minutes).toBeLessThan(113)
+    if (pace.nextLevel) expect(pace.nextLevel.minutes).toBeLessThanOrEqual(pace.current.minutes)
+    expect(pace.closestIncrease).toBeNull()
   })
 
   it('stops at the top rung', () => {

@@ -32,12 +32,31 @@ describe('HostBlindPaceNotice', () => {
     expect(html).toContain('While the answer is up')
     expect(html).toContain('Now')
     expect(html).toContain('Next level')
-    expect(html).toContain('Closest increase')
+    expect(html).not.toContain('Closest increase')
     expect(html).not.toContain('Next level, closest')
     expect(html).not.toContain('Slow down')
     expect(html).toContain('120 min')
     expect(html).not.toContain('guessing guide')
     expect(html).not.toContain('level every')
+    expect(html).not.toContain('Apply')
+  })
+
+  it('offers Apply when a higher level is closer to the clock than the blinds in play', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostBlindPaceNotice, {
+        open: true,
+        showStartedAtMs: 0,
+        handsLeft: 15,
+        players: 40,
+        medianStack: 1000,
+        smallBlind: 10,
+        bigBlind: 20,
+        nowMs: 60 * 60_000,
+        onApply: () => {},
+        onClose: () => {},
+      }),
+    )
+    expect(html).toContain('Closest increase')
     expect(html).toContain('Apply')
   })
 

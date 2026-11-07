@@ -111,8 +111,9 @@ function increases(input: BlindCallInput): readonly (readonly [number, number])[
 }
 
 function closestIncrease(input: BlindCallInput): BlindLevelEstimate | null {
+  const now = minutesAtBlind(input, input.bigBlind)
   let best: BlindLevelEstimate | null = null
-  let bestGap = Infinity
+  let bestGap = Math.abs(now - input.minutesLeft)
   for (const [smallBlind, bigBlind] of increases(input)) {
     const row = estimate(smallBlind, bigBlind, input)
     const gap = Math.abs(row.minutes - input.minutesLeft)

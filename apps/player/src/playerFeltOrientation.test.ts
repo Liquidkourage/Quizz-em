@@ -113,6 +113,12 @@ describe('player table orientation', () => {
     )
     expect(slot).toContain('padding-bottom: 1.75rem')
     expect(slot).toContain('box-sizing: border-box')
+    const wideFelt = css.slice(css.indexOf('Wide desktop uses inline BettingActions'), css.indexOf('Wide desktop uses inline BettingActions') + 900)
+    expect(wideFelt).toContain('min-height: 13rem')
+    expect(wideFelt).not.toContain('padding-bottom: 5.5rem')
+    const fold = css.slice(css.indexOf('@media (max-height: 320px)'), css.indexOf('@media (max-height: 320px)') + 2400)
+    expect(fold).toContain('.player-game-body:has(.player-game-strip) .player-sticky-question')
+    expect(fold).toContain('max-height: 2.8rem')
   })
 
   it('keeps a portrait touch screen upright, question then felt then bets', () => {
@@ -160,7 +166,8 @@ describe('player table orientation', () => {
     expect(fold).toContain('overflow-y: auto')
     expect(fold).toContain('max-height: none')
     expect(fold).toContain('position: static')
-    expect(fold).not.toContain('display: none')
+    const peekRule = fold.slice(fold.indexOf('.player-hole-peek'), fold.indexOf('.player-game-turn-banner'))
+    expect(peekRule).not.toContain('display: none')
     expect(fold).not.toContain('position: absolute')
     expect(fold).not.toContain('bottom: -')
     expect(css.indexOf(foldHeader)).toBeGreaterThan(shortDock)

@@ -1477,6 +1477,17 @@
     line-height: 1.2;
   }
 
+  .player-game-strip {
+    flex: 0 0 auto;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+
+  .player-game-body:has(.player-game-strip) .player-sticky-question {
+    max-height: 2.6rem;
+  }
+
   .player-game-layout--live-fit .player-game-table-status {
     margin: 0 0 0.25rem;
     padding: 0.12rem 0.4rem;
@@ -1587,6 +1598,30 @@
   .player-game-layout--live-fit .player-game-dock--inflow {
     position: static;
     max-height: none;
+  }
+
+  /* A pause line plus a tall question was leaving no oval, so the peek fell off the column. */
+  .player-game-strip {
+    flex: 0 0 auto;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-game-shell:has(.player-game-strip) .player-game-header--live-min {
+    display: none;
+  }
+
+  .player-game-body:has(.player-game-strip) .player-sticky-question {
+    max-height: 2.8rem;
+  }
+
+  .player-game-body:has(.player-game-strip) .player-sticky-question-text {
+    font-size: 0.85rem;
+    line-height: 1.25;
   }
 }
 
@@ -3891,9 +3926,9 @@
     display: none;
   }
 
-  /* Bottom seat names and hole cards hang past the rail. Keep them above the wager panel. */
+  /* The peek row clears the bottom names. A 5.5rem pad was collapsing the oval under the wager. */
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
-    padding-bottom: 5.5rem;
+    padding-bottom: 0.75rem;
   }
 
   .player-game-layout--live-fit .player-game-body {
@@ -3903,7 +3938,7 @@
 
   .player-game-layout--live-fit .player-game-felt-panel--fill {
     flex: 1 1 auto;
-    min-height: 0;
+    min-height: 13rem;
   }
 
   .player-game-wager-inline {

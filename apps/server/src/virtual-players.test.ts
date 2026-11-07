@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   LOBBY_TABLE_ID,
+  addPlayer,
   advanceRevealToShowdown,
   composeNumericAnswersFromSevenDigitCards,
   createEmptyGame,
@@ -84,7 +85,16 @@ describe('CPU post-board wagering', () => {
   it('closes round 2 after paced steps (check-around or open-raise)', () => {
     let gs = createEmptyGame('V', '', '1')
     gs = { ...gs, bigBlind: 20, smallBlind: 10, maxPlayers: 8 }
-    gs = addVirtualPlayers(gs, 4)
+    // Bot ids are random, and an id decides a bot's betting personality. Pick ids whose bots only
+    // check, call or open on both streets, so the board always finds someone still able to act.
+    const calm = new Set<RehearsalBetScript>(['flat', 'open'])
+    const calmIds: string[] = []
+    for (let i = 0; calmIds.length < 4 && i < 20_000; i++) {
+      const id = `vp:calm:${i}`
+      if (calm.has(rehearsalBetScript(id, 'r1', 1)) && calm.has(rehearsalBetScript(id, 'r1', 2))) calmIds.push(id)
+    }
+    expect(calmIds).toHaveLength(4)
+    for (const [i, id] of calmIds.entries()) gs = addPlayer(gs, id, `CPU ${i + 1}`)
     gs = startGame(gs)
     gs = setQuestion(gs, SAMPLE_QUESTIONS[0]!)
     gs = dealInitialCards(gs)

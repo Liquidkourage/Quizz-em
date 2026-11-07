@@ -1,20 +1,18 @@
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import Database from 'better-sqlite3'
 import { Pool } from 'pg'
 
 /** Instance type for the default-export constructor (works with `@types/better-sqlite3`). */
 type BetterSqliteDatabase = InstanceType<typeof Database>
 import type { Question, Setlist } from '@qhe/core'
+import { dataFile } from './data-dir'
 import {
   loadVenueLibrariesFromJsonDisk,
   type VenueLibraryData,
 } from './venue-library-persist'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-const DEFAULT_SQLITE_PATH = path.join(__dirname, '..', 'data', 'venue-libraries.sqlite')
+const DEFAULT_SQLITE_PATH = dataFile('venue-libraries.sqlite')
 
 function resolveSqlitePath(): string {
   const raw =

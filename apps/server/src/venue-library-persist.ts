@@ -1,14 +1,11 @@
 import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
 import type { Question, Setlist } from '@qhe/core'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { dataFile } from './data-dir'
 
 /** v2: per-venue questions + setlists */
-export const VENUE_LIBRARIES_FILE = path.join(__dirname, '..', 'data', 'venue-libraries.json')
+export const VENUE_LIBRARIES_FILE = dataFile('venue-libraries.json')
 /** v1: migrate if v2 missing */
-export const LEGACY_QUESTION_BANKS_FILE = path.join(__dirname, '..', 'data', 'question-banks.json')
+export const LEGACY_QUESTION_BANKS_FILE = dataFile('question-banks.json')
 
 export interface VenueLibraryData {
   questions: Question[]

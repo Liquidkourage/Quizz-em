@@ -45,7 +45,8 @@ function titleRowHtml(card: string): string {
 
 /** Felt-center stack, where the pot sits on the green. */
 function feltCenterHtml(card: string): string {
-  const at = card.indexOf('translate(-50%, -50%)')
+  // The pot is centered, then eased down by a pixel drop (0 when no street cards are up).
+  const at = card.search(/translate\(-50%, calc\(-50% \+ -?[\d.]+px\)\)/)
   if (at < 0) return ''
   return card.slice(at, at + 900)
 }

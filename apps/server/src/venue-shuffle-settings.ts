@@ -1,11 +1,9 @@
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import { VENUE_SHUFFLE_EVERY_HANDS, resolveVenueShuffleTick } from '@qhe/core'
+import { dataFile } from './data-dir'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-export const VENUE_SHUFFLE_SETTINGS_FILE = path.join(__dirname, '..', 'data', 'venue-shuffle-settings.json')
+export const VENUE_SHUFFLE_SETTINGS_FILE = dataFile('venue-shuffle-settings.json')
 
 type StoreShape = Record<
   string,

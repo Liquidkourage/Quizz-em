@@ -1372,24 +1372,36 @@
  * the peek land on top of each other.
  */
 @media (max-height: 520px) {
-  /* The dock stays put. The table keeps a real oval and the body scrolls if the window is shorter than that. */
+  /* The dock stays on screen, beside the table. A stacked column hides the pot behind the buttons. */
+  .player-game-layout--live-fit.player-game-layout--with-dock {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-shell {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    height: 100%;
+  }
+
   .player-game-layout--live-fit .player-game-body {
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
   }
 
   .player-game-layout--live-fit .player-game-felt-panel--fill,
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
-    /* A size container ignores its children, so the oval was painting out over the question and the dock. */
-    container-type: normal;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
     justify-content: flex-start;
+    padding: 0.15rem 0.5rem 0.2rem;
   }
 
   .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-    flex: 0 0 auto;
-    height: 11rem;
-    min-height: 11rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
   }
 
   .player-game-layout--live-fit .player-game-header--live-min {
@@ -1401,6 +1413,7 @@
   .player-game-layout--live-fit .player-sticky-question {
     max-height: 3.4rem;
     padding: 0.2rem 0.5rem;
+    overflow-y: auto;
   }
 
   .player-game-layout--live-fit .player-sticky-question-text {
@@ -1408,26 +1421,19 @@
     line-height: 1.2;
   }
 
-  .player-game-layout--live-fit .player-game-felt-panel--fill,
-  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
-    padding: 0.1rem 2.6rem 2.5rem;
-    /* Top seat names hang above the rail. Before the deal there is no status line to hold them. */
-    padding-top: 2.15rem;
-  }
-
   .player-game-layout--live-fit .player-game-table-status {
-    margin: 0 0 2.75rem;
+    margin: 0 0 0.25rem;
     padding: 0.12rem 0.4rem;
   }
 
   .player-game-layout--live-fit .player-hole-peek {
-    position: absolute;
-    left: 50%;
-    bottom: 0.15rem;
+    position: static;
+    left: auto;
+    bottom: auto;
     z-index: 7;
-    margin: 0;
+    margin: 0.15rem auto 0;
     padding: 0.12rem 0.35rem;
-    transform: translateX(-50%);
+    transform: none;
   }
 
   .player-game-layout--live-fit .player-game-turn-banner {
@@ -1452,7 +1458,12 @@
 @media (max-height: 520px) {
   .player-game-layout--live-fit .player-game-dock--inflow {
     /* Two 2.75rem action rows, plus the raise field and the turn line. */
+    flex: 0 0 18rem;
+    width: 18rem;
+    max-width: 46%;
+    min-width: 15rem;
     max-height: 9.5rem;
+    align-self: center;
   }
 
   .player-game-layout--live-fit .player-game-dock--inflow .player-game-dock-inner {
@@ -1475,8 +1486,9 @@
   }
 
   .player-game-layout--live-fit .player-sticky-question {
-    max-height: 2.75rem;
-    padding: 0.2rem 0.5rem;
+    max-height: 4.5rem;
+    padding: 0.15rem 0.5rem;
+    overflow-y: auto;
   }
 
   .player-game-layout--live-fit .player-sticky-question-text {
@@ -1486,12 +1498,11 @@
 
   .player-game-layout--live-fit .player-game-felt-panel--fill,
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
-    padding: 0 1rem 2.35rem;
-    padding-top: 2.15rem;
+    padding: 0.1rem 0.4rem 0.15rem;
   }
 
   .player-game-layout--live-fit .player-game-table-status {
-    margin: 0 0 2.75rem;
+    margin: 0 0 0.2rem;
     padding: 0.04rem 0.3rem;
   }
 
@@ -2167,10 +2178,10 @@
   gap: 0.45rem;
 }
 
-/* Short landscape: keep both action rows at 44px. The oval keeps the full slot. */
+/* Short landscape: keep both action rows at 44px. Name tags sit in the slot padding, inside the oval's box. */
 @media (max-height: 520px) {
   .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-    padding-bottom: 0;
+    padding: 1.15rem 0.35rem 1.35rem;
     box-sizing: border-box;
   }
 

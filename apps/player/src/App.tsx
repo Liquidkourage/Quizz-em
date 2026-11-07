@@ -118,7 +118,7 @@ function PlayerApp() {
   const departedRef = useRef(boot.prefs.departed === true)
   const [leftMessage, setLeftMessage] = useState('You left the event.')
   const [joinNonce, setJoinNonce] = useState(boot.nonce)
-  const savedSeatAttempt = useRef<ResumeAttempt>(boot.resume ? 'saved-phone' : 'join-form')
+  const savedSeatAttempt = useRef<ResumeAttempt>(boot.phase === 'connecting' ? 'saved-phone' : 'join-form')
   const [gameState, setGameState] = useState<PlayerGameStateWire | null>(null)
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)

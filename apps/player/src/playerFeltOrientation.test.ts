@@ -114,7 +114,9 @@ describe('player table orientation', () => {
     expect(slot).toContain('padding-bottom: 1.75rem')
     expect(slot).toContain('box-sizing: border-box')
     const wideFelt = css.slice(css.indexOf('Wide desktop uses inline BettingActions'), css.indexOf('Wide desktop uses inline BettingActions') + 900)
-    expect(wideFelt).toContain('min-height: 13rem')
+    expect(wideFelt).toContain('flex: 1 1 0')
+    expect(wideFelt).toContain('min-height: 0')
+    expect(wideFelt).not.toContain('min-height: 13rem')
     expect(wideFelt).not.toContain('padding-bottom: 5.5rem')
     const fold = css.slice(css.indexOf('@media (max-height: 320px)'), css.indexOf('@media (max-height: 320px)') + 2400)
     expect(fold).toContain('.player-game-body:has(.player-game-strip) .player-sticky-question')
@@ -199,8 +201,8 @@ describe('player table orientation', () => {
     const header = '@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape)'
     const block = mediaBlock(css.slice(css.indexOf(header)), header)
     expect(block.startsWith(header)).toBe(true)
-    expect(block).toContain('padding-top: 2.4rem')
-    expect(block).toContain('max-height: 5rem')
+    expect(block).toContain('max-height: 16rem')
+    expect(block).toContain('.player-game-layout--live-fit .player-game-wager-inline')
     expect(block).toContain('margin-bottom: 0.2rem')
     const mac = mediaBlock(
       css.slice(css.lastIndexOf('@media (min-width: 1024px) and (orientation: landscape) and (pointer: fine)')),

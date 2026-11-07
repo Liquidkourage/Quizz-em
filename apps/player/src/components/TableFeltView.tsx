@@ -253,7 +253,10 @@ export default function TableFeltView({
 
   if (players.length === 0) return null
 
+  const peek = heroHoles && !revealCards ? <HolePeek digits={heroHoles} /> : null
+
   return (
+    <>
     <PlayerGoldPanel
       className={
         fillViewport ? 'player-game-felt-panel player-game-felt-panel--fill' : 'player-game-felt-panel'
@@ -286,7 +289,6 @@ export default function TableFeltView({
         centerContent={showCenterPot ? <PlayerFeltPot pot={pot} sides={sideLayers} /> : null}
       />
       </div>
-      {heroHoles && !revealCards ? <HolePeek digits={heroHoles} /> : null}
       {heroHoles && revealCards && (heroFolded || hero?.pointsOnly === true) ? (
         <div
           className={`player-hud-hero-cards${heroFolded ? ' player-hud-hero-cards--folded' : ''}`}
@@ -302,5 +304,7 @@ export default function TableFeltView({
         </div>
       ) : null}
     </PlayerGoldPanel>
+    {peek}
+    </>
   )
 }

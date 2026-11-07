@@ -31,6 +31,13 @@ describe('points-only hole cards', () => {
     expect(html).not.toContain('Your cards · folded')
   })
 
+  it('places Hold to peek after the felt panel so the panel cannot clip it', () => {
+    const html = renderToStaticMarkup(
+      createElement(TableFeltView, { gameState: felt(false), playerName: 'Joy', myPlayerId: 'me' }),
+    )
+    expect(html.indexOf('Hold to peek')).toBeGreaterThan(html.lastIndexOf('</section>'))
+  })
+
   it('leaves a chip player’s cards on the seat', () => {
     const html = renderToStaticMarkup(
       createElement(TableFeltView, { gameState: felt(false), playerName: 'Joy', myPlayerId: 'me' }),

@@ -722,10 +722,12 @@ describe('venue floor now', () => {
         hostPlayerLabel: (name: string) => name,
       }),
     )
-    expect(html).toContain('Ned P.')
-    expect(html).toContain('Call')
-    expect(html).toContain('grid-cols-3')
-    expect(html).toContain('aria-label="$40"')
+    const actions = html.slice(html.indexOf('grid-cols-3'), html.indexOf('</ul>'))
+    expect(actions).toContain('Ned P.')
+    expect(actions).toContain('Call')
+    expect(actions).toContain('aria-label="$40"')
+    expect(actions).toContain('whitespace-nowrap')
+    expect(actions).not.toContain('<p ')
     expect(html).toContain('Answering on phones')
     expect(html).toContain('1,020')
   })

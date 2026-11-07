@@ -2231,16 +2231,16 @@ function HostTableOpenAside({
             {recentActions.map((action, index) => (
               <li
                 key={`${action.seat}-${index}`}
-                className="min-w-0 rounded-md bg-black/30 px-2 py-1.5 text-sm"
+                className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap rounded-md bg-black/30 px-2 py-1 text-sm"
               >
-                <p className="truncate font-semibold text-white">
+                <span className="min-w-0 truncate font-semibold text-white">
                   {hostPlayerLabel(actionLabels[index] ?? action.name)}
-                </p>
-                <p className="text-xs text-white/55">{recentActionLabel(action.action)}</p>
+                </span>
+                <span className="shrink-0 text-xs text-white/55">{recentActionLabel(action.action)}</span>
                 {action.amount != null && action.amount > 0 ? (
-                  <p className="text-xs font-semibold tabular-nums text-amber-100">
+                  <span className="shrink-0 text-xs font-semibold tabular-nums text-amber-100">
                     <ChipText text={formatHostFloorMoney(action.amount)} />
-                  </p>
+                  </span>
                 ) : null}
               </li>
             ))}

@@ -1395,6 +1395,42 @@
   }
 }
 
+/* Galaxy Fold landscape is 280px tall. The action bar was taking the whole screen. */
+@media (max-height: 320px) {
+  .player-game-layout--live-fit .player-game-header--live-min {
+    height: 1.15rem;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit .player-sticky-question {
+    max-height: 2.15rem;
+    padding: 0.08rem 0.4rem;
+  }
+
+  .player-game-layout--live-fit .player-sticky-question-text {
+    font-size: 0.72rem;
+    line-height: 1.15;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    padding: 0 1.15rem 1.85rem;
+  }
+
+  .player-game-layout--live-fit .player-game-table-status {
+    margin: 0 0 0.3rem;
+    padding: 0.06rem 0.3rem;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    min-height: 6rem;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow {
+    max-height: 4.6rem;
+  }
+}
+
 .player-game-wager-actions--preact-dim {
   opacity: 0.72;
 }

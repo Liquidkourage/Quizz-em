@@ -19,9 +19,9 @@ describe('player felt card faces', () => {
     )
 
     expect(html).toContain('player-felt-card-face')
-    expect(html).toContain('rotate(8deg)')
-    expect(html).toContain('rotate(-8deg)')
-    expect(html).not.toContain(`rotate(${bottom.rotateDeg}deg)`)
+    expect(html).toContain('data-hole-layout="player-clear"')
+    expect(html).not.toContain('rotate(')
+    expect(html).not.toContain('margin-left')
   })
 
   it('aims a face-down pair along that seat’s line to the center', () => {

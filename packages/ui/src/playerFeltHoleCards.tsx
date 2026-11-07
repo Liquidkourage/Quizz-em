@@ -30,38 +30,83 @@ export function playerFeltHoleOverlapPx(cardWidthPx: number): number {
   return Math.max(3, Math.round(cardWidthPx * 0.36))
 }
 
+/** Gap between the player's own cards so both digits stay fully visible. */
+const PLAYER_FELT_CLEAR_GAP_PX = 6
+
 function playerFeltHoleClassName(faceDown: boolean, className: string | undefined): string {
   const upright = faceDown ? '' : 'player-felt-card-face'
   return [upright, className].filter(Boolean).join(' ')
 }
 
-/** Player felt — two hole cards fanned from the rail, the same way as the public table. */
-export function PlayerFeltHoleCards({
+function holeCardBox(w: number, h: number, extra: CSSProperties): CSSProperties {
+  return {
+    width: w,
+    height: h,
+    borderRadius: Math.max(4, Math.round(Math.min(w, h) * 0.12)),
+    overflow: 'hidden',
+    flexShrink: 0,
+    boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
+    ...extra,
+  }
+}
+
+/** The player's own cards: upright, side by side, neither one covering the other. */
+function ClearHoleCards({
   scale,
-  rotateDeg = 0,
-  faceDown = true,
   digits,
   className,
   hidden = false,
 }: PlayerFeltHoleCardsProps) {
   const { w, h } = playerHoleCardSizePx(scale)
   const orderedDigits = digits != null ? digitsAscending(digits) : null
-  const overlap = playerFeltHoleOverlapPx(w)
-  const radius = Math.max(4, Math.round(Math.min(w, h) * 0.12))
-  const shellStyle: CSSProperties = {
-    display: 'flex',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    width: w * 2 - overlap,
-    opacity: hidden ? 0 : undefined,
-    transform: faceDown ? `rotate(${rotateDeg}deg)` : undefined,
-    transformOrigin: '50% 100%',
-  }
-
   return (
     <div
-      className={playerFeltHoleClassName(faceDown, className)}
-      style={shellStyle}
+      className={playerFeltHoleClassName(false, className)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: w * 2 + PLAYER_FELT_CLEAR_GAP_PX,
+        columnGap: PLAYER_FELT_CLEAR_GAP_PX,
+        opacity: hidden ? 0 : undefined,
+      }}
+      aria-hidden={hidden || undefined}
+      data-hole-layout="player-clear"
+    >
+      {[0, 1].map((cardIndex) => (
+        <div key={cardIndex} style={holeCardBox(w, h, {})}>
+          <CardFaceGraphic
+            digit={orderedDigits?.[cardIndex] ?? 0}
+            className="block h-full w-full object-cover"
+            alt=""
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Other seats — two backs fanned from the rail, the same way as the public table. */
+function SplayedHoleCards({
+  scale,
+  rotateDeg = 0,
+  className,
+  hidden = false,
+}: PlayerFeltHoleCardsProps) {
+  const { w, h } = playerHoleCardSizePx(scale)
+  const overlap = playerFeltHoleOverlapPx(w)
+  return (
+    <div
+      className={playerFeltHoleClassName(true, className)}
+      style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        width: w * 2 - overlap,
+        opacity: hidden ? 0 : undefined,
+        transform: `rotate(${rotateDeg}deg)`,
+        transformOrigin: '50% 100%',
+      }}
       aria-hidden={hidden || undefined}
       data-hole-layout="player-splay"
     >
@@ -70,32 +115,24 @@ export function PlayerFeltHoleCards({
         return (
           <div
             key={cardIndex}
-            style={{
-              width: w,
-              height: h,
+            style={holeCardBox(w, h, {
               marginLeft: cardIndex === 1 ? -overlap : undefined,
               transformOrigin: '50% 100%',
               transform: `rotate(${fan}deg)`,
-              borderRadius: radius,
-              overflow: 'hidden',
-              flexShrink: 0,
-              boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
-            }}
+            })}
           >
-            {faceDown ? (
-              <CardBackSvg className="block h-full w-full" />
-            ) : (
-              <CardFaceGraphic
-                digit={orderedDigits?.[cardIndex] ?? 0}
-                className="block h-full w-full object-cover"
-                alt=""
-              />
-            )}
+            <CardBackSvg className="block h-full w-full" />
           </div>
         )
       })}
     </div>
   )
+}
+
+/** Player felt — own cards clear; every other pair splayed like the public table. */
+export function PlayerFeltHoleCards(props: PlayerFeltHoleCardsProps) {
+  if (props.faceDown === false) return <ClearHoleCards {...props} />
+  return <SplayedHoleCards {...props} />
 }
 
 export function playerFeltHolePairWidthPx(scale: number): number {

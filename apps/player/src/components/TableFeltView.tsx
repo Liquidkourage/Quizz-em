@@ -63,7 +63,7 @@ function PlayerMainLabel({ sides }: { sides: readonly LiveSidePot[] }) {
 function PlayerSideTotals({ sides }: { sides: readonly LiveSidePot[] }) {
   if (sides.length === 0) return null
   return (
-    <span className="player-game-table-side-pot">
+    <span className="player-game-table-pot-row player-game-table-side-pot">
       <span className="player-game-table-pot-label">Side</span>
       {sides.map((side) => (
         <span key={side.mark} style={{ color: sidePotColor(side.mark) }}>
@@ -79,8 +79,12 @@ export function PlayerFeltPot({ pot, sides = [] }: { pot: number; sides?: readon
   if (pot <= 0 && sides.length === 0) return null
   return (
     <span className="player-game-table-pot">
-      <PlayerMainLabel sides={sides} />
-      {pot > 0 ? <ChipText text={`Pot $${pot.toLocaleString()}`} /> : null}
+      {pot > 0 ? (
+        <span className="player-game-table-pot-row">
+          <PlayerMainLabel sides={sides} />
+          <ChipText text={`Pot $${pot.toLocaleString()}`} />
+        </span>
+      ) : null}
       <PlayerSideTotals sides={sides} />
     </span>
   )

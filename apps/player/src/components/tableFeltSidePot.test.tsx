@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -48,7 +49,12 @@ describe('player side pot', () => {
       createElement(PlayerFeltPot, { pot: displayedMainPot(hand), sides: layersOf(hand).sides }),
     )
     expect(html).toContain('Pot $300')
-    expect(html).toContain('>Main<')
+    expect(html).toContain('player-game-table-pot-row">')
+    const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
+    const rowRule = css.slice(css.indexOf('.player-game-table-pot-row'), css.indexOf('.player-game-table-pot-row') + 220)
+    expect(rowRule).toContain('flex-direction: row')
+    expect(html.indexOf('>Main<')).toBeLessThan(html.indexOf('Pot $300'))
+    expect(html.indexOf('Pot $300')).toBeLessThan(html.indexOf('>Side<'))
     expect(html).toContain('>Side<')
     expect(html).toContain('player-game-table-side-pot')
     expect(html).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1;color:#7dd3fc">1</sup>')

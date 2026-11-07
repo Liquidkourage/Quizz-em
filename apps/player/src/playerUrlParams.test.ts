@@ -66,6 +66,21 @@ describe('playerSessionCanResume', () => {
     expect(playerLeaveScreen(PLAYER_ROOM_CLOSED_MESSAGE)).toBe('closed')
   })
 
+  it('boots a saved phone straight back into the room', () => {
+    const boot = playerJoinBoot({
+      firstName: 'Ada',
+      lastInitial: 'L',
+      roomCode: 'HOST01',
+      playerId: 'human:ada',
+      autoSeat: true,
+      tableId: '1',
+      roomFromUrl: true,
+      nameFromUrl: false,
+    })
+    expect(boot.resume).toBe(true)
+    expect(boot.prefs.playerId).toBe('human:ada')
+  })
+
   it('keeps a first visit on the name screen', () => {
     expect(
       playerSessionCanResume({

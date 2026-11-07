@@ -86,12 +86,13 @@ import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
 import StickyQuestionBar from './components/StickyQuestionBar'
 import PointsOnlyLifeBanner from './components/PointsOnlyLifeBanner'
-import { PlayerLeftEvent } from './components/PlayerQuitButton'
+import { PlayerLeftEvent, PlayerStillSeated } from './components/PlayerQuitButton'
+import { resumeHelloScreen, type ResumeAttempt } from './playerResume'
 import PlayerScoresSheet from './components/PlayerScoresSheet'
 import { scoresSheetIdentity } from './components/playerScoresIdentity'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './components/PlayerGoldChrome'
 
-type JoinPhase = 'form' | 'connecting' | 'in_venue'
+type JoinPhase = 'form' | 'connecting' | 'in_venue' | 'still_seated'
 
 function bootPlayerJoin(): { prefs: PlayerJoinBootstrap; phase: JoinPhase; nonce: number } {
   const boot = playerJoinBoot(readPlayerJoinPrefs())
@@ -117,6 +118,7 @@ function PlayerApp() {
   const departedRef = useRef(boot.prefs.departed === true)
   const [leftMessage, setLeftMessage] = useState('You left the event.')
   const [joinNonce, setJoinNonce] = useState(boot.nonce)
+  const savedSeatAttempt = useRef<ResumeAttempt>(boot.resume ? 'saved-phone' : 'join-form')
   const [gameState, setGameState] = useState<PlayerGameStateWire | null>(null)
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -159,6 +161,7 @@ function PlayerApp() {
   const handleJoin = () => {
     if (!playerName || !joinPrefs.roomCode.trim()) return
     if (!joinPrefs.firstName.trim() || !joinPrefs.lastInitial.trim()) return
+    savedSeatAttempt.current = 'join-form'
     const joining = {
       ...joinPrefs,
       autoSeat: true,
@@ -174,6 +177,13 @@ function PlayerApp() {
     setJoinNonce((n) => n + 1)
   }
 
+  const handleTryAgain = () => {
+    savedSeatAttempt.current = 'saved-phone'
+    setJoinError(null)
+    setJoinPhase('connecting')
+    setJoinNonce((n) => n + 1)
+  }
+
   useEffect(() => {
     if (joinNonce === 0) return undefined
 
@@ -184,8 +194,9 @@ function PlayerApp() {
       onHelloAck: (ack) => {
         if (cancelled) return
         if (!ack.ok) {
+          const screen = resumeHelloScreen(savedSeatAttempt.current, false, ack.message ?? '')
           setJoinError(ack.message)
-          setJoinPhase('form')
+          setJoinPhase(screen === 'still-seated' ? 'still_seated' : 'form')
           disconnect()
           return
         }
@@ -494,6 +505,15 @@ function PlayerApp() {
   }
 
   const leaveEvent = () => quitEvent()
+
+  if (joinPhase === 'still_seated') {
+    return (
+      <PlayerStillSeated
+        message={joinError ?? 'That name is already in the room.'}
+        onTryAgain={handleTryAgain}
+      />
+    )
+  }
 
   if (joinPhase !== 'in_venue') {
     if (joinPrefs.roomClosed) {

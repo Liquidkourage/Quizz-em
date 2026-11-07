@@ -109,6 +109,14 @@ export type PlayerVenueBrief = {
   scoresBoard?: 'chips' | 'trivia' | null
   /** Ranked rows for `scoresBoard`. Chips include a table; trivia is the night's points. */
   scores?: { name: string; value: number; tableNum: number | null }[]
+  /** Set for a few seconds after the blinds in play change. */
+  blindChange?: BlindChangeNotice | null
+}
+
+export type BlindChangeNotice = {
+  smallBlind: number
+  bigBlind: number
+  atMs: number
 }
 
 /** Server `state` payload may include wire-only timing metadata. */
@@ -295,6 +303,8 @@ export type DisplayVenueWallSnapshot = {
   venueHandsCompleted?: number | null
   /** Table moves / closures / shuffle from the most recent End Round seating pass. */
   lastHandSeating?: DisplayVenueSeatingAnnouncement | null
+  /** Set for a few seconds after the blinds in play change. */
+  blindChange?: BlindChangeNotice | null
 }
 
 /** Public display: one player moved tables after End Round. */

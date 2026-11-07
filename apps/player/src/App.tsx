@@ -74,6 +74,12 @@ import PostHandSummaryCard from './components/PostHandSummaryCard'
 import TableResultsPanel from './components/TableResultsPanel'
 import AnswerComposerModal from './components/AnswerComposerModal'
 import DealFlashModal from './components/DealFlashModal'
+import BlindChangeModal from './components/BlindChangeModal'
+
+function PlayerBlindChange({ brief }: { brief: PlayerVenueBrief | null }) {
+  if (brief?.blindChange == null) return null
+  return <BlindChangeModal key={brief.blindChange.atMs} notice={brief.blindChange} />
+}
 import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
@@ -513,6 +519,7 @@ function PlayerApp() {
     return (
       <>
         <PlayerToast message={toastMessage} />
+        <PlayerBlindChange brief={venueBrief} />
         <PlayerEndgameScreen
           winnerName={endgame.winnerName}
           selfWon={endgame.selfWon}
@@ -533,6 +540,7 @@ function PlayerApp() {
     return (
       <>
         <PlayerToast message={toastMessage} />
+        <PlayerBlindChange brief={venueBrief} />
         <LobbyWaitingScreen
           playerName={playerName}
           venueCode={gameState.code}
@@ -668,6 +676,7 @@ function PlayerApp() {
         .join(' ')}
     >
       <PlayerToast message={toastMessage} />
+      <PlayerBlindChange brief={venueBrief} />
       {nudgeAlert ? (
         <PlayerNudgeAlert key={nudgeAlert.id} message={nudgeAlert.text} onDone={dismissNudge} />
       ) : null}

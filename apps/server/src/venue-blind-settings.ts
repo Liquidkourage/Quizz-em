@@ -367,6 +367,38 @@ export function venueBlindLevelSummary(venueCode: string): {
   }
 }
 
+const BLIND_NOTICE_MS = 12_000
+
+type BlindChangeNotice = { smallBlind: number; bigBlind: number; atMs: number }
+
+const shownBlindKey = new Map<string, string>()
+const blindNotices = new Map<string, BlindChangeNotice>()
+
+export function clearVenueBlindNotice(venueCode: string): void {
+  const vn = normalizeVenueKey(venueCode)
+  shownBlindKey.delete(vn)
+  blindNotices.delete(vn)
+}
+
+/** Remember the blinds the room is showing. A later pair is announced until the notice expires. */
+export function noteShownVenueBlinds(
+  venueCode: string,
+  smallBlind: number,
+  bigBlind: number,
+  now = Date.now(),
+): BlindChangeNotice | null {
+  const vn = normalizeVenueKey(venueCode)
+  const key = `${smallBlind}/${bigBlind}`
+  const prev = shownBlindKey.get(vn)
+  shownBlindKey.set(vn, key)
+  if (prev != null && prev !== key) {
+    blindNotices.set(vn, { smallBlind, bigBlind, atMs: now })
+  }
+  const notice = blindNotices.get(vn)
+  if (notice == null || now - notice.atMs >= BLIND_NOTICE_MS) return null
+  return notice
+}
+
 export function hostLibraryBlindsPayload(venueCode: string) {
   const s = getVenueBlindSettings(venueCode)
   const sum = venueBlindLevelSummary(venueCode)

@@ -4,7 +4,9 @@ import {
   applyBlindScheduleSave,
   applyStoredBlinds,
   blindsShownForVenue,
+  clearVenueBlindNotice,
   getVenueBlindSettings,
+  noteShownVenueBlinds,
   publishedTableBlinds,
   recordVenueHandCompleted,
   type VenueBlindSettings,
@@ -92,6 +94,26 @@ describe('blinds during a hand', () => {
         raised,
       ),
     ).toEqual({ smallBlind: 10, bigBlind: 20 })
+  })
+
+  it('announces the new blinds once they are the pair in play', () => {
+    clearVenueBlindNotice('WAIT')
+    const during = blindsShownForVenue(
+      [{ phase: 'betting', smallBlind: 10, bigBlind: 20 }],
+      raised,
+    )
+    expect(noteShownVenueBlinds('WAIT', during.smallBlind, during.bigBlind, 1_000)).toBeNull()
+    const waiting = blindsShownForVenue(
+      [{ phase: 'lobby', smallBlind: 10, bigBlind: 20 }],
+      raised,
+    )
+    expect(noteShownVenueBlinds('WAIT', waiting.smallBlind, waiting.bigBlind, 2_000)).toEqual({
+      smallBlind: 50,
+      bigBlind: 100,
+      atMs: 2_000,
+    })
+    expect(noteShownVenueBlinds('WAIT', waiting.smallBlind, waiting.bigBlind, 3_000)?.atMs).toBe(2_000)
+    expect(noteShownVenueBlinds('WAIT', waiting.smallBlind, waiting.bigBlind, 2_000 + 12_000)).toBeNull()
   })
 
   it('shows the saved blinds when every table is waiting', () => {

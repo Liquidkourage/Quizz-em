@@ -2753,6 +2753,14 @@
   color: rgb(253 224 71);
 }
 
+.player-deal-flash-amount {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: white;
+}
+
 .player-deal-flash-cards {
   display: flex;
   justify-content: center;

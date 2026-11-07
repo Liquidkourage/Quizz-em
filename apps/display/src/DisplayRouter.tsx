@@ -26,6 +26,7 @@ import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
+import VenueBlindChange, { blindChangeFromPayload } from './VenueBlindChange.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import { normalizeVenuePointsStandings } from './venueLeaderboard'
@@ -334,6 +335,7 @@ export default function DisplayRouter({
             ? Math.max(0, Math.floor(p.venueHandsCompleted))
             : null,
         lastHandSeating: normalizeLastHandSeating(p.lastHandSeating),
+        blindChange: blindChangeFromPayload(p.blindChange),
       }
       setVenueWall(next)
     })
@@ -389,6 +391,7 @@ export default function DisplayRouter({
 
   return (
     <>
+    <VenueBlindChange notice={venueWall?.blindChange ?? null} />
     <AnimatePresence>
       {showHostBusts ? (
         <VenueBustAnnouncement key="venue-bust-announcement" busts={lastHandBusts} />

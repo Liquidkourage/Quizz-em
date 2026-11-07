@@ -180,6 +180,7 @@ import {
   hostLibraryBlindsPayload,
   publishedTableBlinds,
   loadVenueBlindSettingsFromDisk,
+  noteShownVenueBlinds,
   recordVenueHandCompleted,
   setTableBlindsOverride,
   setVenueBlindStructurePersist,
@@ -587,6 +588,7 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
     venueShuffleHeld: isVenueShuffleHeld(vn),
     endgameWinnerName: venueEndgameWinnerName(vn),
     ...publicScores,
+    blindChange: noteShownVenueBlinds(vn, blindsOnFelt.smallBlind, blindsOnFelt.bigBlind),
   }
 }
 
@@ -2739,6 +2741,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     venueShuffleHeld: isVenueShuffleHeld(vn),
     venueHandsCompleted: getVenueHandsCompleted(vn),
     ...venueWallLastHandFields(lastHandDisplay),
+    blindChange: noteShownVenueBlinds(vn, blindsOnFelt.smallBlind, blindsOnFelt.bigBlind),
   }
   io.to(displayVenueRoom(vn)).emit('displayVenueSnapshot', payload)
   emitPlayerVenueBriefNow(vn)

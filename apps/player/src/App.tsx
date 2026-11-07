@@ -615,7 +615,7 @@ function PlayerApp() {
       playerName={playerName}
       myPlayerId={currentPlayer?.id ?? joinPrefs.playerId}
       myIndex={myIndex}
-      showCenterPot={!showStickyQuestion && !isPointsOnly}
+      showCenterPot
       fillViewport={liveFit}
       turnRemainingSec={turnRemainingSec}
       playerOnline={gameState.playerOnline}

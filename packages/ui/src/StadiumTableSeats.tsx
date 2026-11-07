@@ -153,7 +153,7 @@ export function StadiumTableSeats({
         <div
           className={clsx(
             'pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center',
-            isPlayerLayout ? 'z-[24] gap-1.5' : 'z-[12] gap-0.5'
+            isPlayerLayout ? 'z-[24] gap-1' : 'z-[12] gap-0.5'
           )}
           aria-hidden={centerContent == null ? undefined : true}
         >

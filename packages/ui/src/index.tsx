@@ -287,8 +287,9 @@ export {
 } from './mosaicSeatGeometry';
 export { FeltHoleCardPair, type FeltHoleCardPairProps } from './feltHoleCards';
 export {
-  PLAYER_FELT_HOLE_CARD_GAP_PX,
+  PLAYER_FELT_HOLE_FAN_DEG,
   PlayerFeltHoleCards,
+  playerFeltHoleOverlapPx,
   playerFeltHolePairWidthPx,
   type PlayerFeltHoleCardsProps,
 } from './playerFeltHoleCards';

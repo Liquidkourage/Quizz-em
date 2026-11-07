@@ -3,8 +3,8 @@ import { digitsAscending } from './digitCardOrder'
 import { CardBackSvg } from './CardBackSvg'
 import { CardFaceGraphic } from './CardFaceGraphic'
 
-/** Gap between the two player hole cards — never overlap. */
-export const PLAYER_FELT_HOLE_CARD_GAP_PX = 6
+/** Same fan the public mosaic uses: each card opens 8° off the rail. */
+export const PLAYER_FELT_HOLE_FAN_DEG = 8
 
 const CARD_SMALL_WIDTH_PX = 64
 const CARD_SMALL_HEIGHT_PX = 96
@@ -25,10 +25,9 @@ function playerHoleCardSizePx(scale: number): { w: number; h: number } {
   }
 }
 
-/** Face-up cards stay phone-upright. Face-down pairs turn so their tops point at the seat. */
-function playerFeltHoleTurn(faceDown: boolean, rotateDeg: number): string | undefined {
-  if (!faceDown) return undefined
-  return `rotate(${rotateDeg}deg)`
+/** Second card covers about a third of the first, matching the public felt. */
+export function playerFeltHoleOverlapPx(cardWidthPx: number): number {
+  return Math.max(3, Math.round(cardWidthPx * 0.36))
 }
 
 function playerFeltHoleClassName(faceDown: boolean, className: string | undefined): string {
@@ -36,7 +35,7 @@ function playerFeltHoleClassName(faceDown: boolean, className: string | undefine
   return [upright, className].filter(Boolean).join(' ')
 }
 
-/** Player felt — two hole cards in a fixed grid; no overlap layout path. */
+/** Player felt — two hole cards fanned from the rail, the same way as the public table. */
 export function PlayerFeltHoleCards({
   scale,
   rotateDeg = 0,
@@ -47,16 +46,16 @@ export function PlayerFeltHoleCards({
 }: PlayerFeltHoleCardsProps) {
   const { w, h } = playerHoleCardSizePx(scale)
   const orderedDigits = digits != null ? digitsAscending(digits) : null
-  const pairWidth = w * 2 + PLAYER_FELT_HOLE_CARD_GAP_PX
+  const overlap = playerFeltHoleOverlapPx(w)
   const radius = Math.max(4, Math.round(Math.min(w, h) * 0.12))
-
   const shellStyle: CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: `${w}px ${w}px`,
-    columnGap: PLAYER_FELT_HOLE_CARD_GAP_PX,
-    width: pairWidth,
+    display: 'flex',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    width: w * 2 - overlap,
     opacity: hidden ? 0 : undefined,
-    transform: playerFeltHoleTurn(faceDown, rotateDeg),
+    transform: faceDown ? `rotate(${rotateDeg}deg)` : undefined,
+    transformOrigin: '50% 100%',
   }
 
   return (
@@ -64,35 +63,42 @@ export function PlayerFeltHoleCards({
       className={playerFeltHoleClassName(faceDown, className)}
       style={shellStyle}
       aria-hidden={hidden || undefined}
-      data-hole-layout="player-spread"
+      data-hole-layout="player-splay"
     >
-      {[0, 1].map((cardIndex) => (
-        <div
-          key={cardIndex}
-          style={{
-            width: w,
-            height: h,
-            borderRadius: radius,
-            overflow: 'hidden',
-            boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
-          }}
-        >
-          {faceDown ? (
-            <CardBackSvg className="block h-full w-full" />
-          ) : (
-            <CardFaceGraphic
-              digit={orderedDigits?.[cardIndex] ?? 0}
-              className="block h-full w-full object-cover"
-              alt=""
-            />
-          )}
-        </div>
-      ))}
+      {[0, 1].map((cardIndex) => {
+        const fan = cardIndex === 0 ? PLAYER_FELT_HOLE_FAN_DEG : -PLAYER_FELT_HOLE_FAN_DEG
+        return (
+          <div
+            key={cardIndex}
+            style={{
+              width: w,
+              height: h,
+              marginLeft: cardIndex === 1 ? -overlap : undefined,
+              transformOrigin: '50% 100%',
+              transform: `rotate(${fan}deg)`,
+              borderRadius: radius,
+              overflow: 'hidden',
+              flexShrink: 0,
+              boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
+            }}
+          >
+            {faceDown ? (
+              <CardBackSvg className="block h-full w-full" />
+            ) : (
+              <CardFaceGraphic
+                digit={orderedDigits?.[cardIndex] ?? 0}
+                className="block h-full w-full object-cover"
+                alt=""
+              />
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
 
 export function playerFeltHolePairWidthPx(scale: number): number {
   const { w } = playerHoleCardSizePx(scale)
-  return w * 2 + PLAYER_FELT_HOLE_CARD_GAP_PX
+  return w * 2 - playerFeltHoleOverlapPx(w)
 }

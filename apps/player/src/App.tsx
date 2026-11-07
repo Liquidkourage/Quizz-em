@@ -58,7 +58,7 @@ import { nextDealFlash, type DealFlash, type DealSnapshot } from './playerModel/
 import { eliminationPopupHandKey, seatlessPhoneKeepsFelt, type EliminationWatch } from './playerModel/eliminationPopup'
 import { playerEndgameView } from './playerModel/playerEndgame'
 import { lockedAnswerDisplayText, optimisticGuessStillShown } from './playerModel/lockedAnswerDisplay'
-import { resolvePreAction, type PreAction } from './playerModel/preAction'
+import { preActionAlert, resolvePreAction, type PreAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
@@ -75,6 +75,7 @@ import TableResultsPanel from './components/TableResultsPanel'
 import AnswerComposerModal from './components/AnswerComposerModal'
 import DealFlashModal from './components/DealFlashModal'
 import BlindChangeModal from './components/BlindChangeModal'
+import AutoActAlert from './components/AutoActAlert'
 
 function PlayerBlindChange({ brief }: { brief: PlayerVenueBrief | null }) {
   if (brief?.blindChange == null) return null
@@ -127,6 +128,7 @@ function PlayerApp() {
   const [lastTableId, setLastTableId] = useState<string | null>(null)
   const [raiseAmount, setRaiseAmount] = useState(0)
   const [preAction, setPreAction] = useState<PreAction | null>(null)
+  const [autoActAlert, setAutoActAlert] = useState<{ id: string; message: string } | null>(null)
   const [composedAnswer, setComposedAnswer] = useState<ComposedAnswer>(EMPTY_COMPOSED_ANSWER)
   const [selectedCards, setSelectedCards] = useState<SelectedCardRef[]>([])
   const [submittedAnswerDisplay, setSubmittedAnswerDisplay] = useState<string | null>(null)
@@ -426,6 +428,10 @@ function PlayerApp() {
     preActTurnKeyRef.current = turnKey
     const action = resolvePreAction(preAction, bettingCtx)
     setPreAction(null)
+    setAutoActAlert({
+      id: turnKey,
+      message: preActionAlert(action, bettingCtx.toCall, currentPlayer?.bankroll ?? 0),
+    })
     if (action === 'check') checkAction()
     else if (action === 'call') callAction()
     else fold()
@@ -677,6 +683,9 @@ function PlayerApp() {
     >
       <PlayerToast message={toastMessage} />
       <PlayerBlindChange brief={venueBrief} />
+      {autoActAlert ? (
+        <AutoActAlert key={autoActAlert.id} message={autoActAlert.message} onDone={() => setAutoActAlert(null)} />
+      ) : null}
       {nudgeAlert ? (
         <PlayerNudgeAlert key={nudgeAlert.id} message={nudgeAlert.text} onDone={dismissNudge} />
       ) : null}

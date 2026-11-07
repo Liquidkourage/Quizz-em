@@ -2729,6 +2729,23 @@
   z-index: 200;
 }
 
+.player-auto-act {
+  position: fixed;
+  z-index: 190;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(92vw, 22rem);
+  padding: 0.75rem 1rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(251 191 36 / 0.4);
+  background: linear-gradient(180deg, rgb(12 16 14 / 0.97) 0%, rgb(8 10 8 / 0.98) 100%);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: white;
+}
+
 .player-deal-flash-backdrop {
   position: absolute;
   inset: 0;

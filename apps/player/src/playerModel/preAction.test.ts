@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolvePreAction, type PreAction } from './preAction'
+import { preActionAlert, resolvePreAction, type PreAction } from './preAction'
 import type { BettingContext } from './bettingModel'
 
 function ctx(partial: Partial<BettingContext>): BettingContext {
@@ -34,6 +34,13 @@ describe('resolvePreAction', () => {
     const pre: PreAction = { kind: 'callAny' }
     expect(resolvePreAction(pre, ctx({ toCall: 0 }))).toBe('check')
     expect(resolvePreAction(pre, ctx({ toCall: 60, currentBet: 60 }))).toBe('call')
+  })
+
+  it('names the action that went through, including the chips called', () => {
+    expect(preActionAlert('check', 0, 1000)).toBe('Checked')
+    expect(preActionAlert('fold', 60, 1000)).toBe('Folded')
+    expect(preActionAlert('call', 60, 1000)).toBe('Called $60')
+    expect(preActionAlert('call', 60, 40)).toBe('Called $40')
   })
 
   it('call/fold folds when the bet is raised past the lock', () => {

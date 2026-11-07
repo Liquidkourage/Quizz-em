@@ -22,6 +22,17 @@ export function resolvePreAction(pre: PreAction, ctx: BettingContext): ResolvedP
   return 'fold'
 }
 
+/** Short line after a queued action fires. A call names the chips actually put in. */
+export function preActionAlert(action: ResolvedPreAction, toCall: number, bankroll: number): string {
+  if (action === 'check') return 'Checked'
+  if (action === 'fold') return 'Folded'
+  const owed = Number.isFinite(toCall) ? Math.max(0, Math.floor(toCall)) : 0
+  const stack = Number.isFinite(bankroll) ? Math.max(0, Math.floor(bankroll)) : 0
+  const chips = Math.min(owed, stack)
+  if (chips <= 0) return 'Called'
+  return `Called $${chips.toLocaleString('en-US')}`
+}
+
 export function preActionLabel(pre: PreAction | null): string {
   if (!pre) return ''
   if (pre.kind === 'checkFold') return 'Check if free, else fold'

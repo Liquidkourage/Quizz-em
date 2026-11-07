@@ -13,4 +13,16 @@ describe('player lobby on a wide window', () => {
     expect(wide).toContain('max-width: none')
     expect(wide).toContain('justify-content: space-evenly')
   })
+
+  it('keeps the queue and quit on a short phone', () => {
+    const wideHeader = css.indexOf('@media (min-width: 768px)')
+    const shortHeader = css.indexOf('Short lobby waiting card')
+    expect(wideHeader).toBeGreaterThan(0)
+    expect(shortHeader).toBeGreaterThan(wideHeader)
+    const short = css.slice(shortHeader, shortHeader + 1100)
+    expect(short).toContain('.player-lobby-body')
+    expect(short).toContain('overflow-y: auto')
+    expect(short).toContain('height: clamp(3.2rem, 18vh, 5rem)')
+    expect(css.slice(wideHeader, wideHeader + 900)).toContain('height: clamp(9rem, 14vh, 11.5rem)')
+  })
 })

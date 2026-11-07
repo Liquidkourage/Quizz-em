@@ -815,6 +815,68 @@
   }
 }
 
+/* Short lobby waiting card — phones in landscape clip the queue under a 9rem logo. */
+@media (max-height: 520px) {
+  .player-join-shell:has(.player-lobby-body) {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+  }
+
+  .player-join-shell:has(.player-lobby-body) .player-join-header {
+    height: clamp(3.2rem, 18vh, 5rem);
+    max-height: 22%;
+  }
+
+  .player-lobby-body {
+    overflow-y: auto;
+    padding: 0.35rem 0.85rem 0.45rem;
+  }
+
+  .player-lobby-title {
+    font-size: clamp(1rem, 3.2vw, 1.35rem);
+    letter-spacing: 0.06em;
+    text-wrap: balance;
+  }
+
+  .player-lobby-lead {
+    margin-bottom: 0.35rem;
+    font-size: 0.82rem;
+    line-height: 1.25;
+  }
+
+  .player-lobby-body .player-join-divider {
+    margin: 0.2rem auto 0.4rem;
+  }
+
+  .player-lobby-status {
+    gap: 0.3rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .player-lobby-status-row {
+    font-size: 0.92rem;
+    line-height: 1.2;
+  }
+
+  .player-lobby-status-queue {
+    margin-top: 0;
+    padding-top: 0.35rem;
+  }
+
+  .player-lobby-status-count {
+    font-size: 0.95rem;
+  }
+
+  .player-lobby-status-position {
+    margin-top: 0.1rem;
+  }
+
+  .player-lobby-body .player-quit {
+    margin-top: 0.15rem;
+  }
+}
+
 /* ===== Player in-game — gold casino shell (matches join/lobby) ===== */
 :root {
   --player-game-shell-max: 36rem;

@@ -39,7 +39,8 @@ describe('player side pot', () => {
     const quietRaise = renderToStaticMarkup(
       createElement(PlayerFeltPot, { pot: displayedMainPot(open), sides: layersOf(open).sides }),
     )
-    expect(quietRaise).toContain('Pot $600')
+    expect(quietRaise).toContain('aria-label="$600"')
+    expect(quietRaise).not.toContain('Pot $')
     expect(quietRaise).not.toContain('>Side<')
     const hand = {
       ...open,
@@ -48,13 +49,14 @@ describe('player side pot', () => {
     const html = renderToStaticMarkup(
       createElement(PlayerFeltPot, { pot: displayedMainPot(hand), sides: layersOf(hand).sides }),
     )
-    expect(html).toContain('Pot $300')
+    expect(html).toContain('aria-label="$300"')
+    expect(html).not.toContain('Pot $')
     expect(html).toContain('player-game-table-pot-row">')
     const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
     const rowRule = css.slice(css.indexOf('.player-game-table-pot-row'), css.indexOf('.player-game-table-pot-row') + 220)
     expect(rowRule).toContain('flex-direction: row')
-    expect(html.indexOf('>Main<')).toBeLessThan(html.indexOf('Pot $300'))
-    expect(html.indexOf('Pot $300')).toBeLessThan(html.indexOf('>Side<'))
+    expect(html.indexOf('>Main<')).toBeLessThan(html.indexOf('aria-label="$300"'))
+    expect(html.indexOf('aria-label="$300"')).toBeLessThan(html.indexOf('>Side<'))
     expect(html).toContain('>Side<')
     expect(html).toContain('player-game-table-side-pot')
     expect(html).toContain('<sup class="side-pot-mark" style="font-size:0.55em;line-height:1;color:#7dd3fc">1</sup>')
@@ -65,11 +67,13 @@ describe('player side pot', () => {
     const quiet = renderToStaticMarkup(
       createElement(PlayerFeltPot, { pot: displayedMainPot(even), sides: layersOf(even).sides }),
     )
-    expect(quiet).toContain('Pot $200')
+    expect(quiet).toContain('aria-label="$200"')
+    expect(quiet).not.toContain('Pot $')
     expect(quiet).not.toContain('>Main<')
     expect(quiet).not.toContain('>Side<')
     expect(quiet).not.toContain('player-game-table-side-pot')
-    expect(quiet).not.toContain('of which')
+    const crushed = css.slice(css.indexOf('@container (max-height: 170px)'), css.indexOf('@container (max-height: 170px)') + 280)
+    expect(crushed).toContain('font-size: 0.72rem')
   })
 
   it('shows the main pot on the sticky bar and the info card', () => {

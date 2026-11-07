@@ -83,7 +83,7 @@ export function PlayerFeltPot({ pot, sides = [] }: { pot: number; sides?: readon
       {pot > 0 ? (
         <span className="player-game-table-pot-row">
           <PlayerMainLabel sides={sides} />
-          <ChipText text={`Pot $${pot.toLocaleString()}`} />
+          <ChipText text={`$${pot.toLocaleString()}`} />
         </span>
       ) : null}
       <PlayerSideTotals sides={sides} />

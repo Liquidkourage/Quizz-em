@@ -2725,6 +2725,10 @@
   padding: max(1rem, env(safe-area-inset-top, 0px)) 0.75rem max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
+.player-blind-change {
+  z-index: 200;
+}
+
 .player-deal-flash-backdrop {
   position: absolute;
   inset: 0;

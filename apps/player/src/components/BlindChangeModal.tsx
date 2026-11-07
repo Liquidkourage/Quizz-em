@@ -20,7 +20,7 @@ export default function BlindChangeModal({ notice }: { notice: BlindChangeNotice
   if (!open) return null
 
   return (
-    <div className="player-deal-flash" role="dialog" aria-modal="true" aria-label="Blinds changed">
+    <div className="player-deal-flash player-blind-change" role="dialog" aria-modal="true" aria-label="Blinds changed">
       <button type="button" className="player-deal-flash-backdrop" aria-label="Dismiss" onClick={() => setOpen(false)} />
       <div className="player-deal-flash-card">
         <p className="player-deal-flash-title">Blinds</p>

@@ -195,6 +195,20 @@ describe('player table orientation', () => {
     expect(slot).not.toContain('flex: 1 1 auto')
   })
 
+  it('gives an iPad landscape table room and leaves a MacBook alone', () => {
+    const header = '@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape)'
+    const block = mediaBlock(css.slice(css.indexOf(header)), header)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain('padding-top: 2.4rem')
+    expect(block).toContain('max-height: 5rem')
+    expect(block).toContain('margin-bottom: 0.2rem')
+    const mac = mediaBlock(
+      css.slice(css.lastIndexOf('@media (min-width: 1024px) and (orientation: landscape) and (pointer: fine)')),
+      '@media (min-width: 1024px) and (orientation: landscape) and (pointer: fine)',
+    )
+    expect(mac).not.toContain('max-width: 1366px')
+  })
+
   it('keeps a wide landscape table in the open space above the wager panel', () => {
     const felt = css.slice(
       css.indexOf('.player-game-layout--live-fit .player-game-felt--fill {'),

@@ -20,6 +20,9 @@ This describes what the server does now. A scripted local rehearsal (`scripts/re
 ## What is NOT saved
 
 - Host nudge countdowns (the 30 second auto check or fold). Turn clocks only run after a host nudge, so after a restart no player is on a clock; nudge again if you want one.
+- Short timers kept in memory: the hold on Pay winners while the answer is on the screens, the nudge to players who have not guessed, the "chip or trivia scores have not been up" reminder count, and the clocks for the current hand and phase. After a restart they start fresh, which never blocks the host: payout is allowed at once, the scores reminder starts from zero, and the hand and phase clocks count from the restart.
+- The show clock, hands played, blinds and shuffle settings are files on the server's disk. They survive a restart only if a Railway volume is attached and `QHE_DATA_DIR` points at it ([railway-volume.md](railway-volume.md)).
+- The trivia leaderboard remembers people who left their chair. That list is rebuilt from the saved tables' trivia standings, so it comes back with the tables.
 - Display pairing codes and who has a phone connected. These rebuild as phones and TVs reconnect.
 - If no database is configured (`DATABASE_URL` unset) nothing is saved and a restart ends the live games. The boot log says so: `Table snapshots off`.
 

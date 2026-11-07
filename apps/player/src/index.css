@@ -1261,10 +1261,12 @@
   max-width: 100%;
   min-height: 0;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  /* Status, then the felt, then Hold to peek. The felt is the row that shrinks. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-items: stretch;
+  justify-items: stretch;
   /* Side gutter is the name-tag width so outward tags stay on the phone. */
   padding: 2.5rem 3.75rem 2.1rem;
   border: none;
@@ -1341,8 +1343,12 @@
   flex: 1 1 0;
   width: 100%;
   min-height: 0;
-  align-items: center;
+  height: 100%;
+  /* Sit the oval on the peek. Bottom padding keeps the lowest name off the button. */
+  align-items: flex-end;
   justify-content: center;
+  box-sizing: border-box;
+  padding-bottom: 1.75rem;
   container-type: size;
 }
 
@@ -3374,6 +3380,9 @@
 .player-hole-peek {
   display: flex;
   flex: 0 0 auto;
+  align-self: center;
+  justify-self: center;
+  min-height: 2.75rem;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;

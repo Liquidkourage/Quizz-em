@@ -94,6 +94,27 @@ describe('player table orientation', () => {
     expect(clipped).toBeGreaterThan(1.75 * REM)
   })
 
+  it('gives Hold to peek its own row under the felt on every live layout', () => {
+    const panel = css.slice(
+      css.indexOf('.player-game-layout--live-fit .player-game-felt-panel--fill {'),
+      css.indexOf('.player-game-layout--live-fit .player-game-felt-panel--fill {') + 700,
+    )
+    expect(panel).toContain('display: grid')
+    expect(panel).toContain('grid-template-columns: minmax(0, 1fr)')
+    expect(panel).toContain('grid-template-rows: auto minmax(0, 1fr) auto')
+    expect(panel).toContain('align-items: stretch')
+    const peekAt = css.lastIndexOf('.player-hole-peek {')
+    const peek = css.slice(peekAt, peekAt + 500)
+    expect(peek).toContain('min-height: 2.75rem')
+    expect(peek).not.toContain('display: none')
+    const slot = css.slice(
+      css.indexOf('Sit the oval on the peek'),
+      css.indexOf('Sit the oval on the peek') + 400,
+    )
+    expect(slot).toContain('padding-bottom: 1.75rem')
+    expect(slot).toContain('box-sizing: border-box')
+  })
+
   it('keeps a portrait touch screen upright, question then felt then bets', () => {
     expect(css).not.toContain('rotate(90deg)')
     expect(css).not.toContain('(orientation: portrait) and (pointer: coarse)')

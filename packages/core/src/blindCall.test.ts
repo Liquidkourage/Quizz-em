@@ -34,10 +34,33 @@ describe('adviseBlindCall', () => {
       ...typical,
     })
     expect(pace.current.bigBlind).toBe(100)
-    expect(pace.nextLevel).toMatchObject({ smallBlind: 75, bigBlind: 150 })
-    expect(pace.closestIncrease).toMatchObject({ bigBlind: 150 })
+    expect(pace.nextLevel).toMatchObject({ smallBlind: 60, bigBlind: 120 })
+    expect(pace.closestIncrease).toMatchObject({ bigBlind: 120 })
     expect(pace.closestIncrease!.bigBlind).toBeGreaterThanOrEqual(pace.current.bigBlind)
     expect(pace.nextLevel!.bigBlind).toBeGreaterThan(pace.current.bigBlind)
+  })
+
+  it('fills the coarse steps with 30/60 and 60/120', () => {
+    const fromFifty = adviseBlindCall({
+      minutesLeft: 90,
+      handsLeft: 15,
+      players: 40,
+      medianStack: 1000,
+      smallBlind: 25,
+      bigBlind: 50,
+      ...typical,
+    })
+    expect(fromFifty.nextLevel).toMatchObject({ smallBlind: 30, bigBlind: 60 })
+    const fromHundred = adviseBlindCall({
+      minutesLeft: 90,
+      handsLeft: 15,
+      players: 40,
+      medianStack: 4000,
+      smallBlind: 50,
+      bigBlind: 100,
+      ...typical,
+    })
+    expect(fromHundred.nextLevel).toMatchObject({ smallBlind: 60, bigBlind: 120 })
   })
 
   it('stops at the top rung', () => {

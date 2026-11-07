@@ -1,0 +1,34 @@
+---
+description: Player layout fixes change only the named defect and keep every control on every size and orientation.
+alwaysApply: true
+---
+
+# Surgical player layout
+
+Hold to peek is on every player screen. The same player controls and information exist at every size and orientation.
+
+Layout work is a surgical bug fix.
+
+## Change only the named defect
+
+- Edit the shared layout first.
+- Measure the broken viewport and the viewports that already work, using the real screen tree.
+- Add another device override only when the shared layout cannot be fixed any other way.
+- A smaller oval on the Galaxy Fold and at 1024×640 is how Hold to peek stays on screen. Leave that tradeoff.
+
+## Pass and fail
+
+A change passes when each required control is on screen, at least 44×44 CSS pixels, clear of other controls, and the page does not scroll horizontally.
+
+Measure 390×844, 844×390, 412×915, 915×412, 280×653, 653×280, 768×1024, 1024×768, and 1024×640.
+
+Do not add Playwright. Updating screenshots is an explicit human step. Treat a production screenshot as a new defect only after the deployed bundle contains the change.
+
+## Leave these unless asked
+
+- Answer-composer keys under 44px
+- Seat names at 10px and 8px
+- The small Quit control
+- Hand-results horizontal scroll
+- The live header dropping the top safe area
+- A toast still sliding in, such as “You’re back at table 7”

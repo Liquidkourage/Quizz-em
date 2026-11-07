@@ -2938,27 +2938,17 @@ export function HostBlindsControls({
   venueSmallBlind,
   venueBigBlind,
   blindLevelSummary,
-  tableNum,
-  hostTableId,
   onVenueSmallBlindChange,
   onVenueBigBlindChange,
   onSaveVenueBlinds,
-  onSaveTableBlinds,
-  onClearTableBlinds,
-  showTableOverride = true,
   compact = false,
 }: {
   venueSmallBlind: number
   venueBigBlind: number
   blindLevelSummary: string | null
-  tableNum: number
-  hostTableId: string
   onVenueSmallBlindChange: (n: number) => void
   onVenueBigBlindChange: (n: number) => void
   onSaveVenueBlinds: () => void
-  onSaveTableBlinds: () => void
-  onClearTableBlinds: () => void
-  showTableOverride?: boolean
   compact?: boolean
 }) {
   const inputClass = compact
@@ -2999,19 +2989,6 @@ export function HostBlindsControls({
           Save venue blinds
         </NeonButton>
       </div>
-      {showTableOverride ? (
-        <div className="flex flex-wrap items-end gap-2 border-t border-white/10 pt-2">
-          <p className="w-full text-xs font-semibold uppercase tracking-wide text-white/48">
-            Per-table override (table {tableNum})
-          </p>
-          <NeonButton variant="emerald" size={compact ? 'small' : 'normal'} type="button" onClick={onSaveTableBlinds}>
-            Use current SB/BB on table {tableNum}
-          </NeonButton>
-          <NeonButton variant="gold" size={compact ? 'small' : 'normal'} type="button" onClick={onClearTableBlinds}>
-            Revert table {hostTableId !== LOBBY_TABLE_ID ? hostTableId : tableNum} to venue
-          </NeonButton>
-        </div>
-      ) : null}
     </div>
   )
 }

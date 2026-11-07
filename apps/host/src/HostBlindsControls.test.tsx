@@ -10,19 +10,15 @@ describe('HostBlindsControls', () => {
         venueSmallBlind: 10,
         venueBigBlind: 20,
         blindLevelSummary: '$10 / $20 · Level 1/6',
-        tableNum: 1,
-        hostTableId: '1',
         onVenueSmallBlindChange: () => {},
         onVenueBigBlindChange: () => {},
         onSaveVenueBlinds: () => {},
-        onSaveTableBlinds: () => {},
-        onClearTableBlinds: () => {},
-        showTableOverride: false,
       }),
     )
     expect(html).toContain('Small blind')
     expect(html).toContain('Big blind')
     expect(html).toContain('Save venue blinds')
+    expect(html).not.toContain('Per-table override')
     expect(html).not.toContain('Level up every')
     expect(html).not.toContain('Save schedule')
   })

@@ -17,7 +17,6 @@ import {
   type SocketConnectionStatus,
   startAnswering,
   adminAdvanceTurn,
-  adminCloseBetting,
   alignTablesToRoom,
   setTablePhase,
   nudgeActingPlayers,
@@ -25,7 +24,6 @@ import {
   nudgeOpenGuesses,
   addVirtualPlayers,
   clearVirtualPlayers,
-  clearTableBlinds,
   seedRehearsalVenue,
   rehearsalPreviewWinnerScreen,
   rehearsalSkipToShowdown,
@@ -37,13 +35,10 @@ import {
   setVenueSkipNextShuffle,
   shuffleTablesNow,
   displaySetLayout,
-  displayMosaicPreview,
-  onDisplayMosaicPreview,
   onHostDisplays,
   pairDisplayWithHost,
   releaseDisplay,
   setVenueBlinds,
-  setTableBlinds,
   setQuestion as pushQuestionToVenue,
   questionBankAdd,
   questionBankUpdate,
@@ -79,7 +74,6 @@ import { HostModeNav } from './HostModeNav'
 import { HostDeskShell } from './HostDeskShell'
 import { hostDeskFrameStyle } from './hostDeskScale'
 import { HostMoreMenu } from './HostMoreMenu'
-import { HostMosaicPreviewPanel } from './HostMosaicPreviewPanel'
 import { HostConnectedDisplays } from './HostConnectedDisplays'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
@@ -141,7 +135,7 @@ function HostApp() {
       : LOBBY_TABLE_ID
   )
   /** Hello table. Server-side binds (assign, refresh) must not reconnect — that drops live listeners. */
-  const [socketTableId, setSocketTableId] = useState(hostTableId)
+  const [socketTableId] = useState(hostTableId)
   const socket = useSocket()
 
   const [questionBank, setQuestionBank] = useState<Question[]>([])
@@ -205,18 +199,12 @@ function HostApp() {
   const [connectionStatus, setConnectionStatus] = useState<SocketConnectionStatus>(() =>
     getSocketConnectionStatus(),
   )
-  const [mosaicPreviewCount, setMosaicPreviewCount] = useState<number | null>(null)
-
   const viteHostSecret =
     typeof import.meta.env.VITE_HOST_SECRET === 'string' ? import.meta.env.VITE_HOST_SECRET.trim() : ''
   /** Matches apps/server LOCAL_DEV_HOST_SECRET. Production builds send only VITE_HOST_SECRET. */
   const effectiveHostSecret = viteHostSecret || (import.meta.env.DEV ? 'quizzem-local-host' : undefined)
 
   useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
-  useEffect(
-    () => onDisplayMosaicPreview((payload) => setMosaicPreviewCount(payload.tableCount)),
-    [],
-  )
 
   useEffect(() => {
     const cleanup = connect('host', 'HOST', hostVenueCode, socketTableId, {
@@ -612,12 +600,6 @@ function HostApp() {
                   venueFloorBrief?.scoresBlockNextQuestion === true
                 ? venueFloorBrief.scoresHint ?? null
                 : null
-  const hostTableNum = (() => {
-    const raw = gameState.tableId ?? '1'
-    if (raw === LOBBY_TABLE_ID) return 1
-    const n = Number.parseInt(String(raw), 10)
-    return Number.isFinite(n) && n >= 1 ? n : 1
-  })()
   const questionTotal = activeSetlist?.questionIds.length || 25
   const handsLeft = Math.max(0, questionTotal - (venueFloorBrief?.handsCompleted ?? 0))
   const soloPublicTable = publicDisplaySoloTable(venueFloorBrief)
@@ -629,23 +611,13 @@ function HostApp() {
   const saveVenueBlinds = () => {
     setVenueBlinds(Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
   }
-  const saveTableBlindsOverride = () => {
-    setTableBlinds(hostTableNum, Math.max(1, venueSmallBlind), Math.max(venueSmallBlind, venueBigBlind))
-  }
-  const clearTableBlindsOverride = () => {
-    clearTableBlinds(hostTableNum)
-  }
   const hostBlindsControlProps = {
     venueSmallBlind,
     venueBigBlind,
     blindLevelSummary,
-    tableNum: hostTableNum,
-    hostTableId: gameState.tableId ?? '1',
     onVenueSmallBlindChange: setVenueSmallBlind,
     onVenueBigBlindChange: setVenueBigBlind,
     onSaveVenueBlinds: saveVenueBlinds,
-    onSaveTableBlinds: saveTableBlindsOverride,
-    onClearTableBlinds: clearTableBlindsOverride,
   }
 
   const showVenueFloorOnTvs = () =>
@@ -673,13 +645,6 @@ function HostApp() {
                     onRelease={(socketId) => releaseDisplay(socketId)}
                   />
                 </div>
-                <HostMosaicPreviewPanel
-                  activeCount={mosaicPreviewCount}
-                  onShow={(count) => {
-                    setMosaicPreviewCount(count)
-                    displayMosaicPreview(count)
-                  }}
-                />
                 <HostRoomControls
                   brief={venueFloorBrief}
                   onShuffleEvery={(every) => setVenueShuffleEvery(every)}
@@ -845,57 +810,7 @@ function HostApp() {
 
                 <HostCollapsible summary="Overrides & hard reset" className="mb-0">
                   <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <NeonButton
-                        variant="gold"
-                        size="normal"
-                        onClick={() => nudgeActingPlayers()}
-                        disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
-                        className="w-full"
-                      >
-                        Nudge acting (30s)
-                      </NeonButton>
-                      <NeonButton
-                        variant="gold"
-                        size="normal"
-                        onClick={() => adminAdvanceTurn()}
-                        disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
-                        className="w-full"
-                      >
-                        Fold acting player
-                      </NeonButton>
-                      <NeonButton
-                        variant="red"
-                        size="normal"
-                        onClick={() => adminCloseBetting()}
-                        disabled={gameState.phase !== 'betting' || !gameState.round.isBettingOpen}
-                        className="w-full md:col-span-2"
-                      >
-                        Close betting
-                      </NeonButton>
-                    </div>
                     <HostBlindsControls {...hostBlindsControlProps} />
-                    <label className="flex flex-wrap items-center gap-2 text-sm text-white/60">
-                      <span>Host view table (diagnostics)</span>
-                      <select
-                        value={hostTableId}
-                        onChange={(e) => {
-                          const next = e.target.value
-                          setHostTableId(next)
-                          setSocketTableId(next)
-                        }}
-                        className="max-w-[14rem] rounded-lg border border-white/20 bg-zinc-950 py-1.5 pl-2 pr-8 text-sm text-white [color-scheme:dark]"
-                      >
-                        {[
-                          LOBBY_TABLE_ID,
-                          ...Array.from({ length: VENUE_NUMBERED_TABLE_MAX }, (_, i) => String(i + 1)),
-                        ].map((v) => (
-                          <option key={v} value={v} className="bg-zinc-950 text-white">
-                            {v === LOBBY_TABLE_ID ? 'Lobby pool' : `Table ${v}`}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
                     <NeonButton variant="gold" size="normal" onClick={handleNewGame} className="w-full">
                       New game (hard reset — clears all tables)
                     </NeonButton>

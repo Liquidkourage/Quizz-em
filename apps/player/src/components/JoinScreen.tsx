@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
 import { sanitizeLastInitialInput } from '../playerJoinName'
+import { shouldSeatFromJoinAttempt } from '../playerJoinSubmit'
 import type { PlayerJoinBootstrap } from '../playerUrlParams'
 import {
   PlayerGoldBackdrop,
@@ -55,7 +56,11 @@ export default function JoinScreen({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (canJoin) onJoin()
+    if (shouldSeatFromJoinAttempt('edit', canJoin)) onJoin()
+  }
+
+  function handleJoinClick() {
+    if (shouldSeatFromJoinAttempt('join-button', canJoin)) onJoin()
   }
 
   function handleLastInitialChange(raw: string) {
@@ -168,7 +173,7 @@ export default function JoinScreen({
               <div className="player-join-actions">
                 <div className="player-join-btn-row">
                   <JoinDiamond />
-                  <button type="submit" className="player-join-btn" disabled={!canJoin}>
+                  <button type="button" className="player-join-btn" disabled={!canJoin} onClick={handleJoinClick}>
                     {isConnecting ? 'Connecting…' : 'Join game'}
                   </button>
                   <JoinDiamond />

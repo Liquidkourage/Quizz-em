@@ -2124,6 +2124,22 @@
   gap: 0.45rem;
 }
 
+/* Fold landscape: the 2.75rem buttons are taller than the bar, so Call and Raise were clipped. */
+@media (max-height: 320px) {
+  .player-game-layout--live-fit .player-game-btn,
+  .player-game-layout--live-fit .player-game-dense-top .player-game-btn,
+  .player-game-layout--live-fit .player-game-input--raise-dense {
+    min-height: 1.85rem;
+    padding: 0.2rem 0.35rem;
+    font-size: 0.75rem;
+  }
+
+  .player-game-layout--live-fit .player-game-raise-compact-label,
+  .player-game-layout--live-fit .player-game-raise-compact-min {
+    font-size: 0.55rem;
+  }
+}
+
 .player-game-layout--live-fit .player-game-wager-wait {
   display: flex;
   align-items: baseline;

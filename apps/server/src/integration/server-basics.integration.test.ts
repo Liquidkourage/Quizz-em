@@ -72,14 +72,15 @@ describe('joining and seating', () => {
     expect(tables.map((t) => typeof t.tableId)).toEqual(['string', 'string'])
   }, 30_000)
 
-  it('closes the door to brand-new players once tables are assigned', async () => {
+  it('seats a latecomer for points only once tables are assigned', async () => {
     const h = track(await host('BASIC5'))
     const ada = track(await player('BASIC5', 'Ada'))
     const seated = new Promise((resolve) => ada.socket.once('seated', resolve))
     h.act('assignTablesFromLobby')
     await seated
     await new Promise((r) => setTimeout(r, 500))
-    await expect(player('BASIC5', 'Cara')).rejects.toThrow(/already started/)
+    const cara = track(await player('BASIC5', 'Cara'))
+    await cara.waitForState((s) => s.players.some((p: any) => p.name === 'Cara' && p.pointsOnly === true), 'Cara seated for points')
   }, 30_000)
 
   it('lets a seated player come back with the same player id', async () => {

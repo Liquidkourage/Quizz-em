@@ -101,15 +101,17 @@ describe('a whole hand', () => {
     await t.host.waitForState((s) => s.phase === 'reveal' || s.phase === 'showdown', 'answer revealed', 20_000)
     expect(chips(t.host.latest)).toBe(startingChips)
 
-    t.host.act('endRound')
-    await t.host.waitForState(
-      (s) => !['reveal', 'showdown', 'answering', 'betting'].includes(s.phase),
-      'hand finished',
-      20_000,
-    )
+    // Paying winners is held while the answer stays on the screens, so ask again until it goes through.
+    const deadline = Date.now() + 40_000
+    const left = (s: any) => !['reveal', 'showdown', 'answering', 'betting'].includes(s.phase)
+    while (!left(t.host.latest) && Date.now() < deadline) {
+      t.host.act('endRound')
+      await sleep(1_500)
+    }
+    await t.host.waitForState(left, 'hand finished', 5_000)
     await sleep(500)
     expect(chips(t.host.latest)).toBe(startingChips)
-  }, 90_000)
+  }, 120_000)
 })
 
 describe('a restart in the middle of a hand', () => {

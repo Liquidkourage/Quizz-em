@@ -33,6 +33,7 @@ This describes what the server does now. A scripted local rehearsal (`scripts/re
 
 - [ ] Confirm the Railway server service has `DATABASE_URL` set.
 - [ ] Rehearse: start a game with a few phones, restart the service from Railway, confirm seats return and play resumes.
+- [ ] Confirm a Railway volume is attached and `QHE_DATA_DIR` points at it ([railway-volume.md](railway-volume.md)). Without it, the show clock, blinds and other settings reset on every restart.
 - [ ] Open `/health/details` and confirm `persistence` is `postgres`.
 - [ ] Freeze deploys during the show.
 - [ ] Optional, off by default: to stop other websites from calling the server, set `ALLOWED_ORIGINS` (comma-separated, for example `https://quizzem.example.com,https://www.quizzem.example.com`) and `ENFORCE_CORS_ALLOWLIST=true` on the server service. Include every address people really use, including any custom domain. Without the flag, the list is ignored. All variables are listed in [environment.md](environment.md). Test the host, player and display pages after changing it.

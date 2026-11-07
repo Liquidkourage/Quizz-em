@@ -13,6 +13,7 @@ Set these on the Railway server service. Only the first two matter for a normal 
 | `HOST` | No | Address to bind (default `0.0.0.0`). |
 | `PGSSLMODE` | No | `disable` turns off Postgres SSL for the venue library and table snapshots. Local databases are detected automatically. |
 | `VENUE_DATABASE_PATH` | No | SQLite file location when `DATABASE_URL` is unset. |
+| `QHE_DATA_DIR` | Recommended on Railway | Folder where the server keeps its settings files (blinds, answer window, shuffle and show clock, and the SQLite library). Defaults to `apps/server/data`, which Railway wipes on every restart. Point it at a Railway volume's mount path, for example `/data`. See [railway-volume.md](railway-volume.md). |
 | `ANSWER_WINDOW_SECONDS` (or `ANSWER_WINDOW_SEC`) | No | Default answer countdown, clamped to 15 to 300 seconds. The host can override it per venue. |
 | `QHE_CPU_VP_ACTION_DELAY_MS` | Rehearsal only | Delay between computer-player actions in milliseconds (default is a random 3 to 7 seconds). Use `0` or `50` to rehearse large all-CPU fields. |
 | `RAILWAY_PUBLIC_DOMAIN`, `RAILWAY_ENVIRONMENT`, `RAILWAY_PROJECT_ID` | Railway sets them | Used to print links and to detect a deployed server (which makes `HOST_SECRET` mandatory). |

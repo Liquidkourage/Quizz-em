@@ -1415,6 +1415,8 @@
   .player-game-layout--live-fit .player-game-felt-panel--fill,
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
     padding: 0.1rem 2.6rem 2.5rem;
+    /* Top seat names hang above the rail. Before the deal there is no status line to hold them. */
+    padding-top: 2.15rem;
   }
 
   .player-game-layout--live-fit .player-game-table-status {
@@ -1493,6 +1495,7 @@
   .player-game-layout--live-fit .player-game-felt-panel--fill,
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
     padding: 0 1rem 2.35rem;
+    padding-top: 2.15rem;
   }
 
   .player-game-layout--live-fit .player-game-table-status {

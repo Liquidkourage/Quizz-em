@@ -115,11 +115,12 @@ describe('player table orientation', () => {
       true,
     )
 
-    const header = '@media (max-height: 520px)'
+    const header = '@media (max-height: 520px),'
     const short = mediaBlock(css.slice(css.indexOf(header)), header)
     expect(short.startsWith(header)).toBe(true)
     expect(short).toContain('(orientation: portrait) and (pointer: coarse) and (max-width: 520px)')
     expect(short).toContain('padding: 0.1rem 2.6rem 2.5rem')
+    expect(short).toContain('padding-top: 2.15rem')
     expect(short).toContain('margin: 0 0 1.5rem')
     expect(short).toContain('max-height: 3.4rem')
     expect(short).not.toContain('margin-bottom: 4.25rem')
@@ -135,6 +136,7 @@ describe('player table orientation', () => {
     expect(fold).toContain('min-height: 4.75rem')
     expect(fold).toContain('margin: 0 0 1.15rem')
     expect(fold).toContain('padding: 0 1rem 2.35rem')
+    expect(fold).toContain('padding-top: 2.15rem')
     expect(fold).toContain('max-height: 3.5rem')
     expect(css.indexOf(foldHeader)).toBeGreaterThan(shortDock)
     const foldButtons = mediaBlock(css.slice(css.lastIndexOf(foldHeader)), foldHeader)

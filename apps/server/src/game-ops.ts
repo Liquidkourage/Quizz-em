@@ -2184,8 +2184,10 @@ function tableAnswersReady(gs: GameState, nowMs: number): boolean {
   let submitted = 0
   for (const player of players) {
     if (typeof player.name !== 'string' || player.name.trim() === '') continue
-    expected++
     const guessed = typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)
+    // A latecomer seated for points mid-hand holds no cards, so they cannot build a guess this hand.
+    if (!guessed && player.pointsOnly === true && player.hand.length === 0) continue
+    expected++
     if (guessed || player.answerForfeited === true) submitted++
   }
   return answerRevealOpen({ deadlineMs, submitted, expected, nowMs })

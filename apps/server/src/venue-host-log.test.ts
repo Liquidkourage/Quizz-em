@@ -539,6 +539,21 @@ describe('buildHostVenueActionRows seats', () => {
     ])
   })
 
+  it('lists every seat that has acted, not only the last four', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 1,
+        seated: 6,
+        pot: 90,
+        phase: 'betting',
+        seatNames: ['A', 'B', 'C', 'D', 'E', 'F'],
+        seatLastBettingAction: ['check', 'call', 'raise', 'fold', 'check', 'call'],
+        seatInvested: [0, 10, 20, 0, 0, 30],
+      } as never,
+    ])
+    expect(rows[0]?.recentActions?.map((action) => action.name)).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
+  })
+
   it('keeps the side pot on the host row', () => {
     const rows = buildHostVenueActionRows([
       {

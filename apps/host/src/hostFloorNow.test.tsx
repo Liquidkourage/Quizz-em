@@ -732,6 +732,39 @@ describe('venue floor now', () => {
     expect(html).toContain('1,020')
   })
 
+  it('fills recent actions from this table’s move log', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTableOpen, {
+        seats: [],
+        recentActions: [{ seat: 1, name: 'Old Snap', action: 'check' }],
+        tableNum: 1,
+        moves: [
+          { id: '6', atMs: 6, tableNum: 1, playerName: 'Fay', kind: 'submit', summary: 'Fay submitted 42' },
+          { id: '5', atMs: 5, tableNum: 1, playerName: 'Eve', kind: 'fold', summary: 'Eve folded (points only)' },
+          { id: '4', atMs: 4, tableNum: 1, playerName: 'Dan', kind: 'allIn', summary: 'Dan is all-in for $200' },
+          { id: '3', atMs: 3, tableNum: 1, playerName: 'Cara', kind: 'raise', summary: 'Cara raised to $1,020' },
+          { id: '2', atMs: 2, tableNum: 2, playerName: 'Bo', kind: 'call', summary: 'Bo called $10' },
+          { id: '1', atMs: 1, tableNum: 1, playerName: 'Ada', kind: 'call', summary: 'Ada called $40' },
+        ],
+        hostPlayerLabel: (name: string) => name,
+      }),
+    )
+    const actions = html.slice(html.indexOf('grid-cols-3'), html.indexOf('</ul>'))
+    expect(actions).toContain('Fay')
+    expect(actions).toContain('Guess')
+    expect(actions).toContain('Eve')
+    expect(actions).toContain('Fold · points')
+    expect(actions).toContain('Dan')
+    expect(actions).toContain('All-in')
+    expect(actions).toContain('aria-label="$200"')
+    expect(actions).toContain('Cara')
+    expect(actions).toContain('aria-label="$1,020"')
+    expect(actions).toContain('Ada')
+    expect(actions).toContain('aria-label="$40"')
+    expect(actions).not.toContain('Old Snap')
+    expect(actions).not.toContain('>Bo<')
+  })
+
   it('marks a table only when it is the whole public display', () => {
     const one = brief()
     one.liveTableCount = 1

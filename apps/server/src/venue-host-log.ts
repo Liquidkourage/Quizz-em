@@ -446,7 +446,7 @@ function recentActionsFromTile(tile: DisplayVenueTileSnapshot): HostVenueActionR
       ...(invested != null && invested > 0 ? { amount: invested } : {}),
     })
   }
-  return out.slice(-4)
+  return out
 }
 
 function guessProgress(tile: DisplayVenueTileSnapshot): { answersSubmitted: number; answersExpected: number } | null {

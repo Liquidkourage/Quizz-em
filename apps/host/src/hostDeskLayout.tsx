@@ -2178,8 +2178,44 @@ function labelContestRows(rows: ContestRow[]): ContestRow[] {
   })
 }
 
+const RECENT_ACTION_CAP = 48
+
+function dollarsInSummary(summary: string): number | undefined {
+  const hits = summary.match(/\$[\d,]+/g)
+  if (hits == null || hits.length === 0) return undefined
+  const n = Number(hits[hits.length - 1]!.replace(/[$,]/g, ''))
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+function recentActionLines(
+  moves: readonly HostVenueMoveLogEntry[],
+  tableNum: number | undefined,
+  fallback: readonly HostVenueRecentAction[],
+): { key: string; name: string; action: string; amount?: number }[] {
+  const logged =
+    tableNum == null ? [] : moves.filter((move) => move.tableNum === tableNum).slice(0, RECENT_ACTION_CAP)
+  if (logged.length > 0) {
+    return logged.map((move) => {
+      const amount = dollarsInSummary(move.summary)
+      return {
+        key: move.id,
+        name: move.playerName,
+        action: move.kind,
+        ...(amount != null ? { amount } : {}),
+      }
+    })
+  }
+  return fallback.map((action, index) => ({
+    key: `${action.seat}-${index}-${action.action}`,
+    name: action.name,
+    action: action.action,
+    ...(action.amount != null && action.amount > 0 ? { amount: action.amount } : {}),
+  }))
+}
+
 function recentActionLabel(action: string): string {
   if (action === 'fold') return 'Fold · points'
+  if (action === 'submit') return 'Guess'
   return BET_ACTION_LABEL[action] ?? action
 }
 
@@ -2209,28 +2245,28 @@ function HostTableOpenSummary({
 }
 
 function HostTableOpenAside({
-  recentActions,
+  lines,
   hostPlayerLabel,
   tableNum,
   onSetTablePhase,
   onSpotlight,
 }: {
-  recentActions: HostVenueRecentAction[]
+  lines: { key: string; name: string; action: string; amount?: number }[]
   hostPlayerLabel: (name: string) => string
   tableNum?: number
   onSetTablePhase?: (signature: string) => void
   onSpotlight?: () => void
 }) {
-  const actionLabels = disambiguatePublicNames(recentActions.map((action) => action.name))
+  const actionLabels = disambiguatePublicNames(lines.map((action) => action.name))
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      {recentActions.length > 0 ? (
+      {lines.length > 0 ? (
         <section>
           <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/75">Recent actions</p>
-          <ul className="mt-2 grid grid-cols-3 gap-1">
-            {recentActions.map((action, index) => (
+          <ul className="mt-2 grid max-h-80 grid-cols-3 gap-1 overflow-y-auto">
+            {lines.map((action, index) => (
               <li
-                key={`${action.seat}-${index}`}
+                key={action.key}
                 className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap rounded-md bg-black/30 px-2 py-1 text-sm"
               >
                 <span className="min-w-0 truncate font-semibold text-white">
@@ -2263,6 +2299,7 @@ function HostTableOpenAside({
 export function HostTableOpen({
   seats,
   recentActions,
+  moves = [],
   hostPlayerLabel,
   phaseLabel,
   pot = 0,
@@ -2276,6 +2313,7 @@ export function HostTableOpen({
 }: {
   seats: HostVenueSeatContest[]
   recentActions: HostVenueRecentAction[]
+  moves?: readonly HostVenueMoveLogEntry[]
   hostPlayerLabel: (name: string) => string
   phaseLabel?: string
   pot?: number
@@ -2287,7 +2325,8 @@ export function HostTableOpen({
   onSetTablePhase?: (signature: string) => void
   onSpotlight?: () => void
 }) {
-  const aside = recentActions.length > 0 || (tableNum != null && onSetTablePhase != null) || onSpotlight != null
+  const lines = recentActionLines(moves, tableNum, recentActions)
+  const aside = lines.length > 0 || (tableNum != null && onSetTablePhase != null) || onSpotlight != null
   return (
     <div className={aside ? 'host-table-open grid items-start gap-4 lg:grid-cols-2' : 'host-table-open flex flex-col gap-3'}>
       <div className="flex min-w-0 flex-col gap-3">
@@ -2308,7 +2347,7 @@ export function HostTableOpen({
       </div>
       {aside ? (
         <HostTableOpenAside
-          recentActions={recentActions}
+          lines={lines}
           hostPlayerLabel={hostPlayerLabel}
           tableNum={tableNum}
           onSetTablePhase={onSetTablePhase}
@@ -2607,6 +2646,7 @@ export function HostVenueFloorBriefPanel({
                 <HostTableOpen
                   seats={openRow.seats ?? []}
                   recentActions={openRow.recentActions}
+                  moves={brief?.moveLog ?? []}
                   phaseLabel={tableActionCue(openRow).label}
                   pot={openRow.pot}
                   actingSummary={openRow.actingSummary}

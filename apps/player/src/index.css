@@ -1372,6 +1372,26 @@
  * the peek land on top of each other.
  */
 @media (max-height: 520px) {
+  /* The dock stays put. The table keeps a real oval and the body scrolls if the window is shorter than that. */
+  .player-game-layout--live-fit .player-game-body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    /* A size container ignores its children, so the oval was painting out over the question and the dock. */
+    container-type: normal;
+    flex: 0 0 auto;
+    justify-content: flex-start;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    flex: 0 0 auto;
+    height: 11rem;
+    min-height: 11rem;
+  }
+
   .player-game-layout--live-fit .player-game-header--live-min {
     height: 1.45rem;
     padding-top: 0;
@@ -1396,7 +1416,7 @@
   }
 
   .player-game-layout--live-fit .player-game-table-status {
-    margin: 0 0 1.5rem;
+    margin: 0 0 2.75rem;
     padding: 0.12rem 0.4rem;
   }
 
@@ -1455,7 +1475,7 @@
   }
 
   .player-game-layout--live-fit .player-sticky-question {
-    max-height: 4.5rem;
+    max-height: 2.75rem;
     padding: 0.2rem 0.5rem;
   }
 
@@ -1471,12 +1491,8 @@
   }
 
   .player-game-layout--live-fit .player-game-table-status {
-    margin: 0 0 1.15rem;
+    margin: 0 0 2.75rem;
     padding: 0.04rem 0.3rem;
-  }
-
-  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-    min-height: 0;
   }
 
   .player-game-layout--live-fit .player-hole-peek {
@@ -2151,10 +2167,10 @@
   gap: 0.45rem;
 }
 
-/* Short landscape: keep both action rows at 44px. The felt gives up the height. */
+/* Short landscape: keep both action rows at 44px. The oval keeps the full slot. */
 @media (max-height: 520px) {
   .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-    padding-bottom: 1.35rem;
+    padding-bottom: 0;
     box-sizing: border-box;
   }
 
@@ -3799,11 +3815,21 @@
     padding-bottom: 5.5rem;
   }
 
+  .player-game-layout--live-fit .player-game-body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
   .player-game-wager-inline {
     display: flex;
     flex-direction: column;
+    flex: 0 1 auto;
     min-height: 0;
-    max-height: 46%;
     overflow: hidden;
   }
 
@@ -3828,10 +3854,6 @@
 
 /* Mouse-driven landscape window: the wager panel gives height back so the table stays readable. */
 @media (min-width: 1024px) and (orientation: landscape) and (pointer: fine) {
-  .player-game-layout--live-fit .player-game-felt-panel--fill {
-    min-height: 18rem;
-  }
-
   .player-game-layout--live-fit .player-game-table-status {
     margin-bottom: 0.5rem;
   }
@@ -3846,7 +3868,6 @@
     flex-direction: column;
     flex: 0 1 auto;
     min-height: 0;
-    max-height: 42%;
     overflow: hidden;
   }
 

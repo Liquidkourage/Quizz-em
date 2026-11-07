@@ -116,8 +116,13 @@ describe('player table orientation', () => {
     expect(short).not.toContain('pointer: coarse')
     expect(short).toContain('padding: 0.1rem 2.6rem 2.5rem')
     expect(short).toContain('padding-top: 2.15rem')
-    expect(short).toContain('margin: 0 0 1.5rem')
+    expect(short).toContain('margin: 0 0 2.75rem')
     expect(short).toContain('max-height: 3.4rem')
+    expect(short).toContain('height: 11rem')
+    expect(short).toContain('min-height: 11rem')
+    expect(short).toContain('container-type: normal')
+    expect(short).toContain('flex: 0 0 auto')
+    expect(short).toContain('overflow-y: auto')
     expect(short).not.toContain('margin-bottom: 4.25rem')
     expect(short).not.toContain('padding: 2rem 6rem 1.75rem')
     const dockCap = css.indexOf('max-height: min(42%, 16rem)')
@@ -128,7 +133,7 @@ describe('player table orientation', () => {
     const foldHeader = '@media (max-height: 320px)'
     const fold = mediaBlock(css.slice(css.indexOf(foldHeader)), foldHeader)
     expect(fold.startsWith(foldHeader)).toBe(true)
-    expect(fold).toContain('margin: 0 0 1.15rem')
+    expect(fold).toContain('margin: 0 0 2.75rem')
     expect(fold).toContain('padding: 0 1rem 2.35rem')
     expect(fold).toContain('padding-top: 2.15rem')
     expect(fold).toContain('font-size: 1rem')
@@ -148,7 +153,7 @@ describe('player table orientation', () => {
     expect(phoneFitAt).toBeGreaterThan(css.indexOf('min-height: 2.75rem'))
     expect(phoneFit).not.toContain('min-height: 1.7rem')
     expect(phoneFit).not.toContain('pointer: coarse')
-    expect(phoneFit).toContain('padding-bottom: 1.35rem')
+    expect(phoneFit).toContain('padding-bottom: 0')
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {
@@ -160,6 +165,12 @@ describe('player table orientation', () => {
     expect(felt).toContain('height: min(100cqh, calc(100cqw * 5 / 8))')
     expect(felt).toContain('max-height: 100%')
 
+    const desktopHeader = '/* Wide desktop uses inline BettingActions; hide the phone dock. */'
+    const desktop = mediaBlock(css.slice(css.indexOf(desktopHeader)), '@media')
+    expect(desktop).toContain('flex: 0 1 auto')
+    expect(desktop).toContain('min-height: 0')
+    expect(desktop).not.toContain('max-height: 46%')
+
     const wideHeader = '@media (min-width: 1024px) and (orientation: landscape) and (pointer: fine)'
     const wide = mediaBlock(css.slice(css.lastIndexOf(wideHeader)), wideHeader)
     expect(wide).toContain('.player-game-wager-inline')
@@ -169,7 +180,8 @@ describe('player table orientation', () => {
     expect(wide).toContain('overflow-y: auto')
     expect(wide).toContain('.player-game-wager-inline .player-game-wager-actions')
     expect(wide).toContain('flex: 0 0 auto')
-    expect(wide).toContain('max-height: 42%')
+    expect(wide).not.toContain('min-height: 18rem')
+    expect(wide).not.toContain('max-height: 42%')
     const padding = wide.match(/padding-bottom:\s*([0-9.]+)rem/)
     expect(padding).not.toBeNull()
     const feltW = WIDE_COLUMN_PX - 6 * REM * 2

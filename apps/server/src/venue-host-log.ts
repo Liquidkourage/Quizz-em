@@ -226,6 +226,20 @@ function chipsJustCommitted(before: GameState, after: GameState, playerId: strin
   return Math.max(0, Math.round(nextBet - prevBet))
 }
 
+function loggedMove(
+  before: GameState,
+  after: GameState,
+  action: SeatBettingAction,
+  name: string,
+  committed: number,
+): { kind: HostVenueMoveLogKind; summary: string } {
+  if (action === 'raise' && (before.round.currentBet ?? 0) <= 0) {
+    const posted = Math.max(after.round.currentBet ?? 0, committed)
+    return { kind: 'bet', summary: posted > 0 ? `${name} bet ${money(posted)}` : `${name} bet` }
+  }
+  return { kind: action, summary: formatBettingMoveSummary(after, action, name, committed) }
+}
+
 function formatBettingMoveSummary(
   gs: GameState,
   action: SeatBettingAction,
@@ -359,12 +373,13 @@ function noteSeatAction(
 ): void {
   const name = shortPlayerName(player.name)
   const committed = chipsJustCommitted(before, after, player.id)
+  const move = loggedMove(before, after, nextAct, name, committed)
   pushMove(log, {
     atMs: now,
     tableNum,
     playerName: name,
-    kind: nextAct as HostVenueMoveLogKind,
-    summary: formatBettingMoveSummary(after, nextAct, name, committed),
+    kind: move.kind,
+    summary: move.summary,
   })
   const betKind = wentAllIn(before, after, player.id) ? 'allIn' : nextAct
   if (betKind !== 'call' && betKind !== 'raise' && betKind !== 'allIn') return

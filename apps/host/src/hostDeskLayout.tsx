@@ -1457,6 +1457,7 @@ export function HostVenueFeltBeatStrip({
 const BET_ACTION_LABEL: Record<string, string> = {
   check: 'Check',
   call: 'Call',
+  bet: 'Bet',
   raise: 'Raise',
   fold: 'Fold',
   allIn: 'All-in',

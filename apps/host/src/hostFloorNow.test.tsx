@@ -744,7 +744,7 @@ describe('venue floor now', () => {
           { id: '4', atMs: 4, tableNum: 1, playerName: 'Dan', kind: 'allIn', summary: 'Dan is all-in for $200' },
           { id: '3', atMs: 3, tableNum: 1, playerName: 'Cara', kind: 'raise', summary: 'Cara raised to $1,020' },
           { id: '2', atMs: 2, tableNum: 2, playerName: 'Bo', kind: 'call', summary: 'Bo called $10' },
-          { id: '1', atMs: 1, tableNum: 1, playerName: 'Ada', kind: 'call', summary: 'Ada called $40' },
+          { id: '1', atMs: 1, tableNum: 1, playerName: 'Ada', kind: 'bet', summary: 'Ada bet $40' },
         ],
         hostPlayerLabel: (name: string) => name,
       }),
@@ -760,6 +760,7 @@ describe('venue floor now', () => {
     expect(actions).toContain('Cara')
     expect(actions).toContain('aria-label="$1,020"')
     expect(actions).toContain('Ada')
+    expect(actions).toContain('>Bet<')
     expect(actions).toContain('aria-label="$40"')
     expect(actions).not.toContain('Old Snap')
     expect(actions).not.toContain('>Bo<')

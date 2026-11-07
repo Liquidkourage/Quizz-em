@@ -143,6 +143,57 @@ describe('recordVenueMovesBetweenStates', () => {
     expect(brief.wallView).toBe('floor')
   })
 
+  it('calls the first wager of an unopened street a bet', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const openStreet: GameState = {
+      ...before,
+      round: { ...before.round, currentBet: 0, playerBets: {} },
+    }
+    const afterBet: GameState = {
+      ...openStreet,
+      players: openStreet.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 960 } : p,
+      ),
+      round: {
+        ...openStreet.round,
+        currentBet: 40,
+        playerBets: { 'human:a': 40 },
+        lastSeatBettingAction: ['raise', null],
+        currentPlayerIndex: 1,
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, openStreet, afterBet)
+    const raised: GameState = {
+      ...afterBet,
+      players: afterBet.players.map((p) =>
+        p.id === 'human:b' ? { ...p, bankroll: 900 } : p,
+      ),
+      round: {
+        ...afterBet.round,
+        currentBet: 100,
+        playerBets: { 'human:a': 40, 'human:b': 100 },
+        lastSeatBettingAction: ['raise', 'raise'],
+        currentPlayerIndex: 0,
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, afterBet, raised)
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    const opening = brief.moveLog.find((move) => move.playerName.startsWith('Alice'))
+    const later = brief.moveLog.find((move) => move.playerName.startsWith('Bob'))
+    expect(opening?.kind).toBe('bet')
+    expect(opening?.summary).toContain('bet')
+    expect(opening?.summary).not.toContain('raised')
+    expect(later?.kind).toBe('raise')
+    expect(later?.summary).toContain('raised')
+  })
+
   it('reports the public display mode the TVs are on', () => {
     const brief = buildHostVenueFloorBrief({
       venueCode: 'TV',

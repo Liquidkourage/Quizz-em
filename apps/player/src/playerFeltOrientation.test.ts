@@ -106,6 +106,25 @@ describe('player table orientation', () => {
     expect(portrait).not.toContain('rotate(-90deg)')
   })
 
+  it('keeps a short landscape phone from using the wide-screen gutters', () => {
+    const wide = mediaBlock(
+      css.slice(css.lastIndexOf('@media (min-width: 768px) and (orientation: landscape)')),
+      '@media (min-width: 768px) and (orientation: landscape)',
+    )
+    expect(wide.startsWith('@media (min-width: 768px) and (orientation: landscape) and (min-height: 521px)')).toBe(
+      true,
+    )
+
+    const header = '@media (orientation: landscape) and (max-height: 520px)'
+    const short = mediaBlock(css.slice(css.indexOf(header)), header)
+    expect(short.startsWith(header)).toBe(true)
+    expect(short).toContain('(orientation: portrait) and (pointer: coarse) and (max-width: 520px)')
+    expect(short).toContain('padding: 0.15rem 2.6rem 0.1rem')
+    expect(short).toContain('max-height: 3.4rem')
+    expect(short).not.toContain('margin-bottom: 4.25rem')
+    expect(short).not.toContain('padding: 2rem 6rem 1.75rem')
+  })
+
   it('keeps a wide landscape table in the open space above the wager panel', () => {
     const felt = css.slice(
       css.indexOf('.player-game-layout--live-fit .player-game-felt--fill {'),

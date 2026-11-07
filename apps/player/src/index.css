@@ -1162,7 +1162,7 @@
   container-type: size;
 }
 
-@media (min-width: 768px) and (orientation: landscape) {
+@media (min-width: 768px) and (orientation: landscape) and (min-height: 521px) {
   .player-game-layout--live-fit .player-game-felt-panel--fill {
     /* Side seats grow a full name tag past an anchor already outside the rail. */
     padding: 2rem 6rem 1.75rem;
@@ -1234,6 +1234,23 @@
   container-type: size;
 }
 
+/* A crushed oval only. Taller tables keep the seat and pot sizes they have. */
+@container (max-height: 170px) {
+  .player-seat-tag {
+    width: 2.4rem;
+    max-width: 2.4rem;
+  }
+
+  .player-seat-name,
+  .player-seat-stack {
+    font-size: 0.48rem;
+  }
+
+  .player-game-table-pot {
+    font-size: 0.95rem;
+  }
+}
+
 .player-game-felt--fill {
   flex: 0 0 auto;
   /* Largest 8:5 box that fits the panel — shrinks width when height is tight. */
@@ -1302,6 +1319,58 @@
   justify-content: center;
   padding-top: 1.75rem;
   padding-bottom: 1.25rem;
+}
+
+/*
+ * Phone landscape, and a phone held tall (that layout is turned sideways).
+ * The wide-screen name gutters and a tall question leave no room for the oval,
+ * so names, the pot, and the peek land on top of each other.
+ */
+@media (orientation: landscape) and (max-height: 520px),
+  (orientation: portrait) and (pointer: coarse) and (max-width: 520px) {
+  .player-game-layout--live-fit .player-game-header--live-min {
+    height: 1.45rem;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .player-game-layout--live-fit .player-sticky-question {
+    max-height: 3.4rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .player-game-layout--live-fit .player-sticky-question-text {
+    font-size: 0.85rem;
+    line-height: 1.2;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    padding: 0.15rem 2.6rem 0.1rem;
+  }
+
+  .player-game-layout--live-fit .player-game-table-status {
+    margin: 0 0 0.15rem;
+    padding: 0.12rem 0.4rem;
+  }
+
+  .player-game-layout--live-fit .player-hole-peek {
+    margin-top: 0.1rem;
+    padding: 0.12rem 0.35rem;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow {
+    max-height: 7.5rem;
+  }
+
+  .player-game-layout--live-fit .player-game-dock--inflow .player-game-dock-inner {
+    padding-top: 0.2rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .player-game-layout--live-fit .player-game-turn-banner {
+    font-size: 0.95rem;
+  }
 }
 
 .player-game-layout--live-fit .player-game-dock--inflow {

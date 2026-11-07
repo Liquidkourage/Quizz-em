@@ -1,0 +1,42 @@
+---
+description: Player-facing game UIs must stay complete, readable, and usable on every screen size and orientation.
+alwaysApply: true
+---
+
+# Universal Player Display Standards
+
+Every player-facing game interface — current and future, including `apps/player` — is mobile-first and meets professional responsive application standards. The public TV display (`apps/display`) is a separate surface and stays under its own rules.
+
+Every player gets the same gameplay information, controls, and functionality intended for them, on phones, tablets, foldables, and desktops, in portrait and landscape. Screen size, device type, and orientation do not remove access.
+
+## Layout
+
+- Adapt the layout. Do not hide, truncate, overlap, or discard important content.
+- Fit active gameplay in the viewport. Vertical scrolling is allowed when it is genuinely necessary. Horizontal page scrolling is never required.
+- When space is insufficient, redesign the layout. Do not remove functionality.
+- Respect safe areas, browser toolbars, notches, and dynamic viewport size (`dvh` / `svh`, `env(safe-area-inset-*)`).
+
+## Interaction and readability
+
+- Text stays readable. Contrast stays accessible. Touch targets are at least 44×44 CSS pixels.
+- Essential gameplay must not depend on hover, a device-specific feature, or one orientation.
+
+```tsx
+// ❌ BAD — drops the bet control on small screens and forces sideways scroll
+<div className="flex w-[480px]">
+  <Hand />
+  <button className="hidden max-sm:hidden">Bet</button>
+</div>
+
+// ✅ GOOD — same controls, stacked on a phone, no horizontal page scroll
+<div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row">
+  <Hand />
+  <button className="min-h-11 min-w-11">Bet</button>
+</div>
+```
+
+## Done means checked
+
+Player-facing UI work is not complete without responsive validation. After any change, check overflow, clipping, inaccessible controls, and lost information.
+
+Check widths **320, 360, 375, 390, and 430** pixels, plus tablet and desktop sizes, in both orientations.

@@ -337,6 +337,13 @@ function persistSqliteSync(map: Map<string, VenueLibraryData>): void {
 
 // --- Public API ----------------------------------------------------------------
 
+export function closeSqliteDatabase(): void {
+  if (!sqliteSingleton) return
+  sqliteSingleton.pragma('wal_checkpoint(TRUNCATE)')
+  sqliteSingleton.close()
+  sqliteSingleton = null
+}
+
 export async function persistVenueLibraries(map: Map<string, VenueLibraryData>): Promise<void> {
   if (resolvePostgresUrl()) {
     await persistPostgres(map)

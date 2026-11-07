@@ -48,6 +48,8 @@ export async function startTestServer(): Promise<TestServer> {
     hostSecret: TEST_HOST_SECRET,
     close: async () => {
       await new Promise<void>((resolve) => void io.close(() => resolve()))
+      const { closeSqliteDatabase } = await import('../venue-library-db')
+      closeSqliteDatabase()
       fs.rmSync(dir, { recursive: true, force: true })
     },
   }

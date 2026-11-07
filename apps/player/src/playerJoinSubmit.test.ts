@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import JoinScreen from './components/JoinScreen'
 import type { PlayerJoinBootstrap } from './playerUrlParams'
-import { shouldSeatFromJoinAttempt } from './playerJoinSubmit'
+import { shouldSeatFromJoinAttempt, playerSocketKey } from './playerJoinSubmit'
 
 const filled: PlayerJoinBootstrap = {
   firstName: 'Ada',
@@ -27,6 +27,14 @@ describe('shouldSeatFromJoinAttempt', () => {
   })
 })
 
+describe('playerSocketKey', () => {
+  it('keeps the same socket when a hard reset leaves the name on screen and the initial is deleted', () => {
+    const seated = playerSocketKey({ nonce: 2, playerId: 'human:1', draftName: 'Ada L.' })
+    const clearedInitial = playerSocketKey({ nonce: 2, playerId: 'human:1', draftName: 'Ada' })
+    expect(clearedInitial).toBe(seated)
+    expect(playerSocketKey({ nonce: 0, playerId: 'human:1', draftName: 'Ada L.' })).toBeNull()
+  })
+})
 describe('JoinScreen', () => {
   it('renders Join as a button so a prefilled name edit cannot submit the form', () => {
     const html = renderToStaticMarkup(

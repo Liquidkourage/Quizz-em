@@ -88,6 +88,7 @@ import StickyQuestionBar from './components/StickyQuestionBar'
 import PointsOnlyLifeBanner from './components/PointsOnlyLifeBanner'
 import { PlayerLeftEvent, PlayerStillSeated } from './components/PlayerQuitButton'
 import { resumeHelloScreen, type ResumeAttempt } from './playerResume'
+import { playerSocketKey } from './playerJoinSubmit'
 import PlayerScoresSheet from './components/PlayerScoresSheet'
 import { scoresSheetIdentity } from './components/playerScoresIdentity'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './components/PlayerGoldChrome'
@@ -184,12 +185,21 @@ function PlayerApp() {
     setJoinNonce((n) => n + 1)
   }
 
+  const helloRef = useRef({ name: playerName, room: joinPrefs.roomCode })
+  helloRef.current = { name: playerName, room: joinPrefs.roomCode }
+  const socketKey = playerSocketKey({
+    nonce: joinNonce,
+    playerId: joinPrefs.playerId,
+    draftName: playerName,
+  })
+
   useEffect(() => {
-    if (joinNonce === 0) return undefined
+    if (socketKey == null) return undefined
 
     let cancelled = false
+    const { name, room } = helloRef.current
 
-    connect('player', playerName, joinPrefs.roomCode.trim(), joinTableId, {
+    connect('player', name, room.trim(), joinTableId, {
       playerId: joinPrefs.playerId,
       onHelloAck: (ack) => {
         if (cancelled) return
@@ -197,6 +207,7 @@ function PlayerApp() {
           const screen = resumeHelloScreen(savedSeatAttempt.current, false, ack.message ?? '')
           setJoinError(ack.message)
           setJoinPhase(screen === 'still-seated' ? 'still_seated' : 'form')
+          setJoinNonce(0)
           disconnect()
           return
         }
@@ -263,6 +274,7 @@ function PlayerApp() {
         })
       }
       setJoinPhase('form')
+      setJoinNonce(0)
       disconnect()
     })
     const offBrief = onPlayerVenueBrief(setVenueBrief)
@@ -278,7 +290,7 @@ function PlayerApp() {
       offLeft()
       offBrief()
     }
-  }, [joinNonce, playerName, joinPrefs.roomCode, joinPrefs.playerId, joinTableId, showToast])
+  }, [socketKey, joinTableId, showToast])
 
   useEffect(() => {
     if (!venueBrief?.endgameWinnerName?.trim()) return

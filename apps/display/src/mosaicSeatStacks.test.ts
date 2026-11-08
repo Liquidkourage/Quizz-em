@@ -16,6 +16,7 @@ import {
   mosaicCrowdedStackLayout,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
+  mosaicSeatStackStatusClearPx,
   mosaicSeatStackFontForAmount,
   mosaicShowsSeatStacks,
   mosaicBoardGapPx,
@@ -125,20 +126,41 @@ describe('mosaic seat stacks', () => {
     }
   })
 
-  it('docks each stack on the line under that seat initials', () => {
+  it('centers each stack on the initials, above the top seats and under the rest', () => {
     const w = 480
     const h = 255
     const font = mosaicSeatInitialFontPx(w, h)
+    const centerY = (venueMosaicFeltCenterPct(w, h).topPct / 100) * h
     for (let seat = 0; seat < 8; seat++) {
       const layout = mosaicSeatStackPlacement(seat, w, h)
       const cup = mosaicSeatDotPct(seat, 8, w, h)
       const shift = mosaicSeatInitialShiftXPx(seat, w, h, font)
       const anchorX = (layout.leftPct / 100) * w
       const anchorY = (layout.topPct / 100) * h
-      expect(layout.transform, `seat ${seat}`).toBe('translate(-50%, 0)')
+      const cupY = (cup.topPct / 100) * h
+      const above = cupY < centerY
       expect(anchorX, `seat ${seat} x`).toBeCloseTo((cup.leftPct / 100) * w + shift, 4)
-      expect(anchorY, `seat ${seat} y`).toBeCloseTo((cup.topPct / 100) * h + font * 0.52, 4)
+      expect(layout.transform, `seat ${seat}`).toBe(above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)')
+      expect(anchorY, `seat ${seat} y`).toBeCloseTo(cupY + (above ? -font * 0.52 : font * 0.52), 4)
     }
+  })
+
+  it('clears a status label that sits between the amount and the initials', () => {
+    const w = 480
+    const h = 255
+    const font = mosaicSeatInitialFontPx(w, h)
+    const clear = mosaicSeatStackStatusClearPx(font)
+    expect(clear).toBeGreaterThan(0)
+    const top = mosaicSeatStackPlacement(0, w, h)
+    const topFolded = mosaicSeatStackPlacement(0, w, h, true)
+    expect((topFolded.topPct / 100) * h).toBeCloseTo((top.topPct / 100) * h - clear, 4)
+    expect(topFolded.leftPct).toBeCloseTo(top.leftPct, 4)
+    const bottom = mosaicSeatStackPlacement(4, w, h)
+    const bottomFolded = mosaicSeatStackPlacement(4, w, h, true)
+    expect((bottomFolded.topPct / 100) * h).toBeCloseTo((bottom.topPct / 100) * h + clear, 4)
+    const side = mosaicSeatStackPlacement(2, w, h)
+    const sideFolded = mosaicSeatStackPlacement(2, w, h, true)
+    expect(sideFolded.topPct).toBeCloseTo(side.topPct, 4)
   })
 
   it('sizes initials and stacks from the felt so they read across the room', () => {

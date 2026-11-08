@@ -83,6 +83,7 @@ function PlayerBlindChange({ brief }: { brief: PlayerVenueBrief | null }) {
 }
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
+import { PlayerHoleSlot } from './components/PlayerHoleSlot'
 import StickyQuestionBar from './components/StickyQuestionBar'
 import PointsOnlyLifeBanner from './components/PointsOnlyLifeBanner'
 import { PlayerLeftEvent, PlayerStillSeated } from './components/PlayerQuitButton'
@@ -813,6 +814,9 @@ function PlayerApp() {
 
             {!seatedAtTable ? feltView : null}
           </div>
+          {seatedAtTable && !showTableResults && !showLastHand ? (
+            <PlayerHoleSlot player={currentPlayer} phase={gameState.phase} />
+          ) : null}
         </PlayerGameShell>
 
         {mobileDock}

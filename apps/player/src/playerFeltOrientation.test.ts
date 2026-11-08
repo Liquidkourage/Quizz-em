@@ -120,15 +120,14 @@ describe('player table orientation', () => {
     expect(narrow).toContain('font-size: 0.8rem')
   })
 
-  it('reserves the peek in a grid row the felt cannot grow into', () => {
-    const stackAt = css.indexOf('.player-game-layout--live-fit .player-felt-stack {')
-    const stack = css.slice(stackAt, stackAt + 450)
-    expect(stackAt).toBeGreaterThan(-1)
-    expect(stack).toContain('display: grid')
-    expect(stack).toContain('grid-template-rows: minmax(0, 1fr) auto')
-    expect(stack).toContain('flex: 1 1 0')
-    expect(stack).toContain('min-height: 0')
-    expect(stack).toContain('overflow: hidden')
+  it('gives Hold to peek a shell slot the felt cannot shrink or clip', () => {
+    const slotAt = css.indexOf('.player-game-layout--live-fit .player-hole-slot {')
+    const slot = css.slice(slotAt, slotAt + 420)
+    expect(slotAt).toBeGreaterThan(-1)
+    expect(slot).toContain('flex: 0 0 auto')
+    expect(slot).toContain('overflow: visible')
+    expect(slot).toContain('min-height: 2.75rem')
+    expect(css).not.toContain('.player-felt-stack > .player-hole-peek')
   })
 
   it('gives Hold to peek its own row under the felt on every live layout', () => {

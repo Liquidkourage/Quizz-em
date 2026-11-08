@@ -3,7 +3,6 @@ import { ChipText, digitsAscending, MOSAIC_SEAT_COUNT, NumericPlayingCard, SideP
 import type { GameState, PlayerState, SeatBettingAction } from '@qhe/core'
 import { displayedMainPot, formatTriviaPoints, livePotLayers, LOBBY_TABLE_ID, type LiveSidePot } from '@qhe/core'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
-import { HolePeek } from './HolePeek'
 import {
   buildPlayerTableStatusLine,
   resolveSeatStatusPill,
@@ -253,8 +252,6 @@ export default function TableFeltView({
 
   if (players.length === 0) return null
 
-  const peek = heroHoles && !revealCards ? <HolePeek digits={heroHoles} /> : null
-
   return (
     <div className={fillViewport ? 'player-felt-stack' : undefined}>
     <PlayerGoldPanel
@@ -304,7 +301,6 @@ export default function TableFeltView({
         </div>
       ) : null}
     </PlayerGoldPanel>
-    {peek}
     </div>
   )
 }

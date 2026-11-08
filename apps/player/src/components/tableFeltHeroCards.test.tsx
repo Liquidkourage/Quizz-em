@@ -24,14 +24,15 @@ describe('points-only hole cards', () => {
     const html = renderToStaticMarkup(
       createElement(TableFeltView, { gameState: felt(true), playerName: 'Joy', myPlayerId: 'me' }),
     )
-    expect(html).toContain('Hold to peek')
+    expect(html).not.toContain('Hold to peek')
+    expect(html).not.toContain('player-hole-peek')
     expect(html).not.toContain('Card 7')
     expect(html).not.toContain('Card 9')
     expect(html).not.toContain('digit-7')
     expect(html).not.toContain('Your cards · folded')
   })
 
-  it('places Hold to peek after the felt panel so the panel cannot clip it', () => {
+  it('keeps the felt free of Hold to peek so the table clip cannot hide it', () => {
     const html = renderToStaticMarkup(
       createElement(TableFeltView, {
         gameState: felt(false),
@@ -40,17 +41,16 @@ describe('points-only hole cards', () => {
         fillViewport: true,
       }),
     )
-    const stackAt = html.indexOf('player-felt-stack')
-    expect(stackAt).toBeGreaterThan(-1)
-    expect(html.indexOf('Hold to peek')).toBeGreaterThan(html.lastIndexOf('</section>'))
-    expect(html.indexOf('player-hole-peek')).toBeGreaterThan(html.indexOf('player-felt-stack'))
+    expect(html).toContain('player-felt-stack')
+    expect(html).not.toContain('Hold to peek')
+    expect(html).not.toContain('player-hole-peek')
   })
 
   it('leaves a chip player’s cards on the seat', () => {
     const html = renderToStaticMarkup(
       createElement(TableFeltView, { gameState: felt(false), playerName: 'Joy', myPlayerId: 'me' }),
     )
-    expect(html).toContain('Hold to peek')
+    expect(html).not.toContain('Hold to peek')
     expect(html).not.toContain('digit-7')
     expect(html).not.toContain('player-hud-hero-cards')
   })

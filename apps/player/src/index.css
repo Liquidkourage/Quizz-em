@@ -1312,7 +1312,12 @@
 
 /* The 1.85rem status margin is a name gutter. On a short column it is the oval. Wide landscape restores the gutter below. */
 .player-game-layout--live-fit .player-game-table-status {
+  grid-row: 1;
   margin-bottom: 0.35rem;
+}
+
+.player-game-layout--live-fit .player-game-felt-panel--fill > .player-hud-hero-cards {
+  grid-row: 3;
 }
 
 @media (min-width: 768px) and (orientation: landscape) and (min-height: 521px) {
@@ -1384,12 +1389,19 @@
   min-height: 0;
   height: auto;
   /* Sit the oval on the peek. Top padding keeps the highest name off the status line. Bottom padding keeps the lowest name off the button. */
+  /* Row 2 is the flexible one. Without this, a quiet status line lets the oval land in the auto row and collapse. */
+  grid-row: 2;
   align-items: flex-end;
   justify-content: center;
   box-sizing: border-box;
   padding-top: 1.5rem;
   padding-bottom: 1.75rem;
   container-type: size;
+}
+
+/* No peek yet: the same table sits in the open space under the question. */
+.player-game-layout--live-fit .player-game-shell:not(:has(.player-hole-slot)) .player-game-felt-panel--fill > .player-felt-rotate-slot {
+  align-items: center;
 }
 
 /* A crushed oval only. Taller tables keep the seat and pot sizes they have. */

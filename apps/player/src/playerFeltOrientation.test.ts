@@ -145,9 +145,22 @@ describe('player table orientation', () => {
     expect(peek).not.toContain('display: none')
     const slot = css.slice(
       css.indexOf('Sit the oval on the peek'),
-      css.indexOf('Sit the oval on the peek') + 400,
+      css.indexOf('Sit the oval on the peek') + 520,
     )
+    expect(slot).toContain('grid-row: 2')
     expect(slot).toContain('padding-top: 1.5rem')
+    const statusAt = css.indexOf('.player-game-layout--live-fit .player-game-table-status {')
+    expect(css.slice(statusAt, statusAt + 120)).toContain('grid-row: 1')
+    expect(css).toContain('.player-game-felt-panel--fill > .player-hud-hero-cards')
+    expect(css).toContain('grid-row: 3')
+    expect(css).toContain(
+      '.player-game-shell:not(:has(.player-hole-slot)) .player-game-felt-panel--fill > .player-felt-rotate-slot',
+    )
+    const openFelt = css.slice(
+      css.indexOf('.player-game-shell:not(:has(.player-hole-slot))'),
+      css.indexOf('.player-game-shell:not(:has(.player-hole-slot))') + 280,
+    )
+    expect(openFelt).toContain('align-items: center')
     expect(slot).toContain('padding-bottom: 1.75rem')
     expect(slot).toContain('box-sizing: border-box')
     const wideFelt = css.slice(css.indexOf('Wide play uses the same dock'), css.indexOf('Wide play uses the same dock') + 900)

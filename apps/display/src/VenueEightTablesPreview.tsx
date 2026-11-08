@@ -79,7 +79,6 @@ import {
   mosaicSeatInitialShiftXPx,
   publicFeltDrawsSeat,
   publicSeatShowsHoleCards,
-  mosaicSeatStackClearPx,
   mosaicSeatStackFontForAmount,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
@@ -1843,7 +1842,6 @@ function SeatRingWithLabels({
     0
   )
   const mosaicStackFontPx = mosaicSeatStackFontPx(rimW, mosaicStackSeats, rimH)
-  const mosaicStackClearPx = mosaicSeatStackClearPx(cupSizePx, mosaicSeatInitialFontPx(rimW))
 
   return (
     <div
@@ -2051,7 +2049,7 @@ function SeatRingWithLabels({
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
         const mosaicStack =
           isMosaic && showMosaicSeatStacks && filled && !isBusted
-            ? mosaicSeatStackPlacement(i, rimW, rimH, mosaicStackSeats, mosaicStackClearPx)
+            ? mosaicSeatStackPlacement(i, rimW, rimH)
             : null
         const actingSoftPulse =
           'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden motion-safe:animate-pulse'

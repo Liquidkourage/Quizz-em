@@ -14,6 +14,7 @@ import {
   mosaicSeatStackClearPx,
   mosaicCrowdedStackLayout,
   mosaicSeatStackFontPx,
+  mosaicSeatStackPlacement,
   mosaicSeatStackFontForAmount,
   mosaicShowsSeatStacks,
   mosaicBoardGapPx,
@@ -117,14 +118,26 @@ describe('public table initials', () => {
 })
 
 describe('mosaic seat stacks', () => {
-  it('shows stack amounts in the lobby and on a break, not once a question is up', () => {
-    expect(mosaicShowsSeatStacks('lobby')).toBe(true)
-    expect(mosaicShowsSeatStacks('intermission')).toBe(true)
-    expect(mosaicShowsSeatStacks('question')).toBe(false)
-    expect(mosaicShowsSeatStacks('betting')).toBe(false)
-    expect(mosaicShowsSeatStacks('answering')).toBe(false)
-    expect(mosaicShowsSeatStacks('reveal')).toBe(false)
-    expect(mosaicShowsSeatStacks('showdown')).toBe(false)
+  it('shows stack amounts for the whole hand', () => {
+    for (const phase of ['lobby', 'intermission', 'question', 'betting', 'answering', 'reveal', 'showdown']) {
+      expect(mosaicShowsSeatStacks(phase)).toBe(true)
+    }
+  })
+
+  it('docks each stack on the line under that seat initials', () => {
+    const w = 480
+    const h = 255
+    const font = mosaicSeatInitialFontPx(w, h)
+    for (let seat = 0; seat < 8; seat++) {
+      const layout = mosaicSeatStackPlacement(seat, w, h)
+      const cup = mosaicSeatDotPct(seat, 8, w, h)
+      const shift = mosaicSeatInitialShiftXPx(seat, w, h, font)
+      const anchorX = (layout.leftPct / 100) * w
+      const anchorY = (layout.topPct / 100) * h
+      expect(layout.transform, `seat ${seat}`).toBe('translate(-50%, 0)')
+      expect(anchorX, `seat ${seat} x`).toBeCloseTo((cup.leftPct / 100) * w + shift, 4)
+      expect(anchorY, `seat ${seat} y`).toBeCloseTo((cup.topPct / 100) * h + font * 0.52, 4)
+    }
   })
 
   it('sizes initials and stacks from the felt so they read across the room', () => {

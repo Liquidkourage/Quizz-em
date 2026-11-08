@@ -9,15 +9,13 @@ import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboa
 import {
   mosaicSeatDotPct,
   mosaicSeatHoleInwardFrac,
-  mosaicSeatStackLayout,
   venueMosaicFeltCenterPct,
   type MosaicSeatStackLayout,
 } from './venueMosaicSeatGeometry'
 
-/** Lobby and breaks only. The question beat is the felt just before hole cards. */
-export function mosaicShowsSeatStacks(phase: string | null | undefined): boolean {
-  const ph = String(phase ?? '').trim().toLowerCase()
-  return ph === 'lobby' || ph === 'intermission'
+/** Stacks stay on the felt for the whole hand. */
+export function mosaicShowsSeatStacks(_phase: string | null | undefined): boolean {
+  return true
 }
 
 function feltWidthPx(tableWidthPx: number): number {
@@ -424,16 +422,19 @@ export function mosaicSeatStackFontPx(tableWidthPx: number, filledSeats = 0, tab
   return 16
 }
 
-/** Sparse tables keep the inward amount. A full table uses the pocket inside each initial. */
-export function mosaicSeatStackPlacement(
-  seatIndex: number,
-  w: number,
-  h: number,
-  filledSeats: number,
-  clearPx: number,
-): MosaicSeatStackLayout {
-  if (filledSeats >= MOSAIC_CROWDED_SEAT_COUNT) return mosaicCrowdedStackLayout(seatIndex, w, h)
-  return mosaicSeatStackLayout(seatIndex, w, h, clearPx)
+/** Top of the amount on the line under that seat's initials. Size stays the felt's stack size. */
+export function mosaicSeatStackPlacement(seatIndex: number, w: number, h: number): MosaicSeatStackLayout {
+  const cup = mosaicSeatDotPct(seatIndex, 8, w, h)
+  if (!(w > 0 && h > 0)) return { ...cup, transform: 'translate(-50%, 0)' }
+  const font = mosaicSeatInitialFontPx(w, h)
+  const shift = mosaicSeatInitialShiftXPx(seatIndex, w, h, font)
+  const x = (cup.leftPct / 100) * w + shift
+  const y = (cup.topPct / 100) * h + font * 0.52
+  return {
+    leftPct: (x / w) * 100,
+    topPct: (y / h) * 100,
+    transform: 'translate(-50%, 0)',
+  }
 }
 
 /** Rail-facing edge of the amount, past the initials that spill off the cup. */

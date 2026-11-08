@@ -173,6 +173,15 @@ describe('player table orientation', () => {
     expect(fold).toContain('max-height: 2.8rem')
   })
 
+  it('keeps a Fold table big enough to read while the bet dock is on screen', () => {
+    const narrow = mediaBlock(css.slice(css.indexOf('@media (max-width: 320px)')), '@media (max-width: 320px)')
+    expect(narrow.startsWith('@media (max-width: 320px)')).toBe(true)
+    expect(narrow).toContain('padding: 0.15rem 3.75rem 0.1rem')
+    expect(narrow).toContain('margin-left: -3.2rem')
+    expect(narrow).toContain('padding-top: 1.7rem')
+    expect(narrow).toContain('padding-bottom: 1.55rem')
+  })
+
   it('keeps a portrait touch screen upright, question then felt then bets', () => {
     expect(css).not.toContain('rotate(90deg)')
     expect(css).not.toContain('(orientation: portrait) and (pointer: coarse)')

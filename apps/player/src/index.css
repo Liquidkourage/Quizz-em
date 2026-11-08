@@ -1672,6 +1672,24 @@
   }
 }
 
+/* Fold portrait is 280px wide. The bet dock leaves a short stack, and the name gutters were collapsing the oval so the pot and names piled onto the seats. */
+@media (max-width: 320px) {
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    padding: 0.15rem 3.75rem 0.1rem;
+  }
+
+  .player-game-layout--live-fit .player-game-table-status {
+    margin-left: -3.2rem;
+    margin-right: -3.2rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    padding-top: 1.7rem;
+    padding-bottom: 1.55rem;
+  }
+}
+
 /* Fold landscape is about 280px tall. The question stays readable, and the bet dock sits under the table. */
 @media (max-height: 320px) {
   .player-game-layout--live-fit .player-game-body {

@@ -1,4 +1,5 @@
 import { createElement } from 'react'
+import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { addPlayer, createEmptyGame, type GameState, type NumericCard } from '@qhe/core'
@@ -146,5 +147,18 @@ describe('answer composer clock', () => {
     expect(html).toContain('>40<')
     expect(html).toContain('Lock a guess')
     expect(html).toContain('>12<')
+  })
+})
+
+describe('answer composer on a short screen', () => {
+  it('shrinks the clock so the cards stay on the glass', () => {
+    const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
+    const mark = 'Short answer screen: the cards stay on the glass.'
+    const block = css.slice(css.indexOf(mark), css.indexOf(mark) + 2200)
+    expect(block.startsWith(mark)).toBe(true)
+    expect(block).toContain('@media (max-height: 520px)')
+    expect(block).toContain('height: 2.75rem !important')
+    expect(block).toContain('.player-game-timer strong')
+    expect(block).toContain('font-size: 1.35rem')
   })
 })

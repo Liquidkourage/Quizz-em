@@ -3559,6 +3559,83 @@
   }
 }
 
+/* Short answer screen: the cards stay on the glass. */
+@media (max-height: 520px) {
+  .player-game-modal-body {
+    padding-top: 0.15rem;
+    padding-bottom: 0.15rem;
+  }
+
+  .player-game-modal-body .player-game-answer-question {
+    margin-bottom: 0.1rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .player-game-modal-body .player-game-panel-title {
+    margin-bottom: 0.1rem;
+    font-size: 0.85rem;
+  }
+
+  .player-game-modal-body .player-game-question-label {
+    margin-bottom: 0.05rem;
+    font-size: 0.58rem;
+  }
+
+  .player-game-modal-body .player-game-question-text {
+    font-size: 0.8rem;
+    line-height: 1.15;
+  }
+
+  .player-game-modal-body .player-game-timer {
+    margin: 0.1rem 0;
+    padding: 0.02rem 0.45rem 0.08rem;
+  }
+
+  .player-game-modal-body .player-game-timer strong {
+    font-size: 1.35rem;
+  }
+
+  .player-game-modal-body .player-game-hint--composer {
+    margin-top: 0.1rem;
+    padding: 0.08rem 0.3rem;
+  }
+
+  .player-game-modal-body .player-game-answer-display {
+    min-height: 1.35rem;
+    margin-top: 0.1rem;
+    padding: 0.08rem 0.3rem;
+    font-size: 1.05rem;
+  }
+
+  .player-game-modal-body .player-game-card-row--composer,
+  .player-game-modal-body .player-game-actions--composer {
+    margin-top: 0.15rem;
+  }
+
+  .player-game-modal-body .player-game-card-section-label {
+    margin-bottom: 0.05rem;
+    font-size: 0.55rem;
+  }
+
+  .player-game-modal-body .player-game-card-pair > * > * {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+  }
+
+  .player-game-modal-body .player-game-decimal-btn,
+  .player-game-modal-body .player-game-backspace-btn {
+    width: 2.15rem;
+    height: 2.75rem;
+    font-size: 1.1rem;
+  }
+
+  .player-game-modal-body .player-game-btn--lg {
+    min-height: 2.75rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+}
+
 .player-game-modal-body .player-game-panel {
   border: none;
   background: transparent;

@@ -238,12 +238,13 @@ describe('player table orientation', () => {
     expect(css).not.toContain('grid-template-columns: 5.75rem minmax(0, 1fr) 5.75rem')
 
     const phoneFitHeader = '@media (max-height: 520px)'
-    const phoneFitAt = css.lastIndexOf(phoneFitHeader)
+    const feltGutter = 'padding: 1.5rem 0.35rem 1.35rem'
+    const phoneFitAt = css.lastIndexOf(phoneFitHeader, css.indexOf(feltGutter))
     const phoneFit = mediaBlock(css.slice(phoneFitAt), phoneFitHeader)
     expect(phoneFitAt).toBeGreaterThan(css.indexOf('min-height: 2.75rem'))
     expect(phoneFit).not.toContain('min-height: 1.7rem')
     expect(phoneFit).not.toContain('pointer: coarse')
-    expect(phoneFit).toContain('padding: 1.5rem 0.35rem 1.35rem')
+    expect(phoneFit).toContain(feltGutter)
     const waiting = css.slice(css.indexOf('flex: 0 0 18rem'), css.indexOf('flex: 0 0 18rem') + 1200)
     expect(waiting).toContain('.player-game-dock--waiting')
     expect(waiting).toContain('max-height: none')

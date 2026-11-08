@@ -8,6 +8,7 @@ import {
   type SelectedCardRef,
 } from '../playerModel/answerComposition'
 import { PlayerGameButton, PlayerGoldPanel } from './PlayerGoldChrome'
+import { MISSED_GUESS_LINE } from './PlayerForfeitStrip'
 
 type AnswerComposerProps = {
   gameState: GameState
@@ -108,7 +109,7 @@ export default function AnswerComposer({
 
       {currentPlayer.answerForfeited ? (
         <p className="player-game-hint" role="status">
-          No guess in time — 0 points, and you cannot win this pot.
+          {MISSED_GUESS_LINE}
         </p>
       ) : remainingSec != null ? (
         <p

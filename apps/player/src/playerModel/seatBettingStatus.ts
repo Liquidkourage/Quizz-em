@@ -172,10 +172,11 @@ export function pickHighlightSeatAction(
 export function buildPlayerTableStatusLine(
   gameState: GameState,
   viewerName: string,
-  turnRemainingSec?: number | null
+  turnRemainingSec?: number | null,
+  viewerMissedGuess = false,
 ): string | null {
   const phase = gameState.phase
-  if (phase === 'answering') return 'Answer on your phone'
+  if (phase === 'answering') return viewerMissedGuess ? null : 'Answer on your phone'
 
   if (phase !== 'betting') return null
 

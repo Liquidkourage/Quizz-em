@@ -1415,8 +1415,9 @@ function seatIsOutOfTheBet(player: Pick<PlayerState, 'pointsOnly' | 'hasFolded' 
 /** Answering is open, or the board is out and this seat is not still betting the pot. */
 export function mayLockGuess(
   state: GameState,
-  player: Pick<PlayerState, 'pointsOnly' | 'hasFolded' | 'isAllIn'> | null | undefined,
+  player: Pick<PlayerState, 'pointsOnly' | 'hasFolded' | 'isAllIn' | 'answerForfeited'> | null | undefined,
 ): boolean {
+  if (player?.answerForfeited === true) return false
   if (state.phase === 'answering') return true
   if (state.phase !== 'betting' || player == null) return false
   if (!boardReadyForGuess(state)) return false

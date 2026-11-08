@@ -46,6 +46,18 @@ describe('points-only hole cards', () => {
     expect(html).not.toContain('player-hole-peek')
   })
 
+  it('marks a missed guess on the seat instead of still thinking', () => {
+    const gs = felt(false)
+    gs.phase = 'answering'
+    gs.players = gs.players.map((player) =>
+      player.id === 'me' ? { ...player, answerForfeited: true } : player,
+    )
+    const html = renderToStaticMarkup(
+      createElement(TableFeltView, { gameState: gs, playerName: 'Joy', myPlayerId: 'me' }),
+    )
+    expect(html).not.toContain('Answer on your phone')
+  })
+
   it('leaves a chip player’s cards on the seat', () => {
     const html = renderToStaticMarkup(
       createElement(TableFeltView, { gameState: felt(false), playerName: 'Joy', myPlayerId: 'me' }),

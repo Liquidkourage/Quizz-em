@@ -4,6 +4,7 @@ import {
   createEmptyGame,
   endRound,
   forfeitOpenGuesses,
+  mayLockGuess,
   submitAnswer,
   type GameState,
 } from './index'
@@ -29,6 +30,14 @@ function guessingTable(): GameState {
 }
 
 describe('forfeit an open guess', () => {
+  it('sends a seat that missed the guess back to the table', () => {
+    const next = forfeitOpenGuesses(guessingTable())
+    const ada = next.players.find((p) => p.id === 'ada')!
+    const bo = next.players.find((p) => p.id === 'bo')!
+    expect(mayLockGuess(next, bo)).toBe(false)
+    expect(mayLockGuess(next, ada)).toBe(true)
+  })
+
   it('locks out a seat that never guessed and leaves a locked guess alone', () => {
     const next = forfeitOpenGuesses(guessingTable())
     expect(next.players.find((p) => p.id === 'ada')!.answerForfeited).not.toBe(true)

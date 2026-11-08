@@ -36,6 +36,9 @@ function answeringStatus(
   phase: GameState['phase'],
 ): { pill: SeatStatusPill; locked: boolean } | null {
   if (phase !== 'answering') return null
+  if (player.answerForfeited === true) {
+    return { pill: { kind: 'action', action: 'fold', label: 'NO GUESS' }, locked: false }
+  }
   const locked = guessIsLocked(player)
   if (player.pointsOnly === true) {
     if (locked) {
@@ -150,9 +153,10 @@ export default function TableFeltView({
     [gameState.round.communityCards],
   )
 
+  const viewerMissedGuess = hero?.answerForfeited === true
   const statusLine = useMemo(
-    () => buildPlayerTableStatusLine(gameState, playerName, turnRemainingSec),
-    [gameState, playerName, turnRemainingSec],
+    () => buildPlayerTableStatusLine(gameState, playerName, turnRemainingSec, viewerMissedGuess),
+    [gameState, playerName, turnRemainingSec, viewerMissedGuess],
   )
 
   const seats = useMemo((): StadiumTableSeat[] => {

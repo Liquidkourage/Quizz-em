@@ -182,4 +182,10 @@ describe('seatBettingStatus', () => {
       'Answer on your phone',
     )
   })
+
+  it('clears the answer cue once this seat missed the guess', () => {
+    expect(buildPlayerTableStatusLine(baseState({ phase: 'answering' }), 'Alex', null, true)).toBe(
+      null,
+    )
+  })
 })

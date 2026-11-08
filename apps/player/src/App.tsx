@@ -73,6 +73,7 @@ import GameInfoCard from './components/GameInfoCard'
 import PostHandSummaryCard from './components/PostHandSummaryCard'
 import TableResultsPanel from './components/TableResultsPanel'
 import AnswerComposerModal from './components/AnswerComposerModal'
+import PlayerForfeitStrip from './components/PlayerForfeitStrip'
 import DealFlashModal from './components/DealFlashModal'
 import BlindChangeModal from './components/BlindChangeModal'
 import AutoActAlert from './components/AutoActAlert'
@@ -749,7 +750,11 @@ function PlayerApp() {
               <p className="player-game-strip" role="status">
                 Hold — we'll resume in a moment. Bets and guesses are paused.
               </p>
-            ) : null}
+            ) : (
+              <PlayerForfeitStrip
+                show={gameState.phase === 'answering' && currentPlayer?.answerForfeited === true}
+              />
+            )}
 
             {!hideLiveChrome ? (
               <VenueStatusStrip

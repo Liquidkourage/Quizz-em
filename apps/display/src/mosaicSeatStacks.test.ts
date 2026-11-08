@@ -16,6 +16,7 @@ import {
   mosaicCrowdedStackLayout,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
+  mosaicSeatStackGapPx,
   mosaicSeatStackFontForAmount,
   mosaicShowsSeatStacks,
   mosaicBoardGapPx,
@@ -140,8 +141,20 @@ describe('mosaic seat stacks', () => {
       const above = cupY < centerY
       expect(anchorX, `seat ${seat} x`).toBeCloseTo((cup.leftPct / 100) * w + shift, 4)
       expect(layout.transform, `seat ${seat}`).toBe(above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)')
-      expect(anchorY, `seat ${seat} y`).toBeCloseTo(cupY + (above ? -font * 0.52 : font * 0.52), 4)
+      const gap = mosaicSeatStackGapPx(font, h)
+      expect(anchorY, `seat ${seat} y`).toBeCloseTo(cupY + (above ? -gap : gap), 4)
     }
+  })
+
+  it('pulls each stack closer to the initials as the felt gets shorter', () => {
+    const font = 48
+    const tall = mosaicSeatStackGapPx(font, 520)
+    const five = mosaicSeatStackGapPx(font, 270)
+    const crowded = mosaicSeatStackGapPx(font, 150)
+    expect(tall).toBeCloseTo(font * 0.52, 0)
+    expect(five).toBeLessThan(tall)
+    expect(crowded).toBeLessThan(five)
+    expect(crowded).toBeLessThan(font * 0.36)
   })
 
   it('sizes initials and stacks from the felt so they read across the room', () => {
@@ -292,7 +305,7 @@ describe('mosaic seat stacks', () => {
     )
     expect(html).toContain('>All-in<')
     expect(html).toContain('Ada all-in')
-    expect(html).toContain('font-size:44px')
+    expect(html).toContain('font-size:15px')
     expect(html).toContain('vfd-mosaic-seat-status--allin')
     expect(html).not.toContain('vfd-mosaic-dollar')
     expect(html).not.toContain('>0<')

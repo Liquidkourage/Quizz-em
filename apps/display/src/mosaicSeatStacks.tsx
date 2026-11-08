@@ -422,6 +422,19 @@ export function mosaicSeatStackFontPx(tableWidthPx: number, filledSeats = 0, tab
   return 16
 }
 
+/**
+ * Distance from the cup center to the stack edge.
+ * A full table keeps half an em of air. A shorter felt closes that air.
+ */
+export function mosaicSeatStackGapPx(fontPx: number, feltHeightPx: number): number {
+  const font = fontPx > 0 ? fontPx : 16
+  const loose = 0.52
+  const tight = 0.3
+  if (!(feltHeightPx > 0)) return font * loose
+  const t = Math.min(1, Math.max(0, (feltHeightPx - 160) / (480 - 160)))
+  return font * (tight + t * (loose - tight))
+}
+
 /** Amount centered on the initials: just above a top-rail seat, just under every other seat. */
 export function mosaicSeatStackPlacement(seatIndex: number, w: number, h: number): MosaicSeatStackLayout {
   const cup = mosaicSeatDotPct(seatIndex, 8, w, h)
@@ -432,7 +445,8 @@ export function mosaicSeatStackPlacement(seatIndex: number, w: number, h: number
   const cupY = (cup.topPct / 100) * h
   const centerY = (venueMosaicFeltCenterPct(w, h).topPct / 100) * h
   const above = cupY < centerY
-  const y = cupY + (above ? -font * 0.52 : font * 0.52)
+  const gap = mosaicSeatStackGapPx(font, h)
+  const y = cupY + (above ? -gap : gap)
   return {
     leftPct: (x / w) * 100,
     topPct: (y / h) * 100,
@@ -464,11 +478,12 @@ export function MosaicSeatStackAmount({
   labelFontPx?: number
 }) {
   if (allIn) {
-    const em = labelFontPx > 0 ? labelFontPx : fontPx
+    const initials = labelFontPx > 0 ? labelFontPx : fontPx
+    const pill = Math.max(1, Math.round(initials * 0.34))
     return (
       <span
-        className="vfd-mosaic-seat-stack vfd-mosaic-stack whitespace-nowrap leading-none"
-        style={{ fontSize: `${Math.max(1, Math.round(em))}px` }}
+        className="vfd-mosaic-seat-stack vfd-mosaic-stack inline-flex whitespace-nowrap leading-none"
+        style={{ fontSize: `${pill}px` }}
         data-mosaic-seat-stack=""
         aria-label={`${name} all-in`}
       >

@@ -2960,6 +2960,11 @@
     }
   }
 
+  .vfd-mosaic-seat-stack .vfd-mosaic-seat-status {
+    font-size: 1em;
+    line-height: 1;
+  }
+
   .vfd-mosaic-seat-stack .vfd-mosaic-dollar {
     text-shadow:
       0 1px 0 #000,

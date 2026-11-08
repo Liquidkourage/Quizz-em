@@ -223,6 +223,8 @@ export function stadiumHoleCardOverlapPx(scale: number): number {
 /** Phone / player app — readable felt at ~320–480px table width (not venue mosaic). */
 export function stadiumPlayerCupholderSizePx(tableWidthPx: number): number {
   const w = tableWidthPx > 0 ? tableWidthPx : 360
+  // A tiny landscape oval cannot hold a 20px seat marker and a street.
+  if (w < 140) return Math.max(11, Math.round(w * 0.13))
   // Narrow portrait felts: a 30px cup reaches the name tag. Keep the marker inside the rail.
   if (w < 280) return Math.max(20, Math.round(w * 0.078))
   const frac = w < 420 ? 0.095 : 0.1
@@ -268,6 +270,13 @@ export function stadiumPlayerSeatHoleCardScale(
   return Math.min(0.68, Math.max(base * 1.28, base))
 }
 
+/** Five board cards, plus the gaps between them, stay between the side cups. */
+function communityCardsFitWidth(tableWidthPx: number): number {
+  const cup = stadiumPlayerCupholderSizePx(tableWidthPx)
+  const inner = tableWidthPx - cup * 2 - Math.round(tableWidthPx * 0.08)
+  return Math.max(8, Math.floor((inner - 16) / 5))
+}
+
 /** Community board card size — five cards must fit inside the seat ring. */
 export function stadiumPlayerCommunityCardSizePx(
   tableWidthPx: number,
@@ -292,8 +301,38 @@ export function stadiumPlayerCommunityCardSizePx(
             ? 0.072
             : 0.064
   const minW = w < 420 ? 18 : 24
-  const cardW = Math.max(minW, Math.round(w * boardFrac))
-  return { w: cardW, h: Math.max(Math.round(minW * 1.4), Math.round((cardW * 7) / 5)) }
+  const cardW = Math.min(Math.max(minW, Math.round(w * boardFrac)), communityCardsFitWidth(w))
+  return { w: cardW, h: Math.max(10, Math.round((cardW * 7) / 5)) }
+}
+
+const STREET_GAP_PX = 4
+const STREET_POT_MIN_PX = 10.4
+const STREET_POT_MAX_PX = 27.2
+
+/**
+ * Pot and five board cards, sized to the felt.
+ * On a short oval they shrink together so the stack stays between the top and bottom seats.
+ */
+export function stadiumPlayerStreetStackPx(
+  tableWidthPx: number,
+  tableHeightPx: number,
+  seatCount = 6
+): { cardW: number; cardH: number; potPx: number; gapPx: number } {
+  const w = tableWidthPx > 0 ? tableWidthPx : 360
+  const card = stadiumPlayerCommunityCardSizePx(w, seatCount)
+  const widthPot = Math.min(STREET_POT_MAX_PX, Math.max(STREET_POT_MIN_PX, w * 0.12))
+  const gapPx = STREET_GAP_PX
+  const h = tableHeightPx > 0 ? tableHeightPx : 0
+  if (h === 0) return { cardW: card.w, cardH: card.h, potPx: widthPot, gapPx }
+  // Top and bottom seat markers leave about this much of a short oval for the street.
+  const betweenSeats = h * 0.4
+  const stack = widthPot + gapPx + card.h
+  if (stack <= betweenSeats) return { cardW: card.w, cardH: card.h, potPx: widthPot, gapPx }
+  const scale = (betweenSeats - gapPx) / (widthPot + card.h)
+  const potPx = Math.max(8, widthPot * scale)
+  const cardH = Math.max(8, Math.floor(card.h * scale))
+  const cardW = Math.max(8, Math.min(card.w, Math.floor((cardH * 5) / 7)))
+  return { cardW, cardH, potPx, gapPx }
 }
 
 export type StadiumFeltLayout = 'default' | 'player'

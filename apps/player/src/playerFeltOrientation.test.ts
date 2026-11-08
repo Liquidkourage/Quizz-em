@@ -180,6 +180,7 @@ describe('player table orientation', () => {
     expect(narrow).toContain('margin-left: -3.2rem')
     expect(narrow).toContain('padding-top: 1.7rem')
     expect(narrow).toContain('padding-bottom: 1.55rem')
+    expect(css).toContain('calc(var(--player-felt-w, 24rem) * 0.12)')
   })
 
   it('keeps a portrait touch screen upright, question then felt then bets', () => {

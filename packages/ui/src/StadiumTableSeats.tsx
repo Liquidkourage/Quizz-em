@@ -9,8 +9,8 @@ import {
   STADIUM_NAME_LABEL_RADIAL,
   stadiumCupholderSizePx,
   stadiumHoleCardScale,
-  stadiumPlayerCommunityCardSizePx,
   stadiumPlayerCupholderSizePx,
+  stadiumPlayerStreetStackPx,
   stadiumPlayerHoleCardScale,
   stadiumPlayerSeatHoleCardScale,
   stadiumSeatPointPx,
@@ -127,14 +127,19 @@ export function StadiumTableSeats({
   const cupLabelFontPx = isPlayerLayout
     ? Math.max(13, Math.round(cupSizePx * (rimW > 0 && rimW < 420 ? 0.42 : 0.44)))
     : undefined
-  const communityCardSize = isPlayerLayout
-    ? stadiumPlayerCommunityCardSizePx(rimW, occupiedForSizing)
-    : null
+  const street = isPlayerLayout ? stadiumPlayerStreetStackPx(rimW, rimH, occupiedForSizing) : null
+  const communityCardSize = street != null ? { w: street.cardW, h: street.cardH } : null
   const showCenter =
     centerContent != null || (communityDigits != null && communityDigits.length > 0)
   // Name/stack sit fully outside the rail — must clear hole-card height, not just the cup.
   // Just outside the cup. The tag grows further outward into the phone gutter.
-  const labelOutwardPx = isPlayerLayout ? Math.max(20, Math.round(cupSizePx * 0.95)) : 0
+  // A short wide oval has a thin gutter, so the tag stays closer to the rail.
+  const shortOval = rimH > 0 && rimH < 110 && rimW > rimH
+  const labelOutwardPx = isPlayerLayout
+    ? shortOval
+      ? Math.max(10, Math.round(cupSizePx * 0.55))
+      : Math.max(20, Math.round(cupSizePx * 0.95))
+    : 0
 
   return (
     <div
@@ -144,7 +149,15 @@ export function StadiumTableSeats({
         className,
         isPlayerLayout && 'player-felt-frame'
       )}
-      style={style}
+      style={
+        isPlayerLayout
+          ? ({
+              ...style,
+              '--player-felt-w': rimW > 0 ? `${rimW}px` : undefined,
+              '--player-street-pot': rimW > 0 && street != null ? `${street.potPx}px` : undefined,
+            } as CSSProperties)
+          : style
+      }
     >
       <div ref={wrapRef} className={isPlayerLayout ? 'player-felt-stage' : 'absolute inset-0'}>
       <PokerTableGraphic className="absolute inset-0 h-full w-full drop-shadow-md" aria-hidden />

@@ -1704,7 +1704,7 @@
   }
 
   .player-game-layout--live-fit .player-sticky-question {
-    max-height: 4.5rem;
+    max-height: 3.4rem;
     padding: 0.15rem 0.5rem;
     overflow-y: auto;
   }
@@ -2620,6 +2620,13 @@
 
   .player-game-layout--live-fit .player-game-dock--inflow .player-game-input--raise-dense {
     flex: 1 0 100%;
+  }
+}
+
+/* Fold landscape is about 280px tall. A shorter question gives the oval back; names keep this gutter. */
+@media (max-height: 320px) {
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    padding: 1.15rem 0.35rem 1.35rem;
   }
 }
 
@@ -3589,6 +3596,11 @@
   white-space: nowrap;
   color: rgb(253 224 71);
   text-shadow: 0 1px 0 rgb(0 0 0 / 0.65), 0 0 12px rgb(251 191 36 / 0.35);
+}
+
+/* The pot tracks the felt. A short Fold oval was keeping a phone-sized pot on the seats. */
+.player-game-felt--fill .player-game-table-pot {
+  font-size: var(--player-street-pot, clamp(0.65rem, calc(var(--player-felt-w, 24rem) * 0.12), 1.7rem));
 }
 
 .player-game-table-pot-row {

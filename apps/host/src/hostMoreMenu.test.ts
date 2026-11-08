@@ -5,8 +5,8 @@ const app = readFileSync(new URL('./App.tsx', import.meta.url), 'utf8')
 const more = app.slice(app.indexOf('const moreMenu'), app.indexOf('</HostMoreMenu>'))
 
 describe('host More menu', () => {
-  it('drops the leftover tools and keeps the room controls', () => {
-    expect(more).not.toContain('HostMosaicPreviewPanel')
+  it('drops the leftover tools and keeps the room controls and mosaic strip', () => {
+    expect(more).toContain('HostMosaicPreviewPanel')
     expect(more).not.toContain('Nudge acting')
     expect(more).not.toContain('Fold acting player')
     expect(more).not.toContain('Close betting')

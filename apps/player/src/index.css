@@ -3486,6 +3486,164 @@
   transform-origin: center center;
 }
 
+.player-answer-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding:
+    max(0.75rem, env(safe-area-inset-top, 0px))
+    max(0.75rem, env(safe-area-inset-right, 0px))
+    max(0.75rem, env(safe-area-inset-bottom, 0px))
+    max(0.75rem, env(safe-area-inset-left, 0px));
+  background: rgb(0 0 0 / 0.72);
+}
+
+.player-answer-reveal-card {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: min(100%, 40rem);
+  min-height: 0;
+  margin-inline: auto;
+  padding: 1.1rem 1rem 1.4rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(251 191 36 / 0.5);
+  background: linear-gradient(180deg, rgb(69 26 3 / 0.92) 0%, #120a04 42%, rgb(0 0 0 / 0.94) 100%);
+  box-shadow: 0 0 40px rgb(251 191 36 / 0.18);
+}
+
+.player-answer-reveal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgb(245 158 11 / 0.3);
+}
+
+.player-answer-reveal-kicker {
+  margin: 0;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(252 211 77 / 0.9);
+}
+
+.player-answer-reveal-title {
+  margin: 0.25rem 0 0;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.25rem, 5vw, 1.85rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgb(255 251 235 / 0.92);
+}
+
+.player-answer-reveal-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+}
+
+.player-answer-reveal-question {
+  margin: 0;
+  font-size: clamp(1.2rem, 4.6vw, 1.85rem);
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  color: rgb(253 224 71);
+}
+
+.player-answer-reveal-number {
+  margin: 1.1rem 0 0;
+  font-family: ui-monospace, monospace;
+  font-size: clamp(3.4rem, 16vw, 6.5rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.9;
+  text-align: center;
+  color: rgb(255 251 235);
+  text-shadow: 0 0 28px rgb(251 191 36 / 0.45);
+}
+
+.player-answer-reveal-clock {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 2.35rem;
+  height: 2.35rem;
+}
+
+.player-answer-reveal-clock svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.player-answer-reveal-clock-track,
+.player-answer-reveal-clock-value {
+  fill: none;
+  stroke-width: 3.25;
+}
+
+.player-answer-reveal-clock-track {
+  stroke: rgb(255 255 255 / 0.16);
+}
+
+.player-answer-reveal-clock-value {
+  stroke: rgb(252 211 77 / 0.95);
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  animation-name: player-answer-reveal-drain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes player-answer-reveal-drain {
+  to {
+    stroke-dashoffset: 100;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-answer-reveal-clock-value {
+    animation: none;
+  }
+}
+
+@media (max-height: 520px) {
+  .player-answer-reveal-card {
+    padding: 0.65rem 0.8rem 0.75rem;
+  }
+
+  .player-answer-reveal-head {
+    margin-bottom: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .player-answer-reveal-question {
+    font-size: 1.05rem;
+    line-height: 1.2;
+  }
+
+  .player-answer-reveal-number {
+    margin-top: 0.35rem;
+    font-size: 3rem;
+  }
+}
+
 .player-game-modal-overlay {
   position: fixed;
   inset: 0;

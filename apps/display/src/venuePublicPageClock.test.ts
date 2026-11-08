@@ -85,7 +85,7 @@ describe('public screens that change on a timer', () => {
         payload: { question: 'How many?', answer: 42 },
       }),
     )
-    expect(answer).toContain('animation-duration:7000ms')
+    expect(answer).toContain('animation-duration:5000ms')
   })
 
   it('keeps elimination and seating cards up for the shorter dwell', () => {

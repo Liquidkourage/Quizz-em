@@ -75,6 +75,7 @@ import TableResultsPanel from './components/TableResultsPanel'
 import AnswerComposerModal from './components/AnswerComposerModal'
 import PlayerForfeitStrip from './components/PlayerForfeitStrip'
 import DealFlashModal from './components/DealFlashModal'
+import { PlayerAnswerRevealHost } from './components/PlayerAnswerReveal'
 import BlindChangeModal from './components/BlindChangeModal'
 import AutoActAlert from './components/AutoActAlert'
 
@@ -843,6 +844,7 @@ function PlayerApp() {
         {eliminationHandKey ? (
           <EliminatedModal key={eliminationHandKey} name={playerName} onDone={dismissElimination} />
         ) : null}
+        <PlayerAnswerRevealHost gameState={gameState} />
         {showAnswerModal && currentPlayer ? (
           <AnswerComposerModal
             key={`answer-${gameState.round.roundId}`}

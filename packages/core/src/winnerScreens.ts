@@ -1,5 +1,5 @@
 /** The answer card covers the floor. Payout waits for that one card, then the mosaic is the winner view. */
-export const ANSWER_REVEAL_BEFORE_WINNERS_MS = 7_000
+export const ANSWER_REVEAL_BEFORE_WINNERS_MS = 5_000
 
 /** Epoch ms when payout is allowed. Zero tables means there is nothing to wait for. */
 export function winnerScreensReadyAt(startedAtMs: number, tableCount: number): number {

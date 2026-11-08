@@ -7,6 +7,7 @@ import {
 
 describe('winner screens before payout', () => {
   it('waits out the answer card once, however many tables are showing winners', () => {
+    expect(ANSWER_REVEAL_BEFORE_WINNERS_MS).toBe(5_000)
     const started = 1_000_000
     const ready = winnerScreensReadyAt(started, 2)
     expect(ready).toBe(started + ANSWER_REVEAL_BEFORE_WINNERS_MS)

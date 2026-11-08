@@ -1,5 +1,7 @@
+import { ANSWER_REVEAL_BEFORE_WINNERS_MS } from '@qhe/core'
+
 /** How long the correct-answer popup stays up before the guesses show again. */
-export const VENUE_ANSWER_REVEAL_DWELL_MS = 7000
+export const VENUE_ANSWER_REVEAL_DWELL_MS = ANSWER_REVEAL_BEFORE_WINNERS_MS
 
 export type VenueAnswerRevealTrigger = 'deadline' | 'showdown'
 

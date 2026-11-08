@@ -149,6 +149,7 @@ export default function AnswerComposer({
           </div>
 
           <div className="player-game-card-row player-game-card-row--composer">
+            <div className="player-game-card-line">
             <div className="player-game-card-group">
               <p className="player-game-card-section-label">Hole cards</p>
               <div className="player-game-card-pair">
@@ -212,6 +213,7 @@ export default function AnswerComposer({
                   <p className="player-game-board-pending-detail">Community cards should be dealt before answering.</p>
                 </div>
               )}
+            </div>
             </div>
 
             <div className="player-game-card-group">

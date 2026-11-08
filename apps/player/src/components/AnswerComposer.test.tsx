@@ -55,6 +55,41 @@ describe('answer composer cards', () => {
       at = next + 1
     }
   })
+
+  it('puts the hole cards and the board on one line', () => {
+    const gs = answering()
+    gs.round.communityCards = [{ digit: 1 }, { digit: 2 }, { digit: 3 }, { digit: 4 }, { digit: 5 }] as NumericCard[]
+    const player = { ...gs.players[0]!, hand: [{ digit: 8 }, { digit: 9 }] as NumericCard[] }
+    const html = renderToStaticMarkup(
+      createElement(AnswerComposer, {
+        gameState: gs,
+        currentPlayer: player,
+        composed: EMPTY_COMPOSED_ANSWER,
+        selectedCards: [],
+        remainingSec: 30,
+        onSelectCard: () => {},
+        onToggleDecimal: () => {},
+        onBackspace: () => {},
+        onClear: () => {},
+        onSubmit: () => {},
+      }),
+    )
+    const lineAt = html.indexOf('player-game-card-line')
+    const keysAt = html.indexOf('>Keys<')
+    expect(lineAt).toBeGreaterThan(-1)
+    expect(keysAt).toBeGreaterThan(lineAt)
+    const line = html.slice(lineAt, keysAt)
+    expect(line).toContain('Hole cards')
+    expect(line).toContain('>Board<')
+    expect(line).not.toContain('>Keys<')
+
+    const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
+    const mark = 'Answer cards share one line.'
+    const block = css.slice(css.indexOf(mark), css.indexOf(mark) + 900)
+    expect(block.startsWith(mark)).toBe(true)
+    expect(block).toContain('flex-wrap: nowrap')
+    expect(block).toContain('/ 7')
+  })
 })
 
 describe('answer composer clock', () => {
@@ -158,6 +193,8 @@ describe('answer composer on a short screen', () => {
     expect(block.startsWith(mark)).toBe(true)
     expect(block).toContain('@media (max-height: 520px)')
     expect(block).toContain('height: 2.75rem !important')
+    expect(block).toContain('.player-game-card-line')
+    expect(block).toContain('width: auto')
     expect(block).toContain('.player-game-timer strong')
     expect(block).toContain('font-size: 1.35rem')
   })

@@ -2912,6 +2912,41 @@
   margin-top: 0.85rem;
 }
 
+/* Answer cards share one line. */
+.player-game-modal-body .player-game-card-line {
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.player-game-modal-body .player-game-card-line .player-game-card-group {
+  min-width: min-content;
+}
+
+.player-game-modal-body .player-game-card-line .player-game-card-pair {
+  flex-wrap: nowrap;
+  max-width: none;
+  gap: 0.25rem;
+}
+
+.player-game-modal-body .player-game-card-line .player-game-card-section-label {
+  margin-bottom: 0.15rem;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.player-game-modal-body .player-game-card-line .player-game-card-pair > * > * {
+  width: min(4rem, calc((100cqi - 1.8rem) / 7)) !important;
+  height: min(6rem, calc((100cqi - 1.8rem) / 7 * 1.5)) !important;
+}
+
 .player-game-answer-display {
   display: flex;
   min-height: clamp(4.5rem, 14vw, 5.5rem);
@@ -3615,6 +3650,17 @@
   .player-game-modal-body .player-game-card-section-label {
     margin-bottom: 0.05rem;
     font-size: 0.55rem;
+  }
+
+  .player-game-modal-body .player-game-card-line {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .player-game-modal-body .player-game-card-line .player-game-card-pair > * > * {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
   }
 
   .player-game-modal-body .player-game-card-pair > * > * {

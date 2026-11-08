@@ -272,21 +272,14 @@ describe('player table orientation', () => {
     expect(mac).not.toContain('max-width: 1366px')
   })
 
-  it('centers the felt in its row once the window is a tablet or desktop', () => {
-    const phone = css.slice(
+  it('centers the felt in the open row on every screen', () => {
+    const slot = css.slice(
       css.indexOf('Sit the oval on the peek'),
       css.indexOf('Sit the oval on the peek') + 520,
     )
-    expect(phone).toContain('align-items: flex-end')
-
-    const header = 'A tablet or desktop column is taller than the oval.'
-    const at = css.indexOf(header)
-    expect(at).toBeGreaterThan(-1)
-    const block = mediaBlock(css.slice(at), '@media')
-    expect(block.startsWith('@media (min-width: 768px)')).toBe(true)
-    expect(block).toContain('.player-game-felt-panel--fill > .player-felt-rotate-slot')
-    expect(block).toContain('align-items: center')
-    expect(block).not.toContain('align-items: flex-end')
+    expect(slot).toContain('align-items: center')
+    expect(slot).not.toContain('align-items: flex-end')
+    expect(css).not.toContain('A tablet or desktop column is taller than the oval.')
   })
 
   it('keeps a wide landscape table in the open space above the wager panel', () => {

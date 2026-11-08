@@ -1388,10 +1388,10 @@
   width: 100%;
   min-height: 0;
   height: auto;
-  /* Sit the oval on the peek. Top padding keeps the highest name off the status line. Bottom padding keeps the lowest name off the button. */
+  /* Sit the oval on the peek's row, in the middle of the open space. Top padding keeps the highest name off the status line. Bottom padding keeps the lowest name off the button. */
   /* Row 2 is the flexible one. Without this, a quiet status line lets the oval land in the auto row and collapse. */
   grid-row: 2;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   box-sizing: border-box;
   padding-top: 1.5rem;
@@ -1402,13 +1402,6 @@
 /* No peek yet: the same table sits in the open space under the question. */
 .player-game-layout--live-fit .player-game-shell:not(:has(.player-hole-slot)) .player-game-felt-panel--fill > .player-felt-rotate-slot {
   align-items: center;
-}
-
-/* A tablet or desktop column is taller than the oval. Center the felt in that open row. */
-@media (min-width: 768px) {
-  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-    align-items: center;
-  }
 }
 
 /* A crushed oval only. Taller tables keep the seat and pot sizes they have. */

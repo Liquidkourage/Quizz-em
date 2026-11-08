@@ -1,5 +1,5 @@
 ---
-description: Player-facing game UIs must stay complete, readable, and usable on every screen size and orientation.
+description: Player-facing game UIs must stay complete, readable, and usable on every screen size and orientation, and must pass three-stage responsive validation.
 alwaysApply: true
 ---
 
@@ -35,8 +35,32 @@ Every player gets the same gameplay information, controls, and functionality int
 </div>
 ```
 
-## Done means checked
+## Mandatory three-stage responsive validation
 
-Player-facing UI work is not complete without responsive validation. After any change, check overflow, clipping, inaccessible controls, and lost information.
+Player-facing UI work is not complete until all three stages pass. After every change, revalidate every device that already passed, including devices this change did not target. A device is **PASS** only when that device and orientation were actually tested for this change. Otherwise report **NOT TESTED**.
 
-Check widths **320, 360, 375, 390, and 430** pixels, plus tablet and desktop sizes, in both orientations.
+Check widths **320, 360, 375, 390, and 430** pixels, plus tablet and desktop sizes, in both orientations. The surgical player-layout rule still sets its own required viewports, exceptions, and “do not add Playwright” limit. This rule does not replace those.
+
+### 1. DOM and layout
+
+Verify required elements exist, have valid dimensions (non-zero where the layout requires a box), and occupy the intended layout regions. Check overflow, clipping, inaccessible controls, and lost information.
+
+DOM presence is not proof of visual visibility.
+
+### 2. Rendered visibility and interaction
+
+Use browser automation. Confirm each required control is actually visible, unobscured, inside the viewport, and interactable. A valid bounding box alone is not sufficient. Account for ancestor clipping (`overflow` hidden on a parent), overlays, and scrolling (including content reachable only after scroll).
+
+### 3. Responsively visual validation
+
+Capture and inspect actual screenshots across every configured device and both orientations, using the Responsively MCP integration (`list_devices`, `set_active_devices`, `navigate`, then `screenshot` for each active device). Inspect the images. A saved screenshot file is not a pass until it has been looked at.
+
+Never automatically update screenshot baselines to suppress failures. Updating screenshots stays an explicit human step.
+
+### Results
+
+Report **PASS**, **FAIL**, or **NOT TESTED** for each device and orientation.
+
+- If any mandatory element fails on any device, the overall result is **FAIL**.
+- If the browser or Responsively tools are unavailable, report **BLOCKED**. Do not claim success.
+- Do not commit, deploy, or claim completion while required tests fail.

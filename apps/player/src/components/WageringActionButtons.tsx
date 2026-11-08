@@ -132,9 +132,7 @@ export default function WageringActionButtons({
       >
         {allInConfirmPending
           ? 'Tap again to all-in'
-          : dense
-            ? 'All-in'
-            : <ChipText text={`All-in $${currentPlayer.bankroll}`} />}
+          : <ChipText text={`All-in $${currentPlayer.bankroll}`} />}
       </PlayerGameButton>
     ) : null
 

@@ -256,7 +256,7 @@ export default function TableFeltView({
   const peek = heroHoles && !revealCards ? <HolePeek digits={heroHoles} /> : null
 
   return (
-    <>
+    <div className={fillViewport ? 'player-felt-stack' : undefined}>
     <PlayerGoldPanel
       className={
         fillViewport ? 'player-game-felt-panel player-game-felt-panel--fill' : 'player-game-felt-panel'
@@ -305,6 +305,6 @@ export default function TableFeltView({
       ) : null}
     </PlayerGoldPanel>
     {peek}
-    </>
+    </div>
   )
 }

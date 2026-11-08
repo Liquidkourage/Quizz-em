@@ -57,6 +57,7 @@ describe('phone wager dock', () => {
     const fold = html.slice(html.indexOf('player-game-btn--fold'))
     expect(fold.startsWith('player-game-btn--fold') || fold.includes('data-armed="false"')).toBe(true)
     expect(html).not.toContain('data-armed="true"')
+    expect(html).toContain('All-in $500')
   })
 
   it('treats a short-stack all-in call as the gold key', () => {

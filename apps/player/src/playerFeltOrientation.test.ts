@@ -94,6 +94,43 @@ describe('player table orientation', () => {
     expect(clipped).toBeGreaterThan(1.75 * REM)
   })
 
+  it('gives a short column back the padding that was the oval', () => {
+    const at = css.indexOf('@media (max-height: 600px) and (orientation: portrait)')
+    const block = css.slice(at, at + 720)
+    expect(at).toBeGreaterThan(-1)
+    expect(block).toContain('max-height: 2.8rem')
+    expect(block).toContain('padding-top: 0.2rem')
+    expect(block).toContain('padding-bottom: 0.15rem')
+    expect(block).toContain('padding-top: 1.35rem')
+    expect(block).toContain('padding-bottom: 1.1rem')
+  })
+
+  it('keeps the live status margin from eating a short portrait oval', () => {
+    const at = css.indexOf('.player-game-layout--live-fit .player-game-table-status {')
+    const rule = css.slice(at, at + 180)
+    expect(at).toBeGreaterThan(-1)
+    expect(rule).toContain('margin-bottom: 0.35rem')
+    const facts = css.slice(
+      css.indexOf('.player-live-facts .player-game-wager-stack {'),
+      css.indexOf('.player-live-facts .player-game-wager-stack {') + 280,
+    )
+    expect(facts).toContain('flex-direction: row')
+    const narrow = css.slice(css.indexOf('@container (max-width: 17.5rem)'), css.indexOf('@container (max-width: 17.5rem)') + 420)
+    expect(narrow).toContain('.player-live-facts .player-game-turn-banner')
+    expect(narrow).toContain('font-size: 0.8rem')
+  })
+
+  it('reserves the peek in a grid row the felt cannot grow into', () => {
+    const stackAt = css.indexOf('.player-game-layout--live-fit .player-felt-stack {')
+    const stack = css.slice(stackAt, stackAt + 450)
+    expect(stackAt).toBeGreaterThan(-1)
+    expect(stack).toContain('display: grid')
+    expect(stack).toContain('grid-template-rows: minmax(0, 1fr) auto')
+    expect(stack).toContain('flex: 1 1 0')
+    expect(stack).toContain('min-height: 0')
+    expect(stack).toContain('overflow: hidden')
+  })
+
   it('gives Hold to peek its own row under the felt on every live layout', () => {
     const panel = css.slice(
       css.indexOf('.player-game-layout--live-fit .player-game-felt-panel--fill {'),
@@ -111,9 +148,10 @@ describe('player table orientation', () => {
       css.indexOf('Sit the oval on the peek'),
       css.indexOf('Sit the oval on the peek') + 400,
     )
+    expect(slot).toContain('padding-top: 1.5rem')
     expect(slot).toContain('padding-bottom: 1.75rem')
     expect(slot).toContain('box-sizing: border-box')
-    const wideFelt = css.slice(css.indexOf('Wide desktop uses inline BettingActions'), css.indexOf('Wide desktop uses inline BettingActions') + 900)
+    const wideFelt = css.slice(css.indexOf('Wide play uses the same dock'), css.indexOf('Wide play uses the same dock') + 900)
     expect(wideFelt).toContain('flex: 1 1 0')
     expect(wideFelt).toContain('min-height: 0')
     expect(wideFelt).not.toContain('min-height: 13rem')
@@ -154,10 +192,10 @@ describe('player table orientation', () => {
     expect(short).not.toContain('margin: 0 0 2.75rem')
     expect(short).not.toContain('margin-bottom: 4.25rem')
     expect(short).not.toContain('padding: 2rem 6rem 1.75rem')
-    const dockCap = css.indexOf('max-height: min(42%, 16rem)')
-    const shortDock = css.lastIndexOf('max-height: 9.5rem')
-    expect(dockCap).toBeGreaterThan(0)
-    expect(shortDock).toBeGreaterThan(dockCap)
+    expect(css).not.toContain('max-height: min(42%, 16rem)')
+    expect(css).not.toContain('max-height: 9.5rem')
+    const shortDock = css.indexOf('flex: 0 0 18rem')
+    expect(shortDock).toBeGreaterThan(0)
 
     const foldHeader = '@media (max-height: 320px)'
     const fold = mediaBlock(css.slice(css.indexOf(foldHeader)), foldHeader)
@@ -183,8 +221,8 @@ describe('player table orientation', () => {
     expect(phoneFitAt).toBeGreaterThan(css.indexOf('min-height: 2.75rem'))
     expect(phoneFit).not.toContain('min-height: 1.7rem')
     expect(phoneFit).not.toContain('pointer: coarse')
-    expect(phoneFit).toContain('padding: 1.15rem 0.35rem 1.35rem')
-    const waiting = css.slice(css.indexOf('max-height: 9.5rem'), css.indexOf('max-height: 9.5rem') + 700)
+    expect(phoneFit).toContain('padding: 1.5rem 0.35rem 1.35rem')
+    const waiting = css.slice(css.indexOf('flex: 0 0 18rem'), css.indexOf('flex: 0 0 18rem') + 1200)
     expect(waiting).toContain('.player-game-dock--waiting')
     expect(waiting).toContain('max-height: none')
     expect(waiting).toContain('grid-template-columns: 1fr')
@@ -220,8 +258,9 @@ describe('player table orientation', () => {
     expect(felt).toContain('height: min(100cqh, calc(100cqw * 5 / 8))')
     expect(felt).toContain('max-height: 100%')
 
-    const desktopHeader = '/* Wide desktop uses inline BettingActions; hide the phone dock. */'
+    const desktopHeader = '/* Wide play uses the same dock as a phone. The felt still shrinks above it. */'
     const desktop = mediaBlock(css.slice(css.indexOf(desktopHeader)), '@media')
+    expect(desktop).not.toContain('display: none')
     expect(desktop).toContain('flex: 0 1 auto')
     expect(desktop).toContain('min-height: 0')
     expect(desktop).not.toContain('max-height: 46%')

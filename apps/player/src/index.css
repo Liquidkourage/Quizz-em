@@ -1253,7 +1253,32 @@
  * fits, vertically centered in that leftover so the table/seat tags sit in
  * the middle of the phone — not glued under the banner with a black void below.
  * Padding reserves gutter for outward name tags above/below the rail.
+ * The stack's second row is Hold to peek. The felt row can shrink to nothing
+ * before that button leaves the screen.
  */
+.player-game-layout--live-fit .player-felt-stack {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.player-game-layout--live-fit .player-felt-stack > .player-game-felt-panel--fill {
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+  container-type: normal;
+}
+
+.player-game-layout--live-fit .player-felt-stack > .player-hole-peek {
+  align-self: center;
+  justify-self: center;
+}
+
 .player-game-layout--live-fit .player-game-felt-panel--fill {
   position: relative;
   flex: 1 1 0;
@@ -1261,7 +1286,7 @@
   max-width: 100%;
   min-height: 0;
   margin: 0 auto;
-  /* Status, then the felt. Hold to peek is the next sibling, so this panel can shrink. */
+  /* Status, then the felt. Hold to peek is the stack's next row. */
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -1274,6 +1299,11 @@
   box-shadow: none;
   overflow: visible;
   container-type: size;
+}
+
+/* The 1.85rem status margin is a name gutter. On a short column it is the oval. Wide landscape restores the gutter below. */
+.player-game-layout--live-fit .player-game-table-status {
+  margin-bottom: 0.35rem;
 }
 
 @media (min-width: 768px) and (orientation: landscape) and (min-height: 521px) {
@@ -1344,10 +1374,11 @@
   width: 100%;
   min-height: 0;
   height: auto;
-  /* Sit the oval on the peek. Bottom padding keeps the lowest name off the button. */
+  /* Sit the oval on the peek. Top padding keeps the highest name off the status line. Bottom padding keeps the lowest name off the button. */
   align-items: flex-end;
   justify-content: center;
   box-sizing: border-box;
+  padding-top: 1.5rem;
   padding-bottom: 1.75rem;
   container-type: size;
 }
@@ -1420,6 +1451,23 @@
   justify-content: center;
   padding-top: 1.75rem;
   padding-bottom: 1.25rem;
+}
+
+/* A 568px-tall phone spends the question and the name gutter on an empty slot. */
+@media (max-height: 600px) and (orientation: portrait) {
+  .player-game-layout--live-fit .player-sticky-question {
+    max-height: 2.8rem;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    padding-top: 0.2rem;
+    padding-bottom: 0.15rem;
+  }
+
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    padding-top: 1.35rem;
+    padding-bottom: 1.1rem;
+  }
 }
 
 /*
@@ -1515,24 +1563,77 @@
   align-self: center;
   width: 100%;
   max-width: min(100%, var(--player-live-column-max));
-  max-height: min(42%, 16rem);
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+  max-height: none;
+  overflow: visible;
+  container-type: inline-size;
   border-top: 1px solid rgb(251 191 36 / 0.35);
   background: linear-gradient(180deg, rgb(8 10 14 / 0.97) 0%, rgb(5 8 6 / 0.98) 100%);
 }
 
+.player-live-facts .player-game-dock-status {
+  flex-wrap: wrap;
+  margin-bottom: 0.15rem;
+}
+
+.player-live-facts-wager {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(253 224 71);
+}
+
+.player-live-facts .player-game-wager-stack {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0 0 0.15rem;
+  padding: 0;
+  border: none;
+}
+
+/* A Galaxy Fold dock is ~16rem wide. The 1.35rem banner wraps Your turn under the oval. */
+@container (max-width: 17.5rem) {
+  .player-live-facts .player-game-turn-banner {
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+  }
+
+  .player-live-facts .player-game-dock-status {
+    gap: 0.3rem;
+    font-size: 0.68rem;
+  }
+}
+
+.player-live-facts .player-game-stack-value {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.player-live-facts .player-game-stat-grid {
+  gap: 0.05rem 0.45rem;
+  margin: 0 0 0.15rem;
+}
+
+.player-live-facts .player-game-field-label,
+.player-live-facts .player-game-raise-min-hint {
+  margin: 0;
+  text-align: center;
+}
+
 @media (max-height: 520px) {
   .player-game-layout--live-fit .player-game-dock--inflow {
-    /* Two 2.75rem action rows, plus the raise field and the turn line. */
+    /* Beside the table. Height follows the facts so none of them scroll away. */
     flex: 0 0 18rem;
     width: 18rem;
     max-width: 46%;
-    min-width: 15rem;
-    max-height: 9.5rem;
+    min-width: 0;
+    max-height: none;
     align-self: center;
+    overflow: visible;
   }
 
   .player-game-layout--live-fit .player-game-dock--waiting {
@@ -2283,7 +2384,7 @@
 /* Short landscape: keep both action rows at 44px. Name tags sit in the slot padding, inside the oval's box. */
 @media (max-height: 520px) {
   .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-    padding: 1.15rem 0.35rem 1.35rem;
+    padding: 1.5rem 0.35rem 1.35rem;
     box-sizing: border-box;
   }
 
@@ -3922,12 +4023,8 @@
   width: 100%;
 }
 
+/* Wide play uses the same dock as a phone. The felt still shrinks above it. */
 @media (min-width: 1024px) {
-  /* Wide desktop uses inline BettingActions; hide the phone dock. */
-  .player-game-dock--inflow {
-    display: none;
-  }
-
   /* The peek row clears the bottom names. A 5.5rem pad was collapsing the oval under the wager. */
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
     padding-bottom: 0.75rem;

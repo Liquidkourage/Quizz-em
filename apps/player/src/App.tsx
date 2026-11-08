@@ -81,7 +81,6 @@ function PlayerBlindChange({ brief }: { brief: PlayerVenueBrief | null }) {
   if (brief?.blindChange == null) return null
   return <BlindChangeModal key={brief.blindChange.atMs} notice={brief.blindChange} />
 }
-import BettingActions from './components/BettingActions'
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
 import StickyQuestionBar from './components/StickyQuestionBar'
@@ -810,38 +809,6 @@ function PlayerApp() {
 
             {!seatedAtTable ? (
               <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} hideHoleStrip />
-            ) : null}
-
-            {needsMobileBetDock && bettingCtx && currentPlayer ? (
-              <div className="player-game-wager-inline hidden lg:block">
-                <BettingActions
-                  currentPlayer={currentPlayer}
-                  ctx={bettingCtx}
-                  raiseAmount={raiseAmount}
-                  pot={gameState.round.pot}
-                  onRaiseAmountChange={setRaiseAmount}
-                  onCheck={() => {
-                    if (blockIfHeld()) return
-                    checkAction()
-                  }}
-                  onCall={() => {
-                    if (blockIfHeld()) return
-                    callAction()
-                  }}
-                  onRaise={() => {
-                    if (blockIfHeld()) return
-                    if (raiseAmount > 0) raiseAction(raiseAmount)
-                  }}
-                  onFold={() => {
-                    if (blockIfHeld()) return
-                    fold()
-                  }}
-                  onAllIn={() => {
-                    if (blockIfHeld()) return
-                    allInAction()
-                  }}
-                />
-              </div>
             ) : null}
 
             {!seatedAtTable ? feltView : null}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "responsively": {
+      "command": "npx",
+      "args": ["-y", "@responsively/mcp"]
+    }
+  }
+}

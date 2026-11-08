@@ -122,6 +122,23 @@ export function mosaicReadablePlaqueMetrics(
   }
 }
 
+/** Clears the bottom-corner stacks, which sit about a third of the way into a full chip. */
+const FIVE_SIX_PLAQUE_SCALE = 0.68
+
+/** Five and six tables draw the corner chips a little smaller. Every other count stays full size. */
+export function mosaicFiveSixPlaqueMetrics(
+  metrics: MosaicPlaqueMetrics,
+  tableCount: number,
+): MosaicPlaqueMetrics {
+  const count = Math.floor(tableCount)
+  if ((count !== 5 && count !== 6) || !(metrics.heightPx > 0)) return metrics
+  return {
+    widthPx: Math.max(1, Math.round(metrics.widthPx * FIVE_SIX_PLAQUE_SCALE)),
+    heightPx: Math.max(0, Math.round(metrics.heightPx * FIVE_SIX_PLAQUE_SCALE)),
+    gapPx: metrics.gapPx,
+  }
+}
+
 /**
  * Amount size inside one chip. A long figure shrinks a little;
  * it does not collapse into a caption.

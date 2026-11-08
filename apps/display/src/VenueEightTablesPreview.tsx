@@ -33,6 +33,7 @@ import {
   mosaicCornerDockPx,
   mosaicFeltFillWidthPx,
   mosaicFeltReservePx,
+  mosaicFiveSixPlaqueMetrics,
   mosaicReadablePlaqueMetrics,
   mosaicSidePotCornerPlan,
   mosaicSidePotsThatFit,
@@ -2521,7 +2522,10 @@ function VenueMosaicTableCard({
   const plaqueSlots = shownSides.length + (hiddenSideCount > 0 ? 1 : 0)
   const plaqueMetrics =
     tilePx.w > 0 && plaqueSlots > 0
-      ? mosaicReadablePlaqueMetrics(tilePx.w, tilePx.h, plaqueSlots, 0)
+      ? mosaicFiveSixPlaqueMetrics(
+          mosaicReadablePlaqueMetrics(tilePx.w, tilePx.h, plaqueSlots, 0),
+          floorSpec.populatedTableCount,
+        )
       : undefined
   const shownMarks = seatSideMarks.map((seat) => seat.filter((mark) => mark <= shownSideCount))
   const ph = String(row.phase ?? '').trim().toLowerCase()

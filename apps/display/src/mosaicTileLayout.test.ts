@@ -12,6 +12,7 @@ import {
   mosaicFeltFitPx,
   mosaicFeltFillWidthPx,
   mosaicCornerDockPx,
+  mosaicFiveSixPlaqueMetrics,
   mosaicFeltReservePx,
   mosaicFeltWidthPx,
   mosaicSidePotCornerPlan,
@@ -61,6 +62,21 @@ describe('mosaic side-pot plaques', () => {
     expect(two.widthPx * 2 + two.gapPx).toBeLessThanOrEqual(681 - 16)
     expect(mosaicSidePotAmountFontPx(two.heightPx, '6,320')).toBeGreaterThanOrEqual(36)
     expect(mosaicSidePotsThatFit(4, 280, 400)).toBeLessThan(4)
+  })
+
+  it('draws a five- and six-table chip a little smaller than the same tile at four or seven', () => {
+    const full = mosaicReadablePlaqueMetrics(700, 400, 1, 0)
+    const five = mosaicFiveSixPlaqueMetrics(full, 5)
+    const six = mosaicFiveSixPlaqueMetrics(full, 6)
+    expect(mosaicFiveSixPlaqueMetrics(full, 4)).toEqual(full)
+    expect(mosaicFiveSixPlaqueMetrics(full, 7)).toEqual(full)
+    expect(five).toEqual(six)
+    expect(five.heightPx).toBe(Math.round(full.heightPx * 0.68))
+    expect(five.widthPx).toBe(Math.round(full.widthPx * 0.68))
+    expect(five.heightPx).toBeGreaterThanOrEqual(34)
+    expect(mosaicSidePotAmountFontPx(five.heightPx, '6,320')).toBeLessThan(
+      mosaicSidePotAmountFontPx(full.heightPx, '6,320'),
+    )
   })
 
   it('shrinks each plaque once a full-size row would overflow the tile', () => {

@@ -288,12 +288,18 @@ describe('mosaic seat stacks', () => {
 
   it('replaces an all-in stack with the all-in label', () => {
     const html = renderToStaticMarkup(
-      createElement(MosaicSeatStackAmount, { name: 'Ada', amount: 0, fontPx: 18, allIn: true }),
+      createElement(MosaicSeatStackAmount, { name: 'Ada', amount: 0, fontPx: 18, labelFontPx: 44, allIn: true }),
     )
     expect(html).toContain('>All-in<')
     expect(html).toContain('Ada all-in')
+    expect(html).toContain('font-size:44px')
+    expect(html).toContain('vfd-mosaic-seat-status--allin')
     expect(html).not.toContain('vfd-mosaic-dollar')
     expect(html).not.toContain('>0<')
+    const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+    expect(css).not.toContain('.vfd-mosaic-seat-stack .vfd-mosaic-seat-status--allin')
+    const status = css.slice(css.indexOf('.vfd-mosaic-seat-status {'), css.indexOf('.vfd-mosaic-seat-status {') + 280)
+    expect(status).toContain("font-family: 'Montserrat'")
   })
 
   it('prints the seat stack as a chip amount', () => {

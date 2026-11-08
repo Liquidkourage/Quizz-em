@@ -2828,21 +2828,6 @@
     gap: 0.1em;
   }
 
-  .vfd-mosaic-seat-badges {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    gap: 0.1em;
-    white-space: nowrap;
-  }
-
-  .vfd-mosaic-seat-rail {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.08em;
-  }
 
   .vfd-mosaic-seat-folded {
     position: absolute;
@@ -2875,32 +2860,6 @@
     left: auto;
   }
 
-  .vfd-mosaic-seat-face--top .vfd-mosaic-seat-rail {
-    margin-bottom: 0.08em;
-  }
-
-  .vfd-mosaic-seat-face--bottom .vfd-mosaic-seat-rail {
-    margin-top: 0.08em;
-  }
-
-  /* Side seats keep the pill and chips on the rail, pinned to the outer edge. */
-  .vfd-mosaic-seat-face--left .vfd-mosaic-seat-rail,
-  .vfd-mosaic-seat-face--right .vfd-mosaic-seat-rail {
-    position: absolute;
-    bottom: calc(100% + 0.12em);
-    gap: 0.06em;
-  }
-
-  .vfd-mosaic-seat-face--left .vfd-mosaic-seat-rail {
-    left: 0;
-    align-items: flex-start;
-  }
-
-  .vfd-mosaic-seat-face--right .vfd-mosaic-seat-rail {
-    right: 0;
-    align-items: flex-end;
-  }
-
   .vfd-mosaic-seat-face .vfd-mosaic-seat-initial--folded,
   .vfd-mosaic-dollar--folded {
     color: rgb(168 162 158);
@@ -2908,6 +2867,10 @@
 
   .vfd-mosaic-side-badge {
     --vfd-side-pot: #7dd3fc;
+    --badge-lift: 0;
+    position: absolute;
+    top: 0;
+    z-index: 1;
     display: inline-flex;
     width: 1.05em;
     height: 1.05em;
@@ -2929,11 +2892,23 @@
       inset 0 0 0 0.1em #fffef8;
   }
 
+  .vfd-mosaic-side-badge--left {
+    left: 0;
+    transform: translate(-60%, calc(-60% - var(--badge-lift) * 110%));
+  }
+
+  .vfd-mosaic-side-badge--right {
+    right: 0;
+    transform: translate(60%, calc(-60% - var(--badge-lift) * 110%));
+  }
+
   .vfd-mosaic-seat-status {
     display: inline-block;
     flex: none;
     border-radius: 999px;
     padding: 0.18em 0.46em;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    font-style: normal;
     font-size: 0.34em;
     font-weight: 900;
     letter-spacing: 0.04em;
@@ -2983,10 +2958,6 @@
       animation: none;
       color: #facc15;
     }
-  }
-
-  .vfd-mosaic-seat-stack .vfd-mosaic-seat-status--allin {
-    font-size: 0.85em;
   }
 
   .vfd-mosaic-seat-stack .vfd-mosaic-dollar {

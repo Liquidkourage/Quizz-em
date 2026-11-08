@@ -668,27 +668,26 @@ function mosaicFoldedFeltSide(seatIndex: number): 'above' | 'below' | 'inward' {
   return 'inward'
 }
 
-function mosaicSeatBadgeRow(marks: readonly number[]): ReactNode {
+function mosaicSeatCornerBadges(marks: readonly number[]): ReactNode {
   if (marks.length === 0) return null
-  return (
-    <span className="vfd-mosaic-seat-badges">
-      {marks.map((mark) => (
-        <span
-          key={mark}
-          className="vfd-mosaic-side-badge"
-          aria-label={`Side pot ${mark}`}
-          style={{ '--vfd-side-pot': sidePotColor(mark) } as CSSProperties}
-        >
-          {mark}
-        </span>
-      ))}
-    </span>
-  )
-}
-
-function mosaicSeatBadgeRail(badgeRow: ReactNode): ReactNode {
-  if (badgeRow == null) return null
-  return <span className="vfd-mosaic-seat-rail">{badgeRow}</span>
+  return marks.map((mark, index) => {
+    const side = index % 2 === 0 ? 'left' : 'right'
+    return (
+      <span
+        key={mark}
+        className={`vfd-mosaic-side-badge vfd-mosaic-side-badge--${side}`}
+        aria-label={`Side pot ${mark}`}
+        style={
+          {
+            '--vfd-side-pot': sidePotColor(mark),
+            '--badge-lift': Math.floor(index / 2),
+          } as CSSProperties
+        }
+      >
+        {mark}
+      </span>
+    )
+  })
 }
 
 /** Initials, side-pot chips, and the folded label for one mosaic seat. */
@@ -704,8 +703,6 @@ export function MosaicSeatFace({
   seatIndex?: number
 }) {
   const rail = mosaicSeatRail(seatIndex)
-  const railStack = mosaicSeatBadgeRail(mosaicSeatBadgeRow(marks))
-  const initialsFirst = rail === 'bottom'
   const feltSide = mosaicFoldedFeltSide(seatIndex)
   return (
     <span className={`vfd-mosaic-seat-face vfd-mosaic-seat-face--${rail}`}>
@@ -716,9 +713,8 @@ export function MosaicSeatFace({
           Folded
         </span>
       ) : null}
-      {initialsFirst ? null : railStack}
+      {mosaicSeatCornerBadges(marks)}
       <span className={folded ? 'vfd-mosaic-seat-initial--folded' : undefined}>{initials}</span>
-      {initialsFirst ? railStack : null}
     </span>
   )
 }
@@ -2158,6 +2154,7 @@ function SeatRingWithLabels({
                   name={raw}
                   amount={chips}
                   fontPx={mosaicSeatStackFontForAmount(mosaicStackFontPx, chips)}
+                  labelFontPx={mosaicSeatInitialFontPx(rimW, rimH)}
                   folded={isFolded}
                   allIn={isAllIn}
                 />

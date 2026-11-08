@@ -190,15 +190,20 @@ describe('felt side pot', () => {
     expect(both).toContain('aria-label="Side pot 2"')
     expect(both).toContain('--vfd-side-pot:#7dd3fc')
     expect(both).toContain('--vfd-side-pot:#ea580c')
-    expect(both.indexOf('>NB<')).toBeLessThan(both.indexOf('aria-label="Side pot 1"'))
-    expect(both.indexOf('aria-label="Side pot 1"')).toBeLessThan(both.indexOf('aria-label="Side pot 2"'))
+    expect(both).toContain('vfd-mosaic-side-badge--left')
+    expect(both).toContain('vfd-mosaic-side-badge--right')
+    expect(both.indexOf('vfd-mosaic-side-badge--left')).toBeLessThan(both.indexOf('aria-label="Side pot 1"'))
+    expect(both.indexOf('aria-label="Side pot 1"')).toBeLessThan(both.indexOf('vfd-mosaic-side-badge--right'))
+    expect(both).not.toContain('vfd-mosaic-seat-rail')
     expect(both).toContain('vfd-mosaic-seat-face--bottom')
     const rightRail = renderToStaticMarkup(
       createElement(MosaicSeatFace, { initials: 'BB', marks: [1, 2], folded: false, seatIndex: 2 }),
     )
     expect(rightRail).toContain('vfd-mosaic-seat-face--right')
     expect(rightRail).not.toContain('>All-in<')
-    expect(rightRail.indexOf('aria-label="Side pot 1"')).toBeLessThan(rightRail.indexOf('>BB<'))
+    expect(rightRail).toContain('vfd-mosaic-side-badge--left')
+    expect(rightRail).toContain('vfd-mosaic-side-badge--right')
+    expect(rightRail).not.toContain('vfd-mosaic-seat-rail')
     const leftRail = renderToStaticMarkup(
       createElement(MosaicSeatFace, { initials: 'EA', marks: [], folded: true, seatIndex: 6 }),
     )

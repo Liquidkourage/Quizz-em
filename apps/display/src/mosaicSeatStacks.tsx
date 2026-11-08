@@ -453,18 +453,22 @@ export function MosaicSeatStackAmount({
   fontPx,
   folded = false,
   allIn = false,
+  labelFontPx = 0,
 }: {
   name: string
   amount: number
   fontPx: number
   folded?: boolean
   allIn?: boolean
+  /** Initials size, so an all-in oval matches the folded label. */
+  labelFontPx?: number
 }) {
   if (allIn) {
+    const em = labelFontPx > 0 ? labelFontPx : fontPx
     return (
       <span
         className="vfd-mosaic-seat-stack vfd-mosaic-stack whitespace-nowrap leading-none"
-        style={{ fontSize: `${Math.max(1, Math.round(fontPx))}px` }}
+        style={{ fontSize: `${Math.max(1, Math.round(em))}px` }}
         data-mosaic-seat-stack=""
         aria-label={`${name} all-in`}
       >

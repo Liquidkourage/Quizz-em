@@ -1,0 +1,41 @@
+---
+description: Public table mosaic is frozen — do not change unless the user explicitly asks.
+alwaysApply: true
+---
+
+# Public table mosaic is frozen
+
+The **public mosaic** (every table count, 1 through 20) is **approved as-is**. Do **not** modify it unless the user **explicitly countermands** this rule (e.g. “change the mosaic”, “move the stacks”, “resize the side pots”).
+
+## Protected files and tokens
+
+- `apps/display/src/mosaicSeatStacks.tsx`
+- `apps/display/src/mosaicTileLayout.ts` — plaque size, corner dock, seat rail
+- `apps/display/src/VenueEightTablesPreview.tsx` — only when the change affects a mosaic felt, seat, stack, folded label, all-in, eligibility chip, pot, or side-pot plaque
+- Mosaic classes in `apps/display/src/index.css`:
+  - `.vfd-mosaic-seat-face`, `.vfd-mosaic-seat-folded`, `.vfd-mosaic-seat-status`, `.vfd-mosaic-seat-initial`
+  - `.vfd-mosaic-seat-stack`, `.vfd-mosaic-stack`, `.vfd-mosaic-dollar`
+  - `.vfd-mosaic-side-badge`, `.vfd-mosaic-side-plaque`, `.vfd-mosaic-side-lane`
+
+## Do not change (without explicit user request)
+
+- Where stacks sit, how tight they are, or their type size
+- Folded on the felt side of the initials, or All-in in place of the stack
+- Eligibility chips at the upper corners of the initials
+- Side-pot chip size, including the smaller chips at five and six tables
+- Felt, initials, hole cards, community cards, or the table grid
+- “Drive-by” refactors that move these styles and alter how a table looks
+
+## Allowed without countermand
+
+- Bug fixes that **only** fix a crash or wrong stack, pot, or seat **data** — **only if** the picture stays identical; mention the exception in the commit message
+- The host 1–20 preview strip, as long as the picture it shows does not change
+
+## When the user countermands
+
+Proceed with their specific mosaic instructions only for that turn (or the scope they name). Do not broaden changes beyond what they asked.
+
+## Checklist before merging any display change
+
+- [ ] Did this diff touch protected mosaic files, classes, or the mosaic path in `VenueEightTablesPreview.tsx`? If yes, did the user explicitly request it?
+- [ ] If the mosaic was touched without user request, revert those hunks.

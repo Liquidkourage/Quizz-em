@@ -84,6 +84,7 @@ function PlayerBlindChange({ brief }: { brief: PlayerVenueBrief | null }) {
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
 import { PlayerHoleSlot } from './components/PlayerHoleSlot'
+import { TableIntroduction } from './components/TableIntroduction'
 import StickyQuestionBar from './components/StickyQuestionBar'
 import PointsOnlyLifeBanner from './components/PointsOnlyLifeBanner'
 import { PlayerLeftEvent, PlayerStillSeated } from './components/PlayerQuitButton'
@@ -786,12 +787,20 @@ function PlayerApp() {
               </p>
             ) : null}
 
-            {showSeatedLobbyWait ? (
+            {showSeatedLobbyWait && !waitingForFirstStart ? (
               <p className="player-game-banner player-game-banner--compact">
-                {waitingForFirstStart
-                  ? `Table ${gameState.tableId} · seated with ${gameState.players.length} — waiting for the host to start…`
-                  : `Table ${gameState.tableId} · waiting for the next question…`}
+                {`Table ${gameState.tableId} · waiting for the next question…`}
               </p>
+            ) : null}
+
+            {waitingForFirstStart ? (
+              <TableIntroduction
+                players={gameState.players}
+                heroId={currentPlayer?.id}
+                tableId={gameState.tableId}
+                smallBlind={gameState.smallBlind}
+                bigBlind={gameState.bigBlind}
+              />
             ) : null}
 
             {showLastHand ? (
@@ -806,7 +815,9 @@ function PlayerApp() {
             ) : null}
 
             {/* Results own the middle — don't stack HUD under them (nested scroll). */}
-            {seatedAtTable && !showTableResults && !showLastHand ? feltView : null}
+            {seatedAtTable && !showTableResults && !showLastHand && !waitingForFirstStart
+              ? feltView
+              : null}
 
             {!seatedAtTable ? (
               <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} hideHoleStrip />

@@ -2004,6 +2004,174 @@
   letter-spacing: 0.02em;
 }
 
+/* Seated, before the first deal: the oval, then each player, you last. */
+.player-intro {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 0.35rem 0.35rem 0.75rem;
+  overflow: hidden;
+}
+
+.player-intro-stage {
+  position: relative;
+  width: min(100%, 34rem);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 40rem;
+  aspect-ratio: 4 / 5;
+}
+
+.player-intro-felt {
+  position: absolute;
+  left: 28%;
+  right: 28%;
+  top: 26%;
+  bottom: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  border-radius: 999px;
+  border: 3px solid rgb(92 58 18);
+  background:
+    radial-gradient(ellipse at 50% 42%, rgb(46 140 72) 0%, rgb(18 92 48) 62%, rgb(8 48 28) 100%);
+  box-shadow:
+    inset 0 0 0 2px rgb(212 168 74 / 0.45),
+    0 10px 24px rgb(0 0 0 / 0.35);
+}
+
+.player-intro-table {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.15rem, 4.2vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(255 248 220);
+}
+
+.player-intro-blinds {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1rem, 3.6vw, 1.3rem);
+  font-weight: 700;
+  color: rgb(253 224 71);
+}
+
+.player-intro-blinds-slash {
+  color: rgb(255 248 220 / 0.7);
+}
+
+.player-intro-plate {
+  position: absolute;
+  width: 24%;
+  max-width: 6.4rem;
+  transform: translate(-50%, -50%);
+  padding: 0.28rem 0.3rem 0.34rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: rgb(8 12 10 / 0.92);
+  text-align: center;
+}
+
+.player-intro-plate.is-in {
+  animation: player-intro-in 0.45s ease;
+}
+
+.player-intro-plate--you {
+  width: 32%;
+  max-width: 8rem;
+  z-index: 2;
+  border-color: rgb(251 191 36 / 0.85);
+  background: rgb(42 28 8 / 0.94);
+  box-shadow: 0 0 18px rgb(251 191 36 / 0.22);
+}
+
+.player-intro-seat,
+.player-intro-name,
+.player-intro-you,
+.player-intro-stack {
+  margin: 0;
+}
+
+.player-intro-seat {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.player-intro-name {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(0.85rem, 3vw, 1rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: rgb(236 253 245);
+  overflow-wrap: anywhere;
+}
+
+.player-intro-plate--you .player-intro-name {
+  font-size: clamp(1rem, 3.6vw, 1.2rem);
+  color: rgb(254 243 199);
+}
+
+.player-intro-you {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(253 224 71);
+}
+
+.player-intro-stack {
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgb(253 224 71);
+}
+
+.player-intro-line {
+  flex: 0 0 auto;
+  margin: 0;
+  max-width: 28rem;
+  text-align: center;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1rem, 3.4vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.3;
+  color: rgb(255 248 220);
+}
+
+@keyframes player-intro-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -35%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-intro-plate.is-in {
+    animation: none;
+  }
+}
+
 .player-game-fit-scroll {
   flex: 0 1 auto;
   min-height: 0;

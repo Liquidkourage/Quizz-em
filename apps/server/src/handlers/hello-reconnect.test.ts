@@ -29,7 +29,7 @@ describe('handleHello reconnect', () => {
     const events: { event: string; data: unknown }[] = []
     const socket = {
       id: 'sock-new',
-      data: {} as { venueCode?: string; sessionKey?: string; role?: string },
+      data: {} as { venueCode?: string; sessionKey?: string; role?: string; viewerPlayerId?: string },
       rooms: new Set<string>(),
       join(room: string) {
         this.rooms.add(room)
@@ -59,5 +59,6 @@ describe('handleHello reconnect', () => {
     expect(ack.playerId).toBe('human:ada')
     expect(rooms.get(key)?.players.map((player) => player.id)).toEqual(['human:ada'])
     expect(socket.rooms.has(key)).toBe(true)
+    expect(socket.data.viewerPlayerId).toBe('human:ada')
   })
 })

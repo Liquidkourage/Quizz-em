@@ -181,6 +181,7 @@ export async function handleHello(socket: Socket, data: ClientHello) {
     if (role === 'player') {
       socket.join(g.playerVenueRoom(venueCode))
       if (playerReconnect) {
+        sockData.viewerPlayerId = rosterPlayerId
         g.registerPlayerSocket(rosterPlayerId, socket.id)
         restoredTableId = playerReconnect.tableId
         if (restoredTableId !== g.LOBBY_TABLE_ID) {
@@ -196,6 +197,7 @@ export async function handleHello(socket: Socket, data: ClientHello) {
           return
         }
         gameState = g.addPlayer(gameState, rosterPlayerId, name)
+        sockData.viewerPlayerId = rosterPlayerId
         g.registerPlayerSocket(rosterPlayerId, socket.id)
       }
     }

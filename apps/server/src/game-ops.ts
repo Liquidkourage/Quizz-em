@@ -197,6 +197,7 @@ import {
 } from './player-socket-registry'
 import { requiredHostSecret } from './host-auth'
 import { handSecretsArePublic, redactGameStateForViewer } from './audience-view'
+import { cardsViewerId } from './cards-viewer'
 import {
   clearVenueScoresWatch,
   commitVenueScoresOnQuestion,
@@ -704,6 +705,11 @@ export type DisplaySockData = {
   displayClientName?: string
   /** Normalized venue code for syncState / heartbeat without parsing session keys. */
   venueCode?: string
+  /**
+   * Seat this socket joined as. Stays put when a newer phone takes the action
+   * socket, so the older screen still receives its own hole cards.
+   */
+  viewerPlayerId?: string
 }
 
 export function resolveVenueCodeForSocket(socket: Socket): string | null {
@@ -2800,7 +2806,7 @@ function viewerForSocket(sock: Socket): { role?: string; playerId?: string | nul
   const data = sock.data as DisplaySockData
   return {
     role: data.role,
-    playerId: data.role === 'player' ? (playerIdForSocket(sock.id) ?? null) : null,
+    playerId: cardsViewerId(data.role, data.viewerPlayerId, playerIdForSocket(sock.id)),
   }
 }
 

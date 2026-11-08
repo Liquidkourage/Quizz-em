@@ -1,6 +1,7 @@
 import { createEmptyGame, type GameState, type PlayerState } from '@qhe/core'
 import { describe, expect, it } from 'vitest'
 import { handSecretsArePublic, redactGameStateForViewer } from './audience-view'
+import { cardsViewerId } from './cards-viewer'
 
 function seat(partial: Partial<PlayerState> & Pick<PlayerState, 'id' | 'name'>): PlayerState {
   return {
@@ -50,6 +51,21 @@ function handInProgress(): GameState {
   ]
   return gs
 }
+
+describe('cardsViewerId', () => {
+  it('keeps the seat a phone joined as after another socket takes the action', () => {
+    expect(cardsViewerId('player', 'ada', 'bea')).toBe('ada')
+  })
+
+  it('uses the action socket when this phone is the one that owns the seat', () => {
+    expect(cardsViewerId('player', undefined, 'ada')).toBe('ada')
+  })
+
+  it('shows nothing to a host or a player socket that never joined', () => {
+    expect(cardsViewerId('host', 'ada', 'ada')).toBeNull()
+    expect(cardsViewerId('player', undefined, undefined)).toBeNull()
+  })
+})
 
 describe('redactGameStateForViewer', () => {
   it('keeps the full hand for the host', () => {

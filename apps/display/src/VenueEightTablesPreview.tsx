@@ -2162,6 +2162,7 @@ function SeatRingWithLabels({
                   name={raw}
                   amount={chips}
                   fontPx={mosaicSeatStackFontForAmount(mosaicStackFontPx, chips)}
+                  folded={isFolded}
                 />
               </div>
             ) : null}

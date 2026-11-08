@@ -448,13 +448,16 @@ export function MosaicSeatStackAmount({
   name,
   amount,
   fontPx,
+  folded = false,
 }: {
   name: string
   amount: number
   fontPx: number
+  folded?: boolean
 }) {
   const label = formatVenueBankroll(amount)
   const digits = formatVenueBankrollDigits(amount)
+  const tone = folded ? 'vfd-mosaic-dollar--folded' : 'vfd-mosaic-dollar--live'
   return (
     <span
       className="vfd-mosaic-seat-stack vfd-mosaic-stack whitespace-nowrap leading-none"
@@ -462,7 +465,7 @@ export function MosaicSeatStackAmount({
       data-mosaic-seat-stack=""
       aria-label={`${name} stack ${label}`}
     >
-      <span className="vfd-mosaic-dollar vfd-mosaic-dollar--live">
+      <span className={`vfd-mosaic-dollar ${tone}`}>
         <span className="vfd-mosaic-dollar-sign" aria-hidden>
           <ChipMark />
         </span>

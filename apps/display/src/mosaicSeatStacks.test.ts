@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -290,6 +291,20 @@ describe('mosaic seat stacks', () => {
     expect(html).toContain('data-mosaic-seat-stack')
     expect(html).toContain('Ada stack')
     expect(html).toContain('vfd-mosaic-dollar--live')
+    expect(html).not.toContain('vfd-mosaic-dollar--folded')
     expect(html).toContain('font-size:18px')
+  })
+
+  it('dims a folded stack with the same stone color as the initials', () => {
+    const html = renderToStaticMarkup(
+      createElement(MosaicSeatStackAmount, { name: 'Ada', amount: 1250, fontPx: 18, folded: true }),
+    )
+    expect(html).toContain('vfd-mosaic-dollar--folded')
+    expect(html).not.toContain('vfd-mosaic-dollar--live')
+    const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+    const folded = css.slice(css.indexOf('.vfd-mosaic-seat-initial--folded'))
+    expect(folded.startsWith('.vfd-mosaic-seat-initial--folded')).toBe(true)
+    expect(folded.slice(0, 180)).toContain('.vfd-mosaic-dollar--folded')
+    expect(folded.slice(0, 220)).toContain('color: rgb(168 162 158)')
   })
 })

@@ -2870,7 +2870,8 @@
     align-items: flex-end;
   }
 
-  .vfd-mosaic-seat-face .vfd-mosaic-seat-initial--folded {
+  .vfd-mosaic-seat-face .vfd-mosaic-seat-initial--folded,
+  .vfd-mosaic-dollar--folded {
     color: rgb(168 162 158);
   }
 

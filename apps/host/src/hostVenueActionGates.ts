@@ -299,3 +299,30 @@ export function hostStartAnswerGate(args: {
   }
   return { blocked: false, hint: null }
 }
+
+export type RoomWait = { title: string; nudge: boolean }
+
+/**
+ * NEXT follows the room. When seated tables are not on the same step, name the
+ * ones behind. Null when the room is together, so the existing button stays.
+ */
+export function nextBandOverride(rows: HostVenueFeltBeatRow[] | null): RoomWait | null {
+  const seated = seatedVenueRows(rows)
+  if (seated.length < 2) return null
+  const waiting = tablesWaitingHint(seated)
+  if (waiting == null) return null
+  const nudge = seated.some((row) => row.phase === 'betting' && !wageringClockClosed(row.phaseStrictSig))
+  const title = waiting.endsWith('.') ? waiting.slice(0, -1) : waiting
+  return { title, nudge }
+}
+
+/** Drop a lead-table phase button while the room is split. Keep a rehearsal skip. */
+export function dockForRoomWait<T extends { id: string }>(
+  built: T[],
+  wait: RoomWait | null,
+  nudgeItem: T,
+): T[] {
+  if (wait == null) return built
+  const rehearsal = built.filter((item) => item.id === 'rehearsal-skip-showdown')
+  return wait.nudge ? [nudgeItem, ...rehearsal] : rehearsal
+}

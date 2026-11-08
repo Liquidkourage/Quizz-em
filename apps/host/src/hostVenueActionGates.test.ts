@@ -2,6 +2,8 @@ import { createEmptyGame } from '@qhe/core'
 import { describe, expect, it } from 'vitest'
 import { buildHostPhaseDockItems } from './hostDeskLayout'
 import {
+  dockForRoomWait,
+  nextBandOverride,
   venueCloseBettingBlockedHint,
   venueDealCommunityBlockedHint,
   venueRevealAnswerBlockedHint,
@@ -158,5 +160,66 @@ describe('reveal while someone is betting', () => {
       onNudgeActing: () => {},
     })
     expect(items.find((item) => item.label === 'Pay winners')?.disabled).toBe(true)
+  })
+})
+
+describe('next band while tables differ', () => {
+  it('waits on the slower table instead of the one that finished the street', () => {
+    const wait = nextBandOverride([
+      felt(1, 'betting', 'bet|1|F|cc0'),
+      felt(2, 'betting', 'bet|1|T|cc0'),
+    ])
+    expect(wait?.nudge).toBe(true)
+    expect(wait?.title).toContain('table 2')
+    expect(wait?.title).not.toContain('table 1')
+  })
+
+  it('nudges while one table is still betting and another is already guessing', () => {
+    const wait = nextBandOverride([
+      felt(1, 'answering', 'answer'),
+      felt(4, 'betting', 'bet|2|T|cc5'),
+    ])
+    expect(wait?.nudge).toBe(true)
+    expect(wait?.title).toContain('4')
+  })
+
+  it('does not nudge when the slow table has already closed its clock', () => {
+    const wait = nextBandOverride([
+      felt(1, 'answering', 'answer'),
+      felt(3, 'betting', 'bet|2|F|cc5'),
+    ])
+    expect(wait?.nudge).toBe(false)
+    expect(wait?.title).toContain('3')
+  })
+
+  it('leaves the band alone when every table is on the same step', () => {
+    expect(
+      nextBandOverride([
+        felt(1, 'betting', 'bet|1|F|cc0'),
+        felt(2, 'betting', 'bet|1|F|cc0'),
+      ]),
+    ).toBeNull()
+    expect(nextBandOverride([felt(1, 'answering', 'answer')])).toBeNull()
+    expect(nextBandOverride(null)).toBeNull()
+  })
+
+  it('drops the lead-table button and keeps a rehearsal skip', () => {
+    const built = [
+      { id: 'deal-board', label: 'Deal the street' },
+      { id: 'rehearsal-skip-showdown', label: 'Skip to winner screen' },
+    ]
+    const nudge = { id: 'nudge', label: 'Nudge slow player' }
+    const wait = nextBandOverride([
+      felt(1, 'betting', 'bet|1|F|cc0'),
+      felt(2, 'betting', 'bet|1|T|cc0'),
+    ])
+    expect(dockForRoomWait(built, wait, nudge).map((item) => item.id)).toEqual([
+      'nudge',
+      'rehearsal-skip-showdown',
+    ])
+    expect(dockForRoomWait(built, null, nudge)).toBe(built)
+    expect(dockForRoomWait(built, { title: 'Waiting on table 3', nudge: false }, nudge).map((item) => item.id)).toEqual([
+      'rehearsal-skip-showdown',
+    ])
   })
 })

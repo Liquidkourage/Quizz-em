@@ -83,8 +83,10 @@ import { HostRoomControls } from './HostRoomControls'
 import { HostLivePanel } from './HostLivePanel'
 import { HostQuestionsPanel } from './HostQuestionsPanel'
 import {
+  dockForRoomWait,
   hostCloseBettingGate,
   hostDealCommunityGate,
+  nextBandOverride,
   venueRevealAnswerBlockedHint,
   hostStartAnswerGate,
 } from './hostVenueActionGates'
@@ -574,6 +576,14 @@ function HostApp() {
     nextQuestionBlocked: venueFloorBrief?.scoresBlockNextQuestion === true,
     tournamentOver: endgameWinner != null,
   })
+  const roomWait = endgameWinner == null ? nextBandOverride(venueFeltBeat) : null
+  const nextDockItems = dockForRoomWait(phaseDockItems, roomWait, {
+    id: 'nudge',
+    label: 'Nudge slow player',
+    onClick: () => nudgeActingPlayers(),
+    variant: 'gold',
+    role: 'primary',
+  })
 
   const nextQuestionText =
     hasActiveSetlist && activeSetlist
@@ -586,12 +596,13 @@ function HostApp() {
     afterPayout,
   })
   const endgameHeadline = endgameWinner ? hostEndgameHeadline(endgameWinner) : null
-  const runOfShowHeadline = {
+  const alignedHeadline = {
     title: endgameHeadline?.title ?? pacingSuggestion.title,
     detail: endgameHeadline?.detail ?? pacingSuggestion.detail,
   }
+  const runOfShowHeadline = roomWait ? { title: roomWait.title } : alignedHeadline
   const floorLockstepMisaligned = hostFloorLockstepMisaligned(venueFeltBeat)
-  const primaryDockId = phaseDockItems.find((i) => i.role === 'primary')?.id ?? phaseDockItems[0]?.id
+  const primaryDockId = nextDockItems.find((i) => i.role === 'primary')?.id ?? nextDockItems[0]?.id
   const runBarCueHint =
     primaryDockId === 'close-bet' && closeBetBlocked
       ? closeBetHint
@@ -1066,9 +1077,9 @@ function HostApp() {
         {hostMode === 'live' ? (
           <HostLivePanel
             gameState={gameState}
-            phaseDockItems={phaseDockItems}
+            phaseDockItems={nextDockItems}
             runOfShowHeadline={runOfShowHeadline}
-            pacingUrgency={endgameWinner ? 'ready' : pacingSuggestion.urgency}
+            pacingUrgency={roomWait ? 'now' : endgameWinner ? 'ready' : pacingSuggestion.urgency}
             runBarCueHint={runBarCueHint}
             onVenueFloor={showVenueFloorOnTvs}
             onLeaderboard={showLeaderboardOnTvs}

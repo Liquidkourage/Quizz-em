@@ -1404,6 +1404,13 @@
   align-items: center;
 }
 
+/* A tablet or desktop column is taller than the oval. Center the felt in that open row. */
+@media (min-width: 768px) {
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    align-items: center;
+  }
+}
+
 /* A crushed oval only. Taller tables keep the seat and pot sizes they have. */
 @container (max-height: 170px) {
   .player-seat-tag {

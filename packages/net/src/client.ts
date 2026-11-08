@@ -711,9 +711,10 @@ export function adminCloseBetting(callback?: (ack: ServerAck) => void) {
   if (callback) socket.once('ack', callback)
 }
 
-export function adminAdvanceTurn(callback?: (ack: ServerAck) => void) {
+/** Fold the player to act at one table. Never the whole room. */
+export function adminAdvanceTurn(tableNum: number, callback?: (ack: ServerAck) => void) {
   if (!socket) return
-  socket.emit('action', { type: 'adminAdvanceTurnVenue' })
+  socket.emit('action', { type: 'adminAdvanceTurnVenue', payload: { tableNum } })
   if (callback) socket.once('ack', callback)
 }
 

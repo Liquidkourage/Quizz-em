@@ -1630,6 +1630,27 @@ export function lastCallForVenueTables(vnRaw: string, tableNum: number | null, c
   return changed
 }
 
+/** Fold the seat that is to act at one table. Other tables are left alone. A hold folds nobody. */
+export function foldActingPlayerAtTable(
+  vnRaw: string,
+  tableNum: number,
+): { folded: boolean; name: string | null } {
+  const vn = normalizeVenueCode(vnRaw)
+  if (isVenueHeld(vn)) return { folded: false, name: null }
+  for (const { tk, n, gs } of venuePlayableSnapshots(vn)) {
+    if (n !== tableNum) continue
+    const actor = resolveHumanTurnActor(gs)
+    if (!actor) return { folded: false, name: null }
+    clearHumanTurnClock(tk)
+    const next = adminAdvanceTurn(gs)
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next)
+    playVirtualPlayers(tk, next)
+    return { folded: true, name: shortPlayerName(actor.playerName) }
+  }
+  return { folded: false, name: null }
+}
+
 /** Host: start a 30s countdown on each table whose acting seat can still bet. One table when `tableNum` is set. */
 export function nudgeActingHumansVenue(
   vnRaw: string,

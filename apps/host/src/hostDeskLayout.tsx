@@ -725,8 +725,6 @@ export function buildHostPhaseDockItems(args: {
   onNextSetlist: () => void
   /** 30s countdown on acting humans, then auto check/fold. */
   onNudgeActing: () => void
-  /** Skip one stuck actor mid-wager (danger secondary). */
-  onForceAdvance?: () => void
   /** Rehearsal dry-run — jump venue wall to winner overlay without waiting for timers. */
   onRehearsalSkipToShowdown?: () => void
   /** Active rundown selected — show one-click Next from setlist in lobby. */
@@ -757,7 +755,6 @@ export function buildHostPhaseDockItems(args: {
     onRandomQuestion,
     onNextSetlist,
     onNudgeActing,
-    onForceAdvance,
     onRehearsalSkipToShowdown,
     hasActiveSetlist = false,
     handsCompleted = 0,
@@ -919,15 +916,6 @@ export function buildHostPhaseDockItems(args: {
           role: 'secondary',
         },
       ]
-      if (onForceAdvance) {
-        items.push({
-          id: 'force-advance',
-          label: 'Skip this player',
-          onClick: onForceAdvance,
-          variant: 'gold',
-          role: 'danger',
-        })
-      }
       return withRehearsalSkip(items)
     }
     if (bettingRound === 1 && communityLen < 5) {
@@ -2410,6 +2398,7 @@ export function HostVenueFloorBriefPanel({
   onMove,
   onRemove,
   onNudgeTable,
+  onSkipTable,
   onLastCall,
   blindCall,
 }: {
@@ -2424,6 +2413,8 @@ export function HostVenueFloorBriefPanel({
   onRemove?: (playerId: string) => void
   /** Start the 30s clock for the human waiting to act at this table. */
   onNudgeTable?: (tableNum: number) => void
+  /** Fold the player to act at this table only. */
+  onSkipTable?: (tableNum: number) => void
   /** Close further bets and raises. Null table means every open betting table. */
   onLastCall?: (tableNum: number | null, closed: boolean) => void
   blindCall?: ReactNode
@@ -2607,14 +2598,24 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </p>
                     </button>
-                    {nudgeName ? (
+                    {nudgeName && onNudgeTable ? (
                       <button
                         type="button"
                         aria-label={`Nudge ${nudgeName} on table ${row.tableNum}`}
-                        onClick={() => onNudgeTable?.(row.tableNum)}
+                        onClick={() => onNudgeTable(row.tableNum)}
                         className="mt-1 w-full rounded border border-amber-300/70 bg-amber-500/25 px-1 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-50"
                       >
                         Nudge
+                      </button>
+                    ) : null}
+                    {nudgeName && onSkipTable ? (
+                      <button
+                        type="button"
+                        aria-label={`Fold ${nudgeName} on table ${row.tableNum}`}
+                        onClick={() => onSkipTable(row.tableNum)}
+                        className="mt-1 w-full rounded border border-rose-300/70 bg-rose-500/25 px-1 py-0.5 text-xs font-bold uppercase tracking-wide text-rose-50"
+                      >
+                        Fold
                       </button>
                     ) : null}
                     {onLastCall && row.phase === 'betting' && !row.betsClosed ? (

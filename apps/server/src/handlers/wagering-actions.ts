@@ -28,6 +28,7 @@ export async function handleWageringAction(
     'allIn',
     'adminCloseBetting',
     'adminAdvanceTurn',
+    'adminAdvanceTurnVenue',
   ])
   if (holdBlocksWager.has(type) && g.isVenueHeld(gameState.code)) {
     socket.emit('toast', 'The room is on hold. Resume to continue.')
@@ -91,23 +92,17 @@ export async function handleWageringAction(
         case 'adminAdvanceTurn':
         case 'adminAdvanceTurnVenue': {
           if (!g.assertVenueHost(socket, gameState)) break
-          const vnAdv = g.normalizeVenueCode(gameState.code)
-          const rowsAdv = g.venuePlayableSnapshots(vnAdv)
-          let advanced = 0
-          for (const { tk, gs } of rowsAdv) {
-            if (gs.phase !== 'betting' || !gs.round.isBettingOpen) continue
-            g.clearHumanTurnClock(tk)
-            let next = g.adminAdvanceTurn(gs)
-            g.rooms.set(tk, next)
-            g.emitVenueTableState(tk, next)
-            g.playVirtualPlayers(tk, next)
-            advanced++
+          const requested = payload?.tableNum
+          const tableNum =
+            typeof requested === 'number' && Number.isFinite(requested) ? Math.floor(requested) : null
+          if (tableNum == null) {
+            socket.emit('toast', 'Pick one table to fold. This does not fold the room.')
+            break
           }
+          const { folded, name } = g.foldActingPlayerAtTable(gameState.code, tableNum)
           socket.emit(
             'toast',
-            advanced > 0
-              ? `Folded the acting player on ${advanced} table(s).`
-              : 'No open wagering to fold on any table.',
+            folded && name ? `Folded ${name} on table ${tableNum}.` : `Nobody to fold on table ${tableNum}.`,
           )
           gameState = g.rooms.get(sessionKey)!
           break

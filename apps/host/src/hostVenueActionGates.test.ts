@@ -87,6 +87,34 @@ describe('reveal while someone is betting', () => {
     expect(items.find((item) => item.label === 'Reveal the answer')?.disabled).toBe(true)
   })
 
+  it('keeps skip off the room-wide cue bar while betting is open', () => {
+    const base = createEmptyGame('HOST', 'host', '1')
+    const gameState = {
+      ...base,
+      phase: 'betting' as const,
+      round: { ...base.round, isBettingOpen: true, bettingRound: 1 as const },
+    }
+    const items = buildHostPhaseDockItems({
+      gameState,
+      answerWindowSeconds: 60,
+      dealCommunityBlocked: false,
+      closeBetBlocked: false,
+      startAnswerBlocked: false,
+      communityLen: 0,
+      bettingRound: 1,
+      onStartGame: () => {},
+      onAssignFromLobby: () => {},
+      onDealCommunity: () => {},
+      onStartAnswering: () => {},
+      onRevealAnswer: () => {},
+      onEndRound: () => {},
+      onRandomQuestion: () => {},
+      onNextSetlist: () => {},
+      onNudgeActing: () => {},
+    })
+    expect(items.map((item) => item.label)).toEqual(['Close 1st betting round', 'Nudge slow player'])
+  })
+
   it('keeps Reveal the answer off until the timer ends or every guess is in', () => {
     const open = venueRevealAnswerBlockedHint(
       [felt(1, 'answering', 'answer', { answerDeadlineMs: 10_000 })],

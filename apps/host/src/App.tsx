@@ -560,7 +560,6 @@ function HostApp() {
     onRandomQuestion: handleSetRandomQuestion,
     onNextSetlist: () => nextQuestionFromSetlist(),
     onNudgeActing: () => nudgeActingPlayers(),
-    onForceAdvance: () => adminAdvanceTurn(),
     onRehearsalSkipToShowdown: rehearsalCpuOnly ? () => rehearsalSkipToShowdown() : undefined,
     hasActiveSetlist,
     handsCompleted: venueFloorBrief?.handsCompleted ?? 0,
@@ -1094,6 +1093,7 @@ function HostApp() {
                 onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
                 onRemove={(playerId) => removePlayerFromEvent(playerId)}
                 onNudgeTable={(tableNum) => nudgeActingPlayers(tableNum)}
+                onSkipTable={(tableNum) => adminAdvanceTurn(tableNum)}
                 onLastCall={(tableNum, closed) => lastCallForBets(tableNum, closed)}
                 blindCall={
               <HostBlindCall

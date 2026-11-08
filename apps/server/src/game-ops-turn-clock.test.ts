@@ -8,6 +8,7 @@ import {
   clearHumanTurnClock,
   HUMAN_NUDGE_TIMEOUT_MS,
   humanTurnDeadlineMs,
+  foldActingPlayerAtTable,
   nudgeActingHumansVenue,
   nudgeOpenGuesses,
   prepareVenuePersistence,
@@ -194,6 +195,26 @@ describe('nudgeActingHumansVenue', () => {
     expect(heard.ann).toEqual(['You have 30 seconds to act. Then you check or fold.'])
     expect(heard.bo).toEqual([])
     expect(toasts).not.toContain('You have 30 seconds to act. Then you check or fold.')
+  })
+})
+
+describe('foldActingPlayerAtTable', () => {
+  it('folds the player to act on that table and leaves every other table alone', () => {
+    const a = put('F1', '1')
+    const b = put('F1', '2', { currentPlayerIndex: 1 })
+    expect(foldActingPlayerAtTable('f1', 2)).toEqual({ folded: true, name: 'Bo' })
+    expect(rooms.get(a.key)!.players[0]!.hasFolded).toBeFalsy()
+    expect(rooms.get(b.key)!.players[1]!.hasFolded).toBe(true)
+    expect(rooms.get(a.key)!.round.currentPlayerIndex).toBe(0)
+  })
+
+  it('folds nobody when the table is missing or the room is on hold', () => {
+    const a = put('F2', '1')
+    expect(foldActingPlayerAtTable('f2', 9)).toEqual({ folded: false, name: null })
+    setVenueRoomHold('f2', true)
+    expect(foldActingPlayerAtTable('f2', 1)).toEqual({ folded: false, name: null })
+    expect(rooms.get(a.key)!.players[0]!.hasFolded).toBeFalsy()
+    setVenueRoomHold('f2', false)
   })
 })
 

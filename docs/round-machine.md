@@ -131,7 +131,7 @@ Venue-wide mutations (`startGame`, `setQuestion`, deals, `adminCloseBetting` whe
 | Action | Effect |
 |--------|--------|
 | **adminCloseBetting** | Force-closes **open** wagering (**every table** must agree on the same street first). Use when players stall closing a wave so **`dealCommunityCards`** / **`startAnswering`** can unlock. Venue-wide lockstep enforced on the server. |
-| **adminAdvanceTurn** | Advances **`currentPlayerIndex`** without validating player action — escape hatch only. |
+| **adminAdvanceTurn** | Folds the player to act on **one** numbered table. No table number folds nobody. |
 | **revealAnswer** | Manual premature exit from **`answering`** to **`showdown`** (matches auto-timer semantics). Venue-wide fan-out where implemented. |
 | **endRound** | Payout + full round cleanup → **`lobby`** venue-wide — only when **every** table is **`showdown`** together. |
 | **newGame** | Fresh **`createEmptyGame`** per venue session — **destructive**. |

@@ -380,14 +380,18 @@ describe('venue floor now', () => {
         hostPlayerLabel: (name: string) => name,
         hostTableId: '1',
         onNudgeTable: () => {},
+        onSkipTable: () => {},
       }),
     )
     const waiting = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
     const closed = html.slice(html.indexOf('Open table 2'), html.indexOf('Open table 3'))
     const guessing = html.slice(html.indexOf('Open table 3'))
     expect(waiting).toContain('Nudge Ada Lane on table 1')
+    expect(waiting).toContain('Fold Ada Lane on table 1')
     expect(closed).not.toContain('Nudge')
+    expect(closed).not.toContain('Fold')
     expect(guessing).not.toContain('Nudge')
+    expect(guessing).not.toContain('Fold')
   })
 
   it('offers last call on an open betting table and shows stack and pot investment', () => {

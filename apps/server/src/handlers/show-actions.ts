@@ -31,6 +31,7 @@ export async function handleShowAction(
     'submitAnswer',
     'nudgeActingPlayers',
     'adminAdvanceTurn',
+    'adminAdvanceTurnVenue',
     'rehearsalSkipToShowdown',
   ])
   if (holdBlocksShow.has(type) && g.isVenueHeld(gameState.code)) {

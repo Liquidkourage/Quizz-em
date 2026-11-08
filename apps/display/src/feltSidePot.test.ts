@@ -183,7 +183,7 @@ describe('felt side pot', () => {
 
   it('puts matching chips on eligible seats and a status pill on folded or all-in seats', () => {
     const both = renderToStaticMarkup(
-      createElement(MosaicSeatFace, { initials: 'NB', marks: [1, 2], folded: false, allIn: false }),
+      createElement(MosaicSeatFace, { initials: 'NB', marks: [1, 2], folded: false }),
     )
     expect(both).toContain('>NB<')
     expect(both).toContain('aria-label="Side pot 1"')
@@ -194,33 +194,38 @@ describe('felt side pot', () => {
     expect(both.indexOf('aria-label="Side pot 1"')).toBeLessThan(both.indexOf('aria-label="Side pot 2"'))
     expect(both).toContain('vfd-mosaic-seat-face--bottom')
     const rightRail = renderToStaticMarkup(
-      createElement(MosaicSeatFace, { initials: 'BB', marks: [1, 2], folded: false, allIn: true, seatIndex: 2 }),
+      createElement(MosaicSeatFace, { initials: 'BB', marks: [1, 2], folded: false, seatIndex: 2 }),
     )
     expect(rightRail).toContain('vfd-mosaic-seat-face--right')
-    expect(rightRail).toContain('whitespace-nowrap')
-    expect(rightRail.indexOf('>All-in<')).toBeLessThan(rightRail.indexOf('aria-label="Side pot 1"'))
+    expect(rightRail).not.toContain('>All-in<')
     expect(rightRail.indexOf('aria-label="Side pot 1"')).toBeLessThan(rightRail.indexOf('>BB<'))
     const leftRail = renderToStaticMarkup(
-      createElement(MosaicSeatFace, { initials: 'EA', marks: [], folded: true, allIn: false, seatIndex: 6 }),
+      createElement(MosaicSeatFace, { initials: 'EA', marks: [], folded: true, seatIndex: 6 }),
     )
     expect(leftRail).toContain('vfd-mosaic-seat-face--left')
-    expect(leftRail.indexOf('>Folded<')).toBeLessThan(leftRail.indexOf('>EA<'))
+    expect(leftRail).toContain('vfd-mosaic-seat-folded--inward')
+    expect(leftRail).toContain('>Folded<')
     expect(both).not.toContain('>Folded<')
     expect(both).not.toContain('>All-in<')
 
     const mainOnly = renderToStaticMarkup(
-      createElement(MosaicSeatFace, { initials: 'LA', marks: [], folded: false, allIn: true }),
+      createElement(MosaicSeatFace, { initials: 'LA', marks: [], folded: false }),
     )
     expect(mainOnly).not.toContain('vfd-mosaic-side-badge')
-    expect(mainOnly).toContain('>All-in<')
+    expect(mainOnly).not.toContain('>All-in<')
     expect(mainOnly).not.toContain('vfd-mosaic-seat-initial--folded')
 
     const folded = renderToStaticMarkup(
-      createElement(MosaicSeatFace, { initials: 'PA', marks: [], folded: true, allIn: true }),
+      createElement(MosaicSeatFace, { initials: 'PA', marks: [], folded: true }),
     )
     expect(folded).toContain('vfd-mosaic-seat-initial--folded')
+    expect(folded).toContain('vfd-mosaic-seat-folded--above')
     expect(folded).toContain('>Folded<')
     expect(folded).not.toContain('>All-in<')
+    const topFolded = renderToStaticMarkup(
+      createElement(MosaicSeatFace, { initials: 'AA', marks: [], folded: true, seatIndex: 0 }),
+    )
+    expect(topFolded).toContain('vfd-mosaic-seat-folded--below')
 
     expect(mosaicSeatIsAllIn({
       stacksKnown: true,

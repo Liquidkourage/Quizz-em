@@ -2844,6 +2844,37 @@
     gap: 0.08em;
   }
 
+  .vfd-mosaic-seat-folded {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .vfd-mosaic-seat-folded--below {
+    top: calc(100% + 0.08em);
+  }
+
+  .vfd-mosaic-seat-folded--above {
+    bottom: calc(100% + 0.08em);
+  }
+
+  .vfd-mosaic-seat-face--left .vfd-mosaic-seat-folded--inward,
+  .vfd-mosaic-seat-face--right .vfd-mosaic-seat-folded--inward {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+
+  .vfd-mosaic-seat-face--left .vfd-mosaic-seat-folded--inward {
+    left: calc(100% + 0.12em);
+    right: auto;
+  }
+
+  .vfd-mosaic-seat-face--right .vfd-mosaic-seat-folded--inward {
+    right: calc(100% + 0.12em);
+    left: auto;
+  }
+
   .vfd-mosaic-seat-face--top .vfd-mosaic-seat-rail {
     margin-bottom: 0.08em;
   }
@@ -2952,6 +2983,10 @@
       animation: none;
       color: #facc15;
     }
+  }
+
+  .vfd-mosaic-seat-stack .vfd-mosaic-seat-status--allin {
+    font-size: 0.85em;
   }
 
   .vfd-mosaic-seat-stack .vfd-mosaic-dollar {

@@ -38,7 +38,6 @@ import {
   mosaicSidePotsThatFit,
   mosaicTileFrame,
   type MosaicPlaqueMetrics,
-  type MosaicSeatRail,
 } from './mosaicTileLayout'
 import {
   mosaicSeatDotPct,
@@ -661,14 +660,12 @@ export function mosaicSeatIsAllIn(args: {
   )
 }
 
-function mosaicSeatStatusNode(folded: boolean, allIn: boolean): ReactNode {
-  if (folded) {
-    return (
-      <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--folded whitespace-nowrap">Folded</span>
-    )
-  }
-  if (!allIn) return null
-  return <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--allin whitespace-nowrap">All-in</span>
+/** Folded sits on the felt side of the letters. All-in takes the stack's place. */
+function mosaicFoldedFeltSide(seatIndex: number): 'above' | 'below' | 'inward' {
+  const rail = mosaicSeatRail(seatIndex)
+  if (rail === 'top') return 'below'
+  if (rail === 'bottom') return 'above'
+  return 'inward'
 }
 
 function mosaicSeatBadgeRow(marks: readonly number[]): ReactNode {
@@ -689,36 +686,36 @@ function mosaicSeatBadgeRow(marks: readonly number[]): ReactNode {
   )
 }
 
-function mosaicSeatRailStack(rail: MosaicSeatRail, status: ReactNode, badgeRow: ReactNode): ReactNode {
-  if (status == null && badgeRow == null) return null
-  const statusFirst = rail !== 'bottom'
-  return (
-    <span className="vfd-mosaic-seat-rail">
-      {statusFirst ? status : badgeRow}
-      {statusFirst ? badgeRow : status}
-    </span>
-  )
+function mosaicSeatBadgeRail(badgeRow: ReactNode): ReactNode {
+  if (badgeRow == null) return null
+  return <span className="vfd-mosaic-seat-rail">{badgeRow}</span>
 }
 
-/** Initials, side-pot chips, and folded / all-in status for one mosaic seat. */
+/** Initials, side-pot chips, and the folded label for one mosaic seat. */
 export function MosaicSeatFace({
   initials,
   marks,
   folded,
-  allIn,
   seatIndex = 4,
 }: {
   initials: string
   marks: readonly number[]
   folded: boolean
-  allIn: boolean
   seatIndex?: number
 }) {
   const rail = mosaicSeatRail(seatIndex)
-  const railStack = mosaicSeatRailStack(rail, mosaicSeatStatusNode(folded, allIn), mosaicSeatBadgeRow(marks))
+  const railStack = mosaicSeatBadgeRail(mosaicSeatBadgeRow(marks))
   const initialsFirst = rail === 'bottom'
+  const feltSide = mosaicFoldedFeltSide(seatIndex)
   return (
     <span className={`vfd-mosaic-seat-face vfd-mosaic-seat-face--${rail}`}>
+      {folded ? (
+        <span
+          className={`vfd-mosaic-seat-folded vfd-mosaic-seat-folded--${feltSide} vfd-mosaic-seat-status vfd-mosaic-seat-status--folded whitespace-nowrap`}
+        >
+          Folded
+        </span>
+      ) : null}
       {initialsFirst ? null : railStack}
       <span className={folded ? 'vfd-mosaic-seat-initial--folded' : undefined}>{initials}</span>
       {initialsFirst ? railStack : null}
@@ -2049,7 +2046,7 @@ function SeatRingWithLabels({
           (size === 'lg' ? 44 : 36) + (feltSeatStacks && size === 'lg' ? 10 : 0)
         const mosaicStack =
           isMosaic && showMosaicSeatStacks && filled && !isBusted
-            ? mosaicSeatStackPlacement(i, rimW, rimH, isFolded || isAllIn)
+            ? mosaicSeatStackPlacement(i, rimW, rimH)
             : null
         const actingSoftPulse =
           'pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/12 motion-reduce:hidden motion-safe:animate-pulse'
@@ -2105,7 +2102,6 @@ function SeatRingWithLabels({
                         initials={mosaicInitials}
                         marks={sideMarkAt(seatSideMarks, i)}
                         folded={isFolded}
-                        allIn={isAllIn}
                         seatIndex={i}
                       />
                     )
@@ -2163,6 +2159,7 @@ function SeatRingWithLabels({
                   amount={chips}
                   fontPx={mosaicSeatStackFontForAmount(mosaicStackFontPx, chips)}
                   folded={isFolded}
+                  allIn={isAllIn}
                 />
               </div>
             ) : null}

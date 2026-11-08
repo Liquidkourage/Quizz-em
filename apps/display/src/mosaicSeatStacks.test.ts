@@ -16,7 +16,6 @@ import {
   mosaicCrowdedStackLayout,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
-  mosaicSeatStackStatusClearPx,
   mosaicSeatStackFontForAmount,
   mosaicShowsSeatStacks,
   mosaicBoardGapPx,
@@ -143,24 +142,6 @@ describe('mosaic seat stacks', () => {
       expect(layout.transform, `seat ${seat}`).toBe(above ? 'translate(-50%, -100%)' : 'translate(-50%, 0)')
       expect(anchorY, `seat ${seat} y`).toBeCloseTo(cupY + (above ? -font * 0.52 : font * 0.52), 4)
     }
-  })
-
-  it('clears a status label that sits between the amount and the initials', () => {
-    const w = 480
-    const h = 255
-    const font = mosaicSeatInitialFontPx(w, h)
-    const clear = mosaicSeatStackStatusClearPx(font)
-    expect(clear).toBeGreaterThan(0)
-    const top = mosaicSeatStackPlacement(0, w, h)
-    const topFolded = mosaicSeatStackPlacement(0, w, h, true)
-    expect((topFolded.topPct / 100) * h).toBeCloseTo((top.topPct / 100) * h - clear, 4)
-    expect(topFolded.leftPct).toBeCloseTo(top.leftPct, 4)
-    const bottom = mosaicSeatStackPlacement(4, w, h)
-    const bottomFolded = mosaicSeatStackPlacement(4, w, h, true)
-    expect((bottomFolded.topPct / 100) * h).toBeCloseTo((bottom.topPct / 100) * h + clear, 4)
-    const side = mosaicSeatStackPlacement(2, w, h)
-    const sideFolded = mosaicSeatStackPlacement(2, w, h, true)
-    expect(sideFolded.topPct).toBeCloseTo(side.topPct, 4)
   })
 
   it('sizes initials and stacks from the felt so they read across the room', () => {
@@ -303,6 +284,16 @@ describe('mosaic seat stacks', () => {
     expect(short).toBe(28)
     expect(longer).toBeLessThan(short)
     expect(longer * mosaicStackLabelEm(10_990)).toBeLessThanOrEqual(short * MOSAIC_STACK_LABEL_EM + 0.01)
+  })
+
+  it('replaces an all-in stack with the all-in label', () => {
+    const html = renderToStaticMarkup(
+      createElement(MosaicSeatStackAmount, { name: 'Ada', amount: 0, fontPx: 18, allIn: true }),
+    )
+    expect(html).toContain('>All-in<')
+    expect(html).toContain('Ada all-in')
+    expect(html).not.toContain('vfd-mosaic-dollar')
+    expect(html).not.toContain('>0<')
   })
 
   it('prints the seat stack as a chip amount', () => {

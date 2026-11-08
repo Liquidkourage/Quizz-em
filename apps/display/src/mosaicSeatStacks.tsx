@@ -6,7 +6,6 @@ import {
   type StadiumMosaicDensity,
 } from '@qhe/ui'
 import { formatVenueBankroll, formatVenueBankrollDigits } from './venueLeaderboard'
-import { mosaicSeatRail } from './mosaicTileLayout'
 import {
   mosaicSeatDotPct,
   mosaicSeatHoleInwardFrac,
@@ -423,25 +422,8 @@ export function mosaicSeatStackFontPx(tableWidthPx: number, filledSeats = 0, tab
   return 16
 }
 
-/**
- * How far a Folded or All-in pill extends past the initials.
- * The face is centered on the cup, so half of that block is the push.
- * Pill is 0.34em with 0.18em padding, plus the 0.08em rail margin.
- * The extra 4px keeps the slanted digits off the pill.
- */
-export function mosaicSeatStackStatusClearPx(initialFontPx: number): number {
-  if (!(initialFontPx > 0)) return 0
-  const blockEm = 0.34 * (1 + 0.18 * 2) + 0.08
-  return (blockEm / 2) * initialFontPx + 4
-}
-
 /** Amount centered on the initials: just above a top-rail seat, just under every other seat. */
-export function mosaicSeatStackPlacement(
-  seatIndex: number,
-  w: number,
-  h: number,
-  hasStatus = false,
-): MosaicSeatStackLayout {
+export function mosaicSeatStackPlacement(seatIndex: number, w: number, h: number): MosaicSeatStackLayout {
   const cup = mosaicSeatDotPct(seatIndex, 8, w, h)
   if (!(w > 0 && h > 0)) return { ...cup, transform: 'translate(-50%, 0)' }
   const font = mosaicSeatInitialFontPx(w, h)
@@ -450,9 +432,7 @@ export function mosaicSeatStackPlacement(
   const cupY = (cup.topPct / 100) * h
   const centerY = (venueMosaicFeltCenterPct(w, h).topPct / 100) * h
   const above = cupY < centerY
-  const rail = mosaicSeatRail(seatIndex)
-  const clear = hasStatus && (rail === 'top' || rail === 'bottom') ? mosaicSeatStackStatusClearPx(font) : 0
-  const y = cupY + (above ? -(font * 0.52 + clear) : font * 0.52 + clear)
+  const y = cupY + (above ? -font * 0.52 : font * 0.52)
   return {
     leftPct: (x / w) * 100,
     topPct: (y / h) * 100,
@@ -472,12 +452,26 @@ export function MosaicSeatStackAmount({
   amount,
   fontPx,
   folded = false,
+  allIn = false,
 }: {
   name: string
   amount: number
   fontPx: number
   folded?: boolean
+  allIn?: boolean
 }) {
+  if (allIn) {
+    return (
+      <span
+        className="vfd-mosaic-seat-stack vfd-mosaic-stack whitespace-nowrap leading-none"
+        style={{ fontSize: `${Math.max(1, Math.round(fontPx))}px` }}
+        data-mosaic-seat-stack=""
+        aria-label={`${name} all-in`}
+      >
+        <span className="vfd-mosaic-seat-status vfd-mosaic-seat-status--allin whitespace-nowrap">All-in</span>
+      </span>
+    )
+  }
   const label = formatVenueBankroll(amount)
   const digits = formatVenueBankrollDigits(amount)
   const tone = folded ? 'vfd-mosaic-dollar--folded' : 'vfd-mosaic-dollar--live'

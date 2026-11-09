@@ -1,4 +1,4 @@
-import { roundTriviaPoints, VENUE_WALL_SEAT_SLOTS } from '@qhe/core'
+import { formatTriviaPointsLine, roundTriviaPoints, VENUE_WALL_SEAT_SLOTS } from '@qhe/core'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 
 export type VenueLeaderboardRow = {
@@ -99,39 +99,91 @@ export function captureVenueHandStackBaselines(tiles: DisplayVenueTileSnapshot[]
   return out
 }
 
+function compareRank(delta: number, a: VenueLeaderboardRow, b: VenueLeaderboardRow): number {
+  if (delta !== 0) return delta
+  const nameOrder = comparePlayersByFirstNameThenFullName(a, b)
+  if (nameOrder !== 0) return nameOrder
+  if (a.tableNum !== b.tableNum) return a.tableNum - b.tableNum
+  return a.seatNum - b.seatNum
+}
+
+function rankRows(
+  rows: VenueLeaderboardRow[],
+  score: (row: VenueLeaderboardRow) => number,
+): VenueLeaderboardRow[] {
+  return rows.sort((a, b) => compareRank(score(b) - score(a), a, b))
+}
+
+function chipSeatRow(
+  tile: DisplayVenueTileSnapshot,
+  index: number,
+  bankrolls: readonly number[],
+  points: readonly number[],
+  baselines: ReadonlyMap<string, number> | null | undefined,
+): VenueLeaderboardRow | null {
+  const name = tile.seatNames?.[index]?.trim()
+  if (!name || tile.seatPointsOnly?.[index] === true) return null
+  const bankroll = bankrolls[index] ?? 0
+  const baseline = baselines?.get(venueLeaderboardPlayerKey(tile.tableNum, index + 1, name))
+  return {
+    name,
+    tableNum: tile.tableNum,
+    seatNum: index + 1,
+    bankroll,
+    stackDelta: baseline != null ? bankroll - baseline : null,
+    answerPoints: points[index] ?? 0,
+  }
+}
+
+function appendChipContestSeats(
+  out: VenueLeaderboardRow[],
+  tiles: readonly DisplayVenueTileSnapshot[],
+  baselines: ReadonlyMap<string, number> | null | undefined,
+): void {
+  for (const tile of tiles) {
+    const names = tile.seatNames
+    if (names == null || names.length === 0) continue
+    const bankrolls = padSeatBankrolls(tile.seatBankrolls)
+    const points = padSeatAnswerPoints(tile.seatAnswerPoints)
+    for (let index = 0; index < names.length; index++) {
+      const row = chipSeatRow(tile, index, bankrolls, points, baselines)
+      if (row) out.push(row)
+    }
+  }
+}
+
+function pointsOnlySeatRow(tile: DisplayVenueTileSnapshot, index: number): VenueLeaderboardRow | null {
+  const name = tile.seatNames?.[index]?.trim()
+  if (!name || tile.seatPointsOnly?.[index] !== true) return null
+  return {
+    name,
+    tableNum: tile.tableNum,
+    seatNum: index + 1,
+    bankroll: padSeatBankrolls(tile.seatBankrolls)[index] ?? 0,
+    stackDelta: null,
+    answerPoints: padSeatAnswerPoints(tile.seatAnswerPoints)[index] ?? 0,
+  }
+}
+
+function appendPointsOnlySeats(out: VenueLeaderboardRow[], tiles: readonly DisplayVenueTileSnapshot[]): void {
+  for (const tile of tiles) {
+    const names = tile.seatNames
+    if (names == null || names.length === 0) continue
+    for (let index = 0; index < names.length; index++) {
+      const row = pointsOnlySeatRow(tile, index)
+      if (row) out.push(row)
+    }
+  }
+}
+
 /** Ranked by stack (desc); tie-break name then table/seat. */
 export function venueLeaderboardRowsFromTiles(
   tiles: DisplayVenueTileSnapshot[],
-  handStartBaselines?: ReadonlyMap<string, number> | null
+  handStartBaselines?: ReadonlyMap<string, number> | null,
 ): VenueLeaderboardRow[] {
-  const out: VenueLeaderboardRow[] = []
-  for (const t of tiles) {
-    const sn = t.seatNames
-    const br = padSeatBankrolls(t.seatBankrolls)
-    if (sn == null || sn.length === 0) continue
-    for (let i = 0; i < sn.length; i++) {
-      const raw = sn[i]?.trim()
-      if (!raw || t.seatPointsOnly?.[i] === true) continue
-      const bankroll = br[i] ?? 0
-      const key = venueLeaderboardPlayerKey(t.tableNum, i + 1, raw)
-      const baseline = handStartBaselines?.get(key)
-      out.push({
-        name: raw,
-        tableNum: t.tableNum,
-        seatNum: i + 1,
-        bankroll,
-        stackDelta: baseline != null ? bankroll - baseline : null,
-      })
-    }
-  }
-  out.sort((a, b) => {
-    if (b.bankroll !== a.bankroll) return b.bankroll - a.bankroll
-    const c = comparePlayersByFirstNameThenFullName(a, b)
-    if (c !== 0) return c
-    if (a.tableNum !== b.tableNum) return a.tableNum - b.tableNum
-    return a.seatNum - b.seatNum
-  })
-  return out
+  const rows: VenueLeaderboardRow[] = []
+  appendChipContestSeats(rows, tiles, handStartBaselines)
+  return rankRows(rows, (row) => row.bankroll)
 }
 
 /** Players who left with no stack. The wall snapshot carries them beside the seated tiles. */
@@ -177,58 +229,52 @@ function appendUnseatedTriviaRows(
   }
 }
 
-/** The night's trivia list. A remembered field includes players who already left a chair. */
+function chipContestNames(tiles: DisplayVenueTileSnapshot[]): Set<string> {
+  const names = new Set<string>()
+  for (const tile of tiles) {
+    const seats = tile.seatNames
+    if (seats == null) continue
+    for (let i = 0; i < seats.length; i++) {
+      const name = seats[i]?.trim()
+      if (!name || tile.seatPointsOnly?.[i] === true) continue
+      names.add(name.toLowerCase())
+    }
+  }
+  return names
+}
+
+function withoutChipPlayers<T extends { name: string }>(
+  rows: readonly T[],
+  chips: ReadonlySet<string>,
+): T[] {
+  return rows.filter((row) => !chips.has(row.name.trim().toLowerCase()))
+}
+
 export function triviaLeaderboardSource(
   tiles: DisplayVenueTileSnapshot[],
   standings: readonly { name: string; answerPoints: number }[],
   field: readonly { name: string; answerPoints: number }[] | null | undefined,
 ): VenueLeaderboardRow[] {
-  if (field != null && field.length > 0) return venueTriviaLeaderboardRowsFromTiles([], field)
-  return venueTriviaLeaderboardRowsFromTiles(tiles, standings)
+  const chips = chipContestNames(tiles)
+  if (field != null && field.length > 0) {
+    return venueTriviaLeaderboardRowsFromTiles([], withoutChipPlayers(field, chips))
+  }
+  return venueTriviaLeaderboardRowsFromTiles(tiles, withoutChipPlayers(standings, chips))
 }
 
-/** Ranked by trivia answer points (desc); dual-trophy night companion to chip stacks. */
+/** Ranked by trivia answer points (desc). Chip contestants stay on the chip board. */
 export function venueTriviaLeaderboardRowsFromTiles(
   tiles: DisplayVenueTileSnapshot[],
   standings: readonly { name: string; answerPoints: number }[] = [],
 ): VenueLeaderboardRow[] {
-  const out: VenueLeaderboardRow[] = []
-  for (const t of tiles) {
-    const sn = t.seatNames
-    const pts = padSeatAnswerPoints(t.seatAnswerPoints)
-    const br = padSeatBankrolls(t.seatBankrolls)
-    if (sn == null || sn.length === 0) continue
-    for (let i = 0; i < sn.length; i++) {
-      const raw = sn[i]?.trim()
-      if (!raw) continue
-      out.push({
-        name: raw,
-        tableNum: t.tableNum,
-        seatNum: i + 1,
-        bankroll: br[i] ?? 0,
-        stackDelta: null,
-        answerPoints: pts[i] ?? 0,
-      })
-    }
-  }
-  appendUnseatedTriviaRows(out, standings)
-  out.sort((a, b) => {
-    const ap = a.answerPoints ?? 0
-    const bp = b.answerPoints ?? 0
-    if (bp !== ap) return bp - ap
-    const c = comparePlayersByFirstNameThenFullName(a, b)
-    if (c !== 0) return c
-    if (a.tableNum !== b.tableNum) return a.tableNum - b.tableNum
-    return a.seatNum - b.seatNum
-  })
-  return out
+  const rows: VenueLeaderboardRow[] = []
+  appendPointsOnlySeats(rows, tiles)
+  appendUnseatedTriviaRows(rows, withoutChipPlayers(standings, chipContestNames(tiles)))
+  return rankRows(rows, (row) => row.answerPoints ?? 0)
 }
 
 export function formatVenueTriviaPoints(amount: number): string {
-  const fixed = roundTriviaPoints(amount).toFixed(2)
-  const [intPart, fracPart] = fixed.split('.')
-  const withCommas = (intPart ?? '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-  return `${withCommas}.${fracPart} pts`
+  return formatTriviaPointsLine(amount)
 }
 
   /** @deprecated Use {@link buildVenueLeaderboardPresentation} — capped at 4 columns via pagination. */

@@ -13,13 +13,14 @@ describe('player scores sheet', () => {
   it('shows chip leaders with stacks and tables', () => {
     const html = renderToStaticMarkup(
       createElement(PlayerScoresSheet, {
-        brief: { scoresBoard: 'chips', scores: [{ name: 'Bo', value: 1500, tableNum: 1 }] },
+        brief: { scoresBoard: 'chips', scores: [{ name: 'Bo', value: 1500, tableNum: 1, points: 40.2 }] },
       }),
     )
     expect(html).toContain('Chip leaders')
     expect(html).toContain('Bo')
     expect(html).toContain('Table 1')
     expect(html).toContain('aria-label="$1,500"')
+    expect(html).toContain('(40 pts.)')
     expect(html).toContain('role="dialog"')
     expect(html).toContain('player-scores-modal-list')
     expect(html).not.toContain('inset-0')
@@ -31,9 +32,9 @@ describe('player scores sheet', () => {
         brief: { scoresBoard: 'trivia', scores: [{ name: 'Ada', value: 10, tableNum: null }] },
       }),
     )
-    expect(html).toContain('Trivia leaders')
+    expect(html).toContain('Best of the Rest')
     expect(html).toContain('Ada')
-    expect(html).toContain('10 pts')
+    expect(html).toContain('10.00 pts')
     expect(html).not.toContain('Table')
   })
 

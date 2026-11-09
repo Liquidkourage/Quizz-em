@@ -4802,9 +4802,16 @@
   color: rgb(255 255 255 / 0.5);
 }
 
+.player-scores-points {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: rgb(214 208 196);
+}
+
 .player-scores-value {
   flex-shrink: 0;
   font-size: clamp(1rem, 4.2vw, 1.2rem);
   font-weight: 700;
+  white-space: nowrap;
   color: rgb(254 243 199);
 }

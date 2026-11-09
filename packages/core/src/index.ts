@@ -1983,6 +1983,24 @@ export function formatTriviaPoints(value: number): string {
   return formatTriviaNumber(roundTriviaPoints(value));
 }
 
+function triviaPointsDigits(value: number, fractionDigits: number): string {
+  const rounded = fractionDigits === 0 ? Math.floor(roundTriviaPoints(value)) : roundTriviaPoints(value);
+  const fixed = Math.max(0, rounded).toFixed(fractionDigits);
+  const [intPart, fracPart] = fixed.split('.');
+  const withCommas = (intPart ?? '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return fracPart != null && fractionDigits > 0 ? `${withCommas}.${fracPart}` : withCommas;
+}
+
+/** Chip-board aside: whole points, with the unit. */
+export function formatWholeTriviaPoints(value: number): string {
+  return `${triviaPointsDigits(value, 0)} pts.`;
+}
+
+/** Best of the Rest line: hundredths, with the unit. */
+export function formatTriviaPointsLine(value: number): string {
+  return `${triviaPointsDigits(value, 2)} pts`;
+}
+
 export {
   ANSWER_REVEAL_BEFORE_WINNERS_MS,
   winnerScreensPayoutHint,

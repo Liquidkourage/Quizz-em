@@ -4,7 +4,7 @@ export type LeaderboardHeaderProps = {
   pageText?: string
   rankRangeText?: string
   showdownAnswer?: number
-  /** Dual-trophy night: Chip leaders vs Trivia leaders. */
+  /** Dual-trophy night: Chip leaders vs Best of the Rest. */
   title?: string
 }
 

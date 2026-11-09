@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { PlayerVenueBrief } from '@qhe/net'
-import { formatTriviaPoints } from '@qhe/core'
+import { formatTriviaPointsLine, formatWholeTriviaPoints } from '@qhe/core'
 import { ChipText } from '@qhe/ui'
 import { PlayerGoldShellCorners } from './PlayerGoldChrome'
 
@@ -9,7 +9,7 @@ type ScoreBoard = 'chips' | 'trivia'
 
 function scoreValue(board: ScoreBoard, value: number): string {
   if (board === 'chips') return `$${Math.max(0, Math.round(value)).toLocaleString()}`
-  return `${formatTriviaPoints(value)} pts`
+  return formatTriviaPointsLine(value)
 }
 
 function samePlayerName(a: string, b: string): boolean {
@@ -57,6 +57,9 @@ function ScoreLine({
       </span>
       <span className="player-scores-value">
         <ChipText text={scoreValue(board, row.value)} />
+        {board === 'chips' && typeof row.points === 'number' ? (
+          <span className="player-scores-points"> ({formatWholeTriviaPoints(row.points)})</span>
+        ) : null}
       </span>
     </li>
   )
@@ -81,7 +84,7 @@ export default function PlayerScoresSheet({
     if (node instanceof HTMLElement) node.scrollIntoView({ block: 'nearest' })
   }, [mineAt, board])
   if (board !== 'chips' && board !== 'trivia') return null
-  const title = board === 'chips' ? 'Chip leaders' : 'Trivia leaders'
+  const title = board === 'chips' ? 'Chip leaders' : 'Best of the Rest'
   return (
     <div className="player-scores-modal" role="dialog" aria-modal="true" aria-labelledby="player-scores-title">
       <div className="player-game-modal-backdrop" aria-hidden />

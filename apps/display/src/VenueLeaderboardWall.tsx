@@ -88,7 +88,7 @@ export default function VenueLeaderboardWall({
 
   const pageLabel = venueLeaderboardPageLabel(currentPage)
   const fullFieldLayout = venueLeaderboardPageUsesFullFieldLayout(currentPage)
-  const title = trophy === 'trivia' ? 'Trivia leaders' : 'Chip leaders'
+  const title = trophy === 'trivia' ? 'Best of the Rest' : 'Chip leaders'
   const showClock = showPager || trophyMode === 'dual'
   const triviaClock = trophy === 'trivia' && showClock
   const chipClock = trophy === 'chips' && showClock

@@ -18,6 +18,7 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
         seatNames: ['Alice A.', 'Bob B.'],
         seatBankrolls: [100, 200],
         seatAnswerPoints: [40, 90],
+        seatPointsOnly: [true, true, false, false, false, false, false, false],
       },
     ]
     const rows = venueTriviaLeaderboardRowsFromTiles(tiles)
@@ -34,6 +35,7 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
         phase: 'lobby',
         seatNames: ['Ada Lane'],
         seatAnswerPoints: [90.5],
+        seatPointsOnly: [true, false, false, false, false, false, false, false],
       },
     ]
     const rows = venueTriviaLeaderboardRowsFromTiles(tiles, [{ name: 'Bo Kent', answerPoints: 40.25 }])
@@ -44,7 +46,7 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
     ])
   })
 
-  it('counts an eliminated player who shares a name with someone still seated', () => {
+  it('leaves chip players off and keeps the people who are out', () => {
     const tiles: DisplayVenueTileSnapshot[] = [
       {
         tableNum: 1,
@@ -52,17 +54,16 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
         pot: 0,
         phase: 'lobby',
         seatNames: ['Alice A.', 'Blake B.'],
-        seatBankrolls: [500, 500],
+        seatBankrolls: [500, 0],
         seatAnswerPoints: [10, 20],
+        seatPointsOnly: [false, true, false, false, false, false, false, false],
       },
     ]
     const rows = venueTriviaLeaderboardRowsFromTiles(tiles, [
       { name: 'Alice A.', answerPoints: 80 },
-      { name: 'Alice A.', answerPoints: 30 },
       { name: 'Carla C.', answerPoints: 5 },
     ])
-    expect(rows).toHaveLength(5)
-    expect(rows.filter((row) => row.name === 'Alice A.')).toHaveLength(3)
+    expect(rows.map((row) => row.name)).toEqual(['Blake B.', 'Carla C.'])
   })
 
   it('keeps a points-only player on the trivia scores without a seat', () => {
@@ -78,7 +79,7 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
       },
     ]
     const rows = venueTriviaLeaderboardRowsFromTiles(tiles, [{ name: 'Bo Kent', answerPoints: 40 }])
-    expect(rows.map((row) => row.name)).toEqual(['Bo Kent', 'Ada Lane'])
+    expect(rows.map((row) => row.name)).toEqual(['Bo Kent'])
   })
 
   it('uses the remembered field when chairs no longer list everyone', () => {
@@ -98,7 +99,7 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
       { name: 'Cy Drew', answerPoints: 0 },
     ]
     const rows = triviaLeaderboardSource(tiles, [], field)
-    expect(rows.map((row) => row.name)).toEqual(['Ada Lane', 'Bo Kent', 'Cy Drew'])
+    expect(rows.map((row) => row.name)).toEqual(['Bo Kent', 'Cy Drew'])
   })
 
   it('keeps a player with no chips on the wall snapshot', () => {

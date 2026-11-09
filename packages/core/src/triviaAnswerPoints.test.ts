@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatTriviaPoints, triviaAnswerPoints } from './index'
+import { formatTriviaPoints, formatTriviaPointsLine, formatWholeTriviaPoints, triviaAnswerPoints } from './index'
 
 describe('triviaAnswerPoints', () => {
   it('awards 100 for an exact match', () => {
@@ -30,5 +30,22 @@ describe('formatTriviaPoints', () => {
     expect(formatTriviaPoints(66.666666)).toBe('66.67')
     expect(formatTriviaPoints(100)).toBe('100')
     expect(formatTriviaPoints(1234.567)).toBe('1,234.57')
+  })
+})
+
+describe('formatTriviaPointsLine', () => {
+  it('keeps hundredths and the pts unit', () => {
+    expect(formatTriviaPointsLine(66.666666)).toBe('66.67 pts')
+    expect(formatTriviaPointsLine(90)).toBe('90.00 pts')
+    expect(formatTriviaPointsLine(1234.567)).toBe('1,234.57 pts')
+  })
+})
+
+describe('formatWholeTriviaPoints', () => {
+  it('drops the fraction and keeps the pts. unit', () => {
+    expect(formatWholeTriviaPoints(66.666666)).toBe('66 pts.')
+    expect(formatWholeTriviaPoints(90)).toBe('90 pts.')
+    expect(formatWholeTriviaPoints(90.9)).toBe('90 pts.')
+    expect(formatWholeTriviaPoints(1234.567)).toBe('1,234 pts.')
   })
 })

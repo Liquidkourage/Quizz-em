@@ -3,12 +3,14 @@ export type PlayerPublicSeat = {
   bankroll: number
   pointsOnly: boolean
   tableNum: number
+  answerPoints?: number
 }
 
 export type PlayerScoreRow = {
   name: string
   value: number
   tableNum: number | null
+  points?: number
 }
 
 export type PlayerPublicScoreFields = {
@@ -38,6 +40,7 @@ function chipRows(seats: readonly PlayerPublicSeat[]): PlayerScoreRow[] {
       name,
       value: Math.max(0, Math.floor(seat.bankroll)),
       tableNum: seat.tableNum,
+      points: Number.isFinite(seat.answerPoints) ? Math.max(0, seat.answerPoints ?? 0) : 0,
     })
   }
   rows.sort(byScoreThenName)
@@ -60,10 +63,20 @@ function triviaRows(field: readonly { name: string; answerPoints: number }[]): P
   return rows
 }
 
+function restRows(
+  seats: readonly PlayerPublicSeat[],
+  field: readonly { name: string; answerPoints: number }[],
+): PlayerScoreRow[] {
+  const chips = new Set(
+    seats.filter((seat) => !seat.pointsOnly && seat.name.trim()).map((seat) => seat.name.trim().toLowerCase()),
+  )
+  return triviaRows(field).filter((row) => !chips.has(row.name.trim().toLowerCase()))
+}
+
 export function publicScoreSeats(
   tables: readonly {
     tableNum: number
-    players: readonly { name: string; bankroll: number; pointsOnly?: boolean }[]
+    players: readonly { name: string; bankroll: number; pointsOnly?: boolean; answerPoints?: number }[]
   }[],
 ): PlayerPublicSeat[] {
   const seats: PlayerPublicSeat[] = []
@@ -75,6 +88,7 @@ export function publicScoreSeats(
         bankroll: player.bankroll,
         pointsOnly: player.pointsOnly === true,
         tableNum: table.tableNum,
+        answerPoints: player.answerPoints,
       })
     }
   }
@@ -88,6 +102,6 @@ export function playerPublicScores(
   trivia: readonly { name: string; answerPoints: number }[],
 ): PlayerPublicScoreFields {
   if (wallView === 'leaderboard') return { scoresBoard: 'chips', scores: chipRows(seats) }
-  if (wallView === 'leaderboard-trivia') return { scoresBoard: 'trivia', scores: triviaRows(trivia) }
+  if (wallView === 'leaderboard-trivia') return { scoresBoard: 'trivia', scores: restRows(seats, trivia) }
   return { scoresBoard: null, scores: [] }
 }

@@ -30,6 +30,17 @@ function wall(tableCount: number): DisplayVenueWallSnapshot {
   }
 }
 
+function outOfChipsWall(tableCount: number): DisplayVenueWallSnapshot {
+  const base = wall(tableCount)
+  return {
+    ...base,
+    tiles: base.tiles.map((entry) => ({
+      ...entry,
+      seatPointsOnly: entry.seatNames?.map((name) => name.trim().length > 0),
+    })),
+  }
+}
+
 describe('public screens that change on a timer', () => {
   it('shows the page circle on a leaderboard with more than one page', () => {
     const paged = renderToStaticMarkup(
@@ -46,10 +57,10 @@ describe('public screens that change on a timer', () => {
 
   it('keeps the trivia scores clock at the foot of the board', () => {
     const trivia = renderToStaticMarkup(
-      createElement(VenueLeaderboardWall, { wall: wall(9), skipMountIntro: true, trophyMode: 'trivia' }),
+      createElement(VenueLeaderboardWall, { wall: outOfChipsWall(9), skipMountIntro: true, trophyMode: 'trivia' }),
     )
     expect(trivia).toContain('venue-lb-pager--trivia')
-    expect(trivia).toContain('Trivia leaders')
+    expect(trivia).toContain('Best of the Rest')
     expect(trivia).not.toContain('Trivia brain')
     expect(trivia).not.toContain('Closest guesses')
     expect(trivia).not.toContain('venue-lb-logo-wrap')

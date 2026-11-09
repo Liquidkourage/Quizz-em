@@ -3025,7 +3025,7 @@ export function HostTvBar({
     { id: 'leaderboard', label: 'Chip scores', onClick: onLeaderboard },
   ]
   if (onTriviaLeaderboard) {
-    modes.push({ id: 'leaderboard-trivia', label: 'Trivia scores', onClick: onTriviaLeaderboard })
+    modes.push({ id: 'leaderboard-trivia', label: 'Best of the Rest', onClick: onTriviaLeaderboard })
   }
   if (onSeatingChart) {
     modes.push({ id: 'seating-chart', label: 'Seating', onClick: onSeatingChart })

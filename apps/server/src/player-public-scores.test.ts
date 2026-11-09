@@ -24,13 +24,29 @@ describe('player public scores', () => {
     expect(scores).toEqual({
       scoresBoard: 'chips',
       scores: [
-        { name: 'Bo', value: 1500, tableNum: 1 },
-        { name: 'Ada', value: 400, tableNum: 2 },
+        { name: 'Bo', value: 1500, tableNum: 1, points: 0 },
+        { name: 'Ada', value: 400, tableNum: 2, points: 0 },
       ],
     })
   })
 
-  it('ranks trivia points when the host shows trivia scores', () => {
+  it('ranks the people who are out, and leaves chip players off', () => {
+    const scores = playerPublicScores(
+      'leaderboard-trivia',
+      [
+        { name: 'Ada', bankroll: 400, pointsOnly: false, tableNum: 1 },
+        { name: 'Bo', bankroll: 0, pointsOnly: true, tableNum: 1 },
+      ],
+      [
+        { name: 'Ada', answerPoints: 90.5 },
+        { name: 'Bo', answerPoints: 40.2 },
+        { name: 'Cy', answerPoints: 12.9 },
+      ],
+    )
+    expect(scores.scores.map((row) => row.name)).toEqual(['Bo', 'Cy'])
+  })
+
+  it('ranks trivia points when the host shows that board', () => {
     const scores = playerPublicScores(
       'leaderboard-trivia',
       [],
@@ -64,6 +80,6 @@ describe('player venue brief scores', () => {
     venueDisplayLayouts.set('SCORES', { layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
     const brief = buildPlayerVenueBrief('scores')
     expect(brief.scoresBoard).toBe('chips')
-    expect(brief.scores).toEqual([{ name: 'Bo', value: 1500, tableNum: 1 }])
+    expect(brief.scores).toEqual([{ name: 'Bo', value: 1500, tableNum: 1, points: 0 }])
   })
 })

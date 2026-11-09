@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -38,10 +39,12 @@ describe('venueLeaderboardRowsFromTiles', () => {
         tableNum: 1,
         seatNames: ['Ada Lane', 'Bo Kent', '', '', '', '', '', ''],
         seatBankrolls: [500, 0, 0, 0, 0, 0, 0, 0],
+        seatAnswerPoints: [90.5, 0, 0, 0, 0, 0, 0, 0],
         seatPointsOnly: [false, true, false, false, false, false, false, false],
       }),
     ])
     expect(rows.map((row) => row.name)).toEqual(['Ada Lane'])
+    expect(rows[0]?.answerPoints).toBe(90.5)
   })
 
   it('sorts by bankroll pre-round (all lobby)', () => {
@@ -150,6 +153,48 @@ describe('leaderboard stack change', () => {
     )
     expect(html).toContain('chip-mark')
     expect(html.replace(/aria-label="[^"]*"/g, '')).not.toContain('$')
+  })
+
+  it('puts whole points in parentheses to the right of the stack', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueLeaderboardPanelGrid, {
+        trophy: 'chips',
+        page: {
+          pageNumber: 1,
+          pageCount: 1,
+          rankStart: 1,
+          rankEnd: 1,
+          columnCount: 1,
+          showTopThreePodium: false,
+          columns: [
+            {
+              rankStart: 1,
+              rankEnd: 1,
+              gridRowCount: 1,
+              players: [
+                {
+                  name: 'Ada Lane',
+                  tableNum: 1,
+                  seatNum: 1,
+                  bankroll: 4200,
+                  stackDelta: null,
+                  answerPoints: 90.5,
+                  rank: 1,
+                },
+              ],
+            },
+          ],
+        },
+      }),
+    )
+    const stackAt = html.indexOf('4,200')
+    const pointsAt = html.indexOf('(90 pts.)')
+    expect(stackAt).toBeGreaterThan(-1)
+    expect(pointsAt).toBeGreaterThan(stackAt)
+    expect(html).not.toContain('90.50')
+    const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+    const rule = css.slice(css.indexOf('.venue-lb-chip-points'), css.indexOf('.venue-lb-chip-points') + 180)
+    expect(rule).toContain('font-size: 0.8em')
   })
 })
 

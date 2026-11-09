@@ -107,8 +107,8 @@ export type PlayerVenueBrief = {
    * Null for every other display mode, so phones keep their own screen.
    */
   scoresBoard?: 'chips' | 'trivia' | null
-  /** Ranked rows for `scoresBoard`. Chips include a table; trivia is the night's points. */
-  scores?: { name: string; value: number; tableNum: number | null }[]
+  /** Ranked rows for `scoresBoard`. Chips include a table; the other board is points for players already out. */
+  scores?: { name: string; value: number; tableNum: number | null; points?: number }[]
   /** Set for a few seconds after the blinds in play change. */
   blindChange?: BlindChangeNotice | null
 }

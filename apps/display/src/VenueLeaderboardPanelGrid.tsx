@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { ChipText } from '@qhe/ui'
+import { formatWholeTriviaPoints } from '@qhe/core'
 import {
   formatVenueBankroll,
   formatVenueStackDelta,
@@ -126,6 +127,9 @@ function LeaderboardRankRow({ row, rank, zebra, podium, trophy }: RowProps) {
               : formatVenueBankroll(row.bankroll)
           }
         />
+        {trophy === 'chips' ? (
+          <span className="venue-lb-chip-points"> ({formatWholeTriviaPoints(row.answerPoints ?? 0)})</span>
+        ) : null}
         {delta != null ? (
           <span
             className={`venue-lb-row-delta-amount ${delta > 0 ? 'venue-lb-row-delta--up' : 'venue-lb-row-delta--down'}`}

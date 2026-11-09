@@ -17,6 +17,13 @@ function guessGroup(seat: HostVenueSeatContest): 'skip' | 'contest' | 'points' {
   return 'contest'
 }
 
+/** Folded chip players still owe a guess. A bust or a late arrival does not. */
+function roomWaitsForGuess(seat: HostVenueSeatContest): boolean {
+  if (seat.name.trim() === '' || seat.guessLocked === true) return false
+  if (seat.offFelt === true || seat.reason === 'busted') return false
+  return true
+}
+
 function byTableThenName(a: StillGuessingPlayer, b: StillGuessingPlayer): number {
   return a.tableNum - b.tableNum || a.name.localeCompare(b.name)
 }
@@ -27,7 +34,7 @@ export function stillGuessingPlayerCount(rows: HostVenueActionRow[] | null | und
   for (const row of rows ?? []) {
     if (row.phase !== 'answering') continue
     for (const seat of row.seats) {
-      if (guessGroup(seat) === 'skip') continue
+      if (!roomWaitsForGuess(seat)) continue
       count += 1
     }
   }

@@ -522,17 +522,30 @@ function recentActionsFromTile(tile: DisplayVenueTileSnapshot): HostVenueActionR
   return out
 }
 
-function guessProgress(tile: DisplayVenueTileSnapshot): { answersSubmitted: number; answersExpected: number } | null {
-  if (tile.phase !== 'answering') return null
+/** Chip players the room is waiting on. A points-only chair can guess, and does not count. */
+export function chipGuessTotals(tile: {
+  phase?: string
+  seatNames?: readonly (string | null | undefined)[]
+  seatAnswerLocked?: readonly boolean[] | null
+  seatPointsOnly?: readonly boolean[] | null
+}): { locked: number; eligible: number } {
+  if (tile.phase !== 'answering') return { locked: 0, eligible: 0 }
   const names = tile.seatNames ?? []
-  let answersExpected = 0
-  let answersSubmitted = 0
+  let locked = 0
+  let eligible = 0
   for (let i = 0; i < names.length; i++) {
     if (!names[i]?.trim()) continue
-    answersExpected++
-    if (tile.seatAnswerLocked?.[i] === true) answersSubmitted++
+    if (tile.seatPointsOnly?.[i] === true) continue
+    eligible += 1
+    if (tile.seatAnswerLocked?.[i] === true) locked += 1
   }
-  return { answersSubmitted, answersExpected }
+  return { locked, eligible }
+}
+
+function guessProgress(tile: DisplayVenueTileSnapshot): { answersSubmitted: number; answersExpected: number } | null {
+  if (tile.phase !== 'answering') return null
+  const totals = chipGuessTotals(tile)
+  return { answersSubmitted: totals.locked, answersExpected: totals.eligible }
 }
 
 function wholeChips(value: number | undefined): number | undefined {

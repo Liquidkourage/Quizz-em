@@ -144,6 +144,7 @@ import {
 } from './rehearsal-fast-forward'
 import {
   buildHostVenueFloorBrief,
+  chipGuessTotals,
   clearVenueHostHandOnNewQuestion,
   clearVenueHostLog,
   getVenueLastHandDisplay,
@@ -2260,14 +2261,12 @@ function settleExpiredGuessNudges(sessionKeys: readonly string[], nowMs: number)
   }
 }
 
-/** The felt draws eight chairs. Anyone past that is invisible and must not hold Reveal. */
+/** Points-only, and anyone past the felt, do not hold Reveal. An unlocked guess is missed when Reveal runs. */
 function forfeitGuessesOffTheFelt(gs: GameState): GameState {
-  if (gs.players.length <= VENUE_WALL_SEAT_COUNT) return gs
   let changed = false
   const players = gs.players.map((player, index) => {
-    if (index < VENUE_WALL_SEAT_COUNT) return player
-    if (typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)) return player
-    if (player.answerForfeited === true) return player
+    if (guessLockedOnSeat(player)) return player
+    if (index < VENUE_WALL_SEAT_COUNT && player.pointsOnly !== true) return player
     changed = true
     return { ...player, answerForfeited: true }
   })
@@ -2282,11 +2281,9 @@ function tableAnswersReady(gs: GameState, nowMs: number): boolean {
   let submitted = 0
   for (const player of players) {
     if (typeof player.name !== 'string' || player.name.trim() === '') continue
-    const guessed = typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)
-    // A latecomer seated for points mid-hand holds no cards, so they cannot build a guess this hand.
-    if (!guessed && player.pointsOnly === true && player.hand.length === 0) continue
+    if (player.pointsOnly === true) continue
     expected++
-    if (guessed || player.answerForfeited === true) submitted++
+    if (guessLockedOnSeat(player)) submitted++
   }
   return answerRevealOpen({ deadlineMs, submitted, expected, nowMs })
 }
@@ -2784,13 +2781,9 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     let locked = 0
     let eligible = 0
     for (const t of tiles) {
-      if (t.phase !== 'answering') continue
-      const names = t.seatNames ?? []
-      for (let i = 0; i < names.length; i++) {
-        if (!names[i]?.trim()) continue
-        eligible++
-        if (t.seatAnswerLocked?.[i] === true) locked++
-      }
+      const totals = chipGuessTotals(t)
+      locked += totals.locked
+      eligible += totals.eligible
     }
     answerSubmitCount = locked
     answerEligibleCount = eligible

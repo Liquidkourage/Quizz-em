@@ -227,6 +227,28 @@ describe('public venue wall answer', () => {
     expect(jamalSeat?.kind).toBe('points')
   })
 
+  it('leaves a points-only chair out of the public locked-in count', () => {
+    let gs = createEmptyGame('LEAK', 'host', '1')
+    gs = addPlayer(gs, 'ada', 'Ada')
+    gs = addPlayer(gs, 'jim', 'Jim')
+    gs = addPlayer(gs, 'bo', 'Bo')
+    rooms.set(tableSessionKey('LEAK', '1'), {
+      ...gs,
+      phase: 'answering',
+      players: gs.players.map((player) => {
+        if (player.id === 'jim') return { ...player, pointsOnly: true, bankroll: 0 }
+        return { ...player, submittedAnswer: 12 }
+      }),
+      round: { ...gs.round, question: { id: 'q', text: '?', answer: 10 }, answerDeadline: Date.now() + 60_000 },
+    } as GameState)
+    const io = captureIo()
+    bindGameIo(io.server)
+    emitDisplayVenueSnapshotNow('LEAK')
+    const snap = io.snapshots.at(-1)
+    expect(snap?.answerSubmitCount).toBe(2)
+    expect(snap?.answerEligibleCount).toBe(2)
+  })
+
   it('marks a late entry past the felt without adding them to the guess count', () => {
     let gs = createEmptyGame('LEAK', 'host', '1')
     for (let i = 0; i < 8; i++) gs = addPlayer(gs, `p${i}`, `Player ${i}`)

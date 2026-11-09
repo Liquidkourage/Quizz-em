@@ -717,6 +717,23 @@ describe('buildHostVenueActionRows seats', () => {
     expect(rows[1]?.answersExpected).toBeUndefined()
   })
 
+  it('leaves a points-only chair out of the guess the room is waiting on', () => {
+    const rows = buildHostVenueActionRows([
+      {
+        tableNum: 1,
+        seated: 3,
+        pot: 0,
+        phase: 'answering',
+        seatNames: ['Ada', 'Jim', 'Bo'],
+        seatPointsOnly: [false, true, false],
+        seatAnswerLocked: [true, false, true],
+        seatFolded: [false, false, true],
+      } as never,
+    ])
+    expect(rows[0]?.answersSubmitted).toBe(2)
+    expect(rows[0]?.answersExpected).toBe(2)
+  })
+
   it('lists a player past the eight chairs without counting them in the guess total', () => {
     const rows = buildHostVenueActionRows([
       {

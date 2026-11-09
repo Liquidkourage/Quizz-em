@@ -125,6 +125,24 @@ describe('players still guessing', () => {
   })
 })
 
+describe('reveal does not wait on points only', () => {
+  it('counts a folded chip player and skips a bust and a late arrival', () => {
+    expect(
+      stillGuessingPlayerCount([
+        row({
+          tableNum: 1,
+          seats: [
+            { name: 'Ada', kind: 'pot', reason: null, guessLocked: true },
+            { name: 'Jim', kind: 'points', reason: 'busted', guessLocked: false },
+            { name: 'Tony', kind: 'points', reason: null, offFelt: true, guessLocked: false },
+            { name: 'Bo', kind: 'pot', reason: 'folded', guessLocked: false },
+          ],
+        }),
+      ]),
+    ).toBe(1)
+  })
+})
+
 describe('reveal stays open for a late entry', () => {
   it('lists an open late entry under points only without holding Reveal', () => {
     expect(

@@ -77,7 +77,9 @@ async function playOutHand(t: Table, betting: any, startingChips: number): Promi
   await t.host.waitForState((s) => (s.round?.communityCards?.length ?? 0) >= 5, 'five shared cards', 20_000)
   t.host.act('adminCloseBetting')
   await t.host.waitForState(
-    (s) => s.phase === 'betting' && s.round?.isBettingOpen === false && s.round?.bettingRound === 2,
+    (s) =>
+      (s.phase === 'betting' && s.round?.isBettingOpen === false && s.round?.bettingRound === 2) ||
+      (s.phase === 'answering' && (s.round?.communityCards?.length ?? 0) >= 5),
     'second round closed',
     20_000,
   )

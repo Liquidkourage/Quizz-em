@@ -64,6 +64,46 @@ describe('betting table', () => {
     expect(html).not.toContain('player-game-felt')
   })
 
+  it('during the guess, says who has locked a number', () => {
+    const guessing = hand()
+    guessing.phase = 'answering'
+    guessing.round.isBettingOpen = false
+    guessing.players = guessing.players.map((player) => {
+      if (player.id === 'a') return { ...player, isAllIn: false, submittedAnswer: 12, answerLocked: true }
+      if (player.id === 'b') return { ...player, answerForfeited: true }
+      return player
+    })
+    const html = renderToStaticMarkup(createElement(PlayerBettingTable, { gameState: guessing, myIndex: 0 }))
+    expect(html).toContain('Your number is in.')
+    expect(html).not.toContain('to act')
+    expect(html).not.toContain('Waiting')
+    const ada = html.slice(html.indexOf('>Ada<'), html.indexOf('>Bo<'))
+    const bo = html.slice(html.indexOf('>Bo<'), html.indexOf('>Cara<'))
+    const cara = html.slice(html.indexOf('>Cara<'))
+    expect(ada).toContain('Locked')
+    expect(bo).toContain('No guess')
+    expect(cara).toContain('Guessing')
+  })
+
+  it('while the question is up, the table does not pretend someone must bet', () => {
+    const asked = hand()
+    asked.phase = 'question'
+    asked.round.isBettingOpen = false
+    const html = renderToStaticMarkup(createElement(PlayerBettingTable, { gameState: asked, myIndex: 0 }))
+    expect(html).toContain('The question is up.')
+    expect(html).not.toContain('to act')
+  })
+
+  it('when the true answer is out, the table says that number', () => {
+    const revealed = hand()
+    revealed.phase = 'reveal'
+    revealed.round.isBettingOpen = false
+    revealed.round.question = { id: 'q', text: 'How many?', answer: 1440 }
+    const html = renderToStaticMarkup(createElement(PlayerBettingTable, { gameState: revealed, myIndex: 0 }))
+    expect(html).toContain('The answer is 1,440.')
+    expect(html).not.toContain('Waiting')
+  })
+
   it('opens the roster without removing it from the page', () => {
     const html = renderTable(true)
     expect(html).toContain('player-betting-table is-open')

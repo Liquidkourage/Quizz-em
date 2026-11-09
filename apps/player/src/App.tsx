@@ -823,13 +823,9 @@ function PlayerApp() {
             ) : null}
 
             {/* Results own the middle — don't stack HUD under them (nested scroll). */}
-            {liveFit && isBettingPhase ? (
+            {seatedAtTable && !showTableResults && !showLastHand && !waitingForFirstStart ? (
               <PlayerBettingTable gameState={gameState} myIndex={myIndex} />
             ) : null}
-
-            {seatedAtTable && !(liveFit && isBettingPhase) && !showTableResults && !showLastHand && !waitingForFirstStart
-              ? feltView
-              : null}
 
             {!seatedAtTable ? (
               <GameInfoCard gameState={gameState} currentPlayer={currentPlayer} hideHoleStrip />

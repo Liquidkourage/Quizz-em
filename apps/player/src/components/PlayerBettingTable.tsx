@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { ChipText, digitsAscending, NumericPlayingCard, SidePotMark } from '@qhe/ui'
 import { formatTriviaPoints, type GameState } from '@qhe/core'
 import {
+  playerTableMoment,
   playerTablePots,
   playerTableSeatBriefs,
-  playerTableStatus,
   seatBriefState,
   type PlayerTableSeatBrief,
 } from '../playerModel/playerTableBrief'
@@ -59,7 +59,7 @@ export default function PlayerBettingTable({ gameState, myIndex, open = false }:
   return (
     <section className={shown ? 'player-betting-table is-open' : 'player-betting-table'} aria-label="Table">
       <p className="player-table-status" role="status">
-        {playerTableStatus(seats)}
+        {playerTableMoment(gameState, seats)}
       </p>
       <PlayerFeltPot pot={pots.pot} sides={pots.sides} />
       <SharedCards gameState={gameState} />

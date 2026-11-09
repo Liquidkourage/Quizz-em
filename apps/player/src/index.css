@@ -5207,21 +5207,41 @@
     height: 2.75rem;
   }
 
+  .player-game-layout--live-fit .player-betting-table.is-open {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-self: stretch;
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .player-betting-table.is-open .player-table-cards,
   .player-betting-table.is-open .player-table-roster {
-    position: fixed;
-    z-index: 30;
-    inset: 2.8rem 0.4rem 0.4rem;
-    width: auto;
-    max-height: none;
-    background: rgb(6 12 14 / 0.98);
-    padding: 0.35rem;
+    grid-column: 1 / -1;
+    position: static;
+    inset: auto;
+  }
+
+  .player-betting-table.is-open .player-table-cards {
+    grid-row: 2;
+  }
+
+  .player-betting-table.is-open .player-table-roster {
+    grid-row: 3;
+    align-self: stretch;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    z-index: auto;
+    background: transparent;
+    padding: 0;
   }
 
   .player-betting-table.is-open .player-table-open {
-    position: fixed;
-    z-index: 31;
-    top: 0.3rem;
-    right: 0.4rem;
+    position: static;
+    top: auto;
+    right: auto;
   }
 }
 
@@ -5231,16 +5251,7 @@
   }
 
   .player-betting-table.is-open .player-table-cards {
-    position: fixed;
-    z-index: 31;
-    top: 0.4rem;
-    left: 0.45rem;
-    right: 8.6rem;
     display: flex;
-  }
-
-  .player-betting-table.is-open .player-table-roster {
-    top: 4.4rem;
   }
 
   .player-betting-table {

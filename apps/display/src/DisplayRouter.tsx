@@ -29,7 +29,7 @@ import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import VenueBlindChange, { blindChangeFromPayload } from './VenueBlindChange.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
-import { normalizeVenuePointsStandings } from './venueLeaderboard'
+import { venueWallScoreLists } from './venueLeaderboard'
 import {
   normalizeLastHandSeating,
   payoutBustsShareTheSeatingCard,
@@ -243,9 +243,11 @@ export default function DisplayRouter({
       const p = payload as Partial<DisplayVenueWallSnapshot>
       /** Latch server-time skew first so the countdown reads the correct anchor on the very next render. */
       recordServerClockSample(p.serverNowMs ?? null)
+      const scores = venueWallScoreLists(p)
       const next: DisplayVenueWallSnapshot = {
         tiles,
-        pointsStandings: normalizeVenuePointsStandings(p.pointsStandings),
+        pointsStandings: scores.pointsStandings,
+        triviaField: scores.triviaField,
         headlineQuestionText: p.headlineQuestionText ?? null,
         headlineQuestionAnswer:
           typeof p.headlineQuestionAnswer === 'number' && Number.isFinite(p.headlineQuestionAnswer)

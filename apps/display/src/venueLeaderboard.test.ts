@@ -194,7 +194,7 @@ describe('leaderboard stack change', () => {
     expect(html).not.toContain('90.50')
     const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
     const rule = css.slice(css.indexOf('.venue-lb-chip-points'), css.indexOf('.venue-lb-chip-points') + 180)
-    expect(rule).toContain('font-size: 0.8em')
+    expect(rule).toContain('font-size: 0.55em')
   })
 })
 

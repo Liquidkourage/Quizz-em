@@ -5,6 +5,7 @@ import {
   normalizeVenuePointsStandings,
   triviaLeaderboardSource,
   venueTriviaLeaderboardRowsFromTiles,
+  venueWallScoreLists,
 } from './venueLeaderboard'
 
 describe('venueTriviaLeaderboardRowsFromTiles', () => {
@@ -100,6 +101,24 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
     ]
     const rows = triviaLeaderboardSource(tiles, [], field)
     expect(rows.map((row) => row.name)).toEqual(['Bo Kent', 'Cy Drew'])
+  })
+
+  it('keeps the night list the phone already shows', () => {
+    expect(
+      venueWallScoreLists({
+        pointsStandings: [{ name: 'Bo Kent', answerPoints: 4 }],
+        triviaField: [
+          { name: 'Bo Kent', answerPoints: 4 },
+          { name: 'Cy Drew', answerPoints: 1 },
+        ],
+      }),
+    ).toEqual({
+      pointsStandings: [{ name: 'Bo Kent', answerPoints: 4 }],
+      triviaField: [
+        { name: 'Bo Kent', answerPoints: 4 },
+        { name: 'Cy Drew', answerPoints: 1 },
+      ],
+    })
   })
 
   it('keeps a player with no chips on the wall snapshot', () => {

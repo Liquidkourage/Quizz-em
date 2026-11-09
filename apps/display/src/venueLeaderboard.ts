@@ -199,6 +199,19 @@ export function normalizeVenuePointsStandings(
   return out.length > 0 ? out : undefined
 }
 
+export function venueWallScoreLists(payload: {
+  pointsStandings?: unknown
+  triviaField?: unknown
+}): {
+  pointsStandings: { name: string; answerPoints: number }[] | undefined
+  triviaField: { name: string; answerPoints: number }[] | undefined
+} {
+  return {
+    pointsStandings: normalizeVenuePointsStandings(payload.pointsStandings),
+    triviaField: normalizeVenuePointsStandings(payload.triviaField),
+  }
+}
+
 function pointsStandingFromWire(row: unknown): { name: string; answerPoints: number } | null {
   if (row == null || typeof row !== 'object') return null
   const name = typeof (row as { name?: unknown }).name === 'string' ? (row as { name: string }).name.trim() : ''

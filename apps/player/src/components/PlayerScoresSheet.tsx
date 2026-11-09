@@ -58,7 +58,7 @@ function ScoreLine({
       <span className="player-scores-value">
         <ChipText text={scoreValue(board, row.value)} />
         {board === 'chips' && typeof row.points === 'number' ? (
-          <span className="player-scores-points"> ({formatWholeTriviaPoints(row.points)})</span>
+          <span className="player-scores-points">{formatWholeTriviaPoints(row.points)}</span>
         ) : null}
       </span>
     </li>

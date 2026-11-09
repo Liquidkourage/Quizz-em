@@ -89,6 +89,20 @@ function AnswerRow({ frame }: { frame: HowToPlayFrame }) {
   )
 }
 
+function PotRow({ pots }: { pots: HowToPlayFrame['pots'] }) {
+  if (pots.length === 0) return null
+  return (
+    <div className="htp-pots" aria-label="Pots">
+      {pots.map((pot) => (
+        <div key={pot.label} className={pot.label === 'Side pot' ? 'htp-pot htp-pot--side' : 'htp-pot'}>
+          <p className="htp-kicker">{pot.label}</p>
+          <p className="htp-pot-amt">{pot.amount}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function TutorialFelt({ frame }: { frame: HowToPlayFrame }) {
   return (
     <div className="htp-felt">
@@ -118,6 +132,7 @@ function TutorialFelt({ frame }: { frame: HowToPlayFrame }) {
           <AnswerRow frame={frame} />
         </div>
       </div>
+      <PotRow pots={frame.pots} />
       {frame.showCallout ? (
         <div className="htp-callout" role="status">
           <p className="htp-kicker">Your decision</p>

@@ -14,7 +14,7 @@ describe('how to play lesson', () => {
     const frame = howToPlayFrame(0)
     expect(frame.title).toBe('Every round starts with a trivia question.')
     expect(frame.question).toBe('How many minutes are in a day?')
-    expect(frame.stepLabel).toBe('Step 1 of 7')
+    expect(frame.stepLabel).toBe('Step 1 of 9')
     expect(frame.holeFaces).toEqual(['hidden', 'hidden'])
     expect(frame.boardFaces.every((face) => face === 'hidden')).toBe(true)
     expect(frame.answerRevealed).toBe(false)
@@ -22,23 +22,41 @@ describe('how to play lesson', () => {
     expect(frame.showOutcome).toBe(false)
   })
 
-  it('deals two private cards, then asks for a bet or a fold', () => {
+  it('deals two private cards, then offers check, call, raise, or fold', () => {
     expect(howToPlayFrame(1).holeFaces).toEqual(['shown', 'shown'])
     const bet = howToPlayFrame(2)
     expect(bet.showCallout).toBe(true)
-    expect(bet.callout).toBe('Bet or fold?')
+    expect(bet.callout).toBe('Check, call, or raise')
+    expect(bet.description).toContain('fold')
     expect(bet.boardFaces.every((face) => face === 'hidden')).toBe(true)
   })
 
-  it('deals five shared cards, then asks for the second decision', () => {
-    expect(howToPlayFrame(3).boardFaces).toEqual(['shown', 'shown', 'shown', 'shown', 'shown'])
-    const second = howToPlayFrame(4)
-    expect(second.showCallout).toBe(true)
+  it('shows an all-in as the whole stack in the main pot', () => {
+    const allIn = howToPlayFrame(3)
+    expect(allIn.callout).toBe('All-in')
+    expect(allIn.pots).toEqual([{ label: 'Main pot', amount: '$400' }])
+    expect(allIn.description).toContain('whole stack')
+  })
+
+  it('deals five shared cards, then allows another raise', () => {
+    expect(howToPlayFrame(4).boardFaces).toEqual(['shown', 'shown', 'shown', 'shown', 'shown'])
+    const second = howToPlayFrame(5)
+    expect(second.callout).toBe('Raise or fold?')
     expect(second.segmentLabel).toBe('Community')
   })
 
+  it('splits a short all-in into a main pot and a side pot', () => {
+    const side = howToPlayFrame(6)
+    expect(side.pots).toEqual([
+      { label: 'Main pot', amount: '$400' },
+      { label: 'Side pot', amount: '$200' },
+    ])
+    expect(side.description).toContain('side pot')
+    expect(side.showCallout).toBe(false)
+  })
+
   it('builds 1,439.9 from five of the seven cards', () => {
-    const frame = howToPlayFrame(5)
+    const frame = howToPlayFrame(7)
     expect(frame.answerRevealed).toBe(true)
     expect(frame.answerDigits).toEqual([1, 4, 3, 9, 9])
     expect(frame.decimalBefore).toBe(4)
@@ -48,13 +66,14 @@ describe('how to play lesson', () => {
   })
 
   it('shows the correct answer and that this guess wins the pot', () => {
-    const frame = howToPlayFrame(6)
+    const frame = howToPlayFrame(8)
     expect(frame.showOutcome).toBe(true)
     expect(frame.submittedAnswer).toBe('1,439.9')
     expect(frame.correctAnswer).toBe('1,440')
     expect(frame.outcomeDetail).toContain('0.1')
+    expect(frame.outcomeDetail).toContain('side pot')
     expect(frame.segmentLabel).toBe('Winner')
-    expect(frame.stepLabel).toBe('Step 7 of 7')
+    expect(frame.stepLabel).toBe('Step 9 of 9')
   })
 
   it('loops back to the question after the last step', () => {
@@ -66,17 +85,26 @@ describe('how to play lesson', () => {
     const html = renderToStaticMarkup(createElement(VenueSeatingRulesWall, { step: 0, venueCode: 'AB12' }))
     expect(html).toContain('How many minutes are in a day?')
     expect(html).toContain('Every round starts with a trivia question.')
-    expect(html).toContain('Step 1 of 7')
+    expect(html).toContain('Step 1 of 9')
     expect(html).toContain('Room AB12')
     expect(html).not.toContain('<button')
     expect(html).not.toContain('1,440')
   })
 
-  it('shows the winning beat without a control on the glass', () => {
+  it('shows the side pot on the felt', () => {
     const html = renderToStaticMarkup(createElement(VenueSeatingRulesWall, { step: 6 }))
+    expect(html).toContain('Main pot')
+    expect(html).toContain('$400')
+    expect(html).toContain('Side pot')
+    expect(html).toContain('$200')
+    expect(html).not.toContain('<button')
+  })
+
+  it('shows the winning beat without a control on the glass', () => {
+    const html = renderToStaticMarkup(createElement(VenueSeatingRulesWall, { step: 8 }))
     expect(html).toContain('1,439.9')
     expect(html).toContain('1,440')
-    expect(html).toContain('Just 0.1 away')
+    expect(html).toContain('side pot')
     expect(html).not.toContain('<button')
   })
 

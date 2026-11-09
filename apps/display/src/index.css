@@ -4220,13 +4220,40 @@
     box-shadow: 0 18px 40px rgb(0 0 0 / 0.5);
   }
 
-  .htp-callout-line {
-    margin: 0.15rem 0 0;
-    font-size: clamp(1.6rem, 4vmin, 2.8rem);
+  .htp-pots {
+    display: flex;
+    justify-content: center;
+    gap: 0.7rem;
+  }
+
+  .htp-pot {
+    min-width: 7.5rem;
+    text-align: center;
+    border: 1px solid #f2be4c;
+    border-radius: 0.7rem;
+    background: rgb(12 19 23 / 0.9);
+    padding: 0.28rem 0.85rem 0.4rem;
+  }
+
+  .htp-pot--side {
+    border-color: #9fdfd0;
+  }
+
+  .htp-pot-amt {
+    margin: 0.08rem 0 0;
+    font-size: clamp(1.15rem, 2.8vmin, 1.9rem);
     font-weight: 900;
     line-height: 1;
     color: #ffe3a0;
-    white-space: nowrap;
+  }
+
+  .htp-callout-line {
+    margin: 0.15rem 0 0;
+    max-width: 22rem;
+    font-size: clamp(1.6rem, 4vmin, 2.8rem);
+    font-weight: 900;
+    line-height: 1.05;
+    color: #ffe3a0;
   }
 
   .htp-outcome {

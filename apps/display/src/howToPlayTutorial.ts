@@ -17,6 +17,11 @@ export const HOW_TO_PLAY_SEGMENTS = ['Question', 'Your cards', 'Community', 'You
 
 export type HowToPlayCardFace = 'hidden' | 'shown' | 'selected' | 'dimmed'
 
+export type HowToPlayPot = { label: string; amount: string }
+
+type HoleShow = 'hidden' | 'shown' | 'selected'
+type BoardShow = 'hidden' | 'shown' | 'picked'
+
 export type HowToPlayStep = {
   segment: number
   eyebrow: string
@@ -24,7 +29,16 @@ export type HowToPlayStep = {
   description: string
   hint: string
   durationMs: number
+  callout: string | null
+  holes: HoleShow
+  board: BoardShow
+  answer: boolean
+  pots: readonly HowToPlayPot[]
+  outcome: boolean
 }
+
+const MAIN_POT: HowToPlayPot = { label: 'Main pot', amount: '$400' }
+const SIDE_POT: HowToPlayPot = { label: 'Side pot', amount: '$200' }
 
 export const HOW_TO_PLAY_STEPS: readonly HowToPlayStep[] = [
   {
@@ -35,6 +49,12 @@ export const HOW_TO_PLAY_STEPS: readonly HowToPlayStep[] = [
       'Every question has a numeric answer. In this example, the table is working out how many minutes are in a day.',
     hint: 'Think about the answer before you see your cards.',
     durationMs: 6000,
+    callout: null,
+    holes: 'hidden',
+    board: 'hidden',
+    answer: false,
+    pots: [],
+    outcome: false,
   },
   {
     segment: 1,
@@ -44,15 +64,42 @@ export const HOW_TO_PLAY_STEPS: readonly HowToPlayStep[] = [
       'Only you can see these two cards. What you know about the answer, and how useful your digits look, both matter.',
     hint: 'Your cards are dealt before the first betting round.',
     durationMs: 6200,
+    callout: null,
+    holes: 'shown',
+    board: 'hidden',
+    answer: false,
+    pots: [],
+    outcome: false,
   },
   {
     segment: 1,
     eyebrow: 'First betting round',
-    title: 'Now you decide whether to bet or fold.',
+    title: 'Check, call, raise, or fold.',
     description:
-      'Stay in by betting, or fold if you would rather sit this question out. Folding leaves the pot. You can still answer for points.',
-    hint: 'First decision: bet or fold.',
-    durationMs: 5400,
+      'Nothing owed? Check. A bet is out? Call it, or raise. A raise has to be at least as big as the last one. You can fold and leave the chips. You can still answer for points.',
+    hint: 'First decision, before the community cards.',
+    durationMs: 7000,
+    callout: 'Check, call, or raise',
+    holes: 'shown',
+    board: 'hidden',
+    answer: false,
+    pots: [],
+    outcome: false,
+  },
+  {
+    segment: 1,
+    eyebrow: 'All-in',
+    title: 'All-in puts your whole stack in the pot.',
+    description:
+      'Your whole stack goes in. You stay in for every pot those chips covered. Nobody can raise you off them, and you do not have to act again.',
+    hint: 'This $400 is the whole stack. It becomes the main pot.',
+    durationMs: 6500,
+    callout: 'All-in',
+    holes: 'shown',
+    board: 'hidden',
+    answer: false,
+    pots: [MAIN_POT],
+    outcome: false,
   },
   {
     segment: 2,
@@ -62,15 +109,42 @@ export const HOW_TO_PLAY_STEPS: readonly HowToPlayStep[] = [
       'Everyone at the table shares these five cards. Together with your own two, that is seven digits to choose from.',
     hint: 'You may use any mix of your two cards and the five shared cards.',
     durationMs: 7000,
+    callout: null,
+    holes: 'shown',
+    board: 'shown',
+    answer: false,
+    pots: [MAIN_POT],
+    outcome: false,
   },
   {
     segment: 2,
     eyebrow: 'Second betting round',
-    title: 'You get one more chance to bet or fold.',
+    title: 'You can raise again once the board is out.',
     description:
-      'All seven digits are out. Decide whether to stay in before anyone submits a number.',
-    hint: 'Second decision: bet or fold.',
-    durationMs: 5200,
+      'Call, raise, or fold with all seven digits in view. A player who is already all-in stays in without putting in more.',
+    hint: 'Second decision: raise or fold.',
+    durationMs: 6500,
+    callout: 'Raise or fold?',
+    holes: 'shown',
+    board: 'shown',
+    answer: false,
+    pots: [MAIN_POT],
+    outcome: false,
+  },
+  {
+    segment: 2,
+    eyebrow: 'Side pot',
+    title: 'A short all-in creates a side pot.',
+    description:
+      'Chips beyond what the shortest all-in could match become a side pot. Only the players who covered those extra chips can win it. The short stack can still win the main pot. A bet nobody called comes back.',
+    hint: 'Main pot $400. Side pot $200, for the players who matched the larger bet.',
+    durationMs: 8000,
+    callout: null,
+    holes: 'shown',
+    board: 'shown',
+    answer: false,
+    pots: [MAIN_POT, SIDE_POT],
+    outcome: false,
   },
   {
     segment: 3,
@@ -80,15 +154,27 @@ export const HOW_TO_PLAY_STEPS: readonly HowToPlayStep[] = [
       'Use exactly five of the seven digits, in any order, and place one decimal if it helps. You submit the number on your phone.',
     hint: 'Here, 1, 4, 3, 9, and 9 become 1,439.9.',
     durationMs: 10500,
+    callout: null,
+    holes: 'selected',
+    board: 'picked',
+    answer: true,
+    pots: [],
+    outcome: false,
   },
   {
     segment: 4,
     eyebrow: 'The winner',
-    title: 'Whoever gets closest to the correct answer wins the pot.',
+    title: 'Each pot goes to the closest answer that can win it.',
     description:
-      'A day has 1,440 minutes. This answer is 1,439.9, one tenth away. At this table, that is the closest.',
-    hint: 'It pays to know the answer. You still have to play the cards.',
-    durationMs: 7200,
+      'A day has 1,440 minutes. This answer is 1,439.9, one tenth away, so it takes the main pot. The side pot goes to the closest player who put in those extra chips.',
+    hint: 'Closest still wins. A side pot has its own closest answer.',
+    durationMs: 8000,
+    callout: null,
+    holes: 'selected',
+    board: 'picked',
+    answer: true,
+    pots: [],
+    outcome: true,
   },
 ]
 
@@ -106,6 +192,7 @@ export type HowToPlayFrame = {
   durationMs: number
   showCallout: boolean
   callout: string
+  pots: readonly HowToPlayPot[]
   showOutcome: boolean
   answerRevealed: boolean
   answerDigits: readonly number[]
@@ -125,15 +212,15 @@ function wrapStep(stepIndex: number, count: number): number {
   return ((index % count) + count) % count
 }
 
-function holeFaces(step: number): HowToPlayCardFace[] {
-  if (step < 1) return ['hidden', 'hidden']
-  if (step >= 5) return ['selected', 'selected']
+function holeFaces(show: HoleShow): HowToPlayCardFace[] {
+  if (show === 'hidden') return ['hidden', 'hidden']
+  if (show === 'selected') return ['selected', 'selected']
   return ['shown', 'shown']
 }
 
-function boardFaces(step: number): HowToPlayCardFace[] {
-  if (step < 3) return ['hidden', 'hidden', 'hidden', 'hidden', 'hidden']
-  if (step < 5) return ['shown', 'shown', 'shown', 'shown', 'shown']
+function boardFaces(show: BoardShow): HowToPlayCardFace[] {
+  if (show === 'hidden') return ['hidden', 'hidden', 'hidden', 'hidden', 'hidden']
+  if (show === 'shown') return ['shown', 'shown', 'shown', 'shown', 'shown']
   return ['selected', 'selected', 'selected', 'dimmed', 'dimmed']
 }
 
@@ -153,19 +240,20 @@ export function howToPlayFrame(stepIndex: number): HowToPlayFrame {
     hint: beat.hint,
     question: HOW_TO_PLAY_QUESTION,
     durationMs: beat.durationMs,
-    showCallout: step === 2 || step === 4,
-    callout: 'Bet or fold?',
-    showOutcome: step === stepCount - 1,
-    answerRevealed: step >= 5,
+    showCallout: beat.callout != null,
+    callout: beat.callout ?? '',
+    pots: beat.pots,
+    showOutcome: beat.outcome,
+    answerRevealed: beat.answer,
     answerDigits: HOW_TO_PLAY_ANSWER,
     decimalBefore: HOW_TO_PLAY_DECIMAL_BEFORE,
     submittedAnswer: HOW_TO_PLAY_SUBMITTED,
     correctAnswer: HOW_TO_PLAY_CORRECT,
-    outcomeDetail: 'Just 0.1 away. This is the closest answer at the table.',
+    outcomeDetail: 'Just 0.1 away, so this answer takes the main pot. The side pot is a separate prize.',
     holeDigits: HOW_TO_PLAY_HOLES,
     boardDigits: HOW_TO_PLAY_BOARD,
-    holeFaces: holeFaces(step),
-    boardFaces: boardFaces(step),
+    holeFaces: holeFaces(beat.holes),
+    boardFaces: boardFaces(beat.board),
   }
 }
 

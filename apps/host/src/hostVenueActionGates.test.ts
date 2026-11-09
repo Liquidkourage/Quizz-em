@@ -4,6 +4,7 @@ import { buildHostPhaseDockItems } from './hostDeskLayout'
 import {
   dockForRoomWait,
   lastCallForBetsLabel,
+  playersStillAbleToBet,
   roomBettingActions,
   nextBandOverride,
   tablesStillBettingCount,
@@ -258,6 +259,25 @@ describe('next band while tables differ', () => {
       felt(2, 'betting', 'bet|1|T|cc0'),
       felt(3, 'betting', 'bet|1|F|cc0'),
     ])).toBe(2)
+  })
+
+  it('counts everyone who can still bet, not only the player on the action', () => {
+    const seat = (kind: 'pot' | 'points', bankroll?: number) => ({ kind, bankroll })
+    expect(
+      playersStillAbleToBet([
+        {
+          phase: 'betting',
+          seats: [seat('pot', 900), seat('pot', 40), seat('pot', 0), seat('points', 0)],
+        },
+        {
+          phase: 'betting',
+          betsClosed: true,
+          seats: [seat('pot', 500), seat('pot', 500)],
+        },
+        { phase: 'answering', seats: [seat('pot', 800)] },
+      ]),
+    ).toBe(2)
+    expect(lastCallForBetsLabel(2)).toBe('Last call for bets (2)')
   })
 
   it('asks before close, then offers fold and cancel', () => {

@@ -279,6 +279,25 @@ export function lastCallForBetsLabel(count: number): string {
   return `Last call for bets (${count})`
 }
 
+/** Players who can still put chips in, including seats the action has not reached. */
+export function playersStillAbleToBet(
+  rows: readonly {
+    phase: string
+    betsClosed?: boolean
+    seats: readonly { kind: string; bankroll?: number; offFelt?: boolean }[]
+  }[],
+): number {
+  let count = 0
+  for (const row of rows) {
+    if (row.phase !== 'betting' || row.betsClosed === true) continue
+    for (const seat of row.seats) {
+      if (seat.offFelt === true || seat.kind !== 'pot' || seat.bankroll === 0) continue
+      count += 1
+    }
+  }
+  return count
+}
+
 export function closeBettingRoundLabel(rows: HostVenueFeltBeatRow[] | null): string {
   const rounds = new Set<number>()
   for (const row of seatedVenueRows(rows)) {

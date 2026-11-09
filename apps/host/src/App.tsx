@@ -94,6 +94,7 @@ import {
   hostCloseBettingGate,
   closeBettingRoundLabel,
   lastCallForBetsLabel,
+  playersStillAbleToBet,
   roomBettingActions,
   tablesStillBettingCount,
   hostDealCommunityGate,
@@ -623,7 +624,7 @@ function HostApp() {
     roundLabel: closeBettingRoundLabel(venueFeltBeat),
     confirmLabel: closeAsk.label,
     nudgeLabel,
-    lastCallLabel: lastCallForBetsLabel(stillBetting),
+    lastCallLabel: lastCallForBetsLabel(playersStillAbleToBet(venueFloorBrief?.actionRows ?? [])),
     onAsk: () => setConfirmingClose(true),
     onConfirm: () => {
       setConfirmingClose(false)

@@ -112,7 +112,7 @@ describe('reveal while someone is betting', () => {
       onNextSetlist: () => {},
       onNudgeActing: () => {},
     })
-    expect(items.map((item) => item.label)).toEqual(['Close 1st betting round', 'Nudge slow player'])
+    expect(items.map((item) => item.label)).toEqual(['Close 1st betting round', 'Nudge slow players'])
   })
 
   it('keeps Reveal the answer off until the timer ends or every guess is in', () => {
@@ -215,7 +215,7 @@ describe('next band while tables differ', () => {
       { id: 'deal-board', label: 'Deal the street' },
       { id: 'rehearsal-skip-showdown', label: 'Skip to winner screen' },
     ]
-    const nudge = { id: 'nudge', label: 'Nudge slow player' }
+    const nudge = { id: 'nudge', label: 'Nudge slow players' }
     const wait = nextBandOverride([
       felt(1, 'betting', 'bet|1|F|cc0'),
       felt(2, 'betting', 'bet|1|T|cc0'),

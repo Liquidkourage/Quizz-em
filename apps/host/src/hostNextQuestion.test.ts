@@ -150,7 +150,7 @@ describe('host run bar', () => {
         headline: { title: 'Close betting' },
         items: [
           { id: 'close', label: 'Close betting', onClick: noop, variant: 'gold', role: 'primary' },
-          { id: 'nudge', label: 'Nudge slow player', onClick: noop, variant: 'blue', role: 'secondary' },
+          { id: 'nudge', label: 'Nudge slow players', onClick: noop, variant: 'blue', role: 'secondary' },
         ],
       }),
     )

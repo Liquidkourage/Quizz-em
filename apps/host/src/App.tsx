@@ -579,7 +579,7 @@ function HostApp() {
   const roomWait = endgameWinner == null ? nextBandOverride(venueFeltBeat) : null
   const nextDockItems = dockForRoomWait(phaseDockItems, roomWait, {
     id: 'nudge',
-    label: 'Nudge slow player',
+    label: 'Nudge slow players',
     onClick: () => nudgeActingPlayers(),
     variant: 'gold',
     role: 'primary',

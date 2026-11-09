@@ -908,7 +908,7 @@ export function buildHostPhaseDockItems(args: {
         },
         {
           id: 'nudge',
-          label: 'Nudge slow player',
+          label: 'Nudge slow players',
           onClick: onNudgeActing,
           variant: 'gold',
           role: 'secondary',

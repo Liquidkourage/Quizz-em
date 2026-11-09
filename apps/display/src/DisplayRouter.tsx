@@ -489,7 +489,7 @@ export default function DisplayRouter({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <VenueSeatingRulesWall skipMountIntro={venueMosaicWasShownRef.current} />
+          <VenueSeatingRulesWall venueCode={venueCode} />
         </motion.div>
       )}
       {showVenueMosaicShell && (

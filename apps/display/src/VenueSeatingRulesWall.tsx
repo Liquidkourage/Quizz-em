@@ -1,147 +1,217 @@
-import { motion } from 'framer-motion'
-import { QuizzEmWordmark } from '@qhe/ui'
-import {
-  VENUE_RULES_WALL_COLUMNS,
-  VENUE_RULES_WALL_HEADLINE,
-  type VenueRulesWallBulletGroup,
-  type VenueRulesWallColumn,
-} from './venueRulesWallContent'
+import { useEffect, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
+import { CardFaceGraphic, QuizzEmWordmark } from '@qhe/ui'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
+import {
+  HOW_TO_PLAY_SEGMENTS,
+  howToPlayFrame,
+  howToPlayJoinUrl,
+  howToPlayQrSrc,
+  type HowToPlayCardFace,
+  type HowToPlayFrame,
+} from './howToPlayTutorial'
 
 export type VenueSeatingRulesWallProps = {
-  skipMountIntro?: boolean
+  venueCode?: string
+  /** When set, the lesson stays on this beat. The TV omits it and advances on its own. */
+  step?: number
 }
 
-function countBullets(groups: readonly VenueRulesWallBulletGroup[]): number {
-  return groups.reduce((sum, group) => sum + group.bullets.length, 0)
+function usePlayingStep(controlled: number | undefined): number {
+  const [live, setLive] = useState(0)
+  const step = controlled ?? live
+  useEffect(() => {
+    if (controlled != null) return undefined
+    const ms = howToPlayFrame(step).durationMs
+    const id = window.setTimeout(() => {
+      setLive((current) => howToPlayFrame(current + 1).stepIndex)
+    }, ms)
+    return () => window.clearTimeout(id)
+  }, [controlled, step])
+  return step
 }
 
-function RulesBulletList({
-  bullets,
-  skipMountIntro,
-  startIndex,
-}: {
-  bullets: readonly string[]
-  skipMountIntro: boolean
-  startIndex: number
-}) {
+function joinOrigin(): string {
+  if (typeof window === 'undefined') return ''
+  return window.location.origin
+}
+
+function TutorialTimeline({ segment }: { segment: number }) {
   return (
-    <ul className="venue-rules-list m-0 list-none space-y-[clamp(0.55rem,1.15vmin,0.95rem)] p-0">
-      {bullets.map((bullet, index) => {
-        const delayIndex = startIndex + index
+    <ol className="htp-timeline" aria-label="Lesson">
+      {HOW_TO_PLAY_SEGMENTS.map((label, index) => {
+        const state = index === segment ? 'current' : index < segment ? 'done' : 'upcoming'
         return (
-          <motion.li
-            key={bullet}
-            className="flex gap-[clamp(0.55rem,1.05vmin,0.95rem)] text-pretty text-left font-semibold leading-[1.26] text-white/92"
-            initial={skipMountIntro ? false : { opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.32, delay: skipMountIntro ? 0 : 0.04 * delayIndex }}
-          >
-            <span
-              className="venue-rules-bullet mt-[0.12em] shrink-0 font-black leading-none text-amber-400/95"
-              aria-hidden
-            >
-              •
-            </span>
-            <span>{bullet}</span>
-          </motion.li>
+          <li key={label} className={`htp-dot htp-dot--${state}`} aria-current={state === 'current' ? 'step' : undefined}>
+            <b>{String(index + 1).padStart(2, '0')}</b>
+            <span>{label}</span>
+          </li>
         )
       })}
-    </ul>
+    </ol>
   )
 }
 
-function RulesColumn({
-  column,
-  skipMountIntro,
-  startIndex,
-  showDivider,
+function TutorialDigit({
+  digit,
+  face,
+  size,
 }: {
-  column: VenueRulesWallColumn
-  skipMountIntro: boolean
-  startIndex: number
-  showDivider?: boolean
+  digit: number
+  face: HowToPlayCardFace
+  size: 'board' | 'hole' | 'answer'
 }) {
-  let offset = startIndex
-
+  if (face === 'hidden') {
+    return <div className={`htp-card htp-card--${size} htp-card--ghost`} aria-hidden />
+  }
   return (
-    <div
-      className={
-        showDivider
-          ? 'flex min-h-0 min-w-0 flex-1 flex-col lg:border-l lg:border-amber-500/25 lg:pl-[clamp(1.5rem,3vw,3rem)]'
-          : 'flex min-h-0 min-w-0 flex-1 flex-col'
-      }
-    >
-      <h2 className="venue-rules-section-title shrink-0 text-center font-black uppercase tracking-wide text-emerald-200/95 lg:text-left">
-        {column.title}
-      </h2>
-      <div className="mt-[clamp(0.85rem,1.6vmin,1.25rem)] flex min-h-0 flex-1 flex-col justify-evenly gap-[clamp(1rem,2.2vmin,2rem)]">
-        {column.groups.map((group) => {
-          const groupStart = offset
-          offset += group.bullets.length
-          return (
-            <div key={group.title}>
-              <h3 className="venue-rules-group-title mb-[clamp(0.45rem,0.85vmin,0.7rem)] font-black uppercase tracking-wide text-amber-100/85">
-                {group.title}
-              </h3>
-              <RulesBulletList
-                bullets={group.bullets}
-                skipMountIntro={skipMountIntro}
-                startIndex={groupStart}
-              />
+    <div className={`htp-card htp-card--${size} htp-card--${face}`}>
+      <CardFaceGraphic digit={digit} dimmed={face === 'dimmed'} alt="" />
+    </div>
+  )
+}
+
+function AnswerRow({ frame }: { frame: HowToPlayFrame }) {
+  const face: HowToPlayCardFace = frame.answerRevealed ? 'selected' : 'hidden'
+  return (
+    <div className="htp-card-row htp-card-row--answer">
+      {frame.answerDigits.map((digit, index) => (
+        <span key={`${digit}-${index}`} className="htp-answer-piece">
+          {index === frame.decimalBefore ? (
+            <span className={frame.answerRevealed ? 'htp-decimal htp-decimal--on' : 'htp-decimal'} aria-hidden>
+              .
+            </span>
+          ) : null}
+          <TutorialDigit digit={digit} face={face} size="answer" />
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function TutorialFelt({ frame }: { frame: HowToPlayFrame }) {
+  return (
+    <div className="htp-felt">
+      <div className="htp-question">
+        <p className="htp-kicker">Example trivia question</p>
+        <h2>{frame.question}</h2>
+      </div>
+      <div className="htp-board">
+        <p className="htp-kicker">Five community cards, shared by the table</p>
+        <div className="htp-card-row">
+          {frame.boardDigits.map((digit, index) => (
+            <TutorialDigit key={`${digit}-${index}`} digit={digit} face={frame.boardFaces[index] ?? 'hidden'} size="board" />
+          ))}
+        </div>
+      </div>
+      <div className="htp-player">
+        <div className="htp-holes">
+          <p className="htp-kicker">Your two cards</p>
+          <div className="htp-card-row">
+            {frame.holeDigits.map((digit, index) => (
+              <TutorialDigit key={`${digit}-${index}`} digit={digit} face={frame.holeFaces[index] ?? 'hidden'} size="hole" />
+            ))}
+          </div>
+        </div>
+        <div className={frame.answerRevealed ? 'htp-answer htp-answer--on' : 'htp-answer'}>
+          <p className="htp-kicker">The number you submit</p>
+          <AnswerRow frame={frame} />
+        </div>
+      </div>
+      {frame.showCallout ? (
+        <div className="htp-callout" role="status">
+          <p className="htp-kicker">Your decision</p>
+          <p className="htp-callout-line">{frame.callout}</p>
+        </div>
+      ) : null}
+      {frame.showOutcome ? (
+        <div className="htp-outcome" role="status">
+          <p className="htp-kicker">The answer is revealed</p>
+          <div className="htp-scores">
+            <div className="htp-score htp-score--win">
+              <p className="htp-kicker">Your answer</p>
+              <p className="htp-score-num">{frame.submittedAnswer}</p>
             </div>
-          )
-        })}
+            <p className="htp-versus">vs.</p>
+            <div className="htp-score">
+              <p className="htp-kicker">Correct answer</p>
+              <p className="htp-score-num">{frame.correctAnswer}</p>
+            </div>
+          </div>
+          <p className="htp-outcome-detail">{frame.outcomeDetail}</p>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function TutorialGuide({ frame }: { frame: HowToPlayFrame }) {
+  return (
+    <aside className="htp-guide" aria-live="polite">
+      <p className="htp-kicker">{frame.eyebrow}</p>
+      <h2>{frame.title}</h2>
+      <p className="htp-guide-copy">{frame.description}</p>
+      <p className="htp-hint">{frame.hint}</p>
+      <p className="htp-step">{frame.stepLabel}</p>
+    </aside>
+  )
+}
+
+function TutorialJoin({ venueCode }: { venueCode: string }) {
+  const url = howToPlayJoinUrl(joinOrigin(), venueCode)
+  const qr = howToPlayQrSrc(url)
+  const code = venueCode.trim().toUpperCase()
+  return (
+    <div className="htp-join">
+      {qr ? <img className="htp-qr" src={qr} alt="" /> : <div className="htp-qr htp-qr--empty" aria-hidden />}
+      <div>
+        <p className="htp-join-title">Join on your phone</p>
+        <p className="htp-join-note">
+          {code ? `Room ${code}. ` : ''}
+          Bet and submit your answer there.
+        </p>
       </div>
     </div>
   )
 }
 
-export default function VenueSeatingRulesWall({ skipMountIntro = false }: VenueSeatingRulesWallProps) {
+export default function VenueSeatingRulesWall({ venueCode = '', step }: VenueSeatingRulesWallProps) {
+  const shown = usePlayingStep(step)
+  const frame = howToPlayFrame(shown)
+  const reduce = useReducedMotion() === true
   return (
     <div
-      className="venue-rules-wall relative flex min-h-[100dvh] w-full flex-col overflow-hidden bg-[#050806] text-white"
+      className={reduce ? 'htp-screen htp-screen--still' : 'htp-screen'}
       role="region"
-      aria-label={VENUE_RULES_WALL_HEADLINE}
+      aria-label="How to play"
     >
       <DisplayWelcomeBackdrop />
-
-      <motion.div
-        className="relative z-10 mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-[clamp(0.65rem,1.35vmin,1rem)] px-[clamp(1.25rem,3.5vw,4rem)] py-[max(0.65rem,env(safe-area-inset-top))] pb-[max(0.65rem,env(safe-area-inset-bottom))]"
-        initial={skipMountIntro ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <header className="flex shrink-0 flex-col items-center gap-[clamp(0.35rem,0.75vmin,0.55rem)] text-center">
-          <div className="w-[clamp(5rem,10vw,8.5rem)] shrink-0" style={{ aspectRatio: '958 / 592' }}>
+      <header className="htp-header">
+        <div className="htp-brand">
+          <div className="htp-logo">
             <QuizzEmWordmark layout="fill" />
           </div>
-          <h1 className="venue-rules-headline font-black leading-tight tracking-tight text-amber-300">
-            {VENUE_RULES_WALL_HEADLINE}
-          </h1>
-        </header>
-
-        <motion.section
-          className="venue-rules-panel flex min-h-0 w-full flex-1 flex-col rounded-[clamp(1rem,2vmin,1.75rem)] border-2 border-amber-500/40 bg-black/55 px-[clamp(1.35rem,3vw,3.25rem)] py-[clamp(1.25rem,2.8vmin,2.75rem)] shadow-[inset_0_1px_0_rgba(251,191,36,0.12),0_22px_56px_rgba(0,0,0,0.4)] backdrop-blur-sm"
-          initial={skipMountIntro ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.38, delay: skipMountIntro ? 0 : 0.08 }}
-        >
-          <div className="grid min-h-0 flex-1 grid-cols-1 gap-[clamp(1.5rem,3vmin,2.75rem)] lg:grid-cols-2 lg:items-stretch">
-            <RulesColumn
-              column={VENUE_RULES_WALL_COLUMNS[0]!}
-              skipMountIntro={skipMountIntro}
-              startIndex={0}
-            />
-            <RulesColumn
-              column={VENUE_RULES_WALL_COLUMNS[1]!}
-              skipMountIntro={skipMountIntro}
-              startIndex={countBullets(VENUE_RULES_WALL_COLUMNS[0]!.groups)}
-              showDivider
-            />
+          <div>
+            <h1>How to play</h1>
+            <p>Trivia meets Texas Hold&apos;em</p>
           </div>
-        </motion.section>
-      </motion.div>
+        </div>
+        <TutorialTimeline segment={frame.segment} />
+      </header>
+      <div className="htp-main">
+        <TutorialFelt frame={frame} />
+        <TutorialGuide frame={frame} />
+      </div>
+      <footer className="htp-footer">
+        <TutorialJoin venueCode={venueCode} />
+        <div className="htp-progress" aria-hidden>
+          <div
+            key={frame.stepIndex}
+            className="htp-progress-fill"
+            style={{ animationDuration: `${frame.durationMs}ms` }}
+          />
+        </div>
+      </footer>
     </div>
   )
 }

@@ -2968,6 +2968,97 @@
   }
 }
 
+/*
+ * The action buttons are gone after a fold, so the waiting line was stacking
+ * on the oval and the seats ran off a short screen. The line sits beside the
+ * table, and the oval uses the height that is left.
+ */
+@media (max-height: 520px) and (min-width: 28rem) {
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) {
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-game-shell {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-game-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12.5rem, 16.5rem);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-sticky-question {
+    grid-column: 1;
+    grid-row: 1;
+    max-height: 2.6rem;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-game-banner--compact {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-seated-table,
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-seated-felt,
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-felt-stack {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-felt-stack {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-game-felt-panel--fill {
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    overflow: visible;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: 0.15rem 3.75rem 0.1rem;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    min-height: 0;
+    height: 100%;
+    aspect-ratio: auto;
+    width: 100%;
+    align-self: stretch;
+    container-type: size;
+    padding: 1.7rem 0.35rem 2.5rem;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-game-felt--fill {
+    width: min(100%, calc(100cqh * 8 / 5));
+    height: min(100cqh, calc(100cqw * 5 / 8));
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .player-game-layout--live-fit:not(.player-game-layout--with-dock) .player-hole-slot {
+    flex: 0 0 auto;
+  }
+}
+
 /* A short stacked screen puts the action buttons above the notes. 844px (iPhone 12) still hides Fold; 915px (Pixel) does not. */
 @media (max-height: 860px) and (min-height: 521px) {
   .player-game-layout--live-fit .player-game-dock-inner {

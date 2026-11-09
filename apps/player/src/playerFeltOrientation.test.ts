@@ -341,6 +341,19 @@ describe('player table orientation', () => {
     expect(block).not.toContain('aspect-ratio: 4 / 5')
   })
 
+  it('keeps the oval on a short screen when the action buttons are gone', () => {
+    const header = '@media (max-height: 520px) and (min-width: 28rem)'
+    const block = mediaBlock(css.slice(css.indexOf('action buttons are gone')), header)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain(':not(.player-game-layout--with-dock)')
+    expect(block).toContain('.player-game-banner--compact')
+    expect(block).toContain('grid-column: 2')
+    expect(block).toContain('.player-hole-slot')
+    expect(block).toContain('width: min(100%, calc(100cqh * 8 / 5))')
+    expect(block).toContain('grid-template-columns: minmax(0, 1fr) minmax(12.5rem, 16.5rem)')
+    expect(block).not.toContain('.player-game-dock--inflow')
+  })
+
   it('puts the action buttons above the notes on a short stacked screen', () => {
     const header = '@media (max-height: 860px) and (min-height: 521px)'
     const block = mediaBlock(css.slice(css.indexOf('action buttons above the notes')), header)

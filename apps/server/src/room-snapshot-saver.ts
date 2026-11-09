@@ -1,5 +1,6 @@
 import type { GameState } from '@qhe/core'
 import { toSnapshotRows } from './room-snapshot'
+import { triviaFieldSnapshotRows } from './venue-host-log'
 import type { RoomSnapshotStore } from './room-snapshot-store'
 
 export interface RoomSnapshotSaver {
@@ -26,7 +27,7 @@ export function startRoomSnapshotSaver(opts: {
     if (saving) return
     saving = true
     try {
-      const rows = toSnapshotRows(opts.rooms)
+      const rows = [...toSnapshotRows(opts.rooms), ...triviaFieldSnapshotRows()]
       const fingerprint = JSON.stringify(rows)
       if (fingerprint === lastSaved) return
       await opts.store.replaceAll(rows)

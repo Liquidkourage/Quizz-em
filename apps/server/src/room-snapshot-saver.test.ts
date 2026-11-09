@@ -3,6 +3,7 @@ import { addPlayer, createEmptyGame } from '@qhe/core'
 import type { GameState } from '@qhe/core'
 import { startRoomSnapshotSaver } from './room-snapshot-saver'
 import type { RoomSnapshotStore } from './room-snapshot-store'
+import { clearVenueHostLog, rememberVenueTriviaField } from './venue-host-log'
 
 function fakeStore(failTimes = 0) {
   let failures = failTimes
@@ -21,7 +22,10 @@ function fakeStore(failTimes = 0) {
 }
 
 beforeEach(() => vi.useFakeTimers())
-afterEach(() => vi.useRealTimers())
+afterEach(() => {
+  vi.useRealTimers()
+  clearVenueHostLog('BAR')
+})
 
 describe('room snapshot saver', () => {
   it('saves on the interval when a table exists, and stays quiet when nothing changed', async () => {
@@ -55,6 +59,17 @@ describe('room snapshot saver', () => {
     expect(saves).toHaveLength(0)
     await vi.advanceTimersByTimeAsync(1000)
     expect(saves).toEqual([['BAR:1']])
+    saver.stop()
+  })
+
+  it('saves the night list with the tables', async () => {
+    clearVenueHostLog('BAR')
+    rememberVenueTriviaField('BAR', [{ players: [{ id: 'a', name: 'Ada', answerPoints: 12 }] }])
+    const rooms = new Map<string, GameState>([['BAR:1', createEmptyGame('BAR', 'h', '1')]])
+    const { store, saves } = fakeStore()
+    const saver = startRoomSnapshotSaver({ rooms, store, intervalMs: 60_000 })
+    await saver.flush()
+    expect(saves).toEqual([['BAR:1', 'BAR:~trivia']])
     saver.stop()
   })
 

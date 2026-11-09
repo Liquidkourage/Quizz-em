@@ -59,6 +59,23 @@ export function fromSnapshotRows(
   return restored
 }
 
+/** Session-key suffix for the saved night list. Not a table. */
+export const TRIVIA_FIELD_SNAPSHOT_KEY = ':~trivia'
+
+/** Night-list rows travel with the table snapshot. They are not game states. */
+export function splitTriviaFieldRows(rows: readonly RoomSnapshotRow[]): {
+  tables: RoomSnapshotRow[]
+  trivia: RoomSnapshotRow[]
+} {
+  const tables: RoomSnapshotRow[] = []
+  const trivia: RoomSnapshotRow[] = []
+  for (const row of rows) {
+    if (row.sessionKey.endsWith(TRIVIA_FIELD_SNAPSHOT_KEY)) trivia.push(row)
+    else tables.push(row)
+  }
+  return { tables, trivia }
+}
+
 /** Saved venues untouched for longer than this are dropped at boot (12 hours). */
 export const DEFAULT_SNAPSHOT_MAX_AGE_MS = 12 * 60 * 60 * 1000
 

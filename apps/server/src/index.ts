@@ -6,7 +6,8 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { initPlayerSocketRegistry } from './player-socket-registry'
 import { bindGameIo, prepareVenuePersistence, restoreRoomsFromSnapshot, rooms } from './game-ops'
-import { dropStaleVenues, snapshotMaxAgeMs } from './room-snapshot'
+import { dropStaleVenues, snapshotMaxAgeMs, splitTriviaFieldRows } from './room-snapshot'
+import { restoreTriviaFieldSnapshots } from './venue-host-log'
 import { startRoomSnapshotSaver, type RoomSnapshotSaver } from './room-snapshot-saver'
 import { openRoomSnapshotStoreFromEnv } from './room-snapshot-store'
 import { installGracefulShutdown } from './graceful-shutdown'
@@ -791,7 +792,9 @@ async function recoverAndStartSaving(): Promise<void> {
     if (droppedVenues.length > 0) {
       console.log(`🧹 Dropped old saved venue(s) ${droppedVenues.join(', ')} (untouched past the age limit).`)
     }
-    const restored = restoreRoomsFromSnapshot(fresh)
+    const saved = splitTriviaFieldRows(fresh)
+    restoreTriviaFieldSnapshots(saved.trivia)
+    const restored = restoreRoomsFromSnapshot(saved.tables)
     if (restored.tables > 0) {
       console.log(
         `♻️ Restored ${restored.tables} table(s) for venue(s) ${restored.venues.join(', ')}. Frozen until the host reconnects.`,

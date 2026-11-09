@@ -6,6 +6,7 @@ import {
   type GameState,
   type SeatBettingAction,
 } from '@qhe/core'
+import { SNAPSHOT_VERSION, TRIVIA_FIELD_SNAPSHOT_KEY, type RoomSnapshotRow } from './room-snapshot'
 import type {
   DisplayVenueTileSnapshot,
   DisplayVenueSeatingAnnouncement,
@@ -84,6 +85,63 @@ export function rememberVenueTriviaField(
   }
   venueTriviaMemory.set(vn, memory)
   return [...memory.values()]
+}
+
+type SavedTriviaRow = { id: string; name: string; answerPoints: number }
+
+/** The night list, one saved row per venue, so a restart can put it back. */
+export function triviaFieldSnapshotRows(): RoomSnapshotRow[] {
+  const rows: RoomSnapshotRow[] = []
+  for (const [venue, memory] of venueTriviaMemory) {
+    if (memory.size === 0) continue
+    const triviaField: SavedTriviaRow[] = [...memory.entries()].map(([id, row]) => ({
+      id,
+      name: row.name,
+      answerPoints: row.answerPoints,
+    }))
+    rows.push({
+      sessionKey: `${venue}${TRIVIA_FIELD_SNAPSHOT_KEY}`,
+      stateJson: JSON.stringify({ v: SNAPSHOT_VERSION, triviaField }),
+    })
+  }
+  return rows
+}
+
+function oneTriviaRow(raw: unknown): SavedTriviaRow | null {
+  if (typeof raw !== 'object' || raw == null) return null
+  const item = raw as { id?: unknown; name?: unknown; answerPoints?: unknown }
+  if (typeof item.id !== 'string' || typeof item.name !== 'string' || typeof item.answerPoints !== 'number') return null
+  if (!item.id || !item.name || !Number.isFinite(item.answerPoints)) return null
+  return { id: item.id, name: item.name, answerPoints: item.answerPoints }
+}
+
+function savedTriviaRows(stateJson: string): SavedTriviaRow[] {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(stateJson)
+  } catch {
+    return []
+  }
+  const wrapper = parsed as { v?: unknown; triviaField?: unknown } | null
+  if (wrapper?.v !== SNAPSHOT_VERSION || !Array.isArray(wrapper.triviaField)) return []
+  const rows: SavedTriviaRow[] = []
+  for (const row of wrapper.triviaField) {
+    const saved = oneTriviaRow(row)
+    if (saved) rows.push(saved)
+  }
+  return rows
+}
+
+/** Put a saved night list back. A later score still cannot lower a stored one. */
+export function restoreTriviaFieldSnapshots(rows: readonly Pick<RoomSnapshotRow, 'sessionKey' | 'stateJson'>[]): void {
+  for (const row of rows) {
+    if (!row.sessionKey.endsWith(TRIVIA_FIELD_SNAPSHOT_KEY)) continue
+    const venue = row.sessionKey.slice(0, -TRIVIA_FIELD_SNAPSHOT_KEY.length)
+    if (!venue) continue
+    const memory = venueTriviaMemory.get(venue) ?? new Map()
+    for (const saved of savedTriviaRows(row.stateJson)) absorbTriviaRow(memory, saved.id, saved.name, saved.answerPoints)
+    if (memory.size > 0) venueTriviaMemory.set(venue, memory)
+  }
 }
 
 /** Clock start for the player listed on a table. A new name means someone just acted. */

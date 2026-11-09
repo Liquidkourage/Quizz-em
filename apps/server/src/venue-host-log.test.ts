@@ -7,6 +7,8 @@ import {
   buildHostVenueFloorBrief,
   clearVenueHostLog,
   rememberVenueTriviaField,
+  restoreTriviaFieldSnapshots,
+  triviaFieldSnapshotRows,
   getVenueLastHandDisplay,
   recordVenueHostHandResults,
   recordVenueMovesBetweenStates,
@@ -647,6 +649,22 @@ describe('buildHostVenueActionRows seats', () => {
     }
     expect(rememberVenueTriviaField('TRIV', [seated]).map((row) => row.name).sort()).toEqual(['Ada', 'Bea'])
     const field = rememberVenueTriviaField('TRIV', [{ players: [seated.players[1]!], pointsStandings: [] }])
+    expect(field.map((row) => row.name).sort()).toEqual(['Ada', 'Bea'])
+    expect(field.find((row) => row.name === 'Ada')?.answerPoints).toBe(12)
+  })
+
+  it('brings a player who left back onto the list after a restart', () => {
+    clearVenueHostLog('SAVE')
+    rememberVenueTriviaField('SAVE', [{
+      players: [
+        { id: 'a', name: 'Ada', answerPoints: 12 },
+        { id: 'b', name: 'Bea', answerPoints: 4 },
+      ],
+    }])
+    const saved = triviaFieldSnapshotRows()
+    clearVenueHostLog('SAVE')
+    restoreTriviaFieldSnapshots(saved)
+    const field = rememberVenueTriviaField('SAVE', [{ players: [{ id: 'b', name: 'Bea', answerPoints: 4 }] }])
     expect(field.map((row) => row.name).sort()).toEqual(['Ada', 'Bea'])
     expect(field.find((row) => row.name === 'Ada')?.answerPoints).toBe(12)
   })

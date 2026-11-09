@@ -73,29 +73,20 @@ describe('seatLatePointsOnlyPlayer, turned away', () => {
   it('has nothing to join when the venue has no tables', () => {
     expect(seatLatePointsOnlyPlayer('NOSUCH', 'human:neo', 'Neo').ok).toBe(false)
   })
-
-  it('sits a late arrival in an open chair instead of past the felt', () => {
-    let full = createEmptyGame('EDGE', 'host', '1')
-    for (let i = 0; i < 8; i++) full = addPlayer(full, `full-${i}`, `Full ${i}`, 500)
-    rooms.set(tableSessionKey('EDGE', '1'), full)
-    seatChip('EDGE', '2', 'cam', 'Cam')
-    const result = seatLatePointsOnlyPlayer('EDGE', 'human:neo', 'Neo')
-    expect(result).toMatchObject({ ok: true, tableId: '2' })
-    expect(table('EDGE', '1').players).toHaveLength(8)
-    expect(table('EDGE', '2').players.map((p) => p.id)).toEqual(['cam', 'human:neo'])
-  })
-
-  it('turns a late arrival away when every chair is taken', () => {
-    let full = createEmptyGame('EDGE', 'host', '1')
-    for (let i = 0; i < 8; i++) full = addPlayer(full, `full-${i}`, `Full ${i}`, 500)
-    rooms.set(tableSessionKey('EDGE', '1'), full)
-    const result = seatLatePointsOnlyPlayer('EDGE', 'human:neo', 'Neo')
-    expect(result).toEqual({ ok: false, message: 'Every table is full.' })
-    expect(table('EDGE', '1').players).toHaveLength(8)
-  })
 })
 
 describe('seatLatePointsOnlyPlayer, seated', () => {
+  it('attaches a late arrival to a chip player even when that felt is full', () => {
+    let full = createEmptyGame('EDGE', 'host', '1')
+    for (let i = 0; i < 8; i++) full = addPlayer(full, `full-${i}`, `Full ${i}`, 500)
+    rooms.set(tableSessionKey('EDGE', '1'), full)
+    const result = seatLatePointsOnlyPlayer('EDGE', 'human:neo', 'Neo')
+    expect(result).toMatchObject({ ok: true, tableId: '1', ghostHostId: 'full-0' })
+    const neo = table('EDGE', '1').players.find((p) => p.id === 'human:neo')
+    expect(neo).toMatchObject({ pointsOnly: true, bankroll: 0, ghostHostId: 'full-0', hand: [] })
+    expect(table('EDGE', '1').players.filter((p) => p.pointsOnly !== true)).toHaveLength(8)
+  })
+
   it('seats a second person who shares a name, and numbers that name', () => {
     seatChip('EDGE', '1', 'ada', 'Ada')
     seatChip('EDGE', '2', 'cam', 'Cam')

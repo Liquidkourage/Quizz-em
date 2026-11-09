@@ -322,6 +322,20 @@ describe('player table orientation', () => {
     expect(Number(padding?.[1]) * REM).toBeGreaterThanOrEqual(bottomSeatOverflowPx(feltW))
   })
 
+  it('puts the table left of the action buttons on a short wide screen', () => {
+    const header = '@media (max-height: 520px) and (min-width: 28rem)'
+    const block = mediaBlock(css.slice(css.indexOf('table left of the action buttons')), header)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain('grid-template-columns: minmax(0, 1fr) minmax(12.5rem, 16.5rem)')
+    expect(block).toContain('.player-game-dock--inflow')
+    expect(block).toContain('overflow-y: auto')
+    expect(block).toContain('padding: 0.15rem 3.75rem 0.1rem')
+    expect(block).toContain('padding: 1.7rem 0.35rem 2.5rem')
+    expect(block).toContain('width: min(100%, calc(100cqh * 8 / 5))')
+    expect(block).not.toContain('flex: 0 0 18rem')
+    expect(block).not.toContain('aspect-ratio: 4 / 5')
+  })
+
   it('grows a tall phone oval and keeps the seat names readable', () => {
     const names = css.slice(css.indexOf('.player-seat-name,'), css.indexOf('.player-seat-name,') + 220)
     expect(names).toContain('font-size: 0.9rem')

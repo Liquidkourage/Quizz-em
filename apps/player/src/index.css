@@ -2783,6 +2783,95 @@
   }
 }
 
+/*
+ * A short wide screen puts the table left of the action buttons.
+ * A tall screen keeps the table above them. The oval fits the height
+ * that is left, so the names and Hold to peek stay with the table.
+ */
+@media (max-height: 520px) and (min-width: 28rem) {
+  .player-game-layout--live-fit.player-game-layout--with-dock {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(12.5rem, 16.5rem);
+    align-items: stretch;
+    justify-items: stretch;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-shell {
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    width: auto;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    align-self: stretch;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-seated-table,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-seated-felt,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-felt-stack {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-felt-stack {
+    height: 100%;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    overflow: visible;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: 0.15rem 3.75rem 0.1rem;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill > .player-felt-rotate-slot {
+    min-height: 0;
+    height: 100%;
+    aspect-ratio: auto;
+    width: 100%;
+    align-self: stretch;
+    container-type: size;
+    padding: 1.7rem 0.35rem 2.5rem;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt--fill {
+    width: min(100%, calc(100cqh * 8 / 5));
+    height: min(100cqh, calc(100cqw * 5 / 8));
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-sticky-question {
+    flex: 0 0 auto;
+    max-height: 2.6rem;
+    overflow-y: auto;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-dock--inflow {
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+    align-self: stretch;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
 .player-game-layout--live-fit .player-game-wager-wait {
   display: flex;
   align-items: baseline;

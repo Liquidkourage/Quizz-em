@@ -25,7 +25,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
-import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, isAllInRunout, mayLockGuess } from '@qhe/core'
+import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, mayLockGuess } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
   playerJoinBoot,
@@ -41,7 +41,6 @@ import {
   feltStatusClockDeadline,
   nudgeClockDeadline,
 } from './playerModel/answerClockDeadline'
-import { runoutAnswerLine } from './playerModel/seatBettingStatus'
 import { useHandSummary } from './hooks/useHandSummary'
 import { useTableResults } from './hooks/useTableResults'
 import {
@@ -604,8 +603,6 @@ function PlayerApp() {
 
   const preloadAnswer = canPreloadTriviaAnswer(gameState)
   const showAnswerModal = currentPlayer != null && mayLockGuess(gameState, currentPlayer)
-  const allInWaitingOnBoard =
-    gameState.phase === 'betting' && isAllInRunout(gameState) && !preloadAnswer
   const isPointsOnly = currentPlayer?.pointsOnly === true
 
   const seatedAtTable = seatlessPhoneKeepsFelt(gameState.tableId)
@@ -790,12 +787,6 @@ function PlayerApp() {
             ) : null}
 
             {!hideLiveChrome ? <PhaseBanner gameState={gameState} /> : null}
-
-            {allInWaitingOnBoard ? (
-              <p className="player-game-banner player-game-banner--compact" role="status">
-                {runoutAnswerLine(currentPlayer)}
-              </p>
-            ) : null}
 
             {showSeatedLobbyWait && !waitingForFirstStart ? (
               <p className="player-game-banner player-game-banner--compact">

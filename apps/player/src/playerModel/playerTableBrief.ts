@@ -111,6 +111,16 @@ export function playerTableStatus(seats: readonly PlayerTableSeatBrief[]): strin
   return 'Waiting'
 }
 
+/** What replaces the chip stack on the felt. Folded wins over all-in. */
+export function feltSeatStatusWord(
+  player: Pick<PlayerState, 'pointsOnly' | 'hasFolded' | 'isAllIn'>,
+): 'Folded' | 'All-in' | null {
+  if (player.pointsOnly === true) return null
+  if (player.hasFolded === true) return 'Folded'
+  if (player.isAllIn === true) return 'All-in'
+  return null
+}
+
 export function seatBriefState(seat: PlayerTableSeatBrief): string | null {
   if (seat.guess === 'locked') return 'Locked'
   if (seat.guess === 'missed') return 'No guess'

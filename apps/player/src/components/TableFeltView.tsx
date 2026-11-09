@@ -12,6 +12,7 @@ import {
   type SeatStatusPill,
 } from '../playerModel/seatBettingStatus'
 import { playerFeltRoster } from '../playerModel/playerFeltRoster'
+import { feltSeatStatusWord } from '../playerModel/playerTableBrief'
 
 type TableFeltViewProps = {
   gameState: GameState
@@ -170,6 +171,7 @@ export default function TableFeltView({
           : null
       const pointsOnly = player.pointsOnly === true
       const foldedChips = player.hasFolded && !pointsOnly
+      const seatWord = feltSeatStatusWord(player)
       const showFaceUp = revealCards && knownDigits != null
       const holeDigits: readonly [number, number] | null =
         knownDigits != null && !foldedChips ? knownDigits : null
@@ -232,6 +234,8 @@ export default function TableFeltView({
             <span className="player-seat-stack font-bold tabular-nums text-amber-300">
               {pointsOnly ? (
                 `${formatTriviaPoints(player.answerPoints ?? 0)} pts`
+              ) : seatWord != null ? (
+                seatWord
               ) : (
                 <ChipText text={`$${player.bankroll.toLocaleString()}`} />
               )}

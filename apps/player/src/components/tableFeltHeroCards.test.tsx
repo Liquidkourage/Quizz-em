@@ -2,6 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { addPlayer, createEmptyGame, type GameState, type NumericCard } from '@qhe/core'
+import { feltSeatStatusWord } from '../playerModel/playerTableBrief'
 import TableFeltView from './TableFeltView'
 
 const holes = [{ digit: 7 }, { digit: 9 }] as NumericCard[]
@@ -56,6 +57,14 @@ describe('points-only hole cards', () => {
       createElement(TableFeltView, { gameState: gs, playerName: 'Joy', myPlayerId: 'me' }),
     )
     expect(html).not.toContain('Answer on your phone')
+  })
+
+  it('shows Folded on that seat, and All-in on a seat that is all-in', () => {
+    expect(feltSeatStatusWord({ pointsOnly: false, hasFolded: true, isAllIn: false })).toBe('Folded')
+    expect(feltSeatStatusWord({ pointsOnly: false, hasFolded: false, isAllIn: true })).toBe('All-in')
+    expect(feltSeatStatusWord({ pointsOnly: false, hasFolded: true, isAllIn: true })).toBe('Folded')
+    expect(feltSeatStatusWord({ pointsOnly: false, hasFolded: false, isAllIn: false })).toBeNull()
+    expect(feltSeatStatusWord({ pointsOnly: true, hasFolded: true, isAllIn: false })).toBeNull()
   })
 
   it('leaves a chip player’s cards on the seat', () => {

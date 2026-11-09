@@ -304,18 +304,20 @@ export function nextBandOverride(rows: HostVenueFeltBeatRow[] | null): RoomWait 
 }
 
 /**
- * While the room is split, the next step is last call for the tables still betting.
- * Nudge stays only when every table is still on that same open round.
+ * Close stays only when every table is on that round. Last call and nudge stay
+ * while someone is still on the action.
  */
 export function dockForRoomWait<T extends { id: string }>(
   built: T[],
   wait: RoomWait | null,
   lastCallItem: T,
   stillBetting = 0,
+  nudgeItem?: T,
 ): T[] {
   if (wait != null) {
     const rehearsal = built.filter((item) => item.id === 'rehearsal-skip-showdown')
-    return wait.nudge ? [lastCallItem, ...rehearsal] : rehearsal
+    if (!wait.nudge) return rehearsal
+    return nudgeItem ? [lastCallItem, nudgeItem, ...rehearsal] : [lastCallItem, ...rehearsal]
   }
   if (stillBetting <= 0 || built.some((item) => item.id === lastCallItem.id)) return built
   return [...built, lastCallItem]

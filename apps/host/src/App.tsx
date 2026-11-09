@@ -613,6 +613,13 @@ function HostApp() {
       role: 'secondary',
     },
     stillBetting,
+    {
+      id: 'nudge',
+      label: nudgeLabel,
+      onClick: () => nudgeActingPlayers(),
+      variant: 'gold',
+      role: 'secondary',
+    },
   )
 
   const nextQuestionText =

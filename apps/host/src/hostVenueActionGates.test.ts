@@ -218,12 +218,14 @@ describe('next band while tables differ', () => {
       { id: 'rehearsal-skip-showdown', label: 'Skip to winner screen' },
     ]
     const lastCall = { id: 'last-call', label: 'Last call for bets (1)' }
+    const nudge = { id: 'nudge', label: 'Nudge slow players (1)' }
     const wait = nextBandOverride([
       felt(1, 'betting', 'bet|1|F|cc0'),
       felt(2, 'betting', 'bet|1|T|cc0'),
     ])
-    expect(dockForRoomWait(built, wait, lastCall, 1).map((item) => item.id)).toEqual([
+    expect(dockForRoomWait(built, wait, lastCall, 1, nudge).map((item) => item.id)).toEqual([
       'last-call',
+      'nudge',
       'rehearsal-skip-showdown',
     ])
     expect(dockForRoomWait(built, null, lastCall)).toBe(built)

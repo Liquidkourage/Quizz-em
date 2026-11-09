@@ -85,6 +85,7 @@ function PlayerBlindChange({ brief }: { brief: PlayerVenueBrief | null }) {
 }
 import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
+import PlayerBettingTable from './components/PlayerBettingTable'
 import { PlayerHoleSlot } from './components/PlayerHoleSlot'
 import { TableIntroduction } from './components/TableIntroduction'
 import StickyQuestionBar from './components/StickyQuestionBar'
@@ -822,7 +823,11 @@ function PlayerApp() {
             ) : null}
 
             {/* Results own the middle — don't stack HUD under them (nested scroll). */}
-            {seatedAtTable && !showTableResults && !showLastHand && !waitingForFirstStart
+            {liveFit && isBettingPhase ? (
+              <PlayerBettingTable gameState={gameState} myIndex={myIndex} />
+            ) : null}
+
+            {seatedAtTable && !(liveFit && isBettingPhase) && !showTableResults && !showLastHand && !waitingForFirstStart
               ? feltView
               : null}
 

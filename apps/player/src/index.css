@@ -3840,6 +3840,241 @@
   }
 }
 
+/* Answer builder keeps a finger-sized control. */
+.player-compose {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  gap: 0.4rem;
+}
+
+.player-compose-key,
+.player-compose-card,
+.player-compose-tools .player-game-btn {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.player-game-modal-body:has(.player-compose) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.player-game-modal-body:has(.player-compose) .player-game-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.player-compose-question {
+  min-height: 0;
+  max-height: 5.5rem;
+  overflow: auto;
+}
+
+.player-compose-question .player-game-question-text {
+  font-size: clamp(1rem, 2.6vw, 1.35rem);
+}
+
+.player-compose-stage {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 0;
+}
+
+.player-compose-sources {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 0;
+}
+
+.player-compose-rail {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 4.6rem;
+}
+
+.player-compose-slot {
+  display: flex;
+  width: clamp(2.75rem, 14vw, 4.4rem);
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  aspect-ratio: 5 / 7;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.45rem;
+  border: 2px solid rgb(251 191 36 / 0.5);
+  background: rgb(0 0 0 / 0.45);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.6rem, 6vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1;
+  color: rgb(253 224 71);
+}
+
+.player-compose-slot--empty {
+  border-style: dashed;
+  background: transparent;
+}
+
+.player-compose-dot,
+.player-compose-locked-num {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(2rem, 8vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1;
+  color: rgb(253 224 71);
+}
+
+.player-compose-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  text-align: center;
+}
+
+.player-compose-label {
+  margin: 0 0 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgb(253 224 71 / 0.85);
+}
+
+.player-compose-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.player-compose-card,
+.player-compose-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: rgb(253 224 71);
+}
+
+.player-compose-card {
+  width: clamp(2.75rem, 16vw, 4.6rem);
+  aspect-ratio: 5 / 7;
+  border: 0;
+  background: transparent;
+}
+
+.player-compose-card > * {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+
+.player-compose-card--used {
+  opacity: 0.38;
+}
+
+.player-compose-key {
+  width: auto;
+  padding: 0 0.7rem;
+  border-radius: 0.55rem;
+  border: 2px solid rgb(251 191 36 / 0.5);
+  background: rgb(8 12 10 / 0.85);
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.player-compose-key--on {
+  box-shadow: 0 0 0 3px rgb(251 191 36 / 0.35);
+}
+
+.player-compose-key:disabled {
+  opacity: 0.4;
+}
+
+.player-compose-tools {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: auto auto minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 0.4rem;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .player-compose-stage {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .player-compose-sources {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.65rem;
+  }
+
+  .player-compose-cards {
+    flex-wrap: nowrap;
+  }
+
+  .player-compose-rail,
+  .player-compose-slot,
+  .player-compose-card,
+  .player-compose-key,
+  .player-compose-tools .player-game-btn {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .player-compose-rail {
+    min-height: 2.75rem;
+  }
+
+  .player-compose-slot,
+  .player-compose-card {
+    width: 2.75rem;
+    height: 2.75rem;
+    aspect-ratio: auto;
+  }
+
+  .player-compose-question {
+    max-height: 2.4rem;
+  }
+
+  .player-game-modal-body .player-compose .player-game-timer {
+    margin: 0;
+    padding: 0.1rem 0.45rem;
+  }
+
+  .player-game-modal-body .player-compose-question .player-game-question-text {
+    font-size: 1rem;
+  }
+}
+
 .player-game-modal-body .player-game-panel {
   border: none;
   background: transparent;

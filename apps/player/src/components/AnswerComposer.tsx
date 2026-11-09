@@ -1,6 +1,5 @@
-import { motion } from 'framer-motion'
 import { cardsInDigitOrder, NumericPlayingCard } from '@qhe/ui'
-import { formatTriviaPoints, type GameState, type PlayerState } from '@qhe/core'
+import { formatTriviaPoints, type GameState, type NumericCard, type PlayerState } from '@qhe/core'
 import {
   ANSWER_CARD_COUNT,
   communityBoardDealt,
@@ -53,39 +52,99 @@ function NudgeLockClock({
   )
 }
 
-export default function AnswerComposer({
+function AnswerRail({ digits }: { digits: ComposedAnswer['digits'] }) {
+  const filled = digits.filter((token) => token !== 'decimal').length
+  const empties = ANSWER_CARD_COUNT - filled
+  return (
+    <div className="player-compose-rail" aria-label="Your answer">
+      {digits.map((token, index) =>
+        token === 'decimal' ? (
+          <span key={`dot-${index}`} className="player-compose-dot" aria-hidden>
+            .
+          </span>
+        ) : (
+          <span key={`digit-${index}`} className="player-compose-slot player-compose-slot--filled">
+            {token}
+          </span>
+        ),
+      )}
+      {Array.from({ length: empties }, (_, index) => (
+        <span key={`empty-${index}`} className="player-compose-slot player-compose-slot--empty" />
+      ))}
+    </div>
+  )
+}
+
+function ComposeCard({
+  digit,
+  used,
+  onPick,
+}: {
+  digit: number
+  used: boolean
+  onPick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className={used ? 'player-compose-card player-compose-card--used' : 'player-compose-card'}
+      onClick={onPick}
+      disabled={used}
+      aria-label={`Card ${digit}`}
+    >
+      <NumericPlayingCard digit={digit} size="small" compact />
+    </button>
+  )
+}
+
+function CardGroup({
+  label,
+  cards,
+  selected,
+  source,
+  onSelectCard,
+}: {
+  label: string
+  cards: { card: NumericCard; index: number }[]
+  selected: SelectedCardRef[]
+  source: 'hand' | 'community'
+  onSelectCard: (type: 'hand' | 'community', index: number) => void
+}) {
+  return (
+    <div className="player-compose-group">
+      <p className="player-compose-label">{label}</p>
+      <div className="player-compose-cards">
+        {cards.map(({ card, index }) => (
+          <ComposeCard
+            key={`${source}-${index}`}
+            digit={card.digit}
+            used={selected.some((pick) => pick.type === source && pick.index === index)}
+            onPick={() => onSelectCard(source, index)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function composerTitle(pointsOnly: boolean, preload: boolean): string {
+  if (preload) return 'Pre-load your answer'
+  if (pointsOnly) return 'Second life · Compose for points'
+  return 'Compose your answer'
+}
+
+function ComposerStatus({
   gameState,
   currentPlayer,
-  composed,
-  selectedCards,
   remainingSec,
-  nudgeRemainingSec = null,
-  submittedDisplay,
-  onSelectCard,
-  onToggleDecimal,
-  onBackspace,
-  onClear,
-  onSubmit,
-  onEditSubmitted,
-  preload = false,
+  nudgeRemainingSec,
+  preload,
 }: AnswerComposerProps) {
-  const boardDealt = communityBoardDealt(gameState)
-  const locked = Boolean(submittedDisplay)
-  const canSubmit =
-    !locked && selectedCards.length === ANSWER_CARD_COUNT && composed.display.trim().length > 0
-  const canBackspace = !locked && (selectedCards.length > 0 || composed.display.length > 0)
   const questionText = gameState.round.question?.text
-
-  const pointsOnly = currentPlayer.pointsOnly === true
-  const panelTitle = preload
-    ? 'Pre-load your answer'
-    : pointsOnly
-      ? 'Second life · Compose for points'
-      : 'Compose your answer'
-
+  const forfeited = currentPlayer.answerForfeited === true
   return (
-    <PlayerGoldPanel title={panelTitle}>
-      {pointsOnly ? (
+    <>
+      {currentPlayer.pointsOnly === true ? (
         <div className="player-game-answer-second-life" role="status">
           <p className="player-game-question-label">Points only</p>
           <p className="player-game-hint">
@@ -99,160 +158,145 @@ export default function AnswerComposer({
           Everyone still in the chips is all-in. Lock your guess now — the host still starts the clock.
         </p>
       ) : null}
-
       {questionText ? (
-        <div className="player-game-answer-question">
+        <div className="player-game-answer-question player-compose-question">
           <p className="player-game-question-label">Question</p>
           <p className="player-game-question-text">{questionText}</p>
         </div>
       ) : null}
-
-      {currentPlayer.answerForfeited ? (
+      {forfeited ? (
         <p className="player-game-hint" role="status">
           {MISSED_GUESS_LINE}
         </p>
       ) : remainingSec != null ? (
-        <p
-          className={`player-game-timer${answerClockUrgent(remainingSec) ? ' player-game-timer--urgent' : ''}`}
-          aria-live="polite"
-        >
-          {remainingSec > 0 ? (
-            <>
-              Time <strong>{remainingSec}</strong>
-            </>
-          ) : (
-            <>Time is up.</>
-          )}
-        </p>
+        <AnswerClock remainingSec={remainingSec} />
       ) : null}
-      <NudgeLockClock forfeited={currentPlayer.answerForfeited === true} seconds={nudgeRemainingSec} />
+      <NudgeLockClock forfeited={forfeited} seconds={nudgeRemainingSec} />
+    </>
+  )
+}
 
-      {currentPlayer.answerForfeited ? null : locked ? (
-        <div className="player-game-answer-submitted" role="status">
-          <p className="player-game-question-label">Submitted</p>
-          <div className="player-game-answer-display player-game-answer-display--locked">{submittedDisplay}</div>
-          <p className="player-game-hint">{lockedAnswerHint(remainingSec)}</p>
-          {onEditSubmitted ? (
-            <PlayerGameButton variant="dark" size="large" className="player-game-btn--block" onClick={onEditSubmitted}>
-              Edit answer
-            </PlayerGameButton>
-          ) : null}
-        </div>
-      ) : (
+function AnswerClock({ remainingSec }: { remainingSec: number }) {
+  const urgent = answerClockUrgent(remainingSec) ? ' player-game-timer--urgent' : ''
+  return (
+    <p className={`player-game-timer${urgent}`} aria-live="polite">
+      {remainingSec > 0 ? (
         <>
-          <div className="player-game-answer-block">
-            <p className="player-game-question-label">Your answer</p>
-            <p className="player-game-hint player-game-hint--composer">
-              Tap {ANSWER_CARD_COUNT} cards in order; use Backspace to undo. Selected: {selectedCards.length}/
-              {ANSWER_CARD_COUNT}
-            </p>
-            <div className="player-game-answer-display">{composed.display || '—'}</div>
-          </div>
-
-          <div className="player-game-card-row player-game-card-row--composer">
-            <div className="player-game-card-line">
-            <div className="player-game-card-group">
-              <p className="player-game-card-section-label">Hole cards</p>
-              <div className="player-game-card-pair">
-                {cardsInDigitOrder(currentPlayer.hand).map(({ card, index: i }) => {
-                  const isSelected = selectedCards.some((sc) => sc.type === 'hand' && sc.index === i)
-                  return (
-                    <motion.div
-                      key={`h-${i}`}
-                      className={`${isSelected ? 'player-game-card-selected player-game-card-selected--locked' : 'cursor-pointer'}`}
-                      onClick={() => {
-                        if (!isSelected) onSelectCard('hand', i)
-                      }}
-                      whileTap={isSelected ? undefined : { scale: 0.95 }}
-                      aria-disabled={isSelected || undefined}
-                    >
-                      <NumericPlayingCard
-                        digit={card.digit}
-                        variant="gold"
-                        style="neon"
-                        neonVariant={isSelected ? 'pulse' : 'matrix'}
-                        size="small"
-                        compact
-                      />
-                    </motion.div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="player-game-card-group">
-              <p className="player-game-card-section-label">Board</p>
-              {boardDealt ? (
-                <div className="player-game-card-pair">
-                  {cardsInDigitOrder(gameState.round.communityCards).map(({ card, index: i }) => {
-                    const isSelected = selectedCards.some((sc) => sc.type === 'community' && sc.index === i)
-                    return (
-                      <motion.div
-                        key={`c-${i}`}
-                        className={`${isSelected ? 'player-game-card-selected player-game-card-selected--locked' : 'cursor-pointer'}`}
-                        onClick={() => {
-                          if (!isSelected) onSelectCard('community', i)
-                        }}
-                        whileTap={isSelected ? undefined : { scale: 0.95 }}
-                        aria-disabled={isSelected || undefined}
-                      >
-                        <NumericPlayingCard
-                          digit={card.digit}
-                          variant="gold"
-                          style="neon"
-                          neonVariant={isSelected ? 'pulse' : 'matrix'}
-                          size="small"
-                          compact
-                        />
-                      </motion.div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="player-game-board-pending" aria-label="Community cards not dealt yet">
-                  <p className="player-game-board-pending-title">Board not ready</p>
-                  <p className="player-game-board-pending-detail">Community cards should be dealt before answering.</p>
-                </div>
-              )}
-            </div>
-            </div>
-
-            <div className="player-game-card-group">
-              <p className="player-game-card-section-label">Keys</p>
-              <div className="player-game-composer-keys">
-                <motion.button
-                  type="button"
-                  className={`player-game-decimal-btn${composed.display.includes('.') ? ' player-game-decimal-btn--active' : ''}`}
-                  onClick={onToggleDecimal}
-                  whileTap={{ scale: 0.95 }}
-                  aria-label="Decimal point"
-                >
-                  .
-                </motion.button>
-                <motion.button
-                  type="button"
-                  className="player-game-backspace-btn"
-                  onClick={onBackspace}
-                  disabled={!canBackspace}
-                  whileTap={canBackspace ? { scale: 0.95 } : undefined}
-                  aria-label="Backspace"
-                >
-                  ⌫
-                </motion.button>
-              </div>
-            </div>
-          </div>
-
-          <div className="player-game-actions player-game-actions--stack player-game-actions--composer">
-            <PlayerGameButton variant="fold" size="large" onClick={onClear}>
-              Clear
-            </PlayerGameButton>
-            <PlayerGameButton variant="gold" size="large" onClick={onSubmit} disabled={!canSubmit}>
-              {preload ? 'Lock in answer' : 'Submit answer'}
-            </PlayerGameButton>
-          </div>
+          Time <strong>{remainingSec}</strong>
         </>
+      ) : (
+        <>Time is up.</>
       )}
+    </p>
+  )
+}
+
+function LockedAnswer({
+  submittedDisplay,
+  remainingSec,
+  onEditSubmitted,
+}: {
+  submittedDisplay: string
+  remainingSec: number | null
+  onEditSubmitted?: () => void
+}) {
+  return (
+    <div className="player-compose-locked" role="status">
+      <p className="player-game-question-label">Submitted</p>
+      <p className="player-compose-locked-num">{submittedDisplay}</p>
+      <p className="player-game-hint">{lockedAnswerHint(remainingSec)}</p>
+      {onEditSubmitted ? (
+        <PlayerGameButton variant="dark" size="large" className="player-game-btn--block" onClick={onEditSubmitted}>
+          Edit answer
+        </PlayerGameButton>
+      ) : null}
+    </div>
+  )
+}
+
+function SharedCards({
+  gameState,
+  selectedCards,
+  onSelectCard,
+}: Pick<AnswerComposerProps, 'gameState' | 'selectedCards' | 'onSelectCard'>) {
+  if (!communityBoardDealt(gameState)) {
+    return (
+      <div className="player-compose-group">
+        <p className="player-compose-label">Shared cards</p>
+        <div className="player-game-board-pending" aria-label="Community cards not dealt yet">
+          <p className="player-game-board-pending-title">Board not ready</p>
+          <p className="player-game-board-pending-detail">Community cards should be dealt before answering.</p>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <CardGroup
+      label="Shared cards"
+      cards={cardsInDigitOrder(gameState.round.communityCards)}
+      selected={selectedCards}
+      source="community"
+      onSelectCard={onSelectCard}
+    />
+  )
+}
+
+function ComposerBuild(props: AnswerComposerProps) {
+  const { composed, selectedCards, currentPlayer, onSelectCard, onToggleDecimal, onBackspace, onClear, onSubmit, preload } =
+    props
+  const ready = selectedCards.length === ANSWER_CARD_COUNT && composed.display.trim().length > 0
+  const canUndo = selectedCards.length > 0 || composed.display.length > 0
+  const decimalOn = composed.display.includes('.') ? ' player-compose-key--on' : ''
+  return (
+    <>
+      <div className="player-compose-stage">
+        <AnswerRail digits={composed.digits} />
+        <div className="player-compose-sources">
+          <CardGroup
+            label="Your cards"
+            cards={cardsInDigitOrder(currentPlayer.hand)}
+            selected={selectedCards}
+            source="hand"
+            onSelectCard={onSelectCard}
+          />
+          <SharedCards gameState={props.gameState} selectedCards={selectedCards} onSelectCard={onSelectCard} />
+        </div>
+      </div>
+      <div className="player-compose-tools">
+        <button type="button" className={`player-compose-key${decimalOn}`} onClick={onToggleDecimal} aria-label="Decimal point">
+          .
+        </button>
+        <button type="button" className="player-compose-key" onClick={onBackspace} disabled={!canUndo} aria-label="Backspace">
+          Undo
+        </button>
+        <PlayerGameButton variant="fold" size="large" onClick={onClear}>
+          Clear
+        </PlayerGameButton>
+        <PlayerGameButton variant="gold" size="large" onClick={onSubmit} disabled={!ready}>
+          {preload ? 'Lock in answer' : 'Submit answer'}
+        </PlayerGameButton>
+      </div>
+    </>
+  )
+}
+
+export default function AnswerComposer(props: AnswerComposerProps) {
+  const locked = Boolean(props.submittedDisplay)
+  const forfeited = props.currentPlayer.answerForfeited === true
+  return (
+    <PlayerGoldPanel title={composerTitle(props.currentPlayer.pointsOnly === true, props.preload === true)}>
+      <div className="player-compose">
+        <ComposerStatus {...props} />
+        {forfeited ? null : locked ? (
+          <LockedAnswer
+            submittedDisplay={props.submittedDisplay ?? ''}
+            remainingSec={props.remainingSec}
+            onEditSubmitted={props.onEditSubmitted}
+          />
+        ) : (
+          <ComposerBuild {...props} />
+        )}
+      </div>
     </PlayerGoldPanel>
   )
 }

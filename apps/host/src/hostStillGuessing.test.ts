@@ -3,7 +3,14 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueActionRow } from '@qhe/net'
 import HostStillGuessingNotice from './HostStillGuessingNotice'
-import { guessClockCatchUp, guessNudgeReady, playersStillGuessing } from './hostStillGuessing'
+import {
+  guessClockCatchUp,
+  guessNudgeReady,
+  playersStillGuessing,
+  revealAnswerConfirm,
+  stillGuessingPlayerCount,
+  withRevealGuessingWarning,
+} from './hostStillGuessing'
 import { venueRevealAnswerBlockedHint } from './hostVenueActionGates'
 
 function row(partial: Partial<HostVenueActionRow> & Pick<HostVenueActionRow, 'tableNum' | 'seats'>): HostVenueActionRow {
@@ -46,6 +53,37 @@ describe('players still guessing', () => {
       }),
     ]
     expect(playersStillGuessing(mixed)).toEqual({ contest: [], pointsOnly: [] })
+  })
+
+  it('warns before reveal while any player is still guessing', () => {
+    const mixed = [
+      rows[0]!,
+      rows[1]!,
+      row({
+        tableNum: 3,
+        phase: 'betting',
+        seats: [{ name: 'Dee', kind: 'pot', reason: null }],
+      }),
+    ]
+    expect(stillGuessingPlayerCount(mixed)).toBe(2)
+    expect(revealAnswerConfirm(1)).toEqual({
+      cue: '1 player is still guessing. Reveal the answer anyway?',
+      label: 'Reveal anyway',
+    })
+    expect(revealAnswerConfirm(0)).toBeNull()
+    const reveal = {
+      id: 'reveal',
+      label: 'Reveal the answer',
+      onClick: () => {},
+      variant: 'gold' as const,
+      role: 'primary' as const,
+    }
+    expect(withRevealGuessingWarning([reveal], 0, true, () => {}, () => {}, () => {})).toEqual([reveal])
+    const asking = withRevealGuessingWarning([reveal], 2, true, () => {}, () => {}, () => {})
+    expect(asking.map((item) => item.label)).toEqual(['Reveal anyway', 'Cancel'])
+    expect(withRevealGuessingWarning([{ ...reveal, disabled: true }], 2, false, () => {}, () => {}, () => {})).toEqual([
+      { ...reveal, disabled: true },
+    ])
   })
 
   it('keeps chip-contest guesses in the main list and points-only guesses in their own', () => {

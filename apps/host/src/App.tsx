@@ -106,7 +106,14 @@ import { HOST_VENUE_ALERT_MS, hostVenueAutoAlertFromToast } from './hostVenueAut
 import { useHostVenueAutoAlerts } from './useHostVenueAutoAlerts'
 import HostVenueAutoAlertBanner from './HostVenueAutoAlertBanner.tsx'
 import HostStillGuessingNotice from './HostStillGuessingNotice'
-import { guessClockCatchUp, guessNudgeReady, playersStillGuessing } from './hostStillGuessing'
+import {
+  guessClockCatchUp,
+  guessNudgeReady,
+  playersStillGuessing,
+  revealAnswerConfirm,
+  stillGuessingPlayerCount,
+  withRevealGuessingWarning,
+} from './hostStillGuessing'
 import type { HostVenueAutoAlert } from './hostVenueAutoAlerts'
 import { suggestNextHostAction } from './hostPacingCopilot'
 
@@ -199,6 +206,7 @@ function HostApp() {
   const [guessClockNowMs, setGuessClockNowMs] = useState(() => nowOnServerClock())
   const [actionClockNowMs, setActionClockNowMs] = useState(() => nowOnServerClock())
   const [confirmingClose, setConfirmingClose] = useState(false)
+  const [confirmingReveal, setConfirmingReveal] = useState(false)
   const actorsWaiting = (venueFloorBrief?.actionRows ?? []).some(
     (row) => row.phase === 'betting' && row.betsClosed !== true && Boolean(row.actingPlayerName?.trim()),
   )
@@ -349,6 +357,10 @@ function HostApp() {
   useEffect(() => {
     if (tablesStillBettingCount(venueFeltBeat) === 0) setConfirmingClose(false)
   }, [venueFeltBeat])
+
+  useEffect(() => {
+    if (stillGuessingPlayerCount(venueFloorBrief?.actionRows) === 0) setConfirmingReveal(false)
+  }, [venueFloorBrief])
 
   const handleStartGame = () => {
     if (socket) {
@@ -634,7 +646,21 @@ function HostApp() {
     onNudge: () => nudgeActingPlayers(),
     onLastCall: () => lastCallForBets(null, true),
   })
-  const nextDockItems = dockForRoomWait(countedDockItems, roomWait, bettingActions)
+  const guessingLeft = stillGuessingPlayerCount(venueFloorBrief?.actionRows)
+  const revealAsk = revealAnswerConfirm(guessingLeft)
+  const askingReveal = confirmingReveal && revealAsk != null && !revealAnswerBlocked
+  const revealDock = withRevealGuessingWarning(
+    countedDockItems,
+    revealAnswerBlocked ? 0 : guessingLeft,
+    askingReveal,
+    () => setConfirmingReveal(true),
+    () => {
+      setConfirmingReveal(false)
+      handleRevealAnswer()
+    },
+    () => setConfirmingReveal(false),
+  )
+  const nextDockItems = dockForRoomWait(revealDock, roomWait, bettingActions)
 
   const nextQuestionText =
     hasActiveSetlist && activeSetlist
@@ -656,7 +682,9 @@ function HostApp() {
   const primaryDockId = nextDockItems.find((i) => i.role === 'primary')?.id ?? nextDockItems[0]?.id
   const runBarCueHint = askingClose
     ? closeAsk.cue
-    : primaryDockId === 'close-bet' && closeBetBlocked
+    : askingReveal && revealAsk
+      ? revealAsk.cue
+      : primaryDockId === 'close-bet' && closeBetBlocked
       ? closeBetHint
       : primaryDockId === 'deal-board' && dealCommunityBlocked
         ? dealCommunityHint

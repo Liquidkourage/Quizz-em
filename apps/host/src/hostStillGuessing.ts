@@ -21,6 +21,58 @@ function byTableThenName(a: StillGuessingPlayer, b: StillGuessingPlayer): number
   return a.tableNum - b.tableNum || a.name.localeCompare(b.name)
 }
 
+/** Players on a guessing table who have not locked an answer yet. */
+export function stillGuessingPlayerCount(rows: HostVenueActionRow[] | null | undefined): number {
+  let count = 0
+  for (const row of rows ?? []) {
+    if (row.phase !== 'answering') continue
+    for (const seat of row.seats) {
+      if (guessGroup(seat) === 'skip') continue
+      count += 1
+    }
+  }
+  return count
+}
+
+/** What the host reads before revealing while guesses are still open. */
+export function revealAnswerConfirm(still: number): { cue: string; label: string } | null {
+  if (still <= 0) return null
+  const people = still === 1 ? '1 player is' : `${still} players are`
+  return {
+    cue: `${people} still guessing. Reveal the answer anyway?`,
+    label: 'Reveal anyway',
+  }
+}
+
+/** First press asks. The confirm press reveals. A disabled Reveal stays disabled. */
+export function withRevealGuessingWarning<
+  T extends { id: string; label: string; onClick: () => void; disabled?: boolean; role?: 'primary' | 'secondary' | 'danger' },
+>(
+  items: T[],
+  still: number,
+  asking: boolean,
+  onAsk: () => void,
+  onConfirm: () => void,
+  onCancel: () => void,
+): T[] {
+  const ask = revealAnswerConfirm(still)
+  if (ask == null) return items
+  const next: T[] = []
+  for (const item of items) {
+    if (item.id !== 'reveal' || item.disabled) {
+      next.push(item)
+      continue
+    }
+    if (!asking) {
+      next.push({ ...item, onClick: onAsk })
+      continue
+    }
+    next.push({ ...item, id: 'reveal-confirm', label: ask.label, onClick: onConfirm })
+    next.push({ ...item, id: 'reveal-cancel', label: 'Cancel', onClick: onCancel, role: 'secondary', disabled: false })
+  }
+  return next
+}
+
 /** Names still guessing once every table has left the betting round. */
 export function playersStillGuessing(
   rows: HostVenueActionRow[] | null | undefined,

@@ -105,6 +105,14 @@ describe('player table orientation', () => {
     expect(block).toContain('padding-bottom: 1.1rem')
   })
 
+  it('keeps a phone question to two lines so the table keeps its height', () => {
+    const at = css.indexOf('@media (orientation: portrait) and (max-width: 500px)')
+    const block = css.slice(at, at + 240)
+    expect(at).toBeGreaterThan(-1)
+    expect(block).toContain('.player-sticky-question')
+    expect(block).toContain('max-height: 2.8rem')
+  })
+
   it('keeps the live status margin from eating a short portrait oval', () => {
     const at = css.indexOf('.player-game-layout--live-fit .player-game-table-status {')
     const rule = css.slice(at, at + 180)
@@ -323,7 +331,9 @@ describe('player table orientation', () => {
       css.indexOf('A tall phone grows the live oval') + 700,
     )
     expect(tall).not.toContain('min-height: 20rem')
-    expect(tall).toContain('max-aspect-ratio: 1/1')
+    expect(tall).toContain('orientation: portrait')
+    expect(tall).toContain('max-aspect-ratio: 8/5')
+    expect(tall).not.toContain('max-aspect-ratio: 1/1')
     expect(tall).toContain('aspect-ratio: 4 / 5')
     expect(tall).toContain('calc(100cqh * 0.8)')
     expect(tall).toContain('scaleY(var(--player-felt-stretch, 1))')

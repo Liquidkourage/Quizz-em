@@ -161,7 +161,7 @@ describe('betting table', () => {
     const mark = 'An open seat list fills the hole and scrolls.'
     const block = css.slice(css.indexOf(mark), css.indexOf(mark) + 520)
     expect(block.startsWith(mark)).toBe(true)
-    expect(block).toContain('min-height: 0')
+    expect(block).toContain('min-height: 8.25rem')
     expect(block).toContain('overflow-y: auto')
   })
 })

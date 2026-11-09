@@ -115,7 +115,7 @@ import {
   noteGuessNudge,
 } from './virtual-players'
 import { planVenueWageringOrchestration } from './venue-wagering-orchestration'
-import { soleChipWinnerName } from './venue-endgame'
+import { soleChipWinner } from './venue-endgame'
 import {
   applyVenueCondenseAfterRound,
   venueCondenseSnapshotFromRooms,
@@ -549,18 +549,24 @@ function scoresOnPlayerBrief(vn: string) {
   return { scoresBoard: null, scores: [] as typeof night.chips }
 }
 
-/** Same winner the player phones and the public display already use. */
-export function venueEndgameWinnerName(venueCode: string): string | null {
+/** The last chip stack, once a hand has been paid and every occupied table is waiting. */
+function venueChipWinner(venueCode: string): { name: string; tableNum: number; bankroll: number } | null {
   const vn = normalizeVenueCode(venueCode)
-  return soleChipWinnerName(
+  return soleChipWinner(
     getVenueHandsCompleted(vn),
     venuePlayableSnapshots(vn)
       .filter((row) => Number.isFinite(row.n))
       .map((row) => ({
+        tableNum: row.n,
         phase: row.gs.phase,
         players: row.gs.players,
       })),
   )
+}
+
+/** Same winner the phones, the host, and the public display show. */
+export function venueEndgameWinnerName(venueCode: string): string | null {
+  return venueChipWinner(venueCode)?.name ?? null
 }
 
 export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
@@ -2807,6 +2813,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     ...(night.field.length > 0 ? { triviaField: night.field } : {}),
     chipLeaders: night.chips,
     restLeaders: night.trivia,
+    endgameWinner: venueChipWinner(vn),
     headlineQuestionText,
     headlineQuestionAnswer,
     headlineAnswerComposition,

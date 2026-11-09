@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { soleChipWinnerName } from './venue-endgame'
+import { soleChipWinner, soleChipWinnerName } from './venue-endgame'
 
 describe('soleChipWinnerName', () => {
   it('names the last stack once the room is between hands', () => {
@@ -15,6 +15,12 @@ describe('soleChipWinnerName', () => {
     expect(soleChipWinnerName(0, [
       { phase: 'lobby', players: [{ name: 'Ada Lane', bankroll: 4800 }] },
     ])).toBeNull()
+  })
+
+  it('returns the table and the stack along with the name', () => {
+    expect(soleChipWinner(1, [
+      { tableNum: 4, phase: 'lobby', players: [{ name: 'Bea Moss', bankroll: 900 }] },
+    ])).toEqual({ name: 'Bea Moss', tableNum: 4, bankroll: 900 })
   })
 
   it('stays quiet while two stacks remain', () => {

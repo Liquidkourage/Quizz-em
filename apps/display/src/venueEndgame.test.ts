@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import VenueEndgameCard from './VenueEndgameCard'
 import { formatVenueBankroll } from './venueLeaderboard'
-import { endgameCoversFloor, venueEndgameTriviaTop, venueEndgameWinner, type VenueEndgameWall } from './venueEndgame'
+import { endgameCoversFloor, endgameWinnerFromPayload, venueEndgameTriviaTop, venueEndgameWinner, type VenueEndgameWall } from './venueEndgame'
 
 function wall(overrides: Partial<VenueEndgameWall> = {}): VenueEndgameWall {
   return {
@@ -59,6 +59,39 @@ describe('venueEndgameWinner', () => {
         },
       ],
     }))).toBeNull()
+  })
+
+  it('shows the winner the server named, even when that stack is not on a chair', () => {
+    const winner = venueEndgameWinner(wall({
+      venueChipSurvivorCount: 2,
+      endgameWinner: { name: 'Bea Moss', tableNum: 4, bankroll: 900 },
+      tiles: [
+        {
+          tableNum: 1,
+          phase: 'lobby',
+          seatNames: ['Ada Lane'],
+          seatBankrolls: [4800],
+        },
+      ],
+    }))
+    expect(winner).toEqual({ name: 'Bea Moss', tableNum: 4, bankroll: 900 })
+    const html = renderToStaticMarkup(createElement(VenueEndgameCard, { winner: winner!, scores: [] }))
+    expect(html).toContain('Bea M.')
+    expect(html).toContain('aria-label="' + formatVenueBankroll(900) + '"')
+  })
+
+  it('stays quiet when the server says the night has no winner yet', () => {
+    expect(venueEndgameWinner(wall({ endgameWinner: null }))).toBeNull()
+  })
+
+  it('treats a missing winner as an older server and a null winner as none yet', () => {
+    expect(endgameWinnerFromPayload({})).toBeUndefined()
+    expect(endgameWinnerFromPayload({ endgameWinner: null })).toBeNull()
+    expect(endgameWinnerFromPayload({ endgameWinner: { name: 'Bea Moss', tableNum: 4, bankroll: 900.8 } })).toEqual({
+      name: 'Bea Moss',
+      tableNum: 4,
+      bankroll: 900,
+    })
   })
 })
 

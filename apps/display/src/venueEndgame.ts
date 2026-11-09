@@ -11,6 +11,8 @@ export type VenueEndgameWinner = {
 export type VenueEndgameWall = {
   venueChipSurvivorCount?: number | null
   venueHandsCompleted?: number | null
+  /** Present when the server has already decided. Null means there is no winner yet. */
+  endgameWinner?: VenueEndgameWinner | null
   tiles: readonly {
     tableNum: number
     phase?: string | null
@@ -36,8 +38,44 @@ function chipStacks(wall: VenueEndgameWall): VenueEndgameWinner[] {
   return stacks
 }
 
-/** The last player with chips, once the room is between hands. */
+/** Use the server's winner when this snapshot includes one. Older snapshots still read the chairs. */
 export function venueEndgameWinner(wall: VenueEndgameWall | null): VenueEndgameWinner | null {
+  if (wall != null && 'endgameWinner' in wall) return namedWinner(wall.endgameWinner)
+  return winnerFromChairs(wall)
+}
+
+function namedWinner(winner: VenueEndgameWinner | null | undefined): VenueEndgameWinner | null {
+  const name = winner?.name.trim() ?? ''
+  if (!name || winner == null) return null
+  return { name, tableNum: winner.tableNum, bankroll: winner.bankroll }
+}
+
+function winnerWire(raw: unknown): VenueEndgameWinner | null {
+  if (raw == null || typeof raw !== 'object') return null
+  const row = raw as { name?: unknown; tableNum?: unknown; bankroll?: unknown }
+  const name = typeof row.name === 'string' ? row.name : ''
+  const tableNum = typeof row.tableNum === 'number' && Number.isFinite(row.tableNum) ? Math.floor(row.tableNum) : 0
+  const bankroll =
+    typeof row.bankroll === 'number' && Number.isFinite(row.bankroll) ? Math.max(0, Math.floor(row.bankroll)) : 0
+  return { name, tableNum, bankroll }
+}
+
+/** Copy the server winner onto the wall. Missing means an older server; null means no winner yet. */
+export function endgameWinnerFromPayload(payload: object | null | undefined): VenueEndgameWinner | null | undefined {
+  if (payload == null || !Object.prototype.hasOwnProperty.call(payload, 'endgameWinner')) return undefined
+  return namedWinner(winnerWire((payload as { endgameWinner?: unknown }).endgameWinner))
+}
+
+/** Fields to copy onto the wall. Empty when this snapshot never said who won. */
+export function endgameWinnerFields(
+  payload: object | null | undefined,
+): { endgameWinner?: VenueEndgameWinner | null } {
+  const endgameWinner = endgameWinnerFromPayload(payload)
+  return endgameWinner === undefined ? {} : { endgameWinner }
+}
+
+/** The last player with chips, once the room is between hands. */
+function winnerFromChairs(wall: VenueEndgameWall | null): VenueEndgameWinner | null {
   if (wall == null || wall.venueChipSurvivorCount !== 1) return null
   if ((wall.venueHandsCompleted ?? 0) < 1) return null
   const seated = wall.tiles.filter((tile) => (tile.seatNames ?? []).some((name) => name.trim()))

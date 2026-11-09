@@ -136,6 +136,7 @@ describe('public venue wall answer', () => {
     expect(buildPlayerVenueBrief('LOCK').scores).toEqual(snap?.chipLeaders)
     expect(snap?.restLeaders?.map((row) => row.name)).toEqual(['Bo Kent'])
     expect(snap?.chipLeaders?.map((row) => row.name)).toEqual(['Ada Lane'])
+    expect(snap).toHaveProperty('endgameWinner', buildPlayerVenueBrief('LOCK').endgameWinnerName)
   })
 
   it('keeps a busted player on the trivia snapshot after a table shuffle', () => {

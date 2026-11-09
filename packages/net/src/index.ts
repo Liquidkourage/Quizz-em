@@ -245,6 +245,11 @@ export type DisplayVenueWallSnapshot = {
   chipLeaders?: PublicScoreRow[]
   /** Server-ranked Best of the Rest. The TV renders this list and does not rebuild it. */
   restLeaders?: PublicScoreRow[]
+  /**
+   * Last chip stack, chosen by the server. Null while the night is still going.
+   * Absent only on an older server, which still lets the TV derive a winner from the chairs.
+   */
+  endgameWinner?: { name: string; tableNum: number; bankroll: number } | null
   /** Shared trivia headline: emitted from the current hand’s question through wagering, answering, and post-trivia phases while `round.question` is set. */
   headlineQuestionText: string | null
   /** Authoritative numeric answer for {@link headlineQuestionText} — same source as the headline felt’s `round.question.answer`. */

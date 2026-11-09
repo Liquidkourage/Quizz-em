@@ -38,7 +38,7 @@ import {
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 import VenueEndgameCard from './VenueEndgameCard.tsx'
-import { endgameCoversFloor, endgameScoreRows, venueEndgameTriviaTop, venueEndgameWinner } from './venueEndgame'
+import { endgameCoversFloor, endgameScoreRows, endgameWinnerFields, venueEndgameTriviaTop, venueEndgameWinner } from './venueEndgame'
 import { mosaicCosmeticWall, mosaicPreviewCountFromSearch } from './mosaicCosmeticPreview'
 
 function normalizeVenueWallTiles(
@@ -249,6 +249,7 @@ export default function DisplayRouter({
         triviaField: scores.triviaField,
         chipLeaders: scores.chipLeaders,
         restLeaders: scores.restLeaders,
+        ...endgameWinnerFields(payload),
         headlineQuestionText: p.headlineQuestionText ?? null,
         headlineQuestionAnswer:
           typeof p.headlineQuestionAnswer === 'number' && Number.isFinite(p.headlineQuestionAnswer)

@@ -1,5 +1,5 @@
 import { formatTriviaPointsLine, roundTriviaPoints, VENUE_WALL_SEAT_SLOTS } from '@qhe/core'
-import type { DisplayVenueTileSnapshot } from '@qhe/net'
+import type { DisplayVenueTileSnapshot, PublicScoreRow } from '@qhe/net'
 
 export type VenueLeaderboardRow = {
   name: string
@@ -13,6 +13,45 @@ export type VenueLeaderboardRow = {
 }
 
 export type VenueLeaderboardTrophy = 'chips' | 'trivia'
+
+/** Keep the server's order. The TV does not rank this board again. */
+export function leaderboardRowsFromScoreBoard(
+  board: 'chips' | 'trivia',
+  rows: readonly PublicScoreRow[],
+): VenueLeaderboardRow[] {
+  return rows.map((row, index) => ({
+    name: row.name,
+    tableNum: board === 'chips' ? (row.tableNum ?? 0) : 0,
+    seatNum: index + 1,
+    bankroll: board === 'chips' ? row.value : 0,
+    stackDelta: null,
+    answerPoints: board === 'chips' ? (row.points ?? 0) : row.value,
+  }))
+}
+
+function stackDeltaFor(
+  row: VenueLeaderboardRow,
+  tiles: readonly DisplayVenueTileSnapshot[],
+  baselines: ReadonlyMap<string, number>,
+): number | null {
+  for (const tile of tiles) {
+    if (tile.tableNum !== row.tableNum) continue
+    const seat = (tile.seatNames ?? []).findIndex((name) => name?.trim() === row.name)
+    if (seat < 0) continue
+    const baseline = baselines.get(venueLeaderboardPlayerKey(tile.tableNum, seat + 1, row.name))
+    return baseline == null ? null : row.bankroll - baseline
+  }
+  return null
+}
+
+export function withServerChipDeltas(
+  rows: readonly VenueLeaderboardRow[],
+  tiles: readonly DisplayVenueTileSnapshot[],
+  baselines: ReadonlyMap<string, number> | null | undefined,
+): VenueLeaderboardRow[] {
+  if (baselines == null) return [...rows]
+  return rows.map((row) => ({ ...row, stackDelta: stackDeltaFor(row, tiles, baselines) }))
+}
 
 export function venueLeaderboardPlayerKey(tableNum: number, seatNum: number, name: string): string {
   return `${tableNum}:${seatNum}:${name.trim()}`
@@ -199,16 +238,50 @@ export function normalizeVenuePointsStandings(
   return out.length > 0 ? out : undefined
 }
 
+function finiteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function scoreRowFromWire(row: unknown): PublicScoreRow | null {
+  if (row == null || typeof row !== 'object') return null
+  const record = row as { name?: unknown; value?: unknown; tableNum?: unknown; points?: unknown }
+  const name = typeof record.name === 'string' ? record.name.trim() : ''
+  if (!name) return null
+  const points = finiteNumber(record.points)
+  const scored = {
+    name,
+    value: finiteNumber(record.value) ?? 0,
+    tableNum: finiteNumber(record.tableNum) ?? null,
+  }
+  return points == null ? scored : { ...scored, points }
+}
+
+function scoreRowsFromWire(raw: unknown): PublicScoreRow[] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  const out: PublicScoreRow[] = []
+  for (const row of raw) {
+    const scored = scoreRowFromWire(row)
+    if (scored) out.push(scored)
+  }
+  return out
+}
+
 export function venueWallScoreLists(payload: {
   pointsStandings?: unknown
   triviaField?: unknown
+  chipLeaders?: unknown
+  restLeaders?: unknown
 }): {
   pointsStandings: { name: string; answerPoints: number }[] | undefined
   triviaField: { name: string; answerPoints: number }[] | undefined
+  chipLeaders: PublicScoreRow[] | undefined
+  restLeaders: PublicScoreRow[] | undefined
 } {
   return {
     pointsStandings: normalizeVenuePointsStandings(payload.pointsStandings),
     triviaField: normalizeVenuePointsStandings(payload.triviaField),
+    chipLeaders: scoreRowsFromWire(payload.chipLeaders),
+    restLeaders: scoreRowsFromWire(payload.restLeaders),
   }
 }
 

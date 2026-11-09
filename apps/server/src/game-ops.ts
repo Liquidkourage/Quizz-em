@@ -156,7 +156,7 @@ import {
   shortPlayerName,
   venueWallLastHandFields,
 } from './venue-host-log'
-import { playerPublicScores, publicScoreSeats } from './player-public-scores'
+import { publicScoreSeats, scoreBoards } from './player-public-scores'
 import {
   coerceImportQuestions,
   pruneSetlistRefs,
@@ -526,21 +526,27 @@ export function playerVenueRoom(venueCode: string): string {
   return `PLAYER:${normalizeVenueCode(venueCode)}`
 }
 
-function scoresOnPlayerBrief(vn: string) {
-  const seatedTables = venuePlayableSnapshots(vn)
-  const layout = venueDisplayLayouts.get(vn)
-  return playerPublicScores(
-    layout ? layout.wallView : undefined,
-    publicScoreSeats(
-      seatedTables
-        .filter((row) => Number.isFinite(row.n))
-        .map((row) => ({ tableNum: row.n, players: row.gs.players })),
-    ),
-    rememberVenueTriviaField(
-      vn,
-      seatedTables.map((row) => row.gs),
-    ),
+function venueNightScores(vn: string) {
+  const lobbyGs = rooms.get(tableSessionKey(vn, LOBBY_TABLE_ID))
+  const tableGames = allTableSessionsInVenue(vn)
+    .map((tk) => rooms.get(tk))
+    .filter((gs): gs is GameState => gs != null)
+  const triviaGames = lobbyGs != null ? [lobbyGs, ...tableGames] : tableGames
+  const field = rememberVenueTriviaField(vn, triviaGames)
+  const seats = publicScoreSeats(
+    venuePlayableSnapshots(vn)
+      .filter((row) => Number.isFinite(row.n))
+      .map((row) => ({ tableNum: row.n, players: row.gs.players })),
   )
+  return { field, ...scoreBoards(seats, field) }
+}
+
+function scoresOnPlayerBrief(vn: string) {
+  const night = venueNightScores(vn)
+  const wallView = venueDisplayLayouts.get(vn)?.wallView
+  if (wallView === 'leaderboard') return { scoresBoard: 'chips' as const, scores: night.chips }
+  if (wallView === 'leaderboard-trivia') return { scoresBoard: 'trivia' as const, scores: night.trivia }
+  return { scoresBoard: null, scores: [] as typeof night.chips }
 }
 
 /** Same winner the player phones and the public display already use. */
@@ -2794,12 +2800,13 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     .map((tk) => rooms.get(tk))
     .filter((gs): gs is GameState => gs != null)
   const pointsStandings = listPointsStandings(tableGames)
-  const triviaGames = lobbyGs != null ? [lobbyGs, ...tableGames] : tableGames
-  const triviaField = rememberVenueTriviaField(vn, triviaGames)
+  const night = venueNightScores(vn)
   const payload: DisplayVenueWallSnapshot = {
     tiles,
     ...(pointsStandings.length > 0 ? { pointsStandings } : {}),
-    ...(triviaField.length > 0 ? { triviaField } : {}),
+    ...(night.field.length > 0 ? { triviaField: night.field } : {}),
+    chipLeaders: night.chips,
+    restLeaders: night.trivia,
     headlineQuestionText,
     headlineQuestionAnswer,
     headlineAnswerComposition,

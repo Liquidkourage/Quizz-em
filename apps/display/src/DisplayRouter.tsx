@@ -38,8 +38,7 @@ import {
 import { useVenueAnswerReveal } from './useVenueAnswerReveal'
 import VenueAnswerRevealOverlay from './VenueAnswerRevealOverlay.tsx'
 import VenueEndgameCard from './VenueEndgameCard.tsx'
-import { endgameCoversFloor, venueEndgameTriviaTop, venueEndgameWinner } from './venueEndgame'
-import { triviaLeaderboardSource } from './venueLeaderboard'
+import { endgameCoversFloor, endgameScoreRows, venueEndgameTriviaTop, venueEndgameWinner } from './venueEndgame'
 import { mosaicCosmeticWall, mosaicPreviewCountFromSearch } from './mosaicCosmeticPreview'
 
 function normalizeVenueWallTiles(
@@ -248,6 +247,8 @@ export default function DisplayRouter({
         tiles,
         pointsStandings: scores.pointsStandings,
         triviaField: scores.triviaField,
+        chipLeaders: scores.chipLeaders,
+        restLeaders: scores.restLeaders,
         headlineQuestionText: p.headlineQuestionText ?? null,
         headlineQuestionAnswer:
           typeof p.headlineQuestionAnswer === 'number' && Number.isFinite(p.headlineQuestionAnswer)
@@ -376,13 +377,7 @@ export default function DisplayRouter({
     payoutBustsShareTheSeatingCard(audienceWall?.lastHandSeating),
   )
   const endgameWinner = venueEndgameWinner(audienceWall)
-  const endgameScores = venueEndgameTriviaTop(
-    triviaLeaderboardSource(
-      audienceWall?.tiles ?? [],
-      audienceWall?.pointsStandings ?? [],
-      audienceWall?.triviaField,
-    ),
-  )
+  const endgameScores = venueEndgameTriviaTop(endgameScoreRows(audienceWall))
   const showEndgame = endgameCoversFloor(endgameWinner, {
     elimination: showHostBusts || payoutBusts.visible || payoutMoves.visible,
     answer: answerReveal.visible,

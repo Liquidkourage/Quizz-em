@@ -1,4 +1,6 @@
 import { roundTriviaPoints } from '@qhe/core'
+import type { DisplayVenueWallSnapshot } from '@qhe/net'
+import { triviaLeaderboardSource } from './venueLeaderboard'
 
 export type VenueEndgameWinner = {
   name: string
@@ -52,6 +54,15 @@ export type VenueEndgameScore = {
 }
 
 const VENUE_ENDGAME_TRIVIA_LIMIT = 20
+
+export function endgameScoreRows(
+  wall: DisplayVenueWallSnapshot | null,
+): { name: string; answerPoints?: number }[] {
+  if (wall?.restLeaders != null) {
+    return wall.restLeaders.map((row) => ({ name: row.name, answerPoints: row.value }))
+  }
+  return triviaLeaderboardSource(wall?.tiles ?? [], wall?.pointsStandings ?? [], wall?.triviaField)
+}
 
 /** First twenty of an already ranked trivia list. */
 export function venueEndgameTriviaTop(

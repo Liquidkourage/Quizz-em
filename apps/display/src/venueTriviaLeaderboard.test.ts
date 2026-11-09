@@ -1,5 +1,8 @@
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
+import VenueLeaderboardWall from './VenueLeaderboardWall'
 import {
   formatVenueTriviaPoints,
   normalizeVenuePointsStandings,
@@ -118,7 +121,44 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
         { name: 'Bo Kent', answerPoints: 4 },
         { name: 'Cy Drew', answerPoints: 1 },
       ],
+      chipLeaders: undefined,
+      restLeaders: undefined,
     })
+  })
+
+  it('draws the server list and leaves the chairs out of the decision', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueLeaderboardWall, {
+        skipMountIntro: true,
+        trophyMode: 'trivia',
+        wall: {
+          tiles: [
+            {
+              tableNum: 1,
+              seated: 1,
+              pot: 0,
+              phase: 'lobby',
+              seatNames: ['Ada Lane'],
+              seatBankrolls: [500],
+              seatAnswerPoints: [90],
+              seatPointsOnly: [false, false, false, false, false, false, false, false],
+            },
+          ],
+          headlineQuestionText: null,
+          answerDeadlineMs: null,
+          lobbyPlayerCount: 0,
+          totalSeatedAtTables: 1,
+          showAudienceWelcome: false,
+          restLeaders: [
+            { name: 'Grace C.', value: 94.73, tableNum: null },
+            { name: 'Opal A.', value: 81.47, tableNum: null },
+          ],
+        },
+      }),
+    )
+    expect(html).toContain('Grace C.')
+    expect(html).toContain('Opal A.')
+    expect(html).not.toContain('Ada Lane')
   })
 
   it('keeps a player with no chips on the wall snapshot', () => {

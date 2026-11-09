@@ -2,14 +2,16 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { addPlayer, createEmptyGame, displayedMainPot, endRound, type GameState } from '@qhe/core'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import type { Server } from 'socket.io'
-import { buildHostVenueActionRows } from './venue-host-log'
+import { buildHostVenueActionRows, clearVenueHostLog } from './venue-host-log'
 import {
   bindGameIo,
+  buildPlayerVenueBrief,
   emitDisplayVenueSnapshotNow,
   prepareVenuePersistence,
   rooms,
   runVenueCondenseAfterRound,
   tableSessionKey,
+  venueDisplayLayouts,
 } from './game-ops'
 
 vi.mock('./venue-library-db', () => ({
@@ -110,6 +112,30 @@ describe('public venue wall answer', () => {
     expect(tile?.seatPointsOnly?.[seat]).toBe(true)
     expect(tile?.seatAnswerPoints?.[seat]).toBe(100)
     expect(snap?.triviaField?.map((row) => row.name)).toContain('Bo Kent')
+  })
+
+  it('sends the phone and the TV the same score lists', () => {
+    clearVenueHostLog('LOCK')
+    let gs = createEmptyGame('LOCK', 'host', '1')
+    gs = addPlayer(gs, 'ada', 'Ada Lane', 500)
+    gs = addPlayer(gs, 'bo', 'Bo Kent', 0)
+    gs = {
+      ...gs,
+      players: gs.players.map((player) =>
+        player.id === 'bo' ? { ...player, pointsOnly: true, answerPoints: 40.2 } : { ...player, answerPoints: 90.5 },
+      ),
+    }
+    rooms.set(tableSessionKey('LOCK', '1'), gs)
+    const io = captureIo()
+    bindGameIo(io.server)
+    emitDisplayVenueSnapshotNow('LOCK')
+    const snap = io.snapshots.at(-1)
+    venueDisplayLayouts.set('LOCK', { layout: 'venueWall', focusTable: null, wallView: 'leaderboard-trivia' })
+    expect(buildPlayerVenueBrief('LOCK').scores).toEqual(snap?.restLeaders)
+    venueDisplayLayouts.set('LOCK', { layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
+    expect(buildPlayerVenueBrief('LOCK').scores).toEqual(snap?.chipLeaders)
+    expect(snap?.restLeaders?.map((row) => row.name)).toEqual(['Bo Kent'])
+    expect(snap?.chipLeaders?.map((row) => row.name)).toEqual(['Ada Lane'])
   })
 
   it('keeps a busted player on the trivia snapshot after a table shuffle', () => {

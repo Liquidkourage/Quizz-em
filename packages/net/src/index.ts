@@ -108,9 +108,16 @@ export type PlayerVenueBrief = {
    */
   scoresBoard?: 'chips' | 'trivia' | null
   /** Ranked rows for `scoresBoard`. Chips include a table; the other board is points for players already out. */
-  scores?: { name: string; value: number; tableNum: number | null; points?: number }[]
+  scores?: PublicScoreRow[]
   /** Set for a few seconds after the blinds in play change. */
   blindChange?: BlindChangeNotice | null
+}
+
+export type PublicScoreRow = {
+  name: string
+  value: number
+  tableNum: number | null
+  points?: number
 }
 
 export type BlindChangeNotice = {
@@ -234,6 +241,10 @@ export type DisplayVenueWallSnapshot = {
    * The trivia board uses this list so a walk-off does not vanish from the scores.
    */
   triviaField?: { name: string; answerPoints: number }[]
+  /** Server-ranked chip board. The TV renders this list and does not rebuild it. */
+  chipLeaders?: PublicScoreRow[]
+  /** Server-ranked Best of the Rest. The TV renders this list and does not rebuild it. */
+  restLeaders?: PublicScoreRow[]
   /** Shared trivia headline: emitted from the current hand’s question through wagering, answering, and post-trivia phases while `round.question` is set. */
   headlineQuestionText: string | null
   /** Authoritative numeric answer for {@link headlineQuestionText} — same source as the headline felt’s `round.question.answer`. */

@@ -15,9 +15,11 @@ import {
   venueLeaderboardPageUsesFullFieldLayout,
 } from './venueLeaderboardPresentation'
 import {
-  venueLeaderboardFooterStats,
   triviaLeaderboardSource,
+  leaderboardRowsFromScoreBoard,
+  venueLeaderboardFooterStats,
   venueLeaderboardRowsFromTiles,
+  withServerChipDeltas,
   type VenueLeaderboardTrophy,
 } from './venueLeaderboard'
 import {
@@ -60,14 +62,16 @@ export default function VenueLeaderboardWall({
 
   const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
   const handBaselines = useVenueHandStackBaselines(tileRows, wall?.headlinePhase ?? null)
-  const chipRows = useMemo(
-    () => venueLeaderboardRowsFromTiles(tileRows, handBaselines),
-    [tileRows, handBaselines]
-  )
-  const triviaRows = useMemo(
-    () => triviaLeaderboardSource(tileRows, wall?.pointsStandings ?? [], wall?.triviaField),
-    [tileRows, wall?.pointsStandings, wall?.triviaField],
-  )
+  const chipRows = useMemo(() => {
+    const leaders = wall?.chipLeaders
+    if (leaders != null) return withServerChipDeltas(leaderboardRowsFromScoreBoard('chips', leaders), tileRows, handBaselines)
+    return venueLeaderboardRowsFromTiles(tileRows, handBaselines)
+  }, [wall, tileRows, handBaselines])
+  const triviaRows = useMemo(() => {
+    const leaders = wall?.restLeaders
+    if (leaders != null) return leaderboardRowsFromScoreBoard('trivia', leaders)
+    return triviaLeaderboardSource(tileRows, wall?.pointsStandings ?? [], wall?.triviaField)
+  }, [wall, tileRows])
   const rows = trophy === 'trivia' ? triviaRows : chipRows
   const presentation = useMemo(() => buildVenueLeaderboardPresentation(rows), [rows])
   const { currentPage, showPager, pageIndex, pageCount } = useVenueLeaderboardPager(presentation)

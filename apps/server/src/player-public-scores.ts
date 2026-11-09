@@ -95,13 +95,21 @@ export function publicScoreSeats(
   return seats
 }
 
+export function scoreBoards(
+  seats: readonly PlayerPublicSeat[],
+  field: readonly { name: string; answerPoints: number }[],
+): { chips: PlayerScoreRow[]; trivia: PlayerScoreRow[] } {
+  return { chips: chipRows(seats), trivia: restRows(seats, field) }
+}
+
 /** Chip or trivia scores while the host has that board on the TVs. Other modes send an empty board. */
 export function playerPublicScores(
   wallView: string | null | undefined,
   seats: readonly PlayerPublicSeat[],
   trivia: readonly { name: string; answerPoints: number }[],
 ): PlayerPublicScoreFields {
-  if (wallView === 'leaderboard') return { scoresBoard: 'chips', scores: chipRows(seats) }
-  if (wallView === 'leaderboard-trivia') return { scoresBoard: 'trivia', scores: restRows(seats, trivia) }
+  const boards = scoreBoards(seats, trivia)
+  if (wallView === 'leaderboard') return { scoresBoard: 'chips', scores: boards.chips }
+  if (wallView === 'leaderboard-trivia') return { scoresBoard: 'trivia', scores: boards.trivia }
   return { scoresBoard: null, scores: [] }
 }

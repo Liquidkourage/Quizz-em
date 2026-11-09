@@ -33,7 +33,7 @@ export function PlayerTableHeader({
       <div className="player-join-logo player-join-logo--compact">
         <QuizzEmWordmark layout="fill" depth="hero" />
       </div>
-      {disconnected && onReconnect ? (
+      {disconnected && onReconnect && !compactLive ? (
         <PlayerReconnectBanner
           disconnected={disconnected}
           connectionStatus={connectionStatus}

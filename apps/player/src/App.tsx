@@ -87,6 +87,7 @@ import BettingMobileDock from './components/BettingMobileDock'
 import TableFeltView from './components/TableFeltView'
 import PlayerBettingTable from './components/PlayerBettingTable'
 import { PlayerHoleSlot } from './components/PlayerHoleSlot'
+import { PlayerReconnectBanner } from './components/PlayerReconnectBanner'
 import { TableIntroduction } from './components/TableIntroduction'
 import StickyQuestionBar from './components/StickyQuestionBar'
 import PointsOnlyLifeBanner from './components/PointsOnlyLifeBanner'
@@ -838,6 +839,14 @@ function PlayerApp() {
           </div>
           {seatedAtTable && !showTableResults && !showLastHand ? (
             <PlayerHoleSlot player={currentPlayer} phase={gameState.phase} />
+          ) : null}
+          {liveFit && disconnected ? (
+            <PlayerReconnectBanner
+              disconnected
+              connectionStatus={connectionStatus}
+              lastTableId={lastTableId ?? gameState.tableId ?? undefined}
+              onReconnect={handleForceReconnect}
+            />
           ) : null}
         </PlayerGameShell>
 

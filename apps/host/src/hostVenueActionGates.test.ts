@@ -4,6 +4,7 @@ import { buildHostPhaseDockItems } from './hostDeskLayout'
 import {
   dockForRoomWait,
   lastCallForBetsLabel,
+  roomBettingActions,
   nextBandOverride,
   tablesStillBettingCount,
   venueCloseBettingBlockedHint,
@@ -257,5 +258,56 @@ describe('next band while tables differ', () => {
       felt(2, 'betting', 'bet|1|T|cc0'),
       felt(3, 'betting', 'bet|1|F|cc0'),
     ])).toBe(2)
+  })
+
+  it('asks before close, then offers fold and cancel', () => {
+    const idle = roomBettingActions({
+      stillBetting: 2,
+      asking: false,
+      roundLabel: 'Close 1st betting round',
+      confirmLabel: 'Fold 2 and close',
+      nudgeLabel: 'Nudge slow players (0)',
+      lastCallLabel: 'Last call for bets (2)',
+      onAsk: () => {},
+      onConfirm: () => {},
+      onCancel: () => {},
+      onNudge: () => {},
+      onLastCall: () => {},
+    })
+    expect(idle.map((item) => item.id)).toEqual(['close-bet', 'nudge', 'last-call'])
+    expect(
+      roomBettingActions({
+        stillBetting: 0,
+        asking: false,
+        roundLabel: 'Close 1st betting round',
+        confirmLabel: 'Fold 2 and close',
+        nudgeLabel: 'Nudge slow players (0)',
+        lastCallLabel: 'Last call for bets (2)',
+        onAsk: () => {},
+        onConfirm: () => {},
+        onCancel: () => {},
+        onNudge: () => {},
+        onLastCall: () => {},
+      }),
+    ).toEqual([])
+    const asking = roomBettingActions({
+      stillBetting: 2,
+      asking: true,
+      roundLabel: 'Close 1st betting round',
+      confirmLabel: 'Fold 2 and close',
+      nudgeLabel: 'Nudge slow players (0)',
+      lastCallLabel: 'Last call for bets (2)',
+      onAsk: () => {},
+      onConfirm: () => {},
+      onCancel: () => {},
+      onNudge: () => {},
+      onLastCall: () => {},
+    })
+    expect(asking.map((item) => item.label)).toEqual([
+      'Fold 2 and close',
+      'Cancel',
+      'Nudge slow players (0)',
+      'Last call for bets (2)',
+    ])
   })
 })

@@ -41,6 +41,40 @@ export function tableActionClockStart(
   return lastActionAtMs(moves, tableNum, handStartedAtMs)
 }
 
+function playerIsActing(row: {
+  phase: string
+  betsClosed?: boolean
+  actingPlayerName?: string | null
+}): boolean {
+  return row.phase === 'betting' && row.betsClosed !== true && Boolean(row.actingPlayerName?.trim())
+}
+
+/** One player per table that still has someone on the action. */
+export function actingPlayerCount(
+  rows: readonly { phase: string; betsClosed?: boolean; actingPlayerName?: string | null }[],
+): number {
+  let count = 0
+  for (const row of rows) if (playerIsActing(row)) count += 1
+  return count
+}
+
+/** What the host reads before Close betting folds those players. */
+export function closeBettingConfirm(acting: number): { cue: string; label: string } {
+  if (acting === 1) {
+    return {
+      cue: '1 player is still acting. Fold that player and close betting?',
+      label: 'Fold 1 and close',
+    }
+  }
+  if (acting === 0) {
+    return { cue: 'No players are still acting. Close betting?', label: 'Close betting' }
+  }
+  return {
+    cue: `${acting} players are still acting. Fold them and close betting?`,
+    label: `Fold ${acting} and close`,
+  }
+}
+
 /** Players whose turn has already lasted 15 seconds. One per open betting table. */
 export function slowActionPlayerCount(
   rows: readonly {
@@ -56,7 +90,7 @@ export function slowActionPlayerCount(
 ): number {
   let count = 0
   for (const row of rows) {
-    if (row.phase !== 'betting' || row.betsClosed === true || !row.actingPlayerName?.trim()) continue
+    if (!playerIsActing(row)) continue
     const started = tableActionClockStart(row.actingSinceMs, moves, row.tableNum, handStartedAtMs)
     if (started != null && nowMs - started >= 15_000) count += 1
   }

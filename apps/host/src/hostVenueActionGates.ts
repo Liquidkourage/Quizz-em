@@ -329,3 +329,52 @@ export function dockForRoomWait<T extends { id: string }>(
   if (wait != null) return rehearsal
   return built
 }
+
+export type RoomBetDockItem = {
+  id: string
+  label: string
+  onClick: () => void
+  variant: 'red' | 'gold'
+  role: 'primary' | 'secondary'
+}
+
+/** Close asks first. The confirm button names how many players are still acting. */
+export function roomBettingActions(input: {
+  stillBetting: number
+  asking: boolean
+  roundLabel: string
+  confirmLabel: string
+  nudgeLabel: string
+  lastCallLabel: string
+  onAsk: () => void
+  onConfirm: () => void
+  onCancel: () => void
+  onNudge: () => void
+  onLastCall: () => void
+}): RoomBetDockItem[] {
+  if (input.stillBetting <= 0) return []
+  const close: RoomBetDockItem = input.asking
+    ? {
+        id: 'close-bet-confirm',
+        label: input.confirmLabel,
+        onClick: input.onConfirm,
+        variant: 'red',
+        role: 'primary',
+      }
+    : {
+        id: 'close-bet',
+        label: input.roundLabel,
+        onClick: input.onAsk,
+        variant: 'red',
+        role: 'primary',
+      }
+  const cancel: RoomBetDockItem[] = input.asking
+    ? [{ id: 'close-bet-cancel', label: 'Cancel', onClick: input.onCancel, variant: 'gold', role: 'secondary' }]
+    : []
+  return [
+    close,
+    ...cancel,
+    { id: 'nudge', label: input.nudgeLabel, onClick: input.onNudge, variant: 'gold', role: 'secondary' },
+    { id: 'last-call', label: input.lastCallLabel, onClick: input.onLastCall, variant: 'gold', role: 'secondary' },
+  ]
+}

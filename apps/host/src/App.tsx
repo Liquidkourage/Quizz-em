@@ -55,7 +55,12 @@ import HostBlindPaceNotice, { showBlindPaceNotice } from './HostBlindPaceNotice'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
 import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
-import { nudgeSlowPlayersLabel, slowActionPlayerCount } from './HostShowClocks'
+import {
+  actingPlayerCount,
+  closeBettingConfirm,
+  nudgeSlowPlayersLabel,
+  slowActionPlayerCount,
+} from './HostShowClocks'
 import { nowOnServerClock, recordServerClockSample } from './serverClock'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { readHostVenueCode } from './hostVenueCode'
@@ -89,6 +94,7 @@ import {
   hostCloseBettingGate,
   closeBettingRoundLabel,
   lastCallForBetsLabel,
+  roomBettingActions,
   tablesStillBettingCount,
   hostDealCommunityGate,
   nextBandOverride,
@@ -191,6 +197,7 @@ function HostApp() {
   }, [venueFloorBrief?.winnerScreensReadyAtMs])
   const [guessClockNowMs, setGuessClockNowMs] = useState(() => nowOnServerClock())
   const [actionClockNowMs, setActionClockNowMs] = useState(() => nowOnServerClock())
+  const [confirmingClose, setConfirmingClose] = useState(false)
   const actorsWaiting = (venueFloorBrief?.actionRows ?? []).some(
     (row) => row.phase === 'betting' && row.betsClosed !== true && Boolean(row.actingPlayerName?.trim()),
   )
@@ -337,6 +344,10 @@ function HostApp() {
     if (!gameState || hostModeTouched) return
     setHostMode(suggestHostMode(gameState, venueFeltBeat))
   }, [gameState, venueFeltBeat, hostModeTouched])
+
+  useEffect(() => {
+    if (tablesStillBettingCount(venueFeltBeat) === 0) setConfirmingClose(false)
+  }, [venueFeltBeat])
 
   const handleStartGame = () => {
     if (socket) {
@@ -604,32 +615,24 @@ function HostApp() {
     item.id === 'nudge' ? { ...item, label: nudgeLabel } : item,
   )
   const stillBetting = tablesStillBettingCount(venueFeltBeat)
-  const bettingActions =
-    stillBetting > 0
-      ? [
-          {
-            id: 'close-bet',
-            label: closeBettingRoundLabel(venueFeltBeat),
-            onClick: () => adminCloseBetting(),
-            variant: 'red' as const,
-            role: 'primary' as const,
-          },
-          {
-            id: 'nudge',
-            label: nudgeLabel,
-            onClick: () => nudgeActingPlayers(),
-            variant: 'gold' as const,
-            role: 'secondary' as const,
-          },
-          {
-            id: 'last-call',
-            label: lastCallForBetsLabel(stillBetting),
-            onClick: () => lastCallForBets(null, true),
-            variant: 'gold' as const,
-            role: 'secondary' as const,
-          },
-        ]
-      : []
+  const askingClose = confirmingClose && stillBetting > 0
+  const closeAsk = closeBettingConfirm(actingPlayerCount(venueFloorBrief?.actionRows ?? []))
+  const bettingActions = roomBettingActions({
+    stillBetting,
+    asking: askingClose,
+    roundLabel: closeBettingRoundLabel(venueFeltBeat),
+    confirmLabel: closeAsk.label,
+    nudgeLabel,
+    lastCallLabel: lastCallForBetsLabel(stillBetting),
+    onAsk: () => setConfirmingClose(true),
+    onConfirm: () => {
+      setConfirmingClose(false)
+      adminCloseBetting()
+    },
+    onCancel: () => setConfirmingClose(false),
+    onNudge: () => nudgeActingPlayers(),
+    onLastCall: () => lastCallForBets(null, true),
+  })
   const nextDockItems = dockForRoomWait(countedDockItems, roomWait, bettingActions)
 
   const nextQuestionText =
@@ -650,8 +653,9 @@ function HostApp() {
   const runOfShowHeadline = roomWait ? { title: roomWait.title } : alignedHeadline
   const floorLockstepMisaligned = hostFloorLockstepMisaligned(venueFeltBeat)
   const primaryDockId = nextDockItems.find((i) => i.role === 'primary')?.id ?? nextDockItems[0]?.id
-  const runBarCueHint =
-    primaryDockId === 'close-bet' && closeBetBlocked
+  const runBarCueHint = askingClose
+    ? closeAsk.cue
+    : primaryDockId === 'close-bet' && closeBetBlocked
       ? closeBetHint
       : primaryDockId === 'deal-board' && dealCommunityBlocked
         ? dealCommunityHint

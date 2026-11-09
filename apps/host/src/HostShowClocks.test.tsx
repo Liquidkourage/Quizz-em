@@ -7,6 +7,8 @@ import {
   HostShowClocks,
   formatElapsedClock,
   lastActionAtMs,
+  actingPlayerCount,
+  closeBettingConfirm,
   nudgeSlowPlayersLabel,
   slowActionPlayerCount,
   soonestNudgeSeconds,
@@ -111,6 +113,19 @@ describe('host show clocks', () => {
       { tableNum: 4, phase: 'answering', actingPlayerName: 'Dee', actingSinceMs: now - 40_000 },
     ]
     expect(slowActionPlayerCount(rows, [], null, now)).toBe(1)
+    expect(actingPlayerCount(rows)).toBe(2)
+    expect(closeBettingConfirm(3)).toEqual({
+      cue: '3 players are still acting. Fold them and close betting?',
+      label: 'Fold 3 and close',
+    })
+    expect(closeBettingConfirm(1)).toEqual({
+      cue: '1 player is still acting. Fold that player and close betting?',
+      label: 'Fold 1 and close',
+    })
+    expect(closeBettingConfirm(0)).toEqual({
+      cue: 'No players are still acting. Close betting?',
+      label: 'Close betting',
+    })
     expect(nudgeSlowPlayersLabel(0)).toBe('Nudge slow players (0)')
     expect(nudgeSlowPlayersLabel(1)).toBe('Nudge slow players (1)')
   })

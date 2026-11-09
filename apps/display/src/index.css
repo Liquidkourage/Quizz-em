@@ -3522,18 +3522,6 @@
     font-size: clamp(1.32rem, calc((100cqh - 0.85rem) / var(--lb-rows) * 1.04), 2rem);
   }
 
-  .venue-lb-viewport--full-field .venue-lb-ribbon {
-    min-height: clamp(5.25rem, 9.5vh, 6.75rem);
-  }
-
-  .venue-lb-viewport--full-field .venue-lb-stat-section {
-    padding: clamp(8px, 1vmin, 12px) clamp(10px, 1.15vw, 16px);
-  }
-
-  .venue-lb-viewport--full-field .venue-lb-stat-value {
-    font-size: clamp(1.2rem, 1.45vw, 1.65rem);
-  }
-
   .venue-lb-header {
     padding-bottom: 0;
   }
@@ -3557,63 +3545,6 @@
     background-clip: text;
     color: transparent;
     filter: drop-shadow(0 2px 8px rgb(251 191 36 / 0.32)) drop-shadow(0 1px 0 rgb(0 0 0 / 0.85));
-  }
-
-  .venue-lb-status {
-    padding-block: clamp(2px, 0.25vmin, 4px);
-  }
-
-  .venue-lb-status-row {
-    display: flex;
-    align-items: center;
-    gap: clamp(10px, 1.35vw, 18px);
-  }
-
-  .venue-lb-status-caption {
-    flex-shrink: 0;
-    font-family: Rajdhani, sans-serif;
-    font-size: clamp(1rem, 1.15vw, 1.3rem);
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
-    color: rgb(255 251 235 / 0.92);
-  }
-
-  .venue-lb-status-num {
-    color: rgb(254 243 199 / 0.98);
-  }
-
-  .venue-lb-status-muted {
-    color: rgb(255 255 255 / 0.78);
-  }
-
-  .venue-lb-status-dot {
-    margin-inline: clamp(4px, 0.5vw, 7px);
-    color: rgb(251 191 36 / 0.55);
-  }
-
-  .venue-lb-status-track-wrap {
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  .venue-lb-status-track {
-    position: relative;
-    height: 2px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, rgb(251 191 36 / 0.72), rgb(251 191 36 / 0.28));
-    box-shadow: 0 0 10px rgb(251 191 36 / 0.18);
-  }
-
-  .venue-lb-status-diamond {
-    position: absolute;
-    top: 50%;
-    width: 9px;
-    height: 9px;
-    transform: translate(-50%, -50%) rotate(45deg);
-    border-radius: 1px;
-    background: linear-gradient(135deg, #fff4b8, #fbbf24);
-    box-shadow: 0 0 10px rgb(251 191 36 / 0.65);
   }
 
   .venue-lb-header-aside {
@@ -3913,90 +3844,32 @@
     line-height: 1;
   }
 
-  .venue-lb-ribbon {
-    border-radius: clamp(8px, 0.85vmin, 12px);
-    border: 1.5px solid rgb(251 191 36 / 0.48);
-    background: linear-gradient(180deg, rgb(10 12 20 / 0.98) 0%, rgb(4 6 12 / 0.99) 100%);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.07),
-      inset 0 0 24px rgb(251 191 36 / 0.06),
-      0 8px 24px rgb(0 0 0 / 0.35);
-    min-height: clamp(5.5rem, 10vh, 7rem);
-  }
-
-  .venue-lb-ribbon-inner {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    align-items: stretch;
-    min-height: inherit;
-  }
-
-  .venue-lb-stat-section {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(8px, 1vw, 14px);
-    padding: clamp(10px, 1.25vmin, 16px) clamp(10px, 1.2vw, 18px);
-  }
-
-  .venue-lb-stat-section:not(:last-child) {
-    border-right: 1px solid rgb(251 191 36 / 0.22);
-  }
-
-  .venue-lb-stat-icon-wrap {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    color: rgb(251 191 36 / 0.88);
-  }
-
-  .venue-lb-stat-icon {
-    width: clamp(2.4rem, 3vw, 3.4rem);
-    height: clamp(2.4rem, 3vw, 3.4rem);
-  }
-
-  .venue-lb-stat-label {
-    font-family: Orbitron, monospace;
-    font-size: clamp(0.88rem, 1.05vw, 1.2rem);
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    line-height: 1.2;
-    text-transform: uppercase;
-    color: rgb(253 224 71 / 0.88);
-  }
-
-  .venue-lb-stat-value {
-    margin-top: clamp(2px, 0.25vmin, 4px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .venue-lb-footnote {
+    margin: 0;
+    padding-top: clamp(2px, 0.35vmin, 6px);
+    text-align: center;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(1.25rem, 1.55vw, 1.75rem);
-    font-weight: 700;
-    line-height: 1.15;
-    color: rgb(255 251 235 / 0.96);
+    font-size: clamp(0.95rem, 1.15vw, 1.25rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgb(255 251 235 / 0.62);
   }
 
-  .venue-lb-stat-name {
-    color: rgb(255 251 235 / 0.96);
-  }
-
-  .venue-lb-stat-amount {
-    font-family: ui-monospace, monospace;
+  .venue-lb-footnote-amount {
     font-variant-numeric: tabular-nums;
-    color: rgb(52 211 153 / 0.98);
+    color: rgb(255 251 235 / 0.82);
   }
 
-  .venue-lb-stat-count {
-    font-family: ui-monospace, monospace;
-    font-variant-numeric: tabular-nums;
-    color: rgb(255 251 235 / 0.96);
+  .venue-lb-footnote-sep {
+    color: rgb(255 251 235 / 0.35);
+  }
+
+  .venue-lb-grid-clear {
+    padding-bottom: 2.7rem;
   }
 
   .venue-lb-pager {
-    bottom: clamp(6.5rem, 12vh, 8.5rem);
+    bottom: 2.2rem;
   }
 
   /* Trivia scores have no chip ribbon, so the circle and page dash sit at the foot. */
@@ -4026,19 +3899,6 @@
   @media (max-width: 1366px) {
     .venue-lb-title {
       font-size: clamp(2.65rem, 3.8vw, 3.75rem);
-    }
-
-    .venue-lb-ribbon-inner {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .venue-lb-stat-section:nth-child(2) {
-      border-right: none;
-    }
-
-    .venue-lb-stat-section:nth-child(1),
-    .venue-lb-stat-section:nth-child(3) {
-      border-bottom: 1px solid rgb(251 191 36 / 0.18);
     }
   }
 

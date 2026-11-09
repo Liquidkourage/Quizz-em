@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion'
 import type { DisplayVenueWallSnapshot } from '@qhe/net'
 import { LeaderboardFrame } from './LeaderboardFrame'
 import { LeaderboardHeader } from './LeaderboardHeader'
-import { LeaderboardStatusRow } from './LeaderboardStatusRow'
 import VenueLeaderboardPanelGrid from './VenueLeaderboardPanelGrid'
 import VenueLeaderboardStatsRibbon from './VenueLeaderboardStatsRibbon'
 import { resolveVenueShowdownAnswer } from './showdownDisplay'
@@ -23,7 +22,6 @@ import {
 } from './venueLeaderboard'
 import {
   buildVenueWallTileRows,
-  buildVenueCondenseProgress,
   venueWallCondenseHeadline,
   venuePublicAnswerReleased,
 } from './venueWallModel'
@@ -43,14 +41,8 @@ export default function VenueLeaderboardWall({
   skipMountIntro = false,
   trophyMode = 'dual',
 }: VenueLeaderboardWallProps) {
-  const [peakSurvivors, setPeakSurvivors] = useState(0)
   const [dualFlip, setDualFlip] = useState(0)
   const condenseHeadline = useMemo(() => venueWallCondenseHeadline(wall), [wall])
-  useEffect(() => {
-    if (condenseHeadline != null) {
-      setPeakSurvivors((prev) => Math.max(prev, condenseHeadline.survivors))
-    }
-  }, [condenseHeadline])
   useEffect(() => {
     if (trophyMode !== 'dual') return
     const id = window.setInterval(() => setDualFlip((n) => n + 1), DUAL_TROPHY_ROTATE_MS)
@@ -65,11 +57,6 @@ export default function VenueLeaderboardWall({
         : dualFlip % 2 === 0
           ? 'chips'
           : 'trivia'
-
-  const condenseProgress = useMemo(
-    () => buildVenueCondenseProgress({ wall, peakSurvivors }),
-    [wall, peakSurvivors]
-  )
 
   const tileRows = useMemo(() => buildVenueWallTileRows(wall), [wall])
   const handBaselines = useVenueHandStackBaselines(tileRows, wall?.headlinePhase ?? null)
@@ -104,6 +91,7 @@ export default function VenueLeaderboardWall({
   const title = trophy === 'trivia' ? 'Trivia leaders' : 'Chip leaders'
   const showClock = showPager || trophyMode === 'dual'
   const triviaClock = trophy === 'trivia' && showClock
+  const chipClock = trophy === 'chips' && showClock
 
   return (
     <LeaderboardFrame fullField={fullFieldLayout}>
@@ -114,16 +102,12 @@ export default function VenueLeaderboardWall({
         showdownAnswer={venueShowdownAnswer}
       />
 
-      {condenseProgress != null && trophy === 'chips' ? (
-        <LeaderboardStatusRow model={condenseProgress} />
-      ) : null}
-
       <main
         className={`venue-lb-main flex min-h-0 flex-1 flex-col overflow-hidden${
           triviaClock ? ' venue-lb-main--clock' : ''
         }`}
       >
-        <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div className={`relative min-h-0 flex-1 overflow-hidden${chipClock ? ' venue-lb-grid-clear' : ''}`}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={`${trophy}-${pageIndex}`}

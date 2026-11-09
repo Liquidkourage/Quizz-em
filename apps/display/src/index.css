@@ -3846,10 +3846,11 @@
 
   .venue-lb-footnote {
     margin: 0;
-    padding-top: clamp(2px, 0.35vmin, 6px);
+    padding-top: clamp(4px, 0.6vmin, 10px);
     text-align: center;
     font-family: Rajdhani, sans-serif;
-    font-size: clamp(0.95rem, 1.15vw, 1.25rem);
+    font-size: clamp(2.375rem, 2.875vw, 3.125rem);
+    line-height: 1;
     font-weight: 600;
     letter-spacing: 0.04em;
     color: rgb(255 251 235 / 0.62);
@@ -3865,11 +3866,11 @@
   }
 
   .venue-lb-grid-clear {
-    padding-bottom: 2.7rem;
+    padding-bottom: 3rem;
   }
 
   .venue-lb-pager {
-    bottom: 2.2rem;
+    bottom: 3.6rem;
   }
 
   /* Trivia scores have no chip ribbon, so the circle and page dash sit at the foot. */

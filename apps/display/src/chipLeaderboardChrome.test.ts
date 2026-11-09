@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -40,5 +41,11 @@ describe('chip leaders chrome', () => {
     expect(html).not.toContain('Top stack')
     expect(html).not.toContain('venue-lb-ribbon')
     expect(html).not.toContain('venue-lb-stat-icon')
+  })
+
+  it('sets that line about two and a half times the previous size', () => {
+    const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+    const rule = css.slice(css.indexOf('.venue-lb-footnote {'), css.indexOf('.venue-lb-footnote-amount'))
+    expect(rule).toContain('font-size: clamp(2.375rem, 2.875vw, 3.125rem)')
   })
 })

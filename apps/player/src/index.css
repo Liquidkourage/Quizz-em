@@ -2088,21 +2088,40 @@
   overflow: hidden;
 }
 
+/* Pre-deal table keeps its shape. A short phone shrinks the upright table instead of flattening the seats onto the felt. */
+.player-intro-fit {
+  container-type: size;
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+.player-intro-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  max-height: 100%;
+}
+
 .player-intro-stage {
   position: relative;
-  width: min(100%, 34rem);
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 40rem;
+  container-type: size;
   aspect-ratio: 4 / 5;
+  width: min(100cqi, calc((100cqh - 3.4rem) * 0.8), 34rem);
+  flex: none;
 }
 
 .player-intro-felt {
   position: absolute;
-  left: 28%;
-  right: 28%;
-  top: 26%;
-  bottom: 30%;
+  left: 32%;
+  right: 32%;
+  top: 30%;
+  bottom: 34%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2120,10 +2139,11 @@
 .player-intro-table {
   margin: 0;
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(1.15rem, 4.2vw, 1.6rem);
+  font-size: clamp(0.65rem, 6cqw, 1.55rem);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
   color: rgb(255 248 220);
 }
 
@@ -2133,7 +2153,8 @@
   gap: 0.35rem;
   margin: 0;
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(1rem, 3.6vw, 1.3rem);
+  font-size: clamp(0.62rem, 4.6cqw, 1.25rem);
+  white-space: nowrap;
   font-weight: 700;
   color: rgb(253 224 71);
 }
@@ -2146,6 +2167,7 @@
   position: absolute;
   width: 24%;
   max-width: 6.4rem;
+  min-width: 0;
   transform: translate(-50%, -50%);
   padding: 0.28rem 0.3rem 0.34rem;
   border-radius: 0.45rem;
@@ -2159,8 +2181,6 @@
 }
 
 .player-intro-plate--you {
-  width: 32%;
-  max-width: 8rem;
   z-index: 2;
   border-color: rgb(251 191 36 / 0.85);
   background: rgb(42 28 8 / 0.94);
@@ -2176,7 +2196,7 @@
 
 .player-intro-seat {
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.68rem;
+  font-size: clamp(0.62rem, 3.2cqh, 0.75rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2185,7 +2205,7 @@
 
 .player-intro-name {
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(0.85rem, 3vw, 1rem);
+  font-size: clamp(0.72rem, 4.4cqh, 1.05rem);
   font-weight: 700;
   line-height: 1.15;
   color: rgb(236 253 245);
@@ -2193,13 +2213,13 @@
 }
 
 .player-intro-plate--you .player-intro-name {
-  font-size: clamp(1rem, 3.6vw, 1.2rem);
+  font-size: clamp(0.8rem, 5cqh, 1.2rem);
   color: rgb(254 243 199);
 }
 
 .player-intro-you {
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.72rem;
+  font-size: clamp(0.62rem, 3cqh, 0.72rem);
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2208,9 +2228,39 @@
 
 .player-intro-stack {
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: 0.85rem;
+  font-size: clamp(0.68rem, 3.6cqh, 0.85rem);
   font-weight: 700;
   color: rgb(253 224 71);
+}
+
+@container (max-height: 16rem) {
+  .player-intro-felt {
+    left: 33%;
+    right: 33%;
+    top: 31%;
+    bottom: 35%;
+  }
+
+  .player-intro-plate {
+    padding: 0.1rem 0.14rem 0.12rem;
+  }
+
+  .player-intro-seat {
+    font-size: 0.58rem;
+  }
+
+  .player-intro-name,
+  .player-intro-plate--you .player-intro-name {
+    font-size: 0.68rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-intro-you,
+  .player-intro-stack {
+    font-size: 0.62rem;
+  }
 }
 
 .player-intro-line {

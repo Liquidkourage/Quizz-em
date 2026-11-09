@@ -1,7 +1,10 @@
 import { createElement } from 'react'
+import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { TableIntroduction } from './TableIntroduction'
+
+const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 
 const players = [
   { id: 'a', name: 'Devon B.', bankroll: 980 },
@@ -43,5 +46,24 @@ describe('TableIntroduction', () => {
     expect(done).toContain('>You<')
     expect(done).toContain('Alice C.')
     expect(done).toContain('3 players. The host will deal when ready.')
+  })
+
+  it('keeps the pre-deal table upright when the phone is short', () => {
+    expect(markup(3)).toContain('player-intro-fit')
+    expect(markup(3)).toContain('player-intro-group')
+    const start = css.indexOf('Pre-deal table keeps its shape')
+    const block = start < 0 ? '' : css.slice(start, start + 900)
+    expect(block).toContain('container-type: size')
+    expect(block).toContain('aspect-ratio: 4 / 5')
+    expect(block).toContain('min(100cqi, calc((100cqh - 3.4rem) * 0.8), 34rem)')
+  })
+
+  it('shrinks the seat cards with the table so they stay off the felt', () => {
+    const plateAt = css.indexOf('.player-intro-plate {')
+    const plate = plateAt < 0 ? '' : css.slice(plateAt, plateAt + 320)
+    expect(plate).toContain('min-width: 0')
+    const nameAt = css.indexOf('.player-intro-name {')
+    const name = nameAt < 0 ? '' : css.slice(nameAt, nameAt + 280)
+    expect(name).toContain('cqh')
   })
 })

@@ -1,4 +1,4 @@
-import { pickLateEntryHost, type PlayerState } from '@qhe/core'
+import { pickLateEntryHost, VENUE_WALL_SEAT_SLOTS, type PlayerState } from '@qhe/core'
 import {
   normalizeVenueCode,
   publicNameForNewPlayer,
@@ -32,9 +32,14 @@ export function seatLatePointsOnlyPlayer(venueCode: string, playerId: string, na
   const tables = venuePlayableSnapshots(vn)
     .filter((row) => Number.isFinite(row.n))
     .map((row) => ({ tableNum: row.n, sessionKey: row.tk, players: row.gs.players }))
-  const ghostHostId = pickLateEntryHost(tables)
+  const openTables = tables.filter((table) => table.players.length < VENUE_WALL_SEAT_SLOTS)
+  const ghostHostId = pickLateEntryHost(openTables)
   if (!ghostHostId) {
-    return { ok: false, message: 'The chip contest is over, so there is no table left to join.' }
+    const fullOfChipPlayers = pickLateEntryHost(tables) != null
+    const message = fullOfChipPlayers
+      ? 'Every table is full.'
+      : 'The chip contest is over, so there is no table left to join.'
+    return { ok: false, message }
   }
   const home = tables.find((table) => table.players.some((player) => player.id === ghostHostId))
   const gs = home ? rooms.get(home.sessionKey) : undefined

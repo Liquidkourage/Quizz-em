@@ -5101,7 +5101,7 @@
   display: none;
 }
 
-@media (min-width: 768px) and (min-height: 700px) {
+@media (min-width: 320px) and (min-height: 640px) {
   .player-seated-felt {
     display: flex;
     flex: 1 1 auto;
@@ -5110,6 +5110,14 @@
   }
 
   .player-seated-table .player-betting-table {
+    display: none;
+  }
+
+  .player-seated-table--list .player-betting-table {
+    display: flex;
+  }
+
+  .player-seated-table--list .player-seated-felt {
     display: none;
   }
 }

@@ -824,7 +824,7 @@ function PlayerApp() {
 
             {/* Results own the middle — don't stack HUD under them (nested scroll). */}
             {seatedAtTable && !showTableResults && !showLastHand && !waitingForFirstStart ? (
-              <div className="player-seated-table">
+              <div className={isPointsOnly ? 'player-seated-table player-seated-table--list' : 'player-seated-table'}>
                 <PlayerBettingTable gameState={gameState} myIndex={myIndex} />
                 <div className="player-seated-felt">{feltView}</div>
               </div>

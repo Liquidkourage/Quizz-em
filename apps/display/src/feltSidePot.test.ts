@@ -208,8 +208,15 @@ describe('felt side pot', () => {
       createElement(MosaicSeatFace, { initials: 'EA', marks: [], folded: true, seatIndex: 6 }),
     )
     expect(leftRail).toContain('vfd-mosaic-seat-face--left')
-    expect(leftRail).toContain('vfd-mosaic-seat-folded--inward')
+    expect(leftRail).toContain('vfd-mosaic-seat-folded--above')
+    expect(leftRail).not.toContain('vfd-mosaic-seat-folded--inward')
     expect(leftRail).toContain('>Folded<')
+    const rightFolded = renderToStaticMarkup(
+      createElement(MosaicSeatFace, { initials: 'MD', marks: [], folded: true, seatIndex: 2 }),
+    )
+    expect(rightFolded).toContain('vfd-mosaic-seat-face--right')
+    expect(rightFolded).toContain('vfd-mosaic-seat-folded--above')
+    expect(rightFolded).not.toContain('vfd-mosaic-seat-folded--inward')
     expect(both).not.toContain('>Folded<')
     expect(both).not.toContain('>All-in<')
 

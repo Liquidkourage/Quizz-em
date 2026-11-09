@@ -661,12 +661,9 @@ export function mosaicSeatIsAllIn(args: {
   )
 }
 
-/** Folded sits on the felt side of the letters. All-in takes the stack's place. */
-function mosaicFoldedFeltSide(seatIndex: number): 'above' | 'below' | 'inward' {
-  const rail = mosaicSeatRail(seatIndex)
-  if (rail === 'top') return 'below'
-  if (rail === 'bottom') return 'above'
-  return 'inward'
+/** Folded takes the slot All-in does not. All-in sits with the stack: above top-rail initials, under every other seat. */
+function mosaicFoldedFeltSide(seatIndex: number): 'above' | 'below' {
+  return mosaicSeatRail(seatIndex) === 'top' ? 'below' : 'above'
 }
 
 function mosaicSeatCornerBadges(marks: readonly number[]): ReactNode {

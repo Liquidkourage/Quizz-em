@@ -1115,7 +1115,8 @@
   height: 100%;
   min-height: 0;
   max-height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   /* Center a phone-width column; landscape monitors stay portrait composition. */
   align-items: center;
   /* Keep side safe-area; kill vertical padding that was blowing past 100%. */
@@ -1124,9 +1125,10 @@
 }
 
 .player-game-layout--live-fit .player-game-shell {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   align-self: center;
-  min-height: 0;
+  min-height: auto;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -1249,9 +1251,9 @@
 }
 
 .player-game-layout--live-fit .player-game-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
+  flex: 0 0 auto;
+  min-height: auto;
+  overflow: visible;
   gap: 0.4rem;
   padding: 0.1rem 0.15rem 0.2rem;
   /* Question → felt claims leftover height; dock sits below shell. */
@@ -1311,34 +1313,36 @@
  * Padding reserves gutter for outward name tags above/below the rail.
  */
 .player-game-layout--live-fit .player-felt-stack {
-  flex: 1 1 0;
+  flex: 0 0 auto;
   min-width: 0;
-  min-height: 0;
+  min-height: auto;
   width: 100%;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
   align-items: stretch;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .player-game-layout--live-fit .player-felt-stack > .player-game-felt-panel--fill {
-  min-height: 0;
-  max-height: 100%;
-  overflow: hidden;
+  min-height: auto;
+  max-height: none;
+  overflow: visible;
   container-type: normal;
 }
 
 .player-game-layout--live-fit .player-game-felt-panel--fill {
   position: relative;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   width: 100%;
   max-width: 100%;
-  min-height: 0;
+  min-height: auto;
+  max-height: none;
+  overflow: visible;
   margin: 0 auto;
   /* Status, then the felt. Hold to peek is the stack's next row. */
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
   align-items: stretch;
   justify-items: stretch;
   /* Side gutter is the name-tag width so outward tags stay on the phone. */
@@ -1424,19 +1428,21 @@
 
 /* Status line sits in this panel. The slot takes the leftover height under it. */
 .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-  flex: 1 1 0;
+  flex: 0 0 auto;
   width: 100%;
-  min-height: 0;
+  min-height: auto;
+  aspect-ratio: 8 / 5;
   height: auto;
   /* Sit the oval on the peek's row, in the middle of the open space. Top padding keeps the highest name off the status line. Bottom padding keeps the lowest name off the button. */
   /* Row 2 is the flexible one. Without this, a quiet status line lets the oval land in the auto row and collapse. */
   grid-row: 2;
+  align-self: start;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   padding-top: 1.5rem;
   padding-bottom: 1.75rem;
-  container-type: size;
+  container-type: inline-size;
 }
 
 /* No peek yet: the same table sits in the open space under the question. */
@@ -1482,25 +1488,25 @@
 
 /* Largest 8:5 oval that fits the slot under the status line. */
 .player-game-layout--live-fit .player-game-felt--fill {
-  width: min(100%, calc(100cqh * 8 / 5));
-  height: min(100cqh, calc(100cqw * 5 / 8));
+  width: 100%;
+  height: auto;
   max-width: 100%;
-  max-height: 100%;
+  max-height: none;
+  aspect-ratio: 8 / 5;
 }
 
 /* A tall phone grows the live oval into the height that is left. A wide slot keeps the wide table so Hold to peek stays on screen. */
 @media (orientation: portrait) {
-  @container (max-aspect-ratio: 8/5) {
-    .player-game-layout--live-fit .player-game-felt--fill {
-      aspect-ratio: 4 / 5;
-      width: min(100%, calc(100cqh * 0.8));
-      height: min(100cqh, calc(100cqw * 5 / 4));
-    }
+  .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot,
+  .player-game-layout--live-fit .player-game-felt--fill {
+    aspect-ratio: 4 / 5;
+    width: 100%;
+    height: auto;
+  }
 
-    .player-game-layout--live-fit .player-game-felt--fill img {
-      transform-origin: center;
-      transform: scaleY(var(--player-felt-stretch, 1));
-    }
+  .player-game-layout--live-fit .player-game-felt--fill img {
+    transform-origin: center;
+    transform: scaleY(var(--player-felt-stretch, 1));
   }
 }
 
@@ -1515,17 +1521,17 @@
 
 /* Portrait phones keep this column: question, felt, then the bet dock. */
 
-/* Betting: shell + inflow dock share one column; felt shrinks first. */
+/* The hand scrolls. The felt keeps its shape, and the dock follows it. */
 .player-game-layout--live-fit.player-game-layout--with-dock {
   gap: 0;
 }
 
 .player-game-layout--live-fit.player-game-layout--with-dock .player-game-shell {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: auto;
   width: 100%;
   max-width: min(100%, var(--player-live-column-max));
-  overflow: hidden;
+  overflow: visible;
 }
 
 /*
@@ -1570,35 +1576,19 @@
  * the peek land on top of each other.
  */
 @media (max-height: 520px) {
-  /* The dock stays on screen, beside the table. A stacked column hides the pot behind the buttons. */
-  .player-game-layout--live-fit.player-game-layout--with-dock {
-    flex-direction: row;
-    align-items: stretch;
-  }
-
-  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-shell {
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: none;
-    height: 100%;
-  }
-
-  .player-game-layout--live-fit .player-game-body {
-    overflow: hidden;
-  }
-
+  /* A short sideways phone keeps the name gutters and scrolls. The oval is not crushed beside the buttons. */
   .player-game-layout--live-fit .player-game-felt-panel--fill,
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
-    flex: 1 1 0;
-    min-height: 0;
-    overflow: hidden;
+    flex: 0 0 auto;
+    min-height: auto;
+    overflow: visible;
     justify-content: flex-start;
-    padding: 0.15rem 0.5rem 0.2rem;
+    padding: 0.35rem 3.75rem 0.2rem;
   }
 
   .player-game-layout--live-fit .player-game-felt-panel--fill > .player-felt-rotate-slot {
-    flex: 1 1 0;
-    min-height: 0;
+    flex: 0 0 auto;
+    min-height: auto;
     height: auto;
   }
 
@@ -1720,10 +1710,8 @@
 
 @media (max-height: 520px) {
   .player-game-layout--live-fit .player-game-dock--inflow {
-    /* Beside the table. Height follows the facts so none of them scroll away. */
-    flex: 0 0 18rem;
-    width: 18rem;
-    max-width: 46%;
+    width: 100%;
+    max-width: min(100%, var(--player-live-column-max));
     min-width: 0;
     max-height: none;
     align-self: center;
@@ -5266,7 +5254,7 @@
   display: none;
 }
 
-@media (min-width: 320px) and (min-height: 640px) {
+@media (min-width: 280px) {
   .player-seated-felt {
     display: flex;
     flex: 1 1 auto;

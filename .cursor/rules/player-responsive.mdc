@@ -1,0 +1,75 @@
+---
+description: Player interfaces must work on any modern phone, tablet, or desktop. Design from a 320px-wide viewport, keep every action usable, and fix layout constraints instead of device-specific patches.
+alwaysApply: true
+---
+
+# Non-negotiable requirement: Device-agnostic player interfaces
+
+Every player-facing interface in this application MUST be genuinely device-agnostic. This is a foundational product requirement, not a visual preference or a task to address after desktop development.
+
+**Players must be able to participate fully using virtually any reasonably modern smartphone, tablet, or desktop browser, regardless of screen size, aspect ratio, or orientation.**
+
+The player interface is mobile-first by definition. Desktop is simply another viewport in which it must work.
+
+## 1. Design for the smallest practical viewport first
+
+Use **320 CSS pixels wide as a required minimum**, and aim to support 280 pixels where practical.
+
+Do not develop a layout at desktop dimensions and subsequently shrink it until it fits a phone. Design components so they naturally adapt to the space available.
+
+At narrow widths, this may require fundamentally different arrangements of the same controls, not just smaller versions of the desktop layout.
+
+## 2. Functionality takes precedence over layout consistency
+
+Every action available to a player must remain accessible and usable on every supported viewport.
+
+- No clipped, overlapping, obscured, or unreachable interactive elements.
+- No horizontal page scrolling to reach essential controls.
+- No buttons that become too small to tap reliably. Aim for 44 × 44 CSS pixel touch targets.
+- No text shrinking to illegibility just to preserve a particular layout.
+- No dependency on hover interactions, mouse input, or a physical keyboard.
+- No critical controls hidden beneath sticky elements, browser chrome, or the on-screen keyboard.
+
+Vertical scrolling is perfectly acceptable. **Making players scroll is preferable to making an interface unusable.**
+
+## 3. Use responsive architecture, not viewport-specific patches
+
+Audit the player UI for fixed widths, minimum widths, rigid grids, absolute positioning, overflow clipping, fixed heights, and other assumptions that prevent responsive behavior.
+
+Replace those assumptions with flexible layouts, content-aware breakpoints, appropriate wrapping, and alternative arrangements where necessary.
+
+Breakpoints should follow the needs of the content, not a handful of named phone models.
+
+Do not fix individual screenshots by adding increasingly specific CSS overrides. Identify and resolve the underlying layout constraints.
+
+Do not modify host, administrator, or public-display interfaces unless a shared component requires it.
+
+## 4. Test actual gameplay, not just page rendering
+
+A screen passing a DOM inspection is not enough. It must look correct, and a player must actually be able to use it.
+
+Test all relevant player states, including joining, answering questions, betting, folding, manipulating cards, submitting answers, seeing results, and viewing leaderboards.
+
+Test at viewport widths of 280, 320, 360, 375, 390, 430, 768, and 1280 CSS pixels, plus relevant landscape orientations.
+
+Also test text enlargement, browser zoom, long content, on-screen keyboards, and dynamic state changes.
+
+For each applicable viewport and game state, verify:
+
+1. **Geometry:** No unintended overflow, clipping, overlap, or unreachable controls.
+2. **Visibility:** Every necessary control and its label is actually visible and readable.
+3. **Interaction:** Every necessary control can be operated successfully through its intended input method.
+
+Use real browser rendering, screenshots, and interaction tests. Automated assertions alone do not prove visual usability.
+
+## 5. Definition of done
+
+A player-facing feature is NOT COMPLETE unless it functions correctly at the smallest supported viewport.
+
+A fix that works at 390 pixels but fails at 320 pixels is not complete. A component that renders correctly but cannot be operated on a touchscreen is not complete.
+
+If the interface cannot accommodate its content, redesign its presentation rather than compromising functionality.
+
+When implementing or modifying any player-facing UI, proactively check all supported viewport sizes without waiting for me to report another mobile layout failure.
+
+**This requirement applies permanently to all existing and future player-facing interfaces.**

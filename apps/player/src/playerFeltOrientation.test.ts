@@ -145,7 +145,7 @@ describe('player table orientation', () => {
     )
     expect(panel).toContain('display: grid')
     expect(panel).toContain('grid-template-columns: minmax(0, 1fr)')
-    expect(panel).toContain('grid-template-rows: auto minmax(0, 1fr) auto')
+    expect(panel).toContain('grid-template-rows: auto auto auto')
     expect(panel).toContain('align-items: stretch')
     const peekAt = css.lastIndexOf('.player-hole-peek {')
     const peek = css.slice(peekAt, peekAt + 500)
@@ -210,10 +210,9 @@ describe('player table orientation', () => {
     const short = mediaBlock(css.slice(css.indexOf('Short landscape only.')), '@media')
     expect(short).toContain('max-height: 520px')
     expect(short).not.toContain('pointer: coarse')
-    expect(short).toContain('flex-direction: row')
-    expect(short).toContain('flex: 1 1 auto')
-    expect(short).toContain('min-height: 0')
-    expect(short).toContain('overflow: hidden')
+    expect(short).not.toContain('flex-direction: row')
+    expect(short).toContain('3.75rem')
+    expect(short).not.toContain('flex: 0 0 18rem')
     expect(short).toContain('margin: 0 0 0.25rem')
     expect(short).toContain('max-height: 3.4rem')
     expect(short).not.toContain('height: 11rem')
@@ -224,8 +223,7 @@ describe('player table orientation', () => {
     expect(short).not.toContain('padding: 2rem 6rem 1.75rem')
     expect(css).not.toContain('max-height: min(42%, 16rem)')
     expect(css).not.toContain('max-height: 9.5rem')
-    const shortDock = css.indexOf('flex: 0 0 18rem')
-    expect(shortDock).toBeGreaterThan(0)
+    expect(css).not.toContain('flex: 0 0 18rem')
 
     const foldHeader = '@media (max-height: 320px)'
     const fold = mediaBlock(css.slice(css.indexOf(foldHeader)), foldHeader)
@@ -240,7 +238,7 @@ describe('player table orientation', () => {
     expect(peekRule).not.toContain('display: none')
     expect(fold).not.toContain('position: absolute')
     expect(fold).not.toContain('bottom: -')
-    expect(css.indexOf(foldHeader)).toBeGreaterThan(shortDock)
+    expect(css.indexOf(foldHeader)).toBeGreaterThan(css.indexOf('Short landscape only.'))
     expect(css.lastIndexOf('min-height: 1.7rem')).toBe(-1)
     expect(css.lastIndexOf('min-height: 1.85rem')).toBe(-1)
     expect(css).not.toContain('grid-template-columns: 5.75rem minmax(0, 1fr) 5.75rem')
@@ -253,7 +251,8 @@ describe('player table orientation', () => {
     expect(phoneFit).not.toContain('min-height: 1.7rem')
     expect(phoneFit).not.toContain('pointer: coarse')
     expect(phoneFit).toContain(feltGutter)
-    const waiting = css.slice(css.indexOf('flex: 0 0 18rem'), css.indexOf('flex: 0 0 18rem') + 1200)
+    const waitingAt = css.indexOf('.player-game-layout--live-fit .player-game-dock--waiting .player-game-preact')
+    const waiting = css.slice(waitingAt - 500, waitingAt + 180)
     expect(waiting).toContain('.player-game-dock--waiting')
     expect(waiting).toContain('max-height: none')
     expect(waiting).toContain('grid-template-columns: 1fr')
@@ -262,8 +261,8 @@ describe('player table orientation', () => {
     expect(peek).toContain('flex: 0 0 auto')
     expect(peek).toContain('min-height: 2.75rem')
     const slot = short.slice(short.indexOf('.player-felt-rotate-slot'))
-    expect(slot).toContain('flex: 1 1 0')
-    expect(slot).not.toContain('flex: 1 1 auto')
+    expect(slot).toContain('flex: 0 0 auto')
+    expect(slot).not.toContain('flex: 1 1 0')
   })
 
   it('gives an iPad landscape table room and leaves a MacBook alone', () => {
@@ -295,9 +294,9 @@ describe('player table orientation', () => {
       css.indexOf('.player-game-layout--live-fit .player-game-felt--fill {'),
       css.indexOf('.player-game-layout--live-fit .player-game-felt--fill {') + 320,
     )
-    expect(felt).toContain('width: min(100%, calc(100cqh * 8 / 5))')
-    expect(felt).toContain('height: min(100cqh, calc(100cqw * 5 / 8))')
-    expect(felt).toContain('max-height: 100%')
+    expect(felt).toContain('width: 100%')
+    expect(felt).toContain('height: auto')
+    expect(felt).toContain('aspect-ratio: 8 / 5')
 
     const desktopHeader = '/* Wide play uses the same dock as a phone. The felt still shrinks above it. */'
     const desktop = mediaBlock(css.slice(css.indexOf(desktopHeader)), '@media')
@@ -332,10 +331,9 @@ describe('player table orientation', () => {
     )
     expect(tall).not.toContain('min-height: 20rem')
     expect(tall).toContain('orientation: portrait')
-    expect(tall).toContain('max-aspect-ratio: 8/5')
     expect(tall).not.toContain('max-aspect-ratio: 1/1')
     expect(tall).toContain('aspect-ratio: 4 / 5')
-    expect(tall).toContain('calc(100cqh * 0.8)')
+    expect(tall).toContain('height: auto')
     expect(tall).toContain('scaleY(var(--player-felt-stretch, 1))')
     const wide = css.slice(
       css.indexOf('A sideways phone widens the live oval'),

@@ -300,6 +300,17 @@ export function hostStartAnswerGate(args: {
   return { blocked: false, hint: null }
 }
 
+export const WAITING_ON_TABLES_TO_BET = 'Waiting on tables to finish betting'
+
+function openBettingCount(rows: HostVenueFeltBeatRow[]): number {
+  return rows.filter((row) => row.phase === 'betting' && !wageringClockClosed(row.phaseStrictSig)).length
+}
+
+/** Five or more tables still have a betting clock open. */
+export function manyTablesStillBetting(rows: HostVenueFeltBeatRow[] | null): boolean {
+  return openBettingCount(seatedVenueRows(rows)) >= 5
+}
+
 export type RoomWait = { title: string; nudge: boolean }
 
 /**
@@ -311,6 +322,9 @@ export function nextBandOverride(rows: HostVenueFeltBeatRow[] | null): RoomWait 
   if (seated.length < 2) return null
   const waiting = tablesWaitingHint(seated)
   if (waiting == null) return null
+  if (openBettingCount(seated) >= 5) {
+    return { title: WAITING_ON_TABLES_TO_BET, nudge: true }
+  }
   const nudge = seated.some((row) => row.phase === 'betting' && !wageringClockClosed(row.phaseStrictSig))
   const title = waiting.endsWith('.') ? waiting.slice(0, -1) : waiting
   return { title, nudge }

@@ -192,6 +192,15 @@ describe('next band while tables differ', () => {
     expect(wait?.title).toContain('3')
   })
 
+  it('says the room is waiting when five or more tables are still betting', () => {
+    const open = (tableNum: number) => felt(tableNum, 'betting', 'bet|1|T|cc0')
+    const wait = nextBandOverride([
+      felt(1, 'betting', 'bet|1|F|cc0'),
+      ...[2, 3, 4, 5, 6].map((tableNum) => open(tableNum)),
+    ])
+    expect(wait).toEqual({ title: 'Waiting on tables to finish betting', nudge: true })
+  })
+
   it('leaves the band alone when every table is on the same step', () => {
     expect(
       nextBandOverride([

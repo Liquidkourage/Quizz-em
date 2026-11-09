@@ -36,6 +36,28 @@ describe('host explanatory copy', () => {
     expect(close.detail).not.toContain('Tip:')
     expect(close.detail).not.toContain('Close when')
 
+    const withActor = addPlayer(betting, 'p1', 'Elena A.')
+    withActor.round.currentPlayerIndex = 0
+    const openFelt = (tableNum: number): HostVenueFeltBeatRow => ({
+      tableNum,
+      active: true,
+      seated: 2,
+      phase: 'betting',
+      street: 'pre',
+      clock: '',
+      answerDeadlineMs: null,
+      phaseStrictSig: 'bet|1|T|cc0',
+    })
+    const few = suggestNextHostAction(withActor, [openFelt(1), openFelt(2)])
+    expect(few.title).toBe('Close betting (1st round)')
+    expect(few.detail).not.toContain('Elena')
+    const many = suggestNextHostAction(
+      withActor,
+      [1, 2, 3, 4, 5].map((tableNum) => openFelt(tableNum)),
+    )
+    expect(many.title).toBe('Close betting (1st round)')
+    expect(many.detail).toBe('Waiting on tables to finish betting')
+
     const lobby = createEmptyGame('HOST01', 'host', 'LOBBY')
     const join = suggestNextHostAction(lobby, null)
     expect(join.detail).not.toContain('Share room')

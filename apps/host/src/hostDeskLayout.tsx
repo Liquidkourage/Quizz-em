@@ -28,6 +28,7 @@ import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { feltCountdownSec, formatElapsedClock, tableActionClockStart } from './HostShowClocks'
 import { hostEndgameWinnerName } from './hostEndgame'
+import { manyTablesStillBetting, WAITING_ON_TABLES_TO_BET } from './hostVenueActionGates'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
   lobby: 'Waiting room',
@@ -651,12 +652,9 @@ export function hostRunOfShowHeadline(
   const phase = controlState.phase
 
   if (stepId === 'close-bet-1' || stepId === 'close-bet-2') {
-    const idx = controlState.round.currentPlayerIndex
-    const actor =
-      typeof idx === 'number' && idx >= 0 ? controlState.players[idx]?.name : undefined
     return {
       title: current.label,
-      detail: actor ? `Waiting on ${actor}` : undefined,
+      detail: manyTablesStillBetting(venueBeat ?? null) ? WAITING_ON_TABLES_TO_BET : undefined,
     }
   }
 

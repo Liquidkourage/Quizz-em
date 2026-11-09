@@ -1612,6 +1612,14 @@
   }
 }
 
+/* iPhone SE portrait is 667 tall. The oval's padding was hiding Fold and All-in. */
+@media (orientation: portrait) and (min-width: 340px) and (max-height: 700px) {
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    padding-top: 0.2rem;
+    padding-bottom: 0.15rem;
+  }
+}
+
 /* An upright phone keeps the question to two lines. A longer question scrolls there. */
 @media (orientation: portrait) and (max-width: 500px) {
   .player-game-layout--live-fit .player-sticky-question {
@@ -2960,8 +2968,8 @@
   }
 }
 
-/* A short stacked screen puts the action buttons above the notes. */
-@media (max-height: 820px) and (min-height: 521px) {
+/* A short stacked screen puts the action buttons above the notes. 844px (iPhone 12) still hides Fold; 915px (Pixel) does not. */
+@media (max-height: 860px) and (min-height: 521px) {
   .player-game-layout--live-fit .player-game-dock-inner {
     display: flex;
     flex-direction: column;

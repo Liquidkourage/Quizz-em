@@ -342,7 +342,7 @@ describe('player table orientation', () => {
   })
 
   it('puts the action buttons above the notes on a short stacked screen', () => {
-    const header = '@media (max-height: 820px) and (min-height: 521px)'
+    const header = '@media (max-height: 860px) and (min-height: 521px)'
     const block = mediaBlock(css.slice(css.indexOf('action buttons above the notes')), header)
     expect(block.startsWith(header)).toBe(true)
     expect(block).toContain('.player-live-facts')
@@ -350,6 +350,16 @@ describe('player table orientation', () => {
     expect(block).toContain('.player-game-preact')
     expect(block).toContain('.player-game-wager-actions')
     expect(block).toContain('order: 0')
+    expect(block).not.toContain('max-height: 820px')
+  })
+
+  it('gives the iPhone SE portrait back the padding that hid Fold', () => {
+    const header = '@media (orientation: portrait) and (min-width: 340px) and (max-height: 700px)'
+    const block = mediaBlock(css.slice(css.indexOf('iPhone SE portrait')), header)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain('padding-top: 0.2rem')
+    expect(block).toContain('padding-bottom: 0.15rem')
+    expect(block).not.toContain('max-width: 320px')
   })
 
   it('grows a tall phone oval and keeps the seat names readable', () => {

@@ -4012,10 +4012,18 @@
   opacity: 0.4;
 }
 
+.player-compose-decimal {
+  align-self: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  font-size: 2rem;
+}
+
 .player-compose-tools {
   display: grid;
   flex: 0 0 auto;
-  grid-template-columns: auto auto minmax(0, 0.8fr) minmax(0, 1.2fr);
+  grid-template-columns: auto minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: 0.4rem;
 }
 
@@ -4035,6 +4043,10 @@
     align-items: flex-end;
     justify-content: center;
     gap: 0.65rem;
+  }
+
+  .player-compose-decimal {
+    align-self: flex-end;
   }
 
   .player-compose-cards {

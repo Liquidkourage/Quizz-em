@@ -260,12 +260,17 @@ function ComposerBuild(props: AnswerComposerProps) {
             onSelectCard={onSelectCard}
           />
           <SharedCards gameState={props.gameState} selectedCards={selectedCards} onSelectCard={onSelectCard} />
+          <button
+            type="button"
+            className={`player-compose-key player-compose-decimal${decimalOn}`}
+            onClick={onToggleDecimal}
+            aria-label="Decimal point"
+          >
+            .
+          </button>
         </div>
       </div>
       <div className="player-compose-tools">
-        <button type="button" className={`player-compose-key${decimalOn}`} onClick={onToggleDecimal} aria-label="Decimal point">
-          .
-        </button>
         <button type="button" className="player-compose-key" onClick={onBackspace} disabled={!canUndo} aria-label="Backspace">
           Undo
         </button>

@@ -67,6 +67,15 @@ describe('TableIntroduction', () => {
     expect(name).toContain('cqh')
   })
 
+  it('gives the pre-deal table a height so the oval is not zero on a tablet', () => {
+    const start = css.indexOf('Pre-deal table needs a real height')
+    const block = start < 0 ? '' : css.slice(start, start + 500)
+    expect(block).toContain('.player-game-layout--live-fit .player-intro')
+    expect(block).toContain('height: min(70dvh, 36rem)')
+    expect(block).toContain('.player-intro-fit')
+    expect(block).toContain('height: 100%')
+  })
+
   it('widens the pre-deal table when the phone is sideways', () => {
     const start = css.indexOf('A sideways phone uses the width')
     const block = start < 0 ? '' : css.slice(start, start + 650)

@@ -36,4 +36,15 @@ describe('player lobby on a wide window', () => {
     expect(block).toContain('.player-join-body')
     expect(block).toContain('overflow-y: auto')
   })
+
+  it('keeps Join Game and the footnote on the shortest landscape phone', () => {
+    const start = css.indexOf('Shortest join form')
+    const block = start < 0 ? '' : css.slice(start, start + 900)
+    expect(block).toContain('@media (max-height: 360px)')
+    expect(block).toContain('.player-join-actions')
+    expect(block).toContain('flex: 0 0 auto')
+    expect(block).toContain('.player-join-fields')
+    expect(block).toContain('overflow-y: auto')
+    expect(block).not.toContain('margin-top: auto')
+  })
 })

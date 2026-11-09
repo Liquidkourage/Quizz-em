@@ -967,6 +967,56 @@
   }
 }
 
+/* Shortest join form — Fold and iPhone 5 landscape were cutting off Join Game. */
+@media (max-height: 360px) {
+  .player-join-layout {
+    padding: 0.2rem 0.45rem;
+  }
+
+  .player-join-header {
+    height: 2.2rem;
+    max-height: 2.2rem;
+  }
+
+  .player-join-body {
+    overflow: hidden;
+    padding: 0.2rem 0.75rem 0.3rem;
+  }
+
+  .player-join-title {
+    font-size: 1rem;
+    line-height: 1.1;
+  }
+
+  .player-join-divider {
+    margin: 0.1rem auto;
+  }
+
+  .player-join-room {
+    margin: 0;
+  }
+
+  .player-join-form {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    gap: 0.3rem;
+  }
+
+  .player-join-fields {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .player-join-actions {
+    flex: 0 0 auto;
+    margin-top: 0;
+    gap: 0.25rem;
+    padding-top: 0;
+  }
+}
+
 /* ===== Player in-game — gold casino shell (matches join/lobby) ===== */
 :root {
   --player-game-shell-max: 36rem;
@@ -2164,6 +2214,18 @@
   aspect-ratio: 4 / 5;
   width: min(100cqi, calc((100cqh - 3.4rem) * 0.8), 34rem);
   flex: none;
+}
+
+/* Pre-deal table needs a real height. A size container with no height draws a 0×0 oval. */
+.player-game-layout--live-fit .player-intro {
+  flex: 0 0 auto;
+  width: 100%;
+  height: min(70dvh, 36rem);
+  min-height: min(70dvh, 36rem);
+}
+
+.player-game-layout--live-fit .player-intro-fit {
+  height: 100%;
 }
 
 .player-intro-felt {

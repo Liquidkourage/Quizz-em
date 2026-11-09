@@ -36,15 +36,13 @@ describe('tables being waited on', () => {
       felt(1, 'betting', 'bet|1|F|cc0'),
       felt(2, 'betting', 'bet|1|T|cc0'),
     ])
-    expect(close).toContain('Waiting on table 2')
-    expect(close).not.toContain('out of sync')
+    expect(close).toBe('Waiting on table 2')
 
     const answer = venueStartAnswerBlockedHint([
       felt(1, 'answering', 'answer'),
       felt(3, 'betting', 'bet|2|T|cc5'),
     ])
-    expect(answer).toContain('Waiting on table 3')
-    expect(answer).not.toContain('out of sync')
+    expect(answer).toBe('Waiting on table 3')
   })
 })
 

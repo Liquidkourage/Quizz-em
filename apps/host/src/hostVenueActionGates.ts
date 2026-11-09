@@ -47,52 +47,17 @@ function feltPhaseRank(phase: string): number {
   return 50
 }
 
-function feltWaitLabel(row: HostVenueFeltBeatRow): string {
-  if (row.phase === 'answering') return 'answer window'
-  if (row.phase === 'reveal' || row.phase === 'showdown') return 'showdown'
-  if (row.phase === 'question') return 'deal setup'
-  if (row.phase === 'lobby') return 'lobby between hands'
-  const parsed = parseVenueBetPhaseSig(row.phaseStrictSig)
-  if (row.phase !== 'betting' || parsed == null) return row.phase
-  const street = parsed.br === 1 ? 'pre-board' : parsed.br === 2 ? 'after board' : `round ${parsed.br}`
-  const clock = parsed.open ? 'clock open' : 'clock closed'
-  return `${street}, ${clock}, ${parsed.cc}/5 board`
-}
-
-function waitingOnPhrase(groups: { nums: number[]; label: string }[]): string {
-  if (groups.length === 1) {
-    const word = groups[0]!.nums.length === 1 ? 'table' : 'tables'
-    return `Waiting on ${word} ${groups[0]!.nums.join(', ')} — ${groups[0]!.label}.`
-  }
-  const parts = groups.map((group) => {
-    const word = group.nums.length === 1 ? 'table' : 'tables'
-    return `${word} ${group.nums.join(', ')} (${group.label})`
-  })
-  return `Waiting on ${parts.join(' · ')}.`
-}
-
 /** Tables that have not caught the lead felt. Null when every seated table is together. */
 function tablesWaitingHint(rows: HostVenueFeltBeatRow[]): string | null {
   if (rows.length < 2) return null
   const lead = Math.max(...rows.map(feltProgress))
-  const behind = rows.filter((row) => feltProgress(row) < lead)
-  if (behind.length === 0) return null
-  const order: string[] = []
-  const byLabel = new Map<string, number[]>()
-  for (const row of behind) {
-    const label = feltWaitLabel(row)
-    const list = byLabel.get(label)
-    if (list) list.push(row.tableNum)
-    else {
-      byLabel.set(label, [row.tableNum])
-      order.push(label)
-    }
-  }
-  const groups = order.map((label) => ({
-    label,
-    nums: (byLabel.get(label) ?? []).sort((a, b) => a - b),
-  }))
-  return waitingOnPhrase(groups)
+  const nums = rows
+    .filter((row) => feltProgress(row) < lead)
+    .map((row) => row.tableNum)
+    .sort((a, b) => a - b)
+  if (nums.length === 0) return null
+  const word = nums.length === 1 ? 'table' : 'tables'
+  return `Waiting on ${word} ${nums.join(', ')}`
 }
 
 export function feltInPreBoardBetting(row: HostVenueFeltBeatRow): boolean {

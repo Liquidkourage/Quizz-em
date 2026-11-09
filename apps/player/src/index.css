@@ -741,7 +741,10 @@
 
 .player-lobby-status {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
+  justify-content: center;
+  min-height: 0;
   gap: 0.85rem;
   padding: clamp(1rem, 3.5vw, 1.35rem) clamp(1rem, 4vw, 1.5rem);
   border-radius: 0.65rem;
@@ -800,13 +803,43 @@
   text-shadow: 0 0 10px rgb(251 191 36 / 0.35);
 }
 
-.player-lobby-status-position {
-  margin: 0.45rem 0 0;
+/* Lobby quit is a real control. The place in line fills the card; leaving sits at the bottom. */
+.player-lobby-place {
+  margin: 0;
+  text-align: center;
   font-family: 'Rajdhani', system-ui, sans-serif;
-  font-size: clamp(0.88rem, 3vw, 0.98rem);
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  color: rgb(255 255 255 / 0.55);
+  font-size: clamp(2.5rem, 12vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: rgb(253 224 71);
+  text-shadow: 0 0 16px rgb(251 191 36 / 0.35);
+}
+
+.player-lobby-actions {
+  margin-top: auto;
+  flex-shrink: 0;
+  padding-top: 0.85rem;
+}
+
+.player-lobby-body .player-quit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 0;
+  border: 1px solid rgb(251 191 36 / 0.45);
+  border-radius: 3px;
+  background: transparent;
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+}
+
+.player-lobby-body .player-quit[data-armed='true'] {
+  border-color: rgb(248 113 113 / 0.7);
+  background: rgb(69 10 10 / 0.45);
+  color: rgb(254 202 202);
 }
 
 @media (min-width: 768px) {
@@ -850,6 +883,7 @@
   }
 
   .player-lobby-status {
+    flex: 0 1 auto;
     gap: 0.3rem;
     padding: 0.4rem 0.7rem;
   }
@@ -868,12 +902,18 @@
     font-size: 0.95rem;
   }
 
-  .player-lobby-status-position {
-    margin-top: 0.1rem;
+  .player-lobby-place {
+    font-size: 1.6rem;
+  }
+
+  .player-lobby-actions {
+    margin-top: 0.35rem;
+    padding-top: 0;
   }
 
   .player-lobby-body .player-quit {
-    margin-top: 0.15rem;
+    min-height: 2.75rem;
+    margin-top: 0;
   }
 }
 

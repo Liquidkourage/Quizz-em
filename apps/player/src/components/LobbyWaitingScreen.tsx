@@ -68,7 +68,7 @@ export default function LobbyWaitingScreen({
               />
             ) : null}
 
-            <h1 className="player-join-title player-lobby-title">You&apos;re in — waiting to be seated</h1>
+            <h1 className="player-join-title player-lobby-title">You&apos;re in</h1>
             <p className="player-lobby-lead">
               {lastTableId
                 ? `You were seated at table ${lastTableId}. Rejoin if you got disconnected during seating.`
@@ -77,22 +77,26 @@ export default function LobbyWaitingScreen({
             <PlayerGoldDivider />
 
             <div className="player-lobby-status" aria-live="polite">
-              <div className="player-lobby-status-row">
-                <span className="player-lobby-status-label">Playing as</span>
-                <span className="player-lobby-status-value">{playerName}</span>
-              </div>
-              <div className="player-lobby-status-row">
-                <span className="player-lobby-status-label">Venue</span>
-                <span className="player-lobby-status-code">{venueCode}</span>
-              </div>
+              {waitingPosition != null ? (
+                <p className="player-lobby-place">You&apos;re #{waitingPosition}</p>
+              ) : null}
+              <p className="player-lobby-status-count">{queueLabel}</p>
               <div className="player-lobby-status-queue">
-                <p className="player-lobby-status-count">{queueLabel}</p>
-                {waitingPosition != null ? (
-                  <p className="player-lobby-status-position">You&apos;re #{waitingPosition}</p>
-                ) : null}
+                <div className="player-lobby-status-row">
+                  <span className="player-lobby-status-label">Playing as</span>
+                  <span className="player-lobby-status-value">{playerName}</span>
+                </div>
+                <div className="player-lobby-status-row">
+                  <span className="player-lobby-status-label">Venue</span>
+                  <span className="player-lobby-status-code">{venueCode}</span>
+                </div>
               </div>
             </div>
-            {onQuit ? <PlayerQuitButton onQuit={onQuit} /> : null}
+            {onQuit ? (
+              <div className="player-lobby-actions">
+                <PlayerQuitButton onQuit={onQuit} />
+              </div>
+            ) : null}
           </div>
         </motion.div>
       </div>

@@ -1,4 +1,4 @@
-import { formatTriviaPoints, VENUE_WALL_SEAT_SLOTS } from '@qhe/core'
+import { roundTriviaPoints, VENUE_WALL_SEAT_SLOTS } from '@qhe/core'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 
 export type VenueLeaderboardRow = {
@@ -62,7 +62,7 @@ function padSeatBankrolls(raw: number[] | undefined): number[] {
 function padSeatAnswerPoints(raw: number[] | undefined): number[] {
   return Array.from({ length: VENUE_WALL_SEAT_SLOTS }, (_, i) => {
     const v = raw?.[i]
-    return typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0
+    return typeof v === 'number' && Number.isFinite(v) ? roundTriviaPoints(v) : 0
   })
 }
 
@@ -152,7 +152,7 @@ function pointsStandingFromWire(row: unknown): { name: string; answerPoints: num
   const name = typeof (row as { name?: unknown }).name === 'string' ? (row as { name: string }).name.trim() : ''
   if (!name) return null
   const pts = (row as { answerPoints?: unknown }).answerPoints
-  const answerPoints = typeof pts === 'number' && Number.isFinite(pts) ? Math.max(0, Math.floor(pts)) : 0
+  const answerPoints = typeof pts === 'number' && Number.isFinite(pts) ? roundTriviaPoints(pts) : 0
   return { name, answerPoints }
 }
 
@@ -225,7 +225,10 @@ export function venueTriviaLeaderboardRowsFromTiles(
 }
 
 export function formatVenueTriviaPoints(amount: number): string {
-  return `${formatTriviaPoints(amount)} pts`
+  const fixed = roundTriviaPoints(amount).toFixed(2)
+  const [intPart, fracPart] = fixed.split('.')
+  const withCommas = (intPart ?? '0').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  return `${withCommas}.${fracPart} pts`
 }
 
   /** @deprecated Use {@link buildVenueLeaderboardPresentation} — capped at 4 columns via pagination. */

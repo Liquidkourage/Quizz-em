@@ -1,3 +1,5 @@
+import { roundTriviaPoints } from '@qhe/core'
+
 export type VenueEndgameWinner = {
   name: string
   tableNum: number
@@ -62,7 +64,7 @@ export function venueEndgameTriviaTop(
     const points = row.answerPoints
     scores.push({
       name,
-      answerPoints: typeof points === 'number' && Number.isFinite(points) ? Math.max(0, Math.floor(points)) : 0,
+      answerPoints: typeof points === 'number' && Number.isFinite(points) ? roundTriviaPoints(points) : 0,
     })
     if (scores.length === VENUE_ENDGAME_TRIVIA_LIMIT) break
   }

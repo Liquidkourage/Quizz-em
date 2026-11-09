@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
+  formatVenueTriviaPoints,
   normalizeVenuePointsStandings,
   triviaLeaderboardSource,
   venueTriviaLeaderboardRowsFromTiles,
@@ -22,6 +23,25 @@ describe('venueTriviaLeaderboardRowsFromTiles', () => {
     const rows = venueTriviaLeaderboardRowsFromTiles(tiles)
     expect(rows.map((r) => r.name)).toEqual(['Bob B.', 'Alice A.'])
     expect(rows[0]?.answerPoints).toBe(90)
+  })
+
+  it('keeps hundredths instead of dropping them', () => {
+    const tiles: DisplayVenueTileSnapshot[] = [
+      {
+        tableNum: 1,
+        seated: 1,
+        pot: 0,
+        phase: 'lobby',
+        seatNames: ['Ada Lane'],
+        seatAnswerPoints: [90.5],
+      },
+    ]
+    const rows = venueTriviaLeaderboardRowsFromTiles(tiles, [{ name: 'Bo Kent', answerPoints: 40.25 }])
+    expect(rows.map((row) => row.answerPoints)).toEqual([90.5, 40.25])
+    expect(formatVenueTriviaPoints(rows[0]?.answerPoints ?? 0)).toBe('90.50 pts')
+    expect(normalizeVenuePointsStandings([{ name: 'Bo Kent', answerPoints: 40.25 }])).toEqual([
+      { name: 'Bo Kent', answerPoints: 40.25 },
+    ])
   })
 
   it('counts an eliminated player who shares a name with someone still seated', () => {

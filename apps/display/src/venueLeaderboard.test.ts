@@ -102,9 +102,10 @@ describe('venueLeaderboardFooterStats', () => {
 })
 
 describe('formatVenueTriviaPoints', () => {
-  it('shows the nearest hundredth and keeps a whole score whole', () => {
+  it('always shows hundredths', () => {
     expect(formatVenueTriviaPoints(66.666666)).toBe('66.67 pts')
-    expect(formatVenueTriviaPoints(90)).toBe('90 pts')
+    expect(formatVenueTriviaPoints(90)).toBe('90.00 pts')
+    expect(formatVenueTriviaPoints(1234.567)).toBe('1,234.57 pts')
   })
 })
 

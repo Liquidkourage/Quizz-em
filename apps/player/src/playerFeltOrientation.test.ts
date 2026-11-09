@@ -332,8 +332,24 @@ describe('player table orientation', () => {
     expect(block).toContain('padding: 0.15rem 3.75rem 0.1rem')
     expect(block).toContain('padding: 1.7rem 0.35rem 2.5rem')
     expect(block).toContain('width: min(100%, calc(100cqh * 8 / 5))')
+    expect(block).toContain('grid-template-columns: 1fr 1fr 1fr')
+    expect(block).toContain('.player-live-facts')
+    expect(block).toContain('overflow-y: auto')
+    expect(block).toContain('.player-game-preact')
+    expect(block).toContain('flex: 0 0 auto')
     expect(block).not.toContain('flex: 0 0 18rem')
     expect(block).not.toContain('aspect-ratio: 4 / 5')
+  })
+
+  it('puts the action buttons above the notes on a short stacked screen', () => {
+    const header = '@media (max-height: 820px) and (min-height: 521px)'
+    const block = mediaBlock(css.slice(css.indexOf('action buttons above the notes')), header)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain('.player-live-facts')
+    expect(block).toContain('order: 2')
+    expect(block).toContain('.player-game-preact')
+    expect(block).toContain('.player-game-wager-actions')
+    expect(block).toContain('order: 0')
   })
 
   it('grows a tall phone oval and keeps the seat names readable', () => {

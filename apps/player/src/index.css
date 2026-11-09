@@ -2860,6 +2860,8 @@
   }
 
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-dock--inflow {
+    display: flex;
+    flex-direction: column;
     width: auto;
     max-width: none;
     min-width: 0;
@@ -2867,8 +2869,51 @@
     height: 100%;
     max-height: 100%;
     align-self: stretch;
-    overflow-x: hidden;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-dock-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-live-facts {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-preact-heading,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-preact,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-preact-hint,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-wager-actions {
+    flex: 0 0 auto;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-dock--waiting .player-game-preact {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+/* A short stacked screen puts the action buttons above the notes. */
+@media (max-height: 820px) and (min-height: 521px) {
+  .player-game-layout--live-fit .player-game-dock-inner {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .player-game-layout--live-fit .player-live-facts {
+    order: 2;
+  }
+
+  .player-game-layout--live-fit .player-game-preact-heading,
+  .player-game-layout--live-fit .player-game-preact,
+  .player-game-layout--live-fit .player-game-preact-hint,
+  .player-game-layout--live-fit .player-game-wager-actions {
+    order: 0;
   }
 }
 

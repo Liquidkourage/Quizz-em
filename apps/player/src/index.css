@@ -5089,12 +5089,27 @@
   display: flex;
 }
 
-@media (min-width: 1024px) and (min-height: 700px) {
-  .player-betting-table .player-table-roster {
+.player-seated-table {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.player-seated-felt {
+  display: none;
+}
+
+@media (min-width: 768px) and (min-height: 700px) {
+  .player-seated-felt {
     display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
   }
 
-  .player-betting-table .player-table-open {
+  .player-seated-table .player-betting-table {
     display: none;
   }
 }

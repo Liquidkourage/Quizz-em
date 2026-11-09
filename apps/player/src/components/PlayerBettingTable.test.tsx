@@ -138,14 +138,16 @@ describe('betting table', () => {
     expect(html).toContain('Hide the table')
   })
 
-  it('keeps seat names readable and shows the roster beside the bet on a large screen', () => {
+  it('keeps the list readable, and shows the oval when the screen has room', () => {
     const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
     const mark = 'Betting table keeps a readable roster.'
-    const block = css.slice(css.indexOf(mark), css.indexOf(mark) + 1800)
+    const block = css.slice(css.indexOf(mark), css.indexOf(mark) + 1800).replace(/\r\n/g, '\n')
     expect(block.startsWith(mark)).toBe(true)
     expect(block).toContain('font-size: 1rem')
     expect(block).toContain('min-height: 2.75rem')
-    expect(block).toContain('@media (min-width: 1024px) and (min-height: 700px)')
+    expect(block).toContain('.player-seated-felt {\n  display: none;')
+    expect(block).toContain('@media (min-width: 768px) and (min-height: 700px)')
+    expect(block).toContain('.player-seated-table .player-betting-table {\n    display: none;')
     expect(block).not.toContain('font-size: 0.48rem')
   })
 })

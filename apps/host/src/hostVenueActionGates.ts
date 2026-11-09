@@ -271,6 +271,14 @@ function openBettingCount(rows: HostVenueFeltBeatRow[]): number {
   return rows.filter((row) => row.phase === 'betting' && !wageringClockClosed(row.phaseStrictSig)).length
 }
 
+export function tablesStillBettingCount(rows: HostVenueFeltBeatRow[] | null): number {
+  return openBettingCount(seatedVenueRows(rows))
+}
+
+export function lastCallForBetsLabel(count: number): string {
+  return `Last call for bets (${count})`
+}
+
 /** Five or more tables still have a betting clock open. */
 export function manyTablesStillBetting(rows: HostVenueFeltBeatRow[] | null): boolean {
   return openBettingCount(seatedVenueRows(rows)) >= 5
@@ -295,13 +303,20 @@ export function nextBandOverride(rows: HostVenueFeltBeatRow[] | null): RoomWait 
   return { title, nudge }
 }
 
-/** Drop a lead-table phase button while the room is split. Keep a rehearsal skip. */
+/**
+ * While the room is split, the next step is last call for the tables still betting.
+ * Nudge stays only when every table is still on that same open round.
+ */
 export function dockForRoomWait<T extends { id: string }>(
   built: T[],
   wait: RoomWait | null,
-  nudgeItem: T,
+  lastCallItem: T,
+  stillBetting = 0,
 ): T[] {
-  if (wait == null) return built
-  const rehearsal = built.filter((item) => item.id === 'rehearsal-skip-showdown')
-  return wait.nudge ? [nudgeItem, ...rehearsal] : rehearsal
+  if (wait != null) {
+    const rehearsal = built.filter((item) => item.id === 'rehearsal-skip-showdown')
+    return wait.nudge ? [lastCallItem, ...rehearsal] : rehearsal
+  }
+  if (stillBetting <= 0 || built.some((item) => item.id === lastCallItem.id)) return built
+  return [...built, lastCallItem]
 }

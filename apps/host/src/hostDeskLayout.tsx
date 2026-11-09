@@ -2480,20 +2480,9 @@ export function HostVenueFloorBriefPanel({
                 Game over. {hostPlayerLabel(endgameWinner)} has the last stack.
               </p>
             ) : null}
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold uppercase tracking-wide text-white/45">
-                Table action
-              </p>
-              {onLastCall ? (
-                <button
-                  type="button"
-                  onClick={() => onLastCall(null, true)}
-                  className="rounded border border-amber-300/70 bg-amber-500/25 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-50"
-                >
-                  Last call on betting tables
-                </button>
-              ) : null}
-            </div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
+              Table action
+            </p>
             {rows.length === 0 ? (
               <p className="text-sm text-white/50">No seated tables yet.</p>
             ) : (

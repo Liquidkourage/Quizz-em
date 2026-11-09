@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { buildHostPhaseDockItems } from './hostDeskLayout'
 import {
   dockForRoomWait,
+  lastCallForBetsLabel,
   nextBandOverride,
+  tablesStillBettingCount,
   venueCloseBettingBlockedHint,
   venueDealCommunityBlockedHint,
   venueRevealAnswerBlockedHint,
@@ -215,18 +217,36 @@ describe('next band while tables differ', () => {
       { id: 'deal-board', label: 'Deal the street' },
       { id: 'rehearsal-skip-showdown', label: 'Skip to winner screen' },
     ]
-    const nudge = { id: 'nudge', label: 'Nudge slow players' }
+    const lastCall = { id: 'last-call', label: 'Last call for bets (1)' }
     const wait = nextBandOverride([
       felt(1, 'betting', 'bet|1|F|cc0'),
       felt(2, 'betting', 'bet|1|T|cc0'),
     ])
-    expect(dockForRoomWait(built, wait, nudge).map((item) => item.id)).toEqual([
-      'nudge',
+    expect(dockForRoomWait(built, wait, lastCall, 1).map((item) => item.id)).toEqual([
+      'last-call',
       'rehearsal-skip-showdown',
     ])
-    expect(dockForRoomWait(built, null, nudge)).toBe(built)
-    expect(dockForRoomWait(built, { title: 'Waiting on table 3', nudge: false }, nudge).map((item) => item.id)).toEqual([
-      'rehearsal-skip-showdown',
+    expect(dockForRoomWait(built, null, lastCall)).toBe(built)
+    expect(
+      dockForRoomWait(built, { title: 'Waiting on table 3', nudge: false }, lastCall, 0).map((item) => item.id),
+    ).toEqual(['rehearsal-skip-showdown'])
+  })
+
+  it('keeps close and nudge when every table is ready, and adds last call', () => {
+    const built = [
+      { id: 'close-bet', label: 'Close 1st betting round' },
+      { id: 'nudge', label: 'Nudge slow players (0)' },
+    ]
+    const lastCall = { id: 'last-call', label: lastCallForBetsLabel(2) }
+    expect(dockForRoomWait(built, null, lastCall, 2).map((item) => item.label)).toEqual([
+      'Close 1st betting round',
+      'Nudge slow players (0)',
+      'Last call for bets (2)',
     ])
+    expect(tablesStillBettingCount([
+      felt(1, 'betting', 'bet|1|T|cc0'),
+      felt(2, 'betting', 'bet|1|T|cc0'),
+      felt(3, 'betting', 'bet|1|F|cc0'),
+    ])).toBe(2)
   })
 })

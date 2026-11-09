@@ -86,6 +86,8 @@ import { HostQuestionsPanel } from './HostQuestionsPanel'
 import {
   dockForRoomWait,
   hostCloseBettingGate,
+  lastCallForBetsLabel,
+  tablesStillBettingCount,
   hostDealCommunityGate,
   nextBandOverride,
   venueRevealAnswerBlockedHint,
@@ -599,13 +601,19 @@ function HostApp() {
   const countedDockItems = phaseDockItems.map((item) =>
     item.id === 'nudge' ? { ...item, label: nudgeLabel } : item,
   )
-  const nextDockItems = dockForRoomWait(countedDockItems, roomWait, {
-    id: 'nudge',
-    label: nudgeLabel,
-    onClick: () => nudgeActingPlayers(),
-    variant: 'gold',
-    role: 'primary',
-  })
+  const stillBetting = tablesStillBettingCount(venueFeltBeat)
+  const nextDockItems = dockForRoomWait(
+    countedDockItems,
+    roomWait,
+    {
+      id: 'last-call',
+      label: lastCallForBetsLabel(stillBetting),
+      onClick: () => lastCallForBets(null, true),
+      variant: 'gold',
+      role: 'secondary',
+    },
+    stillBetting,
+  )
 
   const nextQuestionText =
     hasActiveSetlist && activeSetlist

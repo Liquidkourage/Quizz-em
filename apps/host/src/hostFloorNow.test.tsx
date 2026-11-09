@@ -414,7 +414,7 @@ describe('venue floor now', () => {
         onLastCall: () => {},
       }),
     )
-    expect(html).toContain('Last call on betting tables')
+    expect(html).not.toContain('Last call on betting tables')
     expect(html).toContain('Last call on table 1')
     expect(html).not.toContain('Last call on table 2')
     const table = renderToStaticMarkup(

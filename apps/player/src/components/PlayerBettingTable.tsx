@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChipText, digitsAscending, NumericPlayingCard, SidePotMark } from '@qhe/ui'
-import { formatTriviaPoints, type GameState } from '@qhe/core'
+import { type GameState } from '@qhe/core'
 import {
   playerTableMoment,
   playerTablePots,
@@ -38,11 +38,7 @@ function SeatRow({ seat }: { seat: PlayerTableSeatBrief }) {
       <span className="player-table-seat-name">{seat.name}</span>
       {seat.you ? <span className="player-table-you">You</span> : null}
       <span className="player-table-seat-stack">
-        {seat.pointsOnly ? (
-          `${formatTriviaPoints(seat.points)} pts`
-        ) : (
-          <ChipText text={`$${seat.bankroll.toLocaleString()}`} />
-        )}
+        <ChipText text={`$${seat.bankroll.toLocaleString()}`} />
       </span>
       {state ? <span className="player-table-seat-state">{state}</span> : null}
       {seat.sideMarks.map((mark) => (
@@ -55,6 +51,7 @@ function SeatRow({ seat }: { seat: PlayerTableSeatBrief }) {
 export default function PlayerBettingTable({ gameState, myIndex, open = false }: PlayerBettingTableProps) {
   const [shown, setShown] = useState(open)
   const seats = playerTableSeatBriefs(gameState, myIndex)
+  const atTable = seats.filter((seat) => !seat.pointsOnly)
   const pots = playerTablePots(gameState)
   return (
     <section className={shown ? 'player-betting-table is-open' : 'player-betting-table'} aria-label="Table">
@@ -72,7 +69,7 @@ export default function PlayerBettingTable({ gameState, myIndex, open = false }:
         {shown ? 'Hide the table' : 'See the table'}
       </button>
       <ul className="player-table-roster">
-        {seats.map((seat) => (
+        {atTable.map((seat) => (
           <SeatRow key={seat.id} seat={seat} />
         ))}
       </ul>

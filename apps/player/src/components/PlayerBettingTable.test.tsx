@@ -45,6 +45,33 @@ describe('betting table', () => {
     expect(html).toContain('aria-expanded="false"')
   })
 
+  it('leaves a points-only player off the table', () => {
+    const gs = hand()
+    const passenger = {
+      ...gs.players[0]!,
+      id: 'd',
+      name: 'Dee',
+      pointsOnly: true,
+      isAllIn: false,
+      hasFolded: false,
+      bankroll: 0,
+      answerPoints: 40,
+    }
+    gs.players = [...gs.players, passenger]
+    const html = renderToStaticMarkup(createElement(PlayerBettingTable, { gameState: gs, myIndex: 0 }))
+    const roster = html.slice(html.indexOf('player-table-roster'))
+    expect(roster).toContain('>Ada<')
+    expect(roster).toContain('>Cara<')
+    expect(roster).not.toContain('>Dee<')
+    expect(html).toContain('>Side<')
+
+    const own = renderToStaticMarkup(createElement(PlayerBettingTable, { gameState: gs, myIndex: 3 }))
+    const ownRoster = own.slice(own.indexOf('player-table-roster'))
+    expect(own).toContain('Points only')
+    expect(ownRoster).not.toContain('>Dee<')
+    expect(ownRoster).not.toContain('You')
+  })
+
   it('lists every seat, the real side pot, and the shared cards', () => {
     const html = renderTable(false)
     expect(html).toContain('You are all-in')

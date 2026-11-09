@@ -7,6 +7,8 @@ import {
   HostShowClocks,
   formatElapsedClock,
   lastActionAtMs,
+  nudgeSlowPlayersLabel,
+  slowActionPlayerCount,
   soonestNudgeSeconds,
   tableActionClockStart,
 } from './HostShowClocks'
@@ -98,6 +100,19 @@ describe('host show clocks', () => {
     expect(tableActionClockStart(hand + 20_000, moves, 1, hand)).toBe(hand + 20_000)
     expect(tableActionClockStart(hand - 5_000, moves, 1, hand)).toBe(hand + 4_000)
     expect(tableActionClockStart(null, moves, 1, hand)).toBe(hand + 4_000)
+  })
+
+  it('counts players who have been on the action for 15 seconds', () => {
+    const now = 30_000
+    const rows = [
+      { tableNum: 1, phase: 'betting', actingPlayerName: 'Ada', actingSinceMs: now - 15_000 },
+      { tableNum: 2, phase: 'betting', actingPlayerName: 'Bo', actingSinceMs: now - 14_999 },
+      { tableNum: 3, phase: 'betting', betsClosed: true, actingPlayerName: 'Cy', actingSinceMs: now - 40_000 },
+      { tableNum: 4, phase: 'answering', actingPlayerName: 'Dee', actingSinceMs: now - 40_000 },
+    ]
+    expect(slowActionPlayerCount(rows, [], null, now)).toBe(1)
+    expect(nudgeSlowPlayersLabel(0)).toBe('Nudge slow players (0)')
+    expect(nudgeSlowPlayersLabel(1)).toBe('Nudge slow players (1)')
   })
 
   it('shows the 30s nudge that is running on a felt', () => {

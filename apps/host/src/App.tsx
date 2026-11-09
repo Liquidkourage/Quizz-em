@@ -54,6 +54,7 @@ import HostBlindPaceNotice, { showBlindPaceNotice } from './HostBlindPaceNotice'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
 import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
+import { nudgeSlowPlayersLabel, slowActionPlayerCount } from './HostShowClocks'
 import { nowOnServerClock, recordServerClockSample } from './serverClock'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
 import { readHostVenueCode } from './hostVenueCode'
@@ -185,6 +186,16 @@ function HostApp() {
     return () => window.clearInterval(id)
   }, [venueFloorBrief?.winnerScreensReadyAtMs])
   const [guessClockNowMs, setGuessClockNowMs] = useState(() => nowOnServerClock())
+  const [actionClockNowMs, setActionClockNowMs] = useState(() => nowOnServerClock())
+  const actorsWaiting = (venueFloorBrief?.actionRows ?? []).some(
+    (row) => row.phase === 'betting' && row.betsClosed !== true && Boolean(row.actingPlayerName?.trim()),
+  )
+  useEffect(() => {
+    if (!actorsWaiting) return
+    setActionClockNowMs(nowOnServerClock())
+    const id = window.setInterval(() => setActionClockNowMs(nowOnServerClock()), 1000)
+    return () => window.clearInterval(id)
+  }, [actorsWaiting])
   useEffect(() => {
     const deadlines = (venueFeltBeat ?? [])
       .filter((row) => row.active && row.seated > 0 && row.phase === 'answering' && row.answerDeadlineMs != null)
@@ -577,9 +588,20 @@ function HostApp() {
     tournamentOver: endgameWinner != null,
   })
   const roomWait = endgameWinner == null ? nextBandOverride(venueFeltBeat) : null
-  const nextDockItems = dockForRoomWait(phaseDockItems, roomWait, {
+  const nudgeLabel = nudgeSlowPlayersLabel(
+    slowActionPlayerCount(
+      venueFloorBrief?.actionRows ?? [],
+      venueFloorBrief?.moveLog ?? [],
+      venueFloorBrief?.handStartedAtMs ?? null,
+      actionClockNowMs,
+    ),
+  )
+  const countedDockItems = phaseDockItems.map((item) =>
+    item.id === 'nudge' ? { ...item, label: nudgeLabel } : item,
+  )
+  const nextDockItems = dockForRoomWait(countedDockItems, roomWait, {
     id: 'nudge',
-    label: 'Nudge slow players',
+    label: nudgeLabel,
     onClick: () => nudgeActingPlayers(),
     variant: 'gold',
     role: 'primary',

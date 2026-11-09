@@ -41,6 +41,32 @@ export function tableActionClockStart(
   return lastActionAtMs(moves, tableNum, handStartedAtMs)
 }
 
+/** Players whose turn has already lasted 15 seconds. One per open betting table. */
+export function slowActionPlayerCount(
+  rows: readonly {
+    tableNum: number
+    phase: string
+    betsClosed?: boolean
+    actingPlayerName?: string | null
+    actingSinceMs?: number | null
+  }[],
+  moves: readonly { tableNum: number; atMs: number }[],
+  handStartedAtMs: number | null,
+  nowMs: number,
+): number {
+  let count = 0
+  for (const row of rows) {
+    if (row.phase !== 'betting' || row.betsClosed === true || !row.actingPlayerName?.trim()) continue
+    const started = tableActionClockStart(row.actingSinceMs, moves, row.tableNum, handStartedAtMs)
+    if (started != null && nowMs - started >= 15_000) count += 1
+  }
+  return count
+}
+
+export function nudgeSlowPlayersLabel(count: number): string {
+  return `Nudge slow players (${count})`
+}
+
 export function soonestNudgeSeconds(
   rows: readonly Pick<HostVenueFeltBeatRow, 'turnDeadlineMs'>[] | null,
   nowMs: number,

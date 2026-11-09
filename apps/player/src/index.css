@@ -5226,8 +5226,21 @@
 }
 
 @media (max-height: 320px) {
-  .player-table-cards {
+  .player-betting-table:not(.is-open) .player-table-cards {
     display: none;
+  }
+
+  .player-betting-table.is-open .player-table-cards {
+    position: fixed;
+    z-index: 31;
+    top: 0.4rem;
+    left: 0.45rem;
+    right: 8.6rem;
+    display: flex;
+  }
+
+  .player-betting-table.is-open .player-table-roster {
+    top: 4.4rem;
   }
 
   .player-betting-table {

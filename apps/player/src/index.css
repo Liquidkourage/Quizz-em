@@ -2118,6 +2118,7 @@
 
 /* Pre-deal table keeps its shape. A short phone shrinks the upright table instead of flattening the seats onto the felt. */
 .player-intro-fit {
+  container-name: intro;
   container-type: size;
   display: flex;
   flex: 1 1 auto;
@@ -2259,6 +2260,19 @@
   font-size: clamp(0.68rem, 3.6cqh, 0.85rem);
   font-weight: 700;
   color: rgb(253 224 71);
+}
+
+/* A sideways phone uses the width. Names stay readable, and the upright phone keeps the taller table. */
+@container intro (min-aspect-ratio: 3/2) {
+  .player-intro-stage {
+    aspect-ratio: 3 / 2;
+    width: min(100cqi, calc((100cqh - 3.4rem) * 1.5), 40rem);
+  }
+
+  .player-intro-name,
+  .player-intro-plate--you .player-intro-name {
+    font-size: 0.95rem;
+  }
 }
 
 @container (max-height: 16rem) {

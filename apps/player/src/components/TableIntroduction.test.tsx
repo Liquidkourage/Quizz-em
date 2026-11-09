@@ -66,4 +66,12 @@ describe('TableIntroduction', () => {
     const name = nameAt < 0 ? '' : css.slice(nameAt, nameAt + 280)
     expect(name).toContain('cqh')
   })
+
+  it('widens the pre-deal table when the phone is sideways', () => {
+    const start = css.indexOf('A sideways phone uses the width')
+    const block = start < 0 ? '' : css.slice(start, start + 650)
+    expect(block).toContain('min-aspect-ratio: 3/2')
+    expect(block).toContain('aspect-ratio: 3 / 2')
+    expect(block).toContain('0.95rem')
+  })
 })

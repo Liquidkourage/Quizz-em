@@ -1,0 +1,26 @@
+---
+description: Keep small player fixes to about five minutes until the debut is over
+alwaysApply: true
+---
+
+# Five-minute pace until debut
+
+Debut is Friday, November 13, 2026. Until that night is over, a small player-screen fix is done in about five minutes. A long device sweep is the wrong default.
+
+## Do this
+
+- Change only the screen they named.
+- Write one failing test, then the smallest edit that passes it.
+- If the app is already open, check that one screen. If the layout changed, also check the other orientation of that same phone.
+- Commit and push those files.
+
+## Do not do this unless they ask
+
+- Restart the venue, host, or player.
+- Add fake players or seat a full table.
+- Walk the full device list, or open Responsively for every size.
+- Run the whole test suite, typecheck, lint, or mutation gate for a placement or copy fix.
+
+## Say what you skipped
+
+Name the screen you actually opened. If the app was down, ship the fix and say you could not look at it live. Do not spend the five minutes bringing the venue back up.

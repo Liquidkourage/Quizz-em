@@ -57,6 +57,7 @@ import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, VENUE_NUMBERED_TA
 import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
 import {
   closeBettingConfirm,
+  actingPlayerCount,
   nudgeSlowPlayersLabel,
   slowActionPlayerCount,
 } from './HostShowClocks'
@@ -628,8 +629,9 @@ function HostApp() {
   )
   const stillBetting = tablesStillBettingCount(venueFeltBeat)
   const askingClose = confirmingClose && stillBetting > 0
-  const pendingBets = playersStillAbleToBet(venueFloorBrief?.actionRows ?? [])
-  const closeAsk = closeBettingConfirm(pendingBets)
+  const actionRows = venueFloorBrief?.actionRows ?? []
+  const pendingBets = playersStillAbleToBet(actionRows)
+  const closeAsk = closeBettingConfirm(pendingBets, actingPlayerCount(actionRows))
   const bettingActions = roomBettingActions({
     stillBetting,
     asking: askingClose,

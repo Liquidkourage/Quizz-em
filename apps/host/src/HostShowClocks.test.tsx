@@ -114,16 +114,20 @@ describe('host show clocks', () => {
     ]
     expect(slowActionPlayerCount(rows, [], null, now)).toBe(1)
     expect(actingPlayerCount(rows)).toBe(2)
-    expect(closeBettingConfirm(3)).toEqual({
+    expect(closeBettingConfirm(3, 3)).toEqual({
       cue: '3 players still have action pending. Fold them and close betting?',
       label: 'Fold 3 and close',
     })
-    expect(closeBettingConfirm(1)).toEqual({
+    expect(closeBettingConfirm(1, 1)).toEqual({
       cue: '1 player still has action pending. Fold that player and close betting?',
       label: 'Fold 1 and close',
     })
-    expect(closeBettingConfirm(0)).toEqual({
+    expect(closeBettingConfirm(0, 0)).toEqual({
       cue: 'No players still have action pending. Close betting?',
+      label: 'Close betting',
+    })
+    expect(closeBettingConfirm(46, 3)).toEqual({
+      cue: "46 players still haven't acted. Close betting?",
       label: 'Close betting',
     })
     expect(nudgeSlowPlayersLabel(0)).toBe('Nudge slow players (0)')

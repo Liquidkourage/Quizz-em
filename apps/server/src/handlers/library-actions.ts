@@ -18,7 +18,7 @@ export async function handleLibraryAction(
           const lib = await g.ensureVenueLibrary(venue)
           const raw = payload?.setlistId
           if (raw == null || raw === '') {
-            g.venuePlayhead.set(venue, { setlistId: null, nextIndex: 0 })
+            g.rememberPlayhead(venue, { setlistId: null, nextIndex: 0 })
             await g.emitHostLibrary(venue)
             break
           }
@@ -27,7 +27,7 @@ export async function handleLibraryAction(
             socket.emit('toast', 'That setlist does not exist.')
             break
           }
-          g.venuePlayhead.set(venue, { setlistId: id, nextIndex: 0 })
+          g.rememberPlayhead(venue, { setlistId: id, nextIndex: 0 })
           await g.emitHostLibrary(venue)
           break
         }
@@ -84,7 +84,7 @@ export async function handleLibraryAction(
           await g.persistVenues()
           const ph = g.getPlayhead(g.normalizeVenueCode(gameState.code))
           if (ph.setlistId === id && ph.nextIndex > questionIds.length) {
-            g.venuePlayhead.set(g.normalizeVenueCode(gameState.code), {
+            g.rememberPlayhead(gameState.code, {
               setlistId: id,
               nextIndex: Math.max(0, questionIds.length),
             })
@@ -107,7 +107,7 @@ export async function handleLibraryAction(
           await g.persistVenues()
           const ph = g.getPlayhead(venue)
           if (ph.setlistId === id) {
-            g.venuePlayhead.set(venue, { setlistId: null, nextIndex: 0 })
+            g.rememberPlayhead(venue, { setlistId: null, nextIndex: 0 })
           }
           await g.emitHostLibrary(gameState.code)
           break

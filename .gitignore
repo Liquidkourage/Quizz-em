@@ -22,6 +22,7 @@ apps/server/data/venue-libraries.sqlite*
 apps/server/data/venue-answer-settings.json
 apps/server/data/venue-blind-settings.json
 apps/server/data/venue-shuffle-settings.json
+apps/server/data/venue-playhead.json
 
 # ub-mode quality gates
 coverage/

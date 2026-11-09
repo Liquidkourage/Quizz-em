@@ -29,6 +29,23 @@ function everyone(venue: string): string[] {
     .flatMap(([, gs]) => gs.players.map((p) => p.id))
 }
 
+function phone() {
+  const events: { event: string; data: any }[] = []
+  const socket = {
+    data: {},
+    rooms: new Set<string>(),
+    join(room: string) {
+      this.rooms.add(room)
+    },
+    leave() {},
+    emit(event: string, data: unknown) {
+      events.push({ event, data })
+    },
+    disconnect() {},
+  }
+  return { socket, events }
+}
+
 describe('seatLatePointsOnlyPlayer, turned away', () => {
   it('asks for a name when it is blank', () => {
     seatChip('EDGE', '1', 'ada', 'Ada')
@@ -104,23 +121,6 @@ describe('seatLatePointsOnlyPlayer, seated', () => {
 })
 
 describe('handleHello late join, edges', () => {
-  function phone() {
-    const events: { event: string; data: any }[] = []
-    const socket = {
-      data: {},
-      rooms: new Set<string>(),
-      join(room: string) {
-        this.rooms.add(room)
-      },
-      leave() {},
-      emit(event: string, data: unknown) {
-        events.push({ event, data })
-      },
-      disconnect() {},
-    }
-    return { socket, events }
-  }
-
   const hello = (socket: unknown, name: string, playerId: string) =>
     handleHello(socket as never, { role: 'player', name, roomCode: 'EDGE', tableId: 'LOBBY', playerId })
 
@@ -153,5 +153,46 @@ describe('handleHello late join, edges', () => {
     const named = [...rooms.values()].flatMap((gs) => gs.players).find((p) => p.id === 'human:imposter')
     expect(named?.name).toBe('ADA 2')
     expect(everyone('EDGE').sort()).toEqual(['ada', 'human:imposter'])
+  })
+})
+
+describe('handleHello after seats exist', () => {
+  beforeEach(() => {
+    seatChip('EDGE', '1', 'ada', 'Ada')
+    vi.spyOn(gameOps, 'emitVenueTableState').mockImplementation(() => {})
+    vi.spyOn(gameOps, 'emitPlayerVenueBriefNow').mockImplementation(() => {})
+    vi.spyOn(gameOps, 'emitDisplayVenueSnapshotNow').mockImplementation(() => {})
+  })
+
+  it('gives a new phone points, not chips, even if the welcome flag was lost', async () => {
+    const { socket, events } = phone()
+    await handleHello(socket as never, {
+      role: 'player',
+      name: 'Bea',
+      roomCode: 'EDGE',
+      tableId: 'LOBBY',
+      playerId: 'human:bea',
+    })
+    const ack = events.find((row) => row.event === 'ack')?.data
+    expect(ack.ok).toBe(true)
+    const bea = [...rooms.values()].flatMap((gs) => gs.players).find((p) => p.id === 'human:bea')
+    expect(bea).toMatchObject({ pointsOnly: true, bankroll: 0 })
+    expect(table('EDGE', '1').players.find((p) => p.id === 'ada')?.bankroll).toBe(500)
+  })
+
+  it('still gives chips when the only people at a table are rehearsal bots', async () => {
+    seatChip('EDGE', '1', 'vp:bot', 'Bot')
+    const { socket, events } = phone()
+    await handleHello(socket as never, {
+      role: 'player',
+      name: 'Bea',
+      roomCode: 'EDGE',
+      tableId: 'LOBBY',
+      playerId: 'human:bea',
+    })
+    const ack = events.find((row) => row.event === 'ack')?.data
+    expect(ack.ok).toBe(true)
+    const bea = [...rooms.values()].flatMap((gs) => gs.players).find((p) => p.id === 'human:bea')
+    expect(bea).toMatchObject({ pointsOnly: false, bankroll: 1000 })
   })
 })

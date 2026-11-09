@@ -165,7 +165,7 @@ export async function handleShowAction(
           const sl = lib.setlists.find((s) => s.id === ph.setlistId)
           if (!sl) {
             socket.emit('toast', 'Active setlist was removed — pick another.')
-            g.venuePlayhead.set(venue, { setlistId: null, nextIndex: 0 })
+            g.rememberPlayhead(venue, { setlistId: null, nextIndex: 0 })
             await g.emitHostLibrary(venue)
             break
           }
@@ -174,7 +174,7 @@ export async function handleShowAction(
             const qid = sl.questionIds[ph.nextIndex]
             const pos = ph.nextIndex + 1
             ph = { ...ph, nextIndex: ph.nextIndex + 1 }
-            g.venuePlayhead.set(venue, ph)
+            g.rememberPlayhead(venue, ph)
             const qFound = lib.questions.find((q) => q.id === qid)
             if (qFound) {
               const bettingOpened = g.applyQuestionToAllPlayable(gameState.code, qFound)

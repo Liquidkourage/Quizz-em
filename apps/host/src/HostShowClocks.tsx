@@ -58,16 +58,20 @@ export function actingPlayerCount(
   return count
 }
 
-/** What the host reads before Close betting. The count is everyone still owed a turn. */
-export function closeBettingConfirm(pending: number): { cue: string; label: string } {
+/** What the host reads before Close betting. Fold language only when every pending player is on the action. */
+export function closeBettingConfirm(pending: number, onAction: number): { cue: string; label: string } {
+  if (pending <= 0) {
+    return { cue: 'No players still have action pending. Close betting?', label: 'Close betting' }
+  }
+  if (onAction !== pending) {
+    const who = pending === 1 ? "1 player still hasn't acted" : `${pending} players still haven't acted`
+    return { cue: `${who}. Close betting?`, label: 'Close betting' }
+  }
   if (pending === 1) {
     return {
       cue: '1 player still has action pending. Fold that player and close betting?',
       label: 'Fold 1 and close',
     }
-  }
-  if (pending === 0) {
-    return { cue: 'No players still have action pending. Close betting?', label: 'Close betting' }
   }
   return {
     cue: `${pending} players still have action pending. Fold them and close betting?`,

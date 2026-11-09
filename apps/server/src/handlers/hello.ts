@@ -20,7 +20,7 @@ function finishLateEntry(
   name: string,
   accept: (session: NonNullable<ReturnType<typeof g.findPlayerSessionInVenue>>) => void,
 ): boolean {
-  if (role !== 'player' || alreadySeated || !g.venueAudienceWelcomeExpired.has(venueCode)) return false
+  if (role !== 'player' || alreadySeated || !g.venueSeatsAreAssigned(venueCode)) return false
   const seated = seatLatePointsOnlyPlayer(venueCode, playerId, name)
   if (!seated.ok) {
     socket.emit('ack', { ok: false, message: seated.message })

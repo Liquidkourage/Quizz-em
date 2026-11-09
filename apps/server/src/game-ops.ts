@@ -164,6 +164,7 @@ import {
 } from './venue-library-persist'
 import { loadVenueLibraries, persistVenueLibraries } from './venue-library-db'
 import { fromSnapshotRows, type RoomSnapshotRow } from './room-snapshot'
+import { readVenuePlayheads, venuePlayheadFile, writeVenuePlayheads } from './venue-playhead'
 import {
   loadVenueAnswerWindowSettingsFromDisk,
   initAnswerWindowEnvDefault,
@@ -313,6 +314,18 @@ export const venueOrchestrationGuard = new Set<string>()
 export const venueRevealToShowdownTimers = new Map<string, ReturnType<typeof setTimeout>>()
 export let venueLibraries = new Map<string, VenueLibraryData>()
 export const venuePlayhead = new Map<string, { setlistId: string | null; nextIndex: number }>()
+
+export function rememberPlayhead(
+  venueCode: string,
+  ph: { setlistId: string | null; nextIndex: number },
+): void {
+  venuePlayhead.set(normalizeVenueCode(venueCode), ph)
+  writeVenuePlayheads(venuePlayheadFile(), venuePlayhead)
+}
+
+export function loadVenuePlayheadFromDisk(): void {
+  for (const [vn, ph] of readVenuePlayheads(venuePlayheadFile())) venuePlayhead.set(vn, ph)
+}
 
 export function clearVenueWageringOrchestrationState(venueCode: string) {
   venueShowdownAtMs.delete(normalizeVenueCode(venueCode))
@@ -848,7 +861,7 @@ export function rewindVenuePlayhead(venueCode: string): void {
   const k = normalizeVenueCode(venueCode)
   const ph = venuePlayhead.get(k)
   if (!ph || ph.nextIndex === 0) return
-  venuePlayhead.set(k, { setlistId: ph.setlistId, nextIndex: 0 })
+  rememberPlayhead(k, { setlistId: ph.setlistId, nextIndex: 0 })
 }
 
 /** Unset playhead uses the starter list. An explicit clear stays free play. */
@@ -864,7 +877,7 @@ export function activePlayheadForLibrary(
     lib.setlists.find((s) => s.questionIds.length > 0)
   if (!starter) return { setlistId: null, nextIndex: 0 }
   const ph = { setlistId: starter.id, nextIndex: 0 }
-  venuePlayhead.set(k, ph)
+  rememberPlayhead(k, ph)
   return ph
 }
 
@@ -877,7 +890,7 @@ export function noteShownQuestion(venueCode: string, questionId: string, lib: Ve
   const idx = sl.questionIds.indexOf(questionId)
   if (idx < 0) return
   const nextIndex = Math.max(ph.nextIndex, idx + 1)
-  venuePlayhead.set(normalizeVenueCode(venueCode), { setlistId: ph.setlistId, nextIndex })
+  rememberPlayhead(venueCode, { setlistId: ph.setlistId, nextIndex })
 }
 
 export async function buildHostLibraryPayload(venueCode: string) {
@@ -1031,6 +1044,16 @@ export function venueHasHost(venueCode: string): boolean {
 /** Playable tables only (excludes lobby pool). */
 export function allTableSessionsInVenue(venueCode: string): string[] {
   return allVenueSessionKeys(venueCode).filter(k => !isLobbySessionKey(k))
+}
+
+/** Humans are already in chairs. A new phone plays for points instead of taking chips. */
+export function venueSeatsAreAssigned(venueCode: string): boolean {
+  if (venueAudienceWelcomeExpired.has(normalizeVenueCode(venueCode))) return true
+  for (const key of allTableSessionsInVenue(venueCode)) {
+    const gs = rooms.get(key)
+    if (gs?.players.some((player) => !player.id.startsWith('vp:'))) return true
+  }
+  return false
 }
 
 /** Numbered felts with at least one seated player — lockstep host cues ignore empty sessions. */
@@ -3114,6 +3137,7 @@ export async function prepareVenuePersistence(): Promise<string> {
     ? 'PostgreSQL (DATABASE_URL)'
     : 'SQLite file (VENUE_DATABASE_PATH or default under apps/server/data)'
   console.log(`📚 Venue libraries: ${dbMode}`)
+  loadVenuePlayheadFromDisk()
   initAnswerWindowEnvDefault()
   loadVenueAnswerWindowSettingsFromDisk()
   loadVenueBlindSettingsFromDisk()

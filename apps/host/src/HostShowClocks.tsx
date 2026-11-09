@@ -58,20 +58,20 @@ export function actingPlayerCount(
   return count
 }
 
-/** What the host reads before Close betting folds those players. */
-export function closeBettingConfirm(acting: number): { cue: string; label: string } {
-  if (acting === 1) {
+/** What the host reads before Close betting. The count is everyone still owed a turn. */
+export function closeBettingConfirm(pending: number): { cue: string; label: string } {
+  if (pending === 1) {
     return {
-      cue: '1 player is still acting. Fold that player and close betting?',
+      cue: '1 player still has action pending. Fold that player and close betting?',
       label: 'Fold 1 and close',
     }
   }
-  if (acting === 0) {
-    return { cue: 'No players are still acting. Close betting?', label: 'Close betting' }
+  if (pending === 0) {
+    return { cue: 'No players still have action pending. Close betting?', label: 'Close betting' }
   }
   return {
-    cue: `${acting} players are still acting. Fold them and close betting?`,
-    label: `Fold ${acting} and close`,
+    cue: `${pending} players still have action pending. Fold them and close betting?`,
+    label: `Fold ${pending} and close`,
   }
 }
 

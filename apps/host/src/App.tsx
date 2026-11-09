@@ -56,7 +56,6 @@ import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayloa
 import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
 import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
 import {
-  actingPlayerCount,
   closeBettingConfirm,
   nudgeSlowPlayersLabel,
   slowActionPlayerCount,
@@ -629,14 +628,15 @@ function HostApp() {
   )
   const stillBetting = tablesStillBettingCount(venueFeltBeat)
   const askingClose = confirmingClose && stillBetting > 0
-  const closeAsk = closeBettingConfirm(actingPlayerCount(venueFloorBrief?.actionRows ?? []))
+  const pendingBets = playersStillAbleToBet(venueFloorBrief?.actionRows ?? [])
+  const closeAsk = closeBettingConfirm(pendingBets)
   const bettingActions = roomBettingActions({
     stillBetting,
     asking: askingClose,
     roundLabel: closeBettingRoundLabel(venueFeltBeat),
     confirmLabel: closeAsk.label,
     nudgeLabel,
-    lastCallLabel: lastCallForBetsLabel(playersStillAbleToBet(venueFloorBrief?.actionRows ?? [])),
+    lastCallLabel: lastCallForBetsLabel(pendingBets),
     onAsk: () => setConfirmingClose(true),
     onConfirm: () => {
       setConfirmingClose(false)

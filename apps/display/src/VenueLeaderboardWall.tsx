@@ -23,7 +23,6 @@ import {
 } from './venueLeaderboard'
 import {
   buildVenueWallTileRows,
-  venueWallBlindsHeadline,
   buildVenueCondenseProgress,
   venueWallCondenseHeadline,
   venuePublicAnswerReleased,
@@ -31,38 +30,6 @@ import {
 import { useVenueHandStackBaselines } from './useVenueHandStackBaselines'
 
 const DUAL_TROPHY_ROTATE_MS = 12_000
-
-function buildLeaderboardMetaParts(
-  playerCount: number,
-  wall: DisplayVenueWallSnapshot | null,
-  blindsHeadline: { amount: string; meta: string | null } | null,
-  trophy: VenueLeaderboardTrophy,
-): string[] {
-  const parts: string[] = [
-    trophy === 'trivia' ? 'Trivia brain' : 'Chip stacks',
-    `${playerCount} player${playerCount === 1 ? '' : 's'}`,
-  ]
-  if (trophy === 'chips' && blindsHeadline?.amount) parts.push(blindsHeadline.amount)
-  if (
-    wall?.blindLevelNumber != null &&
-    wall?.blindLevelCount != null &&
-    Number.isFinite(wall.blindLevelNumber) &&
-    Number.isFinite(wall.blindLevelCount)
-  ) {
-    parts.push(`Level ${Math.floor(wall.blindLevelNumber)} / ${Math.floor(wall.blindLevelCount)}`)
-  }
-  if (trophy === 'chips') {
-    if (wall?.handsUntilNextBlindLevel != null && Number.isFinite(wall.handsUntilNextBlindLevel)) {
-      const n = Math.floor(wall.handsUntilNextBlindLevel)
-      parts.push(`${n} hand${n === 1 ? '' : 's'} to next level`)
-    } else if (blindsHeadline?.meta) {
-      parts.push(blindsHeadline.meta)
-    }
-  } else {
-    parts.push('Closest guesses · all night')
-  }
-  return parts
-}
 
 export type VenueLeaderboardWallProps = {
   wall: DisplayVenueWallSnapshot | null
@@ -118,11 +85,6 @@ export default function VenueLeaderboardWall({
   const presentation = useMemo(() => buildVenueLeaderboardPresentation(rows), [rows])
   const { currentPage, showPager, pageIndex, pageCount } = useVenueLeaderboardPager(presentation)
 
-  const blindsHeadline = useMemo(() => venueWallBlindsHeadline(wall), [wall])
-  const metaParts = useMemo(
-    () => buildLeaderboardMetaParts(rows.length, wall, blindsHeadline, trophy),
-    [rows.length, wall, blindsHeadline, trophy]
-  )
   const venueShowdownAnswer = useMemo(
     () => (venuePublicAnswerReleased(tileRows) ? resolveVenueShowdownAnswer(wall, tileRows) : undefined),
     [tileRows, wall]
@@ -147,7 +109,6 @@ export default function VenueLeaderboardWall({
     <LeaderboardFrame fullField={fullFieldLayout}>
       <LeaderboardHeader
         title={title}
-        metaParts={metaParts}
         pageText={showPager ? pageLabel.pageText : undefined}
         rankRangeText={showPager ? pageLabel.rankRangeText : undefined}
         showdownAnswer={venueShowdownAnswer}

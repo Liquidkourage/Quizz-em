@@ -49,11 +49,18 @@ describe('public screens that change on a timer', () => {
       createElement(VenueLeaderboardWall, { wall: wall(9), skipMountIntro: true, trophyMode: 'trivia' }),
     )
     expect(trivia).toContain('venue-lb-pager--trivia')
+    expect(trivia).toContain('Trivia leaders')
+    expect(trivia).not.toContain('Trivia brain')
+    expect(trivia).not.toContain('Closest guesses')
+    expect(trivia).not.toContain('venue-lb-logo-wrap')
 
     const chips = renderToStaticMarkup(
       createElement(VenueLeaderboardWall, { wall: wall(9), skipMountIntro: true, trophyMode: 'chips' }),
     )
     expect(chips).not.toContain('venue-lb-pager--trivia')
+    expect(chips).toContain('Chip leaders')
+    expect(chips).not.toContain('Chip stacks')
+    expect(chips).not.toContain('venue-lb-logo-wrap')
   })
 
   it('shows the circle while chip and trivia scores trade places', () => {

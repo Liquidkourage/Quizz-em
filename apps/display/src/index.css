@@ -3541,18 +3541,8 @@
   .venue-lb-header-row {
     display: flex;
     align-items: center;
-    gap: clamp(12px, 1.45vw, 20px);
-  }
-
-  .venue-lb-logo-wrap {
-    width: clamp(12.5rem, 14.5vw, 17.75rem);
-    flex-shrink: 0;
-  }
-
-  .venue-lb-title-row {
-    display: flex;
-    align-items: center;
-    gap: clamp(8px, 0.85vw, 12px);
+    justify-content: center;
+    position: relative;
   }
 
   .venue-lb-title {
@@ -3567,41 +3557,6 @@
     background-clip: text;
     color: transparent;
     filter: drop-shadow(0 2px 8px rgb(251 191 36 / 0.32)) drop-shadow(0 1px 0 rgb(0 0 0 / 0.85));
-  }
-
-  .venue-lb-title-crown {
-    width: clamp(1.35rem, 1.65vw, 1.85rem);
-    height: clamp(1.35rem, 1.65vw, 1.85rem);
-    flex-shrink: 0;
-    color: rgb(251 191 36 / 0.88);
-    filter: drop-shadow(0 0 8px rgb(251 191 36 / 0.45));
-  }
-
-  .venue-lb-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: clamp(7px, 0.85vw, 12px);
-    margin-top: clamp(4px, 0.45vmin, 7px);
-    font-family: Rajdhani, sans-serif;
-    font-size: clamp(1.05rem, 1.2vw, 1.45rem);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgb(255 251 235 / 0.92);
-  }
-
-  .venue-lb-meta-num {
-    color: rgb(254 243 199 / 0.98);
-  }
-
-  .venue-lb-meta-muted {
-    color: rgb(255 255 255 / 0.78);
-  }
-
-  .venue-lb-meta-sep {
-    color: rgb(251 191 36 / 0.42);
-    font-weight: 600;
   }
 
   .venue-lb-status {
@@ -3662,8 +3617,9 @@
   }
 
   .venue-lb-header-aside {
-    align-self: flex-start;
-    margin-left: auto;
+    position: absolute;
+    top: 0;
+    right: 0;
   }
 
   .venue-lb-page-indicator {
@@ -4068,10 +4024,6 @@
   }
 
   @media (max-width: 1366px) {
-    .venue-lb-logo-wrap {
-      width: clamp(9rem, 16vw, 14rem);
-    }
-
     .venue-lb-title {
       font-size: clamp(2.65rem, 3.8vw, 3.75rem);
     }

@@ -1,17 +1,6 @@
-import { Fragment } from 'react'
 import { formatTriviaNumber } from '@qhe/core'
-import { ChipText, QuizzEmWordmark } from '@qhe/ui'
-
-function CrownIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
-      <path d="M2 17l2.5-9.5L9 11l3-8 3 8 4.5-3.5L21 17H2zm1 2h18v2H3v-2z" />
-    </svg>
-  )
-}
 
 export type LeaderboardHeaderProps = {
-  metaParts: string[]
   pageText?: string
   rankRangeText?: string
   showdownAnswer?: number
@@ -20,7 +9,6 @@ export type LeaderboardHeaderProps = {
 }
 
 export function LeaderboardHeader({
-  metaParts,
   pageText,
   rankRangeText,
   showdownAnswer,
@@ -29,32 +17,7 @@ export function LeaderboardHeader({
   return (
     <header className="venue-lb-header shrink-0">
       <div className="venue-lb-header-row">
-        <div className="venue-lb-logo-wrap">
-          <div className="w-full" style={{ aspectRatio: '958 / 592' }}>
-            <QuizzEmWordmark layout="fill" />
-          </div>
-        </div>
-
-        <div className="venue-lb-header-copy min-w-0 flex-1">
-          <div className="venue-lb-title-row">
-            <h1 className="venue-lb-title">{title}</h1>
-            <CrownIcon className="venue-lb-title-crown" />
-          </div>
-          <p className="venue-lb-meta" aria-label={metaParts.join(', ')}>
-            {metaParts.map((part, index) => (
-              <Fragment key={`${part}-${index}`}>
-                {index > 0 ? (
-                  <span className="venue-lb-meta-sep" aria-hidden>
-                    |
-                  </span>
-                ) : null}
-                <span>
-                  <ChipText text={part} />
-                </span>
-              </Fragment>
-            ))}
-          </p>
-        </div>
+        <h1 className="venue-lb-title">{title}</h1>
 
         {(pageText != null && rankRangeText != null) || showdownAnswer != null ? (
           <div className="venue-lb-header-aside flex shrink-0 flex-col items-end gap-2">

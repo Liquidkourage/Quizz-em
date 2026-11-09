@@ -41,6 +41,7 @@ import {
   feltStatusClockDeadline,
   nudgeClockDeadline,
 } from './playerModel/answerClockDeadline'
+import { runoutAnswerLine } from './playerModel/seatBettingStatus'
 import { useHandSummary } from './hooks/useHandSummary'
 import { useTableResults } from './hooks/useTableResults'
 import {
@@ -792,7 +793,7 @@ function PlayerApp() {
 
             {allInWaitingOnBoard ? (
               <p className="player-game-banner player-game-banner--compact" role="status">
-                All-in. Your answer opens as soon as the five community cards are out.
+                {runoutAnswerLine(currentPlayer)}
               </p>
             ) : null}
 

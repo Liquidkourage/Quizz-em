@@ -7,6 +7,7 @@ import {
   pickHighlightSeatAction,
   resolveSeatStatusPill,
   rosterDisplayName,
+  runoutAnswerLine,
   seatToCallAmount,
 } from './seatBettingStatus'
 
@@ -206,5 +207,25 @@ describe('seatBettingStatus', () => {
     expect(buildPlayerTableStatusLine(baseState({ phase: 'answering' }), 'Alex', null, true)).toBe(
       null,
     )
+  })
+})
+
+describe('runoutAnswerLine', () => {
+  const open = 'Your answer opens as soon as the five community cards are out.'
+
+  it('tells a folded player they folded, not that they are all-in', () => {
+    expect(runoutAnswerLine(player({ id: 'a', name: 'Alex', hasFolded: true }))).toBe(
+      `You folded. ${open}`,
+    )
+  })
+
+  it('keeps the all-in line for a player who is actually all-in', () => {
+    expect(runoutAnswerLine(player({ id: 'a', name: 'Alex', isAllIn: true, bankroll: 0 }))).toBe(
+      `All-in. ${open}`,
+    )
+  })
+
+  it('does not call a points-only player all-in', () => {
+    expect(runoutAnswerLine(player({ id: 'a', name: 'Alex', pointsOnly: true }))).toBe(open)
   })
 })

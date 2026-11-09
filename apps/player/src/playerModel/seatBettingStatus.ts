@@ -9,6 +9,17 @@ export const SEAT_BETTING_ACTION_LABELS: Record<SeatBettingAction, string> = {
   allIn: 'ALL-IN',
 }
 
+const RUNOUT_ANSWER_OPENS = 'Your answer opens as soon as the five community cards are out.'
+
+/** Waiting line while the board runs out. Names this player's own reason for waiting. */
+export function runoutAnswerLine(
+  player: Pick<PlayerState, 'hasFolded' | 'pointsOnly'> | null | undefined,
+): string {
+  if (player?.hasFolded === true) return `You folded. ${RUNOUT_ANSWER_OPENS}`
+  if (player?.pointsOnly === true) return RUNOUT_ANSWER_OPENS
+  return `All-in. ${RUNOUT_ANSWER_OPENS}`
+}
+
 /** Verb for status-line copy (sentence case). */
 const SEAT_BETTING_ACTION_VERBS: Record<SeatBettingAction, string> = {
   check: 'checked',

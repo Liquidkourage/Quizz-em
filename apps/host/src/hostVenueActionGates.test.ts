@@ -217,30 +217,37 @@ describe('next band while tables differ', () => {
       { id: 'deal-board', label: 'Deal the street' },
       { id: 'rehearsal-skip-showdown', label: 'Skip to winner screen' },
     ]
-    const lastCall = { id: 'last-call', label: 'Last call for bets (1)' }
-    const nudge = { id: 'nudge', label: 'Nudge slow players (1)' }
+    const actions = [
+      { id: 'close-bet', label: 'Close 1st betting round' },
+      { id: 'nudge', label: 'Nudge slow players (1)' },
+      { id: 'last-call', label: 'Last call for bets (1)' },
+    ]
     const wait = nextBandOverride([
       felt(1, 'betting', 'bet|1|F|cc0'),
       felt(2, 'betting', 'bet|1|T|cc0'),
     ])
-    expect(dockForRoomWait(built, wait, lastCall, 1, nudge).map((item) => item.id)).toEqual([
-      'last-call',
+    expect(dockForRoomWait(built, wait, actions).map((item) => item.id)).toEqual([
+      'close-bet',
       'nudge',
+      'last-call',
       'rehearsal-skip-showdown',
     ])
-    expect(dockForRoomWait(built, null, lastCall)).toBe(built)
+    expect(dockForRoomWait(built, null, [])).toBe(built)
     expect(
-      dockForRoomWait(built, { title: 'Waiting on table 3', nudge: false }, lastCall, 0).map((item) => item.id),
+      dockForRoomWait(built, { title: 'Waiting on table 3', nudge: false }, []).map((item) => item.id),
     ).toEqual(['rehearsal-skip-showdown'])
   })
 
-  it('keeps close and nudge when every table is ready, and adds last call', () => {
+  it('shows close, nudge, and last call while any table is still betting', () => {
     const built = [
+      { id: 'deal-board', label: 'Deal the street' },
+    ]
+    const actions = [
       { id: 'close-bet', label: 'Close 1st betting round' },
       { id: 'nudge', label: 'Nudge slow players (0)' },
+      { id: 'last-call', label: lastCallForBetsLabel(2) },
     ]
-    const lastCall = { id: 'last-call', label: lastCallForBetsLabel(2) }
-    expect(dockForRoomWait(built, null, lastCall, 2).map((item) => item.label)).toEqual([
+    expect(dockForRoomWait(built, null, actions).map((item) => item.label)).toEqual([
       'Close 1st betting round',
       'Nudge slow players (0)',
       'Last call for bets (2)',

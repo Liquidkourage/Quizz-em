@@ -279,6 +279,18 @@ export function lastCallForBetsLabel(count: number): string {
   return `Last call for bets (${count})`
 }
 
+export function closeBettingRoundLabel(rows: HostVenueFeltBeatRow[] | null): string {
+  const rounds = new Set<number>()
+  for (const row of seatedVenueRows(rows)) {
+    if (row.phase !== 'betting' || wageringClockClosed(row.phaseStrictSig)) continue
+    const parsed = parseVenueBetPhaseSig(row.phaseStrictSig)
+    if (parsed) rounds.add(parsed.br)
+  }
+  if (rounds.size === 1 && rounds.has(1)) return 'Close 1st betting round'
+  if (rounds.size === 1 && rounds.has(2)) return 'Close 2nd betting round'
+  return 'Close betting'
+}
+
 /** Five or more tables still have a betting clock open. */
 export function manyTablesStillBetting(rows: HostVenueFeltBeatRow[] | null): boolean {
   return openBettingCount(seatedVenueRows(rows)) >= 5
@@ -304,21 +316,16 @@ export function nextBandOverride(rows: HostVenueFeltBeatRow[] | null): RoomWait 
 }
 
 /**
- * Close stays only when every table is on that round. Last call and nudge stay
- * while someone is still on the action.
+ * While any table is still betting, NEXT offers close, nudge, and last call.
+ * Otherwise a split room shows no phase button, and a room in step keeps its own.
  */
 export function dockForRoomWait<T extends { id: string }>(
   built: T[],
   wait: RoomWait | null,
-  lastCallItem: T,
-  stillBetting = 0,
-  nudgeItem?: T,
+  bettingActions: T[],
 ): T[] {
-  if (wait != null) {
-    const rehearsal = built.filter((item) => item.id === 'rehearsal-skip-showdown')
-    if (!wait.nudge) return rehearsal
-    return nudgeItem ? [lastCallItem, nudgeItem, ...rehearsal] : [lastCallItem, ...rehearsal]
-  }
-  if (stillBetting <= 0 || built.some((item) => item.id === lastCallItem.id)) return built
-  return [...built, lastCallItem]
+  const rehearsal = built.filter((item) => item.id === 'rehearsal-skip-showdown')
+  if (bettingActions.length > 0) return [...bettingActions, ...rehearsal]
+  if (wait != null) return rehearsal
+  return built
 }

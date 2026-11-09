@@ -1630,6 +1630,30 @@ export function lastCallForVenueTables(vnRaw: string, tableNum: number | null, c
   return changed
 }
 
+/**
+ * Fold whoever is on the action at every table still betting, then close that round.
+ * Tables that already closed are left alone. A hold changes nothing.
+ */
+export function closeOpenBettingVenue(vnRaw: string): { closed: number; folded: string[] } {
+  const vn = normalizeVenueCode(vnRaw)
+  if (isVenueHeld(vn)) return { closed: 0, folded: [] }
+  const folded: string[] = []
+  let closed = 0
+  for (const { tk, gs } of venuePlayableSnapshots(vn)) {
+    if (gs.phase !== 'betting' || gs.round.isBettingOpen !== true) continue
+    const actor = resolveHumanTurnActor(gs)
+    let next = actor ? adminAdvanceTurn(gs) : gs
+    if (actor) folded.push(shortPlayerName(actor.playerName))
+    next = adminCloseBetting(next)
+    clearHumanTurnClock(tk)
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next)
+    playVirtualPlayers(tk, next)
+    closed += 1
+  }
+  return { closed, folded }
+}
+
 /** Fold the seat that is to act at one table. Other tables are left alone. A hold folds nobody. */
 export function foldActingPlayerAtTable(
   vnRaw: string,

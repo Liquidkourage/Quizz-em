@@ -72,20 +72,12 @@ export async function handleWageringAction(
         }
         case 'adminCloseBetting': {
           if (!g.assertVenueHost(socket, gameState)) break
-          const lockClose = g.requireVenueLockstepTables(
-            socket,
-            gameState.code,
-            (gs) => gs.phase === 'betting' && gs.round.isBettingOpen === true,
-            'have wagering open on every felt so closing the street applies to the whole room together',
+          const { closed, folded } = g.closeOpenBettingVenue(gameState.code)
+          const who = folded.length > 0 ? ` Folded ${folded.slice(0, 4).join(', ')}.` : ''
+          socket.emit(
+            'toast',
+            closed === 0 ? 'Every table has already closed betting.' : `Closed betting on ${closed} table(s).${who}`,
           )
-          if (!lockClose) break
-          for (const { tk } of lockClose) {
-            let gs = g.rooms.get(tk)!
-            gs = g.adminCloseBetting(gs)
-            g.rooms.set(tk, gs)
-            g.emitVenueTableState(tk, gs)
-            g.playVirtualPlayers(tk, gs)
-          }
           gameState = g.rooms.get(sessionKey)!
           break
         }

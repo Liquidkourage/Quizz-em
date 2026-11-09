@@ -8,6 +8,7 @@ import {
   clearHumanTurnClock,
   HUMAN_NUDGE_TIMEOUT_MS,
   humanTurnDeadlineMs,
+  closeOpenBettingVenue,
   foldActingPlayerAtTable,
   nudgeActingHumansVenue,
   nudgeOpenGuesses,
@@ -195,6 +196,27 @@ describe('nudgeActingHumansVenue', () => {
     expect(heard.ann).toEqual(['You have 30 seconds to act. Then you check or fold.'])
     expect(heard.bo).toEqual([])
     expect(toasts).not.toContain('You have 30 seconds to act. Then you check or fold.')
+  })
+})
+
+describe('closeOpenBettingVenue', () => {
+  it('folds whoever is on the action and closes that table even if another table already closed', () => {
+    const open = put('C1', '1')
+    const done = put('C1', '2', { isBettingOpen: false })
+    expect(closeOpenBettingVenue('c1')).toEqual({ closed: 1, folded: ['Ann'] })
+    expect(rooms.get(open.key)!.players[0]!.hasFolded).toBe(true)
+    expect(rooms.get(open.key)!.round.isBettingOpen).toBe(false)
+    expect(rooms.get(done.key)!.players[0]!.hasFolded).toBeFalsy()
+    expect(rooms.get(done.key)!.round.isBettingOpen).toBe(false)
+  })
+
+  it('folds nobody while the room is on hold', () => {
+    const open = put('C2', '1')
+    setVenueRoomHold('c2', true)
+    expect(closeOpenBettingVenue('c2')).toEqual({ closed: 0, folded: [] })
+    expect(rooms.get(open.key)!.players[0]!.hasFolded).toBeFalsy()
+    expect(rooms.get(open.key)!.round.isBettingOpen).toBe(true)
+    setVenueRoomHold('c2', false)
   })
 })
 

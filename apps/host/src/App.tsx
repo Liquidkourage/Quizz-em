@@ -17,6 +17,7 @@ import {
   type SocketConnectionStatus,
   startAnswering,
   adminAdvanceTurn,
+  adminCloseBetting,
   alignTablesToRoom,
   setTablePhase,
   nudgeActingPlayers,
@@ -86,6 +87,7 @@ import { HostQuestionsPanel } from './HostQuestionsPanel'
 import {
   dockForRoomWait,
   hostCloseBettingGate,
+  closeBettingRoundLabel,
   lastCallForBetsLabel,
   tablesStillBettingCount,
   hostDealCommunityGate,
@@ -602,25 +604,33 @@ function HostApp() {
     item.id === 'nudge' ? { ...item, label: nudgeLabel } : item,
   )
   const stillBetting = tablesStillBettingCount(venueFeltBeat)
-  const nextDockItems = dockForRoomWait(
-    countedDockItems,
-    roomWait,
-    {
-      id: 'last-call',
-      label: lastCallForBetsLabel(stillBetting),
-      onClick: () => lastCallForBets(null, true),
-      variant: 'gold',
-      role: 'secondary',
-    },
-    stillBetting,
-    {
-      id: 'nudge',
-      label: nudgeLabel,
-      onClick: () => nudgeActingPlayers(),
-      variant: 'gold',
-      role: 'secondary',
-    },
-  )
+  const bettingActions =
+    stillBetting > 0
+      ? [
+          {
+            id: 'close-bet',
+            label: closeBettingRoundLabel(venueFeltBeat),
+            onClick: () => adminCloseBetting(),
+            variant: 'red' as const,
+            role: 'primary' as const,
+          },
+          {
+            id: 'nudge',
+            label: nudgeLabel,
+            onClick: () => nudgeActingPlayers(),
+            variant: 'gold' as const,
+            role: 'secondary' as const,
+          },
+          {
+            id: 'last-call',
+            label: lastCallForBetsLabel(stillBetting),
+            onClick: () => lastCallForBets(null, true),
+            variant: 'gold' as const,
+            role: 'secondary' as const,
+          },
+        ]
+      : []
+  const nextDockItems = dockForRoomWait(countedDockItems, roomWait, bettingActions)
 
   const nextQuestionText =
     hasActiveSetlist && activeSetlist

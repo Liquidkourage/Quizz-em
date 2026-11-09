@@ -314,4 +314,23 @@ describe('player table orientation', () => {
     const feltW = WIDE_COLUMN_PX - 6 * REM * 2
     expect(Number(padding?.[1]) * REM).toBeGreaterThanOrEqual(bottomSeatOverflowPx(feltW))
   })
+
+  it('grows a tall phone oval and keeps the seat names readable', () => {
+    const names = css.slice(css.indexOf('.player-seat-name,'), css.indexOf('.player-seat-name,') + 220)
+    expect(names).toContain('font-size: 0.9rem')
+    const tall = css.slice(
+      css.indexOf('A tall phone grows the live oval'),
+      css.indexOf('A tall phone grows the live oval') + 700,
+    )
+    expect(tall).toContain('min-height: 20rem')
+    expect(tall).toContain('aspect-ratio: 4 / 5')
+    expect(tall).toContain('calc(100cqh * 0.8)')
+    expect(tall).toContain('scaleY(var(--player-felt-stretch, 1))')
+    const wide = css.slice(
+      css.indexOf('A sideways phone widens the live oval'),
+      css.indexOf('A sideways phone widens the live oval') + 420,
+    )
+    expect(wide).toContain('min-aspect-ratio: 3/2')
+    expect(wide).toContain('aspect-ratio: 2 / 1')
+  })
 })

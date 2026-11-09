@@ -1400,8 +1400,8 @@
 .player-seat-name,
 .player-seat-stack {
   max-width: 100%;
-  font-size: 0.62rem;
-  line-height: 1.02;
+  font-size: 0.9rem;
+  line-height: 1.05;
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -1453,7 +1453,7 @@
 
   .player-seat-name,
   .player-seat-stack {
-    font-size: 0.48rem;
+    font-size: 0.75rem;
   }
 
   .player-game-table-pot {
@@ -1486,6 +1486,29 @@
   height: min(100cqh, calc(100cqw * 5 / 8));
   max-width: 100%;
   max-height: 100%;
+}
+
+/* A tall phone grows the live oval into the open space. A short screen keeps the wide table so Hold to peek stays on screen. */
+@container (min-height: 20rem) and (max-aspect-ratio: 1/1) {
+  .player-game-layout--live-fit .player-game-felt--fill {
+    aspect-ratio: 4 / 5;
+    width: min(100%, calc(100cqh * 0.8));
+    height: min(100cqh, calc(100cqw * 5 / 4));
+  }
+
+  .player-game-layout--live-fit .player-game-felt--fill img {
+    transform-origin: center;
+    transform: scaleY(var(--player-felt-stretch, 1));
+  }
+}
+
+/* A sideways phone widens the live oval. Height still fits the row above the peek. */
+@container (min-aspect-ratio: 3/2) and (min-height: 9rem) {
+  .player-game-layout--live-fit .player-game-felt--fill {
+    aspect-ratio: 2 / 1;
+    width: min(100%, calc(100cqh * 2));
+    height: min(100cqh, calc(100cqw * 1 / 2));
+  }
 }
 
 /* Portrait phones keep this column: question, felt, then the bet dock. */

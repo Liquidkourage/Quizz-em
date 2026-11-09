@@ -24,6 +24,7 @@ import {
   mosaicSeatLabelPct,
   mosaicSeatPlayerHoleInwardFrac,
 } from './mosaicSeatGeometry'
+import { POKER_TABLE_GRAPHIC_ASPECT } from './tableRimGeometry'
 import { CardFaceGraphic } from './CardFaceGraphic'
 import { PokerTableGraphic, SeatCupholderMarker, type SeatCupholderState } from './tableGraphics'
 
@@ -63,9 +64,10 @@ export type StadiumTableSeatsProps = {
 function playerSeatLabelTransform(
   label: { leftPct: number; topPct: number },
   w: number,
-  h: number
+  h: number,
+  contentAspect?: number
 ): string {
-  const center = w > 0 && h > 0 ? mosaicFeltCenterPct(w, h) : { leftPct: 50, topPct: 50 }
+  const center = w > 0 && h > 0 ? mosaicFeltCenterPct(w, h, contentAspect) : { leftPct: 50, topPct: 50 }
   const dx = label.leftPct - center.leftPct
   const dy = label.topPct - center.topPct
   const absDx = Math.abs(dx)
@@ -116,6 +118,8 @@ export function StadiumTableSeats({
 
   const { w: rimW, h: rimH } = ringPx
   const isPlayerLayout = feltLayout === 'player'
+  /** A tall phone fills the oval. Seats follow that shape instead of the short artwork. */
+  const contentAspect = isPlayerLayout && rimW > 0 && rimH > rimW ? rimW / rimH : undefined
   /** Player felt always uses the same 8 physical chairs as the venue display tables. */
   const count = isPlayerLayout ? MOSAIC_SEAT_COUNT : Math.max(1, seatCount)
   /** Size chrome by how many seats are occupied — not always 8 empty chairs. */
@@ -154,6 +158,10 @@ export function StadiumTableSeats({
           ? ({
               ...style,
               '--player-felt-w': rimW > 0 ? `${rimW}px` : undefined,
+              '--player-felt-stretch':
+                contentAspect != null && contentAspect > 0
+                  ? `${POKER_TABLE_GRAPHIC_ASPECT / contentAspect}`
+                  : undefined,
               '--player-street-pot': rimW > 0 && street != null ? `${street.potPx}px` : undefined,
             } as CSSProperties)
           : style
@@ -202,7 +210,7 @@ export function StadiumTableSeats({
           if (hideEmptySeats && seat == null) return null
 
           const cupPt = isPlayerLayout
-            ? mosaicSeatDotPct(i, count, rimW, rimH)
+            ? mosaicSeatDotPct(i, count, rimW, rimH, contentAspect)
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_CUPHOLDER_RADIAL)
           const holeInward = mosaicSeatPlayerHoleInwardFrac(i)
           const holePt = isPlayerLayout
@@ -211,11 +219,12 @@ export function StadiumTableSeats({
                 count,
                 rimW,
                 rimH,
-                rimW > 0 && rimW < 280 ? Math.min(0.42, holeInward + 0.1) : holeInward
+                rimW > 0 && rimW < 280 ? Math.min(0.42, holeInward + 0.1) : holeInward,
+                contentAspect
               )
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_HOLE_CARDS_RADIAL)
           const labelPt = isPlayerLayout
-            ? mosaicSeatLabelPct(i, rimW, rimH, labelOutwardPx)
+            ? mosaicSeatLabelPct(i, rimW, rimH, labelOutwardPx, contentAspect)
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_NAME_LABEL_RADIAL)
           const state = seat?.state ?? (seat == null ? 'empty' : 'default')
           const showHoles =
@@ -284,7 +293,7 @@ export function StadiumTableSeats({
                     left: `${labelPt.leftPct}%`,
                     top: `${labelPt.topPct}%`,
                     zIndex: isPlayerLayout ? 34 : undefined,
-                    transform: isPlayerLayout ? playerSeatLabelTransform(labelPt, rimW, rimH) : undefined,
+                    transform: isPlayerLayout ? playerSeatLabelTransform(labelPt, rimW, rimH, contentAspect) : undefined,
                   }}
                 >
                   {seat.nameTag}

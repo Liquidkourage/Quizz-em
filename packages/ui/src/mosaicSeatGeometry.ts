@@ -1,7 +1,4 @@
-import {
-  imageNormToWrapperPct,
-  POKER_TABLE_GRAPHIC_ASPECT,
-} from './tableRimGeometry'
+import { imageNormToWrapperPct } from './tableRimGeometry'
 
 /** Venue / player tables always render eight physical chairs per felt. */
 export const MOSAIC_SEAT_COUNT = 8
@@ -169,17 +166,19 @@ export const MOSAIC_HOLE_ANCHORS_UV: ReadonlyArray<{ readonly u: number; readonl
 function mosaicAnchorToWrapperPct(
   anchor: { u: number; v: number },
   w: number,
-  h: number
+  h: number,
+  contentAspect?: number
 ): { leftPct: number; topPct: number } {
-  return imageNormToWrapperPct(anchor.u, anchor.v, w, h, POKER_TABLE_GRAPHIC_ASPECT)
+  return imageNormToWrapperPct(anchor.u, anchor.v, w, h, contentAspect)
 }
 
 /** Green felt center in ring wrapper % (0–100). */
 export function mosaicFeltCenterPct(
   w = MOSAIC_RING_FALLBACK_W_PX,
-  h = MOSAIC_RING_FALLBACK_H_PX
+  h = MOSAIC_RING_FALLBACK_H_PX,
+  contentAspect?: number
 ): { leftPct: number; topPct: number } {
-  return mosaicAnchorToWrapperPct(MOSAIC_FELT_CENTER_UV, w, h)
+  return mosaicAnchorToWrapperPct(MOSAIC_FELT_CENTER_UV, w, h, contentAspect)
 }
 
 function mosaicHoleRotateDeg(
@@ -200,9 +199,10 @@ export function mosaicSeatDotPct(
   seatIndex: number,
   _seatCount: number,
   w: number,
-  h: number
+  h: number,
+  contentAspect?: number
 ): { leftPct: number; topPct: number } {
-  return mosaicAnchorToWrapperPct(mosaicStadiumCupUV(seatIndex), w, h)
+  return mosaicAnchorToWrapperPct(mosaicStadiumCupUV(seatIndex), w, h, contentAspect)
 }
 
 /** Hole-card pair center on felt just inside the rail, rotated toward the cup. */
@@ -211,16 +211,17 @@ export function mosaicSeatHoleLayout(
   _seatCount: number,
   w: number,
   h: number,
-  inwardFrac?: number
+  inwardFrac?: number,
+  contentAspect?: number
 ): { leftPct: number; topPct: number; rotateDeg: number } {
   const cupUV = mosaicStadiumCupUV(seatIndex)
-  const cup = mosaicAnchorToWrapperPct(cupUV, w, h)
-  const center = mosaicFeltCenterPct(w, h)
+  const cup = mosaicAnchorToWrapperPct(cupUV, w, h, contentAspect)
+  const center = mosaicFeltCenterPct(w, h, contentAspect)
   const holeUV =
     inwardFrac != null ? mosaicStadiumHoleUV(seatIndex, inwardFrac) : mosaicStadiumHoleUV(seatIndex)
 
   return {
-    ...mosaicAnchorToWrapperPct(holeUV, w, h),
+    ...mosaicAnchorToWrapperPct(holeUV, w, h, contentAspect),
     rotateDeg: mosaicHoleRotateDeg(cup, center),
   }
 }
@@ -233,12 +234,13 @@ export function mosaicSeatLabelPct(
   seatIndex: number,
   w: number,
   h: number,
-  outwardPx: number
+  outwardPx: number,
+  contentAspect?: number
 ): { leftPct: number; topPct: number } {
-  const cup = mosaicSeatDotPct(seatIndex, MOSAIC_SEAT_COUNT, w, h)
+  const cup = mosaicSeatDotPct(seatIndex, MOSAIC_SEAT_COUNT, w, h, contentAspect)
   if (!(w > 0 && h > 0) || outwardPx <= 0) return cup
 
-  const center = mosaicFeltCenterPct(w, h)
+  const center = mosaicFeltCenterPct(w, h, contentAspect)
   const cupX = (cup.leftPct / 100) * w
   const cupY = (cup.topPct / 100) * h
   const centerX = (center.leftPct / 100) * w

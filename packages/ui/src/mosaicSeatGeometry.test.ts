@@ -27,4 +27,11 @@ describe('mosaicSeatGeometry (shared display + player)', () => {
     expect(cup.leftPct).toBeLessThan(60)
     expect(cup.topPct).toBeLessThan(30)
   })
+
+  it('puts the top seat on the rail when a tall phone fills the oval', () => {
+    const letterboxed = mosaicSeatDotPct(0, 8, 249, 312)
+    const filled = mosaicSeatDotPct(0, 8, 249, 312, 249 / 312)
+    expect(filled.topPct).toBeLessThan(12)
+    expect(letterboxed.topPct).toBeGreaterThan(filled.topPct + 10)
+  })
 })

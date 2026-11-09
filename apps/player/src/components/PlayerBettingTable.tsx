@@ -13,7 +13,7 @@ import { PlayerFeltPot } from './TableFeltView'
 type PlayerBettingTableProps = {
   gameState: GameState
   myIndex: number
-  /** Tests pin the sheet open. The phone starts closed. */
+  /** Tests can pin the sheet shut. The phone starts open. */
   open?: boolean
 }
 
@@ -48,7 +48,7 @@ function SeatRow({ seat }: { seat: PlayerTableSeatBrief }) {
   )
 }
 
-export default function PlayerBettingTable({ gameState, myIndex, open = false }: PlayerBettingTableProps) {
+export default function PlayerBettingTable({ gameState, myIndex, open = true }: PlayerBettingTableProps) {
   const [shown, setShown] = useState(open)
   const seats = playerTableSeatBriefs(gameState, myIndex)
   const atTable = seats.filter((seat) => !seat.pointsOnly)

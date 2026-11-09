@@ -322,7 +322,8 @@ describe('player table orientation', () => {
       css.indexOf('A tall phone grows the live oval'),
       css.indexOf('A tall phone grows the live oval') + 700,
     )
-    expect(tall).toContain('min-height: 20rem')
+    expect(tall).not.toContain('min-height: 20rem')
+    expect(tall).toContain('max-aspect-ratio: 1/1')
     expect(tall).toContain('aspect-ratio: 4 / 5')
     expect(tall).toContain('calc(100cqh * 0.8)')
     expect(tall).toContain('scaleY(var(--player-felt-stretch, 1))')

@@ -41,8 +41,9 @@ describe('betting table', () => {
     quiet.players = quiet.players.map((player) => ({ ...player, isAllIn: false, hasFolded: false, bankroll: 1000 }))
     const html = renderToStaticMarkup(createElement(PlayerBettingTable, { gameState: quiet, myIndex: 0 }))
     expect(html).not.toContain('>Side<')
-    expect(html).toContain('See the table')
-    expect(html).toContain('aria-expanded="false"')
+    expect(html).toContain('Hide the table')
+    expect(html).toContain('aria-expanded="true"')
+    expect(html).toContain('Ada')
   })
 
   it('leaves a points-only player off the table', () => {
@@ -151,5 +152,16 @@ describe('betting table', () => {
     expect(block).toContain('.player-seated-table--list .player-betting-table {\n    display: flex;')
     expect(block).toContain('.player-seated-table--list .player-seated-felt {\n    display: none;')
     expect(block).not.toContain('font-size: 0.48rem')
+  })
+
+  it('opens the seat list in the hole, and the list scrolls there', () => {
+    const html = renderToStaticMarkup(createElement(PlayerBettingTable, { gameState: hand(), myIndex: 0 }))
+    expect(html).toContain('player-betting-table is-open')
+    const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
+    const mark = 'An open seat list fills the hole and scrolls.'
+    const block = css.slice(css.indexOf(mark), css.indexOf(mark) + 520)
+    expect(block.startsWith(mark)).toBe(true)
+    expect(block).toContain('min-height: 0')
+    expect(block).toContain('overflow-y: auto')
   })
 })

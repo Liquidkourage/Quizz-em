@@ -1488,8 +1488,8 @@
   max-height: 100%;
 }
 
-/* A tall phone grows the live oval into the open space. A short screen keeps the wide table so Hold to peek stays on screen. */
-@container (min-height: 20rem) and (max-aspect-ratio: 1/1) {
+/* A tall phone grows the live oval into the height that is left. A wide slot keeps the wide table so Hold to peek stays on screen. */
+@container (max-aspect-ratio: 1/1) {
   .player-game-layout--live-fit .player-game-felt--fill {
     aspect-ratio: 4 / 5;
     width: min(100%, calc(100cqh * 0.8));
@@ -5275,6 +5275,20 @@
   .player-seated-table--list .player-seated-felt {
     display: none;
   }
+}
+
+/* An open seat list fills the hole and scrolls. The question, peek, and bets stay put. */
+.player-game-layout--live-fit .player-seated-table > .player-betting-table.is-open {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.player-game-layout--live-fit .player-seated-table > .player-betting-table.is-open .player-table-roster {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .player-betting-table {

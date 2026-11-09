@@ -4427,10 +4427,12 @@
 
   .seating-roster-name {
     font-family: 'Rajdhani', sans-serif;
-    font-size: clamp(0.68rem, 4.6cqw, 1.42rem);
+    font-size: clamp(0.68rem, 5.1cqw, 1.6rem);
     font-weight: 700;
     letter-spacing: 0.012em;
-    line-height: 1.05;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
     color: rgb(255 251 235 / 0.98);
   }
@@ -4441,14 +4443,13 @@
   }
 
   .seating-roster-you {
-    margin-left: clamp(4px, 0.65cqw, 7px);
     flex-shrink: 0;
     border-radius: 999px;
     border: 1px solid rgb(52 211 153 / 0.55);
     background: rgb(52 211 153 / 0.14);
     padding: 0.05rem 0.35rem;
     font-family: 'Rajdhani', sans-serif;
-    font-size: clamp(0.58rem, 1.55cqh, 0.72rem);
+    font-size: clamp(0.58rem, 1.9cqh, 0.84rem);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -4457,10 +4458,14 @@
 
   .seating-roster-open {
     font-family: 'Rajdhani', sans-serif;
-    font-size: clamp(0.86rem, 2.55cqh, 1.06rem);
+    font-size: clamp(0.86rem, 3cqh, 1.25rem);
     font-weight: 600;
     letter-spacing: 0.05em;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-transform: uppercase;
+    white-space: nowrap;
     color: rgb(167 243 208 / 0.42);
   }
 

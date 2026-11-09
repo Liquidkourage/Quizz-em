@@ -12,11 +12,11 @@ export const SEATING_CHART_ROSTER_WIDTH_REM = 12
 /** Players per roster page. Fewer rows so each name and caption stay TV-readable. */
 export const SEATING_CHART_ROSTER_PAGE_SIZE = 9
 
-/** Name line in the A–M / N–Z gutters. */
-export const SEATING_CHART_ROSTER_NAME_FONT = 'clamp(1.7rem, 3.1vh, 2.35rem)'
+/** Name line in the A–M / N–Z gutters. Floor stays put; the preferred size and ceiling fill spare row height. */
+export const SEATING_CHART_ROSTER_NAME_FONT = 'clamp(1.7rem, 3.35vh, 2.85rem)'
 
-/** "Table N, Seat N" under each gutter name. */
-export const SEATING_CHART_ROSTER_CAPTION_FONT = 'clamp(1.15rem, 2.15vh, 1.6rem)'
+/** "Table N, Seat N" under each gutter name. Floor stays put; the preferred size and ceiling fill spare row height. */
+export const SEATING_CHART_ROSTER_CAPTION_FONT = 'clamp(1.15rem, 2.3vh, 1.85rem)'
 
 /** Dwell time on each roster page (ms). */
 export const SEATING_CHART_ROSTER_PAGE_MS = 8_000

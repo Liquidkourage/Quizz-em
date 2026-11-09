@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -70,6 +71,10 @@ describe('seating chart gutter type', () => {
   it('renders names and table captions large enough to read on a TV', () => {
     expect(clampMinRem(SEATING_CHART_ROSTER_NAME_FONT)).toBeGreaterThanOrEqual(1.4)
     expect(clampMinRem(SEATING_CHART_ROSTER_CAPTION_FONT)).toBeGreaterThanOrEqual(1)
+    // Preferred size and ceiling use spare height inside the fixed gutter row.
+    // The floor stays put so a short screen does not overflow that row.
+    expect(SEATING_CHART_ROSTER_NAME_FONT).toBe('clamp(1.7rem, 3.35vh, 2.85rem)')
+    expect(SEATING_CHART_ROSTER_CAPTION_FONT).toBe('clamp(1.15rem, 2.3vh, 1.85rem)')
     expect(SEATING_CHART_ROSTER_PAGE_SIZE).toBeLessThanOrEqual(9)
 
     const html = renderToStaticMarkup(
@@ -82,6 +87,26 @@ describe('seating chart gutter type', () => {
     expect(html).toContain('Table 2, Seat 1')
     expect(html).toContain(SEATING_CHART_ROSTER_NAME_FONT)
     expect(html).toContain(SEATING_CHART_ROSTER_CAPTION_FONT)
+  })
+})
+
+describe('seating chart card type', () => {
+  const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+
+  function rule(selector: string): string {
+    const at = css.indexOf(`${selector} {`)
+    return css.slice(at, css.indexOf('\n  }', at))
+  }
+
+  it('grows names inside the fixed roster row and keeps long names inside it', () => {
+    const name = rule('\n  .seating-roster-name')
+    expect(name).toContain('font-size: clamp(0.68rem, 5.1cqw, 1.6rem)')
+    expect(name).toContain('overflow: hidden')
+    expect(name).toContain('text-overflow: ellipsis')
+    const open = rule('\n  .seating-roster-open')
+    expect(open).toContain('font-size: clamp(0.86rem, 3cqh, 1.25rem)')
+    expect(open).toContain('white-space: nowrap')
+    expect(rule('\n  .seating-roster-you')).toContain('font-size: clamp(0.58rem, 1.9cqh, 0.84rem)')
   })
 })
 

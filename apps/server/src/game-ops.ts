@@ -12,6 +12,7 @@ import {
   removePlayer,
   releasePlayer,
   isDisplayNameTaken,
+  uniquePublicDisplayName,
   inChipContest,
   startGame,
   setQuestion,
@@ -998,6 +999,17 @@ export function isFeltSessionRoom(room: string): boolean {
   if (room.startsWith('PLAYER:') || room.startsWith('HOST:') || room.startsWith('DISPLAY:')) return false
   if (isLobbySessionKey(room)) return false
   return true
+}
+
+/** Next public name in this venue. The first Chris L. stays; a later one is Chris L. 2. */
+export function publicNameForNewPlayer(venueCode: string, requested: string): string {
+  const taken: string[] = []
+  for (const sessionKey of allVenueSessionKeys(venueCode)) {
+    const gs = rooms.get(sessionKey)
+    if (!gs) continue
+    for (const player of gs.players) taken.push(player.name)
+  }
+  return uniquePublicDisplayName(requested, taken)
 }
 
 export function allVenueSessionKeys(venueCode: string): string[] {

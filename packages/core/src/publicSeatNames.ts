@@ -21,6 +21,33 @@ export function disambiguatePublicNames(names: readonly string[]): string[] {
   })
 }
 
+/**
+ * First "Chris L." stays. The next phone with that same name becomes "Chris L. 2".
+ * Comparison ignores case and surrounding spaces. A different spelling is left alone.
+ */
+export function uniquePublicDisplayName(requested: string, taken: readonly string[]): string {
+  const base = requested.trim()
+  if (!base) return ''
+  const baseKey = base.toLowerCase()
+  const prefix = `${baseKey} `
+  const used = new Set<number>()
+  for (const raw of taken) {
+    const key = raw.trim().toLowerCase()
+    if (!key) continue
+    if (key === baseKey) {
+      used.add(1)
+      continue
+    }
+    if (!key.startsWith(prefix)) continue
+    const tail = key.slice(prefix.length)
+    if (/^\d+$/.test(tail)) used.add(Number(tail))
+  }
+  if (!used.has(1)) return base
+  let n = 2
+  while (used.has(n)) n += 1
+  return `${base} ${n}`
+}
+
 /** Two-letter seat mark. A numbered "Alice C. 2" becomes A2. */
 export function publicSeatInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)

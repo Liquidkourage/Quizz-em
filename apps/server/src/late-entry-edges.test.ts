@@ -37,15 +37,6 @@ describe('seatLatePointsOnlyPlayer, turned away', () => {
     expect(everyone('EDGE')).toEqual(['ada'])
   })
 
-  it('refuses a name already in the game at another table, ignoring case and spaces', () => {
-    seatChip('EDGE', '1', 'ada', 'Ada')
-    seatChip('EDGE', '2', 'cam', 'Cam')
-    const result = seatLatePointsOnlyPlayer('EDGE', 'human:imposter', '  cAm ')
-    expect(result.ok).toBe(false)
-    if (!result.ok) expect(result.message).toMatch(/already in the game/)
-    expect(everyone('EDGE').sort()).toEqual(['ada', 'cam'])
-  })
-
   it('says the contest is over when no chip player is left to follow', () => {
     seatChip('EDGE', '1', 'ada', 'Ada', 0)
     const result = seatLatePointsOnlyPlayer('EDGE', 'human:neo', 'Neo')
@@ -68,6 +59,17 @@ describe('seatLatePointsOnlyPlayer, turned away', () => {
 })
 
 describe('seatLatePointsOnlyPlayer, seated', () => {
+  it('seats a second person who shares a name, and numbers that name', () => {
+    seatChip('EDGE', '1', 'ada', 'Ada')
+    seatChip('EDGE', '2', 'cam', 'Cam')
+    const result = seatLatePointsOnlyPlayer('EDGE', 'human:imposter', '  cAm ')
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const named = table('EDGE', result.tableId).players.find((p) => p.id === 'human:imposter')
+    expect(named?.name).toBe('cAm 2')
+    expect(everyone('EDGE').sort()).toEqual(['ada', 'cam', 'human:imposter'])
+  })
+
   it('spreads several arrivals across the chip players, lowest table first', () => {
     seatChip('EDGE', '1', 'ada', 'Ada')
     seatChip('EDGE', '2', 'cam', 'Cam')
@@ -143,13 +145,13 @@ describe('handleHello late join, edges', () => {
     expect(again.socket.rooms.has(tableSessionKey('EDGE', '1'))).toBe(true)
   })
 
-  it('tells a latecomer when their name is taken and seats nobody', async () => {
+  it('seats a latecomer who shares a name, numbered so the first one stays', async () => {
     const { socket, events } = phone()
     await hello(socket, 'ADA', 'human:imposter')
     const ack = events.find((row) => row.event === 'ack')?.data
-    expect(ack.ok).toBe(false)
-    expect(ack.message).toMatch(/already in the game/)
-    expect(everyone('EDGE')).toEqual(['ada'])
-    expect(socket.rooms.size).toBe(0)
+    expect(ack.ok).toBe(true)
+    const named = [...rooms.values()].flatMap((gs) => gs.players).find((p) => p.id === 'human:imposter')
+    expect(named?.name).toBe('ADA 2')
+    expect(everyone('EDGE').sort()).toEqual(['ada', 'human:imposter'])
   })
 })

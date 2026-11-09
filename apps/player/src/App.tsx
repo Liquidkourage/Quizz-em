@@ -341,6 +341,7 @@ function PlayerApp() {
 
   const myIndex = gameState ? resolveMyPlayerIndex(gameState, playerName, socket?.id) : -1
   const currentPlayer = gameState && myIndex >= 0 ? gameState.players[myIndex] : undefined
+  const myName = currentPlayer?.name ?? playerName
 
   useEffect(() => {
     if (
@@ -566,7 +567,7 @@ function PlayerApp() {
           selfWon={endgame.selfWon}
           bankroll={endgame.bankroll}
         />
-        <PlayerScoresSheet brief={venueBrief} {...scoresSheetIdentity(playerName, gameState.tableId)} />
+        <PlayerScoresSheet brief={venueBrief} {...scoresSheetIdentity(myName, gameState.tableId)} />
       </>
     )
   }
@@ -583,7 +584,7 @@ function PlayerApp() {
         <PlayerToast message={toastMessage} />
         <PlayerBlindChange brief={venueBrief} />
         <LobbyWaitingScreen
-          playerName={playerName}
+          playerName={myName}
           venueCode={gameState.code}
           waitingCount={gameState.players.length}
           waitingPosition={waitingPosition}
@@ -593,7 +594,7 @@ function PlayerApp() {
           onReconnect={handleForceReconnect}
           onQuit={leaveEvent}
         />
-        <PlayerScoresSheet brief={venueBrief} {...scoresSheetIdentity(playerName, gameState.tableId)} />
+        <PlayerScoresSheet brief={venueBrief} {...scoresSheetIdentity(myName, gameState.tableId)} />
       </>
     )
   }
@@ -647,7 +648,7 @@ function PlayerApp() {
   const feltView = (
     <TableFeltView
       gameState={gameState}
-      playerName={playerName}
+      playerName={myName}
       myPlayerId={currentPlayer?.id ?? joinPrefs.playerId}
       myIndex={myIndex}
       showCenterPot
@@ -741,7 +742,7 @@ function PlayerApp() {
             {!hideLiveChrome ? (
               <PlayerGameStatusBar
                 gameState={gameState}
-                playerName={playerName}
+                playerName={myName}
                 myIndex={myIndex}
                 answerPoints={currentPlayer?.answerPoints ?? 0}
               />
@@ -842,7 +843,7 @@ function PlayerApp() {
       <AnimatePresence>
         {dealFlash ? <DealFlashModal key={`${dealFlash.kind}:${dealFlash.digits.join(',')}`} flash={dealFlash} onDone={dismissDealFlash} /> : null}
         {eliminationHandKey ? (
-          <EliminatedModal key={eliminationHandKey} name={playerName} onDone={dismissElimination} />
+          <EliminatedModal key={eliminationHandKey} name={myName} onDone={dismissElimination} />
         ) : null}
         <PlayerAnswerRevealHost gameState={gameState} />
         {showAnswerModal && currentPlayer ? (
@@ -875,7 +876,7 @@ function PlayerApp() {
           />
         ) : null}
       </AnimatePresence>
-      <PlayerScoresSheet brief={venueBrief} {...scoresSheetIdentity(playerName, gameState.tableId)} />
+      <PlayerScoresSheet brief={venueBrief} {...scoresSheetIdentity(myName, gameState.tableId)} />
     </PlayerGameScreen>
   )
 }

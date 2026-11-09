@@ -56,10 +56,14 @@ describe('joining and seating', () => {
     await expect(player('NOHOST', 'Ann')).rejects.toThrow(/No game found/)
   }, 30_000)
 
-  it('refuses a second player with the same name', async () => {
-    track(await host('BASIC3'))
+  it('lets a second player share a name and numbers that seat', async () => {
+    const h = track(await host('BASIC3'))
     track(await player('BASIC3', 'Ada'))
-    await expect(player('BASIC3', 'Ada')).rejects.toThrow(/already in the lobby/)
+    track(await player('BASIC3', 'Ada'))
+    await h.waitForState(
+      (s) => s.players.filter((p: { name: string }) => p.name === 'Ada' || p.name === 'Ada 2').length === 2,
+      'both Adas seated in the lobby',
+    )
   }, 30_000)
 
   it('seats everyone at tables when the host assigns the lobby', async () => {

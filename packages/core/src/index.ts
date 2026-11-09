@@ -2142,4 +2142,4 @@ export {
   type BlindLevelEstimate,
   type BlindPace,
 } from './blindCall'
-export { disambiguatePublicNames, publicSeatInitials } from './publicSeatNames'
+export { disambiguatePublicNames, publicSeatInitials, uniquePublicDisplayName } from './publicSeatNames'

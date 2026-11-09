@@ -188,15 +188,8 @@ export async function handleHello(socket: Socket, data: ClientHello) {
           socket.emit('seated', { tableId: restoredTableId })
         }
       } else {
-        if (g.isDisplayNameTaken(gameState, name)) {
-          socket.emit('ack', {
-            ok: false,
-            message:
-              'That name is already in the lobby. Use a unique name or reopen the join link on the same phone to reconnect.',
-          })
-          return
-        }
-        gameState = g.addPlayer(gameState, rosterPlayerId, name)
+        const publicName = g.publicNameForNewPlayer(venueCode, name)
+        gameState = g.addPlayer(gameState, rosterPlayerId, publicName)
         sockData.viewerPlayerId = rosterPlayerId
         g.registerPlayerSocket(rosterPlayerId, socket.id)
       }

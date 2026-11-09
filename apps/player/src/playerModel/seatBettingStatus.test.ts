@@ -65,6 +65,7 @@ describe('seatBettingStatus', () => {
     expect(rosterDisplayName('Jay C.')).toBe('Jay C.')
     expect(rosterDisplayName('Maya Chen')).toBe('Maya C.')
     expect(rosterDisplayName('Blake')).toBe('Blake')
+    expect(rosterDisplayName('Chris L. 2')).toBe('Chris L. 2')
   })
 
   it('merges street-in into status labels', () => {
@@ -144,6 +145,24 @@ describe('seatBettingStatus', () => {
       },
     })
     expect(buildPlayerTableStatusLine(gs, 'Alex')).toBe('Maya called · No more bets')
+  })
+
+  it('calls a numbered Chris by the number, not the first name alone', () => {
+    const gs = baseState({
+      players: [
+        player({ id: 'a', name: 'Alex' }),
+        player({ id: 'b', name: 'Chris L. 2' }),
+        player({ id: 'c', name: 'Jay' }),
+      ],
+      round: {
+        ...baseState().round,
+        isBettingOpen: false,
+        currentPlayerIndex: -1,
+        lastPerformedAction: { seatIndex: 1, action: 'call' },
+      },
+    })
+    expect(buildPlayerTableStatusLine(gs, 'Alex')).toBe('Chris 2 called · No more bets')
+    expect(buildPlayerTableStatusLine(gs, 'Chris L. 2')).toBe('You called · No more bets')
   })
 
   it('builds status line with highlight, to-call, and clock', () => {

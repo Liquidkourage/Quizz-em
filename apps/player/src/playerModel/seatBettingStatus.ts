@@ -31,10 +31,13 @@ export function seatBettingActionLabel(action: SeatBettingAction): string {
   return SEAT_BETTING_ACTION_LABELS[action]
 }
 
-export function firstName(name: string): string {
-  const trimmed = name.trim()
-  const space = trimmed.indexOf(' ')
-  return space > 0 ? trimmed.slice(0, space) : trimmed
+/** Action line: first name, plus the number when a later Chris L. is Chris L. 2. */
+function statusPlayerName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  const given = parts[0] || name.trim()
+  const last = parts[parts.length - 1] ?? ''
+  if (parts.length >= 3 && /^\d+$/.test(last)) return `${given} ${last}`
+  return given
 }
 
 /**
@@ -45,8 +48,11 @@ export function rosterDisplayName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length === 0) return '?'
   if (parts.length === 1) return parts[0]!
-  const first = parts[0]!
   const last = parts[parts.length - 1]!
+  if (/^\d+$/.test(last) && parts.length >= 3) {
+    return `${rosterDisplayName(parts.slice(0, -1).join(' '))} ${last}`
+  }
+  const first = parts[0]!
   if (last.length <= 2 || last.endsWith('.')) return `${first} ${last}`
   return `${first} ${last[0]!.toUpperCase()}.`
 }
@@ -199,7 +205,7 @@ export function buildPlayerTableStatusLine(
   const actor = gameState.players[actingIndex]
   if (!actor) return null
 
-  const actorLabel = actor.name === viewerName ? 'You' : firstName(actor.name)
+  const actorLabel = actor.name === viewerName ? 'You' : statusPlayerName(actor.name)
   const toCall = seatToCallAmount(actor, gameState.round.currentBet, gameState.round.playerBets)
 
   const actPart = toCall > 0 ? `${actorLabel} to call $${toCall.toLocaleString()}` : `${actorLabel} to act`
@@ -215,6 +221,6 @@ function lastActionPhrase(gameState: GameState, viewerName: string): string | nu
   if (last == null) return null
   const player = gameState.players[last.seatIndex]
   if (player == null) return null
-  const who = player.name === viewerName ? 'You' : firstName(player.name)
+  const who = player.name === viewerName ? 'You' : statusPlayerName(player.name)
   return `${who} ${SEAT_BETTING_ACTION_VERBS[last.action]}`
 }

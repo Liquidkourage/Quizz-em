@@ -450,9 +450,9 @@ describe('player table orientation', () => {
 
     const short = mediaBlock(
       css.slice(css.indexOf('results table fits a short phone')),
-      '@media (max-height: 400px)',
+      '@media (max-height: 430px)',
     )
-    expect(short.startsWith('@media (max-height: 400px)')).toBe(true)
+    expect(short.startsWith('@media (max-height: 430px)')).toBe(true)
     expect(short).toContain('.player-table-results-row')
     expect(short).toContain('padding: 0.08rem 0.15rem')
     expect(short).toContain('overflow: visible')

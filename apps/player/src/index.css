@@ -5830,8 +5830,9 @@
   }
 }
 
-/* The results table fits a short phone when the rows sit tighter. */
-@media (max-height: 400px) {
+/* The results table fits a short phone when the rows sit tighter.
+   Sideways Pixel is 412 tall and sideways iPhone 14 is 430, and the waiting line needs this fit. */
+@media (max-height: 430px) {
   .player-game-panel:has(.player-table-results-scroll) {
     padding: 0.15rem 0.4rem;
   }

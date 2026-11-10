@@ -179,6 +179,7 @@ import {
 import {
   applyEffectiveBlindsToGameState,
   blindsShownForVenue,
+  handBlindsAreLocked,
   clearTableBlindsOverride,
   effectiveBlindsForSessionKey,
   hostLibraryBlindsPayload,
@@ -574,7 +575,8 @@ export function venueEndgameWinnerName(venueCode: string): string | null {
 export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
   const vn = normalizeVenueCode(vnRaw)
   const blindsSnap = hostLibraryBlindsPayload(vn)
-  const blindsOnFelt = blindsShownForVenue(liveTableBlindRows(vn), blindsSnap)
+  const blindRows = liveTableBlindRows(vn)
+  const blindsOnFelt = blindsShownForVenue(blindRows, blindsSnap)
   const ph = getPlayhead(vn)
   const lib = venueLibraries.get(vn)
   let setlistCueNumber: number | null = null
@@ -617,7 +619,13 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
     venueShuffleHeld: isVenueShuffleHeld(vn),
     endgameWinnerName: venueEndgameWinnerName(vn),
     ...publicScores,
-    blindChange: noteShownVenueBlinds(vn, blindsOnFelt.smallBlind, blindsOnFelt.bigBlind),
+    blindChange: noteShownVenueBlinds(
+      vn,
+      blindsOnFelt.smallBlind,
+      blindsOnFelt.bigBlind,
+      Date.now(),
+      blindRows.some((row) => handBlindsAreLocked(row.phase)),
+    ),
   }
 }
 
@@ -2719,7 +2727,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
   }
 
   const blindsSnap = hostLibraryBlindsPayload(vn)
-  const blindsOnFelt = blindsShownForVenue(liveTableBlindRows(vn), blindsSnap)
+  const blindRows = liveTableBlindRows(vn)
+  const blindsOnFelt = blindsShownForVenue(blindRows, blindsSnap)
   syncVenueAudienceWelcomeFromTiles(vn, tiles)
 
   const headlineSource = pickVenueHeadlineSource(vn)
@@ -2868,7 +2877,13 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     venueShuffleHeld: isVenueShuffleHeld(vn),
     venueHandsCompleted: getVenueHandsCompleted(vn),
     ...venueWallLastHandFields(lastHandDisplay),
-    blindChange: noteShownVenueBlinds(vn, blindsOnFelt.smallBlind, blindsOnFelt.bigBlind),
+    blindChange: noteShownVenueBlinds(
+      vn,
+      blindsOnFelt.smallBlind,
+      blindsOnFelt.bigBlind,
+      Date.now(),
+      blindRows.some((row) => handBlindsAreLocked(row.phase)),
+    ),
   }
   io.to(displayVenueRoom(vn)).emit('displayVenueSnapshot', payload)
   emitPlayerVenueBriefNow(vn)

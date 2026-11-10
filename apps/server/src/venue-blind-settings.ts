@@ -378,14 +378,23 @@ export function clearVenueBlindNotice(venueCode: string): void {
   blindNotices.delete(vn)
 }
 
-/** Remember the blinds the room is showing. A later pair is announced until the notice expires. */
+/**
+ * Remember the blinds the room is showing. A later pair is announced until the notice expires.
+ * The announcement waits until a question has started, so Pay winners stays quiet.
+ */
 export function noteShownVenueBlinds(
   venueCode: string,
   smallBlind: number,
   bigBlind: number,
   now = Date.now(),
+  handInProgress = false,
 ): BlindChangeNotice | null {
   const vn = normalizeVenueKey(venueCode)
+  if (!handInProgress) {
+    const waiting = blindNotices.get(vn)
+    if (waiting == null || now - waiting.atMs >= BLIND_NOTICE_MS) return null
+    return waiting
+  }
   const key = `${smallBlind}/${bigBlind}`
   const prev = shownBlindKey.get(vn)
   shownBlindKey.set(vn, key)

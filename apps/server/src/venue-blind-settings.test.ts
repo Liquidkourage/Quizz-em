@@ -96,24 +96,30 @@ describe('blinds during a hand', () => {
     ).toEqual({ smallBlind: 10, bigBlind: 20 })
   })
 
-  it('announces the new blinds once they are the pair in play', () => {
+  it('announces the new blinds when the next question starts, not when winners are paid', () => {
     clearVenueBlindNotice('WAIT')
     const during = blindsShownForVenue(
       [{ phase: 'betting', smallBlind: 10, bigBlind: 20 }],
       raised,
     )
-    expect(noteShownVenueBlinds('WAIT', during.smallBlind, during.bigBlind, 1_000)).toBeNull()
+    expect(noteShownVenueBlinds('WAIT', during.smallBlind, during.bigBlind, 1_000, true)).toBeNull()
     const waiting = blindsShownForVenue(
       [{ phase: 'lobby', smallBlind: 10, bigBlind: 20 }],
       raised,
     )
-    expect(noteShownVenueBlinds('WAIT', waiting.smallBlind, waiting.bigBlind, 2_000)).toEqual({
+    expect(waiting).toEqual({ smallBlind: 50, bigBlind: 100 })
+    expect(noteShownVenueBlinds('WAIT', waiting.smallBlind, waiting.bigBlind, 2_000, false)).toBeNull()
+    const nextQuestion = blindsShownForVenue(
+      [{ phase: 'question', smallBlind: 50, bigBlind: 100 }],
+      raised,
+    )
+    expect(noteShownVenueBlinds('WAIT', nextQuestion.smallBlind, nextQuestion.bigBlind, 3_000, true)).toEqual({
       smallBlind: 50,
       bigBlind: 100,
-      atMs: 2_000,
+      atMs: 3_000,
     })
-    expect(noteShownVenueBlinds('WAIT', waiting.smallBlind, waiting.bigBlind, 3_000)?.atMs).toBe(2_000)
-    expect(noteShownVenueBlinds('WAIT', waiting.smallBlind, waiting.bigBlind, 2_000 + 12_000)).toBeNull()
+    expect(noteShownVenueBlinds('WAIT', nextQuestion.smallBlind, nextQuestion.bigBlind, 4_000, true)?.atMs).toBe(3_000)
+    expect(noteShownVenueBlinds('WAIT', nextQuestion.smallBlind, nextQuestion.bigBlind, 3_000 + 12_000, true)).toBeNull()
   })
 
   it('shows the saved blinds when every table is waiting', () => {

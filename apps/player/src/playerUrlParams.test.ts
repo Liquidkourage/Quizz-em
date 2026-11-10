@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE } from '@qhe/net'
-import { playerJoinBoot, playerLeaveScreen, playerSessionCanResume } from './playerUrlParams'
+import { playerJoinBoot, playerLeaveScreen, playerSessionCanResume, venueBriefAfterLeave } from './playerUrlParams'
 
 describe('playerSessionCanResume', () => {
   it('reconnects a phone that already joined', () => {
@@ -64,6 +64,10 @@ describe('playerSessionCanResume', () => {
     expect(playerLeaveScreen(PLAYER_NEW_GAME_MESSAGE)).toBe('form')
     expect(playerLeaveScreen('You left the event.')).toBe('left')
     expect(playerLeaveScreen(PLAYER_ROOM_CLOSED_MESSAGE)).toBe('closed')
+  })
+
+  it('drops the previous night when the host starts a new game', () => {
+    expect(venueBriefAfterLeave(PLAYER_NEW_GAME_MESSAGE, { endgameWinnerName: 'Ada Lane' })).toBeNull()
   })
 
   it('boots a saved phone straight back into the room', () => {

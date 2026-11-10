@@ -81,6 +81,11 @@ export function playerLeaveScreen(message: string): PlayerLeaveScreen {
   return 'left'
 }
 
+/** A new game has no winner yet. The phone must not keep the night it just left. */
+export function venueBriefAfterLeave<T>(message: string, brief: T | null): T | null {
+  return playerLeaveScreen(message) === 'form' ? null : brief
+}
+
 /** A refresh can reconnect this phone. A first visit still needs the name screen. */
 export function playerSessionCanResume(
   prefs: Pick<PlayerJoinPrefs, 'firstName' | 'lastInitial' | 'roomCode' | 'playerId' | 'departed' | 'roomClosed'>,

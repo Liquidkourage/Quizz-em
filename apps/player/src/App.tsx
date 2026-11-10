@@ -31,6 +31,7 @@ import { recordServerClockSample } from './serverClock'
 import {
   playerJoinBoot,
   playerLeaveScreen,
+  venueBriefAfterLeave,
   readPlayerJoinPrefs,
   persistPlayerJoinPrefs,
   playerDisplayNameFromPrefs,
@@ -182,6 +183,8 @@ function PlayerApp() {
     setJoinPrefs(joining)
     persistPlayerJoinPrefs(joining)
     setJoinError(null)
+    setVenueBrief((prev) => venueBriefAfterLeave(PLAYER_NEW_GAME_MESSAGE, prev))
+    setGameState(null)
     setJoinPhase('connecting')
     setJoinNonce((n) => n + 1)
   }
@@ -261,9 +264,11 @@ function PlayerApp() {
       if (cancelled) return
       const screen = playerLeaveScreen(info.message ?? '')
       const message = info.message ?? ''
+      setVenueBrief((prev) => venueBriefAfterLeave(message, prev))
       if (screen === 'form') {
         departedRef.current = false
         setJoinError(message || PLAYER_NEW_GAME_MESSAGE)
+        setGameState(null)
         setJoinPrefs((prev) => {
           const next = { ...prev, departed: false, roomClosed: false }
           persistPlayerJoinPrefs(next)

@@ -6,14 +6,67 @@ const VIEW_H = 700
 const CARD_RX = 36
 
 /** Vector card front — navy felt + gold frame; digit swaps for 0–9. */
+function CardMarks({ gold, label }: { gold: string; label: string }) {
+  if (label === '.') {
+    return (
+      <>
+        <circle cx="250" cy="360" r="78" fill={gold} />
+        <circle cx="86" cy="88" r="16" fill={gold} />
+        <circle cx="414" cy="612" r="16" fill={gold} transform="rotate(180 414 612)" />
+      </>
+    )
+  }
+  return (
+    <>
+      <text
+        x="250"
+        y="372"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill={gold}
+        fontFamily="'Segoe UI', system-ui, -apple-system, sans-serif"
+        fontWeight="700"
+        fontSize="248"
+        letterSpacing="-6"
+      >
+        {label}
+      </text>
+      <text
+        x="62"
+        y="92"
+        fill={gold}
+        fontFamily="'Segoe UI', system-ui, -apple-system, sans-serif"
+        fontWeight="700"
+        fontSize="56"
+      >
+        {label}
+      </text>
+      <text
+        x="438"
+        y="608"
+        fill={gold}
+        fontFamily="'Segoe UI', system-ui, -apple-system, sans-serif"
+        fontWeight="700"
+        fontSize="56"
+        textAnchor="end"
+        dominantBaseline="auto"
+        transform="rotate(180 438 608)"
+      >
+        {label}
+      </text>
+    </>
+  )
+}
+
 export function CardFaceSvg({
   digit,
+  decimal = false,
   className,
   style,
   ...props
-}: { digit: number } & Omit<SVGAttributes<SVGSVGElement>, 'children'>) {
+}: { digit: number; decimal?: boolean } & Omit<SVGAttributes<SVGSVGElement>, 'children'>) {
   const uid = useId().replace(/:/g, '')
-  const label = String(clampCardDigit(digit))
+  const label = decimal ? '.' : String(clampCardDigit(digit))
   const bgId = `card-bg-${uid}`
   const goldId = `card-gold-${uid}`
   const vignetteId = `card-vignette-${uid}`
@@ -102,47 +155,7 @@ export function CardFaceSvg({
         </g>
       ))}
 
-      {/* Center digit */}
-      <text
-        x="250"
-        y="372"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill={`url(#${goldId})`}
-        fontFamily="'Segoe UI', system-ui, -apple-system, sans-serif"
-        fontWeight="700"
-        fontSize="248"
-        letterSpacing="-6"
-      >
-        {label}
-      </text>
-
-      {/* Top-left index */}
-      <text
-        x="62"
-        y="92"
-        fill={`url(#${goldId})`}
-        fontFamily="'Segoe UI', system-ui, -apple-system, sans-serif"
-        fontWeight="700"
-        fontSize="56"
-      >
-        {label}
-      </text>
-
-      {/* Bottom-right index (inverted) */}
-      <text
-        x="438"
-        y="608"
-        fill={`url(#${goldId})`}
-        fontFamily="'Segoe UI', system-ui, -apple-system, sans-serif"
-        fontWeight="700"
-        fontSize="56"
-        textAnchor="end"
-        dominantBaseline="auto"
-        transform="rotate(180 438 608)"
-      >
-        {label}
-      </text>
+      <CardMarks gold={`url(#${goldId})`} label={label} />
     </svg>
   )
 }

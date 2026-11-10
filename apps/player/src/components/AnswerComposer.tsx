@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cardsInDigitOrder, NumericPlayingCard } from '@qhe/ui'
+import { cardsInDigitOrder, CardFaceSvg, NumericPlayingCard } from '@qhe/ui'
 import { formatTriviaPoints, type GameState, type NumericCard, type PlayerState } from '@qhe/core'
 import {
   ANSWER_CARD_COUNT,
@@ -271,11 +271,11 @@ function ComposerBuild(props: AnswerComposerProps) {
             trailing={
               <button
                 type="button"
-                className={`player-compose-key player-compose-decimal${decimalOn}`}
+                className={`player-compose-card player-compose-decimal${decimalOn}`}
                 onClick={onToggleDecimal}
                 aria-label="Decimal point"
               >
-                .
+                <CardFaceSvg digit={0} decimal aria-hidden />
               </button>
             }
           />

@@ -356,6 +356,17 @@ describe('player table orientation', () => {
     expect(block).not.toContain('.player-game-dock--inflow')
   })
 
+  it('shows the whole question on a narrow upright phone during a turn', () => {
+    const header = '@media (orientation: portrait) and (max-width: 360px)'
+    const block = mediaBlock(css.slice(css.indexOf('whole question on a narrow upright')), header)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain('.player-game-layout--with-dock .player-sticky-question')
+    expect(block).toContain('max-height: 4.6rem')
+    expect(block).toContain('overflow: visible')
+    expect(block).toContain('.player-sticky-question-text')
+    expect(block).toContain('font-size: 0.78rem')
+  })
+
   it('lets an upright phone show the rest of the question once the notice is gone', () => {
     const header = '@media (orientation: portrait) and (max-width: 500px)'
     const block = mediaBlock(css.slice(css.indexOf('notice is gone')), header)
@@ -390,15 +401,15 @@ describe('player table orientation', () => {
     const names = css.slice(css.indexOf('.player-seat-name,'), css.indexOf('.player-seat-name,') + 220)
     expect(names).toContain('font-size: 0.9rem')
     const tall = css.slice(
-      css.indexOf('A tall phone grows the live oval'),
-      css.indexOf('A tall phone grows the live oval') + 700,
+      css.indexOf('A tall phone keeps the wide oval'),
+      css.indexOf('A tall phone keeps the wide oval') + 700,
     )
     expect(tall).not.toContain('min-height: 20rem')
     expect(tall).toContain('orientation: portrait')
     expect(tall).not.toContain('max-aspect-ratio: 1/1')
-    expect(tall).toContain('aspect-ratio: 4 / 5')
-    expect(tall).toContain('height: auto')
-    expect(tall).toContain('scaleY(var(--player-felt-stretch, 1))')
+    expect(tall).toContain('aspect-ratio: 8 / 5')
+    expect(tall).not.toContain('aspect-ratio: 4 / 5')
+    expect(tall).not.toContain('scaleY')
     const wide = css.slice(
       css.indexOf('A sideways phone widens the live oval'),
       css.indexOf('A sideways phone widens the live oval') + 420,

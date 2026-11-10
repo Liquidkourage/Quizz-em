@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { cardsInDigitOrder, NumericPlayingCard } from '@qhe/ui'
 import { formatTriviaPoints, type GameState, type NumericCard, type PlayerState } from '@qhe/core'
 import {
@@ -103,25 +104,33 @@ function CardGroup({
   selected,
   source,
   onSelectCard,
+  cardsClassName,
+  trailing,
 }: {
   label: string
   cards: { card: NumericCard; index: number }[]
   selected: SelectedCardRef[]
   source: 'hand' | 'community'
   onSelectCard: (type: 'hand' | 'community', index: number) => void
+  cardsClassName?: string
+  trailing?: ReactNode
 }) {
+  const cardsClass = cardsClassName ? `player-compose-cards ${cardsClassName}` : 'player-compose-cards'
   return (
     <div className="player-compose-group">
       <p className="player-compose-label">{label}</p>
-      <div className="player-compose-cards">
-        {cards.map(({ card, index }) => (
-          <ComposeCard
-            key={`${source}-${index}`}
-            digit={card.digit}
-            used={selected.some((pick) => pick.type === source && pick.index === index)}
-            onPick={() => onSelectCard(source, index)}
-          />
-        ))}
+      <div className="player-compose-hand">
+        <div className={cardsClass}>
+          {cards.map(({ card, index }) => (
+            <ComposeCard
+              key={`${source}-${index}`}
+              digit={card.digit}
+              used={selected.some((pick) => pick.type === source && pick.index === index)}
+              onPick={() => onSelectCard(source, index)}
+            />
+          ))}
+        </div>
+        {trailing}
       </div>
     </div>
   )
@@ -237,6 +246,7 @@ function SharedCards({
       selected={selectedCards}
       source="community"
       onSelectCard={onSelectCard}
+      cardsClassName="player-compose-cards--street"
     />
   )
 }
@@ -258,16 +268,18 @@ function ComposerBuild(props: AnswerComposerProps) {
             selected={selectedCards}
             source="hand"
             onSelectCard={onSelectCard}
+            trailing={
+              <button
+                type="button"
+                className={`player-compose-key player-compose-decimal${decimalOn}`}
+                onClick={onToggleDecimal}
+                aria-label="Decimal point"
+              >
+                .
+              </button>
+            }
           />
           <SharedCards gameState={props.gameState} selectedCards={selectedCards} onSelectCard={onSelectCard} />
-          <button
-            type="button"
-            className={`player-compose-key player-compose-decimal${decimalOn}`}
-            onClick={onToggleDecimal}
-            aria-label="Decimal point"
-          >
-            .
-          </button>
         </div>
       </div>
       <div className="player-compose-tools">

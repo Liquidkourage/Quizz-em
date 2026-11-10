@@ -1,6 +1,8 @@
 import { createElement } from 'react'
 import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
+
+const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8').replace(/\r\n/g, '\n')
 import { describe, expect, it } from 'vitest'
 import { addPlayer, createEmptyGame, type GameState, type NumericCard } from '@qhe/core'
 import { EMPTY_COMPOSED_ANSWER } from '../playerModel/answerComposition'
@@ -86,6 +88,16 @@ describe('answer composer cards', () => {
     expect(rail.match(/player-compose-slot--empty/g)).toHaveLength(3)
     const withCards = html.slice(html.indexOf('player-compose-sources'), html.indexOf('player-compose-tools'))
     expect(withCards).toContain('aria-label="Decimal point"')
+    const hole = html.slice(html.indexOf('Your cards'), html.indexOf('Shared cards'))
+    expect(hole).toContain('player-compose-hand')
+    expect(hole).toContain('aria-label="Decimal point"')
+    expect(hole.indexOf('Card 9')).toBeLessThan(hole.indexOf('Decimal point'))
+    const street = html.slice(html.indexOf('Shared cards'), html.indexOf('player-compose-tools'))
+    expect(street).toContain('player-compose-cards--street')
+    expect(street).not.toContain('Decimal point')
+    const streetCss = css.slice(css.indexOf('.player-compose-cards--street'), css.indexOf('.player-compose-cards--street') + 280)
+    expect(streetCss).toContain('flex-wrap: nowrap')
+    expect(streetCss).toContain('min-width: 0')
     expect(html.slice(html.indexOf('player-compose-tools'))).not.toContain('Decimal point')
     expect(html).toContain('aria-label="Backspace"')
     expect(html).toContain('Clear')

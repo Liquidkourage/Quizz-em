@@ -76,6 +76,17 @@ describe('TableIntroduction', () => {
     expect(block).toContain('height: 100%')
   })
 
+  it('keeps pre-deal names readable when a sideways phone is short', () => {
+    const start = css.lastIndexOf('short sideways phone still reads the name')
+    const block = start < 0 ? '' : css.slice(start, start + 700)
+    expect(block).toContain('@container intro (min-aspect-ratio: 3/2)')
+    expect(block).toContain('font-size: 0.95rem')
+    expect(block).toContain('overflow: visible')
+    expect(block).toContain('.player-intro-stack')
+    expect(block).toContain('font-size: 0.85rem')
+    expect(block).toContain('height: 100%')
+  })
+
   it('widens the pre-deal table when the phone is sideways', () => {
     const start = css.indexOf('A sideways phone uses the width')
     const block = start < 0 ? '' : css.slice(start, start + 650)

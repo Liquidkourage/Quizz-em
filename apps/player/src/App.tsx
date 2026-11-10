@@ -810,14 +810,18 @@ function PlayerApp() {
               />
             ) : null}
 
-            {showLastHand ? (
-              <div className="player-game-fit-scroll player-game-fit-scroll--solo">
-                <PostHandSummaryCard summary={handSummary!} />
-              </div>
-            ) : null}
-            {showTableResults ? (
-              <div className="player-game-fit-scroll player-game-fit-scroll--solo">
-                <TableResultsPanel results={tableResults!} />
+            {showLastHand || showTableResults ? (
+              <div className="player-between-split">
+                {showLastHand ? (
+                  <div className="player-game-fit-scroll player-game-fit-scroll--solo">
+                    <PostHandSummaryCard summary={handSummary!} />
+                  </div>
+                ) : null}
+                {showTableResults ? (
+                  <div className="player-game-fit-scroll player-game-fit-scroll--solo">
+                    <TableResultsPanel results={tableResults!} />
+                  </div>
+                ) : null}
               </div>
             ) : null}
 

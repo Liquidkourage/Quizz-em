@@ -176,11 +176,15 @@ function TableChrome({
         />
       ) : null}
       {scene === 'between' ? (
-        <div className="player-game-fit-scroll player-game-fit-scroll--solo">
-          <PostHandSummaryCard summary={betweenSummary} />
+        <div className="player-between-split">
+          <div className="player-game-fit-scroll player-game-fit-scroll--solo">
+            <PostHandSummaryCard summary={betweenSummary} />
+          </div>
+          <ResultsBlock game={game} />
         </div>
+      ) : RESULT_SCENES.has(scene) ? (
+        <ResultsBlock game={game} />
       ) : null}
-      {RESULT_SCENES.has(scene) ? <ResultsBlock game={game} /> : null}
       {felt ? <FeltBlock game={game} youIndex={youIndex} /> : null}
     </div>
   )

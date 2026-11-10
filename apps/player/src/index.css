@@ -3799,6 +3799,42 @@
   gap: 0.55rem;
 }
 
+.player-between-split {
+  display: contents;
+}
+
+/* Short sideways between-hands: the scores sit in a slim rail so the results keep the height. */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 28rem) {
+  .player-between-split:has(.player-game-delta-grid):has(.player-table-results-scroll) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.4rem;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-between-split:has(.player-game-delta-grid):has(.player-table-results-scroll) > .player-game-fit-scroll--solo:first-child {
+    flex: 0 0 6.75rem;
+    max-width: 32%;
+    overflow: hidden;
+  }
+
+  .player-between-split:has(.player-game-delta-grid):has(.player-table-results-scroll) > .player-game-fit-scroll--solo:last-child {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .player-between-split .player-game-delta-grid {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
 .player-game-delta-cell {
   padding: 0.65rem;
   border-radius: 0.4rem;

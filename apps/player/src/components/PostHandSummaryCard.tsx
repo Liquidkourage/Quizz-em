@@ -21,7 +21,7 @@ function formatDelta(n: number, prefix: string): string {
 /** Personal stack/pts deltas only — answers live on Table results. */
 export default function PostHandSummaryCard({ summary }: PostHandSummaryCardProps) {
   return (
-    <PlayerGoldPanel title="Last hand">
+    <PlayerGoldPanel>
       <div className="player-game-delta-grid">
         <div className="player-game-delta-cell">
           <div className="player-game-delta-label">Stack</div>

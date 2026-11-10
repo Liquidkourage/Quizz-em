@@ -1,7 +1,7 @@
 ﻿/// <reference path="./vite-import-meta.d.ts" />
 
 import { io, Socket } from 'socket.io-client'
-import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import { VENUE_NUMBERED_TABLE_MAX, type PlayerPhasePreviewId } from '@qhe/core'
 import type {
   GameState,
   ClientHello,
@@ -346,6 +346,17 @@ export function onDisplayMosaicPreview(
 export function displayMosaicPreview(tableCount: number | null) {
   if (!socket) return
   socket.emit('action', { type: 'displayMosaicPreview', payload: { tableCount } })
+}
+
+export function onPlayerPhasePreview(
+  callback: (payload: { scene: PlayerPhasePreviewId | null }) => void,
+) {
+  return subscribeSocket('playerPhasePreview', callback)
+}
+
+export function showPlayerPhasePreview(scene: PlayerPhasePreviewId | null) {
+  if (!socket) return
+  socket.emit('action', { type: 'playerPhasePreview', payload: { scene } })
 }
 
 /** When `keepConnected`, drop pairing listeners only (venue handoff reuse). */

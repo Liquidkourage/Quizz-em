@@ -9,6 +9,7 @@ import {
   onSeated,
   onEventLeft,
   onPlayerVenueBrief,
+  onPlayerPhasePreview,
   quitEvent,
   fold,
   submitAnswer,
@@ -25,7 +26,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
-import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, mayLockGuess } from '@qhe/core'
+import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, mayLockGuess, type PlayerPhasePreviewId } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
   playerJoinBoot,
@@ -97,6 +98,7 @@ import { playerSocketKey } from './playerJoinSubmit'
 import PlayerScoresSheet from './components/PlayerScoresSheet'
 import { scoresSheetIdentity } from './components/playerScoresIdentity'
 import { PlayerGameScreen, PlayerGameShell, PlayerGoldHeaderRule } from './components/PlayerGoldChrome'
+import { PlayerPhasePreview } from './components/PlayerPhasePreview'
 
 type JoinPhase = 'form' | 'connecting' | 'in_venue' | 'still_seated'
 
@@ -126,6 +128,7 @@ function PlayerApp() {
   const [joinNonce, setJoinNonce] = useState(boot.nonce)
   const savedSeatAttempt = useRef<ResumeAttempt>(boot.phase === 'connecting' ? 'saved-phone' : 'join-form')
   const [gameState, setGameState] = useState<PlayerGameStateWire | null>(null)
+  const [phasePreview, setPhasePreview] = useState<PlayerPhasePreviewId | null>(null)
   const [venueBrief, setVenueBrief] = useState<PlayerVenueBrief | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [nudgeAlert, setNudgeAlert] = useState<{ text: string; id: number } | null>(null)
@@ -320,6 +323,7 @@ function PlayerApp() {
   }, [socket])
 
   useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
+  useEffect(() => onPlayerPhasePreview((payload) => setPhasePreview(payload.scene)), [])
 
   useEffect(() => {
     if (gameState?.phase === 'lobby') {
@@ -517,6 +521,8 @@ function PlayerApp() {
       } else showToast(`Error: ${ack.message}`, 5000)
     })
   }
+
+  if (phasePreview) return <PlayerPhasePreview scene={phasePreview} />
 
   if (joinPhase === 'connecting') {
     return <ConnectingScreen />

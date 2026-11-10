@@ -2129,6 +2129,12 @@ export {
 } from './displayPreviewFixture'
 export { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
 export { parseMosaicPreviewCount } from './mosaicPreviewCount'
+export {
+  PLAYER_PHASE_PREVIEWS,
+  parsePlayerPhasePreview,
+  playerPhasePreviewCopy,
+  type PlayerPhasePreviewId,
+} from './playerPhasePreview'
 export { balancedPhysicalSeats } from './balancedSeats'
 export {
   VENUE_CONDENSE_MAX_SEATS,

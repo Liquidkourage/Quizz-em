@@ -38,6 +38,8 @@ import {
   displaySetLayout,
   displayMosaicPreview,
   onDisplayMosaicPreview,
+  showPlayerPhasePreview,
+  onPlayerPhasePreview,
   onHostDisplays,
   pairDisplayWithHost,
   releaseDisplay,
@@ -49,7 +51,7 @@ import {
   selectTriviaSetlist,
   setlistSave,
 } from '@qhe/net'
-import type { BlindLevelEstimate, GameState, Question } from '@qhe/core'
+import type { BlindLevelEstimate, GameState, PlayerPhasePreviewId, Question } from '@qhe/core'
 import { HostBlindCall } from './HostBlindCall'
 import HostBlindPaceNotice, { showBlindPaceNotice } from './HostBlindPaceNotice'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
@@ -84,6 +86,7 @@ import { HostDeskShell } from './HostDeskShell'
 import { hostDeskFrameStyle } from './hostDeskScale'
 import { HostMoreMenu } from './HostMoreMenu'
 import { HostMosaicPreviewPanel } from './HostMosaicPreviewPanel'
+import { HostPlayerPhasePreviewPanel } from './HostPlayerPhasePreviewPanel'
 import { HostConnectedDisplays } from './HostConnectedDisplays'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
@@ -236,6 +239,7 @@ function HostApp() {
     getSocketConnectionStatus(),
   )
   const [mosaicPreviewCount, setMosaicPreviewCount] = useState<number | null>(null)
+  const [playerPhasePreview, setPlayerPhasePreview] = useState<PlayerPhasePreviewId | null>(null)
   const viteHostSecret =
     typeof import.meta.env.VITE_HOST_SECRET === 'string' ? import.meta.env.VITE_HOST_SECRET.trim() : ''
   /** Matches apps/server LOCAL_DEV_HOST_SECRET. Production builds send only VITE_HOST_SECRET. */
@@ -244,6 +248,10 @@ function HostApp() {
   useEffect(() => onSocketConnectionStatus(setConnectionStatus), [])
   useEffect(
     () => onDisplayMosaicPreview((payload) => setMosaicPreviewCount(payload.tableCount)),
+    [],
+  )
+  useEffect(
+    () => onPlayerPhasePreview((payload) => setPlayerPhasePreview(payload.scene)),
     [],
   )
 
@@ -750,6 +758,13 @@ function HostApp() {
                   onShow={(count) => {
                     setMosaicPreviewCount(count)
                     displayMosaicPreview(count)
+                  }}
+                />
+                <HostPlayerPhasePreviewPanel
+                  activeScene={playerPhasePreview}
+                  onShow={(scene) => {
+                    setPlayerPhasePreview(scene)
+                    showPlayerPhasePreview(scene)
                   }}
                 />
                 <HostRoomControls

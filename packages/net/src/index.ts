@@ -1,6 +1,6 @@
 ﻿import { z } from 'zod'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
-import type { GameState, Question, Setlist, SeatBettingAction } from '@qhe/core'
+import type { GameState, PlayerPhasePreviewId, Question, Setlist, SeatBettingAction } from '@qhe/core'
 
 export type { GameState, Question, Setlist, SeatBettingAction }
 
@@ -663,6 +663,8 @@ export interface ServerToClientEvents {
   displayVenueSnapshot: (payload: DisplayVenueWallSnapshot) => void
   /** Cosmetic mosaic on the TVs. Null puts the previous screen back. The game is not involved. */
   displayMosaicPreview: (payload: { tableCount: number | null }) => void
+  /** Cosmetic picture on the player phones. Null puts the live hand back. The game is not involved. */
+  playerPhasePreview: (payload: { scene: PlayerPhasePreviewId | null }) => void
   /** Player phones: venue-wide blinds, cue, survivor counts (updates with venue wall). */
   playerVenueBrief: (payload: PlayerVenueBrief) => void
   /** Display pairing: TV shows this 4-character code until the host claims it */

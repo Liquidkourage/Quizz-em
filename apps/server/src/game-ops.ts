@@ -77,8 +77,9 @@ import {
   venueShuffleDisplayFields,
   VENUE_CONDENSE_MAX_SEATS,
   VENUE_CONDENSE_MIN_SEATS,
+  parsePlayerPhasePreview,
 } from '@qhe/core'
-import type { Question, GameState } from '@qhe/core'
+import type { Question, GameState, PlayerPhasePreviewId } from '@qhe/core'
 import type { 
   ClientHello,
   DisplayLayoutPayload,
@@ -647,6 +648,37 @@ export function emitMosaicPreview(venueCode: string) {
   const payload = { tableCount: venueMosaicPreview.get(vn) ?? null }
   io.to(displayVenueRoom(vn)).emit('displayMosaicPreview', payload)
   io.to(hostVenueRoom(vn)).emit('displayMosaicPreview', payload)
+}
+
+/** Cosmetic phone picture. Not a game room and not a phase change. */
+export const venuePlayerPhasePreview = new Map<string, PlayerPhasePreviewId>()
+
+export function setVenuePlayerPhasePreview(
+  venueCode: string,
+  scene: unknown,
+): PlayerPhasePreviewId | null {
+  const vn = normalizeVenueCode(venueCode)
+  const parsed = parsePlayerPhasePreview(scene)
+  if (parsed === undefined) return venuePlayerPhasePreview.get(vn) ?? null
+  if (parsed === null) {
+    venuePlayerPhasePreview.delete(vn)
+    return null
+  }
+  venuePlayerPhasePreview.set(vn, parsed)
+  return parsed
+}
+
+export function playerPhasePreviewPayload(venueCode: string): { scene: PlayerPhasePreviewId | null } {
+  const vn = normalizeVenueCode(venueCode)
+  return { scene: venuePlayerPhasePreview.get(vn) ?? null }
+}
+
+export function emitPlayerPhasePreview(venueCode: string) {
+  if (!io) return
+  const payload = playerPhasePreviewPayload(venueCode)
+  const vn = normalizeVenueCode(venueCode)
+  io.to(playerVenueRoom(vn)).emit('playerPhasePreview', payload)
+  io.to(hostVenueRoom(vn)).emit('playerPhasePreview', payload)
 }
 
 export function normalizeDisplayFocusTable(raw: unknown): number | null {

@@ -1,5 +1,5 @@
 import type { Socket } from 'socket.io'
-import { parseMosaicPreviewCount, type GameState } from '@qhe/core'
+import { parseMosaicPreviewCount, parsePlayerPhasePreview, type GameState } from '@qhe/core'
 import type { ClientHello } from '@qhe/net'
 import * as g from '../game-ops'
 
@@ -38,8 +38,10 @@ export async function handleDisplayTransport(
       } else if (sockData.role === 'host') {
         g.emitDisplayVenueSnapshotNow(vn)
         socket.emit('hostLibrary', await g.buildHostLibraryPayload(vn))
+        socket.emit('playerPhasePreview', g.playerPhasePreviewPayload(vn))
       } else if (sockData.role === 'player') {
         g.emitPlayerVenueBriefNow(vn)
+        socket.emit('playerPhasePreview', g.playerPhasePreviewPayload(vn))
       }
       return true
     }
@@ -107,6 +109,29 @@ export async function handleDisplayTransport(
       }
       g.setVenueMosaicPreview(gsCtl.code, count)
       g.emitMosaicPreview(gsCtl.code)
+      return true
+    }
+
+    if (type === 'playerPhasePreview') {
+      const sessionKey = g.getActiveSessionKey(socket)
+      if (!sessionKey) {
+        socket.emit('toast', 'No room found')
+        return true
+      }
+      const gsCtl = g.rooms.get(sessionKey)
+      if (!gsCtl) {
+        socket.emit('toast', 'Game not found')
+        return true
+      }
+      if (!g.assertVenueHost(socket, gsCtl)) return true
+      const raw = payload && typeof payload === 'object' ? payload.scene : undefined
+      const scene = parsePlayerPhasePreview(raw)
+      if (scene === undefined) {
+        socket.emit('toast', 'That player screen is not one of the previews.')
+        return true
+      }
+      g.setVenuePlayerPhasePreview(gsCtl.code, scene)
+      g.emitPlayerPhasePreview(gsCtl.code)
       return true
     }
 

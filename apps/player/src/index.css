@@ -4586,6 +4586,17 @@
   }
 }
 
+/* Fold landscape is about 280px tall. Shared cards match the hole cards. Taller phones keep the shrinking row. */
+@media (orientation: landscape) and (max-height: 320px) {
+  .player-compose-cards--street .player-compose-card {
+    flex: 0 0 auto;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    max-width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
 /* The answer question fits a narrow phone when the type is a little smaller. */
 @media (max-width: 360px) {
   .player-compose-question {

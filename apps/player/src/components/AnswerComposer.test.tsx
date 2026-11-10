@@ -209,4 +209,20 @@ describe('answer composer on a short screen', () => {
     expect(block).toContain('@media (orientation: landscape) and (max-height: 520px)')
     expect(block).not.toContain('width: 2.15rem')
   })
+
+  it('matches shared cards to hole cards on a short sideways Fold', () => {
+    const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
+    const header = '@media (orientation: landscape) and (max-height: 320px)'
+    const at = css.indexOf(header)
+    const block = css.slice(at, at + 500)
+    expect(at).toBeGreaterThan(-1)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain('.player-compose-cards--street .player-compose-card')
+    expect(block).toContain('flex: 0 0 auto')
+    expect(block).toContain('width: 2.75rem')
+    expect(block).toContain('min-width: 2.75rem')
+    expect(block).toContain('max-width: 2.75rem')
+    const street = css.slice(css.indexOf('.player-compose-cards--street'), css.indexOf('.player-compose-cards--street') + 280)
+    expect(street).toContain('min-width: 0')
+  })
 })

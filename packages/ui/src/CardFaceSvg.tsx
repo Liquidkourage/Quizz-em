@@ -73,7 +73,7 @@ export function CardFaceSvg({
 
   return (
     <svg
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      viewBox={decimal ? '2 2 496 696' : `0 0 ${VIEW_W} ${VIEW_H}`}
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={style}

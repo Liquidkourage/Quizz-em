@@ -535,6 +535,25 @@
   gap: clamp(0.65rem, 2vw, 0.85rem);
 }
 
+.player-join-code-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: clamp(0.65rem, 2vw, 0.85rem);
+}
+
+.player-join-code-row .player-join-field {
+  flex: 1 1 8.5rem;
+  min-width: 0;
+}
+
+.player-join-code-row .player-join-btn {
+  flex: 0 0 auto;
+  width: auto;
+  padding-inline: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
 .player-join-field {
   display: flex;
   flex-direction: column;

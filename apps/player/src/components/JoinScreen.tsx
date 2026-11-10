@@ -145,40 +145,41 @@ export default function JoinScreen({
                   </div>
                 </div>
 
-                {!roomLocked ? (
-                  <div className="player-join-field">
-                    <label htmlFor="player-venue-code" className="player-join-label">
-                      Venue code
-                    </label>
-                    <input
-                      id="player-venue-code"
-                      ref={venueCodeInputRef}
-                      type="text"
-                      placeholder="HOST01"
-                      value={prefs.roomCode}
-                      onChange={(e) => patch({ roomCode: e.target.value.toUpperCase() })}
-                      autoComplete="off"
-                      autoCapitalize="characters"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      enterKeyHint="go"
-                      className="player-join-input player-join-input--code"
-                    />
+                <div className="player-join-code-row">
+                  {!roomLocked ? (
+                    <div className="player-join-field">
+                      <label htmlFor="player-venue-code" className="player-join-label">
+                        Venue code
+                      </label>
+                      <input
+                        id="player-venue-code"
+                        ref={venueCodeInputRef}
+                        type="text"
+                        placeholder="HOST01"
+                        value={prefs.roomCode}
+                        onChange={(e) => patch({ roomCode: e.target.value.toUpperCase() })}
+                        autoComplete="off"
+                        autoCapitalize="characters"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        enterKeyHint="go"
+                        className="player-join-input player-join-input--code"
+                      />
+                    </div>
+                  ) : null}
+                  <div className="player-join-btn-row">
+                    <JoinDiamond />
+                    <button type="button" className="player-join-btn" disabled={!canJoin} onClick={handleJoinClick}>
+                      {isConnecting ? 'Connecting…' : 'Join game'}
+                    </button>
+                    <JoinDiamond />
                   </div>
-                ) : null}
+                </div>
 
                 {joinError ? <p className="player-join-error">{joinError}</p> : null}
               </div>
 
               <div className="player-join-actions">
-                <div className="player-join-btn-row">
-                  <JoinDiamond />
-                  <button type="button" className="player-join-btn" disabled={!canJoin} onClick={handleJoinClick}>
-                    {isConnecting ? 'Connecting…' : 'Join game'}
-                  </button>
-                  <JoinDiamond />
-                </div>
-
                 <p className="player-join-footnote">
                   You&apos;ll be assigned a table when the host starts.
                 </p>

@@ -1,0 +1,38 @@
+---
+description: Player controls and the confirmed player screens are approved as-is. Do not change them unless the user explicitly asks.
+alwaysApply: true
+---
+
+# Player controls are frozen
+
+The **player controls** and the player screens confirmed on devices are **approved as-is**. Do **not** modify them unless the user **explicitly countermands** this rule (for example “change the player controls”, “lift the player freeze”, “move the decimal”).
+
+This covers `apps/player` and any shared code whose change would alter what a player sees or taps. Host, server, and public-display work stays allowed when the player picture stays the same.
+
+## Approved screens
+
+Join, connecting, waiting room, the pre-deal table, the question, your turn, your guess, guess sent, folded, results, the next question, and game over. Hold to peek and the in-hand Quit stay as they are.
+
+## Do not change (without explicit user request)
+
+- Where a control sits, its label, its size, or which controls a screen has
+- The wide oval, the question box, the bet buttons, or the call line
+- The guess keypad, the decimal beside the hole cards, or the street cards on one row
+- Seat names, chip amounts, results columns, or the pre-deal table
+- Spacing, type size, or “drive-by” refactors that move these styles and alter how a control looks
+
+The responsive and surgical player rules still describe the bar those screens already meet. They do not authorize another pass over a screen that already passed.
+
+## Allowed without countermand
+
+- Read-only investigation and answers about how a player screen works
+- A crash or wrong-data fix that leaves the picture identical; say so in the commit message
+
+## When the user countermands
+
+Proceed with their specific instruction only for that turn (or the scope they name). Do not broaden it.
+
+## Checklist before editing the player
+
+- [ ] Would this change what a player sees or taps? If yes, did the user explicitly request it?
+- [ ] If a player control was touched without that request, revert those hunks.

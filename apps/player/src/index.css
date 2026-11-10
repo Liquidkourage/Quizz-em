@@ -4528,6 +4528,44 @@
   }
 }
 
+/* The answer question fits a narrow phone when the type is a little smaller. */
+@media (max-width: 360px) {
+  .player-compose-question {
+    padding: 0.3rem 0.45rem;
+  }
+
+  .player-compose-question .player-game-question-label {
+    margin-bottom: 0.1rem;
+    font-size: 0.6rem;
+    line-height: 1.1;
+  }
+
+  .player-compose-question .player-game-question-text {
+    font-size: 0.7rem;
+    line-height: 1.15;
+  }
+}
+
+/* The answer question fits a short phone when the type is a little smaller. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
+  .player-compose-question {
+    max-height: 2.6rem;
+    padding-top: 0.08rem;
+    padding-bottom: 0.08rem;
+  }
+
+  .player-game-modal-body .player-compose-question .player-game-question-label {
+    margin-bottom: 0;
+    font-size: 0.5rem;
+    line-height: 1;
+  }
+
+  .player-game-modal-body .player-compose-question .player-game-question-text {
+    font-size: 0.7rem;
+    line-height: 1.15;
+  }
+}
+
 .player-game-modal-body .player-game-panel {
   border: none;
   background: transparent;

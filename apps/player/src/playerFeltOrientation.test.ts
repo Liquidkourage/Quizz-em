@@ -406,4 +406,26 @@ describe('player table orientation', () => {
     expect(wide).toContain('min-aspect-ratio: 3/2')
     expect(wide).toContain('aspect-ratio: 2 / 1')
   })
+
+  it('shrinks the answer question on the phones where it was cut off', () => {
+    const narrow = mediaBlock(
+      css.slice(css.indexOf('answer question fits a narrow phone')),
+      '@media (max-width: 360px)',
+    )
+    expect(narrow.startsWith('@media (max-width: 360px)')).toBe(true)
+    expect(narrow).toContain('.player-compose-question .player-game-question-text')
+    expect(narrow).toContain('font-size: 0.7rem')
+    expect(narrow).toContain('line-height: 1.15')
+
+    const short = mediaBlock(
+      css.slice(css.indexOf('answer question fits a short phone')),
+      '@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px)',
+    )
+    expect(short.startsWith('@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px)')).toBe(
+      true,
+    )
+    expect(short).toContain('.player-compose-question .player-game-question-text')
+    expect(short).toContain('font-size: 0.7rem')
+    expect(short).not.toContain('font-size: 1rem')
+  })
 })

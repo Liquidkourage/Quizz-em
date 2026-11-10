@@ -3636,8 +3636,8 @@
 
 .player-table-results-row {
   display: grid;
-  grid-template-columns: minmax(5.25rem, 1.25fr) repeat(5, minmax(2.75rem, 0.72fr));
-  min-width: 24rem;
+  grid-template-columns: minmax(0, 1.45fr) repeat(5, minmax(0, 1fr));
+  min-width: 0;
   gap: 0.3rem;
   align-items: center;
   padding: 0.4rem 0.5rem;
@@ -3681,6 +3681,7 @@
 .player-table-results-num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .player-table-results-name {
@@ -5796,5 +5797,82 @@
 
   .player-table-open {
     grid-column: 3;
+  }
+}
+
+/* The results table fits a narrow phone when every column shares the width. */
+@media (max-width: 420px) {
+  .player-game-panel:has(.player-table-results-scroll) {
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+  }
+
+  .player-game-layout--live-fit .player-game-fit-scroll--solo .player-table-results-scroll {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .player-table-results-row {
+    gap: 0.12rem;
+    padding: 0.22rem 0.08rem;
+    font-size: 0.62rem;
+    line-height: 1.1;
+  }
+
+  .player-table-results-row--head {
+    font-size: 0.52rem;
+    letter-spacing: 0;
+  }
+
+  .player-table-results-you {
+    padding: 0 0.12rem;
+    font-size: 0.48rem;
+  }
+}
+
+/* The results table fits a short phone when the rows sit tighter. */
+@media (max-height: 400px) {
+  .player-game-panel:has(.player-table-results-scroll) {
+    padding: 0.15rem 0.4rem;
+  }
+
+  .player-game-panel:has(.player-table-results-scroll) .player-game-panel-title {
+    margin-bottom: 0.12rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+  }
+
+  .player-table-results-header {
+    margin-bottom: 0.1rem;
+  }
+
+  .player-table-results-correct,
+  .player-table-results-winners,
+  .player-table-results-you-line,
+  .player-table-results-best {
+    font-size: 0.68rem;
+    line-height: 1.1;
+  }
+
+  .player-table-results-winners,
+  .player-table-results-you-line,
+  .player-table-results-best {
+    margin-top: 0.04rem;
+  }
+
+  .player-game-layout--live-fit .player-game-fit-scroll--solo .player-table-results-scroll {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .player-table-results-row {
+    gap: 0.15rem;
+    padding: 0.08rem 0.15rem;
+    line-height: 1.05;
+  }
+
+  .player-table-results-row--head {
+    font-size: 0.58rem;
   }
 }

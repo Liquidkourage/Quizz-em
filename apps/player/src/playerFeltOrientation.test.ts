@@ -428,4 +428,33 @@ describe('player table orientation', () => {
     expect(short).toContain('font-size: 0.7rem')
     expect(short).not.toContain('font-size: 1rem')
   })
+
+  it('fits every results column and row on a phone', () => {
+    const row = css.slice(
+      css.indexOf('.player-table-results-row {'),
+      css.indexOf('.player-table-results-row:last-child'),
+    )
+    expect(row).toContain('minmax(0, 1.45fr) repeat(5, minmax(0, 1fr))')
+    expect(row).toContain('min-width: 0')
+    expect(row).not.toContain('min-width: 24rem')
+    expect(row).not.toContain('minmax(2.75rem')
+
+    const narrow = mediaBlock(
+      css.slice(css.indexOf('results table fits a narrow phone')),
+      '@media (max-width: 420px)',
+    )
+    expect(narrow.startsWith('@media (max-width: 420px)')).toBe(true)
+    expect(narrow).toContain('.player-table-results-row')
+    expect(narrow).toContain('font-size: 0.62rem')
+    expect(narrow).toContain('overflow: visible')
+
+    const short = mediaBlock(
+      css.slice(css.indexOf('results table fits a short phone')),
+      '@media (max-height: 400px)',
+    )
+    expect(short.startsWith('@media (max-height: 400px)')).toBe(true)
+    expect(short).toContain('.player-table-results-row')
+    expect(short).toContain('padding: 0.08rem 0.15rem')
+    expect(short).toContain('overflow: visible')
+  })
 })

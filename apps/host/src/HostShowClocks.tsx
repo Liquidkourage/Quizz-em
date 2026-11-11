@@ -219,30 +219,3 @@ export function HostShowClocks({
   )
 }
 
-/** The 30s nudge, and how many players the room is still waiting on. */
-export function HostNudgeClock({
-  rows,
-  nowMs,
-}: {
-  rows: readonly HostVenueFeltBeatRow[] | null
-  nowMs?: number
-}) {
-  const now = useClockNow(nowMs)
-  const soonest = soonestNudgeSeconds(rows, now)
-  const waiting = playersStillWaitedOn(rows)
-  if (soonest == null && waiting === 0) return null
-  return (
-    <>
-      {soonest != null ? (
-        <div aria-label={`${soonest} seconds left on the nudge`}>
-          <ClockFace label="Nudge" value={String(soonest)} urgent={soonest <= 10} />
-        </div>
-      ) : null}
-      {waiting > 0 ? (
-        <div aria-label={`Waiting on ${waiting}`}>
-          <ClockFace label="Waiting on" value={String(waiting)} roomy />
-        </div>
-      ) : null}
-    </>
-  )
-}

@@ -8,7 +8,7 @@ import {
   type HostDockItem,
   isHostWaitingForJoiners,
 } from './hostDeskLayout'
-import { HostNudgeClock, HostShowClocks } from './HostShowClocks'
+import { HostShowClocks } from './HostShowClocks'
 
 export function HostLivePanel({
   gameState,
@@ -113,7 +113,6 @@ export function HostLivePanel({
           handStartedAtMs={handStartedAtMs}
           phaseStartedAtMs={phaseStartedAtMs}
         />
-        <HostNudgeClock rows={venueFeltBeat} />
         <HostAnswerClock rows={venueFeltBeat} />
       </div>
 

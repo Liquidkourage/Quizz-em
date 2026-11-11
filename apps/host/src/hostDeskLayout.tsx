@@ -26,7 +26,13 @@ import {
 import { nowOnServerClock } from './serverClock'
 import { adminCloseBetting, TABLE_PHASE_OVERRIDES } from '@qhe/net'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
-import { feltCountdownSec, formatElapsedClock, tableActionClockStart } from './HostShowClocks'
+import {
+  feltCountdownSec,
+  formatElapsedClock,
+  playersStillWaitedOn,
+  soonestNudgeSeconds,
+  tableActionClockStart,
+} from './HostShowClocks'
 import { hostEndgameWinnerName } from './hostEndgame'
 import { manyTablesStillBetting, WAITING_ON_TABLES_TO_BET } from './hostVenueActionGates'
 
@@ -3219,17 +3225,29 @@ export function soonestAnswerSeconds(
   return soonest
 }
 
-/** Live guessing countdown. Stays on the desk while the other table controls sit in a popup. */
-export function HostAnswerClock({ rows }: { rows: readonly HostVenueFeltBeatRow[] | null }) {
+/** Guessing countdown. A running nudge takes this box, with the outstanding count in parentheses. */
+export function HostAnswerClock({
+  rows,
+  nowMs,
+}: {
+  rows: readonly HostVenueFeltBeatRow[] | null
+  nowMs?: number
+}) {
   const [, setTick] = useState(0)
-  const soonest = soonestAnswerSeconds(rows, nowOnServerClock())
+  const now = nowMs ?? nowOnServerClock()
+  const nudge = soonestNudgeSeconds(rows, now)
+  const answer = nudge == null ? soonestAnswerSeconds(rows, now) : null
+  const seconds = nudge ?? answer
+  const waiting = playersStillWaitedOn(rows)
   useEffect(() => {
-    if (soonest == null) return
+    if (nowMs != null || seconds == null) return
     const id = window.setInterval(() => setTick((n) => n + 1), 250)
     return () => window.clearInterval(id)
-  }, [soonest])
-  if (soonest == null) return null
-  const urgent = soonest <= 10
+  }, [nowMs, seconds])
+  if (seconds == null) return null
+  const urgent = seconds <= 10
+  const name = nudge != null ? 'Nudge' : 'Answer clock'
+  const label = waiting > 0 ? `${name} (${waiting})` : name
   return (
     <div
       className={`flex w-32 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 ${
@@ -3238,17 +3256,21 @@ export function HostAnswerClock({ rows }: { rows: readonly HostVenueFeltBeatRow[
           : 'border-amber-300/75 bg-amber-950/45'
       }`}
       aria-live="polite"
-      aria-label={`${soonest} seconds left on the answer clock`}
+      aria-label={`${seconds} seconds left on the ${nudge != null ? 'nudge' : 'answer clock'}`}
     >
-      <span className="text-center text-[0.65rem] font-bold uppercase leading-tight tracking-[0.12em] text-amber-100/85">
-        Answer clock
+      <span
+        className={`text-center text-[0.65rem] font-bold uppercase leading-tight text-amber-100/85 ${
+          waiting > 0 ? 'tracking-normal' : 'tracking-[0.12em]'
+        }`}
+      >
+        {label}
       </span>
       <span
         className={`font-mono text-4xl font-black leading-none tabular-nums ${
           urgent ? 'text-rose-200' : 'text-amber-200'
         }`}
       >
-        {soonest}
+        {seconds}
       </span>
     </div>
   )

@@ -2,8 +2,8 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
+import { HostAnswerClock } from './hostDeskLayout'
 import {
-  HostNudgeClock,
   HostShowClocks,
   formatElapsedClock,
   lastActionAtMs,
@@ -134,29 +134,24 @@ describe('host show clocks', () => {
     expect(nudgeSlowPlayersLabel(1)).toBe('Nudge slow players (1)')
   })
 
-  it('shows the nudge timer and how many players the room is still waiting on', () => {
+  it('puts the waiting count on the answer clock until the nudge takes its place', () => {
     const now = 1_000_000
-    const rows = [
-      felt({ phase: 'answering', turnDeadlineMs: now + 30_000, playersWaiting: 2, answerDeadlineMs: now }),
-      felt({ tableNum: 2, phase: 'answering', playersWaiting: 1, answerDeadlineMs: now }),
+    const guessing = [
+      felt({ phase: 'answering', playersWaiting: 2, answerDeadlineMs: now + 45_000 }),
+      felt({ tableNum: 2, phase: 'answering', playersWaiting: 1, answerDeadlineMs: now + 40_000 }),
     ]
-    expect(soonestNudgeSeconds(rows, now)).toBe(30)
-    const html = renderToStaticMarkup(createElement(HostNudgeClock, { rows, nowMs: now }))
-    expect(html).toContain('Nudge')
-    expect(html).toContain('30')
-    expect(html).toContain('Waiting on')
-    expect(html).toContain('>3<')
-  })
+    const before = renderToStaticMarkup(createElement(HostAnswerClock, { rows: guessing, nowMs: now }))
+    expect(before).toContain('Answer clock (3)')
+    expect(before).toContain('40')
+    expect(before).not.toContain('Nudge')
 
-  it('shows who is still outstanding before a nudge starts', () => {
-    const html = renderToStaticMarkup(
-      createElement(HostNudgeClock, {
-        rows: [felt({ phase: 'betting', playersWaiting: 4 })],
-        nowMs: 1_000_000,
-      }),
+    const nudged = guessing.map((row, index) =>
+      index === 0 ? { ...row, turnDeadlineMs: now + 30_000 } : row,
     )
-    expect(html).toContain('Waiting on')
-    expect(html).toContain('>4<')
-    expect(html).not.toContain('Nudge')
+    expect(soonestNudgeSeconds(nudged, now)).toBe(30)
+    const after = renderToStaticMarkup(createElement(HostAnswerClock, { rows: nudged, nowMs: now }))
+    expect(after).toContain('Nudge (3)')
+    expect(after).toContain('30')
+    expect(after).not.toContain('Answer clock')
   })
 })

@@ -5417,10 +5417,12 @@
     0 0 0 4px #5c3a0c,
     inset 0 0 0 8px rgb(255 244 210 / 0.28),
     0 8px 14px rgb(0 0 0 / 0.45);
-  color: #3a2208;
-  font-weight: 900;
+  color: #1a0e04;
+  font-family: 'Bungee', system-ui, sans-serif;
+  font-weight: 400;
+  font-synthesis: none;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   animation: felt-bet-glide 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 

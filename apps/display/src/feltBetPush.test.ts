@@ -5,6 +5,7 @@ import {
   FeltBetPushMarks,
   advanceBetPushes,
   betPushFits,
+  betPushFontPx,
   betPushPoint,
   boxAround,
   chipsAdded,
@@ -124,5 +125,10 @@ describe('chips just put in the pot', () => {
     expect(html).toContain('--felt-bet-from-left:12%')
     expect(html).toContain('--felt-bet-from-top:78%')
     expect(html).toContain('72px')
+    expect(html).toContain('Bungee')
+  })
+
+  it('sets the amount a little larger than the chip used to allow', () => {
+    expect(betPushFontPx(40, 72)).toBe(30)
   })
 })

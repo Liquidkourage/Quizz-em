@@ -42,8 +42,8 @@ export function betPushChipPx(ringShort: number): number {
 
 export function betPushFontPx(amount: number, chipPx: number): number {
   const text = formatVenueBankroll(amount)
-  const fitted = Math.floor((chipPx * 0.72) / Math.max(1, text.length * 0.62))
-  return Math.max(8, Math.min(32, fitted))
+  const fitted = Math.floor((chipPx * 0.86) / Math.max(1, text.length * 0.68))
+  return Math.max(10, Math.min(40, fitted))
 }
 
 export function boxAround(center: Point, width: number, height: number): Box {
@@ -206,6 +206,7 @@ export function FeltBetPushMarks({
             top: `${mark.topPct}%`,
             width: mark.sizePx,
             height: mark.sizePx,
+            fontFamily: 'Bungee, system-ui, sans-serif',
             fontSize: betPushFontPx(mark.amount, mark.sizePx),
             ['--felt-bet-from-left' as string]: `${mark.fromLeftPct}%`,
             ['--felt-bet-from-top' as string]: `${mark.fromTopPct}%`,

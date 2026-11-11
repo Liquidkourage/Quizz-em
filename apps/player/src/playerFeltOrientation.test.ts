@@ -453,6 +453,20 @@ describe('player table orientation', () => {
     expect(short).not.toContain('font-size: 1rem')
   })
 
+  it('gives table results the spare portrait height so the rows can spread', () => {
+    const header = '@media (orientation: portrait)'
+    const block = mediaBlock(css.slice(css.indexOf('table results use the spare portrait height')), header)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain('.player-game-shell')
+    expect(block).toContain('flex: 1 1 auto')
+    expect(block).toContain('.player-game-panel:has(.player-table-results-scroll)')
+    expect(block).toContain('.player-table-results-row:not(.player-table-results-row--head)')
+    expect(block).toContain('.player-table-results-correct')
+    expect(block).toContain('font-size: clamp(1.05rem, 2.6vh, 1.5rem)')
+    expect(block).not.toContain('margin-top: auto')
+    expect(block).not.toContain('orientation: landscape')
+  })
+
   it('fits every results column and row on a phone', () => {
     const row = css.slice(
       css.indexOf('.player-table-results-row {'),

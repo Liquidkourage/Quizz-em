@@ -6010,3 +6010,69 @@
     font-size: 0.58rem;
   }
 }
+
+/* The table results use the spare portrait height. Landscape keeps the fitted rows. */
+@media (orientation: portrait) {
+  .player-game-layout--live-fit:has(.player-table-results-scroll) .player-game-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .player-game-layout--live-fit:has(.player-table-results-scroll) .player-game-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit .player-between-split:has(.player-table-results-scroll) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .player-game-layout--live-fit .player-game-fit-scroll--solo:has(.player-table-results-scroll) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit .player-game-panel:has(.player-table-results-scroll) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .player-game-layout--live-fit .player-table-results-header {
+    flex: 0 0 auto;
+  }
+
+  .player-game-layout--live-fit .player-game-fit-scroll--solo .player-table-results-scroll {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    max-height: none;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .player-game-layout--live-fit .player-table-results-row:not(.player-table-results-row--head) {
+    flex: 1 1 auto;
+  }
+
+  .player-game-layout--live-fit .player-table-results-row--head {
+    flex: 0 0 auto;
+  }
+
+  .player-game-layout--live-fit .player-table-results-correct {
+    font-size: clamp(1.05rem, 2.6vh, 1.5rem);
+  }
+
+  .player-game-layout--live-fit .player-table-results-winners,
+  .player-game-layout--live-fit .player-table-results-you-line {
+    font-size: clamp(0.95rem, 2.2vh, 1.25rem);
+  }
+}

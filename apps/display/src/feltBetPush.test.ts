@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest'
 import {
   FeltBetPushMarks,
   advanceBetPushes,
+  betPushChipPx,
+  betPushCoversStreet,
   betPushFits,
   betPushFontPx,
   betPushPoint,
@@ -65,7 +67,7 @@ describe('chips just put in the pot', () => {
         amount: 40,
         leftPct: 30,
         topPct: (160 / 240) * 100,
-        sizePx: 48,
+        sizePx: 53,
       }),
     ])
   })
@@ -130,5 +132,14 @@ describe('chips just put in the pot', () => {
 
   it('sets the amount a little larger than the chip used to allow', () => {
     expect(betPushFontPx(40, 72)).toBe(30)
+  })
+
+  it('grows to the open patch on a four-table felt', () => {
+    expect(betPushChipPx(364)).toBe(80)
+  })
+
+  it('may rest on the street once the felt is about an eight-table size', () => {
+    expect(betPushCoversStreet(262)).toBe(true)
+    expect(betPushCoversStreet(364)).toBe(false)
   })
 })

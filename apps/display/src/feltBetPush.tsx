@@ -34,10 +34,19 @@ export function betPushPoint(seat: Point, pot: Point): Point {
   return { x: (seat.x + pot.x) / 2, y: (seat.y + pot.y) / 2 }
 }
 
-/** A disc big enough to read across the room, and still able to sit on open felt. */
+/**
+ * Largest disc the felt can hold.
+ * A four-table felt has an open patch of about 80px beside the cards.
+ * One table stops at 88.
+ */
 export function betPushChipPx(ringShort: number): number {
   if (!(ringShort > 0)) return 48
-  return Math.round(Math.min(88, Math.max(48, ringShort * 0.09)))
+  return Math.round(Math.min(88, Math.max(48, ringShort * 0.22)))
+}
+
+/** Eight-table felts and smaller. The middle is the roomiest spot, so the cue may rest on the street. */
+export function betPushCoversStreet(ringShort: number): boolean {
+  return ringShort > 0 && ringShort <= 300
 }
 
 export function betPushFontPx(amount: number, chipPx: number): number {
@@ -371,9 +380,10 @@ export function FeltBetPushLayer({
   const nameFont = mode === 'mosaic' ? mosaicSeatInitialFontPx(ringW, ringH) : Math.max(18, Math.round(ringH * 0.045))
   const seats: (Point | null)[] = []
   const obstacles: Box[] = []
-  const pot = textBox({ x: center.x, y: center.y + potShiftY }, potLabel, potFontPx)
+  const coverStreet = betPushCoversStreet(Math.min(ringW, ringH))
+  const pot = coverStreet ? null : textBox({ x: center.x, y: center.y + potShiftY }, potLabel, potFontPx)
   if (pot) obstacles.push(pot)
-  if (boardWidth > 0 && boardHeight > 0) {
+  if (!coverStreet && boardWidth > 0 && boardHeight > 0) {
     obstacles.push(boxAround({ x: center.x, y: center.y + boardShiftY }, boardWidth, boardHeight))
   }
   for (let seat = 0; seat < MOSAIC_SEAT_COUNT; seat += 1) {

@@ -384,7 +384,10 @@ describe('player table orientation', () => {
     expect(question.startsWith('@media (orientation: portrait) and (min-height: 640px)')).toBe(true)
     expect(question).toContain('.player-game-layout--question')
     expect(question).toContain('justify-content: flex-end')
-    expect(question).toContain('font-size: clamp(1.6rem, 18cqh, 5.5rem)')
+    expect(question).toContain('overflow: hidden')
+    expect(question).toContain('max-height: min(28vh, 8.5rem)')
+    expect(question).toContain('overflow-wrap: normal')
+    expect(question).not.toContain('18cqh')
     expect(question).not.toContain('.player-game-layout--with-dock .player-game-shell')
     expect(question).not.toContain('orientation: landscape')
 

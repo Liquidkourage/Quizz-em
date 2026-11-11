@@ -1693,6 +1693,8 @@
   .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question-text {
     font-size: clamp(1.35rem, 5.5vh, 2.75rem);
     line-height: 1.25;
+    overflow-wrap: normal;
+    word-break: normal;
   }
 
   .player-game-layout--live-fit.player-game-layout--question .player-seated-table {
@@ -1700,15 +1702,21 @@
   }
 }
 
-/* A tall portrait question sits on the table. Shorter phones keep the size that already fits. */
+/* A tall portrait question sits on the table and shrinks until the whole question fits. */
 @media (orientation: portrait) and (min-height: 640px) {
   .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question {
     justify-content: flex-end;
-    container-type: size;
+    overflow: hidden;
   }
 
-  .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question-text {
-    font-size: clamp(1.6rem, 18cqh, 5.5rem);
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-sticky-question {
+    max-height: min(28vh, 8.5rem);
+    overflow: hidden;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-sticky-question-text {
+    overflow-wrap: normal;
+    word-break: normal;
   }
 }
 

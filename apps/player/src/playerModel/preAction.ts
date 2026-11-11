@@ -34,6 +34,16 @@ export function bettingTurnKey(roundId: string, bettingRound: number, seat: numb
   return `${roundId}:${bettingRound}:${seat}`
 }
 
+/** No key until this hand has a street and a seat to act. */
+export function bettingTurnKeyFromRound(round: {
+  roundId: string
+  bettingRound?: number | null
+  currentPlayerIndex?: number | null
+}): string | null {
+  if (typeof round.bettingRound !== 'number' || typeof round.currentPlayerIndex !== 'number') return null
+  return bettingTurnKey(round.roundId, round.bettingRound, round.currentPlayerIndex)
+}
+
 /** True when this seat has not already acted for the current turn. */
 export function autoActionShouldFire(
   limit: number | null,

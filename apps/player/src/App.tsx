@@ -62,7 +62,7 @@ import { nextDealFlash, type DealFlash, type DealSnapshot } from './playerModel/
 import { eliminationPopupHandKey, seatlessPhoneKeepsFelt, type EliminationWatch } from './playerModel/eliminationPopup'
 import { playerEndgameView } from './playerModel/playerEndgame'
 import { lockedAnswerDisplayText, optimisticGuessStillShown } from './playerModel/lockedAnswerDisplay'
-import { autoActionShouldFire, bettingTurnKey, preActionAlert, resolveAutoAction } from './playerModel/preAction'
+import { autoActionShouldFire, bettingTurnKeyFromRound, preActionAlert, resolveAutoAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
@@ -466,19 +466,14 @@ function PlayerApp() {
   const preActTurnKeyRef = useRef('')
   const claimManualTurn = () => {
     if (!gameState) return
-    preActTurnKeyRef.current = bettingTurnKey(
-      gameState.round.roundId,
-      gameState.round.bettingRound,
-      gameState.round.currentPlayerIndex,
-    )
+    const turnKey = bettingTurnKeyFromRound(gameState.round)
+    if (turnKey == null) return
+    preActTurnKeyRef.current = turnKey
   }
   useEffect(() => {
     if (!bettingCtx || !gameState || currentPlayer == null) return
-    const turnKey = bettingTurnKey(
-      gameState.round.roundId,
-      gameState.round.bettingRound,
-      gameState.round.currentPlayerIndex,
-    )
+    const turnKey = bettingTurnKeyFromRound(gameState.round)
+    if (turnKey == null) return
     if (autoCallLimitRef.current == null) return
     if (!autoActionShouldFire(autoCallLimitRef.current, bettingCtx.isMyTurn, turnKey, preActTurnKeyRef.current)) return
     preActTurnKeyRef.current = turnKey

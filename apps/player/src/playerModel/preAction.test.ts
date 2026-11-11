@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { autoActionShouldFire, autoCallLimitFromInput, preActionAlert, resolveAutoAction } from './preAction'
+import { autoActionShouldFire, autoCallLimitFromInput, bettingTurnKeyFromRound, preActionAlert, resolveAutoAction } from './preAction'
 
 describe('resolveAutoAction', () => {
   it('checks when nothing is owed, whatever the limit', () => {
@@ -37,5 +37,11 @@ describe('resolveAutoAction', () => {
     expect(autoActionShouldFire(20, true, 'hand:1:2', 'hand:1:2')).toBe(false)
     expect(autoActionShouldFire(null, true, 'hand:1:2', '')).toBe(false)
     expect(autoActionShouldFire(20, false, 'hand:1:2', '')).toBe(false)
+  })
+
+  it('skips a turn key until the street and the seat are known', () => {
+    expect(bettingTurnKeyFromRound({ roundId: 'hand', bettingRound: 1, currentPlayerIndex: 2 })).toBe('hand:1:2')
+    expect(bettingTurnKeyFromRound({ roundId: 'hand', currentPlayerIndex: 2 })).toBeNull()
+    expect(bettingTurnKeyFromRound({ roundId: 'hand', bettingRound: 1 })).toBeNull()
   })
 })

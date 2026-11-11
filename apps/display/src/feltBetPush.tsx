@@ -180,7 +180,7 @@ function betPushLanding(
       if (best == null || landingBeats(next, best)) best = next
     }
   }
-  return best == null ? null : { point: best.point, size: best.size }
+  return best == null ? null : { point: best.point, size: preferred }
 }
 
 /** Green inside the rail. A label that leaves this box is on the wood or a name. */

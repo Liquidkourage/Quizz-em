@@ -73,6 +73,24 @@ describe('chips just put in the pot', () => {
     ])
   })
 
+  it('uses the same chip size at every seat', () => {
+    const marks = placeBetPushes({
+      ringW: 400,
+      ringH: 240,
+      center: { x: 200, y: 120 },
+      seats: [
+        { x: 200, y: 40 },
+        { x: 360, y: 120 },
+      ],
+      pushes: [
+        { seat: 0, amount: 40, untilMs: 5 },
+        { seat: 1, amount: 20, untilMs: 6 },
+      ],
+      obstacles: [{ left: 150, top: 70, width: 100, height: 50 }],
+    })
+    expect(marks.map((mark) => mark.sizePx)).toEqual([betPushChipPx(240), betPushChipPx(240)])
+  })
+
   it('stops in an open patch beside the path when the halfway point is covered', () => {
     const marks = placeBetPushes({
       ringW: 400,

@@ -4063,6 +4063,33 @@
   color: white;
 }
 
+.player-best-hand-number {
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(2.75rem, 14vw, 4.25rem);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: rgb(253 224 71);
+  text-shadow: 0 0 18px rgb(251 191 36 / 0.55);
+}
+
+.player-best-hand-played {
+  margin: 0.65rem 0 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: clamp(1.35rem, 5vw, 1.75rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: white;
+  text-shadow: 0 0 16px rgb(253 224 71 / 0.85);
+}
+
+.player-best-hand-close {
+  width: 100%;
+  margin-top: 1rem;
+}
+
 .player-deal-flash-cards {
   display: flex;
   justify-content: center;

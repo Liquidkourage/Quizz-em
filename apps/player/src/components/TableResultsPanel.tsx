@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { formatTriviaPoints } from '@qhe/core'
 import { ChipText } from '@qhe/ui'
 import {
@@ -12,7 +13,7 @@ import {
   type TableResultSortKey,
   type TableResults,
 } from '../playerModel/tableResults'
-import { PlayerGoldPanel } from './PlayerGoldChrome'
+import { PlayerGameButton, PlayerGoldPanel } from './PlayerGoldChrome'
 
 type TableResultsPanelProps = {
   results: TableResults
@@ -26,6 +27,32 @@ const COLUMNS: { key: TableResultSortKey; label: string; numeric: boolean }[] = 
   { key: 'stack', label: 'Stack', numeric: true },
   { key: 'change', label: 'Change', numeric: true },
 ]
+
+function BestHandPopup({
+  hand,
+  played,
+  onClose,
+}: {
+  hand: string
+  played: boolean
+  onClose: () => void
+}) {
+  const popup: ReactNode = (
+    <div className="player-deal-flash" role="dialog" aria-modal="true" aria-label="Best hand">
+      <div className="player-deal-flash-backdrop" aria-hidden />
+      <div className="player-deal-flash-card">
+        <p className="player-deal-flash-title">Best hand</p>
+        <p className="player-best-hand-number">{hand}</p>
+        {played ? <p className="player-best-hand-played">You played it.</p> : null}
+        <PlayerGameButton variant="gold" size="large" className="player-best-hand-close" onClick={onClose}>
+          Close
+        </PlayerGameButton>
+      </div>
+    </div>
+  )
+  if (typeof document === 'undefined') return popup
+  return createPortal(popup, document.body)
+}
 
 function ariaSort(sort: TableResultSort, key: TableResultSortKey): 'ascending' | 'descending' | 'none' {
   if (sort.key !== key) return 'none'
@@ -82,11 +109,19 @@ function ResultRow({ row }: { row: TableResultRow }) {
 
 export default function TableResultsPanel({ results }: TableResultsPanelProps) {
   const [sort, setSort] = useState<TableResultSort>({ key: 'off', dir: 'asc' })
+  const [bestHandOpen, setBestHandOpen] = useState(true)
   const you = results.rows.find((row) => row.isYou)
   const orderedRows = sortTableResultRows(results.rows, sort.key, sort.dir)
 
   return (
     <PlayerGoldPanel title="Table results">
+      {results.yourBestHand && bestHandOpen ? (
+        <BestHandPopup
+          hand={results.yourBestHand}
+          played={results.yourBestHandPlayed}
+          onClose={() => setBestHandOpen(false)}
+        />
+      ) : null}
       <div className="player-table-results-header">
         <p className="player-table-results-correct">
           Correct:{' '}

@@ -34,11 +34,6 @@ export function betPushPoint(seat: Point, pot: Point): Point {
   return { x: (seat.x + pot.x) / 2, y: (seat.y + pot.y) / 2 }
 }
 
-/** The chip leaves the player and rests halfway to the pot. */
-export function betPushTravel(seat: Point, pot: Point): { from: Point; to: Point } {
-  return { from: seat, to: betPushPoint(seat, pot) }
-}
-
 /** A disc big enough to read across the room, and still able to sit on open felt. */
 export function betPushChipPx(ringShort: number): number {
   if (!(ringShort > 0)) return 48
@@ -48,7 +43,7 @@ export function betPushChipPx(ringShort: number): number {
 export function betPushFontPx(amount: number, chipPx: number): number {
   const text = formatVenueBankroll(amount)
   const fitted = Math.floor((chipPx * 0.72) / Math.max(1, text.length * 0.62))
-  return Math.max(15, Math.min(32, fitted))
+  return Math.max(8, Math.min(32, fitted))
 }
 
 export function boxAround(center: Point, width: number, height: number): Box {
@@ -112,6 +107,66 @@ export function advanceBetPushes(
   }
   const kept = live.filter((push) => !born.has(push.seat))
   return { baseline: next, pushes: [...kept, ...born.values()] }
+}
+
+const BET_PUSH_MIN_PX = 16
+
+function largestChipPx(
+  point: Point,
+  felt: Box,
+  obstacles: readonly Box[],
+  preferred: number,
+): number {
+  let lo = 0
+  let hi = preferred
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2)
+    if (betPushFits(boxAround(point, mid, mid), felt, obstacles)) lo = mid
+    else hi = mid - 1
+  }
+  return lo
+}
+
+function landingBeats(
+  next: { size: number; along: number; offset: number },
+  best: { size: number; along: number; offset: number },
+): boolean {
+  if (next.size !== best.size) return next.size > best.size
+  const along = Math.abs(next.along - 0.5) - Math.abs(best.along - 0.5)
+  if (along !== 0) return along < 0
+  return Math.abs(next.offset) < Math.abs(best.offset)
+}
+
+/** Largest chip that still sits on open felt between the player and the pot. */
+function betPushLanding(
+  seat: Point,
+  pot: Point,
+  felt: Box,
+  obstacles: readonly Box[],
+  preferred: number,
+): { point: Point; size: number } | null {
+  const dx = pot.x - seat.x
+  const dy = pot.y - seat.y
+  const len = Math.hypot(dx, dy)
+  if (!(len > 0) || !(preferred >= BET_PUSH_MIN_PX)) return null
+  const sideX = -dy / len
+  const sideY = dx / len
+  let best: { point: Point; size: number; along: number; offset: number } | null = null
+  for (let step = 0; step <= 12; step += 1) {
+    const along = 0.26 + step * 0.04
+    for (let side = -9; side <= 9; side += 1) {
+      const offset = side * 0.04
+      const point = {
+        x: seat.x + dx * along + sideX * len * offset,
+        y: seat.y + dy * along + sideY * len * offset,
+      }
+      const size = largestChipPx(point, felt, obstacles, preferred)
+      if (size < BET_PUSH_MIN_PX) continue
+      const next = { point, size, along, offset }
+      if (best == null || landingBeats(next, best)) best = next
+    }
+  }
+  return best == null ? null : { point: best.point, size: best.size }
 }
 
 /** Green inside the rail. A label that leaves this box is on the wood or a name. */
@@ -228,17 +283,22 @@ export function placeBetPushes(args: {
   for (const push of args.pushes) {
     const seat = args.seats[push.seat]
     if (seat == null) continue
-    const travel = betPushTravel(seat, args.center)
-    const size = betPushChipPx(ringShort)
-    if (!betPushFits(boxAround(travel.to, size, size), felt, args.obstacles)) continue
+    const landing = betPushLanding(
+      seat,
+      args.center,
+      felt,
+      args.obstacles,
+      betPushChipPx(ringShort),
+    )
+    if (landing == null) continue
     marks.push({
       key: `${push.seat}:${push.untilMs}`,
       amount: push.amount,
-      fromLeftPct: (travel.from.x / args.ringW) * 100,
-      fromTopPct: (travel.from.y / args.ringH) * 100,
-      leftPct: (travel.to.x / args.ringW) * 100,
-      topPct: (travel.to.y / args.ringH) * 100,
-      sizePx: size,
+      fromLeftPct: (seat.x / args.ringW) * 100,
+      fromTopPct: (seat.y / args.ringH) * 100,
+      leftPct: (landing.point.x / args.ringW) * 100,
+      topPct: (landing.point.y / args.ringH) * 100,
+      sizePx: landing.size,
     })
   }
   return marks

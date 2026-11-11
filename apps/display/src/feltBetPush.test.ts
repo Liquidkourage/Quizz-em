@@ -8,6 +8,7 @@ import {
   betPushPoint,
   boxAround,
   chipsAdded,
+  placeBetPushes,
 } from './feltBetPush'
 
 describe('chips just put in the pot', () => {
@@ -47,6 +48,59 @@ describe('chips just put in the pot', () => {
     const pot = boxAround({ x: 200, y: 120 }, 80, 30)
     expect(betPushFits(boxAround({ x: 200, y: 120 }, 48, 20), felt, [pot])).toBe(false)
     expect(betPushFits(boxAround({ x: 8, y: 8 }, 40, 18), felt, [])).toBe(false)
+  })
+
+  it('keeps the halfway chip when that spot is open', () => {
+    const marks = placeBetPushes({
+      ringW: 400,
+      ringH: 240,
+      center: { x: 200, y: 120 },
+      seats: [{ x: 40, y: 200 }],
+      pushes: [{ seat: 0, amount: 40, untilMs: 5 }],
+      obstacles: [],
+    })
+    expect(marks).toEqual([
+      expect.objectContaining({
+        amount: 40,
+        leftPct: 30,
+        topPct: (160 / 240) * 100,
+        sizePx: 48,
+      }),
+    ])
+  })
+
+  it('stops in an open patch beside the path when the halfway point is covered', () => {
+    const marks = placeBetPushes({
+      ringW: 400,
+      ringH: 240,
+      center: { x: 200, y: 120 },
+      seats: [{ x: 40, y: 120 }],
+      pushes: [{ seat: 0, amount: 40, untilMs: 5 }],
+      obstacles: [{ left: 80, top: 96, width: 80, height: 48 }],
+    })
+    expect(marks).toHaveLength(1)
+    const mark = marks[0]!
+    const x = (mark.leftPct / 100) * 400
+    const y = (mark.topPct / 100) * 240
+    expect(mark.sizePx).toBeGreaterThanOrEqual(16)
+    expect(x).toBeGreaterThan(40)
+    expect(x).toBeLessThan(200)
+    expect(y < 96 || y > 144).toBe(true)
+    expect(betPushFits(boxAround({ x, y }, mark.sizePx, mark.sizePx), { left: 32, top: 26.4, width: 336, height: 187.2 }, [
+      { left: 80, top: 96, width: 80, height: 48 },
+    ])).toBe(true)
+  })
+
+  it('stays off when no open patch is big enough', () => {
+    const marks = placeBetPushes({
+      ringW: 400,
+      ringH: 240,
+      center: { x: 200, y: 120 },
+      seats: [{ x: 40, y: 120 }],
+      pushes: [{ seat: 0, amount: 40, untilMs: 5 }],
+      obstacles: [{ left: 0, top: 0, width: 400, height: 240 }],
+    })
+    expect(marks).toEqual([])
   })
 
   it('reads the amount on a chip that glides from the player toward the pot', () => {

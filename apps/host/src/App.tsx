@@ -1193,6 +1193,8 @@ function HostApp() {
             showStartedAtMs={venueFloorBrief?.showStartedAtMs ?? null}
             handStartedAtMs={venueFloorBrief?.handStartedAtMs ?? null}
             phaseStartedAtMs={venueFloorBrief?.phaseStartedAtMs ?? null}
+            guessRows={venueFloorBrief?.actionRows ?? null}
+            correctAnswer={hostControlState.round.question?.answer ?? null}
             questionSlot={
               hostControlState.round.question ? (
                 <HostLiveQuestionCard

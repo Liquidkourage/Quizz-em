@@ -687,6 +687,29 @@ describe('buildHostVenueActionRows seats', () => {
     expect(rows.map((row) => row.betsClosed)).toEqual([false, true, true, false])
   })
 
+  it('puts the current guess on the host seat and replaces it when the player changes it', () => {
+    const tile = {
+      tableNum: 1,
+      seated: 2,
+      pot: 0,
+      phase: 'answering',
+      seatNames: ['Ada', 'Bo'],
+      seatAnswerLocked: [true, false],
+    }
+    const first = buildHostVenueActionRows(
+      [tile as never],
+      [{ tableNum: 1, seatGuesses: [42, null], unseatedGuesses: [] }],
+    )
+    expect(first[0]?.seats.find((seat) => seat.name === 'Ada')?.guess).toBe(42)
+    expect(first[0]?.seats.find((seat) => seat.name === 'Bo')?.guess).toBeUndefined()
+    expect(tile).not.toHaveProperty('seatSubmittedAnswers')
+    const next = buildHostVenueActionRows(
+      [tile as never],
+      [{ tableNum: 1, seatGuesses: [99, null], unseatedGuesses: [] }],
+    )
+    expect(next[0]?.seats.find((seat) => seat.name === 'Ada')?.guess).toBe(99)
+  })
+
   it('counts guesses locked in while a table is answering', () => {
     const rows = buildHostVenueActionRows([
       {

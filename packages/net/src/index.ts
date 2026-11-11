@@ -425,6 +425,8 @@ export type HostVenueSeatContest = {
   invested?: number
   /** True when this seat has locked a guess. Set while the table is guessing. */
   guessLocked?: boolean
+  /** The number this seat currently has locked. Host brief only. Omitted until they send one. */
+  guess?: number
   /** Past the eight felt chairs, so this person is not in the 8/8 count. */
   offFelt?: boolean
 }

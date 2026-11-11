@@ -564,7 +564,31 @@ function finitePoints(value: number | undefined): number | undefined {
   return value
 }
 
-function seatContestAt(tile: DisplayVenueTileSnapshot, index: number, name: string): HostVenueSeatContest {
+/** Host-only guess numbers, parallel to the public tile's chair lists. Never sent to the TVs. */
+export type HostTableGuesses = {
+  tableNum: number
+  seatGuesses: readonly (number | null)[]
+  unseatedGuesses: readonly (number | null)[]
+}
+
+function finiteGuess(value: number | null | undefined): number | undefined {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return undefined
+  return value
+}
+
+function guessesForTable(
+  guesses: readonly HostTableGuesses[] | undefined,
+  tableNum: number,
+): HostTableGuesses | undefined {
+  return guesses?.find((row) => row.tableNum === tableNum)
+}
+
+function seatContestAt(
+  tile: DisplayVenueTileSnapshot,
+  index: number,
+  name: string,
+  guess: number | undefined,
+): HostVenueSeatContest {
   const busted = tile.seatPointsOnly?.[index] === true
   const reason = contestReason(busted, !busted && tile.seatFolded?.[index] === true)
   const seat: HostVenueSeatContest = {
@@ -575,6 +599,7 @@ function seatContestAt(tile: DisplayVenueTileSnapshot, index: number, name: stri
     ...pointsField(busted, finitePoints(tile.seatAnswerPoints?.[index])),
   }
   if (tile.phase === 'answering') seat.guessLocked = tile.seatAnswerLocked?.[index] === true
+  if (guess != null) seat.guess = guess
   return seat
 }
 
@@ -590,7 +615,11 @@ function pointsField(busted: boolean, points: number | undefined): Pick<HostVenu
   return { answerPoints: points }
 }
 
-function appendOffFeltSeats(seats: HostVenueSeatContest[], tile: DisplayVenueTileSnapshot): void {
+function appendOffFeltSeats(
+  seats: HostVenueSeatContest[],
+  tile: DisplayVenueTileSnapshot,
+  unseatedGuesses: readonly (number | null)[] | undefined,
+): void {
   const names = tile.unseatedNames ?? []
   const locks = tile.unseatedGuessLocked ?? []
   const answering = tile.phase === 'answering'
@@ -599,22 +628,27 @@ function appendOffFeltSeats(seats: HostVenueSeatContest[], tile: DisplayVenueTil
     if (!name) continue
     const seat: HostVenueSeatContest = { name, kind: 'points', reason: null, offFelt: true }
     if (answering) seat.guessLocked = locks[i] === true
+    const guess = finiteGuess(unseatedGuesses?.[i])
+    if (guess != null) seat.guess = guess
     seats.push(seat)
   }
 }
 
-function seatContests(tile: DisplayVenueTileSnapshot): HostVenueSeatContest[] {
+function seatContests(tile: DisplayVenueTileSnapshot, guesses: HostTableGuesses | undefined): HostVenueSeatContest[] {
   const seats: HostVenueSeatContest[] = []
   const names = tile.seatNames ?? []
   for (let i = 0; i < names.length; i++) {
     const name = names[i]?.trim()
     if (!name) continue
-    seats.push(seatContestAt(tile, i, name))
+    seats.push(seatContestAt(tile, i, name, finiteGuess(guesses?.seatGuesses[i])))
   }
   return seats
 }
 
-export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): HostVenueActionRow[] {
+export function buildHostVenueActionRows(
+  tiles: DisplayVenueTileSnapshot[],
+  guesses?: readonly HostTableGuesses[],
+): HostVenueActionRow[] {
   return tiles
     .filter((t) => t.seated > 0)
     .map((tile) => {
@@ -623,9 +657,10 @@ export function buildHostVenueActionRows(tiles: DisplayVenueTileSnapshot[]): Hos
         idx != null && idx >= 0 && idx < tile.seatNames.length
           ? tile.seatNames[idx]?.trim() || null
           : null
-      const seats = seatContests(tile)
+      const tableGuesses = guessesForTable(guesses, tile.tableNum)
+      const seats = seatContests(tile, tableGuesses)
       const inPotCount = seats.filter((seat) => seat.kind === 'pot').length
-      appendOffFeltSeats(seats, tile)
+      appendOffFeltSeats(seats, tile, tableGuesses?.unseatedGuesses)
       return {
         tableNum: tile.tableNum,
         phase: tile.phase,
@@ -717,13 +752,15 @@ export function buildHostVenueFloorBrief(args: {
   scoresHint?: string | null
   scoresBlockNextQuestion?: boolean
   endgameWinnerName?: string | null
+  /** Current locked guesses. Host brief only. */
+  guesses?: readonly HostTableGuesses[]
 }): HostVenueFloorBriefPayload {
   const log = logForVenue(args.venueCode)
   const bb = args.bigBlindHint > 0 ? args.bigBlindHint : 100
   const handStartedAtMs = args.handStartedAtMs ?? null
   const now = Date.now()
   return {
-    actionRows: buildHostVenueActionRows(args.tiles).map((row) => ({
+    actionRows: buildHostVenueActionRows(args.tiles, args.guesses).map((row) => ({
       ...row,
       actingSinceMs: actingClockSince(
         log,

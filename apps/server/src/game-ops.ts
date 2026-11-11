@@ -157,6 +157,7 @@ import {
   clearVenueLastHandDisplay,
   shortPlayerName,
   venueWallLastHandFields,
+  type HostTableGuesses,
 } from './venue-host-log'
 import { publicScoreSeats, scoreBoards } from './player-public-scores'
 import {
@@ -1153,6 +1154,26 @@ function namesPastTheFelt(players: GameState['players']): { names: string[]; gue
     guessLocked.push(guessLockedOnSeat(player))
   }
   return { names, guessLocked }
+}
+
+function finiteSubmittedGuess(player: GameState['players'][number]): number | null {
+  const submitted = player.submittedAnswer
+  return typeof submitted === 'number' && Number.isFinite(submitted) ? submitted : null
+}
+
+/** Current locked guesses for the host brief. The public tiles never receive these numbers while guessing. */
+export function hostTableGuesses(gs: GameState, tableNum: number): HostTableGuesses {
+  const unseatedGuesses: (number | null)[] = []
+  for (const player of gs.players.slice(VENUE_WALL_SEAT_COUNT)) {
+    const name = typeof player.name === 'string' ? player.name.trim() : ''
+    if (name === '') continue
+    unseatedGuesses.push(finiteSubmittedGuess(player))
+  }
+  return {
+    tableNum,
+    seatGuesses: scatterRosterToChairs(gs.players, null, finiteSubmittedGuess),
+    unseatedGuesses,
+  }
 }
 
 /** Place a dense roster onto the 8 chairs with as even a ring as the count allows. */
@@ -2969,6 +2990,12 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       ),
       fieldPeakCount: noteVenueFieldPeak(vn, condenseCounts.chipSurvivorCount),
       bigBlindHint: blindsOnFelt.bigBlind,
+      guesses: allTableSessionsInVenue(vn).flatMap((tk) => {
+        const gs = rooms.get(tk)
+        const tableNum = tableNumFromSessionKey(vn, tk)
+        if (gs == null || tableNum == null) return []
+        return [hostTableGuesses(gs, tableNum)]
+      }),
       roster: venueRosterSeats(vn),
       venueHeld: isVenueHeld(vn),
       shuffleEveryHands: shuffleDisplay.shuffleEveryHands,

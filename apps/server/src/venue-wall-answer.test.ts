@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { addPlayer, createEmptyGame, displayedMainPot, endRound, type GameState } from '@qhe/core'
-import type { DisplayVenueWallSnapshot } from '@qhe/net'
+import type { DisplayVenueWallSnapshot, HostVenueFloorBriefPayload } from '@qhe/net'
 import type { Server } from 'socket.io'
 import { buildHostVenueActionRows, clearVenueHostLog } from './venue-host-log'
 import {
@@ -21,17 +21,19 @@ vi.mock('./venue-library-db', () => ({
 
 const ANSWER = 1440
 
-function captureIo(): { server: Server; snapshots: DisplayVenueWallSnapshot[] } {
+function captureIo(): { server: Server; snapshots: DisplayVenueWallSnapshot[]; briefs: HostVenueFloorBriefPayload[] } {
   const snapshots: DisplayVenueWallSnapshot[] = []
+  const briefs: HostVenueFloorBriefPayload[] = []
   const server = {
     to: () => ({
-      emit: (event: string, payload?: DisplayVenueWallSnapshot) => {
-        if (event === 'displayVenueSnapshot' && payload) snapshots.push(payload)
+      emit: (event: string, payload?: DisplayVenueWallSnapshot | HostVenueFloorBriefPayload) => {
+        if (event === 'displayVenueSnapshot' && payload) snapshots.push(payload as DisplayVenueWallSnapshot)
+        if (event === 'hostVenueFloorBrief' && payload) briefs.push(payload as HostVenueFloorBriefPayload)
       },
     }),
     sockets: { adapter: { rooms: new Map() }, sockets: new Map() },
   } as unknown as Server
-  return { server, snapshots }
+  return { server, snapshots, briefs }
 }
 
 function seat(tableId: string, phase: 'answering' | 'showdown', answerDeadline?: number): void {
@@ -283,5 +285,35 @@ describe('public venue wall answer', () => {
     expect(hostRow?.answersExpected).toBe(8)
     expect(hostRow?.seats.find((seat) => seat.name === 'Ivy')?.guessLocked).toBe(false)
     expect(hostRow?.seats.find((seat) => seat.name === 'Opal')?.guessLocked).toBe(true)
+  })
+
+  it('gives the host the current guess without putting that number on the TVs', () => {
+    let gs = createEmptyGame('LEAK', 'host', '1')
+    gs = addPlayer(gs, 'ada', 'Ada')
+    gs = addPlayer(gs, 'bo', 'Bo')
+    const seated = (adaGuess: number): GameState => ({
+      ...gs,
+      phase: 'answering',
+      players: gs.players.map((player) =>
+        player.id === 'ada' ? { ...player, submittedAnswer: adaGuess } : player,
+      ),
+      round: {
+        ...gs.round,
+        question: { id: 'q', text: 'How many?', answer: 100 },
+        answerDeadline: Date.now() + 60_000,
+      },
+    })
+    rooms.set(tableSessionKey('LEAK', '1'), seated(42))
+    const io = captureIo()
+    bindGameIo(io.server)
+    emitDisplayVenueSnapshotNow('LEAK')
+    const tile = io.snapshots.at(-1)?.tiles.find((row) => row.tableNum === 1)
+    expect(tile?.seatSubmittedAnswers).toBeUndefined()
+    expect(io.briefs.at(-1)?.actionRows[0]?.seats.find((seat) => seat.name === 'Ada')?.guess).toBe(42)
+    expect(io.briefs.at(-1)?.actionRows[0]?.seats.find((seat) => seat.name === 'Bo')?.guess).toBeUndefined()
+    rooms.set(tableSessionKey('LEAK', '1'), seated(99))
+    emitDisplayVenueSnapshotNow('LEAK')
+    expect(io.snapshots.at(-1)?.tiles.find((row) => row.tableNum === 1)?.seatSubmittedAnswers).toBeUndefined()
+    expect(io.briefs.at(-1)?.actionRows[0]?.seats.find((seat) => seat.name === 'Ada')?.guess).toBe(99)
   })
 })

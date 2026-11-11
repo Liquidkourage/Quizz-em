@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { GameState } from '@qhe/core'
-import type { HostVenueFeltBeatRow, VenueWallViewMode } from '@qhe/net'
+import type { HostVenueActionRow, HostVenueFeltBeatRow, VenueWallViewMode } from '@qhe/net'
 import {
   HostAnswerClock,
   HostRunBar,
@@ -9,6 +9,7 @@ import {
   isHostWaitingForJoiners,
 } from './hostDeskLayout'
 import { HostShowClocks } from './HostShowClocks'
+import { HostLiveGuesses } from './hostLiveGuesses'
 
 export function HostLivePanel({
   gameState,
@@ -32,6 +33,8 @@ export function HostLivePanel({
   questionSlot,
   handBody,
   floorNow,
+  guessRows = null,
+  correctAnswer = null,
   onGoPreShow,
 }: {
   gameState: GameState
@@ -57,6 +60,10 @@ export function HostLivePanel({
   handBody: ReactNode
   /** Venue floor · now, already open. */
   floorNow?: ReactNode
+  /** Current guesses for every table. Host only. */
+  guessRows?: readonly HostVenueActionRow[] | null
+  /** Correct answer for this question. Distance shows only after a table is revealed. */
+  correctAnswer?: number | null
   onGoPreShow: () => void
 }) {
   const waiting = isHostWaitingForJoiners(gameState)
@@ -108,6 +115,7 @@ export function HostLivePanel({
 
       <div className="flex min-w-0 items-start gap-2 sm:col-span-2 sm:row-start-2">
         <div className="min-w-0 flex-1">{questionSlot}</div>
+        <HostLiveGuesses rows={guessRows} correct={correctAnswer} />
         <HostShowClocks
           showStartedAtMs={showStartedAtMs}
           handStartedAtMs={handStartedAtMs}

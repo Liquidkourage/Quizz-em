@@ -68,6 +68,7 @@ import {
 } from '@qhe/core'
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAction } from '@qhe/net'
 
+import { FeltBetPushLayer } from './feltBetPush'
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import {
   MosaicSeatStackAmount,
@@ -1826,6 +1827,28 @@ function SeatRingWithLabels({
         (communityDigits.length > 0 ||
           broadcastActionKind != null ||
           potFromBroadcast != null)))
+  const feltCenterFrac = venueFeltBoundsFrac()
+  const betBoardCount = communityDigits.length
+  const betBoardW = isMosaic ? mosaicCommunityCardW : broadcastCommunityCardW
+  const betBoardH = isMosaic ? mosaicCommunityCardH : broadcastCommunityCardH
+  const betBoardGap = isMosaic
+    ? Math.max(2, Math.round(mosaicCommunityCardW * 0.07))
+    : (broadcastCommunityLayout?.gapPx ?? 0)
+  const betBoardWidth =
+    betBoardCount > 0 ? betBoardCount * betBoardW + Math.max(0, betBoardCount - 1) * betBoardGap : 0
+  const broadcastTypo = isBroadcast
+    ? broadcastCenterTypographyPx(rimW, isDualBroadcast ? 'dual' : 'solo')
+    : null
+  const betPotShiftY = isMosaic
+    ? betBoardCount > 0
+      ? (mosaicCommunityBoard?.potDropPx ?? 0)
+      : 0
+    : betBoardCount > 0
+      ? -(Math.round(betBoardH / 2) + (broadcastCommunityLayout?.boardGapPx ?? 0) + (broadcastTypo?.potAmountPx ?? 0) / 2)
+      : 0
+  const betBoardShiftY = isMosaic && betBoardCount > 0 ? -((mosaicCommunityBoard?.liftPx ?? 0) + betBoardH / 2) : 0
+  const betPotFont = isMosaic ? (mosaicPotFontCap ?? 0) : (broadcastTypo?.potAmountPx ?? 0)
+  const betPotLabel = mosaicCenterPot != null && mosaicCenterPot > 0 ? formatVenueBankroll(mosaicCenterPot) : ''
 
   const layoutReady = rimW > 0 && rimH > 0
   const mosaicStackSeats = seatNames.reduce(
@@ -1889,6 +1912,31 @@ function SeatRingWithLabels({
             prefersReducedMotion={prefersReducedMotion}
           />
         )
+      ) : null}
+      {layoutReady && (isMosaic || isBroadcast) ? (
+        <FeltBetPushLayer
+          ringW={rimW}
+          ringH={rimH}
+          invested={seatInvestedIn}
+          seatNames={seatNames}
+          seatFolded={seatFolded}
+          seatPointsOnly={seatPointsOnly}
+          holesDealt={seatHolesDealt}
+          holeDigits={seatHoleDigits}
+          holeCardW={isMosaic ? mosaicHoleCardW : (dualHoleCardBox?.widthPx ?? 0)}
+          holeCardH={isMosaic ? mosaicHoleCardH : (dualHoleCardBox?.heightPx ?? 0)}
+          holeCardScale={holeCardScale}
+          showStacks={isMosaic ? showMosaicSeatStacks : feltSeatStacks}
+          centerLeftPct={feltCenterFrac.cx * 100}
+          centerTopPct={feltCenterFrac.cy * 100}
+          potLabel={betPotLabel}
+          potFontPx={betPotFont}
+          potShiftY={betPotShiftY}
+          boardWidth={betBoardWidth}
+          boardHeight={betBoardCount > 0 ? betBoardH : 0}
+          boardShiftY={betBoardShiftY}
+          mode={isMosaic ? 'mosaic' : isDualBroadcast ? 'dual' : 'broadcast'}
+        />
       ) : null}
       {layoutReady &&
         Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {

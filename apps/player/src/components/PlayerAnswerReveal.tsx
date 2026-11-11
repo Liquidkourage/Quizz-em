@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ANSWER_REVEAL_BEFORE_WINNERS_MS, formatTriviaNumber, type GamePhase, type GameState } from '@qhe/core'
+import { ANSWER_REVEAL_BEFORE_WINNERS_MS, shownTriviaNumber, type GamePhase, type GameState } from '@qhe/core'
 import { nextPlayerAnswerReveal } from '../playerModel/playerAnswerReveal'
 
 type OpenReveal = {
@@ -54,7 +54,7 @@ export default function PlayerAnswerReveal({ question, answer }: OpenReveal) {
       className="player-answer-reveal"
       role="dialog"
       aria-modal="true"
-      aria-label={`The answer is ${formatTriviaNumber(answer)}`}
+      aria-label={`The answer is ${shownTriviaNumber(answer, { text: question })}`}
     >
       <div className="player-answer-reveal-card">
         <div className="player-answer-reveal-head">
@@ -75,7 +75,7 @@ export default function PlayerAnswerReveal({ question, answer }: OpenReveal) {
         </div>
         <div className="player-answer-reveal-body">
           <p className="player-answer-reveal-question">{question}</p>
-          <p className="player-answer-reveal-number">{formatTriviaNumber(answer)}</p>
+          <p className="player-answer-reveal-number">{shownTriviaNumber(answer, { text: question })}</p>
         </div>
       </div>
     </div>

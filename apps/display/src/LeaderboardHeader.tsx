@@ -1,9 +1,10 @@
-import { formatTriviaNumber } from '@qhe/core'
+import { shownTriviaNumber } from '@qhe/core'
 
 export type LeaderboardHeaderProps = {
   pageText?: string
   rankRangeText?: string
   showdownAnswer?: number
+  question?: { text?: string | null; category?: string | null } | null
   /** Dual-trophy night: Chip leaders vs Best of the Rest. */
   title?: string
 }
@@ -12,6 +13,7 @@ export function LeaderboardHeader({
   pageText,
   rankRangeText,
   showdownAnswer,
+  question = null,
   title = 'Leaderboard',
 }: LeaderboardHeaderProps) {
   return (
@@ -30,10 +32,10 @@ export function LeaderboardHeader({
             {showdownAnswer != null ? (
               <div
                 className="venue-lb-answer-card"
-                aria-label={`Correct answer ${formatTriviaNumber(showdownAnswer)}`}
+                aria-label={`Correct answer ${shownTriviaNumber(showdownAnswer, question)}`}
               >
                 <span className="venue-lb-answer-label">Correct answer</span>
-                <div className="venue-lb-answer-value">{formatTriviaNumber(showdownAnswer)}</div>
+                <div className="venue-lb-answer-value">{shownTriviaNumber(showdownAnswer, question)}</div>
               </div>
             ) : null}
           </div>

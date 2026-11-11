@@ -314,6 +314,25 @@ export function formatTriviaNumber(value: number | null | undefined): string {
   return neg ? `-${body}` : body;
 }
 
+/** A year question asks which year, or is filed under Year. A count that merely mentions a year stays grouped. */
+export function triviaQuestionIsYear(
+  question: { text?: string | null; category?: string | null } | null | undefined,
+): boolean {
+  const category = question?.category?.trim() ?? '';
+  if (/^years?$/i.test(category)) return true;
+  return /\b(?:what|which)\s+year\b/i.test(question?.text ?? '');
+}
+
+/** Same digits as {@link formatTriviaNumber}, without a thousands comma when the question asks for a year. */
+export function shownTriviaNumber(
+  value: number | null | undefined,
+  question?: { text?: string | null; category?: string | null } | null,
+): string {
+  const text = formatTriviaNumber(value);
+  if (!triviaQuestionIsYear(question)) return text;
+  return text.replace(/,/g, '');
+}
+
 function addDecimalVariantsForFiveDigits(digitsFive: number[], sink: Set<number>): void {
   sink.add(Number(digitsFive.join('')));
   for (let k = 0; k < PLAYER_ANSWER_DIGIT_CARD_COUNT; k++) {

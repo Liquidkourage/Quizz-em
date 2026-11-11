@@ -56,7 +56,7 @@ import type { BlindLevelEstimate, GameState, PlayerPhasePreviewId, Question } fr
 import { HostBlindCall } from './HostBlindCall'
 import HostBlindPaceNotice, { showBlindPaceNotice } from './HostBlindPaceNotice'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
-import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
+import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, shownTriviaNumber, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
 import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
 import {
   closeBettingConfirm,
@@ -872,7 +872,7 @@ function HostApp() {
                                     />
                                   </td>
                                   <td className="py-2 px-3">
-                                    {hasAnswer ? formatTriviaNumber(player.submittedAnswer) : '—'}
+                                    {hasAnswer ? shownTriviaNumber(player.submittedAnswer, gameState.round.question) : '—'}
                                   </td>
                                   <td className="py-2 px-3">
                                     {hasAnswer && typeof correct === 'number'
@@ -1253,6 +1253,7 @@ function HostApp() {
                 <HostLiveQuestionCard
                   text={hostControlState.round.question.text}
                   answer={hostControlState.round.question.answer}
+                  category={hostControlState.round.question.category}
                   cueNumber={activeSetlistNextIndex > 0 ? activeSetlistNextIndex : null}
                   cueTotal={activeSetlist?.questionIds.length ?? null}
                 />

@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { QuizzEmWordmark } from '@qhe/ui'
-import { formatTriviaNumber } from '@qhe/core'
+import { shownTriviaNumber } from '@qhe/core'
 import type { VenueAnswerRevealPayload } from './useVenueAnswerReveal'
 import DisplayWelcomeBackdrop from './DisplayWelcomeBackdrop'
 import { DisplayFitQuestionText } from './DisplayFitQuestionText'
@@ -23,7 +23,7 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
       className="fixed inset-0 z-[205] flex items-center justify-center overflow-hidden bg-black/72 px-6 py-10 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
-      aria-label={`The answer is ${formatTriviaNumber(answer)}`}
+      aria-label={`The answer is ${shownTriviaNumber(answer, { text: question })}`}
       initial={false}
       animate={{ opacity: 1 }}
       exit={reducedMotion ? undefined : { opacity: 0 }}
@@ -68,7 +68,7 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
         />
 
         <p className="mt-5 text-center font-mono text-[clamp(4.5rem,16vmin,9.5rem)] font-black tabular-nums leading-none tracking-tight text-amber-50 drop-shadow-[0_0_40px_rgba(251,191,36,0.45)] sm:mt-7">
-          {formatTriviaNumber(answer)}
+          {shownTriviaNumber(answer, { text: question })}
         </p>
       </motion.div>
     </motion.div>

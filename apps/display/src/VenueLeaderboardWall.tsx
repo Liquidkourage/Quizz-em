@@ -104,6 +104,7 @@ export default function VenueLeaderboardWall({
         pageText={showPager ? pageLabel.pageText : undefined}
         rankRangeText={showPager ? pageLabel.rankRangeText : undefined}
         showdownAnswer={venueShowdownAnswer}
+        question={{ text: wall?.headlineQuestionText }}
       />
 
       <main

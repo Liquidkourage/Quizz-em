@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatTriviaNumber } from '@qhe/core'
+import { formatTriviaNumber, shownTriviaNumber } from '@qhe/core'
 import type { HostVenueActionRow, HostVenueSeatContest } from '@qhe/net'
 import { HostModal } from './HostModal'
 
@@ -57,7 +57,13 @@ export function hostGuessLines(rows: readonly HostVenueActionRow[], correct: num
   return lines
 }
 
-export function HostGuessList({ lines }: { lines: readonly HostGuessLine[] }) {
+export function HostGuessList({
+  lines,
+  question = null,
+}: {
+  lines: readonly HostGuessLine[]
+  question?: { text?: string | null; category?: string | null } | null
+}) {
   const tables: { tableNum: number; lines: HostGuessLine[] }[] = []
   for (const line of lines) {
     const last = tables[tables.length - 1]
@@ -75,7 +81,7 @@ export function HostGuessList({ lines }: { lines: readonly HostGuessLine[] }) {
               <li key={line.key} className="flex items-baseline justify-between gap-3 text-lg text-white">
                 <span className="min-w-0 truncate font-semibold">{line.name}</span>
                 <span className="shrink-0 tabular-nums text-amber-100">
-                  {line.waiting ? 'Waiting' : line.guess == null ? '—' : formatTriviaNumber(line.guess)}
+                  {line.waiting ? 'Waiting' : line.guess == null ? '—' : shownTriviaNumber(line.guess, question)}
                   {line.distance != null ? (
                     <span className="ml-3 text-white/70">off by {formatTriviaNumber(line.distance)}</span>
                   ) : null}
@@ -93,9 +99,11 @@ export function HostGuessList({ lines }: { lines: readonly HostGuessLine[] }) {
 export function HostLiveGuesses({
   rows,
   correct,
+  question = null,
 }: {
   rows: readonly HostVenueActionRow[] | null
   correct: number | null
+  question?: { text?: string | null; category?: string | null } | null
 }) {
   const [open, setOpen] = useState(false)
   const lines = hostGuessLines(rows ?? [], correct)
@@ -110,7 +118,7 @@ export function HostLiveGuesses({
         Guesses
       </button>
       <HostModal title="Guesses" open={open} onClose={() => setOpen(false)}>
-        <HostGuessList lines={lines} />
+        <HostGuessList lines={lines} question={question} />
       </HostModal>
     </>
   )

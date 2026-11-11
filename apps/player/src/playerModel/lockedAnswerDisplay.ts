@@ -1,4 +1,4 @@
-import { formatTriviaNumber } from '@qhe/core'
+import { shownTriviaNumber } from '@qhe/core'
 
 /**
  * What the composer shows as a locked guess.
@@ -10,11 +10,12 @@ export function lockedAnswerDisplayText(opts: {
   editing: boolean
   serverAnswer: number | null | undefined
   optimistic: string | null
+  question?: { text?: string | null; category?: string | null } | null
 }): string | null {
   if (opts.editing) return null
   if (opts.optimistic) return opts.optimistic
   if (typeof opts.serverAnswer === 'number' && Number.isFinite(opts.serverAnswer)) {
-    return formatTriviaNumber(opts.serverAnswer)
+    return shownTriviaNumber(opts.serverAnswer, opts.question)
   }
   return null
 }

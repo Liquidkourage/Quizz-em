@@ -1,5 +1,5 @@
 import type { GameState, PlayerState } from '@qhe/core'
-import { displayedMainPot, formatTriviaNumber } from '@qhe/core'
+import { displayedMainPot, shownTriviaNumber } from '@qhe/core'
 import { cardsInDigitOrder, ChipText, NumericPlayingCard } from '@qhe/ui'
 import { PlayerGoldPanel } from './PlayerGoldChrome'
 
@@ -103,7 +103,7 @@ export default function GameInfoCard({
           <p className="player-game-question-label">Question</p>
           <p className="player-game-question-text">{q.text}</p>
           {(gameState.phase === 'showdown' || gameState.phase === 'reveal') && (
-            <p className="player-game-question-answer">Answer: {formatTriviaNumber(q.answer)}</p>
+            <p className="player-game-question-answer">Answer: {shownTriviaNumber(q.answer, q)}</p>
           )}
         </div>
       ) : null}

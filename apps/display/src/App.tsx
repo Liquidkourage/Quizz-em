@@ -2059,6 +2059,7 @@ function DisplayTableLive({
             >
               <ShowdownResultsPanel
               correctAnswer={displayGameState.round.question?.answer}
+              question={displayGameState.round.question}
               rows={showdownRowsFromGameState(displayGameState)}
               winnerName={showdownWinnerName || undefined}
             />

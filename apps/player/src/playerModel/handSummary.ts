@@ -1,5 +1,5 @@
 import type { GamePhase, GameState, PlayerState } from '@qhe/core'
-import { formatTriviaNumber, triviaAnswerPoints } from '@qhe/core'
+import { shownTriviaNumber, triviaAnswerPoints } from '@qhe/core'
 
 export type HandBaseline = {
   bankroll: number
@@ -50,8 +50,9 @@ export function buildHandSummary(args: {
   player: PlayerState
   questionAnswer: number | null
   foldedDuringHand: boolean
+  question?: { text?: string | null; category?: string | null } | null
 }): HandSummary {
-  const { baseline, player, questionAnswer, foldedDuringHand } = args
+  const { baseline, player, questionAnswer, foldedDuringHand, question } = args
   const submitted = player.submittedAnswer
   const correct = questionAnswer
   const triviaPointsThisHand =
@@ -64,8 +65,8 @@ export function buildHandSummary(args: {
     correctAnswer: correct,
     triviaPointsThisHand,
     formattedSubmitted:
-      typeof submitted === 'number' ? formatTriviaNumber(submitted) : null,
-    formattedCorrect: correct != null ? formatTriviaNumber(correct) : null,
+      typeof submitted === 'number' ? shownTriviaNumber(submitted, question) : null,
+    formattedCorrect: correct != null ? shownTriviaNumber(correct, question) : null,
   }
 }
 

@@ -11,6 +11,8 @@ import {
   foldPlayer,
   communityIndicesFromAnswerComposition,
   formatTriviaNumber,
+  shownTriviaNumber,
+  triviaQuestionIsYear,
   inferAnswerComposition,
   isSubmittedAnswerComposableFromDeal,
   nearlyEqualNumbers,
@@ -30,6 +32,25 @@ describe('formatTriviaNumber', () => {
     expect(formatTriviaNumber(12345)).toBe('12,345')
     expect(formatTriviaNumber(1234.56)).toBe('1,234.56')
     expect(formatTriviaNumber(-12345)).toBe('-12,345')
+    expect(formatTriviaNumber(1969)).toBe('1,969')
+  })
+
+  it('prints a year answer without a thousands comma', () => {
+    const apollo = { text: 'What year did Apollo 11 land on the Moon?', category: 'History', answer: 1969 }
+    const olympics = { text: 'In what year were the first Winter Olympics held?', category: 'Sports' }
+    expect(triviaQuestionIsYear(apollo)).toBe(true)
+    expect(triviaQuestionIsYear(olympics)).toBe(true)
+    expect(triviaQuestionIsYear({ text: 'Name the year', category: 'Year' })).toBe(true)
+    expect(triviaQuestionIsYear({ category: 'Years', text: '1776' })).toBe(true)
+    expect(shownTriviaNumber(1969, apollo)).toBe('1969')
+    expect(shownTriviaNumber(1924, olympics)).toBe('1924')
+    expect(shownTriviaNumber(1776, { category: 'Years' })).toBe('1776')
+    expect(shownTriviaNumber(1968, apollo)).toBe('1968')
+    expect(triviaQuestionIsYear({ text: 'How many minutes are there in a day?', category: 'Time' })).toBe(false)
+    expect(shownTriviaNumber(1440, { text: 'How many minutes are there in a day?', category: 'Time' })).toBe('1,440')
+    expect(shownTriviaNumber(3600, { text: 'How many seconds are in one hour?', category: 'Time' })).toBe('3,600')
+    expect(shownTriviaNumber(366, { text: 'How many days are in a leap year?', category: 'Time' })).toBe('366')
+    expect(formatTriviaNumber(1000)).toBe('1,000')
   })
 })
 

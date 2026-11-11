@@ -1,4 +1,4 @@
-import { formatTriviaNumber } from '@qhe/core'
+import { shownTriviaNumber } from '@qhe/core'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   pickShowdownFloorChipRow,
@@ -16,7 +16,8 @@ export type FloorShowdownPresentation = {
 
 export function buildFloorShowdownPresentation(
   rows: ShowdownResultRow[],
-  correctAnswer: number | undefined
+  correctAnswer: number | undefined,
+  question?: { text?: string | null; category?: string | null } | null,
 ): FloorShowdownPresentation | null {
   const { winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const winners = rows.filter(
@@ -31,7 +32,7 @@ export function buildFloorShowdownPresentation(
   const label = winners.length > 1 ? 'Split winners' : 'Winner'
   const guess =
     chipRow?.submitted != null && typeof correctAnswer === 'number'
-      ? formatTriviaNumber(chipRow.submitted)
+      ? shownTriviaNumber(chipRow.submitted, question)
       : null
 
   const winnerSeatIndexes = new Set<number>()

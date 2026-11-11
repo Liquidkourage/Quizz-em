@@ -4,7 +4,10 @@ import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import { SidePotMark } from '@qhe/ui'
 import {
+  MOSAIC_SIDE_POT_ICON_LAYER,
+  MOSAIC_STACK_LAYER,
   MosaicSeatFace,
+  MosaicSeatSidePotIcons,
   MosaicSidePotPlaques,
   VenueAerialFloorGrid,
   VenueSingleTableBroadcast,
@@ -255,6 +258,18 @@ describe('felt side pot', () => {
       createElement(MosaicSeatFace, { initials: 'LA', marks: [], folded: false }),
     )
     expect(mainOnly).not.toContain('vfd-mosaic-side-badge')
+
+    const iconZ = Number(MOSAIC_SIDE_POT_ICON_LAYER.match(/z-\[(\d+)\]/)?.[1])
+    const stackZ = Number(MOSAIC_STACK_LAYER.match(/z-\[(\d+)\]/)?.[1])
+    expect(iconZ).toBeGreaterThan(stackZ)
+    expect(iconZ).toBeLessThan(130)
+    const icons = renderToStaticMarkup(
+      createElement(MosaicSeatSidePotIcons, { initials: 'AB', marks: [1, 2], seatIndex: 0 }),
+    )
+    expect(icons).toContain(MOSAIC_SIDE_POT_ICON_LAYER)
+    expect(icons).toContain('aria-label="Side pot 1"')
+    expect(icons).toContain('vfd-mosaic-side-badge-anchor')
+    expect(icons.indexOf('vfd-mosaic-side-badge-anchor')).toBeGreaterThan(icons.indexOf('aria-label="Side pot 1"'))
     expect(mainOnly).not.toContain('>All-in<')
     expect(mainOnly).not.toContain('vfd-mosaic-seat-initial--folded')
 

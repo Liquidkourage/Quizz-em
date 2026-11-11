@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
-import { formatTriviaNumber } from '@qhe/core'
+import { shownTriviaNumber } from '@qhe/core'
 import { QuizzEmWordmark } from '@qhe/ui'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import ShowdownTableCard from './ShowdownTableCard'
@@ -102,7 +102,7 @@ export default function VenueMultiTableShowdown({
               Correct answer
             </p>
             <p className="font-mono text-3xl font-black tabular-nums leading-none text-amber-100 sm:text-4xl md:text-5xl">
-              {formatTriviaNumber(headerAnswer)}
+              {shownTriviaNumber(headerAnswer, { text: headlineQuestionText })}
             </p>
           </div>
         ) : (
@@ -124,6 +124,7 @@ export default function VenueMultiTableShowdown({
             correctAnswer={showdownCorrectAnswerFromTile(tile)}
             pot={tile.pot}
             rows={showdownRowsFromTile(tile)}
+            question={{ text: tile.showdownQuestionText ?? headlineQuestionText }}
             density={density}
             className="h-full min-h-0"
           />

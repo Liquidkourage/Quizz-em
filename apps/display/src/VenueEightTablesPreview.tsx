@@ -62,7 +62,7 @@ import {
   dualBroadcastHoleCardBoxPx,
 } from './venueBroadcastLayout'
 import {
-  formatTriviaNumber,
+  shownTriviaNumber,
   isVenueTileWageringPaused,
   venueTileActingSeatIndex,
 } from '@qhe/core'
@@ -170,7 +170,10 @@ const SEAT_LAYER_DOT = MOSAIC_SEAT_INITIAL_LAYER
 const SEAT_LAYER_FELT_CHIP_PILE = 'z-[115]'
 const SEAT_LAYER_BLIND_OUT = 'z-[117]'
 const SEAT_LAYER_ACTION_PANEL = 'z-[118]'
-const SEAT_LAYER_NAME_CLUSTER = 'z-[120]'
+/** Stack dollars. Side-pot icons sit just above this so a top-rail amount cannot cover them. */
+export const MOSAIC_STACK_LAYER = 'z-[120]'
+export const MOSAIC_SIDE_POT_ICON_LAYER = 'z-[125]'
+const SEAT_LAYER_NAME_CLUSTER = MOSAIC_STACK_LAYER
 
 
 function usePrefersReducedMotion(): boolean {
@@ -721,6 +724,40 @@ export function MosaicSeatFace({
       ) : null}
       {mosaicSeatCornerBadges(marks)}
       <span className={folded ? 'vfd-mosaic-seat-initial--folded' : undefined}>{initials}</span>
+    </span>
+  )
+}
+
+/**
+ * Side-pot numbers painted in their own layer, above the stack amount.
+ * The initials stay in the cup. A transparent copy of those letters keeps the chips in the same corners.
+ */
+export function MosaicSeatSidePotIcons({
+  initials,
+  marks,
+  seatIndex = 4,
+  className,
+  style,
+}: {
+  initials: string
+  marks: readonly number[]
+  seatIndex?: number
+  className?: string
+  style?: CSSProperties
+}) {
+  if (marks.length === 0) return null
+  const rail = mosaicSeatRail(seatIndex)
+  return (
+    <span
+      className={`pointer-events-none absolute whitespace-nowrap font-black leading-none tracking-tight ${MOSAIC_SIDE_POT_ICON_LAYER} ${className ?? ''}`}
+      style={style}
+    >
+      <span className={`vfd-mosaic-seat-face vfd-mosaic-seat-face--${rail}`}>
+        {mosaicSeatCornerBadges(marks)}
+        <span aria-hidden className="vfd-mosaic-side-badge-anchor">
+          {initials}
+        </span>
+      </span>
     </span>
   )
 }
@@ -2124,7 +2161,7 @@ function SeatRingWithLabels({
                     ? (
                       <MosaicSeatFace
                         initials={mosaicInitials}
-                        marks={sideMarkAt(seatSideMarks, i)}
+                        marks={[]}
                         folded={isFolded}
                         seatIndex={i}
                       />
@@ -2187,6 +2224,20 @@ function SeatRingWithLabels({
                   allIn={isAllIn}
                 />
               </div>
+            ) : null}
+            {isMosaic && filled ? (
+              <MosaicSeatSidePotIcons
+                initials={mosaicInitials}
+                marks={sideMarkAt(seatSideMarks, i)}
+                seatIndex={i}
+                className={mosaicSeatInitialsClass(mosaicDensity)}
+                style={{
+                  left: `${seatRimPt.leftPct}%`,
+                  top: `${seatRimPt.topPct}%`,
+                  fontSize: mosaicSeatInitialFontPx(rimW, rimH),
+                  transform: `translate(calc(-50% + ${mosaicSeatInitialShiftXPx(i, rimW, rimH, mosaicSeatInitialFontPx(rimW, rimH))}px), -50%)`,
+                }}
+              />
             ) : null}
             {filled && !isBusted ? (
               <FoldingHoleCards
@@ -2601,8 +2652,8 @@ function VenueMosaicTableCard({
   const showFloorShowdownOverlay = mosaicShowdownOverlay
   const floorShowdownPresentation = useMemo(() => {
     if (!showFloorShowdownOverlay) return null
-    return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
-  }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
+    return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer, { text: row.showdownQuestionText })
+  }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer, row.showdownQuestionText])
   const floorShowdownPot = useMemo(() => {
     if (!showFloorShowdownOverlay) return 0
     return resolveShowdownDisplayPot(row, floorShowdownRows, floorShowdownAnswer)
@@ -2814,6 +2865,7 @@ function VenueMosaicTableCard({
               compact
               correctAnswer={floorShowdownAnswer}
               rows={floorShowdownRows}
+              question={{ text: row.showdownQuestionText }}
             />
           </div>
         ) : null}
@@ -3027,6 +3079,7 @@ function VenueBroadcastHeadlineStrip({
   venueBlindsHeadline,
   inVenueShowdown,
   venueShowdownAnswer,
+  showdownQuestionText = null,
   headlineAnsweringUnified,
   headlineAnswering,
   inAnsweringCountdown,
@@ -3045,6 +3098,7 @@ function VenueBroadcastHeadlineStrip({
   venueBlindsHeadline: { amount: string; meta: string | null } | null
   inVenueShowdown: boolean
   venueShowdownAnswer: number | null | undefined
+  showdownQuestionText?: string | null
   headlineAnsweringUnified: boolean
   headlineAnswering: boolean
   inAnsweringCountdown: boolean
@@ -3122,13 +3176,13 @@ function VenueBroadcastHeadlineStrip({
       {inVenueShowdown && venueShowdownAnswer != null ? (
         <div
           className="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-amber-300/70 bg-amber-950/70 px-5 py-3 shadow-[0_0_28px_rgba(251,191,36,0.28)] sm:px-7 sm:py-3.5"
-          aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
+          aria-label={`Correct answer ${shownTriviaNumber(venueShowdownAnswer, { text: showdownQuestionText })}`}
         >
           <span className={`font-black uppercase tracking-[0.18em] text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
             Correct answer
           </span>
           <div className="font-mono text-[clamp(2.5rem,6vw,4rem)] font-black tabular-nums tracking-tight text-amber-50">
-            {formatTriviaNumber(venueShowdownAnswer)}
+            {shownTriviaNumber(venueShowdownAnswer, { text: showdownQuestionText })}
           </div>
         </div>
       ) : headlineTimerOnly && typeof timerSeconds === 'number' ? (
@@ -3243,8 +3297,8 @@ export function VenueSingleTableBroadcast({
   const showFloorShowdownOverlay = mosaicShowdownOverlay
   const floorShowdownPresentation = useMemo(() => {
     if (!showFloorShowdownOverlay) return null
-    return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer)
-  }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer])
+    return buildFloorShowdownPresentation(floorShowdownRows, floorShowdownAnswer, { text: tile.showdownQuestionText })
+  }, [showFloorShowdownOverlay, floorShowdownRows, floorShowdownAnswer, tile.showdownQuestionText])
   const floorShowdownPot = useMemo(() => {
     if (!showFloorShowdownOverlay) return 0
     return resolveShowdownDisplayPot(tile, floorShowdownRows, floorShowdownAnswer)
@@ -3486,6 +3540,7 @@ function VenueFloorHeadlineAside({
   inAnsweringCountdown,
   inVenueShowdown,
   venueShowdownAnswer,
+  showdownQuestionText = null,
   headlinePhaseBadge,
   showVenueBlindsHeadline,
   venueBlindsHeadline,
@@ -3499,6 +3554,7 @@ function VenueFloorHeadlineAside({
   inAnsweringCountdown: boolean
   inVenueShowdown: boolean
   venueShowdownAnswer: number | null | undefined
+  showdownQuestionText?: string | null
   headlinePhaseBadge: string | null
   showVenueBlindsHeadline: boolean
   venueBlindsHeadline: { amount: string; meta: string | null } | null
@@ -3557,13 +3613,13 @@ function VenueFloorHeadlineAside({
       {inVenueShowdown && venueShowdownAnswer != null ? (
         <div
           className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border-2 border-amber-300/70 bg-amber-950/75 px-3 py-2 shadow-[0_0_28px_rgba(251,191,36,0.28)] sm:min-w-[9.5rem] sm:px-4 sm:py-2.5 md:min-w-[11rem]"
-          aria-label={`Correct answer ${formatTriviaNumber(venueShowdownAnswer)}`}
+          aria-label={`Correct answer ${shownTriviaNumber(venueShowdownAnswer, { text: showdownQuestionText })}`}
         >
           <span className={`font-black uppercase tracking-[0.16em] text-amber-200/85 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
             Correct answer
           </span>
           <div className="font-mono text-[clamp(2.25rem,5.5vw,4.25rem)] font-black tabular-nums leading-none tracking-tight text-amber-50">
-            {formatTriviaNumber(venueShowdownAnswer)}
+            {shownTriviaNumber(venueShowdownAnswer, { text: showdownQuestionText })}
           </div>
         </div>
       ) : headlineTimerOnly ? (
@@ -3823,6 +3879,7 @@ export default function VenueEightTablesPreview({
                   venueBlindsHeadline={venueBlindsHeadline}
                   inVenueShowdown={inVenueShowdown}
                   venueShowdownAnswer={venueShowdownAnswer}
+                  showdownQuestionText={venueShowdownQuestionText}
                   headlineAnsweringUnified={headlineAnsweringUnified}
                   headlineAnswering={headlineAnswering}
                   inAnsweringCountdown={inAnsweringCountdown}
@@ -3907,6 +3964,7 @@ export default function VenueEightTablesPreview({
                   inAnsweringCountdown={inAnsweringCountdown}
                   inVenueShowdown={inVenueShowdown}
                   venueShowdownAnswer={venueShowdownAnswer}
+                  showdownQuestionText={venueShowdownQuestionText}
                   headlinePhaseBadge={headlinePhaseBadge}
                   showVenueBlindsHeadline={showVenueBlindsHeadline}
                   venueBlindsHeadline={venueBlindsHeadline}

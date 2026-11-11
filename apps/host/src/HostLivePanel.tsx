@@ -139,7 +139,7 @@ export function HostLivePanel({
 
       <div className="flex min-w-0 items-start gap-2 sm:col-span-2 sm:row-start-2">
         <div className="min-w-0 flex-1">{questionSlot}</div>
-        <HostLiveGuesses rows={guessRows} correct={correctAnswer} />
+        <HostLiveGuesses rows={guessRows} correct={correctAnswer} question={gameState.round.question} />
         <HostShowClocks
           showStartedAtMs={showStartedAtMs}
           handStartedAtMs={handStartedAtMs}

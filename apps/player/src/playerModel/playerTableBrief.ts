@@ -1,6 +1,6 @@
 import {
   displayedMainPot,
-  formatTriviaNumber,
+  shownTriviaNumber,
   livePotLayers,
   type GameState,
   type LiveSidePot,
@@ -87,7 +87,8 @@ function answeringStatus(me: PlayerTableSeatBrief | undefined): string {
 
 function revealedAnswer(gameState: GameState): string {
   const answer = gameState.round.question?.answer
-  if (typeof answer === 'number') return `The answer is ${formatTriviaNumber(answer)}.`
+  const question = gameState.round.question
+  if (typeof answer === 'number') return `The answer is ${shownTriviaNumber(answer, question)}.`
   return 'The answer is in.'
 }
 

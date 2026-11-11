@@ -1,5 +1,5 @@
 import {
-  formatTriviaNumber,
+  shownTriviaNumber,
   isVenueTileWageringPaused,
   medianSeatedStack,
   previewChipPayoutByPlayerId,
@@ -411,7 +411,7 @@ export function recordVenueMovesBetweenStates(
         tableNum,
         playerName: name,
         kind: 'submit',
-        summary: `${name} submitted ${formatTriviaNumber(p.submittedAnswer)}`,
+        summary: `${name} submitted ${shownTriviaNumber(p.submittedAnswer, after.round.question)}`,
       })
     }
   }

@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode, type RefObject, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { NeonButton } from '@qhe/ui'
-import { formatTriviaNumber, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress, isSetlistTargetLength, type GameState, type Question } from '@qhe/core'
+import { shownTriviaNumber, VENUE_QUESTION_SET_LENGTH, formatSetlistProgress, isSetlistTargetLength, type GameState, type Question } from '@qhe/core'
 import {
   questionBankDelete,
   questionBankRestoreSamples,
@@ -699,7 +699,7 @@ function SetlistManage(props: {
                       {q ? q.text : `Missing from the bank (${qid})`}
                     </p>
                     {q ? (
-                      <p className="mt-1 font-mono text-lg font-bold text-casino-gold">{formatTriviaNumber(q.answer)}</p>
+                      <p className="mt-1 font-mono text-lg font-bold text-casino-gold">{shownTriviaNumber(q.answer, q)}</p>
                     ) : null}
                   </div>
                   <div className="flex shrink-0 items-center gap-2 text-sm">
@@ -823,7 +823,7 @@ function AddCueResults(props: {
                     <span className={already ? 'text-white/40' : 'text-white/90'}>{q.text}</span>
                   </span>
                   <span className={`shrink-0 font-mono ${already ? 'text-white/40' : 'text-casino-gold'}`}>
-                    {already ? 'In rundown' : formatTriviaNumber(q.answer)}
+                    {already ? 'In rundown' : shownTriviaNumber(q.answer, q)}
                   </span>
                 </button>
               </li>
@@ -932,7 +932,7 @@ function QuestionLibrary(props: {
                   {live ? ' · On the tables' : ''}
                 </p>
                 <p className="mt-1 text-base leading-snug text-white">{q.text}</p>
-                <p className="mt-1 font-mono text-lg font-bold text-casino-gold">{formatTriviaNumber(q.answer)}</p>
+                <p className="mt-1 font-mono text-lg font-bold text-casino-gold">{shownTriviaNumber(q.answer, q)}</p>
                 {memberships.length > 0 ? (
                   <p className="mt-1 text-xs text-white/45">In {memberships.map((sl) => sl.name).join(', ')}</p>
                 ) : null}

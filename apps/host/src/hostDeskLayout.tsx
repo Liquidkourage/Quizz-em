@@ -16,7 +16,7 @@ import type {
 import {
   disambiguatePublicNames,
   displayedMainPot,
-  formatTriviaNumber,
+  shownTriviaNumber,
   formatTriviaPoints,
   livePotLayers,
   LOBBY_TABLE_ID,
@@ -1104,7 +1104,7 @@ export function HostLiveStatusLine({
       ) : null}
       {phase === 'showdown' && typeof question?.answer === 'number' ? (
         <span className="font-mono font-bold text-casino-gold">
-          Answer {formatTriviaNumber(question.answer)}
+          Answer {shownTriviaNumber(question.answer, question)}
         </span>
       ) : null}
     </div>
@@ -3082,11 +3082,13 @@ export function HostTvBar({
 export function HostLiveQuestionCard({
   text,
   answer,
+  category = null,
   cueNumber = null,
   cueTotal = null,
 }: {
   text: string
   answer: number
+  category?: string | null
   cueNumber?: number | null
   cueTotal?: number | null
 }) {
@@ -3103,7 +3105,7 @@ export function HostLiveQuestionCard({
       <p className="mt-1 whitespace-pre-wrap text-2xl font-semibold leading-snug text-white">{text}</p>
       <p className="mt-3 text-sm font-bold uppercase tracking-[0.14em] text-casino-gold/80">Answer</p>
       <p className="mt-0.5 text-4xl font-extrabold tabular-nums text-casino-gold">
-        {formatTriviaNumber(answer)}
+        {shownTriviaNumber(answer, { text, category })}
       </p>
     </section>
   )

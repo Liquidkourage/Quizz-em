@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { disambiguatePublicNames, formatTriviaNumber, publicSeatInitials } from '@qhe/core'
+import { disambiguatePublicNames, formatTriviaNumber, publicSeatInitials, shownTriviaNumber } from '@qhe/core'
 import { PokerChip, StadiumTableSeats, ChipText, type StadiumTableSeat } from '@qhe/ui'
 import {
   sortShowdownRowsByDistance,
@@ -11,6 +11,8 @@ import { SHOWDOWN_FELT_STYLE } from './showdownTheme'
 
 const VENUE_SEAT_SLOTS = 8
 
+type TriviaQuestionFace = { text?: string | null; category?: string | null } | null
+
 type ShowdownTableCardProps = {
   tableNum: number
   correctAnswer: number | undefined
@@ -18,6 +20,7 @@ type ShowdownTableCardProps = {
   rows: ShowdownResultRow[]
   density?: ShowdownWallDensity
   className?: string
+  question?: TriviaQuestionFace
 }
 
 function formatChipPayout(amount: number): string {
@@ -32,7 +35,8 @@ function rowsToStadiumSeats(
   rows: ShowdownResultRow[],
   winnerKeys: ReadonlySet<string>,
   correctAnswer: number | undefined,
-  compact: boolean
+  compact: boolean,
+  question: TriviaQuestionFace,
 ): StadiumTableSeat[] {
   const labels = disambiguatePublicNames(rows.map((row) => row.name))
   return rows.map((row, index) => {
@@ -63,7 +67,7 @@ function rowsToStadiumSeats(
         <>
           <span className={`max-w-full truncate font-bold text-white ${tagText}`}>{shown}</span>
           <span className={`font-mono font-black tabular-nums text-amber-100 ${guessText}`}>
-            {hasGuess ? formatTriviaNumber(row.submitted) : '—'}
+            {hasGuess ? shownTriviaNumber(row.submitted, question) : '—'}
           </span>
           {distance != null ? (
             <span
@@ -93,6 +97,7 @@ export default function ShowdownTableCard({
   rows,
   density = 'full',
   className = '',
+  question = null,
 }: ShowdownTableCardProps) {
   const { rows: sorted, winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '' && !r.hasFolded)
@@ -103,8 +108,8 @@ export default function ShowdownTableCard({
   const communityBoard = activeRows[0]?.communityBoard ?? null
 
   const stadiumSeats = useMemo(
-    () => rowsToStadiumSeats(sorted.filter((r) => r.name.trim() !== ''), winnerKeys, correctAnswer, compact),
-    [sorted, winnerKeys, correctAnswer, compact]
+    () => rowsToStadiumSeats(sorted.filter((r) => r.name.trim() !== ''), winnerKeys, correctAnswer, compact, question),
+    [sorted, winnerKeys, correctAnswer, compact, question]
   )
 
   return (
@@ -133,7 +138,7 @@ export default function ShowdownTableCard({
               compact ? 'text-sm' : 'text-lg sm:text-xl'
             }`}
           >
-            {formatTriviaNumber(correctAnswer)}
+            {shownTriviaNumber(correctAnswer, question)}
           </p>
           {potShown > 0 ? (
             <p

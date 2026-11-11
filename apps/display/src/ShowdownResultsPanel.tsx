@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { disambiguatePublicNames, formatTriviaNumber, publicSeatInitials } from '@qhe/core'
+import { disambiguatePublicNames, formatTriviaNumber, publicSeatInitials, shownTriviaNumber } from '@qhe/core'
 import { CardFaceGraphic, cardsInDigitOrder, digitsAscending, PokerChip, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import {
   formatHoleDigits,
@@ -15,12 +15,15 @@ import {
   DISPLAY_TEXT_SECONDARY_CQ,
 } from './displayTypography'
 
+type TriviaQuestionFace = { text?: string | null; category?: string | null } | null
+
 type ShowdownResultsPanelProps = {
   correctAnswer: number | undefined
   rows: ShowdownResultRow[]
   winnerName?: string
   compact?: boolean
   className?: string
+  question?: TriviaQuestionFace
 }
 
 const SHOWDOWN_SEAT_SLOTS = 8
@@ -137,7 +140,13 @@ function BoardPickChips({
   )
 }
 
-function AnswerMedallion({ correctAnswer }: { correctAnswer: number | undefined }) {
+function AnswerMedallion({
+  correctAnswer,
+  question,
+}: {
+  correctAnswer: number | undefined
+  question?: TriviaQuestionFace
+}) {
   return (
     <motion.div
       className="flex shrink-0 flex-col items-center"
@@ -158,7 +167,7 @@ function AnswerMedallion({ correctAnswer }: { correctAnswer: number | undefined 
           style={SHOWDOWN_FELT_STYLE}
         >
           <span className={`font-mono font-black tabular-nums text-amber-100 ${DISPLAY_TEXT_PRIMARY}`}>
-            {formatTriviaNumber(correctAnswer)}
+            {shownTriviaNumber(correctAnswer, question)}
           </span>
         </motion.div>
       </motion.div>
@@ -176,6 +185,7 @@ function PlayerShowdownRow({
   isWinner,
   index,
   compact,
+  question = null,
 }: {
   row: ShowdownResultRow
   shownName: string
@@ -183,6 +193,7 @@ function PlayerShowdownRow({
   isWinner: boolean
   index: number
   compact: boolean
+  question?: TriviaQuestionFace
 }) {
   const hasGuess = row.submitted != null && typeof correctAnswer === 'number'
   const distance =
@@ -245,7 +256,7 @@ function PlayerShowdownRow({
       <motion.div className="text-right">
         <p className={`font-bold uppercase tracking-wider text-white/40 ${DISPLAY_TEXT_SECONDARY_CQ}`}>Guess</p>
         <p className={`font-mono font-black tabular-nums text-amber-100 ${DISPLAY_TEXT_PRIMARY_CQ}`}>
-          {hasGuess ? formatTriviaNumber(row.submitted) : '—'}
+          {hasGuess ? shownTriviaNumber(row.submitted, question) : '—'}
         </p>
       </motion.div>
 
@@ -282,6 +293,7 @@ export default function ShowdownResultsPanel({
   winnerName,
   compact = false,
   className = '',
+  question = null,
 }: ShowdownResultsPanelProps) {
   const { rows: sorted, winnerKeys } = sortShowdownRowsByDistance(rows, correctAnswer)
   const activeRows = sorted.filter((r) => r.name.trim() !== '')
@@ -302,7 +314,7 @@ export default function ShowdownResultsPanel({
         >
           <p className={`font-bold uppercase tracking-[0.14em] text-amber-200/80 ${DISPLAY_TEXT_SECONDARY}`}>Answer</p>
           <p className={`font-mono font-black tabular-nums text-amber-100 ${DISPLAY_TEXT_PRIMARY}`}>
-            {formatTriviaNumber(correctAnswer)}
+            {shownTriviaNumber(correctAnswer, question)}
           </p>
         </motion.div>
         <StadiumTableSeats
@@ -319,6 +331,7 @@ export default function ShowdownResultsPanel({
               row={row}
               shownName={activeLabels[idx] ?? row.name}
               correctAnswer={correctAnswer}
+              question={question}
               isWinner={winnerKeys.has(`${row.seat}:${row.name}`)}
               index={idx}
               compact
@@ -348,7 +361,7 @@ export default function ShowdownResultsPanel({
             </h2>
           </motion.div>
           <motion.div className="flex flex-wrap items-center gap-4 sm:justify-end">
-            <AnswerMedallion correctAnswer={correctAnswer} />
+            <AnswerMedallion correctAnswer={correctAnswer} question={question} />
           </motion.div>
         </motion.div>
 
@@ -394,6 +407,7 @@ export default function ShowdownResultsPanel({
               row={row}
               shownName={activeLabels[idx] ?? row.name}
               correctAnswer={correctAnswer}
+              question={question}
               isWinner={winnerKeys.has(`${row.seat}:${row.name}`)}
               index={idx}
               compact={false}

@@ -17,6 +17,7 @@ export function useHandSummary(
   const baselineRef = useRef<HandBaseline | null>(null)
   const foldedRef = useRef(false)
   const lastQuestionAnswerRef = useRef<number | null>(null)
+  const lastQuestionRef = useRef<{ text?: string | null; category?: string | null } | null>(null)
   const prevPhaseRef = useRef<GameState['phase'] | null>(null)
   const [summary, setSummary] = useState<HandSummary | null>(null)
 
@@ -30,6 +31,10 @@ export function useHandSummary(
 
     const qAnswer = questionAnswerFromState(gameState)
     if (qAnswer != null) lastQuestionAnswerRef.current = qAnswer
+    const liveQuestion = gameState.round.question
+    if (liveQuestion) {
+      lastQuestionRef.current = { text: liveQuestion.text, category: liveQuestion.category }
+    }
 
     if (prev === 'lobby' && isHandStartingPhase(phase)) {
       baselineRef.current = captureHandBaseline(currentPlayer)
@@ -47,6 +52,7 @@ export function useHandSummary(
           player: currentPlayer,
           questionAnswer: lastQuestionAnswerRef.current,
           foldedDuringHand: foldedRef.current,
+          question: lastQuestionRef.current,
         })
       )
       baselineRef.current = null

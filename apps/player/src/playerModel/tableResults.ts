@@ -2,6 +2,7 @@ import {
   closestComposedAnswer,
   determineChipPotTriviaWinners,
   formatTriviaNumber,
+  shownTriviaNumber,
   guessMatchesBestHand,
   previewChipPayoutByPlayerId,
   type GamePhase,
@@ -93,7 +94,7 @@ export function buildTableResults(
     const pointsOnly = p.pointsOnly === true
     const submitted = typeof p.submittedAnswer === 'number' ? p.submittedAnswer : null
     let formattedAnswer = '—'
-    if (submitted != null) formattedAnswer = formatTriviaNumber(submitted)
+    if (submitted != null) formattedAnswer = shownTriviaNumber(submitted, q)
     else if (folded) formattedAnswer = 'Folded'
     else if (pointsOnly) formattedAnswer = 'Points only'
 
@@ -133,7 +134,7 @@ export function buildTableResults(
 
   return {
     correctAnswer: q.answer,
-    formattedCorrect: formatTriviaNumber(q.answer),
+    formattedCorrect: shownTriviaNumber(q.answer, q),
     winnerIds,
     winnerNames,
     yourTriviaPoints: you ? you.triviaPoints : null,
@@ -159,7 +160,7 @@ function bestHandForYou(
   )
   if (best == null) return null
   return {
-    formatted: formatTriviaNumber(best),
+    formatted: shownTriviaNumber(best, gameState.round.question),
     played: guessMatchesBestHand(submitted, best, correct),
   }
 }

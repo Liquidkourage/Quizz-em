@@ -491,6 +491,7 @@ function PlayerApp() {
     editing: editingAnswer,
     serverAnswer: currentPlayer?.submittedAnswer,
     optimistic: submittedAnswerDisplay,
+    question: gameState?.round.question,
   })
 
   const handleCardSelect = (type: 'hand' | 'community', index: number) => {

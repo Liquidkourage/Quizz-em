@@ -2885,6 +2885,12 @@
     transform: translate(60%, calc(-60% - var(--badge-lift) * 110%));
   }
 
+  .vfd-mosaic-side-badge-anchor {
+    color: transparent;
+    -webkit-text-stroke: 0;
+    text-shadow: none;
+  }
+
   .vfd-mosaic-seat-status {
     display: inline-block;
     flex: none;

@@ -66,6 +66,7 @@ describe('resolveAudienceWallView', () => {
     expect(resolveAudienceWallView('floor', 'floor')).toBe('floor')
     expect(resolveAudienceWallView('floor', 'leaderboard')).toBe('leaderboard')
     expect(resolveAudienceWallView('rules', 'floor')).toBe('rules')
+    expect(resolveAudienceWallView('event', 'floor')).toBe('event')
   })
 })
 

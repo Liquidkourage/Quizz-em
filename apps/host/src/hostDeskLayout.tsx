@@ -3011,6 +3011,7 @@ export function HostTvBar({
   onSeatingChart,
   onEliminations,
   onSeatingRules,
+  onEventOverview,
   scoresHint = null,
   scoresForced = false,
 }: {
@@ -3021,6 +3022,7 @@ export function HostTvBar({
   onSeatingChart?: () => void
   onEliminations?: () => void
   onSeatingRules: () => void
+  onEventOverview?: () => void
   /** Quiet line when this hand has not shown chip or trivia scores. */
   scoresHint?: string | null
   scoresForced?: boolean
@@ -3043,6 +3045,9 @@ export function HostTvBar({
     modes.push({ id: 'busts', label: 'Eliminations', onClick: onEliminations })
   }
   modes.push({ id: 'rules', label: 'How to play', onClick: onSeatingRules })
+  if (onEventOverview) {
+    modes.push({ id: 'event', label: 'How the event works', onClick: onEventOverview })
+  }
 
   return (
     <div className="host-tv-modes w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2">

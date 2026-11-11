@@ -21,6 +21,7 @@ import VenueEightTablesPreview from './VenueEightTablesPreview.tsx'
 import VenueSeatingChart from './VenueSeatingChart.tsx'
 import VenueLeaderboardWall from './VenueLeaderboardWall.tsx'
 import VenueSeatingRulesWall from './VenueSeatingRulesWall.tsx'
+import EventOverviewWall from './EventOverviewWall.tsx'
 import { buildVenueWallTileRows, venueWallHasLiveTiles, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
@@ -119,7 +120,13 @@ export default function DisplayRouter({
     [hasFloorTables, tileRows, venueWall?.headlinePhase],
   )
   const hostWallView = layout.wallView ?? 'floor'
-  const hostPinnedRules = onVenueWallLayout && hostWallView === 'rules'
+  const hostLesson = hostWallView === 'rules' || hostWallView === 'event' ? hostWallView : null
+  const [lessonPick, setLessonPick] = useState<'rules' | 'event' | null>(hostLesson)
+  useEffect(() => {
+    setLessonPick(hostLesson)
+  }, [hostLesson])
+  const lesson = lessonPick
+  const hostPinnedRules = onVenueWallLayout && hostLesson != null
   /**
    * Until the first venue snapshot arrives, `venueWall` is null — treat that as briefing so we never
    * flash `VenueEightTablesPreview` rehearsal tiles before `AudienceWelcomeWall` (TV pair / cold load).
@@ -144,6 +151,7 @@ export default function DisplayRouter({
     !mosaicForcedByHost &&
     !isLeaderboardView &&
     wallView !== 'rules' &&
+    wallView !== 'event' &&
     venueWallShowSeatingChart(venueWall, tileRows, venueWall?.serverNowMs ?? Date.now())
   const showSeatingChart =
     onVenueWallLayout &&
@@ -151,13 +159,15 @@ export default function DisplayRouter({
     !showHostBusts &&
     hasFloorTables &&
     (hostWantsSeatingChart || autoSeatingChart)
-  const showRules = onVenueWallLayout && !showHostBusts && wallView === 'rules'
+  const showRules = onVenueWallLayout && !showHostBusts && lesson === 'rules'
+  const showEvent = onVenueWallLayout && !showHostBusts && lesson === 'event'
   const showLeaderboard =
     onVenueWallLayout &&
     !audienceBriefing &&
     !showSeatingChart &&
     !showHostBusts &&
     !showRules &&
+    !showEvent &&
     hasFloorTables &&
     isLeaderboardView &&
     venueWall != null
@@ -366,7 +376,8 @@ export default function DisplayRouter({
     !audienceBriefing &&
     !showSeatingChart &&
     !showLeaderboard &&
-    !showRules
+    !showRules &&
+    !showEvent
 
   const answerReveal = useVenueAnswerReveal(
     showVenueMosaicShell && !showHostBusts ? venueWall : null,
@@ -479,6 +490,19 @@ export default function DisplayRouter({
           />
         </motion.div>
       )}
+      {showEvent && (
+        <motion.div
+          key="venue-event-overview"
+          className="relative z-10 min-h-screen w-full"
+          role="presentation"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <EventOverviewWall venueCode={venueCode} onShowHand={() => setLessonPick('rules')} />
+        </motion.div>
+      )}
       {showRules && (
         <motion.div
           key="venue-seating-rules"
@@ -489,7 +513,7 @@ export default function DisplayRouter({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <VenueSeatingRulesWall venueCode={venueCode} />
+          <VenueSeatingRulesWall venueCode={venueCode} onShowEvent={() => setLessonPick('event')} />
         </motion.div>
       )}
       {showVenueMosaicShell && (

@@ -38,6 +38,7 @@ export type VenueWallViewMode =
   | 'leaderboard'
   | 'leaderboard-trivia'
   | 'rules'
+  | 'event'
   | 'seating-chart'
   | 'busts'
 
@@ -46,6 +47,7 @@ const VENUE_WALL_VIEWS: readonly VenueWallViewMode[] = [
   'leaderboard',
   'leaderboard-trivia',
   'rules',
+  'event',
   'seating-chart',
   'busts',
 ]

@@ -3969,6 +3969,17 @@
     flex: 0 0 auto;
   }
 
+  .htp-switch {
+    border: 1px solid rgba(161, 209, 192, 0.27);
+    background: rgba(5, 21, 28, 0.6);
+    color: #a8bdbc;
+    border-radius: 9px;
+    font-size: clamp(0.85rem, 1.6vmin, 1.05rem);
+    font-weight: 750;
+    padding: 0.55rem 0.8rem;
+    cursor: pointer;
+  }
+
   .htp-brand h1 {
     margin: 0;
     font-size: clamp(1.6rem, 3.4vmin, 2.6rem);

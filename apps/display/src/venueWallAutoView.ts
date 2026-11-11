@@ -62,6 +62,7 @@ export function stepVenueWallAutoView(
 export function hostPinnedAudienceView(hostWallView: VenueWallViewMode | undefined): boolean {
   return (
     hostWallView === 'rules' ||
+    hostWallView === 'event' ||
     hostWallView === 'leaderboard' ||
     hostWallView === 'leaderboard-trivia' ||
     hostWallView === 'seating-chart' ||

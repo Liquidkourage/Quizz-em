@@ -23,6 +23,7 @@ export function HostLivePanel({
   onSeatingChart,
   onEliminations,
   onSeatingRules,
+  onEventOverview,
   scoresHint = null,
   scoresForced = false,
   activeView = 'floor',
@@ -48,6 +49,7 @@ export function HostLivePanel({
   onSeatingChart?: () => void
   onEliminations?: () => void
   onSeatingRules: () => void
+  onEventOverview?: () => void
   scoresHint?: string | null
   scoresForced?: boolean
   /** Public display mode currently on the audience TVs. */
@@ -108,6 +110,7 @@ export function HostLivePanel({
           onSeatingChart={onSeatingChart}
           onEliminations={onEliminations}
           onSeatingRules={onSeatingRules}
+          onEventOverview={onEventOverview}
           scoresHint={scoresHint}
           scoresForced={scoresForced}
         />

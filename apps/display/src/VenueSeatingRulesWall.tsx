@@ -15,6 +15,7 @@ export type VenueSeatingRulesWallProps = {
   venueCode?: string
   /** When set, the lesson stays on this beat. The TV omits it and advances on its own. */
   step?: number
+  onShowEvent?: () => void
 }
 
 function usePlayingStep(controlled: number | undefined): number {
@@ -190,7 +191,7 @@ function TutorialJoin({ venueCode }: { venueCode: string }) {
   )
 }
 
-export default function VenueSeatingRulesWall({ venueCode = '', step }: VenueSeatingRulesWallProps) {
+export default function VenueSeatingRulesWall({ venueCode = '', step, onShowEvent }: VenueSeatingRulesWallProps) {
   const shown = usePlayingStep(step)
   const frame = howToPlayFrame(shown)
   const reduce = useReducedMotion() === true
@@ -209,6 +210,11 @@ export default function VenueSeatingRulesWall({ venueCode = '', step }: VenueSea
           <div>
             <h1>How to play</h1>
             <p>Trivia meets Texas Hold&apos;em</p>
+            {onShowEvent ? (
+              <button type="button" className="htp-switch" onClick={onShowEvent}>
+                How the event works
+              </button>
+            ) : null}
           </div>
         </div>
         <TutorialTimeline segment={frame.segment} />

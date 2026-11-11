@@ -738,6 +738,8 @@ function HostApp() {
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard-trivia' })
   const showSeatingRulesOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'rules' })
+  const showEventOverviewOnTvs = () =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'event' })
   const showSeatingChartOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'seating-chart' })
   const showEliminationsOnTvs = () =>
@@ -1188,6 +1190,7 @@ function HostApp() {
               (venueFloorBrief?.lastHandBustCount ?? 0) > 0 ? showEliminationsOnTvs : undefined
             }
             onSeatingRules={showSeatingRulesOnTvs}
+            onEventOverview={showEventOverviewOnTvs}
             scoresHint={venueFloorBrief?.scoresHint ?? null}
             scoresForced={venueFloorBrief?.scoresBlockNextQuestion === true}
             activeView={venueFloorBrief?.wallView ?? 'floor'}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import {
   EVENT_OVERVIEW_SEAT_SLOTS,
@@ -11,9 +11,8 @@ import './eventOverview.css'
 
 export type EventOverviewWallProps = {
   venueCode?: string
-  /** When set, the lesson stays on this beat. The TV omits it and advances on its own. */
+  /** When set, the host owns this beat. The TV shows it and does not advance on its own. */
   step?: number
-  onShowHand?: () => void
 }
 
 function joinOrigin(): string {
@@ -32,45 +31,17 @@ function useStageScale(): number {
   return scale
 }
 
-function usePlayingStep(controlled: number | undefined): {
-  step: number
-  playing: boolean
-  progress: number
-  go: (delta: number) => void
-  toggle: () => void
-} {
+function usePlayingStep(controlled: number | undefined): number {
   const [live, setLive] = useState(0)
-  const [playing, setPlaying] = useState(true)
-  const [progress, setProgress] = useState(0)
-  const elapsedRef = useRef(0)
   const step = controlled ?? live
   useEffect(() => {
-    if (controlled != null || !playing) return undefined
-    let last = performance.now()
-    let frame = 0
-    const tick = (now: number) => {
-      const dt = Math.min(now - last, 120)
-      last = now
-      elapsedRef.current += dt
-      const duration = eventOverviewFrame(step).durationMs
-      if (elapsedRef.current >= duration) {
-        elapsedRef.current = 0
-        setProgress(0)
-        setLive((current) => eventOverviewFrame(current + 1).stepIndex)
-      } else {
-        setProgress(elapsedRef.current / duration)
-      }
-      frame = window.requestAnimationFrame(tick)
-    }
-    frame = window.requestAnimationFrame(tick)
-    return () => window.cancelAnimationFrame(frame)
-  }, [controlled, playing, step])
-  const go = (delta: number) => {
-    elapsedRef.current = 0
-    setProgress(0)
-    setLive((current) => eventOverviewFrame((controlled ?? current) + delta).stepIndex)
-  }
-  return { step, playing, progress, go, toggle: () => setPlaying((current) => !current) }
+    if (controlled != null) return undefined
+    const id = window.setTimeout(() => {
+      setLive((current) => eventOverviewFrame(current + 1).stepIndex)
+    }, eventOverviewFrame(step).durationMs)
+    return () => window.clearTimeout(id)
+  }, [controlled, step])
+  return step
 }
 
 function SeatMark({ table, seat, step }: { table: number; seat: number; step: number }) {
@@ -122,31 +93,14 @@ function PokerTable({
   )
 }
 
-export default function EventOverviewWall({ venueCode = '', step: controlled, onShowHand }: EventOverviewWallProps) {
-  const playback = usePlayingStep(controlled)
-  const frame = eventOverviewFrame(playback.step)
+export default function EventOverviewWall({ venueCode = '', step: controlled }: EventOverviewWallProps) {
+  const step = usePlayingStep(controlled)
+  const frame = eventOverviewFrame(step)
   const reduce = useReducedMotion() === true
   const scale = useStageScale()
   const url = howToPlayJoinUrl(joinOrigin(), venueCode)
   const qr = howToPlayQrSrc(url)
   const code = venueCode.trim().toUpperCase()
-  useEffect(() => {
-    if (controlled != null) return undefined
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowRight') {
-        event.preventDefault()
-        playback.go(1)
-      } else if (event.key === 'ArrowLeft') {
-        event.preventDefault()
-        playback.go(-1)
-      } else if (event.code === 'Space') {
-        event.preventDefault()
-        playback.toggle()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [controlled, playback])
 
   return (
     <div className="evt-viewport">
@@ -169,12 +123,6 @@ export default function EventOverviewWall({ venueCode = '', step: controlled, on
               <p>The poker tournament and the all-player accuracy leaderboard</p>
             </div>
           </div>
-          <nav className="evt-tabs" aria-label="Tutorial screens">
-            <span className="evt-tab evt-tab--active">The full event</span>
-            <button type="button" className="evt-tab" onClick={onShowHand}>
-              How a hand works
-            </button>
-          </nav>
         </header>
         <main className="evt-main">
           <section className="evt-stage" aria-label="Animated tournament tables">
@@ -234,21 +182,6 @@ export default function EventOverviewWall({ venueCode = '', step: controlled, on
                 {code ? `Room ${code}. ` : ''}
                 Scan to join the event on your phone.
               </span>
-            </div>
-          </div>
-          <div className="evt-controls">
-            <span className="evt-key">← → to step · Space to pause</span>
-            <button type="button" className="evt-control" aria-label="Previous step" onClick={() => playback.go(-1)}>
-              ←
-            </button>
-            <button type="button" className="evt-control" onClick={playback.toggle}>
-              {playback.playing ? 'Ⅱ Pause' : '▶ Play'}
-            </button>
-            <button type="button" className="evt-control" aria-label="Next step" onClick={() => playback.go(1)}>
-              →
-            </button>
-            <div className="evt-progress" aria-hidden>
-              <span style={{ width: `${Math.round(playback.progress * 100)}%` }} />
             </div>
           </div>
         </footer>

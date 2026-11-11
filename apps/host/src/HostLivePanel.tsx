@@ -24,6 +24,7 @@ export function HostLivePanel({
   onEliminations,
   onSeatingRules,
   onEventOverview,
+  lessonTransport = null,
   scoresHint = null,
   scoresForced = false,
   activeView = 'floor',
@@ -50,6 +51,12 @@ export function HostLivePanel({
   onEliminations?: () => void
   onSeatingRules: () => void
   onEventOverview?: () => void
+  lessonTransport?: {
+    paused: boolean
+    onPrevious: () => void
+    onNext: () => void
+    onTogglePause: () => void
+  } | null
   scoresHint?: string | null
   scoresForced?: boolean
   /** Public display mode currently on the audience TVs. */
@@ -75,6 +82,19 @@ export function HostLivePanel({
   if (waiting && !hasSeatedFelts) {
     return (
       <>
+        <HostTvBar
+          activeView={activeView}
+          onVenueFloor={onVenueFloor}
+          onLeaderboard={onLeaderboard}
+          onTriviaLeaderboard={onTriviaLeaderboard}
+          onSeatingChart={onSeatingChart}
+          onEliminations={onEliminations}
+          onSeatingRules={onSeatingRules}
+          onEventOverview={onEventOverview}
+          lessonTransport={lessonTransport}
+          scoresHint={scoresHint}
+          scoresForced={scoresForced}
+        />
         <div className="rounded-xl border border-amber-400/30 bg-amber-950/20 p-5 sm:p-6">
           <h2 className="text-xl font-bold text-amber-50">Seat players first</h2>
           <button
@@ -111,6 +131,7 @@ export function HostLivePanel({
           onEliminations={onEliminations}
           onSeatingRules={onSeatingRules}
           onEventOverview={onEventOverview}
+          lessonTransport={lessonTransport}
           scoresHint={scoresHint}
           scoresForced={scoresForced}
         />

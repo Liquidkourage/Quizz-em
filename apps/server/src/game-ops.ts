@@ -3031,6 +3031,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       handsCompleted: getVenueHandsCompleted(vn),
       lastHandBustCount: lastHandDisplay?.busts.length ?? 0,
       wallView: venueDisplayLayouts.get(vn)?.wallView ?? 'floor',
+      lessonStep: venueDisplayLayouts.get(vn)?.lessonStep,
+      lessonPaused: venueDisplayLayouts.get(vn)?.lessonPaused,
       scoresHint: venueScoresCue(vn).hint,
       scoresBlockNextQuestion: venueScoresCue(vn).blocked,
       winnerScreensReadyAtMs: venueWinnerScreensReadyAtFor(vn),

@@ -34,15 +34,15 @@ describe('event overview', () => {
     expect(frame.accuracy).toBe(21)
   })
 
-  it('draws the event lesson with the real join note and a way back to a hand', () => {
+  it('draws the event lesson with the real join note and no controls on the TV', () => {
     const html = renderToStaticMarkup(
-      createElement(EventOverviewWall, { step: 0, venueCode: 'AB12', onShowHand: () => {} }),
+      createElement(EventOverviewWall, { step: 0, venueCode: 'AB12' }),
     )
     expect(html).toContain('How the Event Works')
     expect(html).toContain('There are two ways to compete')
-    expect(html).toContain('How a hand works')
     expect(html).toContain('18')
     expect(html).toContain('players with chips')
+    expect(html).not.toContain('<button')
     expect(html).not.toContain('placeholder')
   })
 })

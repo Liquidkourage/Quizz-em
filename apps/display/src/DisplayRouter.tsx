@@ -121,11 +121,6 @@ export default function DisplayRouter({
   )
   const hostWallView = layout.wallView ?? 'floor'
   const hostLesson = hostWallView === 'rules' || hostWallView === 'event' ? hostWallView : null
-  const [lessonPick, setLessonPick] = useState<'rules' | 'event' | null>(hostLesson)
-  useEffect(() => {
-    setLessonPick(hostLesson)
-  }, [hostLesson])
-  const lesson = lessonPick
   const hostPinnedRules = onVenueWallLayout && hostLesson != null
   /**
    * Until the first venue snapshot arrives, `venueWall` is null — treat that as briefing so we never
@@ -159,8 +154,8 @@ export default function DisplayRouter({
     !showHostBusts &&
     hasFloorTables &&
     (hostWantsSeatingChart || autoSeatingChart)
-  const showRules = onVenueWallLayout && !showHostBusts && lesson === 'rules'
-  const showEvent = onVenueWallLayout && !showHostBusts && lesson === 'event'
+  const showRules = onVenueWallLayout && !showHostBusts && hostWallView === 'rules'
+  const showEvent = onVenueWallLayout && !showHostBusts && hostWallView === 'event'
   const showLeaderboard =
     onVenueWallLayout &&
     !audienceBriefing &&
@@ -500,7 +495,7 @@ export default function DisplayRouter({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <EventOverviewWall venueCode={venueCode} onShowHand={() => setLessonPick('rules')} />
+          <EventOverviewWall venueCode={venueCode} step={layout.lessonStep} />
         </motion.div>
       )}
       {showRules && (
@@ -513,7 +508,11 @@ export default function DisplayRouter({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <VenueSeatingRulesWall venueCode={venueCode} onShowEvent={() => setLessonPick('event')} />
+          <VenueSeatingRulesWall
+            venueCode={venueCode}
+            step={layout.lessonStep}
+            paused={layout.lessonPaused === true}
+          />
         </motion.div>
       )}
       {showVenueMosaicShell && (

@@ -61,6 +61,24 @@ export type DisplayLayoutPayload = {
   focusTable: number | null
   /** Host toggles between the table floor and full-screen stacks leaderboard. */
   wallView?: VenueWallViewMode
+  /** Beat of a pregame lesson. The host owns it. TVs only show it. */
+  lessonStep?: number
+  lessonPaused?: boolean
+}
+
+/** Beat lengths for the two pregame lessons. The host clock and the pictures share these. */
+export const HOW_TO_PLAY_BEAT_MS = [6000, 6200, 7000, 6500, 7000, 6500, 8000, 10500, 8000] as const
+export const EVENT_OVERVIEW_BEAT_MS = [9000, 9500, 9500, 10500, 10000, 10500, 11000] as const
+
+export function lessonStepAfter(wallView: 'rules' | 'event', step: number, delta: number): number {
+  const count = wallView === 'rules' ? HOW_TO_PLAY_BEAT_MS.length : EVENT_OVERVIEW_BEAT_MS.length
+  const current = Number.isFinite(step) ? Math.trunc(step) : 0
+  return ((current + delta) % count + count) % count
+}
+
+export function lessonBeatMs(wallView: 'rules' | 'event', step: number): number {
+  const beats = wallView === 'rules' ? HOW_TO_PLAY_BEAT_MS : EVENT_OVERVIEW_BEAT_MS
+  return beats[lessonStepAfter(wallView, step, 0)]!
 }
 
 export function normalizeDisplayLayoutPayload(
@@ -72,9 +90,15 @@ export function normalizeDisplayLayoutPayload(
   else if (typeof focusRaw === 'number' && Number.isInteger(focusRaw) && focusRaw >= 1 && focusRaw <= VENUE_NUMBERED_TABLE_MAX) {
     focusTable = focusRaw
   }
-  const wallViewRaw = raw && typeof raw === 'object' ? (raw as Record<string, unknown>).wallView : undefined
+  const record = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {}
+  const wallViewRaw = record.wallView
   const wallView: VenueWallViewMode = isVenueWallView(wallViewRaw) ? wallViewRaw : 'floor'
-  return { layout: 'venueWall', focusTable, wallView }
+  if (wallView !== 'rules' && wallView !== 'event') {
+    return { layout: 'venueWall', focusTable, wallView }
+  }
+  const stepRaw = record.lessonStep
+  const lessonStep = lessonStepAfter(wallView, typeof stepRaw === 'number' ? stepRaw : 0, 0)
+  return { layout: 'venueWall', focusTable, wallView, lessonStep, lessonPaused: record.lessonPaused === true }
 }
 
 /** Shown when the night is over so a phone drops the room instead of refreshing back into it. */
@@ -529,6 +553,9 @@ export type HostVenueFloorBriefPayload = {
   lastHandBustCount?: number
   /** Mode the audience TVs are showing. */
   wallView?: VenueWallViewMode
+  /** Beat of the pregame lesson, when the TVs are showing one. */
+  lessonStep?: number
+  lessonPaused?: boolean
   /** Epoch ms when Pay winners unlocks. Null once the winner screens have finished a pass. */
   winnerScreensReadyAtMs?: number | null
   /** Quiet reminder to put chip scores or trivia scores on the TVs. */

@@ -50,6 +50,8 @@ import {
   nextQuestionFromSetlist,
   selectTriviaSetlist,
   setlistSave,
+  lessonBeatMs,
+  lessonStepAfter,
 } from '@qhe/net'
 import type { BlindLevelEstimate, GameState, PlayerPhasePreviewId, Question } from '@qhe/core'
 import { HostBlindCall } from './HostBlindCall'
@@ -512,6 +514,23 @@ function HostApp() {
 
   const feltAutoAlert = useHostVenueAutoAlerts(venueFeltBeat)
   const venueAutoAlert = toastVenueAlert ?? feltAutoAlert
+  const tvWall = venueFloorBrief?.wallView ?? 'floor'
+  const lessonView = tvWall === 'rules' || tvWall === 'event' ? tvWall : null
+  const lessonStep = venueFloorBrief?.lessonStep ?? 0
+  const lessonPaused = venueFloorBrief?.lessonPaused === true
+  useEffect(() => {
+    if (lessonView == null || lessonPaused) return undefined
+    const id = window.setTimeout(() => {
+      displaySetLayout({
+        layout: 'venueWall',
+        focusTable: null,
+        wallView: lessonView,
+        lessonStep: lessonStepAfter(lessonView, lessonStep, 1),
+        lessonPaused: false,
+      })
+    }, lessonBeatMs(lessonView, lessonStep))
+    return () => window.clearTimeout(id)
+  }, [lessonView, lessonStep, lessonPaused])
 
   if (!gameState) {
     return (
@@ -736,10 +755,30 @@ function HostApp() {
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
   const showTriviaLeaderboardOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard-trivia' })
-  const showSeatingRulesOnTvs = () =>
-    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'rules' })
-  const showEventOverviewOnTvs = () =>
-    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'event' })
+  const showLessonOnTvs = (wallView: 'rules' | 'event') =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView, lessonStep: 0, lessonPaused: false })
+  const showSeatingRulesOnTvs = () => showLessonOnTvs('rules')
+  const showEventOverviewOnTvs = () => showLessonOnTvs('event')
+  const nudgeLesson = (delta: number) => {
+    if (lessonView == null) return
+    displaySetLayout({
+      layout: 'venueWall',
+      focusTable: null,
+      wallView: lessonView,
+      lessonStep: lessonStepAfter(lessonView, lessonStep, delta),
+      lessonPaused,
+    })
+  }
+  const toggleLessonPause = () => {
+    if (lessonView == null) return
+    displaySetLayout({
+      layout: 'venueWall',
+      focusTable: null,
+      wallView: lessonView,
+      lessonStep,
+      lessonPaused: !lessonPaused,
+    })
+  }
   const showSeatingChartOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'seating-chart' })
   const showEliminationsOnTvs = () =>
@@ -1191,6 +1230,16 @@ function HostApp() {
             }
             onSeatingRules={showSeatingRulesOnTvs}
             onEventOverview={showEventOverviewOnTvs}
+            lessonTransport={
+              lessonView == null
+                ? null
+                : {
+                    paused: lessonPaused,
+                    onPrevious: () => nudgeLesson(-1),
+                    onNext: () => nudgeLesson(1),
+                    onTogglePause: toggleLessonPause,
+                  }
+            }
             scoresHint={venueFloorBrief?.scoresHint ?? null}
             scoresForced={venueFloorBrief?.scoresBlockNextQuestion === true}
             activeView={venueFloorBrief?.wallView ?? 'floor'}

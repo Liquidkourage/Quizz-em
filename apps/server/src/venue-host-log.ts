@@ -748,6 +748,8 @@ export function buildHostVenueFloorBrief(args: {
   serverNowMs?: number
   fieldPeakCount?: number
   wallView?: VenueWallViewMode
+  lessonStep?: number
+  lessonPaused?: boolean
   winnerScreensReadyAtMs?: number | null
   scoresHint?: string | null
   scoresBlockNextQuestion?: boolean
@@ -794,6 +796,8 @@ export function buildHostVenueFloorBrief(args: {
     serverNowMs: args.serverNowMs,
     fieldPeakCount: Math.max(args.fieldPlayerCount, Math.floor(args.fieldPeakCount ?? 0)),
     wallView: args.wallView ?? 'floor',
+    lessonStep: args.lessonStep,
+    lessonPaused: args.lessonPaused,
     winnerScreensReadyAtMs: args.winnerScreensReadyAtMs ?? null,
     scoresHint: args.scoresHint ?? null,
     scoresBlockNextQuestion: args.scoresBlockNextQuestion === true,

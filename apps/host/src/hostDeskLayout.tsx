@@ -3012,6 +3012,7 @@ export function HostTvBar({
   onEliminations,
   onSeatingRules,
   onEventOverview,
+  lessonTransport = null,
   scoresHint = null,
   scoresForced = false,
 }: {
@@ -3023,6 +3024,13 @@ export function HostTvBar({
   onEliminations?: () => void
   onSeatingRules: () => void
   onEventOverview?: () => void
+  /** Previous, pause, and next for the lesson currently on the TVs. */
+  lessonTransport?: {
+    paused: boolean
+    onPrevious: () => void
+    onNext: () => void
+    onTogglePause: () => void
+  } | null
   /** Quiet line when this hand has not shown chip or trivia scores. */
   scoresHint?: string | null
   scoresForced?: boolean
@@ -3072,6 +3080,19 @@ export function HostTvBar({
         )
       })}
       </div>
+      {lessonTransport ? (
+        <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5" role="group" aria-label="Lesson playback">
+          <button type="button" className="min-h-11 shrink-0 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white" onClick={lessonTransport.onPrevious}>
+            Previous beat
+          </button>
+          <button type="button" className="min-h-11 shrink-0 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white" onClick={lessonTransport.onTogglePause}>
+            {lessonTransport.paused ? 'Play' : 'Pause'}
+          </button>
+          <button type="button" className="min-h-11 shrink-0 rounded-xl border border-white/15 bg-black/35 px-3 py-2 text-sm font-bold text-white/80 hover:bg-white/10 hover:text-white" onClick={lessonTransport.onNext}>
+            Next beat
+          </button>
+        </div>
+      ) : null}
       {scoresHint ? (
         <p className={`mt-1.5 text-xs leading-snug ${scoresForced ? 'font-semibold text-amber-100/90' : 'text-white/45'}`}>
           {scoresHint}

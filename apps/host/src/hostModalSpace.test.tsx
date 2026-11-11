@@ -73,6 +73,22 @@ describe('host popup space', () => {
     expect(html).toContain('Seating')
     expect(html).toMatch(/host-tv-mode-active[^>]*>Seating/)
     expect(html).not.toContain('grid-cols-1')
+    expect(html).not.toContain('Previous beat')
+  })
+
+  it('puts lesson playback on the host public-display bar', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTvBar, {
+        activeView: 'rules',
+        onVenueFloor: () => {},
+        onLeaderboard: () => {},
+        onSeatingRules: () => {},
+        lessonTransport: { paused: false, onPrevious: () => {}, onNext: () => {}, onTogglePause: () => {} },
+      }),
+    )
+    expect(html).toContain('Previous beat')
+    expect(html).toContain('Pause')
+    expect(html).toContain('Next beat')
   })
 
   it('lays venue felts in growing rows', () => {

@@ -13,9 +13,9 @@ import {
 
 export type VenueSeatingRulesWallProps = {
   venueCode?: string
-  /** When set, the lesson stays on this beat. The TV omits it and advances on its own. */
+  /** When set, the host owns this beat. The TV shows it and does not advance on its own. */
   step?: number
-  onShowEvent?: () => void
+  paused?: boolean
 }
 
 function usePlayingStep(controlled: number | undefined): number {
@@ -191,7 +191,7 @@ function TutorialJoin({ venueCode }: { venueCode: string }) {
   )
 }
 
-export default function VenueSeatingRulesWall({ venueCode = '', step, onShowEvent }: VenueSeatingRulesWallProps) {
+export default function VenueSeatingRulesWall({ venueCode = '', step, paused = false }: VenueSeatingRulesWallProps) {
   const shown = usePlayingStep(step)
   const frame = howToPlayFrame(shown)
   const reduce = useReducedMotion() === true
@@ -210,11 +210,6 @@ export default function VenueSeatingRulesWall({ venueCode = '', step, onShowEven
           <div>
             <h1>How to play</h1>
             <p>Trivia meets Texas Hold&apos;em</p>
-            {onShowEvent ? (
-              <button type="button" className="htp-switch" onClick={onShowEvent}>
-                How the event works
-              </button>
-            ) : null}
           </div>
         </div>
         <TutorialTimeline segment={frame.segment} />
@@ -229,7 +224,7 @@ export default function VenueSeatingRulesWall({ venueCode = '', step, onShowEven
           <div
             key={frame.stepIndex}
             className="htp-progress-fill"
-            style={{ animationDuration: `${frame.durationMs}ms` }}
+            style={{ animationDuration: `${frame.durationMs}ms`, animationPlayState: paused ? 'paused' : 'running' }}
           />
         </div>
       </footer>

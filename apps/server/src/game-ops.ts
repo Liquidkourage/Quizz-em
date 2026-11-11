@@ -1625,6 +1625,7 @@ export function commitTableAdvance(
   }
   rooms.set(sessionKey, after)
   emitVenueTableState(sessionKey, after, opts)
+  if (after.phase === 'answering') releaseGuessNudgeWhenEveryoneHasGuessed(vn)
 }
 
 /**
@@ -1822,6 +1823,40 @@ function tellGuessNudge(playerId: string): void {
     return
   }
   tellPlayerNudge(playerId, 'Lock a guess in 30 seconds, or you score 0 and cannot win this pot.')
+}
+
+function guessNudgeIsRunning(vn: string): boolean {
+  if (guessNudgeTimers.has(vn)) return true
+  for (const { gs } of venuePlayableSnapshots(vn)) {
+    if (gs.round.guessNudge === true) return true
+  }
+  return false
+}
+
+function anyoneStillGuessing(vn: string): boolean {
+  for (const { gs } of venuePlayableSnapshots(vn)) {
+    if (seatsStillGuessing(gs).length > 0) return true
+  }
+  return false
+}
+
+/** The 30s forfeit clock is only for people who have not guessed. Once they all have, drop it and tell the host. */
+function releaseGuessNudgeWhenEveryoneHasGuessed(vnRaw: string): void {
+  const vn = normalizeVenueCode(vnRaw)
+  if (!guessNudgeIsRunning(vn) || anyoneStillGuessing(vn)) return
+  const prev = guessNudgeTimers.get(vn)
+  if (prev) clearTimeout(prev)
+  guessNudgeTimers.delete(vn)
+  for (const { tk, gs } of venuePlayableSnapshots(vn)) {
+    if (gs.round.guessNudge !== true && gs.round.guessNudgeDeadline == null) continue
+    const next = {
+      ...gs,
+      round: { ...gs.round, guessNudge: undefined, guessNudgeDeadline: undefined },
+    }
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next, { skipOrchestration: true })
+  }
+  io.to(hostVenueRoom(vn)).emit('toast', 'Everyone has guessed. Nudge cancelled.')
 }
 
 function armGuessNudgeTimeout(vn: string, fireAt: number): void {

@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { addPlayer, createEmptyGame, endRound } from '@qhe/core'
+import { addPlayer, createEmptyGame, endRound, submitAnswer } from '@qhe/core'
 import type { GameState } from '@qhe/core'
 import type { Server } from 'socket.io'
 import {
@@ -7,6 +7,7 @@ import {
   buildHostVenueFeltBeatPayload,
   clearGuessNudgeClocks,
   clearHumanTurnClock,
+  commitTableAdvance,
   HUMAN_NUDGE_TIMEOUT_MS,
   humanTurnDeadlineMs,
   closeOpenBettingVenue,
@@ -423,5 +424,39 @@ describe('nudge open guesses', () => {
     })
     expect(plan.tableUpdates).toEqual([])
     venueShowdownAtMs.delete('NG')
+  })
+
+  it('cancels the nudge and tells the host when every guess is locked', async () => {
+    const key = tableSessionKey('NG', '1')
+    let gs = createEmptyGame('NG', 'host', '1')
+    gs = addPlayer(gs, 'ada', 'Ada', 500)
+    gs = addPlayer(gs, 'bo', 'Bo', 500)
+    rooms.set(key, {
+      ...gs,
+      phase: 'answering',
+      round: { ...gs.round, answerDeadline: 1_000_000, question: { id: 'q', text: '?', answer: 10 } },
+      players: [
+        { ...gs.players[0]!, submittedAnswer: 10 },
+        { ...gs.players[1]! },
+      ],
+    })
+    nudgeOpenGuesses('NG')
+    const open = rooms.get(key)!
+    expect(open.round.guessNudge).toBe(true)
+
+    const locked = submitAnswer(open, 'bo', 12)
+    commitTableAdvance(key, open, locked)
+
+    const after = rooms.get(key)!
+    expect(after.round.guessNudge).not.toBe(true)
+    expect(after.round.guessNudgeDeadline).toBeUndefined()
+    expect(after.players.find((p) => p.id === 'bo')!.submittedAnswer).toBe(12)
+    expect(toasts).toContain('Everyone has guessed. Nudge cancelled.')
+    const felt = buildHostVenueFeltBeatPayload('NG').felts.find((row) => row.tableNum === 1)
+    expect(felt?.turnDeadlineMs).toBeNull()
+    expect(felt?.playersWaiting).toBeUndefined()
+
+    await vi.advanceTimersByTimeAsync(HUMAN_NUDGE_TIMEOUT_MS)
+    expect(rooms.get(key)!.players.find((p) => p.id === 'bo')!.answerForfeited).not.toBe(true)
   })
 })

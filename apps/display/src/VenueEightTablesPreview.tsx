@@ -3803,32 +3803,31 @@ export default function VenueEightTablesPreview({
                   </div>
                 </div>
                 <motion.div
-                  className={`venue-headline-question-card flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-1 rounded-xl border border-casino-emerald/35 bg-black/35 shadow-[inset_0_0_0_1px_rgba(0,255,180,0.06)] backdrop-blur-md ${headlineQuestionCardPadClass}`}
+                  className={`venue-headline-question-card flex min-h-0 min-w-0 flex-1 flex-row items-stretch gap-2 rounded-xl border border-casino-emerald/35 bg-black/35 shadow-[inset_0_0_0_1px_rgba(0,255,180,0.06)] backdrop-blur-md ${headlineQuestionCardPadClass}`}
                   initial={skipMountIntro ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
                   {showSetlistCue || condenseProgress != null || headlineDivergenceNote ? (
-                    <div className="flex min-w-0 items-start justify-between gap-x-2 gap-y-1">
-                      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                        {showSetlistCue ? (
-                          <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 sm:px-2.5 sm:py-1 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}>
-                            Question {setlistCueNumber} of {setlistCueTotal}
-                          </span>
-                        ) : null}
-                        {headlineDivergenceNote ? (
-                          <span className={`font-semibold text-white/65 ${DISPLAY_TEXT_HEADLINE_META}`}>
-                            {headlineDivergenceNote}
-                          </span>
-                        ) : null}
-                      </div>
+                    <div className="venue-headline-cue-stack flex shrink-0 flex-col items-start justify-center gap-1">
+                      {showSetlistCue ? (
+                        <span className={`inline-flex shrink-0 items-center rounded-md border border-violet-500/45 bg-violet-950/55 px-2 py-0.5 font-black uppercase tracking-wide text-violet-100/95 sm:px-2.5 sm:py-1 ${DISPLAY_TEXT_HEADLINE_SETLIST_BADGE}`}>
+                          Question {setlistCueNumber} of {setlistCueTotal}
+                        </span>
+                      ) : null}
                       {condenseProgress != null ? (
                         <VenueHeadlineCondenseStatsPill
                           model={condenseProgress}
-                          className={`ml-auto shrink-0 ${headlineStatsClass}`}
+                          className={`shrink-0 ${headlineStatsClass}`}
                         />
+                      ) : null}
+                      {headlineDivergenceNote ? (
+                        <span className={`font-semibold text-white/65 ${DISPLAY_TEXT_HEADLINE_META}`}>
+                          {headlineDivergenceNote}
+                        </span>
                       ) : null}
                     </div>
                   ) : null}
+                  <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center">
                   {headlineQuestionDisplay ? (
                     <DisplayFitQuestionText
                       text={headlineQuestionDisplay}
@@ -3845,6 +3844,7 @@ export default function VenueEightTablesPreview({
                   ) : (
                     <p className="sr-only">Answering in progress.</p>
                   )}
+                  </div>
                 </motion.div>
                 <VenueFloorHeadlineAside
                   answerDeadlineMs={answerDeadlineMs}

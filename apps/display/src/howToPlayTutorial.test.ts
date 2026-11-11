@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -115,6 +116,13 @@ describe('how to play lesson', () => {
     expect(howToPlayJoinUrl('', 'AB12')).toBe('')
     const src = howToPlayQrSrc('https://play.example/player/?room=AB12')
     expect(src).toContain('data=')
+    expect(src).toContain('size=640x640')
     expect(howToPlayQrSrc('')).toBeNull()
+    const hand = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+    const handQr = hand.slice(hand.indexOf('.htp-qr {'), hand.indexOf('.htp-qr--empty'))
+    expect(handQr).toContain('13.5rem')
+    const event = readFileSync(new URL('./eventOverview.css', import.meta.url), 'utf8')
+    const eventQr = event.slice(event.indexOf('.evt-qr {'), event.indexOf('.evt-qr img'))
+    expect(eventQr).toContain('200px')
   })
 })

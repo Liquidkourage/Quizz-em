@@ -181,7 +181,7 @@
 }
 .evt-screen[data-step="6"] .evt-winner { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.evt-tally { position: absolute; z-index: 4; bottom: 22px; left: 24px; display: flex; gap: 14px; align-items: center; color: #a9c4bd; font-size: 16px; }
+.evt-tally { position: absolute; z-index: 4; bottom: 22px; left: 220px; display: flex; gap: 14px; align-items: center; color: #a9c4bd; font-size: 16px; }
 .evt-stat { padding: 10px 14px; border: 1px solid rgba(166, 217, 197, 0.28); border-radius: 9px; background: rgba(0, 20, 22, 0.63); }
 .evt-stat strong { color: #fce5a6; font-size: 24px; margin-right: 7px; }
 .evt-stat--accuracy { border-color: rgba(208, 140, 227, 0.48); background: rgba(74, 31, 84, 0.4); }
@@ -210,9 +210,10 @@
 .evt-note { margin-top: 14px; padding: 10px 14px; background: rgba(248, 188, 67, 0.08); border-left: 4px solid #f4be51; border-radius: 5px 12px 12px 5px; color: #f0d4a2; font-size: 17px; font-weight: 750; line-height: 1.32; min-height: 58px; display: flex; align-items: center; }
 .evt-count { margin-top: 17px; display: flex; justify-content: space-between; color: #a5bdb8; font-size: 15px; letter-spacing: 1px; font-weight: 800; }
 
-.evt-footer { position: relative; z-index: 3; height: 90px; margin: 10px 42px 0; border-top: 1px solid rgba(239, 196, 100, 0.36); display: flex; justify-content: space-between; align-items: center; gap: 18px; }
-.evt-join { display: flex; align-items: center; gap: 15px; }
-.evt-qr { width: 56px; height: 56px; border: 1px solid rgba(238, 189, 86, 0.7); border-radius: 9px; overflow: hidden; background: #fff; }
+.evt-footer { position: relative; z-index: 3; height: 90px; margin: 10px 42px 0; border-top: 1px solid rgba(239, 196, 100, 0.36); display: flex; justify-content: space-between; align-items: stretch; gap: 18px; }
+.evt-join { position: relative; display: flex; align-items: center; align-self: stretch; min-height: 74px; }
+.evt-join > div { margin-left: 216px; }
+.evt-qr { position: absolute; left: 0; bottom: 0; width: 200px; height: 200px; border: 1px solid rgba(238, 189, 86, 0.7); border-radius: 9px; overflow: hidden; background: #fff; }
 .evt-qr img { height: 100%; width: 100%; object-fit: contain; }
 .evt-join strong { display: block; color: #ffe0a0; font-size: 19px; }
 .evt-join span { display: block; color: #afc2bf; font-size: 14px; margin-top: 6px; }

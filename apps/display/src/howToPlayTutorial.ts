@@ -268,5 +268,5 @@ export function howToPlayJoinUrl(origin: string, venueCode: string): string {
 
 export function howToPlayQrSrc(joinUrl: string): string | null {
   if (!joinUrl.startsWith('http')) return null
-  return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=2&data=${encodeURIComponent(joinUrl)}`
+  return `https://api.qrserver.com/v1/create-qr-code/?size=640x640&margin=2&data=${encodeURIComponent(joinUrl)}`
 }

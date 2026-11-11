@@ -5403,3 +5403,36 @@
 .venue-seating-move .venue-bust-overlay-row {
   padding: clamp(10px, 1.4vmin, 16px) clamp(12px, 1.6vw, 20px);
 }
+
+/** Chips a player just put in. They glide from the seat toward the pot, then rest. */
+.felt-bet-chip {
+  z-index: 14;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 3px dashed #fff6dc;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 50% 42%, #fff1c2 0%, #f6c453 46%, #c4841d 78%, #8d5a12 100%);
+  box-shadow:
+    0 0 0 4px #5c3a0c,
+    inset 0 0 0 8px rgb(255 244 210 / 0.28),
+    0 8px 14px rgb(0 0 0 / 0.45);
+  color: #3a2208;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  animation: felt-bet-glide 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes felt-bet-glide {
+  from {
+    left: var(--felt-bet-from-left);
+    top: var(--felt-bet-from-top);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .felt-bet-chip {
+    animation: none;
+  }
+}

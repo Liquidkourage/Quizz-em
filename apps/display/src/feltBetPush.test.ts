@@ -49,14 +49,26 @@ describe('chips just put in the pot', () => {
     expect(betPushFits(boxAround({ x: 8, y: 8 }, 40, 18), felt, [])).toBe(false)
   })
 
-  it('reads the amount on the felt', () => {
+  it('reads the amount on a chip that glides from the player toward the pot', () => {
     const html = renderToStaticMarkup(
       createElement(FeltBetPushMarks, {
-        marks: [{ key: '1', amount: 40, leftPct: 30, topPct: 40 }],
+        marks: [{
+          key: '1',
+          amount: 40,
+          fromLeftPct: 12,
+          fromTopPct: 78,
+          leftPct: 30,
+          topPct: 40,
+          sizePx: 72,
+        }],
       }),
     )
     expect(html).toContain('$40')
+    expect(html).toContain('felt-bet-chip')
     expect(html).toContain('left:30%')
     expect(html).toContain('top:40%')
+    expect(html).toContain('--felt-bet-from-left:12%')
+    expect(html).toContain('--felt-bet-from-top:78%')
+    expect(html).toContain('72px')
   })
 })

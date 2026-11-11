@@ -34,6 +34,23 @@ export function betPushPoint(seat: Point, pot: Point): Point {
   return { x: (seat.x + pot.x) / 2, y: (seat.y + pot.y) / 2 }
 }
 
+/** The chip leaves the player and rests halfway to the pot. */
+export function betPushTravel(seat: Point, pot: Point): { from: Point; to: Point } {
+  return { from: seat, to: betPushPoint(seat, pot) }
+}
+
+/** A disc big enough to read across the room, and still able to sit on open felt. */
+export function betPushChipPx(ringShort: number): number {
+  if (!(ringShort > 0)) return 48
+  return Math.round(Math.min(88, Math.max(48, ringShort * 0.09)))
+}
+
+export function betPushFontPx(amount: number, chipPx: number): number {
+  const text = formatVenueBankroll(amount)
+  const fitted = Math.floor((chipPx * 0.72) / Math.max(1, text.length * 0.62))
+  return Math.max(15, Math.min(32, fitted))
+}
+
 export function boxAround(center: Point, width: number, height: number): Box {
   return { left: center.x - width / 2, top: center.y - height / 2, width, height }
 }
@@ -97,15 +114,6 @@ export function advanceBetPushes(
   return { baseline: next, pushes: [...kept, ...born.values()] }
 }
 
-const LABEL_FONT_PX = 16
-
-export function betPushLabelBox(spot: Point, amount: number): Box {
-  const text = formatVenueBankroll(amount)
-  const width = Math.ceil(text.length * LABEL_FONT_PX * 0.62) + 12
-  const height = LABEL_FONT_PX + 8
-  return boxAround(spot, width, height)
-}
-
 /** Green inside the rail. A label that leaves this box is on the wood or a name. */
 export function ringGreenBox(ringW: number, ringH: number): Box {
   const insetX = ringW * 0.08
@@ -121,7 +129,15 @@ export function ringGreenBox(ringW: number, ringH: number): Box {
 export function FeltBetPushMarks({
   marks,
 }: {
-  marks: readonly { key: string; amount: number; leftPct: number; topPct: number }[]
+  marks: readonly {
+    key: string
+    amount: number
+    fromLeftPct: number
+    fromTopPct: number
+    leftPct: number
+    topPct: number
+    sizePx: number
+  }[]
 }) {
   if (marks.length === 0) return null
   return (
@@ -129,12 +145,15 @@ export function FeltBetPushMarks({
       {marks.map((mark) => (
         <span
           key={mark.key}
-          className="pointer-events-none absolute z-[14] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap font-black tabular-nums text-amber-100"
+          className="felt-bet-chip pointer-events-none absolute tabular-nums"
           style={{
             left: `${mark.leftPct}%`,
             top: `${mark.topPct}%`,
-            fontSize: LABEL_FONT_PX,
-            textShadow: '0 1px 2px rgba(0,0,0,0.85)',
+            width: mark.sizePx,
+            height: mark.sizePx,
+            fontSize: betPushFontPx(mark.amount, mark.sizePx),
+            ['--felt-bet-from-left' as string]: `${mark.fromLeftPct}%`,
+            ['--felt-bet-from-top' as string]: `${mark.fromTopPct}%`,
           }}
         >
           {formatVenueBankroll(mark.amount)}
@@ -185,20 +204,41 @@ export function placeBetPushes(args: {
   seats: readonly (Point | null)[]
   pushes: readonly BetPush[]
   obstacles: readonly Box[]
-}): { key: string; amount: number; leftPct: number; topPct: number }[] {
+}): {
+  key: string
+  amount: number
+  fromLeftPct: number
+  fromTopPct: number
+  leftPct: number
+  topPct: number
+  sizePx: number
+}[] {
   if (!(args.ringW > 0) || !(args.ringH > 0)) return []
   const felt = ringGreenBox(args.ringW, args.ringH)
-  const marks: { key: string; amount: number; leftPct: number; topPct: number }[] = []
+  const ringShort = Math.min(args.ringW, args.ringH)
+  const marks: {
+    key: string
+    amount: number
+    fromLeftPct: number
+    fromTopPct: number
+    leftPct: number
+    topPct: number
+    sizePx: number
+  }[] = []
   for (const push of args.pushes) {
     const seat = args.seats[push.seat]
     if (seat == null) continue
-    const spot = betPushPoint(seat, args.center)
-    if (!betPushFits(betPushLabelBox(spot, push.amount), felt, args.obstacles)) continue
+    const travel = betPushTravel(seat, args.center)
+    const size = betPushChipPx(ringShort)
+    if (!betPushFits(boxAround(travel.to, size, size), felt, args.obstacles)) continue
     marks.push({
       key: `${push.seat}:${push.untilMs}`,
       amount: push.amount,
-      leftPct: (spot.x / args.ringW) * 100,
-      topPct: (spot.y / args.ringH) * 100,
+      fromLeftPct: (travel.from.x / args.ringW) * 100,
+      fromTopPct: (travel.from.y / args.ringH) * 100,
+      leftPct: (travel.to.x / args.ringW) * 100,
+      topPct: (travel.to.y / args.ringH) * 100,
+      sizePx: size,
     })
   }
   return marks

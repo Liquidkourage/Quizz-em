@@ -44,8 +44,13 @@ export function betPushChipPx(ringShort: number): number {
   return Math.round(Math.min(88, Math.max(48, ringShort * 0.22)))
 }
 
-/** Eight-table felts and smaller. The middle is the roomiest spot, so the cue may rest on the street. */
-export function betPushCoversStreet(ringShort: number): boolean {
+/**
+ * The cue may rest on the street.
+ * A small felt has no other room. The second betting round puts five cards there,
+ * and that board must not swallow the glide.
+ */
+export function betPushCoversStreet(ringShort: number, boardWidth = 0): boolean {
+  if (boardWidth > 0) return true
   return ringShort > 0 && ringShort <= 300
 }
 
@@ -380,7 +385,7 @@ export function FeltBetPushLayer({
   const nameFont = mode === 'mosaic' ? mosaicSeatInitialFontPx(ringW, ringH) : Math.max(18, Math.round(ringH * 0.045))
   const seats: (Point | null)[] = []
   const obstacles: Box[] = []
-  const coverStreet = betPushCoversStreet(Math.min(ringW, ringH))
+  const coverStreet = betPushCoversStreet(Math.min(ringW, ringH), boardWidth)
   const pot = coverStreet ? null : textBox({ x: center.x, y: center.y + potShiftY }, potLabel, potFontPx)
   if (pot) obstacles.push(pot)
   if (!coverStreet && boardWidth > 0 && boardHeight > 0) {

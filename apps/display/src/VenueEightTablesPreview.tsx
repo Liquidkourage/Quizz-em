@@ -1913,31 +1913,6 @@ function SeatRingWithLabels({
           />
         )
       ) : null}
-      {layoutReady && (isMosaic || isBroadcast) ? (
-        <FeltBetPushLayer
-          ringW={rimW}
-          ringH={rimH}
-          invested={seatInvestedIn}
-          seatNames={seatNames}
-          seatFolded={seatFolded}
-          seatPointsOnly={seatPointsOnly}
-          holesDealt={seatHolesDealt}
-          holeDigits={seatHoleDigits}
-          holeCardW={isMosaic ? mosaicHoleCardW : (dualHoleCardBox?.widthPx ?? 0)}
-          holeCardH={isMosaic ? mosaicHoleCardH : (dualHoleCardBox?.heightPx ?? 0)}
-          holeCardScale={holeCardScale}
-          showStacks={isMosaic ? showMosaicSeatStacks : feltSeatStacks}
-          centerLeftPct={feltCenterFrac.cx * 100}
-          centerTopPct={feltCenterFrac.cy * 100}
-          potLabel={betPotLabel}
-          potFontPx={betPotFont}
-          potShiftY={betPotShiftY}
-          boardWidth={betBoardWidth}
-          boardHeight={betBoardCount > 0 ? betBoardH : 0}
-          boardShiftY={betBoardShiftY}
-          mode={isMosaic ? 'mosaic' : isDualBroadcast ? 'dual' : 'broadcast'}
-        />
-      ) : null}
       {layoutReady &&
         Array.from({ length: VENUE_SEAT_SLOTS }, (_, i) => {
         const raw = seatNames[i]?.trim() ?? ''
@@ -2473,6 +2448,31 @@ function SeatRingWithLabels({
           </div>
         )
       })}
+      {layoutReady && (isMosaic || isBroadcast) ? (
+        <FeltBetPushLayer
+          ringW={rimW}
+          ringH={rimH}
+          invested={seatInvestedIn}
+          seatNames={seatNames}
+          seatFolded={seatFolded}
+          seatPointsOnly={seatPointsOnly}
+          holesDealt={seatHolesDealt}
+          holeDigits={seatHoleDigits}
+          holeCardW={isMosaic ? mosaicHoleCardW : (dualHoleCardBox?.widthPx ?? 0)}
+          holeCardH={isMosaic ? mosaicHoleCardH : (dualHoleCardBox?.heightPx ?? 0)}
+          holeCardScale={holeCardScale}
+          showStacks={isMosaic ? showMosaicSeatStacks : feltSeatStacks}
+          centerLeftPct={feltCenterFrac.cx * 100}
+          centerTopPct={feltCenterFrac.cy * 100}
+          potLabel={betPotLabel}
+          potFontPx={betPotFont}
+          potShiftY={betPotShiftY}
+          boardWidth={betBoardWidth}
+          boardHeight={betBoardCount > 0 ? betBoardH : 0}
+          boardShiftY={betBoardShiftY}
+          mode={isMosaic ? 'mosaic' : isDualBroadcast ? 'dual' : 'broadcast'}
+        />
+      ) : null}
       {feltOverlay}
       </div>
     </div>

@@ -139,7 +139,7 @@ describe('chips just put in the pot', () => {
     const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
     const block = css.slice(css.indexOf('.felt-bet-chip {'))
     const rule = block.slice(0, block.indexOf('}'))
-    expect(rule).toContain('z-index: 132')
+    expect(rule).toContain('z-index: 134')
   })
 
   it('grows to the open patch on a four-table felt', () => {
@@ -149,5 +149,16 @@ describe('chips just put in the pot', () => {
   it('may rest on the street once the felt is about an eight-table size', () => {
     expect(betPushCoversStreet(262)).toBe(true)
     expect(betPushCoversStreet(364)).toBe(false)
+  })
+
+  it('rests on the street during the second betting round', () => {
+    expect(betPushCoversStreet(480, 200)).toBe(true)
+  })
+
+  it('shows the chips added on the next betting round', () => {
+    const round1 = advanceBetPushes([10, 20], [30, 20], 1_000, 2_000, [])
+    expect(round1.pushes.map((push) => push.seat)).toEqual([0])
+    const round2 = advanceBetPushes(round1.baseline, [30, 50], 5_000, 2_000, [])
+    expect(round2.pushes).toEqual([{ seat: 1, amount: 30, untilMs: 7_000 }])
   })
 })

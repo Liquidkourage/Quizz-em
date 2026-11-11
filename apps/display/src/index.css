@@ -5406,7 +5406,7 @@
 
 /** Chips a player just put in. They glide from the seat toward the pot, then rest. */
 .felt-bet-chip {
-  z-index: 14;
+  z-index: 132;
   display: grid;
   place-items: center;
   border-radius: 50%;

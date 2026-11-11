@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -132,6 +133,13 @@ describe('chips just put in the pot', () => {
 
   it('sets the amount a little larger than the chip used to allow', () => {
     expect(betPushFontPx(40, 72)).toBe(30)
+  })
+
+  it('paints the moving chip in front of the pot', () => {
+    const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
+    const block = css.slice(css.indexOf('.felt-bet-chip {'))
+    const rule = block.slice(0, block.indexOf('}'))
+    expect(rule).toContain('z-index: 132')
   })
 
   it('grows to the open patch on a four-table felt', () => {

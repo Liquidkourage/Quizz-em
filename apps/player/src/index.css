@@ -1700,6 +1700,43 @@
   }
 }
 
+/* A tall portrait question sits on the table. Shorter phones keep the size that already fits. */
+@media (orientation: portrait) and (min-height: 640px) {
+  .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question {
+    justify-content: flex-end;
+    container-type: size;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question-text {
+    font-size: clamp(1.6rem, 18cqh, 5.5rem);
+  }
+}
+
+/* A tall portrait turn fills the phone. The table stays in the space above the buttons. */
+@media (orientation: portrait) and (min-height: 740px) {
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-body {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-seated-table,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-seated-felt,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-felt-stack,
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-felt-panel--fill {
+    align-content: center;
+  }
+}
+
 /*
  * Short landscape only. A portrait phone is tall enough for the normal column.
  * Wide-screen name gutters leave no room for the oval, so names, the pot, and

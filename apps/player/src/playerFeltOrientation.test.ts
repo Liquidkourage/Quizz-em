@@ -376,6 +376,30 @@ describe('player table orientation', () => {
     expect(block).not.toContain('max-height: 2.8rem')
   })
 
+  it('grows a tall portrait question onto the table and fills a tall turn', () => {
+    const question = mediaBlock(
+      css.slice(css.indexOf('tall portrait question sits on the table')),
+      '@media (orientation: portrait) and (min-height: 640px)',
+    )
+    expect(question.startsWith('@media (orientation: portrait) and (min-height: 640px)')).toBe(true)
+    expect(question).toContain('.player-game-layout--question')
+    expect(question).toContain('justify-content: flex-end')
+    expect(question).toContain('font-size: clamp(1.6rem, 18cqh, 5.5rem)')
+    expect(question).not.toContain('.player-game-layout--with-dock .player-game-shell')
+    expect(question).not.toContain('orientation: landscape')
+
+    const turn = mediaBlock(
+      css.slice(css.indexOf('tall portrait turn fills the phone')),
+      '@media (orientation: portrait) and (min-height: 740px)',
+    )
+    expect(turn.startsWith('@media (orientation: portrait) and (min-height: 740px)')).toBe(true)
+    expect(turn).toContain('.player-game-layout--with-dock .player-game-shell')
+    expect(turn).toContain('flex: 1 1 auto')
+    expect(turn).toContain('.player-game-felt-panel--fill')
+    expect(turn).toContain('align-content: center')
+    expect(turn).not.toContain('orientation: landscape')
+  })
+
   it('gives the shown question the spare portrait height and does not cap it', () => {
     const header = '@media (orientation: portrait)'
     const block = mediaBlock(css.slice(css.indexOf('shown question uses the spare portrait height')), header)

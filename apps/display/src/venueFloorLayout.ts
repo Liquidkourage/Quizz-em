@@ -167,17 +167,8 @@ function countOnlyLayoutScore(tableCount: number, candidate: LayoutCandidate): n
   return score
 }
 
-const NINE_CROWDED_CELL_PX = 320
-
-/** Five-across cards this narrow put the side names on the pot. */
-function nineTableViewportAdjust(tableCount: number, columns: number, cellWidthPx: number): number {
-  if (tableCount !== 9) return 0
-  return columns >= 5 && cellWidthPx < NINE_CROWDED_CELL_PX ? -80_000 : 0
-}
-
-/** Nine is scored on felt area. Every other locked pattern keeps its grid. */
+/** A locked pattern keeps its grid on every phase and every screen size. */
 function lockedViewportBonus(tableCount: number, rowSizes: number[]): number {
-  if (tableCount === 9) return 0
   if (LOCKED_FLOOR_ROW_PATTERN[tableCount] !== rowSizes.join('-')) return 0
   return 100_000
 }
@@ -207,7 +198,6 @@ function viewportLayoutScore(
   if (feltW < MIN_FELT_WIDTH_PX || feltH < MIN_FELT_HEIGHT_PX) return Number.NEGATIVE_INFINITY
 
   let score = feltW * feltH
-  score += nineTableViewportAdjust(tableCount, columns, cellW)
   score -= rowCount * 420
   score -= Math.abs(columns - venueFloorPreferredColumns(tableCount)) * 120
   if (tableCount === 4 && rowCount === 2 && columns === 2) score += 8_000

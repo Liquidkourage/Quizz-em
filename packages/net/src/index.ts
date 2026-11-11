@@ -375,6 +375,8 @@ export type HostVenueFeltBeatRow = {
   phaseStrictSig: string | null
   /** Players who still have to act before this betting street can close. */
   playersToAct?: number
+  /** Players this table is still waiting on. During a guess, every player who has not locked an answer. */
+  playersWaiting?: number
   /** Live trivia on this felt. Null between hands. */
   questionText?: string | null
   /** Host-only answer for {@link questionText}. */

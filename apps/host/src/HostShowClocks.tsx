@@ -105,6 +105,18 @@ export function nudgeSlowPlayersLabel(count: number): string {
   return `Nudge slow players (${count})`
 }
 
+/** Players the room is still waiting on, across every table. */
+export function playersStillWaitedOn(
+  rows: readonly Pick<HostVenueFeltBeatRow, 'playersWaiting'>[] | null,
+): number {
+  let total = 0
+  for (const row of rows ?? []) {
+    const waiting = row.playersWaiting
+    if (typeof waiting === 'number' && Number.isFinite(waiting) && waiting > 0) total += waiting
+  }
+  return total
+}
+
 export function soonestNudgeSeconds(
   rows: readonly Pick<HostVenueFeltBeatRow, 'turnDeadlineMs'>[] | null,
   nowMs: number,
@@ -207,7 +219,7 @@ export function HostShowClocks({
   )
 }
 
-/** 30s host nudge on the seat that must act. Hidden until a nudge is running. */
+/** The 30s nudge, and how many players the room is still waiting on. */
 export function HostNudgeClock({
   rows,
   nowMs,
@@ -217,10 +229,20 @@ export function HostNudgeClock({
 }) {
   const now = useClockNow(nowMs)
   const soonest = soonestNudgeSeconds(rows, now)
-  if (soonest == null) return null
+  const waiting = playersStillWaitedOn(rows)
+  if (soonest == null && waiting === 0) return null
   return (
-    <div aria-label={`${soonest} seconds left. Last call for responses`}>
-      <ClockFace label="Last call for responses" value={String(soonest)} urgent={soonest <= 10} roomy />
-    </div>
+    <>
+      {soonest != null ? (
+        <div aria-label={`${soonest} seconds left on the nudge`}>
+          <ClockFace label="Nudge" value={String(soonest)} urgent={soonest <= 10} />
+        </div>
+      ) : null}
+      {waiting > 0 ? (
+        <div aria-label={`Waiting on ${waiting}`}>
+          <ClockFace label="Waiting on" value={String(waiting)} roomy />
+        </div>
+      ) : null}
+    </>
   )
 }

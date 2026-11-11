@@ -4,6 +4,7 @@ import type { GameState } from '@qhe/core'
 import type { Server } from 'socket.io'
 import {
   bindGameIo,
+  buildHostVenueFeltBeatPayload,
   clearGuessNudgeClocks,
   clearHumanTurnClock,
   HUMAN_NUDGE_TIMEOUT_MS,
@@ -152,6 +153,9 @@ describe('nudgeActingHumansVenue', () => {
     expect(result).toEqual({ nudged: 2, names: ['Ann', 'Bo'] })
     expect(humanTurnDeadlineMs.get(a.key)).toBe(1_030_000)
     expect(humanTurnDeadlineMs.get(b.key)).toBe(1_030_000)
+    const felt = buildHostVenueFeltBeatPayload('N1').felts.find((row) => row.tableNum === 1)
+    expect(felt?.turnDeadlineMs).toBe(1_030_000)
+    expect(felt?.playersWaiting).toBe(2)
   })
 
   it('skips tables where nobody is acting', () => {
@@ -359,6 +363,33 @@ describe('nudge open guesses', () => {
     expect(rooms.get(key)!.round.guessNudge).not.toBe(true)
   })
 
+  it('counts every player still guessing, including a points-only chair', () => {
+    const key = tableSessionKey('NG', '1')
+    let gs = createEmptyGame('NG', 'host', '1')
+    gs = addPlayer(gs, 'ada', 'Ada', 500)
+    gs = addPlayer(gs, 'bo', 'Bo', 500)
+    gs = addPlayer(gs, 'jim', 'Jim', 0)
+    rooms.set(key, {
+      ...gs,
+      phase: 'answering',
+      round: {
+        ...gs.round,
+        answerDeadline: 1_000_000,
+        guessNudge: true,
+        guessNudgeDeadline: 1_030_000,
+        question: { id: 'q', text: '?', answer: 10 },
+      },
+      players: [
+        { ...gs.players[0]!, submittedAnswer: 10 },
+        { ...gs.players[1]! },
+        { ...gs.players[2]!, pointsOnly: true },
+      ],
+    })
+    const felt = buildHostVenueFeltBeatPayload('NG').felts.find((row) => row.tableNum === 1)
+    expect(felt?.turnDeadlineMs).toBe(1_030_000)
+    expect(felt?.playersWaiting).toBe(2)
+  })
+
   it('leaves the shared 45s answer window on the venue clock the TVs are reading', () => {
     const key = tableSessionKey('NG', '1')
     venueShowdownAtMs.set('NG', 1_000_000)
@@ -379,6 +410,10 @@ describe('nudge open guesses', () => {
     expect(venueShowdownAtMs.get('NG')).toBe(1_000_000)
     expect(rooms.get(key)!.round.answerDeadline).toBe(1_000_000)
     expect(rooms.get(key)!.round.guessNudgeDeadline).toBe(1_030_000)
+
+    const felt = buildHostVenueFeltBeatPayload('NG').felts.find((row) => row.tableNum === 1)
+    expect(felt?.turnDeadlineMs).toBe(1_030_000)
+    expect(felt?.playersWaiting).toBe(1)
 
     const plan = planVenueWageringOrchestration({
       seatedTableKeys: [key],

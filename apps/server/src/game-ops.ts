@@ -2426,10 +2426,28 @@ export function pickVenueHeadlineSource(venueCode: string): { gs: GameState; tab
   return null
 }
 
-function feltTurnDeadlineMs(phase: string, sessionKey: string): number | null {
-  if (phase !== 'betting') return null
-  const deadline = humanTurnDeadlineMs.get(sessionKey)
+function finiteDeadline(deadline: number | null | undefined): number | null {
   return typeof deadline === 'number' && Number.isFinite(deadline) ? Math.floor(deadline) : null
+}
+
+/** The 30s nudge the host is watching: the acting seat, or every open guess. */
+function feltTurnDeadlineMs(gs: GameState, sessionKey: string): number | null {
+  if (gs.phase === 'betting') return finiteDeadline(humanTurnDeadlineMs.get(sessionKey))
+  if (gs.phase === 'answering' && gs.round.guessNudge === true) {
+    return finiteDeadline(gs.round.guessNudgeDeadline)
+  }
+  return null
+}
+
+/** Who this table is still waiting on. A guess counts every player who has not locked one. */
+function playersTheRoomIsWaitingOn(gs: GameState): number | undefined {
+  const waiting =
+    gs.phase === 'betting'
+      ? playersHoldingBetting(gs)
+      : gs.phase === 'answering'
+        ? seatsStillGuessing(gs).length
+        : 0
+  return waiting > 0 ? waiting : undefined
 }
 
 export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenueFeltBeatRow[] } {
@@ -2493,9 +2511,10 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
       street,
       clock,
       answerDeadlineMs,
-      turnDeadlineMs: feltTurnDeadlineMs(phase, key),
+      turnDeadlineMs: feltTurnDeadlineMs(gs, key),
       phaseStrictSig: phaseStrictSignature(gs),
       playersToAct: phase === 'betting' ? playersHoldingBetting(gs) : undefined,
+      playersWaiting: playersTheRoomIsWaitingOn(gs),
       questionText: gs.round.question?.text?.trim() || null,
       questionAnswer:
         gs.round.question != null && Number.isFinite(gs.round.question.answer)

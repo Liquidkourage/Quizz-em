@@ -134,12 +134,29 @@ describe('host show clocks', () => {
     expect(nudgeSlowPlayersLabel(1)).toBe('Nudge slow players (1)')
   })
 
-  it('shows the 30s nudge that is running on a felt', () => {
+  it('shows the nudge timer and how many players the room is still waiting on', () => {
     const now = 1_000_000
-    const rows = [felt({ turnDeadlineMs: now + 30_000 })]
+    const rows = [
+      felt({ phase: 'answering', turnDeadlineMs: now + 30_000, playersWaiting: 2, answerDeadlineMs: now }),
+      felt({ tableNum: 2, phase: 'answering', playersWaiting: 1, answerDeadlineMs: now }),
+    ]
     expect(soonestNudgeSeconds(rows, now)).toBe(30)
     const html = renderToStaticMarkup(createElement(HostNudgeClock, { rows, nowMs: now }))
-    expect(html).toContain('Last call for responses')
+    expect(html).toContain('Nudge')
     expect(html).toContain('30')
+    expect(html).toContain('Waiting on')
+    expect(html).toContain('>3<')
+  })
+
+  it('shows who is still outstanding before a nudge starts', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostNudgeClock, {
+        rows: [felt({ phase: 'betting', playersWaiting: 4 })],
+        nowMs: 1_000_000,
+      }),
+    )
+    expect(html).toContain('Waiting on')
+    expect(html).toContain('>4<')
+    expect(html).not.toContain('Nudge')
   })
 })

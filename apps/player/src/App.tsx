@@ -681,6 +681,7 @@ function PlayerApp() {
     'player-game-layout',
     // Join layout padding/stack only for non-seated flows — seated uses live-fit alone.
     liveFit ? 'player-game-layout--live-fit' : 'player-join-layout',
+    liveFit && gameState.phase === 'question' ? 'player-game-layout--question' : '',
     needsMobileBetDock ? 'player-game-layout--with-dock' : '',
   ]
     .filter(Boolean)

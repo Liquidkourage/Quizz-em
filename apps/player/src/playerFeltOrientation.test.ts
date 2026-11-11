@@ -376,6 +376,18 @@ describe('player table orientation', () => {
     expect(block).not.toContain('max-height: 2.8rem')
   })
 
+  it('gives the shown question the spare portrait height and does not cap it', () => {
+    const header = '@media (orientation: portrait)'
+    const block = mediaBlock(css.slice(css.indexOf('shown question uses the spare portrait height')), header)
+    expect(block.startsWith(header)).toBe(true)
+    expect(block).toContain('.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question')
+    expect(block).toContain('max-height: none')
+    expect(block).toContain('overflow: visible')
+    expect(block).toContain('.player-game-layout--question .player-seated-table')
+    expect(block).toContain('margin-top: auto')
+    expect(block).not.toContain('orientation: landscape')
+  })
+
   it('puts the action buttons above the notes on a short stacked screen', () => {
     const header = '@media (max-height: 860px) and (min-height: 521px)'
     const block = mediaBlock(css.slice(css.indexOf('action buttons above the notes')), header)

@@ -1667,6 +1667,31 @@
   }
 }
 
+/* The shown question uses the spare portrait height. Landscape keeps its question box. */
+@media (orientation: portrait) {
+  .player-game-layout--live-fit.player-game-layout--question .player-game-shell {
+    flex: 1 1 auto;
+    min-height: auto;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--question .player-game-body {
+    flex: 1 1 auto;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question {
+    flex: 0 0 auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--question .player-seated-table {
+    flex: 0 0 auto;
+    margin-top: auto;
+  }
+}
+
 /*
  * Short landscape only. A portrait phone is tall enough for the normal column.
  * Wide-screen name gutters leave no room for the oval, so names, the pot, and

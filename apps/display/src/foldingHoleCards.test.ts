@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { holeMuckStarts } from './foldingHoleCards'
 
 describe('folded hole cards', () => {
-  it('slides the cards in only when a dealt seat folds', () => {
-    expect(holeMuckStarts(false, true, true, false)).toBe(true)
-    expect(holeMuckStarts(true, true, true, false)).toBe(false)
+  it('slides when a fold takes the cards away in the same update', () => {
+    expect(holeMuckStarts(true, true, false, false)).toBe(true)
+    expect(holeMuckStarts(true, true, true, false)).toBe(true)
     expect(holeMuckStarts(false, true, false, false)).toBe(false)
-    expect(holeMuckStarts(false, true, true, true)).toBe(false)
+    expect(holeMuckStarts(true, false, true, false)).toBe(false)
+    expect(holeMuckStarts(true, true, false, true)).toBe(false)
   })
 
   it('moves the cards toward the middle of the felt', () => {

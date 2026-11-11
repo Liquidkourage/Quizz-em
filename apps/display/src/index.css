@@ -5441,7 +5441,7 @@
 
 /** Folded hole cards slide toward the middle, then leave the felt. */
 .vfd-hole-muck {
-  animation: vfd-hole-muck 0.6s ease-in forwards;
+  animation: vfd-hole-muck 0.9s ease-in forwards;
 }
 
 @keyframes vfd-hole-muck {

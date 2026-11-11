@@ -2188,10 +2188,10 @@ function SeatRingWithLabels({
                 />
               </div>
             ) : null}
-            {filled && !isBusted && (seatHoleDigits[i] != null || seatHolesDealt[i] === true) ? (
+            {filled && !isBusted ? (
               <FoldingHoleCards
                 folded={isFolded}
-                dealt
+                dealt={seatHoleDigits[i] != null || seatHolesDealt[i] === true}
                 reducedMotion={prefersReducedMotion}
                 className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
                 style={{

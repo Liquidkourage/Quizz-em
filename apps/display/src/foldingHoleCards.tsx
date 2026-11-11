@@ -1,15 +1,19 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 
-const MUCK_MS = 600
+const MUCK_MS = 900
 
-/** A fold that should slide the hole cards toward the middle. */
+/**
+ * A fold that should slide the hole cards toward the middle.
+ * The public snapshot removes the cards in the same update that marks the fold.
+ */
 export function holeMuckStarts(
-  wasFolded: boolean,
+  wasShowing: boolean,
   folded: boolean,
   dealt: boolean,
   reducedMotion: boolean,
 ): boolean {
-  return dealt && !reducedMotion && folded && !wasFolded
+  const showing = dealt && !folded
+  return wasShowing && !showing && folded && !reducedMotion
 }
 
 /** Keeps folded hole cards on the felt just long enough to slide toward the pot. */
@@ -29,12 +33,12 @@ export function FoldingHoleCards({
   children: ReactNode
 }) {
   const [leaving, setLeaving] = useState(false)
-  const prevFolded = useRef(folded)
+  const wasShowing = useRef(false)
 
   useLayoutEffect(() => {
-    const wasFolded = prevFolded.current
-    prevFolded.current = folded
-    if (!holeMuckStarts(wasFolded, folded, dealt, reducedMotion)) return
+    const hadCards = wasShowing.current
+    wasShowing.current = dealt && !folded
+    if (!holeMuckStarts(hadCards, folded, dealt, reducedMotion)) return
     setLeaving(true)
     const timer = window.setTimeout(() => setLeaving(false), MUCK_MS)
     return () => window.clearTimeout(timer)

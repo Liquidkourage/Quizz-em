@@ -162,10 +162,10 @@ export function draftFromLockedGuess(args: {
 function composeDigitsToAnswer(digits: number[], answer: number): ComposedAnswer {
   const plain = digits.join('')
   const candidates: ComposedAnswer[] = [{ digits: [...digits], display: plain, value: Number(plain) }]
-  for (let k = 1; k < digits.length; k++) {
-    const display = `${digits.slice(0, k).join('')}.${digits.slice(k).join('')}`
+  for (let k = 0; k < digits.length; k++) {
+    const display = k === 0 ? `.${plain}` : `${digits.slice(0, k).join('')}.${digits.slice(k).join('')}`
     candidates.push({
-      digits: [...digits.slice(0, k), 'decimal', ...digits.slice(k)],
+      digits: k === 0 ? ['decimal', ...digits] : [...digits.slice(0, k), 'decimal', ...digits.slice(k)],
       display,
       value: Number(display),
     })

@@ -5,6 +5,7 @@ import {
   backspaceFromAnswer,
   draftFromLockedGuess,
   toggleCardInSelection,
+  toggleDecimal,
   validateAnswerSubmit,
 } from './answerComposition'
 import { buildBettingContext, resolveMyPlayerIndex } from './bettingModel'
@@ -94,6 +95,66 @@ describe('answerComposition', () => {
     expect(draft?.composed.display).toBe('12.345')
     expect(draft?.selected).toHaveLength(ANSWER_CARD_COUNT)
     expect(validateAnswerSubmit('answering', draft!.selected, draft!.composed)).toBeNull()
+  })
+
+  it('lets the decimal be the first character so the answer can be under 1', () => {
+    let gs = createEmptyGame('HOST01', 'host', '1')
+    gs = {
+      ...gs,
+      phase: 'answering',
+      players: [
+        {
+          id: 'p1',
+          name: 'Alice',
+          bankroll: 1000,
+          hand: [{ digit: 1 }, { digit: 2 }],
+          hasFolded: false,
+          isAllIn: false,
+        },
+      ],
+      round: {
+        ...gs.round,
+        communityCards: [{ digit: 3 }, { digit: 4 }, { digit: 5 }, { digit: 6 }, { digit: 7 }],
+      },
+    }
+    const player = gs.players[0]!
+    let selected: { type: 'hand' | 'community'; index: number }[] = []
+    let composed = toggleDecimal({ digits: [], display: '', value: 0 })
+    expect(composed.display).toBe('.')
+    for (const ref of [
+      { type: 'hand' as const, index: 0 },
+      { type: 'hand' as const, index: 1 },
+      { type: 'community' as const, index: 0 },
+      { type: 'community' as const, index: 1 },
+      { type: 'community' as const, index: 2 },
+    ]) {
+      const next = toggleCardInSelection({
+        gameState: gs,
+        currentPlayer: player,
+        selected,
+        composed,
+        ...ref,
+      })
+      selected = next.selected
+      composed = next.composed
+    }
+    expect(composed.display).toBe('.12345')
+    expect(composed.value).toBeLessThan(1)
+    expect(validateAnswerSubmit('answering', selected, composed)).toBeNull()
+
+    const reopened = draftFromLockedGuess({
+      picks: [
+        { source: 'hole', index: 0 },
+        { source: 'hole', index: 1 },
+        { source: 'community', index: 0 },
+        { source: 'community', index: 1 },
+        { source: 'community', index: 2 },
+      ],
+      answer: composed.value,
+      hole: [{ digit: 1 }, { digit: 2 }],
+      community: [{ digit: 3 }, { digit: 4 }, { digit: 5 }, { digit: 6 }, { digit: 7 }],
+    })
+    expect(reopened?.composed.display).toBe('.12345')
   })
 })
 

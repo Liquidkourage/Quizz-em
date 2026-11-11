@@ -54,6 +54,7 @@ describe('composeNumericAnswersFromSevenDigitCards', () => {
     const vals = composeNumericAnswersFromSevenDigitCards([1, 2, 3, 4, 5, 6, 7])
     expect(vals.has(12_345)).toBe(true)
     expect([...vals].some((v) => nearlyEqualNumbers(v, 12.345))).toBe(true)
+    expect([...vals].some((v) => nearlyEqualNumbers(v, 0.12345))).toBe(true)
   })
 })
 
@@ -96,6 +97,7 @@ describe('isSubmittedAnswerComposableFromDeal', () => {
       },
     }
     expect(isSubmittedAnswerComposableFromDeal(gs, 'p1', 12_345)).toBe(true)
+    expect(isSubmittedAnswerComposableFromDeal(gs, 'p1', 0.12345)).toBe(true)
     expect(isSubmittedAnswerComposableFromDeal(gs, 'p1', 9_999_999)).toBe(false)
   })
 })

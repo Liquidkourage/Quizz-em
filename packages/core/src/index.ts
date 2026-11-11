@@ -316,10 +316,11 @@ export function formatTriviaNumber(value: number | null | undefined): string {
 
 function addDecimalVariantsForFiveDigits(digitsFive: number[], sink: Set<number>): void {
   sink.add(Number(digitsFive.join('')));
-  for (let k = 1; k <= PLAYER_ANSWER_DIGIT_CARD_COUNT - 1; k++) {
+  for (let k = 0; k < PLAYER_ANSWER_DIGIT_CARD_COUNT; k++) {
     const left = digitsFive.slice(0, k).join('');
     const right = digitsFive.slice(k).join('');
-    if (left !== '' && right !== '') sink.add(Number(`${left}.${right}`));
+    if (right === '') continue;
+    sink.add(Number(left === '' ? `.${right}` : `${left}.${right}`));
   }
 }
 

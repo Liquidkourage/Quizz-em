@@ -56,13 +56,12 @@ describe('Venue floor phase tools', () => {
         feltRows: [row(1, 'answering', 'answer'), row(2, 'showdown', 'postHand')],
         hostPlayerLabel: (name: string) => name,
         hostTableId: '1',
-        onAlignRoom: () => {},
         onSetTablePhase: () => {},
       }),
     )
     expect(html).toContain('Venue floor')
     expect(html).toContain('Misaligned')
-    expect(html).toContain('Match the room')
+    expect(html).not.toContain('Match the room')
     expect(html).not.toContain('Venue felts')
   })
 

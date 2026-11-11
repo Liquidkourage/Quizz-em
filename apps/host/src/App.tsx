@@ -18,7 +18,6 @@ import {
   startAnswering,
   adminAdvanceTurn,
   adminCloseBetting,
-  alignTablesToRoom,
   setTablePhase,
   nudgeActingPlayers,
   lastCallForBets,
@@ -1266,7 +1265,6 @@ function HostApp() {
                 feltRows={venueFeltBeat}
                 hostPlayerLabel={hostPlayerLabel}
                 hostTableId={hostTableId}
-                onAlignRoom={() => alignTablesToRoom()}
                 onSetTablePhase={(tableNum, signature) => setTablePhase(tableNum, signature)}
                 onSpotlight={spotlightTableOnTvs}
                 onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}

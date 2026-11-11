@@ -1667,48 +1667,8 @@
   }
 }
 
-/* The shown question uses the spare portrait height. Landscape keeps its question box. */
-@media (orientation: portrait) {
-  .player-game-layout--live-fit.player-game-layout--question .player-game-shell {
-    flex: 1 1 auto;
-    min-height: auto;
-  }
-
-  .player-game-layout--live-fit.player-game-layout--question .player-game-body {
-    flex: 1 1 auto;
-    min-height: auto;
-    overflow: visible;
-  }
-
-  .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    justify-content: center;
-    max-height: none;
-    min-height: 0;
-    overflow: auto;
-  }
-
-  .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question-text {
-    font-size: clamp(1.35rem, 5.5vh, 2.75rem);
-    line-height: 1.25;
-    overflow-wrap: normal;
-    word-break: normal;
-  }
-
-  .player-game-layout--live-fit.player-game-layout--question .player-seated-table {
-    flex: 0 0 auto;
-  }
-}
-
-/* A tall portrait question sits on the table and shrinks until the whole question fits. */
+/* A tall portrait turn keeps the question in the same box it uses while betting. */
 @media (orientation: portrait) and (min-height: 640px) {
-  .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question {
-    justify-content: flex-end;
-    overflow: hidden;
-  }
-
   .player-game-layout--live-fit.player-game-layout--with-dock .player-sticky-question {
     max-height: min(28vh, 8.5rem);
     overflow: hidden;

@@ -375,14 +375,14 @@ describe('player table orientation', () => {
     expect(block).not.toContain('max-height: 2.8rem')
   })
 
-  it('grows a tall portrait question onto the table and fills a tall turn', () => {
+  it('keeps a tall portrait question in the wagering box and fills a tall turn', () => {
     const question = mediaBlock(
-      css.slice(css.indexOf('tall portrait question sits on the table')),
+      css.slice(css.indexOf('tall portrait turn keeps the question')),
       '@media (orientation: portrait) and (min-height: 640px)',
     )
     expect(question.startsWith('@media (orientation: portrait) and (min-height: 640px)')).toBe(true)
-    expect(question).toContain('.player-game-layout--question')
-    expect(question).toContain('justify-content: flex-end')
+    expect(question).not.toContain('.player-game-layout--question')
+    expect(question).not.toContain('font-size: clamp(1.35rem, 5.5vh, 2.75rem)')
     expect(question).toContain('overflow: hidden')
     expect(question).toContain('max-height: min(28vh, 8.5rem)')
     expect(question).toContain('overflow-wrap: normal')
@@ -402,17 +402,9 @@ describe('player table orientation', () => {
     expect(turn).not.toContain('orientation: landscape')
   })
 
-  it('gives the shown question the spare portrait height and does not cap it', () => {
-    const header = '@media (orientation: portrait)'
-    const block = mediaBlock(css.slice(css.indexOf('shown question uses the spare portrait height')), header)
-    expect(block.startsWith(header)).toBe(true)
-    const question = block.slice(block.indexOf('.player-sticky-question {'), block.indexOf('.player-sticky-question {') + 280)
-    expect(question).toContain('flex: 1 1 auto')
-    expect(question).toContain('max-height: none')
-    expect(block).toContain('.player-sticky-question-text')
-    expect(block).toContain('font-size: clamp(1.35rem, 5.5vh, 2.75rem)')
-    expect(block).not.toContain('margin-top: auto')
-    expect(block).not.toContain('orientation: landscape')
+  it('does not grow the question past the wagering type', () => {
+    expect(css).not.toContain('player-game-layout--question')
+    expect(css).not.toContain('font-size: clamp(1.35rem, 5.5vh, 2.75rem)')
   })
 
   it('puts the action buttons above the notes on a short stacked screen', () => {

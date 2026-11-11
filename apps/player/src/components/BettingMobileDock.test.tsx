@@ -122,7 +122,9 @@ describe('betting turn cue', () => {
         onAllIn: noop,
       }),
     )
-    expect(html).toContain('Opening raise must be at least $20')
+    expect(html).toContain('Opening bet must be at least $20')
+    expect(html).toContain('Bet to <span>(min ')
+    expect(html).not.toContain('Raise to')
     expect(html).toContain('>closed<')
     expect(html).not.toContain('Total includes')
   })

@@ -32,7 +32,12 @@ export function largestFittingFontPx(
 }
 
 const MIN_QUESTION_FONT_PX = 13
-const MAX_QUESTION_FONT_PX = 72
+
+/** The question stays at the size the layout already chose. Long wording only shrinks. */
+export function stickyQuestionMaxPx(stylesheetPx: number): number {
+  if (!(stylesheetPx > 0)) return MIN_QUESTION_FONT_PX
+  return stylesheetPx
+}
 
 function questionFitBudget(
   host: HTMLElement,
@@ -54,6 +59,10 @@ function questionFitBudget(
 
 /** Size the portrait question so the full wording fits its box. */
 export function fitStickyQuestion(host: HTMLElement, text: HTMLElement): void {
+  const previous = text.style.fontSize
+  text.style.fontSize = ''
+  const stylesheetPx = parseFloat(getComputedStyle(text).fontSize)
+  text.style.fontSize = previous
   const budget = questionFitBudget(host, text)
   if (!budget) return
   const fitted = largestFittingFontPx(
@@ -63,7 +72,7 @@ export function fitStickyQuestion(host: HTMLElement, text: HTMLElement): void {
     },
     budget.maxHeight,
     budget.maxWidth,
-    Math.min(MAX_QUESTION_FONT_PX, Math.max(budget.maxHeight * 0.9, MIN_QUESTION_FONT_PX)),
+    stickyQuestionMaxPx(stylesheetPx),
     MIN_QUESTION_FONT_PX,
   )
   text.style.fontSize = `${fitted}px`

@@ -133,11 +133,10 @@ describe('host explanatory copy', () => {
         feltRows: [felt(1, 'answer'), felt(2, 'bet')],
         hostPlayerLabel: (name: string) => name,
         hostTableId: '1',
-        onAlignRoom: () => {},
         onSetTablePhase: () => {},
       }),
     )
-    expect(felts).toContain('Match the room')
+    expect(felts).not.toContain('Match the room')
     expect(felts).not.toContain('Click a table to set its phase')
     expect(felts).not.toContain('venue-wide cues')
   })

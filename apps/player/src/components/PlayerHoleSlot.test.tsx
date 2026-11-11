@@ -37,11 +37,16 @@ describe('protected hole-card slot', () => {
       createElement(PlayerHoleSlot, { player: seated(holes), phase: 'showdown' }),
     )
     const undealt = renderToStaticMarkup(
-      createElement(PlayerHoleSlot, { player: seated([]), phase: 'betting' }),
+      createElement(PlayerHoleSlot, { player: seated([]), phase: 'lobby' }),
+    )
+    const beforeCards = renderToStaticMarkup(
+      createElement(PlayerHoleSlot, { player: seated([]), phase: 'question' }),
     )
     expect(revealed).toBe('')
     expect(showdown).toBe('')
     expect(undealt).toBe('')
+    expect(beforeCards).toContain('player-hole-slot')
+    expect(beforeCards).not.toContain('Hold to peek')
   })
 
   it('renders the slot after the clipping body, as a child of the shell', () => {

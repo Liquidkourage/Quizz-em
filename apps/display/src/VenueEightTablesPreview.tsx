@@ -69,6 +69,7 @@ import {
 import type { DisplayVenueTileSnapshot, DisplayVenueWallSnapshot, SeatBettingAction } from '@qhe/net'
 
 import { FeltBetPushLayer } from './feltBetPush'
+import { FoldingHoleCards } from './foldingHoleCards'
 import seatChipStackImg from './assets/seat-chip-stack.png'
 import {
   MosaicSeatStackAmount,
@@ -79,7 +80,6 @@ import {
   mosaicSeatInitialLabel,
   mosaicSeatInitialShiftXPx,
   publicFeltDrawsSeat,
-  publicSeatShowsHoleCards,
   mosaicSeatStackFontForAmount,
   mosaicSeatStackFontPx,
   mosaicSeatStackPlacement,
@@ -2188,13 +2188,11 @@ function SeatRingWithLabels({
                 />
               </div>
             ) : null}
-            {publicSeatShowsHoleCards(
-              filled,
-              isFolded,
-              isBusted,
-              seatHoleDigits[i] != null || seatHolesDealt[i] === true,
-            ) ? (
-              <div
+            {filled && !isBusted && (seatHoleDigits[i] != null || seatHolesDealt[i] === true) ? (
+              <FoldingHoleCards
+                folded={isFolded}
+                dealt
+                reducedMotion={prefersReducedMotion}
                 className={`pointer-events-none absolute ${SEAT_LAYER_FELT_HOLE}`}
                 style={{
                   left: `${holeLayout.leftPct}%`,
@@ -2202,8 +2200,8 @@ function SeatRingWithLabels({
                   transform:
                     isMosaic || isDualBroadcast ? 'translate(-50%, -100%)' : 'translate(-50%, -50%)',
                 }}
-                aria-label="Two hole cards"
               >
+                <div aria-label="Two hole cards">
                 {isMosaic || dualHoleCardBox != null ? (
                   <MosaicHoleCardPair
                     rotateDeg={holeLayout.rotateDeg}
@@ -2221,7 +2219,8 @@ function SeatRingWithLabels({
                     digits={seatHoleDigits[i]}
                   />
                 )}
-              </div>
+                </div>
+              </FoldingHoleCards>
             ) : null}
             {isMosaic ? null : (() => {
               if (blindSeats == null) return null

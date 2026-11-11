@@ -60,23 +60,30 @@ export function SidePotMark({
 }): ReactNode {
   const marks = sidePotMarkList(mark)
   if (marks.length === 0) return null
+  const ordered = [...marks].sort((a, b) => a - b)
+  const stack = seat && ordered.length >= 3
+  const marksView = ordered.map((n, index) => (
+    <sup
+      key={n}
+      className="side-pot-mark"
+      style={{
+        fontSize: seat ? '0.4em' : '0.55em',
+        lineHeight: 1,
+        color: sidePotColor(n),
+        marginLeft: !stack && index > 0 ? '0.12em' : undefined,
+      }}
+    >
+      {n}
+    </sup>
+  ))
+  if (!stack) return <>{marksView}</>
   return (
-    <>
-      {marks.map((n, index) => (
-        <sup
-          key={n}
-          className="side-pot-mark"
-          style={{
-            fontSize: seat ? '0.4em' : '0.55em',
-            lineHeight: 1,
-            color: sidePotColor(n),
-            marginLeft: index > 0 ? '0.12em' : undefined,
-          }}
-        >
-          {n}
-        </sup>
-      ))}
-    </>
+    <span
+      className="side-pot-mark-stack"
+      style={{ display: 'inline-flex', flexDirection: 'column', verticalAlign: 'top', lineHeight: 0.85 }}
+    >
+      {marksView}
+    </span>
   )
 }
 

@@ -5438,3 +5438,22 @@
     animation: none;
   }
 }
+
+/** Folded hole cards slide toward the middle, then leave the felt. */
+.vfd-hole-muck {
+  animation: vfd-hole-muck 0.6s ease-in forwards;
+}
+
+@keyframes vfd-hole-muck {
+  to {
+    left: 50%;
+    top: 50%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vfd-hole-muck {
+    animation: none;
+  }
+}

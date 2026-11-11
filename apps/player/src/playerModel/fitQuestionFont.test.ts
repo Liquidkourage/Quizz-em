@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { largestFittingFontPx } from './fitQuestionFont'
+import { largestFittingFontPx, stickyQuestionMaxPx } from './fitQuestionFont'
 
 describe('largestFittingFontPx', () => {
   it('shrinks a long question until every line fits the box', () => {
@@ -13,6 +13,11 @@ describe('largestFittingFontPx', () => {
     expect(fitted * 6).toBeLessThanOrEqual(101)
     expect(fitted).toBeGreaterThan(15)
     expect(fitted).toBeLessThan(18)
+  })
+
+  it('does not grow a short question past the layout size', () => {
+    expect(stickyQuestionMaxPx(17.6)).toBe(17.6)
+    expect(stickyQuestionMaxPx(0)).toBe(13)
   })
 
   it('keeps a short question at the largest size that still fits', () => {

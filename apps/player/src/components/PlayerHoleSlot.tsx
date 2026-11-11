@@ -11,7 +11,10 @@ export function PlayerHoleSlot({
   phase: GamePhase
 }) {
   const digits = holePeekDigits(player, phase)
-  if (!digits) return null
+  if (!digits) {
+    if (phase !== 'question' && phase !== 'betting' && phase !== 'answering') return null
+    return <div className="player-hole-slot" aria-hidden />
+  }
   return (
     <div className="player-hole-slot">
       <HolePeek digits={digits} />

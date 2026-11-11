@@ -18,6 +18,7 @@ export type HostVenueAutoAlertKind =
   | 'round2-all-in'
   | 'answer-window-started'
   | 'answer-window-ended'
+  | 'bets-closed'
 
 /** How long a state-change notice stays up before the desk is clear again. */
 export const HOST_VENUE_ALERT_MS = 4000
@@ -75,12 +76,16 @@ export function snapshotVenueFeltBeat(felts: HostVenueFeltBeatRow[]): VenueFeltS
   }
 }
 
-/** Phase changes already show on the felts and the next cue, so they do not raise a banner. */
+/** A banner only when every open betting round has just closed. */
 export function detectVenueAutoAlerts(
-  _prev: VenueFeltSnapshot | null,
-  _next: VenueFeltSnapshot,
+  prev: VenueFeltSnapshot | null,
+  next: VenueFeltSnapshot,
 ): HostVenueAutoAlert[] {
-  return []
+  if (prev == null) return []
+  const wasOpen = prev.round1AnyOpen || prev.round2AnyOpen
+  const stillOpen = next.round1AnyOpen || next.round2AnyOpen
+  if (!wasOpen || stillOpen) return []
+  return [{ kind: 'bets-closed', title: 'All bets are closed' }]
 }
 
 /** Success toasts that only repeat the desk stay in the corner log, not the Update banner. */
@@ -98,6 +103,7 @@ export function hostVenueAutoAlertTone(
     case 'answer-window-started':
       return 'purple'
     case 'answer-window-ended':
+    case 'bets-closed':
       return 'amber'
   }
 }

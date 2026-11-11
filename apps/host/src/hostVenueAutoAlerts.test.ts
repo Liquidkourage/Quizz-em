@@ -24,6 +24,12 @@ describe('host update banners', () => {
   it('stays quiet when the felt already shows the new phase', () => {
     expect(
       detectVenueAutoAlerts(snap({ round1AnyOpen: true, round1OpenCount: 1 }), snap({})),
+    ).toEqual([{ kind: 'bets-closed', title: 'All bets are closed' }])
+    expect(
+      detectVenueAutoAlerts(
+        snap({ round1AnyOpen: true }),
+        snap({ round1AnyOpen: false, round2AnyOpen: true }),
+      ),
     ).toEqual([])
     expect(
       detectVenueAutoAlerts(snap({ answeringCount: 0 }), snap({ answeringCount: 2 })),

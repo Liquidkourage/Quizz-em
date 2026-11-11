@@ -77,7 +77,7 @@ export default function WageringActionButtons({
       ? 0
       : Math.max(ctx.minRaise, Math.min(maxRaiseBy, raiseAmount > 0 ? raiseAmount : ctx.minRaise))
   const raiseToTotal = ctx.toCall + effectiveRaiseBy
-  const wagerVerb = ctx.isOpeningBet ? 'Bet' : 'Raise'
+  const wagerVerb = ctx.toCall === 0 || ctx.isOpeningBet ? 'Bet' : 'Raise'
   const minRaiseTo = ctx.toCall + ctx.minRaise
   const soloBtnClass = 'player-game-btn--block player-game-btn--solo'
   const raiseDisabled = !live || !ctx.canRaise

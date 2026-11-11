@@ -1357,13 +1357,11 @@ function HostFeltBeatTile({
 export function HostVenueFeltBeatStrip({
   rows,
   hostTableId,
-  onAlignRoom,
   onSetTablePhase,
   forceOpen = false,
 }: {
   rows: HostVenueFeltBeatRow[] | null
   hostTableId: string
-  onAlignRoom?: () => void
   onSetTablePhase?: (tableNum: number, signature: string) => void
   forceOpen?: boolean
 }) {
@@ -1401,17 +1399,6 @@ export function HostVenueFeltBeatStrip({
         </span>
       }
     >
-      {lockstepMisaligned && onAlignRoom ? (
-        <div className="mb-2">
-          <button
-            type="button"
-            onClick={onAlignRoom}
-            className="rounded-md border border-amber-300/60 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
-          >
-            Match the room
-          </button>
-        </div>
-      ) : null}
       {openRow && onSetTablePhase ? (
         <HostFeltPhasePicker
           tableNum={openRow.tableNum}
@@ -2396,7 +2383,6 @@ export function HostVenueFloorBriefPanel({
   brief,
   hostPlayerLabel,
   feltRows = null,
-  onAlignRoom,
   onSetTablePhase,
   onSpotlight,
   onMove,
@@ -2410,7 +2396,6 @@ export function HostVenueFloorBriefPanel({
   hostPlayerLabel: (name: string) => string
   hostTableId: string
   feltRows?: HostVenueFeltBeatRow[] | null
-  onAlignRoom?: () => void
   onSetTablePhase?: (tableNum: number, signature: string) => void
   onSpotlight?: (tableNum: number) => void
   onMove?: (playerId: string, toTableNum: number) => void
@@ -2475,15 +2460,6 @@ export function HostVenueFloorBriefPanel({
       ) : (
         <div className="flex flex-col gap-3">
           <div>
-            {lockstepMisaligned && onAlignRoom ? (
-              <button
-                type="button"
-                onClick={onAlignRoom}
-                className="mb-2 rounded-md border border-amber-300/60 bg-amber-500/20 px-2.5 py-1 text-xs font-bold text-amber-50 hover:bg-amber-500/30"
-              >
-                Match the room
-              </button>
-            ) : null}
             {endgameWinner ? (
               <p className="mb-2 text-sm font-semibold text-amber-200">
                 Game over. {endgameDetail}

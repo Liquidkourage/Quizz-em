@@ -2,6 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
+import { SidePotMark } from '@qhe/ui'
 import {
   MosaicSeatFace,
   MosaicSidePotPlaques,
@@ -27,6 +28,20 @@ function tile(tableNum: number, extra: Partial<DisplayVenueTileSnapshot> = {}): 
 }
 
 describe('felt side pot', () => {
+  it('stacks three or more seat marks with the lowest number on top', () => {
+    const html = renderToStaticMarkup(createElement(SidePotMark, { mark: [3, 1, 2], seat: true }))
+    const one = html.indexOf('>1<')
+    const two = html.indexOf('>2<')
+    const three = html.indexOf('>3<')
+    expect(html).toContain('side-pot-mark-stack')
+    expect(html).toContain('flex-direction:column')
+    expect(one).toBeGreaterThan(-1)
+    expect(one).toBeLessThan(two)
+    expect(two).toBeLessThan(three)
+    const pair = renderToStaticMarkup(createElement(SidePotMark, { mark: [1, 2], seat: true }))
+    expect(pair).not.toContain('side-pot-mark-stack')
+  })
+
   it('keeps a folded short stack inside the one pot everyone still in can win', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSingleTableBroadcast, {

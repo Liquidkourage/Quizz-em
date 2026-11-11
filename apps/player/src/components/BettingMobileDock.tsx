@@ -7,7 +7,7 @@ import WageringActionButtons from './WageringActionButtons'
 
 function wagerHint(ctx: BettingContext): string {
   const minRaiseTo = ctx.toCall + ctx.minRaise
-  const verb = ctx.isOpeningBet ? 'bet' : 'raise'
+  const verb = ctx.toCall === 0 || ctx.isOpeningBet ? 'bet' : 'raise'
   if (!ctx.isOpeningBet && ctx.toCall > 0) return `Total includes the $${ctx.toCall} call`
   return `Opening ${verb} must be at least $${minRaiseTo}`
 }
@@ -22,7 +22,7 @@ function LiveWagerFacts({
   banner: string
 }) {
   const minRaiseTo = ctx.toCall + ctx.minRaise
-  const verb = ctx.isOpeningBet ? 'Bet' : 'Raise'
+  const verb = ctx.toCall === 0 || ctx.isOpeningBet ? 'Bet' : 'Raise'
   return (
     <div className="player-live-facts">
       <div className="player-game-dock-status" aria-live="polite">

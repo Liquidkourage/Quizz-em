@@ -78,6 +78,7 @@ import {
   VENUE_CONDENSE_MAX_SEATS,
   VENUE_CONDENSE_MIN_SEATS,
   parsePlayerPhasePreview,
+  VENUE_QUESTION_SET_LENGTH,
 } from '@qhe/core'
 import type { Question, GameState, PlayerPhasePreviewId } from '@qhe/core'
 import type { 
@@ -116,7 +117,7 @@ import {
   noteGuessNudge,
 } from './virtual-players'
 import { planVenueWageringOrchestration } from './venue-wagering-orchestration'
-import { soleChipWinner } from './venue-endgame'
+import { nightAwards, soleChipWinner, type NightAwards } from './venue-endgame'
 import {
   applyVenueCondenseAfterRound,
   venueCondenseSnapshotFromRooms,
@@ -553,24 +554,49 @@ function scoresOnPlayerBrief(vn: string) {
   return { scoresBoard: null, scores: [] as typeof night.chips }
 }
 
-/** The last chip stack, once a hand has been paid and every occupied table is waiting. */
-function venueChipWinner(venueCode: string): { name: string; tableNum: number; bankroll: number } | null {
+function venueAwardTables(venueCode: string) {
   const vn = normalizeVenueCode(venueCode)
-  return soleChipWinner(
-    getVenueHandsCompleted(vn),
-    venuePlayableSnapshots(vn)
-      .filter((row) => Number.isFinite(row.n))
-      .map((row) => ({
-        tableNum: row.n,
-        phase: row.gs.phase,
-        players: row.gs.players,
-      })),
-  )
+  return venuePlayableSnapshots(vn)
+    .filter((row) => Number.isFinite(row.n))
+    .map((row) => ({
+      tableNum: row.n,
+      phase: row.gs.phase,
+      players: row.gs.players,
+    }))
 }
 
-/** Same winner the phones, the host, and the public display show. */
+/** The last chip stack, once a hand has been paid and every occupied table is waiting. */
+function venueChipWinner(venueCode: string): { name: string; tableNum: number; bankroll: number } | null {
+  return soleChipWinner(getVenueHandsCompleted(normalizeVenueCode(venueCode)), venueAwardTables(venueCode))
+}
+
+function venueNightAwards(venueCode: string): NightAwards | null {
+  const vn = normalizeVenueCode(venueCode)
+  const field = venueNightScores(vn).field.map((row) => ({ name: row.name, points: row.answerPoints }))
+  return nightAwards(getVenueHandsCompleted(vn), VENUE_QUESTION_SET_LENGTH, venueAwardTables(vn), field)
+}
+
+function awardNameList(rows: readonly { name: string }[]): string[] | null {
+  const names = rows.map((row) => row.name.trim()).filter((name) => name.length > 0)
+  return names.length > 0 ? names : null
+}
+
+/** Chip winner the phones and the host use to close the night. The TV still uses the last stack. */
 export function venueEndgameWinnerName(venueCode: string): string | null {
-  return venueChipWinner(venueCode)?.name ?? null
+  const awards = venueNightAwards(venueCode)
+  if (awards == null) return null
+  return awardNameList(awards.chipWinners)?.join(', ') ?? awardNameList(awards.pointsWinners)?.join(', ') ?? null
+}
+
+function venueEndgameNameFields(venueCode: string): {
+  endgameChipNames: string[] | null
+  endgamePointsNames: string[] | null
+} {
+  const awards = venueNightAwards(venueCode)
+  return {
+    endgameChipNames: awards == null ? null : awardNameList(awards.chipWinners),
+    endgamePointsNames: awards == null ? null : awardNameList(awards.pointsWinners),
+  }
 }
 
 export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
@@ -619,6 +645,7 @@ export function buildPlayerVenueBrief(vnRaw: string): PlayerVenueBrief {
     venueHeld: isVenueHeld(vn),
     venueShuffleHeld: isVenueShuffleHeld(vn),
     endgameWinnerName: venueEndgameWinnerName(vn),
+    ...venueEndgameNameFields(vn),
     ...publicScores,
     blindChange: noteShownVenueBlinds(
       vn,
@@ -3008,6 +3035,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       scoresBlockNextQuestion: venueScoresCue(vn).blocked,
       winnerScreensReadyAtMs: venueWinnerScreensReadyAtFor(vn),
       endgameWinnerName: venueEndgameWinnerName(vn),
+      ...venueEndgameNameFields(vn),
     }),
   )
 }

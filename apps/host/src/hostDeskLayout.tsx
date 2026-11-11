@@ -33,7 +33,7 @@ import {
   soonestNudgeSeconds,
   tableActionClockStart,
 } from './HostShowClocks'
-import { hostEndgameWinnerName } from './hostEndgame'
+import { hostEndgameHeadline, hostEndgameWinnerName } from './hostEndgame'
 import { manyTablesStillBetting, WAITING_ON_TABLES_TO_BET } from './hostVenueActionGates'
 
 const HOST_PHASE_LABEL: Record<GamePhase, string> = {
@@ -2435,6 +2435,9 @@ export function HostVenueFloorBriefPanel({
   }, [nudgeLive, answerLive, actionClockLive])
   const soloTable = publicDisplaySoloTable(brief)
   const endgameWinner = hostEndgameWinnerName(brief)
+  const endgameDetail = endgameWinner
+    ? hostEndgameHeadline(endgameWinner, brief?.endgamePointsNames).detail
+    : null
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
   const [openTable, setOpenTable] = useState<number | null>(null)
   const openRow = rows.find((row) => row.tableNum === openTable)
@@ -2483,7 +2486,7 @@ export function HostVenueFloorBriefPanel({
             ) : null}
             {endgameWinner ? (
               <p className="mb-2 text-sm font-semibold text-amber-200">
-                Game over. {hostPlayerLabel(endgameWinner)} has the last stack.
+                Game over. {endgameDetail}
               </p>
             ) : null}
             <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">

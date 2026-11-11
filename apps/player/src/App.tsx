@@ -607,6 +607,8 @@ function PlayerApp() {
 
   const endgame = playerEndgameView({
     winnerName: venueBrief?.endgameWinnerName,
+    chipNames: venueBrief?.endgameChipNames,
+    pointsNames: venueBrief?.endgamePointsNames,
     selfName: currentPlayer?.name ?? playerName,
     selfBankroll: currentPlayer?.bankroll ?? null,
   })
@@ -617,7 +619,10 @@ function PlayerApp() {
         <PlayerBlindChange brief={venueBrief} />
         <PlayerEndgameScreen
           winnerName={endgame.winnerName}
-          selfWon={endgame.selfWon}
+          chipNames={endgame.chipNames}
+          pointsNames={endgame.pointsNames}
+          selfWonChips={endgame.selfWonChips}
+          selfWonPoints={endgame.selfWonPoints}
           bankroll={endgame.bankroll}
         />
         <PlayerScoresSheet brief={venueBrief} {...scoresSheetIdentity(myName, gameState.tableId)} />

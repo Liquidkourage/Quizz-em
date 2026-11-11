@@ -100,6 +100,10 @@ export type PlayerVenueBrief = {
   venueHeld?: boolean
   /** Last player with chips, once a hand has been paid and the tables are waiting. */
   endgameWinnerName?: string | null
+  /** Chip winners once the night is over. Null while the night is still going. */
+  endgameChipNames?: string[] | null
+  /** Points winners, leaving out the chip winners. Null while the night is still going. */
+  endgamePointsNames?: string[] | null
   /** Next scheduled shuffle is postponed one cycle. */
   venueShuffleHeld?: boolean
   /**
@@ -531,6 +535,10 @@ export type HostVenueFloorBriefPayload = {
   scoresBlockNextQuestion?: boolean
   /** Last chip stack, once the room is between hands. Null while the night is still going. */
   endgameWinnerName?: string | null
+  /** Chip winners once the night is over. */
+  endgameChipNames?: string[] | null
+  /** Points winners, leaving out the chip winners. */
+  endgamePointsNames?: string[] | null
 }
 
 export const ClientHello = z.object({

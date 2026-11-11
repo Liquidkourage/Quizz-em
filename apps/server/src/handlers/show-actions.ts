@@ -7,7 +7,7 @@ import { denyUnlessOwnSeat } from '../own-seat'
 function refuseFinishedTournament(socket: Socket, code: string): boolean {
   const winner = g.venueEndgameWinnerName(code)
   if (winner == null) return false
-  socket.emit('toast', `${winner} has the last stack. The tournament is over.`)
+  socket.emit('toast', 'The tournament is over.')
   return true
 }
 

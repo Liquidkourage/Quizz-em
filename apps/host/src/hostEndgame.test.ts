@@ -14,8 +14,8 @@ describe('hostEndgameWinnerName', () => {
 
 describe('host endgame headline', () => {
   it('tells the host the night is over', () => {
-    const cue = hostEndgameHeadline('Ada Lane')
+    const cue = hostEndgameHeadline('Ada Lane', ['Bo Kim'])
     expect(cue.title).toBe('Game over')
-    expect(cue.detail).toContain('Ada Lane')
+    expect(cue.detail).toBe('Chips: Ada Lane. Points: Bo Kim.')
   })
 })

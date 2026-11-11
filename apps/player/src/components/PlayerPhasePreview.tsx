@@ -63,7 +63,14 @@ function GatePreview({ scene }: { scene: PlayerPhasePreviewId }) {
     )
   }
   if (scene === 'game-over') {
-    return <PlayerEndgameScreen winnerName="Ada A" selfWon={false} bankroll={null} />
+    return (
+      <PlayerEndgameScreen
+        winnerName="Ada A"
+        chipNames={['Ada A']}
+        pointsNames={['Bo B']}
+        bankroll={null}
+      />
+    )
   }
   return <JoinScreen prefs={joinPrefs} onChange={noop} onJoin={noop} />
 }

@@ -752,6 +752,8 @@ export function buildHostVenueFloorBrief(args: {
   scoresHint?: string | null
   scoresBlockNextQuestion?: boolean
   endgameWinnerName?: string | null
+  endgameChipNames?: string[] | null
+  endgamePointsNames?: string[] | null
   /** Current locked guesses. Host brief only. */
   guesses?: readonly HostTableGuesses[]
 }): HostVenueFloorBriefPayload {
@@ -796,5 +798,13 @@ export function buildHostVenueFloorBrief(args: {
     scoresHint: args.scoresHint ?? null,
     scoresBlockNextQuestion: args.scoresBlockNextQuestion === true,
     endgameWinnerName: publishedWinnerName(args.endgameWinnerName),
+    endgameChipNames: publishedNameList(args.endgameChipNames),
+    endgamePointsNames: publishedNameList(args.endgamePointsNames),
   }
+}
+
+function publishedNameList(names: readonly string[] | null | undefined): string[] | null {
+  if (names == null) return null
+  const list = names.map((name) => name.trim()).filter((name) => name.length > 0)
+  return list.length > 0 ? list : null
 }

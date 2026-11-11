@@ -682,7 +682,9 @@ function HostApp() {
     nextQuestionText,
     afterPayout,
   })
-  const endgameHeadline = endgameWinner ? hostEndgameHeadline(endgameWinner) : null
+  const endgameHeadline = endgameWinner
+    ? hostEndgameHeadline(endgameWinner, venueFloorBrief?.endgamePointsNames)
+    : null
   const alignedHeadline = {
     title: endgameHeadline?.title ?? pacingSuggestion.title,
     detail: endgameHeadline?.detail ?? pacingSuggestion.detail,

@@ -1681,14 +1681,22 @@
   }
 
   .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question {
-    flex: 0 0 auto;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: center;
     max-height: none;
-    overflow: visible;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .player-game-layout--live-fit.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question-text {
+    font-size: clamp(1.35rem, 5.5vh, 2.75rem);
+    line-height: 1.25;
   }
 
   .player-game-layout--live-fit.player-game-layout--question .player-seated-table {
     flex: 0 0 auto;
-    margin-top: auto;
   }
 }
 

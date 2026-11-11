@@ -380,11 +380,12 @@ describe('player table orientation', () => {
     const header = '@media (orientation: portrait)'
     const block = mediaBlock(css.slice(css.indexOf('shown question uses the spare portrait height')), header)
     expect(block.startsWith(header)).toBe(true)
-    expect(block).toContain('.player-game-layout--question:not(.player-game-layout--with-dock) .player-sticky-question')
-    expect(block).toContain('max-height: none')
-    expect(block).toContain('overflow: visible')
-    expect(block).toContain('.player-game-layout--question .player-seated-table')
-    expect(block).toContain('margin-top: auto')
+    const question = block.slice(block.indexOf('.player-sticky-question {'), block.indexOf('.player-sticky-question {') + 280)
+    expect(question).toContain('flex: 1 1 auto')
+    expect(question).toContain('max-height: none')
+    expect(block).toContain('.player-sticky-question-text')
+    expect(block).toContain('font-size: clamp(1.35rem, 5.5vh, 2.75rem)')
+    expect(block).not.toContain('margin-top: auto')
     expect(block).not.toContain('orientation: landscape')
   })
 

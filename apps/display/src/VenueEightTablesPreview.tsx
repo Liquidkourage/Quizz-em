@@ -329,7 +329,14 @@ function shownFeltPot(
     }),
   )
   const layers = livePotLayers(amounts, folds, allIn)
-  return { pot: layers.main > 0 ? layers.main : raw, marks: layers.marks, sides: layers.sides }
+  const committed = amounts.reduce((sum, amount) => sum + amount, 0)
+  const inMiddle = Math.max(raw, committed)
+  const inSides = layers.sides.reduce((sum, side) => sum + side.amount, 0)
+  return {
+    pot: Math.max(layers.main, inMiddle - inSides),
+    marks: layers.marks,
+    sides: layers.sides,
+  }
 }
 
 function sideMarkAt(marks: readonly (readonly number[])[] | null, index: number): readonly number[] {

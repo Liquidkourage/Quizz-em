@@ -101,6 +101,22 @@ describe('felt side pot', () => {
     expect(card).not.toContain('vfd-felt-side-pot')
   })
 
+  it('counts chips in the pot as soon as a player adds them', () => {
+    const html = renderToStaticMarkup(
+      createElement(VenueSingleTableBroadcast, {
+        tile: tile(1, {
+          pot: 300,
+          seated: 2,
+          seatNames: ['Ada', 'Bo'],
+          seatInvested: [200, 100],
+          seatFolded: [false, false],
+        }),
+        prefersReducedMotion: true,
+      }),
+    )
+    expect(html).toContain('pot $300')
+  })
+
   it('keeps an unmatched raise in the one pot while the short stack can still call', () => {
     const html = renderToStaticMarkup(
       createElement(VenueSingleTableBroadcast, {

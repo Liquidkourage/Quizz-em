@@ -79,8 +79,8 @@ function TurnDock({ game, youIndex }: { game: GameState; youIndex: number }) {
       ctx={ctx}
       raiseAmount={raiseAmount}
       pot={game.round.pot}
-      preAction={null}
-      onPreActionChange={noop}
+      autoCallLimit={null}
+      onAutoCallLimitChange={noop}
       onRaiseAmountChange={setRaiseAmount}
       onCheck={noop}
       onCall={noop}

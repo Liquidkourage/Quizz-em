@@ -1,8 +1,8 @@
+import { useEffect, useState } from 'react'
 import type { PlayerState } from '@qhe/core'
 import { ChipText } from '@qhe/ui'
 import type { BettingContext } from '../playerModel/bettingModel'
-import type { PreAction } from '../playerModel/preAction'
-import { preActionArmedLabel } from '../playerModel/preAction'
+import { autoCallLimitFromInput } from '../playerModel/preAction'
 import WageringActionButtons from './WageringActionButtons'
 
 function wagerHint(ctx: BettingContext): string {
@@ -67,60 +67,38 @@ function LiveWagerFacts({
   )
 }
 
-function WaitingPreActions({
-  ctx,
-  preAction,
-  onPreActionChange,
+function AutoAction({
+  limit,
+  onChange,
 }: {
-  ctx: BettingContext
-  preAction: PreAction | null
-  onPreActionChange: (next: PreAction | null) => void
+  limit: number | null
+  onChange: (next: number | null) => void
 }) {
-  const togglePre = (next: PreAction) => {
-    if (preAction?.kind === next.kind) {
-      onPreActionChange(null)
-      return
-    }
-    onPreActionChange(next)
-  }
+  const [draft, setDraft] = useState(limit == null ? '' : String(limit))
+
+  useEffect(() => {
+    setDraft(limit == null ? '' : String(limit))
+  }, [limit])
 
   return (
-    <>
-      <p className="player-game-preact-heading">Auto-play on your turn</p>
-      <div className="player-game-preact" role="group" aria-label="Pre-action">
-        <button
-          type="button"
-          className={`player-game-preact-chip${preAction?.kind === 'checkFold' ? ' is-active' : ''}`}
-          onClick={() => togglePre({ kind: 'checkFold' })}
-        >
-          <span className="player-game-preact-title">Check / fold</span>
-          <span className="player-game-preact-sub">Check if free, else fold</span>
-        </button>
-        <button
-          type="button"
-          className={`player-game-preact-chip${preAction?.kind === 'callAny' ? ' is-active' : ''}`}
-          onClick={() => togglePre({ kind: 'callAny' })}
-        >
-          <span className="player-game-preact-title">Call any</span>
-          <span className="player-game-preact-sub">Call whatever it costs</span>
-        </button>
-        <button
-          type="button"
-          className={`player-game-preact-chip${preAction?.kind === 'callFold' ? ' is-active' : ''}`}
-          onClick={() => togglePre({ kind: 'callFold', maxBet: ctx.currentBet })}
-        >
-          <span className="player-game-preact-title">
-            <ChipText text={`Call / fold${ctx.toCall > 0 ? ` $${ctx.toCall}` : ''}`} />
-          </span>
-          <span className="player-game-preact-sub">
-            <ChipText
-              text={ctx.toCall > 0 ? `Call $${ctx.toCall}, fold if raised` : 'Call this bet, fold to a raise'}
-            />
-          </span>
-        </button>
-      </div>
-      <p className="player-game-preact-hint">Tap again to clear · full controls on your turn</p>
-    </>
+    <div className="player-game-preact">
+      <p className="player-game-preact-heading">Auto-Action</p>
+      <label className="player-game-auto-line">
+        <span>Check or call up to</span>
+        <input
+          className="player-game-input player-game-auto-input"
+          inputMode="numeric"
+          aria-label="Check or call up to"
+          value={draft}
+          onChange={(event) => {
+            const digits = event.target.value.replace(/\D/g, '')
+            setDraft(digits)
+            onChange(autoCallLimitFromInput(digits))
+          }}
+        />
+      </label>
+      <p className="player-game-preact-sub">Otherwise, fold.</p>
+    </div>
   )
 }
 
@@ -129,8 +107,8 @@ type BettingMobileDockProps = {
   ctx: BettingContext
   raiseAmount: number
   pot?: number
-  preAction: PreAction | null
-  onPreActionChange: (next: PreAction | null) => void
+  autoCallLimit: number | null
+  onAutoCallLimitChange: (next: number | null) => void
   onRaiseAmountChange: (n: number) => void
   onCheck: () => void
   onCall: () => void
@@ -145,8 +123,8 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
     ctx,
     raiseAmount,
     pot,
-    preAction,
-    onPreActionChange,
+    autoCallLimit,
+    onAutoCallLimitChange,
     onRaiseAmountChange,
     onCheck,
     onCall,
@@ -167,11 +145,11 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
         <LiveWagerFacts
           currentPlayer={currentPlayer}
           ctx={ctx}
-          banner={live ? 'Your turn' : preAction ? preActionArmedLabel(preAction) : 'Waiting'}
+          banner={live ? 'Your turn' : 'Waiting'}
         />
 
         {!live ? (
-          <WaitingPreActions ctx={ctx} preAction={preAction} onPreActionChange={onPreActionChange} />
+          <AutoAction limit={autoCallLimit} onChange={onAutoCallLimitChange} />
         ) : (
           <div className="player-game-wager-actions">
             <WageringActionButtons

@@ -1,28 +1,25 @@
-import type { BettingContext } from './bettingModel'
-
-/** Queued action applied automatically when it becomes your turn. */
-export type PreAction =
-  | { kind: 'checkFold' }
-  | { kind: 'callAny' }
-  /** Call if the bet level is still ≤ maxBet when your turn arrives; otherwise fold. */
-  | { kind: 'callFold'; maxBet: number }
-
 export type ResolvedPreAction = 'check' | 'call' | 'fold'
 
-export function resolvePreAction(pre: PreAction, ctx: BettingContext): ResolvedPreAction {
-  if (pre.kind === 'checkFold') {
-    return ctx.toCall === 0 ? 'check' : 'fold'
-  }
-  if (pre.kind === 'callAny') {
-    return ctx.toCall === 0 ? 'check' : 'call'
-  }
-  // call/fold — cancel into a fold if someone raised past the locked bet level
-  if (ctx.toCall === 0) return 'check'
-  if (ctx.currentBet <= pre.maxBet) return 'call'
+/** Blank turns Auto-Action off. Zero is a real limit: check if free, otherwise fold. */
+export function autoCallLimitFromInput(raw: string): number | null {
+  const trimmed = raw.trim()
+  if (!/^\d+$/.test(trimmed)) return null
+  return Number(trimmed)
+}
+
+/**
+ * The limit is the extra chips the player will call. A free check always checks.
+ * A bigger call folds. This never raises.
+ */
+export function resolveAutoAction(limit: number, toCall: number): ResolvedPreAction {
+  const cap = Math.max(0, Math.floor(limit))
+  const owed = Math.max(0, Math.floor(Number.isFinite(toCall) ? toCall : 0))
+  if (owed === 0) return 'check'
+  if (owed <= cap) return 'call'
   return 'fold'
 }
 
-/** Short line after a queued action fires. A call names the chips actually put in. */
+/** Short line after Auto-Action fires. A call names the chips actually put in. */
 export function preActionAlert(action: ResolvedPreAction, toCall: number, bankroll: number): string {
   if (action === 'check') return 'Checked'
   if (action === 'fold') return 'Folded'
@@ -33,17 +30,16 @@ export function preActionAlert(action: ResolvedPreAction, toCall: number, bankro
   return `Called $${chips.toLocaleString('en-US')}`
 }
 
-export function preActionLabel(pre: PreAction | null): string {
-  if (!pre) return ''
-  if (pre.kind === 'checkFold') return 'Check if free, else fold'
-  if (pre.kind === 'callAny') return 'Call any amount'
-  return 'Call this bet, fold to a raise'
+export function bettingTurnKey(roundId: string, bettingRound: number, seat: number): string {
+  return `${roundId}:${bettingRound}:${seat}`
 }
 
-/** Short dock status when a pre-act is armed. */
-export function preActionArmedLabel(pre: PreAction | null): string {
-  if (!pre) return ''
-  if (pre.kind === 'checkFold') return 'Armed: Check / fold'
-  if (pre.kind === 'callAny') return 'Armed: Call any'
-  return 'Armed: Call / fold'
+/** True when this seat has not already acted for the current turn. */
+export function autoActionShouldFire(
+  limit: number | null,
+  isMyTurn: boolean,
+  turnKey: string,
+  actedTurnKey: string,
+): boolean {
+  return limit != null && isMyTurn && turnKey !== actedTurnKey
 }

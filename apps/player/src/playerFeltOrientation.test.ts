@@ -332,7 +332,6 @@ describe('player table orientation', () => {
     expect(block).toContain('padding: 0.15rem 3.75rem 0.1rem')
     expect(block).toContain('padding: 1.7rem 0.35rem 2.5rem')
     expect(block).toContain('width: min(100%, calc(100cqh * 8 / 5))')
-    expect(block).toContain('grid-template-columns: 1fr 1fr 1fr')
     expect(block).toContain('.player-live-facts')
     expect(block).toContain('overflow-y: auto')
     expect(block).toContain('.player-game-preact')

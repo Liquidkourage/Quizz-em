@@ -35,8 +35,8 @@ function renderDock(isMyTurn: boolean) {
       currentPlayer: player,
       ctx: ctx(isMyTurn),
       raiseAmount: 20,
-      preAction: null,
-      onPreActionChange: noop,
+      autoCallLimit: null,
+      onAutoCallLimitChange: noop,
       onRaiseAmountChange: noop,
       onCheck: noop,
       onCall: noop,
@@ -84,8 +84,8 @@ describe('betting turn cue', () => {
         currentPlayer: player,
         ctx: opening,
         raiseAmount: 20,
-        preAction: null,
-        onPreActionChange: noop,
+        autoCallLimit: null,
+        onAutoCallLimitChange: noop,
         onRaiseAmountChange: noop,
         onCheck: noop,
         onCall: noop,
@@ -112,8 +112,8 @@ describe('betting turn cue', () => {
         currentPlayer: player,
         ctx: free,
         raiseAmount: 20,
-        preAction: null,
-        onPreActionChange: noop,
+        autoCallLimit: null,
+        onAutoCallLimitChange: noop,
         onRaiseAmountChange: noop,
         onCheck: noop,
         onCall: noop,
@@ -138,8 +138,8 @@ describe('betting turn cue', () => {
         currentPlayer: player,
         ctx: opening,
         raiseAmount: 20,
-        preAction: null,
-        onPreActionChange: noop,
+        autoCallLimit: null,
+        onAutoCallLimitChange: noop,
         onRaiseAmountChange: noop,
         onCheck: noop,
         onCall: noop,
@@ -156,19 +156,20 @@ describe('betting turn cue', () => {
     const html = renderDock(false)
     expect(html).toContain('player-game-dock--waiting')
     expect(html.match(/>Waiting</g)).toHaveLength(2)
-    expect(html).toContain('Auto-play on your turn')
-    expect(html).toContain('Check / fold')
-    expect(html).toContain('Call any')
-    expect(html).toContain('Call / fold $20')
-    expect(html).toContain('Call $20, fold if raised')
-    expect(html.match(/class="player-game-preact-chip"/g)).toHaveLength(3)
+    expect(html).toContain('Auto-Action')
+    expect(html).toContain('Check or call up to')
+    expect(html).toContain('Otherwise, fold.')
+    expect(html).toContain('aria-label="Check or call up to"')
+    expect(html).toContain('value=""')
+    expect(html).not.toContain('Check / fold')
+    expect(html).not.toContain('Call any')
     expect(html).toContain('<strong class="">Waiting</strong>')
     expect(html).not.toContain('player-game-stat-turn')
     expect(html).not.toContain('auto…')
     expect(html).not.toContain('player-game-dock--your-turn')
   })
 
-  it('marks the armed pre-action', () => {
+  it('shows the saved call limit while waiting', () => {
     const game = addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada')
     const player = { ...game.players[0]!, bankroll: 500 }
     const html = renderToStaticMarkup(
@@ -176,8 +177,8 @@ describe('betting turn cue', () => {
         currentPlayer: player,
         ctx: ctx(false),
         raiseAmount: 20,
-        preAction: { kind: 'checkFold' },
-        onPreActionChange: noop,
+        autoCallLimit: 40,
+        onAutoCallLimitChange: noop,
         onRaiseAmountChange: noop,
         onCheck: noop,
         onCall: noop,
@@ -186,62 +187,7 @@ describe('betting turn cue', () => {
         onAllIn: noop,
       }),
     )
-    const chips = html.split('player-game-preact-chip')
-    expect(chips[1]).toContain('is-active')
-    expect(chips[2]).not.toContain('is-active')
-    expect(chips[3]).not.toContain('is-active')
-  })
-
-  it('shows the free-check pre-action copy when nothing is owed', () => {
-    const game = addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada')
-    const player = { ...game.players[0]!, bankroll: 500 }
-    const free = ctx(false)
-    free.toCall = 0
-    const html = renderToStaticMarkup(
-      createElement(BettingMobileDock, {
-        currentPlayer: player,
-        ctx: free,
-        raiseAmount: 20,
-        preAction: null,
-        onPreActionChange: noop,
-        onRaiseAmountChange: noop,
-        onCheck: noop,
-        onCall: noop,
-        onRaise: noop,
-        onFold: noop,
-        onAllIn: noop,
-      }),
-    )
-    expect(html).toContain('Call this bet, fold to a raise')
-    expect(html).toContain('>Call / fold</span>')
-    expect(html).not.toContain('Call / fold $')
-    expect(html).not.toContain('Call $0')
-  })
-
-  it('marks call-any and call-fold when those are armed', () => {
-    const game = addPlayer(createEmptyGame('HOST01', 'host', '1'), 'p1', 'Ada')
-    const player = { ...game.players[0]!, bankroll: 500 }
-    const renderArmed = (kind: 'callAny' | 'callFold') =>
-      renderToStaticMarkup(
-        createElement(BettingMobileDock, {
-          currentPlayer: player,
-          ctx: ctx(false),
-          raiseAmount: 20,
-          preAction: kind === 'callFold' ? { kind, maxBet: 20 } : { kind },
-          onPreActionChange: noop,
-          onRaiseAmountChange: noop,
-          onCheck: noop,
-          onCall: noop,
-          onRaise: noop,
-          onFold: noop,
-          onAllIn: noop,
-        }),
-      )
-    const callAny = renderArmed('callAny').split('player-game-preact-chip')
-    expect(callAny[2]).toContain('is-active')
-    expect(callAny[1]).not.toContain('is-active')
-    const callFold = renderArmed('callFold').split('player-game-preact-chip')
-    expect(callFold[3]).toContain('is-active')
-    expect(callFold[1]).not.toContain('is-active')
+    expect(html).toContain('value="40"')
+    expect(html).toContain('Otherwise, fold.')
   })
 })

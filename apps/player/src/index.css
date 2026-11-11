@@ -2020,56 +2020,39 @@
 }
 
 .player-game-preact {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.35rem;
-  margin-bottom: 0.35rem;
-}
-
-.player-game-preact-chip {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  gap: 0.15rem;
-  min-height: 3.35rem;
-  border-radius: 3px;
-  border: 1px solid rgb(251 191 36 / 0.4);
-  background: rgb(8 12 10 / 0.95);
-  color: rgb(255 255 255 / 0.88);
-  font-family: 'Rajdhani', system-ui, sans-serif;
-  padding: 0.4rem 0.3rem;
-  text-align: center;
+  gap: 0.2rem;
+  margin: 0 0 0.35rem;
 }
 
-.player-game-preact-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  line-height: 1.15;
+.player-game-auto-line {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: rgb(255 255 255 / 0.88);
+}
+
+.player-game-auto-input {
+  width: 4.75rem;
+  flex: 0 0 4.75rem;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.45rem;
+  text-align: right;
 }
 
 .player-game-preact-sub {
-  font-size: 0.62rem;
+  margin: 0;
+  font-family: 'Rajdhani', system-ui, sans-serif;
+  font-size: 0.78rem;
   font-weight: 550;
   letter-spacing: 0.02em;
   line-height: 1.2;
   color: rgb(255 255 255 / 0.55);
-}
-
-.player-game-preact-chip.is-active {
-  border-color: rgb(253 224 71 / 0.85);
-  background: linear-gradient(180deg, rgb(251 191 36 / 0.28) 0%, rgb(234 179 8 / 0.16) 100%);
-  color: rgb(254 243 199);
-  box-shadow: 0 0 0 1px rgb(251 191 36 / 0.25);
-}
-
-.player-game-preact-chip.is-active .player-game-preact-sub {
-  color: rgb(254 243 199 / 0.75);
-}
-
-.player-game-preact-chip:active {
-  transform: translateY(1px);
 }
 
 /* Match felt panel width so actions span the same band as the table. */
@@ -3099,10 +3082,6 @@
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-preact-hint,
   .player-game-layout--live-fit.player-game-layout--with-dock .player-game-wager-actions {
     flex: 0 0 auto;
-  }
-
-  .player-game-layout--live-fit.player-game-layout--with-dock .player-game-dock--waiting .player-game-preact {
-    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 

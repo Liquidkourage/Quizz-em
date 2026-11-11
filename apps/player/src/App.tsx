@@ -62,7 +62,7 @@ import { nextDealFlash, type DealFlash, type DealSnapshot } from './playerModel/
 import { eliminationPopupHandKey, seatlessPhoneKeepsFelt, type EliminationWatch } from './playerModel/eliminationPopup'
 import { playerEndgameView } from './playerModel/playerEndgame'
 import { lockedAnswerDisplayText, optimisticGuessStillShown } from './playerModel/lockedAnswerDisplay'
-import { preActionAlert, resolvePreAction, type PreAction } from './playerModel/preAction'
+import { autoActionShouldFire, bettingTurnKey, preActionAlert, resolveAutoAction } from './playerModel/preAction'
 import JoinScreen from './components/JoinScreen'
 import ConnectingScreen from './components/ConnectingScreen'
 import LobbyWaitingScreen from './components/LobbyWaitingScreen'
@@ -141,7 +141,9 @@ function PlayerApp() {
   const disconnected = connectionStatus !== 'connected'
   const [lastTableId, setLastTableId] = useState<string | null>(null)
   const [raiseAmount, setRaiseAmount] = useState(0)
-  const [preAction, setPreAction] = useState<PreAction | null>(null)
+  const [autoCallLimit, setAutoCallLimit] = useState<number | null>(null)
+  const autoCallLimitRef = useRef(autoCallLimit)
+  autoCallLimitRef.current = autoCallLimit
   const [autoActAlert, setAutoActAlert] = useState<{ id: string; message: string } | null>(null)
   const [composedAnswer, setComposedAnswer] = useState<ComposedAnswer>(EMPTY_COMPOSED_ANSWER)
   const [selectedCards, setSelectedCards] = useState<SelectedCardRef[]>([])
@@ -436,8 +438,9 @@ function PlayerApp() {
   ])
 
   useEffect(() => {
-    setPreAction(null)
-  }, [gameState?.round.roundId, gameState?.round.bettingRound])
+    autoCallLimitRef.current = null
+    setAutoCallLimit(null)
+  }, [gameState?.round.roundId])
 
   const wasMyTurnRef = useRef(false)
   const [turnFlash, setTurnFlash] = useState(false)
@@ -461,21 +464,33 @@ function PlayerApp() {
   }, [bettingCtx?.isMyTurn])
 
   const preActTurnKeyRef = useRef('')
+  const claimManualTurn = () => {
+    if (!gameState) return
+    preActTurnKeyRef.current = bettingTurnKey(
+      gameState.round.roundId,
+      gameState.round.bettingRound,
+      gameState.round.currentPlayerIndex,
+    )
+  }
   useEffect(() => {
-    if (!bettingCtx?.isMyTurn || !preAction || !gameState) return
-    const turnKey = `${gameState.round.roundId}:${gameState.round.bettingRound}:${gameState.round.currentPlayerIndex}`
-    if (preActTurnKeyRef.current === turnKey) return
+    if (!bettingCtx || !gameState || currentPlayer == null) return
+    const turnKey = bettingTurnKey(
+      gameState.round.roundId,
+      gameState.round.bettingRound,
+      gameState.round.currentPlayerIndex,
+    )
+    if (autoCallLimitRef.current == null) return
+    if (!autoActionShouldFire(autoCallLimitRef.current, bettingCtx.isMyTurn, turnKey, preActTurnKeyRef.current)) return
     preActTurnKeyRef.current = turnKey
-    const action = resolvePreAction(preAction, bettingCtx)
-    setPreAction(null)
+    const action = resolveAutoAction(autoCallLimitRef.current, bettingCtx.toCall)
     setAutoActAlert({
       id: turnKey,
-      message: preActionAlert(action, bettingCtx.toCall, currentPlayer?.bankroll ?? 0),
+      message: preActionAlert(action, bettingCtx.toCall, currentPlayer.bankroll),
     })
     if (action === 'check') checkAction()
     else if (action === 'call') callAction()
     else fold()
-  }, [bettingCtx, preAction, gameState])
+  }, [bettingCtx, autoCallLimit, gameState, currentPlayer])
 
   const lockedAnswerDisplay = lockedAnswerDisplayText({
     editing: editingAnswer,
@@ -724,27 +739,34 @@ function PlayerApp() {
         ctx={bettingCtx}
         raiseAmount={raiseAmount}
         pot={gameState.round.pot}
-        preAction={preAction}
-        onPreActionChange={setPreAction}
+        autoCallLimit={autoCallLimit}
+        onAutoCallLimitChange={setAutoCallLimit}
         onRaiseAmountChange={setRaiseAmount}
         onCheck={() => {
           if (blockIfHeld()) return
+          claimManualTurn()
           checkAction()
         }}
         onCall={() => {
           if (blockIfHeld()) return
+          claimManualTurn()
           callAction()
         }}
         onRaise={() => {
           if (blockIfHeld()) return
-          if (raiseAmount > 0) raiseAction(raiseAmount)
+          if (raiseAmount > 0) {
+            claimManualTurn()
+            raiseAction(raiseAmount)
+          }
         }}
         onFold={() => {
           if (blockIfHeld()) return
+          claimManualTurn()
           fold()
         }}
         onAllIn={() => {
           if (blockIfHeld()) return
+          claimManualTurn()
           allInAction()
         }}
       />

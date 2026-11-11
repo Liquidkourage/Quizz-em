@@ -3,6 +3,14 @@ import type { GameState, Question } from '@qhe/core'
 import type { ServerAck } from '@qhe/net'
 import * as g from '../game-ops'
 
+function questionIdsAcrossRooms(): Set<string> {
+  const ids = new Set<string>()
+  for (const lib of g.venueLibraries.values()) {
+    for (const question of lib.questions) ids.add(question.id)
+  }
+  return ids
+}
+
 export async function handleLibraryAction(
   socket: Socket,
   type: string,
@@ -243,7 +251,7 @@ export async function handleLibraryAction(
           } else {
             lib.questions = [...lib.questions, ...validated]
           }
-          g.pruneSetlistRefs(lib)
+          g.pruneSetlistRefs(lib, questionIdsAcrossRooms())
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
           break
@@ -260,7 +268,7 @@ export async function handleLibraryAction(
           } else {
             lib.setlists.unshift(starter)
           }
-          g.pruneSetlistRefs(lib)
+          g.pruneSetlistRefs(lib, questionIdsAcrossRooms())
           await g.persistVenues()
           await g.emitHostLibrary(gameState.code)
           break

@@ -110,10 +110,72 @@ export function coerceImportQuestions(normVenue: string, rows: unknown[]): Quest
   return validated
 }
 
-/** Remove ids not present in bank (call after importing / replacing questions). */
-export function pruneSetlistRefs(lib: VenueLibraryData): void {
+/** Remove ids not present in this bank. Ids still known in another room stay on a shared playlist. */
+export function pruneSetlistRefs(lib: VenueLibraryData, alsoKnown?: Iterable<string>): void {
   const ids = new Set(lib.questions.map((q) => q.id))
+  if (alsoKnown) {
+    for (const id of alsoKnown) ids.add(id)
+  }
   for (const sl of lib.setlists) {
     sl.questionIds = sl.questionIds.filter((id) => ids.has(id))
   }
+}
+
+function rankLibraries(libs: readonly VenueLibraryData[]): VenueLibraryData[] {
+  return [...libs].sort(
+    (a, b) => b.setlists.length - a.setlists.length || b.questions.length - a.questions.length,
+  )
+}
+
+/** The fullest room keeps its lists. Lists that exist only in another room are added. */
+function sharedPlaylistShelf(ranked: readonly VenueLibraryData[]): Setlist[] {
+  const shelf = ranked[0]!.setlists
+  const seen = new Set(shelf.map((setlist) => setlist.id))
+  for (const lib of ranked) {
+    if (lib.setlists === shelf) continue
+    for (const setlist of lib.setlists) {
+      if (seen.has(setlist.id)) continue
+      seen.add(setlist.id)
+      shelf.push({ id: setlist.id, name: setlist.name, questionIds: [...setlist.questionIds] })
+    }
+  }
+  return shelf
+}
+
+function questionsById(ranked: readonly VenueLibraryData[]): Map<string, Question> {
+  const canonical = new Map<string, Question>()
+  for (const lib of ranked) {
+    for (const question of lib.questions) {
+      if (!canonical.has(question.id)) canonical.set(question.id, question)
+    }
+  }
+  return canonical
+}
+
+function copyMissingPlaylistQuestions(
+  libs: readonly VenueLibraryData[],
+  shelf: readonly Setlist[],
+  canonical: ReadonlyMap<string, Question>,
+): void {
+  const needed = new Set(shelf.flatMap((setlist) => setlist.questionIds))
+  for (const lib of libs) {
+    for (const id of needed) {
+      if (lib.questions.some((question) => question.id === id)) continue
+      const question = canonical.get(id)
+      if (question) lib.questions.push({ ...question })
+    }
+  }
+}
+
+/**
+ * Playlists belong to the host, not to one room code.
+ * Every room shares one shelf. A room that is missing a cue on that shelf receives a copy of the question.
+ */
+export function sharePlaylistsAcrossRooms(map: Map<string, VenueLibraryData>): void {
+  const libs = [...new Set(map.values())]
+  if (libs.length === 0) return
+  const ranked = rankLibraries(libs)
+  const shelf = sharedPlaylistShelf(ranked)
+  for (const lib of libs) lib.setlists = shelf
+  copyMissingPlaylistQuestions(libs, shelf, questionsById(ranked))
 }

@@ -164,6 +164,7 @@ import { publicScoreSeats, scoreBoards } from './player-public-scores'
 import {
   coerceImportQuestions,
   pruneSetlistRefs,
+  sharePlaylistsAcrossRooms,
   type VenueLibraryData,
 } from './venue-library-persist'
 import { loadVenueLibraries, persistVenueLibraries } from './venue-library-db'
@@ -918,13 +919,15 @@ export function wireDisplaySocketToVenue(socket: Socket, venueCodeRaw: string, d
 
 export async function ensureVenueLibrary(venueCode: string): Promise<VenueLibraryData> {
   const k = normalizeVenueCode(venueCode)
-  if (!venueLibraries.has(k)) {
+  const created = !venueLibraries.has(k)
+  if (created) {
     venueLibraries.set(k, {
       questions: STARTER_QUESTION_SET.map((q) => ({ ...q })),
       setlists: [createStarterSetlist(STARTER_QUESTION_SET)],
     })
-    await persistVenues()
   }
+  sharePlaylistsAcrossRooms(venueLibraries)
+  if (created) await persistVenues()
   return venueLibraries.get(k)!
 }
 

@@ -107,6 +107,23 @@ describe('getPlayhead', () => {
   })
 })
 
+describe('playlists across rooms', () => {
+  it('shows a playlist saved in one room when the host opens another', async () => {
+    venueLibraries.clear()
+    venuePlayhead.clear()
+    const first = await ensureVenueLibrary('ROOM1')
+    first.questions.push({ id: 'custom-1', text: 'Custom cue', answer: 1969 })
+    first.setlists.push({ id: 'sl-night', name: 'Friday night', questionIds: ['custom-1'] })
+    const other = await buildHostLibraryPayload('ROOM2')
+    expect(other.setlists.map((setlist) => setlist.name)).toContain('Friday night')
+    expect(other.questions.some((question) => question.id === 'custom-1' && question.answer === 1969)).toBe(true)
+    const again = await buildHostLibraryPayload('ROOM1')
+    expect(again.setlists.map((setlist) => setlist.name)).toContain('Friday night')
+    venueLibraries.clear()
+    venuePlayhead.clear()
+  })
+})
+
 describe('next question in the list', () => {
   it('offers the starter list when the host has not picked a rundown', async () => {
     venuePlayhead.delete('HOST01')

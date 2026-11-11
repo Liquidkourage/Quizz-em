@@ -9,6 +9,7 @@ import type { Question, Setlist } from '@qhe/core'
 import { dataFile } from './data-dir'
 import {
   loadVenueLibrariesFromJsonDisk,
+  sharePlaylistsAcrossRooms,
   type VenueLibraryData,
 } from './venue-library-persist'
 
@@ -353,8 +354,7 @@ export async function persistVenueLibraries(map: Map<string, VenueLibraryData>):
 }
 
 export async function loadVenueLibraries(): Promise<Map<string, VenueLibraryData>> {
-  if (resolvePostgresUrl()) {
-    return loadPostgres()
-  }
-  return loadSqliteSync()
+  const loaded = resolvePostgresUrl() ? await loadPostgres() : loadSqliteSync()
+  sharePlaylistsAcrossRooms(loaded)
+  return loaded
 }

@@ -13,7 +13,7 @@ describe('player answer reveal card', () => {
       }),
     )
     expect(html).toContain('The answer is')
-    expect(html).toContain('Correct answer')
+    expect(html).not.toContain('Correct answer')
     expect(html).toContain('How many feet are in a mile?')
     expect(html).toContain('5,280')
     expect(html).toContain(`animation-duration:${ANSWER_REVEAL_BEFORE_WINNERS_MS}ms`)

@@ -54,14 +54,11 @@ export default function PlayerAnswerReveal({ question, answer }: OpenReveal) {
       className="player-answer-reveal"
       role="dialog"
       aria-modal="true"
-      aria-label={`Correct answer ${formatTriviaNumber(answer)}`}
+      aria-label={`The answer is ${formatTriviaNumber(answer)}`}
     >
       <div className="player-answer-reveal-card">
         <div className="player-answer-reveal-head">
-          <div>
-            <p className="player-answer-reveal-kicker">The answer is</p>
-            <h2 className="player-answer-reveal-title">Correct answer</h2>
-          </div>
+          <h2 className="player-answer-reveal-title">The answer is</h2>
           <span className="player-answer-reveal-clock" aria-hidden>
             <svg viewBox="0 0 36 36">
               <circle className="player-answer-reveal-clock-track" cx="18" cy="18" r="15" />

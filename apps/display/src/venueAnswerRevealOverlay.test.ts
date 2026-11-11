@@ -21,6 +21,8 @@ describe('answer reveal popup', () => {
       }),
     )
 
+    expect(html).toContain('The answer is')
+    expect(html).not.toContain('Correct answer')
     expect(html).toContain('How many feet are in a mile?')
     expect(html).toContain('display-fit-question-host-reveal')
     expect(html).not.toContain('data-showdown-winner-cards')

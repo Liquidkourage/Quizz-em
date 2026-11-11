@@ -23,7 +23,7 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
       className="fixed inset-0 z-[205] flex items-center justify-center overflow-hidden bg-black/72 px-6 py-10 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
-      aria-label={`Correct answer ${formatTriviaNumber(answer)}`}
+      aria-label={`The answer is ${formatTriviaNumber(answer)}`}
       initial={false}
       animate={{ opacity: 1 }}
       exit={reducedMotion ? undefined : { opacity: 0 }}
@@ -43,14 +43,9 @@ export default function VenueAnswerRevealOverlay({ payload }: VenueAnswerRevealO
         transition={{ duration: reducedMotion ? 0 : 0.42, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="mb-4 flex shrink-0 items-center justify-between gap-4 border-b border-amber-500/30 pb-3 sm:mb-5 sm:pb-4">
-          <div className="min-w-0">
-            <p className="font-orbitron text-[clamp(0.75rem,1.5vw,1rem)] font-bold uppercase tracking-[0.28em] text-amber-300/90">
-              The answer is
-            </p>
-            <h2 className="mt-1 font-orbitron text-[clamp(1.35rem,2.8vw,2rem)] font-black uppercase leading-none tracking-[0.06em] text-amber-50/90">
-              Correct answer
-            </h2>
-          </div>
+          <h2 className="min-w-0 font-orbitron text-[clamp(1.35rem,2.8vw,2rem)] font-black uppercase leading-none tracking-[0.06em] text-amber-50/90">
+            The answer is
+          </h2>
           <div className="flex shrink-0 items-center gap-3">
             <SeatingChartPageClock
               durationMs={VENUE_ANSWER_REVEAL_DWELL_MS}

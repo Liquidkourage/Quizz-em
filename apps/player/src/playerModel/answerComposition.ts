@@ -1,4 +1,4 @@
-import type { AnswerCardPick, GameState, NumericCard, PlayerState } from '@qhe/core'
+import { nearlyEqualNumbers, type AnswerCardPick, type GameState, type NumericCard, type PlayerState } from '@qhe/core'
 
 export const ANSWER_CARD_COUNT = 5
 
@@ -131,6 +131,46 @@ export function toggleDecimal(composed: ComposedAnswer): ComposedAnswer {
     display: composed.display + '.',
     value: parseFloat(composed.display + '.') || 0,
   }
+}
+
+function digitAt(cards: readonly NumericCard[], index: number): number | null {
+  if (!Number.isInteger(index)) return null
+  const digit = cards[index]?.digit
+  return typeof digit === 'number' ? digit : null
+}
+
+/** Put a stored guess back on the keypad, including where the decimal sat. */
+export function draftFromLockedGuess(args: {
+  picks: readonly AnswerCardPick[]
+  answer: number
+  hole: readonly NumericCard[]
+  community: readonly NumericCard[]
+}): { selected: SelectedCardRef[]; composed: ComposedAnswer } | null {
+  if (args.picks.length !== ANSWER_CARD_COUNT || !Number.isFinite(args.answer)) return null
+  const selected: SelectedCardRef[] = []
+  const digits: number[] = []
+  for (const pick of args.picks) {
+    const fromHole = pick.source === 'hole'
+    const digit = digitAt(fromHole ? args.hole : args.community, pick.index)
+    if (digit == null) return null
+    selected.push({ type: fromHole ? 'hand' : 'community', index: pick.index })
+    digits.push(digit)
+  }
+  return { selected, composed: composeDigitsToAnswer(digits, args.answer) }
+}
+
+function composeDigitsToAnswer(digits: number[], answer: number): ComposedAnswer {
+  const plain = digits.join('')
+  const candidates: ComposedAnswer[] = [{ digits: [...digits], display: plain, value: Number(plain) }]
+  for (let k = 1; k < digits.length; k++) {
+    const display = `${digits.slice(0, k).join('')}.${digits.slice(k).join('')}`
+    candidates.push({
+      digits: [...digits.slice(0, k), 'decimal', ...digits.slice(k)],
+      display,
+      value: Number(display),
+    })
+  }
+  return candidates.find((candidate) => nearlyEqualNumbers(candidate.value, answer)) ?? candidates[0]!
 }
 
 export function selectionToComposition(selected: SelectedCardRef[]): AnswerCardPick[] {

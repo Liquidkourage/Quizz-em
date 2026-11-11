@@ -680,9 +680,13 @@ export function submitAnswer(
   composition?: Array<{ source: 'hole' | 'community'; index: number }>,
   callback?: (ack: ServerAck) => void
 ) {
-  if (!socket || !activePlayerId) return
   const cb = typeof composition === 'function' ? composition : callback
   const picks = typeof composition === 'function' ? undefined : composition
+  if (!socket || !activePlayerId) {
+    cb?.({ ok: false, message: 'Not connected.' })
+    return
+  }
+  if (cb) socket.once('ack', cb)
   socket.emit('action', {
     type: 'submitAnswer',
     payload: {
@@ -691,9 +695,6 @@ export function submitAnswer(
       ...(picks != null && picks.length === 5 ? { composition: picks } : {}),
     },
   })
-  if (callback) {
-    socket.once('ack', callback)
-  }
 }
 
 export function disconnect() {

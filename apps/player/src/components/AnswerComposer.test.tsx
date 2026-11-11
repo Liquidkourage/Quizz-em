@@ -111,6 +111,37 @@ describe('answer composer cards', () => {
     expect(html).toContain('Clear')
     expect(html).toContain('Submit answer')
   })
+
+  it('lets Submit be tapped before five cards are chosen', () => {
+    const gs = answering()
+    gs.players[0]!.hand = [{ digit: 8 }, { digit: 9 }] as NumericCard[]
+    const html = renderToStaticMarkup(
+      createElement(AnswerComposer, {
+        gameState: gs,
+        currentPlayer: gs.players[0]!,
+        composed: EMPTY_COMPOSED_ANSWER,
+        selectedCards: [],
+        remainingSec: 30,
+        onSelectCard: () => {},
+        onToggleDecimal: () => {},
+        onBackspace: () => {},
+        onClear: () => {},
+        onSubmit: () => {},
+      }),
+    )
+    const at = html.indexOf('Submit answer')
+    const button = html.slice(html.lastIndexOf('<button', at), html.indexOf('</button>', at))
+    expect(button).not.toMatch(/[\s]disabled(?:=|\s|>)/)
+    expect(button).toContain('aria-disabled="true"')
+  })
+
+  it('places a submit message above the answer screen', () => {
+    const zIndex = (rule: string) => {
+      const block = css.slice(css.indexOf(rule), css.indexOf(rule) + 500)
+      return Number(block.match(/z-index:\s*(\d+)/)?.[1] ?? 0)
+    }
+    expect(zIndex('.player-game-toast {')).toBeGreaterThan(zIndex('.player-game-modal-overlay {'))
+  })
 })
 
 describe('answer composer clock', () => {

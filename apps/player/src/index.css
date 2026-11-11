@@ -3368,7 +3368,8 @@
   box-shadow: inset 0 1px 0 rgb(191 219 254 / 0.25);
 }
 
-.player-game-btn:disabled {
+.player-game-btn:disabled,
+.player-game-btn[aria-disabled='true'] {
   cursor: not-allowed;
   opacity: 0.42;
 }
@@ -4675,7 +4676,7 @@
 
 .player-game-toast {
   position: fixed;
-  z-index: 50;
+  z-index: 110;
   max-width: min(92vw, 22rem);
   padding: 0.75rem 0.9rem;
   border-radius: 0.45rem;

@@ -26,7 +26,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
-import { LOBBY_TABLE_ID, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, mayLockGuess, type PlayerPhasePreviewId } from '@qhe/core'
+import { LOBBY_TABLE_ID, answerCompositionForPlayer, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, mayLockGuess, type PlayerPhasePreviewId } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
   playerJoinBoot,
@@ -46,8 +46,10 @@ import {
 import { useHandSummary } from './hooks/useHandSummary'
 import { useTableResults } from './hooks/useTableResults'
 import {
+  ANSWER_CARD_COUNT,
   EMPTY_COMPOSED_ANSWER,
   backspaceFromAnswer,
+  draftFromLockedGuess,
   selectionToComposition,
   toggleCardInSelection,
   toggleDecimal,
@@ -508,7 +510,7 @@ function PlayerApp() {
       showToast("We'll resume in a moment.", 2500)
       return
     }
-    if (!gameState || lockedAnswerDisplay) return
+    if (!gameState) return
     const err = validateAnswerSubmit(gameState.phase, selectedCards, composedAnswer, {
       preload: mayLockGuess(gameState, currentPlayer),
     })
@@ -517,14 +519,42 @@ function PlayerApp() {
       return
     }
     const display = composedAnswer.display
+    setEditingAnswer(false)
+    optimisticGuessEpoch.current = answerStateEpoch.current
+    setSubmittedAnswerDisplay(display)
     submitAnswer(composedAnswer.value, selectionToComposition(selectedCards), (ack) => {
       if (ack.ok) {
-        setEditingAnswer(false)
-        optimisticGuessEpoch.current = answerStateEpoch.current
-        setSubmittedAnswerDisplay(display)
         showToast(`Answer submitted: ${display}`)
-      } else showToast(`Error: ${ack.message}`, 5000)
+        return
+      }
+      setEditingAnswer(true)
+      setSubmittedAnswerDisplay(null)
+      showToast(`Error: ${ack.message}`, 5000)
     })
+  }
+
+  const handleEditSubmitted = () => {
+    const showing = (lockedAnswerDisplay ?? '').replace(/,/g, '')
+    const keypadMatches =
+      selectedCards.length === ANSWER_CARD_COUNT && composedAnswer.display.replace(/,/g, '') === showing && showing.length > 0
+    if (!keypadMatches && gameState && currentPlayer) {
+      const picks = answerCompositionForPlayer(currentPlayer, gameState.round.communityCards)
+      const draft =
+        picks == null || typeof currentPlayer.submittedAnswer !== 'number'
+          ? null
+          : draftFromLockedGuess({
+              picks,
+              answer: currentPlayer.submittedAnswer,
+              hole: currentPlayer.hand,
+              community: gameState.round.communityCards,
+            })
+      if (draft) {
+        setSelectedCards(draft.selected)
+        setComposedAnswer(draft.composed)
+      }
+    }
+    setEditingAnswer(true)
+    setSubmittedAnswerDisplay(null)
   }
 
   if (phasePreview) return <PlayerPhasePreview scene={phasePreview} />
@@ -888,10 +918,7 @@ function PlayerApp() {
               setSelectedCards([])
             }}
             onSubmit={handleSubmitAnswer}
-            onEditSubmitted={() => {
-              setEditingAnswer(true)
-              setSubmittedAnswerDisplay(null)
-            }}
+            onEditSubmitted={handleEditSubmitted}
             preload={preloadAnswer}
           />
         ) : null}

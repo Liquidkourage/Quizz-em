@@ -3,6 +3,7 @@ import { createEmptyGame, LOBBY_TABLE_ID } from '@qhe/core'
 import {
   ANSWER_CARD_COUNT,
   backspaceFromAnswer,
+  draftFromLockedGuess,
   toggleCardInSelection,
   validateAnswerSubmit,
 } from './answerComposition'
@@ -75,6 +76,24 @@ describe('answerComposition', () => {
     const afterBs = backspaceFromAnswer({ selected, composed })
     expect(afterBs.selected).toHaveLength(4)
     expect(afterBs.composed.display).toBe('3712')
+  })
+
+  it('reopens a locked guess, decimal included, so a revision can be sent', () => {
+    const draft = draftFromLockedGuess({
+      picks: [
+        { source: 'hole', index: 0 },
+        { source: 'community', index: 1 },
+        { source: 'hole', index: 1 },
+        { source: 'community', index: 0 },
+        { source: 'community', index: 2 },
+      ],
+      answer: 12.345,
+      hole: [{ digit: 1 }, { digit: 3 }],
+      community: [{ digit: 4 }, { digit: 2 }, { digit: 5 }, { digit: 9 }, { digit: 8 }],
+    })
+    expect(draft?.composed.display).toBe('12.345')
+    expect(draft?.selected).toHaveLength(ANSWER_CARD_COUNT)
+    expect(validateAnswerSubmit('answering', draft!.selected, draft!.composed)).toBeNull()
   })
 })
 

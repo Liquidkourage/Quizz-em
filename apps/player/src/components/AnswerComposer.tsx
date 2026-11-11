@@ -289,7 +289,7 @@ function ComposerBuild(props: AnswerComposerProps) {
         <PlayerGameButton variant="fold" size="large" onClick={onClear}>
           Clear
         </PlayerGameButton>
-        <PlayerGameButton variant="gold" size="large" onClick={onSubmit} disabled={!ready}>
+        <PlayerGameButton variant="gold" size="large" onClick={onSubmit} aria-disabled={!ready}>
           {preload ? 'Lock in answer' : 'Submit answer'}
         </PlayerGameButton>
       </div>

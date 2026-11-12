@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { ChipText } from '@qhe/ui'
+import { ChipText, StadiumTableSeats, type StadiumTableSeat } from '@qhe/ui'
 import {
   introductionLine,
   introductionOrder,
   tableIntroduction,
-  type IntroPlayer,
+  type IntroPlate,
 } from '../playerModel/tableIntroduction'
 
 const FIRST_STEP_MS = 600
@@ -31,6 +31,27 @@ function useIntroCount(total: number, override: number | undefined): number {
   if (override != null) return override
   if (reduced) return total
   return count
+}
+
+function introSeat(plate: IntroPlate): StadiumTableSeat {
+  return {
+    index: plate.seat - 1,
+    label: <span className="player-felt-upright">{plate.seat}</span>,
+    labelClassName: 'font-mono text-sm tabular-nums font-bold',
+    state: 'default',
+    'aria-label': `${plate.name}, seat ${plate.seat}${plate.isYou ? ', you' : ''}`,
+    nameTag: (
+      <span className="player-felt-upright">
+        <span className={`player-seat-name font-bold ${plate.isYou ? 'text-amber-300' : 'text-emerald-200'}`}>
+          {plate.name}
+          {plate.isYou ? <span className="player-hud-you-badge">You</span> : null}
+        </span>
+        <span className="player-seat-stack font-bold tabular-nums text-amber-300">
+          <ChipText text={`$${plate.stack.toLocaleString()}`} />
+        </span>
+      </span>
+    ),
+  }
 }
 
 /** The table, before the deal: the oval, then each player, and you last. */
@@ -67,36 +88,25 @@ export function TableIntroduction({
           <div className="player-felt-stack">
             <div className="player-game-felt-panel player-game-felt-panel--fill">
               <div className="player-felt-rotate-slot">
-                <div className="player-intro-fit">
-                  <div className="player-intro-group">
-                    <div className="player-intro-stage player-game-felt player-game-felt--fill">
-                      <div className="player-intro-felt">
-                        <p className="player-intro-table">Table {tableId}</p>
-                        <p className="player-intro-blinds">
-                          <ChipText text={`$${smallBlind}`} />
-                          <span className="player-intro-blinds-slash" aria-hidden>
-                            /
-                          </span>
-                          <ChipText text={`$${bigBlind}`} />
-                        </p>
-                      </div>
-                      {visible.map((plate) => (
-                        <div
-                          key={plate.id}
-                          className={`player-intro-plate${plate.isYou ? ' player-intro-plate--you' : ''} is-in`}
-                          style={{ left: `${plate.leftPct}%`, top: `${plate.topPct}%` }}
-                        >
-                          <p className="player-intro-seat">Seat {plate.seat}</p>
-                          <p className="player-intro-name">{plate.name}</p>
-                          {plate.isYou ? <p className="player-intro-you">You</p> : null}
-                          <p className="player-intro-stack">
-                            <ChipText text={`$${plate.stack}`} />
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <StadiumTableSeats
+                  feltLayout="player"
+                  seatCount={8}
+                  hideEmptySeats
+                  seats={visible.map(introSeat)}
+                  aspectClassName="player-game-felt player-game-felt--fill aspect-[8/5] w-full"
+                  centerContent={
+                    <>
+                      <p className="player-intro-table">Table {tableId}</p>
+                      <p className="player-intro-blinds">
+                        <ChipText text={`$${smallBlind}`} />
+                        <span className="player-intro-blinds-slash" aria-hidden>
+                          /
+                        </span>
+                        <ChipText text={`$${bigBlind}`} />
+                      </p>
+                    </>
+                  }
+                />
               </div>
             </div>
           </div>

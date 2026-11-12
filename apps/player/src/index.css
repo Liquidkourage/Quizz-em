@@ -2309,13 +2309,18 @@
   flex: none;
 }
 
-/* Pre-deal table needs a real height. The hand felt box supplies it, so the oval does not grow on its own. */
+/* Pre-deal table needs the hand's column. A centered intro was shrinking the oval to the words in the middle. */
 .player-game-layout--live-fit .player-intro {
-  flex: 0 0 auto;
+  align-items: stretch;
+  flex: 1 1 auto;
   width: 100%;
-  height: auto;
   min-height: 0;
   justify-content: flex-start;
+  overflow: visible;
+}
+
+.player-game-layout--live-fit .player-intro > .player-seated-table {
+  width: 100%;
 }
 
 .player-game-layout--live-fit .player-intro-fit {
@@ -2954,6 +2959,15 @@
  * that is left, so the names and Hold to peek stay with the table.
  */
 @media (max-height: 520px) and (min-width: 28rem) {
+  /* The seating introduction fills the same column as the hand. */
+  .player-game-layout--live-fit.player-game-layout--with-dock .player-intro {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
   .player-game-layout--live-fit.player-game-layout--with-dock {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(12.5rem, 16.5rem);

@@ -41,19 +41,19 @@ describe('table introduction', () => {
       left: plate.leftPct,
       top: plate.topPct,
     }))).toEqual([
-      { name: 'Devon B.', seat: 1, left: 50, top: 14 },
-      { name: 'test A.', seat: 2, left: 81.2, top: 32 },
-      { name: 'Carla B.', seat: 3, left: 81.2, top: 68 },
-      { name: 'Alice C.', seat: 5, left: 50, top: 86 },
-      { name: 'Iris A.', seat: 6, left: 18.8, top: 68 },
-      { name: 'Sam', seat: 7, left: 18.8, top: 32 },
+      { name: 'Devon B.', seat: 1, left: 50, top: 2 },
+      { name: 'test A.', seat: 2, left: 91.6, top: 26 },
+      { name: 'Carla B.', seat: 3, left: 91.6, top: 74 },
+      { name: 'Alice C.', seat: 5, left: 50, top: 98 },
+      { name: 'Iris A.', seat: 6, left: 8.4, top: 74 },
+      { name: 'Sam', seat: 7, left: 8.4, top: 26 },
     ])
 
     const fromTheSide = tableIntroduction(table, 'b')
     const you = fromTheSide.find((plate) => plate.isYou)!
     const next = fromTheSide.find((plate) => plate.seat === 3)!
-    expect(you).toMatchObject({ name: 'test A.', leftPct: 50, topPct: 86 })
-    expect(next).toMatchObject({ name: 'Carla B.', leftPct: 18.8, topPct: 68 })
+    expect(you).toMatchObject({ name: 'test A.', leftPct: 50, topPct: 98 })
+    expect(next).toMatchObject({ name: 'Carla B.', leftPct: 8.4, topPct: 74 })
   })
 
   it('introduces the other seats in order when the plates arrive shuffled', () => {

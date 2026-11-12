@@ -1612,6 +1612,7 @@
 /* A 568px-tall phone spends the question and the name gutter on an empty slot. */
 @media (max-height: 600px) and (orientation: portrait) {
   .player-game-layout--live-fit .player-sticky-question {
+    min-height: 2.8rem;
     max-height: 2.8rem;
   }
 
@@ -1637,6 +1638,7 @@
 /* An upright phone keeps the question to two lines. A longer question scrolls there. */
 @media (orientation: portrait) and (max-width: 500px) {
   .player-game-layout--live-fit .player-sticky-question {
+    min-height: 2.8rem;
     max-height: 2.8rem;
     overflow-y: auto;
   }
@@ -1652,6 +1654,7 @@
 /* The whole question on a narrow upright phone during a turn. Two lines fit, and the call line stays off the names. */
 @media (orientation: portrait) and (max-width: 360px) {
   .player-game-layout--live-fit.player-game-layout--with-dock .player-sticky-question {
+    min-height: 4.6rem;
     max-height: 4.6rem;
     padding: 0.2rem 0.45rem;
     overflow: visible;
@@ -1670,6 +1673,7 @@
 /* A tall portrait turn keeps the question in the same box it uses while betting. */
 @media (orientation: portrait) and (min-height: 640px) {
   .player-game-layout--live-fit.player-game-layout--with-dock .player-sticky-question {
+    min-height: min(28vh, 8.5rem);
     max-height: min(28vh, 8.5rem);
     overflow: hidden;
   }
@@ -1734,6 +1738,7 @@
   }
 
   .player-game-layout--live-fit .player-sticky-question {
+    min-height: 3.4rem;
     max-height: 3.4rem;
     padding: 0.2rem 0.5rem;
     overflow-y: auto;
@@ -1906,6 +1911,7 @@
   }
 
   .player-game-layout--live-fit .player-sticky-question {
+    min-height: 3.4rem;
     max-height: 3.4rem;
     padding: 0.15rem 0.5rem;
     overflow-y: auto;
@@ -2261,7 +2267,7 @@
   overflow: hidden;
 }
 
-/* Pre-deal table keeps its shape. A short phone shrinks the upright table instead of flattening the seats onto the felt. */
+/* Pre-deal table keeps its shape. It uses the hand felt, so an upright phone stays landscape. */
 .player-intro-fit {
   container-name: intro;
   container-type: size;
@@ -2282,20 +2288,19 @@
   max-height: 100%;
 }
 
-.player-intro-stage {
+.player-intro-stage.player-game-felt--fill {
   position: relative;
   container-type: size;
-  aspect-ratio: 4 / 5;
-  width: min(100cqi, calc((100cqh - 3.4rem) * 0.8), 34rem);
   flex: none;
 }
 
-/* Pre-deal table needs a real height. A size container with no height draws a 0×0 oval. */
+/* Pre-deal table needs a real height. The hand felt box supplies it, so the oval does not grow on its own. */
 .player-game-layout--live-fit .player-intro {
   flex: 0 0 auto;
   width: 100%;
-  height: min(70dvh, 36rem);
-  min-height: min(70dvh, 36rem);
+  height: auto;
+  min-height: 0;
+  justify-content: flex-start;
 }
 
 .player-game-layout--live-fit .player-intro-fit {
@@ -2304,10 +2309,10 @@
 
 .player-intro-felt {
   position: absolute;
-  left: 32%;
-  right: 32%;
-  top: 30%;
-  bottom: 34%;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2419,13 +2424,8 @@
   color: rgb(253 224 71);
 }
 
-/* A sideways phone uses the width. Names stay readable, and the upright phone keeps the taller table. */
+/* A sideways phone uses the width. The oval stays the hand's landscape shape. */
 @container intro (min-aspect-ratio: 3/2) {
-  .player-intro-stage {
-    aspect-ratio: 3 / 2;
-    width: min(100cqi, calc((100cqh - 3.4rem) * 1.5), 40rem);
-  }
-
   .player-intro-name,
   .player-intro-plate--you .player-intro-name {
     font-size: 0.95rem;
@@ -2433,13 +2433,6 @@
 }
 
 @container (max-height: 16rem) {
-  .player-intro-felt {
-    left: 33%;
-    right: 33%;
-    top: 31%;
-    bottom: 35%;
-  }
-
   .player-intro-plate {
     padding: 0.1rem 0.14rem 0.12rem;
   }
@@ -2478,7 +2471,7 @@
 
 @media (orientation: landscape) and (max-height: 520px) {
   .player-game-layout--live-fit .player-intro {
-    height: 100%;
+    height: auto;
     min-height: 0;
   }
 }
@@ -3012,6 +3005,7 @@
 
   .player-game-layout--live-fit.player-game-layout--with-dock .player-sticky-question {
     flex: 0 0 auto;
+    min-height: 2.6rem;
     max-height: 2.6rem;
     overflow-y: auto;
   }

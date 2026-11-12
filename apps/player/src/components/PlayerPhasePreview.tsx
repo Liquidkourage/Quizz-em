@@ -217,7 +217,8 @@ function TablePreview({ scene }: { scene: PlayerPhasePreviewId }) {
   const youIndex = game.players.findIndex((player) => player.id === PREVIEW_YOU_ID)
   const you = youIndex >= 0 ? game.players[youIndex] : undefined
   const felt = FELT_SCENES.has(scene)
-  const layoutClass = `player-game-layout player-game-layout--live-fit${felt ? ' player-game-layout--with-dock' : ''}`
+  const feltLocked = felt || scene === 'table'
+  const layoutClass = `player-game-layout player-game-layout--live-fit${feltLocked ? ' player-game-layout--with-dock' : ''}`
   const turnGame = playerPhaseGame('turn')
   const turnYou = turnGame?.players.findIndex((player) => player.id === PREVIEW_YOU_ID) ?? -1
   return (
@@ -226,9 +227,9 @@ function TablePreview({ scene }: { scene: PlayerPhasePreviewId }) {
         <PlayerGameShell>
           <PlayerTableHeader compactLive connectionStatus="connected" onQuit={noop} />
           <TableChrome scene={scene} game={game} youIndex={youIndex} felt={felt} />
-          {felt ? <PlayerHoleSlot player={you} phase={game.phase} /> : null}
+          {feltLocked ? <PlayerHoleSlot player={you} phase={game.phase} reserve /> : null}
         </PlayerGameShell>
-        {felt && scene !== 'turn' && turnGame && turnYou >= 0 ? (
+        {feltLocked && scene !== 'turn' && turnGame && turnYou >= 0 ? (
           <TurnDock game={turnGame} youIndex={turnYou} reserve />
         ) : null}
         {scene === 'turn' ? <TurnDock game={game} youIndex={youIndex} /> : null}

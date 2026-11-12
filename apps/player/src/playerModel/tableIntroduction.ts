@@ -22,7 +22,7 @@ export type IntroPlate = {
 function platePoint(stepsFromYou: number, count: number): { leftPct: number; topPct: number } {
   const seats = Math.max(1, count)
   const angle = Math.PI / 2 + (stepsFromYou / seats) * Math.PI * 2
-  const reach = 36
+  const reach = 48
   return {
     leftPct: Math.round((50 + Math.cos(angle) * reach) * 10) / 10,
     topPct: Math.round((50 + Math.sin(angle) * reach) * 10) / 10,

@@ -48,14 +48,15 @@ describe('TableIntroduction', () => {
     expect(done).toContain('3 players. The host will deal when ready.')
   })
 
-  it('keeps the pre-deal table upright when the phone is short', () => {
+  it('uses the same landscape oval as the hand, including on an upright phone', () => {
     expect(markup(3)).toContain('player-intro-fit')
-    expect(markup(3)).toContain('player-intro-group')
+    expect(markup(3)).toContain('player-game-felt--fill')
+    expect(markup(3)).toContain('player-sticky-question')
     const start = css.indexOf('Pre-deal table keeps its shape')
     const block = start < 0 ? '' : css.slice(start, start + 900)
-    expect(block).toContain('container-type: size')
-    expect(block).toContain('aspect-ratio: 4 / 5')
-    expect(block).toContain('min(100cqi, calc((100cqh - 3.4rem) * 0.8), 34rem)')
+    expect(block).toContain('player-game-felt--fill')
+    expect(block).not.toContain('aspect-ratio: 4 / 5')
+    expect(block).not.toContain('min(100cqi, calc((100cqh - 3.4rem) * 0.8), 34rem)')
   })
 
   it('shrinks the seat cards with the table so they stay off the felt', () => {
@@ -71,9 +72,9 @@ describe('TableIntroduction', () => {
     const start = css.indexOf('Pre-deal table needs a real height')
     const block = start < 0 ? '' : css.slice(start, start + 500)
     expect(block).toContain('.player-game-layout--live-fit .player-intro')
-    expect(block).toContain('height: min(70dvh, 36rem)')
+    expect(block).toContain('height: auto')
+    expect(block).not.toContain('70dvh')
     expect(block).toContain('.player-intro-fit')
-    expect(block).toContain('height: 100%')
   })
 
   it('keeps pre-deal names readable when a sideways phone is short', () => {
@@ -84,14 +85,14 @@ describe('TableIntroduction', () => {
     expect(block).toContain('overflow: visible')
     expect(block).toContain('.player-intro-stack')
     expect(block).toContain('font-size: 0.85rem')
-    expect(block).toContain('height: 100%')
+    expect(block).toContain('height: auto')
   })
 
   it('widens the pre-deal table when the phone is sideways', () => {
     const start = css.indexOf('A sideways phone uses the width')
     const block = start < 0 ? '' : css.slice(start, start + 650)
     expect(block).toContain('min-aspect-ratio: 3/2')
-    expect(block).toContain('aspect-ratio: 3 / 2')
+    expect(block).not.toContain('aspect-ratio: 3 / 2')
     expect(block).toContain('0.95rem')
   })
 })

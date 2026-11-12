@@ -672,9 +672,17 @@ function PlayerApp() {
     inChipContest(currentPlayer) &&
     !currentPlayer.hasFolded
 
-  const handHoldsBetArea =
-    seatedAtTable &&
-    (gameState.phase === 'question' || gameState.phase === 'betting' || gameState.phase === 'answering')
+  const showSeatedLobbyWait = seatedAtTable && gameState.phase === 'lobby'
+  /** Latched results mean a hand already finished; otherwise this is seat → start. */
+  const waitingForFirstStart = showSeatedLobbyWait && !handSummary && !tableResults
+  const showLastHand = Boolean(handSummary) && gameState.phase === 'lobby'
+  const showTableResults =
+    Boolean(tableResults) &&
+    (gameState.phase === 'lobby' ||
+      gameState.phase === 'reveal' ||
+      gameState.phase === 'showdown' ||
+      gameState.phase === 'payout')
+  const feltOnScreen = seatedAtTable && !showTableResults && !showLastHand
 
   const questionText = gameState.round.question?.text ?? ''
   const showStickyQuestion =
@@ -701,7 +709,7 @@ function PlayerApp() {
     'player-game-layout',
     // Join layout padding/stack only for non-seated flows — seated uses live-fit alone.
     liveFit ? 'player-game-layout--live-fit' : 'player-join-layout',
-    handHoldsBetArea ? 'player-game-layout--with-dock' : '',
+    feltOnScreen ? 'player-game-layout--with-dock' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -718,17 +726,6 @@ function PlayerApp() {
       playerOnline={gameState.playerOnline}
     />
   )
-
-  const showSeatedLobbyWait = seatedAtTable && gameState.phase === 'lobby'
-  /** Latched results mean a hand already finished; otherwise this is seat → start. */
-  const waitingForFirstStart = showSeatedLobbyWait && !handSummary && !tableResults
-  const showLastHand = Boolean(handSummary) && gameState.phase === 'lobby'
-  const showTableResults =
-    Boolean(tableResults) &&
-    (gameState.phase === 'lobby' ||
-      gameState.phase === 'reveal' ||
-      gameState.phase === 'showdown' ||
-      gameState.phase === 'payout')
 
   const blockIfHeld = () => {
     if (!venueBrief?.venueHeld) return false
@@ -779,7 +776,7 @@ function PlayerApp() {
     ) : null
 
   const reservedBetArea =
-    handHoldsBetArea && !needsMobileBetDock && bettingCtx && currentPlayer ? (
+    feltOnScreen && !needsMobileBetDock && bettingCtx && currentPlayer ? (
       <BettingMobileDock
         reserve
         currentPlayer={currentPlayer}
@@ -858,7 +855,15 @@ function PlayerApp() {
               />
             ) : null}
 
-            {showStickyQuestion ? (
+            {waitingForFirstStart ? (
+              <TableIntroduction
+                players={gameState.players}
+                heroId={currentPlayer?.id}
+                tableId={gameState.tableId}
+                smallBlind={gameState.smallBlind}
+                bigBlind={gameState.bigBlind}
+              />
+            ) : showStickyQuestion ? (
               <StickyQuestionBar
                 questionText={questionText}
                 pot={isPointsOnly ? undefined : displayedMainPot(gameState)}
@@ -866,6 +871,8 @@ function PlayerApp() {
                 pointsOnly={isPointsOnly}
                 answerPoints={currentPlayer?.answerPoints ?? 0}
               />
+            ) : feltOnScreen ? (
+              <div className="player-sticky-question" aria-hidden />
             ) : null}
 
             {showPointsOnlyBanner ? (
@@ -881,16 +888,6 @@ function PlayerApp() {
               <p className="player-game-banner player-game-banner--compact">
                 {`Table ${gameState.tableId} · waiting for the next question…`}
               </p>
-            ) : null}
-
-            {waitingForFirstStart ? (
-              <TableIntroduction
-                players={gameState.players}
-                heroId={currentPlayer?.id}
-                tableId={gameState.tableId}
-                smallBlind={gameState.smallBlind}
-                bigBlind={gameState.bigBlind}
-              />
             ) : null}
 
             {showLastHand || showTableResults ? (
@@ -922,8 +919,8 @@ function PlayerApp() {
 
             {!seatedAtTable ? feltView : null}
           </div>
-          {seatedAtTable && !showTableResults && !showLastHand ? (
-            <PlayerHoleSlot player={currentPlayer} phase={gameState.phase} />
+          {feltOnScreen ? (
+            <PlayerHoleSlot player={currentPlayer} phase={gameState.phase} reserve />
           ) : null}
           {liveFit && disconnected ? (
             <PlayerReconnectBanner

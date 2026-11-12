@@ -16,10 +16,12 @@ function LiveWagerFacts({
   currentPlayer,
   ctx,
   banner,
+  showGrid,
 }: {
   currentPlayer: PlayerState
   ctx: BettingContext
   banner: string
+  showGrid: boolean
 }) {
   const minRaiseTo = ctx.toCall + ctx.minRaise
   const verb = ctx.toCall === 0 || ctx.isOpeningBet ? 'Bet' : 'Raise'
@@ -38,7 +40,7 @@ function LiveWagerFacts({
           <ChipText text={`$${currentPlayer.bankroll.toLocaleString()}`} />
         </p>
       </div>
-      {ctx.isBettingPhase ? (
+      {showGrid ? (
         <div className="player-game-stat-grid">
           <div>
             Round <strong>{ctx.isBettingOpen ? 'open' : 'closed'}</strong>
@@ -115,6 +117,8 @@ type BettingMobileDockProps = {
   onRaise: () => void
   onFold: () => void
   onAllIn: () => void
+  /** Keep the your-turn box on screen without showing the buttons. */
+  reserve?: boolean
 }
 
 export default function BettingMobileDock(props: BettingMobileDockProps) {
@@ -131,21 +135,24 @@ export default function BettingMobileDock(props: BettingMobileDockProps) {
     onRaise,
     onFold,
     onAllIn,
+    reserve = false,
   } = props
 
-  const live = ctx.isMyTurn
+  const live = reserve || ctx.isMyTurn
 
   return (
     <div
       className={`player-game-dock player-game-dock--inflow ${
-        live ? 'player-game-dock--your-turn' : 'player-game-dock--waiting'
-      }`}
+        reserve ? 'player-bet-reserve ' : ''
+      }${live ? 'player-game-dock--your-turn' : 'player-game-dock--waiting'}`}
+      aria-hidden={reserve || undefined}
     >
       <div className="player-game-dock-inner">
         <LiveWagerFacts
           currentPlayer={currentPlayer}
           ctx={ctx}
           banner={live ? 'Your turn' : 'Waiting'}
+          showGrid={reserve || ctx.isBettingPhase}
         />
 
         {!live ? (

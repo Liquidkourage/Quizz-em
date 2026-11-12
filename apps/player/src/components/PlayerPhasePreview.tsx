@@ -75,7 +75,15 @@ function GatePreview({ scene }: { scene: PlayerPhasePreviewId }) {
   return <JoinScreen prefs={joinPrefs} onChange={noop} onJoin={noop} />
 }
 
-function TurnDock({ game, youIndex }: { game: GameState; youIndex: number }) {
+function TurnDock({
+  game,
+  youIndex,
+  reserve = false,
+}: {
+  game: GameState
+  youIndex: number
+  reserve?: boolean
+}) {
   const [raiseAmount, setRaiseAmount] = useState(20)
   const you = game.players[youIndex]
   if (!you) return null
@@ -94,6 +102,7 @@ function TurnDock({ game, youIndex }: { game: GameState; youIndex: number }) {
       onRaise={noop}
       onFold={noop}
       onAllIn={noop}
+      reserve={reserve}
     />
   )
 }
@@ -208,7 +217,9 @@ function TablePreview({ scene }: { scene: PlayerPhasePreviewId }) {
   const youIndex = game.players.findIndex((player) => player.id === PREVIEW_YOU_ID)
   const you = youIndex >= 0 ? game.players[youIndex] : undefined
   const felt = FELT_SCENES.has(scene)
-  const layoutClass = `player-game-layout player-game-layout--live-fit${scene === 'turn' ? ' player-game-layout--with-dock' : ''}`
+  const layoutClass = `player-game-layout player-game-layout--live-fit${felt ? ' player-game-layout--with-dock' : ''}`
+  const turnGame = playerPhaseGame('turn')
+  const turnYou = turnGame?.players.findIndex((player) => player.id === PREVIEW_YOU_ID) ?? -1
   return (
     <PlayerGameScreen>
       <div className={layoutClass}>
@@ -217,6 +228,9 @@ function TablePreview({ scene }: { scene: PlayerPhasePreviewId }) {
           <TableChrome scene={scene} game={game} youIndex={youIndex} felt={felt} />
           {felt ? <PlayerHoleSlot player={you} phase={game.phase} /> : null}
         </PlayerGameShell>
+        {felt && scene !== 'turn' && turnGame && turnYou >= 0 ? (
+          <TurnDock game={turnGame} youIndex={turnYou} reserve />
+        ) : null}
         {scene === 'turn' ? <TurnDock game={game} youIndex={youIndex} /> : null}
       </div>
       <GuessOverlay scene={scene} game={game} youIndex={youIndex} />

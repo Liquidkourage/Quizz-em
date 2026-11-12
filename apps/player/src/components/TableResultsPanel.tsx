@@ -30,10 +30,16 @@ const COLUMNS: { key: TableResultSortKey; label: string; numeric: boolean }[] = 
 
 function BestHandPopup({
   hand,
+  handOff,
+  guess,
+  guessOff,
   played,
   onClose,
 }: {
   hand: string
+  handOff: string
+  guess: string
+  guessOff: string
   played: boolean
   onClose: () => void
 }) {
@@ -43,6 +49,9 @@ function BestHandPopup({
       <div className="player-deal-flash-card">
         <p className="player-deal-flash-title">Best hand</p>
         <p className="player-best-hand-number">{hand}</p>
+        <p className="player-best-hand-off">{handOff} off</p>
+        <p className="player-best-hand-guess">Your guess {guess}</p>
+        <p className="player-best-hand-off">{guessOff} off</p>
         {played ? <p className="player-best-hand-played">You played it.</p> : null}
         <PlayerGameButton variant="gold" size="large" className="player-best-hand-close" onClick={onClose}>
           Close
@@ -118,6 +127,9 @@ export default function TableResultsPanel({ results }: TableResultsPanelProps) {
       {results.yourBestHand && bestHandOpen ? (
         <BestHandPopup
           hand={results.yourBestHand}
+          handOff={results.yourBestHandOff ?? '—'}
+          guess={you?.formattedAnswer ?? '—'}
+          guessOff={you?.formattedOff ?? '—'}
           played={results.yourBestHandPlayed}
           onClose={() => setBestHandOpen(false)}
         />

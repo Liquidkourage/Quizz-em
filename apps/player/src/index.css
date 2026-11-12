@@ -1777,6 +1777,12 @@
   }
 }
 
+/* Holds the your-turn betting box during the rest of the hand. The buttons stay hidden. */
+.player-game-layout--live-fit .player-bet-reserve {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .player-game-layout--live-fit .player-game-dock--inflow {
   flex: 0 0 auto;
   align-self: center;
@@ -6014,6 +6020,10 @@
 
 /* The table results use the spare portrait height. Landscape keeps the fitted rows. */
 @media (orientation: portrait) {
+  .player-table-results-best {
+    display: none;
+  }
+
   .player-game-layout--live-fit:has(.player-table-results-scroll) .player-game-shell {
     flex: 1 1 auto;
     min-height: 0;

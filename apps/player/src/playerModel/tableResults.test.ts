@@ -75,8 +75,10 @@ describe('buildTableResults', () => {
     const played = buildTableResults(gs, 'a')!
     const missed = buildTableResults(gs, 'b')!
     expect(played.yourBestHand).toBe('12,345')
+    expect(played.yourBestHandOff).toBe('5')
     expect(played.yourBestHandPlayed).toBe(true)
     expect(missed.yourBestHand).toBe('12,345')
+    expect(missed.yourBestHandOff).toBe('5')
     expect(missed.yourBestHandPlayed).toBe(false)
   })
 

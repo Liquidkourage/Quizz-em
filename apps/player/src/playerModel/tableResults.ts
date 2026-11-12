@@ -41,6 +41,8 @@ export type TableResults = {
   yourTriviaPoints: number | null
   /** Closest number your seven cards could make. Null without a locked guess or a full deal. */
   yourBestHand: string | null
+  /** How far that best hand is from the correct answer. Distances keep their commas. */
+  yourBestHandOff: string | null
   yourBestHandPlayed: boolean
   rows: TableResultRow[]
 }
@@ -139,6 +141,7 @@ export function buildTableResults(
     winnerNames,
     yourTriviaPoints: you ? you.triviaPoints : null,
     yourBestHand: best?.formatted ?? null,
+    yourBestHandOff: best?.off ?? null,
     yourBestHandPlayed: best?.played ?? false,
     rows,
   }
@@ -148,7 +151,7 @@ function bestHandForYou(
   gameState: GameState,
   myPlayerId: string | null | undefined,
   correct: number,
-): { formatted: string; played: boolean } | null {
+): { formatted: string; off: string; played: boolean } | null {
   if (!myPlayerId) return null
   const you = gameState.players.find((p) => p.id === myPlayerId)
   const submitted = you?.submittedAnswer
@@ -161,6 +164,7 @@ function bestHandForYou(
   if (best == null) return null
   return {
     formatted: shownTriviaNumber(best, gameState.round.question),
+    off: formatTriviaNumber(Math.abs(best - correct)),
     played: guessMatchesBestHand(submitted, best, correct),
   }
 }

@@ -29,12 +29,26 @@ describe('player phase preview', () => {
     }
     const folded = renderToStaticMarkup(createElement(PlayerPhasePreview, { scene: 'folded' }))
     expect(folded).toContain(PREVIEW_QUESTION)
-    expect(folded).not.toContain('Your turn')
+    expect(folded).toContain('player-bet-reserve')
     const between = renderToStaticMarkup(createElement(PlayerPhasePreview, { scene: 'between' }))
     expect(between).toContain('Table results')
     expect(between).toContain('Stack')
     const results = renderToStaticMarkup(createElement(PlayerPhasePreview, { scene: 'results' }))
     expect(results).not.toContain('waiting for the next question')
+  })
+
+  it('reserves the betting area during a hand so the table stays the turn size', () => {
+    const question = renderToStaticMarkup(createElement(PlayerPhasePreview, { scene: 'question' }))
+    expect(question).toContain('player-game-layout--with-dock')
+    expect(question).toContain('player-bet-reserve')
+    expect(question).toContain('aria-hidden="true"')
+    const turn = renderToStaticMarkup(createElement(PlayerPhasePreview, { scene: 'turn' }))
+    expect(turn).toContain('player-game-layout--with-dock')
+    expect(turn).not.toContain('player-bet-reserve')
+    expect(turn).toContain('Your turn')
+    const css = readFileSync(new URL('../index.css', import.meta.url), 'utf8')
+    expect(css).toContain('.player-bet-reserve')
+    expect(css).toContain('visibility: hidden')
   })
 
   it('puts the scores beside the results only on a short sideways phone', () => {

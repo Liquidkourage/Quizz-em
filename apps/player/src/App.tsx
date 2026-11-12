@@ -672,6 +672,10 @@ function PlayerApp() {
     inChipContest(currentPlayer) &&
     !currentPlayer.hasFolded
 
+  const handHoldsBetArea =
+    seatedAtTable &&
+    (gameState.phase === 'question' || gameState.phase === 'betting' || gameState.phase === 'answering')
+
   const questionText = gameState.round.question?.text ?? ''
   const showStickyQuestion =
     Boolean(questionText) &&
@@ -697,7 +701,7 @@ function PlayerApp() {
     'player-game-layout',
     // Join layout padding/stack only for non-seated flows — seated uses live-fit alone.
     liveFit ? 'player-game-layout--live-fit' : 'player-join-layout',
-    needsMobileBetDock ? 'player-game-layout--with-dock' : '',
+    handHoldsBetArea ? 'player-game-layout--with-dock' : '',
   ]
     .filter(Boolean)
     .join(' ')
@@ -731,6 +735,8 @@ function PlayerApp() {
     showToast("We'll resume in a moment.", 2500)
     return true
   }
+
+  const ignoreBet = () => {}
 
   const mobileDock =
     needsMobileBetDock && bettingCtx && currentPlayer ? (
@@ -769,6 +775,25 @@ function PlayerApp() {
           claimManualTurn()
           allInAction()
         }}
+      />
+    ) : null
+
+  const reservedBetArea =
+    handHoldsBetArea && !needsMobileBetDock && bettingCtx && currentPlayer ? (
+      <BettingMobileDock
+        reserve
+        currentPlayer={currentPlayer}
+        ctx={bettingCtx}
+        raiseAmount={raiseAmount}
+        pot={gameState.round.pot}
+        autoCallLimit={null}
+        onAutoCallLimitChange={ignoreBet}
+        onRaiseAmountChange={ignoreBet}
+        onCheck={ignoreBet}
+        onCall={ignoreBet}
+        onRaise={ignoreBet}
+        onFold={ignoreBet}
+        onAllIn={ignoreBet}
       />
     ) : null
 
@@ -910,6 +935,7 @@ function PlayerApp() {
           ) : null}
         </PlayerGameShell>
 
+        {reservedBetArea}
         {mobileDock}
       </div>
 

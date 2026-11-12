@@ -471,6 +471,14 @@ describe('player table orientation', () => {
     expect(short).not.toContain('font-size: 1rem')
   })
 
+  it('hides the best-hand line on the tall portrait results screen', () => {
+    const header = '@media (orientation: portrait)'
+    const block = mediaBlock(css.slice(css.indexOf('table results use the spare portrait height')), header)
+    const best = block.slice(block.indexOf('.player-table-results-best'))
+    expect(best.startsWith('.player-table-results-best')).toBe(true)
+    expect(best.slice(0, 80)).toContain('display: none')
+  })
+
   it('gives table results the spare portrait height so the rows can spread', () => {
     const header = '@media (orientation: portrait)'
     const block = mediaBlock(css.slice(css.indexOf('table results use the spare portrait height')), header)

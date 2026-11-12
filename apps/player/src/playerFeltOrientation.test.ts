@@ -483,6 +483,11 @@ describe('player table orientation', () => {
     expect(block).toContain('font-size: clamp(1.05rem, 2.6vh, 1.5rem)')
     expect(block).not.toContain('margin-top: auto')
     expect(block).not.toContain('orientation: landscape')
+    const summaryAt = block.indexOf(
+      '.player-between-split:has(.player-table-results-scroll) > .player-game-fit-scroll--solo:not(:has(.player-table-results-scroll))',
+    )
+    expect(summaryAt).toBeGreaterThan(-1)
+    expect(block.slice(summaryAt, summaryAt + 320)).toContain('flex: 0 0 auto')
   })
 
   it('fits every results column and row on a phone', () => {

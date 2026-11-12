@@ -6032,6 +6032,12 @@
     min-height: 0;
   }
 
+  /* The hand scores stay their own height. Only the table list uses the spare portrait space. */
+  .player-game-layout--live-fit .player-between-split:has(.player-table-results-scroll) > .player-game-fit-scroll--solo:not(:has(.player-table-results-scroll)) {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
   .player-game-layout--live-fit .player-game-fit-scroll--solo:has(.player-table-results-scroll) {
     display: flex;
     flex: 1 1 auto;

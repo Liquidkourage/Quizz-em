@@ -47,4 +47,18 @@ describe('player lobby on a wide window', () => {
     expect(block).toContain('overflow-y: auto')
     expect(block).not.toContain('margin-top: auto')
   })
+
+  it('centers the join box under the logo on an upright phone', () => {
+    const start = css.indexOf('Portrait join box sits in the middle')
+    const block = start < 0 ? '' : css.slice(start, start + 700)
+    expect(block).toContain('@media (orientation: portrait)')
+    expect(block).toContain('.player-join-screen .player-join-body')
+    expect(block).toContain('justify-content: center')
+    expect(block).toContain('.player-join-form')
+    expect(block).toContain('flex: 0 0 auto')
+    expect(block).toContain('.player-join-actions')
+    expect(block).toContain('margin-top: 0')
+    expect(block).not.toContain('orientation: landscape')
+    expect(block).not.toContain('.player-join-header')
+  })
 })

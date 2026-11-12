@@ -529,6 +529,21 @@
   }
 }
 
+/* Portrait join box sits in the middle. The logo stays at the top. Landscape keeps its own form. */
+@media (orientation: portrait) and (min-height: 521px) {
+  .player-join-screen .player-join-body {
+    justify-content: center;
+  }
+
+  .player-join-screen .player-join-form {
+    flex: 0 0 auto;
+  }
+
+  .player-join-screen .player-join-actions {
+    margin-top: 0;
+  }
+}
+
 .player-join-name-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(4.25rem, 13vw, 5.5rem);

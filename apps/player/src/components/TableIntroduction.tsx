@@ -5,6 +5,7 @@ import {
   introductionOrder,
   tableIntroduction,
   type IntroPlate,
+  type IntroPlayer,
 } from '../playerModel/tableIntroduction'
 
 const FIRST_STEP_MS = 600

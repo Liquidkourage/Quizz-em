@@ -66,7 +66,8 @@ import {
 } from './HostShowClocks'
 import { nowOnServerClock, recordServerClockSample } from './serverClock'
 import { hostContestReasonLabel, hostContestStatus } from './hostContestStatus'
-import { readHostVenueCode } from './hostVenueCode'
+import { readHostVenueCode, rememberHostVenueCode } from './hostVenueCode'
+import { HostRoomCodeControl } from './HostRoomCodeControl'
 import {
   HostCollapsible,
   HostBlindsControls,
@@ -156,7 +157,7 @@ function HostApp() {
   const [toastVenueAlert, setToastVenueAlert] = useState<HostVenueAutoAlert | null>(null)
   const [virtualAddCount, setVirtualAddCount] = useState(2)
   const [rehearsalTableCount, setRehearsalTableCount] = useState(VENUE_NUMBERED_TABLE_MAX)
-  const [hostVenueCode] = useState(readHostVenueCode)
+  const [hostVenueCode, setHostVenueCode] = useState(readHostVenueCode)
   const [hostTableId, setHostTableId] = useState(() =>
     typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get('table') ?? LOBBY_TABLE_ID
@@ -1071,10 +1072,13 @@ function HostApp() {
               </div>
               <span className="hidden h-8 w-px bg-white/15 lg:block" aria-hidden />
               <div className="flex flex-wrap items-center gap-2 text-base">
-                <span className="text-white/45">Room</span>
-                <span className="rounded-full border border-white/15 bg-black/40 px-3 py-1 font-mono font-semibold text-white/90 tabular-nums">
-                  {gameState.code}
-                </span>
+                <HostRoomCodeControl
+                  code={gameState.code}
+                  onApply={(next) => {
+                    rememberHostVenueCode(next)
+                    setHostVenueCode(next)
+                  }}
+                />
                 <button
                   type="button"
                   aria-label="Open public display"

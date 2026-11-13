@@ -201,6 +201,30 @@ export async function handleDisplayTransport(
       return true
     }
 
+    if (type === 'moveDisplaysToRoom') {
+      const sessionKey = g.getActiveSessionKey(socket)
+      if (!sessionKey) {
+        socket.emit('toast', 'No room found')
+        return true
+      }
+      const gsCtl = g.rooms.get(sessionKey)
+      if (!gsCtl) {
+        socket.emit('toast', 'Game not found')
+        return true
+      }
+      if (!g.assertVenueHost(socket, gsCtl)) return true
+      const raw = typeof payload?.roomCode === 'string' ? payload.roomCode : ''
+      const next = raw.trim().toUpperCase()
+      if (!/^[A-Z0-9]{2,12}$/.test(next)) {
+        socket.emit('toast', 'Use 2 to 12 letters or numbers.')
+        socket.emit('ack', { ok: false, message: 'Invalid room code' })
+        return true
+      }
+      g.tellDisplaysTheirRoom(gsCtl.code, next)
+      socket.emit('ack', { ok: true, message: `Public screens use ${next}.` })
+      return true
+    }
+
     if (type === 'releaseDisplay') {
       const sessionKey = g.getActiveSessionKey(socket)
       if (!sessionKey) {

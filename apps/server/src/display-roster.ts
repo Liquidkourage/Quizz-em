@@ -57,6 +57,14 @@ export function takeConnectedDisplay(venueCode: string, socketId: string): Conne
   return row
 }
 
+/** TVs already showing this room, when the host opens a different code. */
+export function attachedDisplaysForRoomChange(current: string, next: string): string[] {
+  const from = venueKey(current)
+  const to = venueKey(next)
+  if (!from || !to || from === to || !/^[A-Z0-9]{2,12}$/.test(to)) return []
+  return listConnectedDisplays(from).map((row) => row.socketId)
+}
+
 export function clearConnectedDisplays(): void {
   displaysByVenue.clear()
   venueBySocket.clear()

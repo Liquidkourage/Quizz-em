@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { displayVenueOnBoot, mintDisplayScreenCode } from './displaySession'
+import { displayAddressWithRoom, displayVenueOnBoot, mintDisplayScreenCode } from './displaySession'
 
 describe('displayVenueOnBoot', () => {
   it('resumes a paired TV from the saved venue after a refresh', () => {
@@ -13,6 +13,12 @@ describe('displayVenueOnBoot', () => {
   it('waits for a pairing code when nothing is saved', () => {
     expect(displayVenueOnBoot(null, null)).toBeNull()
     expect(displayVenueOnBoot('  ', 'PAIRING')).toBeNull()
+  })
+
+  it('keeps a new room code in the public address', () => {
+    expect(displayAddressWithRoom('https://quizz-em.com/display/?room=HOST01', 'quiz')).toBe(
+      'https://quizz-em.com/display/?room=QUIZ',
+    )
   })
 })
 

@@ -4,6 +4,7 @@ import {
   listConnectedDisplays,
   rememberConnectedDisplay,
   takeConnectedDisplay,
+  attachedDisplaysForRoomChange,
 } from './display-roster'
 import {
   canPreloadTriviaAnswer,
@@ -503,6 +504,15 @@ export function emitHostDisplayRoster(venueCode: string) {
   if (!io) return
   const vn = normalizeVenueCode(venueCode)
   io.to(hostVenueRoom(vn)).emit('hostDisplays', { displays: listConnectedDisplays(vn) })
+}
+
+/** Tell every public screen on this room to show the host's new code. */
+export function tellDisplaysTheirRoom(current: string, next: string): void {
+  if (!io) return
+  const venueCode = normalizeVenueCode(next)
+  for (const socketId of attachedDisplaysForRoomChange(current, venueCode)) {
+    io.sockets.sockets.get(socketId)?.emit('displayVenueAssigned', { venueCode })
+  }
 }
 
 export function attachDisplaySocket(venueCode: string, socketId: string, name: string) {

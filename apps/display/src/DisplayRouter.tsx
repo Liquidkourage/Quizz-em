@@ -6,6 +6,7 @@ import {
   onDisplayLayout,
   onDisplayMosaicPreview,
   onDisplayReleased,
+  onDisplayVenueAssigned,
   onDisplayVenueSnapshot,
   onSocketConnectionStatus,
   getSocketConnectionStatus,
@@ -73,6 +74,8 @@ type DisplayRouterProps = {
   pairingBootstrap?: boolean
   /** Host sent this TV back to the pairing screen. */
   onReleased?: () => void
+  /** Host set a new room code. This screen follows it. */
+  onVenueCode?: (venueCode: string) => void
 }
 
 /**
@@ -83,6 +86,7 @@ export default function DisplayRouter({
   venueCode,
   pairingBootstrap = false,
   onReleased,
+  onVenueCode,
 }: DisplayRouterProps) {
   const [layout, setLayout] = useState<DisplayLayoutPayload>(() => {
     if (pairingBootstrap) {
@@ -189,6 +193,14 @@ export default function DisplayRouter({
     if (!onReleased) return
     return onDisplayReleased(onReleased)
   }, [onReleased])
+
+  useEffect(() => {
+    return onDisplayVenueAssigned(({ venueCode: next }) => {
+      const code = next.trim().toUpperCase()
+      if (!code || code === venueCode.trim().toUpperCase()) return
+      onVenueCode?.(code)
+    })
+  }, [onVenueCode, venueCode])
 
   useEffect(() => {
     const hostFocus = layout.focusTable

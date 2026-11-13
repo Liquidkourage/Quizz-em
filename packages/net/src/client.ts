@@ -912,6 +912,18 @@ export function onDisplayReleased(callback: () => void) {
   return subscribeSocket('displayReleased', callback)
 }
 
+export function onDisplayVenueAssigned(callback: (payload: { venueCode: string }) => void) {
+  return subscribeSocket('displayVenueAssigned', callback)
+}
+
+/** Host-only: public screens already on this room follow the new code. */
+export function moveDisplaysToRoom(roomCode: string) {
+  if (!socket) return
+  const code = roomCode.trim().toUpperCase()
+  if (!code) return
+  socket.emit('action', { type: 'moveDisplaysToRoom', payload: { roomCode: code } })
+}
+
 /** Host-only: send one attached TV back to the pairing screen. */
 export function releaseDisplay(socketId: string) {
   if (!socket) return

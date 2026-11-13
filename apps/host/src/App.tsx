@@ -41,6 +41,7 @@ import {
   onPlayerPhasePreview,
   onHostDisplays,
   pairDisplayWithHost,
+  moveDisplaysToRoom,
   releaseDisplay,
   setVenueBlinds,
   setQuestion as pushQuestionToVenue,
@@ -1075,6 +1076,7 @@ function HostApp() {
                 <HostRoomCodeControl
                   code={gameState.code}
                   onApply={(next) => {
+                    moveDisplaysToRoom(next)
                     rememberHostVenueCode(next)
                     setHostVenueCode(next)
                   }}

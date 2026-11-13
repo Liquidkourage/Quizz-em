@@ -4,7 +4,7 @@ import PairingScreen from './PairingScreen.tsx'
 import {
   clearSavedDisplayVenue,
   displayVenueOnBoot,
-  persistDisplayVenue,
+  publishDisplayVenue,
   readSavedDisplayVenue,
   stripDisplayVenueFromAddress,
 } from './displaySession'
@@ -21,9 +21,11 @@ export default function DisplayGate() {
     return { venue: room, pairedViaHandshake: false }
   })
 
-  const onPairedFromTv = useCallback((vc: string) => {
-    persistDisplayVenue(vc)
-    setGate({ venue: vc, pairedViaHandshake: true })
+  const followVenue = useCallback((vc: string) => {
+    const next = vc.trim().toUpperCase()
+    if (!next) return
+    publishDisplayVenue(next)
+    setGate((current) => (current.venue === next ? current : { venue: next, pairedViaHandshake: true }))
   }, [])
 
   const onReleased = useCallback(() => {
@@ -33,7 +35,7 @@ export default function DisplayGate() {
   }, [])
 
   if (!venue) {
-    return <PairingScreen onPaired={onPairedFromTv} />
+    return <PairingScreen onPaired={followVenue} />
   }
 
   return (
@@ -42,6 +44,7 @@ export default function DisplayGate() {
       venueCode={venue}
       pairingBootstrap={pairedViaHandshake}
       onReleased={onReleased}
+      onVenueCode={followVenue}
     />
   )
 }

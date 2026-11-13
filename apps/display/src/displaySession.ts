@@ -43,6 +43,21 @@ export function persistDisplayVenue(venue: string): void {
   }
 }
 
+/** The public address keeps the room the host just set, including after a refresh. */
+export function displayAddressWithRoom(href: string, venue: string): string {
+  const code = normalizeDisplayVenue(venue)
+  const url = new URL(href)
+  if (code) url.searchParams.set('room', code)
+  return url.toString()
+}
+
+export function publishDisplayVenue(venue: string): void {
+  persistDisplayVenue(venue)
+  if (typeof window === 'undefined') return
+  const next = displayAddressWithRoom(window.location.href, venue)
+  window.history.replaceState(window.history.state, '', next)
+}
+
 export function clearSavedDisplayVenue(): void {
   if (typeof localStorage === 'undefined') return
   try {

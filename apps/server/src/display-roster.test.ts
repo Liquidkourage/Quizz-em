@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  attachedDisplaysForRoomChange,
   clearConnectedDisplays,
   forgetConnectedDisplay,
   listConnectedDisplays,
@@ -25,6 +26,14 @@ describe('connected displays', () => {
     expect(takeConnectedDisplay('HOST01', 'sock-a')?.name).toBe('TV A')
     expect(listConnectedDisplays('HOST01').map((d) => d.socketId)).toEqual(['sock-b'])
     expect(takeConnectedDisplay('HOST01', 'sock-a')).toBeNull()
+  })
+
+  it('names the TVs that follow a new room code', () => {
+    rememberConnectedDisplay('HOST01', 'sock-a', 'TV A')
+    rememberConnectedDisplay('HOST01', 'sock-b', 'TV B')
+    expect(attachedDisplaysForRoomChange('HOST01', 'QUIZ')).toEqual(['sock-a', 'sock-b'])
+    expect(attachedDisplaysForRoomChange('HOST01', 'HOST01')).toEqual([])
+    expect(attachedDisplaysForRoomChange('HOST01', 'A')).toEqual([])
   })
 
   it('removes a TV when its socket disconnects', () => {

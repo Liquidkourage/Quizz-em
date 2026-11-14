@@ -54,7 +54,7 @@ import {
   lessonStepAfter,
 } from '@qhe/net'
 import type { BlindLevelEstimate, GameState, PlayerPhasePreviewId, Question } from '@qhe/core'
-import { HostBlindCall } from './HostBlindCall'
+import { HostBlindCall, acceptedNightMinutes, readNightMinutes, rememberNightMinutes } from './HostBlindCall'
 import HostBlindPaceNotice, { showBlindPaceNotice } from './HostBlindPaceNotice'
 import type { HostDisplayRoster, HostVenueFeltBeatRow, HostVenueFloorBriefPayload } from '@qhe/net'
 import { formatTriviaNumber, LOBBY_TABLE_ID, rosterMaxPlayers, shownTriviaNumber, VENUE_NUMBERED_TABLE_MAX, winnerScreensPayoutHint } from '@qhe/core'
@@ -159,6 +159,7 @@ function HostApp() {
   const [virtualAddCount, setVirtualAddCount] = useState(2)
   const [rehearsalTableCount, setRehearsalTableCount] = useState(VENUE_NUMBERED_TABLE_MAX)
   const [hostVenueCode, setHostVenueCode] = useState(readHostVenueCode)
+  const [nightMinutes, setNightMinutes] = useState(readNightMinutes)
   const [hostTableId, setHostTableId] = useState(() =>
     typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get('table') ?? LOBBY_TABLE_ID
@@ -1008,6 +1009,7 @@ function HostApp() {
           medianStack={venueFloorBrief?.medianStack ?? null}
           smallBlind={venueSmallBlind}
           bigBlind={venueBigBlind}
+          nightMinutes={nightMinutes}
           nowMs={winnerScreenNowMs}
           onApply={applyBlindCall}
           onClose={() => setDismissedPaceAt(winnerScreensReadyAtMs)}
@@ -1287,7 +1289,14 @@ function HostApp() {
                 medianStack={venueFloorBrief?.medianStack ?? null}
                 smallBlind={venueSmallBlind}
                 bigBlind={venueBigBlind}
+                nightMinutes={nightMinutes}
                 onApply={applyBlindCall}
+                onNightMinutes={(minutes) => {
+                  const next = acceptedNightMinutes(minutes)
+                  if (next == null) return
+                  rememberNightMinutes(next)
+                  setNightMinutes(next)
+                }}
                 onSmallBlind={setVenueSmallBlind}
                 onBigBlind={setVenueBigBlind}
                 shuffleEvery={shuffleEvery}

@@ -1,5 +1,5 @@
 import { adviseBlindCall, type BlindLevelEstimate } from '@qhe/core'
-import { BlindPaceReadout, GUIDE_SECONDS, NIGHT_MINUTES, minutesLeftOnClock } from './HostBlindCall'
+import { BlindPaceReadout, GUIDE_SECONDS, NIGHT_MINUTES, acceptedNightMinutes, minutesLeftOnClock } from './HostBlindCall'
 
 export function showBlindPaceNotice(
   readyAtMs: number | null | undefined,
@@ -18,6 +18,7 @@ export default function HostBlindPaceNotice({
   medianStack,
   smallBlind,
   bigBlind,
+  nightMinutes = NIGHT_MINUTES,
   nowMs,
   onApply,
   onClose,
@@ -29,12 +30,13 @@ export default function HostBlindPaceNotice({
   medianStack: number | null
   smallBlind?: number
   bigBlind: number
+  nightMinutes?: number
   nowMs: number
   onApply: (estimate: BlindLevelEstimate) => void
   onClose: () => void
 }) {
   if (!open || medianStack == null || players < 2 || handsLeft < 1 || bigBlind < 1) return null
-  const minutesLeft = minutesLeftOnClock(NIGHT_MINUTES, showStartedAtMs, nowMs)
+  const minutesLeft = minutesLeftOnClock(acceptedNightMinutes(nightMinutes) ?? NIGHT_MINUTES, showStartedAtMs, nowMs)
   const pace = adviseBlindCall({
     minutesLeft,
     handsLeft,

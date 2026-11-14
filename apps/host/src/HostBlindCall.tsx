@@ -3,7 +3,36 @@ import { adviseBlindCall, type BlindLevelEstimate, type BlindPace } from '@qhe/c
 import { ChipText } from '@qhe/ui'
 
 export const NIGHT_MINUTES = 120
+export const NIGHT_MINUTES_MIN = 15
+export const NIGHT_MINUTES_MAX = 360
 export const GUIDE_SECONDS = 45
+
+const NIGHT_MINUTES_KEY = 'qhe-host-night-minutes'
+
+/** A night length the host can set before the first hand. */
+export function acceptedNightMinutes(raw: number): number | null {
+  const n = Math.floor(Number(raw))
+  if (!Number.isFinite(n) || n < NIGHT_MINUTES_MIN || n > NIGHT_MINUTES_MAX) return null
+  return n
+}
+
+export function readNightMinutes(): number {
+  if (typeof localStorage === 'undefined') return NIGHT_MINUTES
+  try {
+    return acceptedNightMinutes(Number(localStorage.getItem(NIGHT_MINUTES_KEY))) ?? NIGHT_MINUTES
+  } catch {
+    return NIGHT_MINUTES
+  }
+}
+
+export function rememberNightMinutes(minutes: number): void {
+  if (typeof localStorage === 'undefined') return
+  try {
+    localStorage.setItem(NIGHT_MINUTES_KEY, String(minutes))
+  } catch {
+    /* ignore */
+  }
+}
 
 export function minutesLeftOnClock(goalMin: number, showStartedAtMs: number | null, nowMs: number): number {
   if (showStartedAtMs == null) return goalMin
@@ -152,17 +181,20 @@ function BlindTuneFields({
 
 export function HostBlindCall({
   showStartedAtMs,
+  nightMinutes = NIGHT_MINUTES,
   handsLeft,
   players,
   medianStack,
   smallBlind,
   bigBlind,
   onApply,
+  onNightMinutes,
   onSmallBlind,
   onBigBlind,
   onSave,
 }: {
   showStartedAtMs: number | null
+  nightMinutes?: number
   handsLeft: number
   players: number
   medianStack: number | null
@@ -171,6 +203,7 @@ export function HostBlindCall({
   /** Hands between table shuffles. Omitted until the desk is ready to edit it. */
   shuffleEvery?: number
   onApply: (estimate: BlindLevelEstimate) => void
+  onNightMinutes?: (n: number) => void
   onSmallBlind?: (n: number) => void
   onBigBlind?: (n: number) => void
   onShuffleEvery?: (n: number) => void
@@ -182,7 +215,9 @@ export function HostBlindCall({
     return () => window.clearInterval(id)
   }, [])
 
-  const minutesLeft = minutesLeftOnClock(NIGHT_MINUTES, showStartedAtMs, now)
+  const goal = acceptedNightMinutes(nightMinutes) ?? NIGHT_MINUTES
+  const pregame = showStartedAtMs == null && onNightMinutes != null
+  const minutesLeft = minutesLeftOnClock(goal, showStartedAtMs, now)
   const pace = deskPace({
     minutesLeft,
     handsLeft,
@@ -195,9 +230,20 @@ export function HostBlindCall({
   return (
     <div className="host-blind-call flex flex-col gap-2" aria-live="polite">
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      <p className="text-base text-white/60">
-        Night <span className="text-base font-semibold text-white">{NIGHT_MINUTES} min</span>
-      </p>
+      {pregame ? (
+        <PaceNumber
+          label="Night length"
+          value={goal}
+          min={NIGHT_MINUTES_MIN}
+          max={NIGHT_MINUTES_MAX}
+          step={5}
+          onChange={onNightMinutes}
+        />
+      ) : (
+        <p className="text-base text-white/60">
+          Night <span className="text-base font-semibold text-white">{goal} min</span>
+        </p>
+      )}
       <BlindTuneFields
         smallBlind={smallBlind ?? bigBlind}
         bigBlind={bigBlind}

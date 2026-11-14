@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { HostBlindCall, minutesLeftOnClock } from './HostBlindCall'
+import { HostBlindCall, acceptedNightMinutes, minutesLeftOnClock } from './HostBlindCall'
 
 describe('minutesLeftOnClock', () => {
   it('counts down from the moment the night left the lobby', () => {
@@ -9,6 +9,13 @@ describe('minutesLeftOnClock', () => {
 
   it('keeps the full night before the first hand', () => {
     expect(minutesLeftOnClock(120, null, 50_000)).toBe(120)
+  })
+
+  it('accepts a night length and refuses a blank or a tiny one', () => {
+    expect(acceptedNightMinutes(90)).toBe(90)
+    expect(acceptedNightMinutes(120.8)).toBe(120)
+    expect(acceptedNightMinutes(0)).toBeNull()
+    expect(acceptedNightMinutes(10)).toBeNull()
   })
 })
 
@@ -43,6 +50,40 @@ describe('HostBlindCall', () => {
     expect(html).not.toContain('text-xs')
     expect(html).not.toContain('border-amber-400/30')
     expect(html).not.toContain('>Blind call<')
+  })
+
+  it('lets the host set the night length before the first hand', () => {
+    const html = renderToStaticMarkup(
+      <HostBlindCall
+        showStartedAtMs={null}
+        nightMinutes={90}
+        handsLeft={15}
+        players={40}
+        medianStack={1000}
+        bigBlind={20}
+        onApply={() => {}}
+        onNightMinutes={() => {}}
+      />,
+    )
+    expect(html).toContain('aria-label="Night length"')
+    expect(html).toContain('value="90"')
+  })
+
+  it('locks the night length once the show has started', () => {
+    const html = renderToStaticMarkup(
+      <HostBlindCall
+        showStartedAtMs={1_000}
+        nightMinutes={90}
+        handsLeft={15}
+        players={40}
+        medianStack={1000}
+        bigBlind={20}
+        onApply={() => {}}
+        onNightMinutes={() => {}}
+      />,
+    )
+    expect(html).not.toContain('aria-label="Night length"')
+    expect(html).toContain('90 min')
   })
 
   it('tunes blinds and the guessing guide from the pace line', () => {

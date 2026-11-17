@@ -569,8 +569,8 @@ describe('buildHostVenueActionRows seats', () => {
       } as never,
     ])
     expect(rows[0]?.seats).toEqual([
-      { name: 'Ada', kind: 'pot', reason: null },
-      { name: 'Bo', kind: 'points', reason: 'folded' },
+      { name: 'Ada', kind: 'pot', reason: null, seatIndex: 0 },
+      { name: 'Bo', kind: 'points', reason: 'folded', seatIndex: 2 },
     ])
   })
 
@@ -736,6 +736,7 @@ describe('buildHostVenueActionRows seats', () => {
       'Bo:false',
       'Cy:true',
     ])
+    expect(rows[0]?.seats.map((seat) => seat.seatIndex)).toEqual([0, 2, 3])
     expect(rows[1]?.answersSubmitted).toBeUndefined()
     expect(rows[1]?.answersExpected).toBeUndefined()
   })

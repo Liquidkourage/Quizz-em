@@ -1191,6 +1191,14 @@ function HostApp() {
         {hostMode === 'players' ? (
           <HostPlayersPanel
             roster={venueFloorBrief?.roster ?? []}
+            tables={(venueFloorBrief?.actionRows ?? []).map((row) => ({
+              tableNum: row.tableNum,
+              seats: (row.seats ?? []).map((seat) => ({
+                name: seat.name,
+                offFelt: seat.offFelt,
+                seatIndex: seat.seatIndex,
+              })),
+            }))}
             waiting={
               (gameState.tableId ?? '') === LOBBY_TABLE_ID
                 ? gameState.players.map((player) => ({ id: player.id, name: player.name }))

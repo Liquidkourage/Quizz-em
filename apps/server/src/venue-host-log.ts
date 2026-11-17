@@ -595,6 +595,7 @@ function seatContestAt(
     name,
     kind: reason == null ? 'pot' : 'points',
     reason,
+    seatIndex: index,
     ...chipFields(wholeChips(tile.seatBankrolls?.[index]), wholeChips(tile.seatInvested?.[index])),
     ...pointsField(busted, finitePoints(tile.seatAnswerPoints?.[index])),
   }

@@ -461,6 +461,8 @@ export type HostVenueSeatContest = {
   guess?: number
   /** Past the eight felt chairs, so this person is not in the 8/8 count. */
   offFelt?: boolean
+  /** Chair around the felt. 0 is the top. Omitted for someone past the eight chairs. */
+  seatIndex?: number
 }
 
 export type HostVenueActionRow = {

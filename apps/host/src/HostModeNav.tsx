@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { HOST_MODES, type HostMode } from './hostMode'
 
-/** Pre-show, Live, and Questions, with More docked on Questions' right. */
+/** Pre-show, Live, Players, and Questions, with More docked on Questions' right. */
 export function HostModeNav({
   mode,
   onSelect,

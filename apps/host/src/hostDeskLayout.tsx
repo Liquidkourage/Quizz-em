@@ -2008,9 +2008,9 @@ function SeatContestRow({
   const reason = seatReasonLabel(row.seat.reason)
   const guess = guessSubmitLabel(row.seat.guessLocked)
   return (
-    <li className="flex items-center justify-between gap-2 rounded-md bg-black/30 px-2 py-1.5">
+    <li className="flex flex-col gap-2 rounded-md bg-black/30 px-2 py-1.5">
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold leading-tight text-white">
+        <p className="break-words text-sm font-semibold leading-tight text-white">
           {hostPlayerLabel(row.seat.name)}
           <SidePotMark mark={row.sideMarks} seat />
         </p>

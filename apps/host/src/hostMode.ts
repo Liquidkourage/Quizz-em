@@ -3,11 +3,12 @@ import { LOBBY_TABLE_ID } from '@qhe/core'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
 import { isHostWaitingForJoiners } from './hostDeskLayout'
 
-export type HostMode = 'preshow' | 'live' | 'questions'
+export type HostMode = 'preshow' | 'live' | 'players' | 'questions'
 
 export const HOST_MODES: Array<{ id: HostMode; label: string; hint: string }> = [
   { id: 'preshow', label: 'Pre-show', hint: 'Pair TVs, wait for players, seat tables' },
   { id: 'live', label: 'Live', hint: 'One cue at a time while the hand runs' },
+  { id: 'players', label: 'Players', hint: 'See who is here, move them, or remove them' },
   { id: 'questions', label: 'Questions', hint: 'Question bank and setlists' },
 ]
 

@@ -91,6 +91,7 @@ import { HostMoreMenu } from './HostMoreMenu'
 import { HostMosaicPreviewPanel } from './HostMosaicPreviewPanel'
 import { HostPlayerPhasePreviewPanel } from './HostPlayerPhasePreviewPanel'
 import { HostConnectedDisplays } from './HostConnectedDisplays'
+import { HostPlayersPanel } from './HostPlayersPanel'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
 import { HostLivePanel } from './HostLivePanel'
@@ -1184,6 +1185,20 @@ function HostApp() {
             attachedDisplays={attachedDisplays}
             onReleaseDisplay={releaseDisplay}
             floorSeated={hasVenueFeltBeat}
+          />
+        ) : null}
+
+        {hostMode === 'players' ? (
+          <HostPlayersPanel
+            roster={venueFloorBrief?.roster ?? []}
+            waiting={
+              (gameState.tableId ?? '') === LOBBY_TABLE_ID
+                ? gameState.players.map((player) => ({ id: player.id, name: player.name }))
+                : []
+            }
+            hostPlayerLabel={hostPlayerLabel}
+            onRemove={(playerId) => removePlayerFromEvent(playerId)}
+            onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
           />
         ) : null}
 

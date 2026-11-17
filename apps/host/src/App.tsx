@@ -153,6 +153,12 @@ function openVenueWindow(path: 'display' | 'player', roomCode: string) {
 /** Guessing guide. Fixed for the night; the pace line does not retune it. */
 const ANSWER_GUIDE_SEC = 45
 
+function lobbyPhone(state: GameState, playerId: string): 'connected' | 'offline' | undefined {
+  const online = (state as GameState & { playerOnline?: Record<string, boolean> }).playerOnline
+  if (!online) return undefined
+  return online[playerId] === false ? 'offline' : 'connected'
+}
+
 function HostApp() {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -1193,15 +1199,33 @@ function HostApp() {
             roster={venueFloorBrief?.roster ?? []}
             tables={(venueFloorBrief?.actionRows ?? []).map((row) => ({
               tableNum: row.tableNum,
+              phase: row.phase,
+              actingPlayerName: row.actingPlayerName,
               seats: (row.seats ?? []).map((seat) => ({
                 name: seat.name,
                 offFelt: seat.offFelt,
                 seatIndex: seat.seatIndex,
+                kind: seat.kind,
+                reason: seat.reason,
+                bankroll: seat.bankroll,
+                invested: seat.invested,
+                guess: seat.guess,
+                guessLocked: seat.guessLocked,
               })),
             }))}
+            moves={venueFloorBrief?.moveLog ?? []}
+            correctAnswer={hostControlState.round.question?.answer ?? null}
             waiting={
               (gameState.tableId ?? '') === LOBBY_TABLE_ID
-                ? gameState.players.map((player) => ({ id: player.id, name: player.name }))
+                ? gameState.players.map((player) => ({
+                    id: player.id,
+                    name: player.name,
+                    phone: player.id.startsWith('vp:')
+                      ? ('bot' as const)
+                      : lobbyPhone(gameState, player.id),
+                    triviaPoints: player.answerPoints,
+                    allIn: player.isAllIn,
+                  }))
                 : []
             }
             hostPlayerLabel={hostPlayerLabel}

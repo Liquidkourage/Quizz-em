@@ -1,5 +1,16 @@
 import { useState } from 'react'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import { cardInputForPlayer, hostPlayerCard, lastStreetAction } from './hostPlayerCard'
+
+export type HostRosterSeat = {
+  playerId: string
+  name: string
+  tableNum: number
+  phone?: 'connected' | 'offline' | 'bot'
+  offlineSec?: number | null
+  triviaPoints?: number
+  allIn?: boolean
+}
 
 export type HostManagedPlayer = {
   playerId: string
@@ -12,10 +23,18 @@ export type HostFeltChair = {
   name: string
   offFelt?: boolean
   seatIndex?: number
+  kind?: 'pot' | 'points'
+  reason?: 'folded' | 'busted' | null
+  bankroll?: number
+  invested?: number
+  guess?: number
+  guessLocked?: boolean
 }
 
 export type HostFeltTable = {
   tableNum: number
+  phase?: string
+  actingPlayerName?: string | null
   seats: readonly HostFeltChair[]
 }
 
@@ -31,7 +50,7 @@ const FELT_SLOTS = [
 ] as const
 
 export function hostManagedPlayers(
-  roster: readonly { playerId: string; name: string; tableNum: number }[],
+  roster: readonly HostRosterSeat[],
   waiting: readonly { id: string; name: string }[] = [],
 ): HostManagedPlayer[] {
   const seated = new Set(roster.map((player) => player.playerId))
@@ -72,10 +91,10 @@ function claimSlot(wanted: number, used: Set<number>): number {
   return wanted
 }
 
-export function feltSeatsForTable(
+function feltSeatsForTable(
   tableNum: number,
   seats: readonly HostFeltChair[],
-  roster: readonly { playerId: string; name: string; tableNum: number }[],
+  roster: readonly HostRosterSeat[],
 ): { playerId: string; name: string; seatIndex: number }[] {
   const pool = roster.filter((player) => player.tableNum === tableNum)
   const onFelt = seats.filter((seat) => seat.offFelt !== true && seat.name.trim())
@@ -92,10 +111,7 @@ export function feltSeatsForTable(
   return placed
 }
 
-function tableNumbers(
-  roster: readonly { tableNum: number }[],
-  tables: readonly HostFeltTable[],
-): number[] {
+function tableNumbers(roster: readonly HostRosterSeat[], tables: readonly HostFeltTable[]): number[] {
   const nums = new Set<number>()
   for (const table of tables) nums.add(table.tableNum)
   for (const player of roster) nums.add(player.tableNum)
@@ -215,6 +231,7 @@ function HostPlayerIndex({
 
 function HostSelectedPlayer({
   player,
+  lines,
   hostPlayerLabel,
   armed,
   destination,
@@ -223,6 +240,7 @@ function HostSelectedPlayer({
   onRemove,
 }: {
   player: HostManagedPlayer | null
+  lines: { label: string; value: string }[]
   hostPlayerLabel: (name: string) => string
   armed: boolean
   destination: number
@@ -235,13 +253,21 @@ function HostSelectedPlayer({
   }
   const label = hostPlayerLabel(player.name)
   return (
-    <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
-      <p className="mr-auto break-words text-base font-semibold text-white">
-        {label}
-        <span className="ml-2 text-sm font-normal text-white/55">
-          {player.tableNum == null ? 'Waiting' : `Table ${player.tableNum}`}
-        </span>
-      </p>
+    <div className="flex flex-col gap-3 border-t border-white/10 pt-3">
+      <div>
+        <p className="break-words text-base font-semibold text-white">{label}</p>
+        {lines.length > 0 ? (
+          <dl className="mt-2 grid grid-cols-[8rem_minmax(0,1fr)] gap-x-3 gap-y-1 text-sm">
+            {lines.map((line) => (
+              <div key={line.label} className="contents">
+                <dt className="text-white/50">{line.label}</dt>
+                <dd className="break-words text-white">{line.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
       {onMove && player.tableNum != null ? (
         <>
           <select
@@ -274,7 +300,53 @@ function HostSelectedPlayer({
       >
         {armed ? 'Remove them' : 'Remove'}
       </button>
+      </div>
     </div>
+  )
+}
+
+function seatForPlayer(
+  player: HostManagedPlayer,
+  roster: readonly HostRosterSeat[],
+  table: HostFeltTable | null,
+): HostFeltChair | null {
+  if (player.tableNum == null || table == null) return null
+  const mates = roster.filter((row) => row.tableNum === player.tableNum)
+  const pool = table.seats.filter((seat) => seat.offFelt !== true)
+  for (const mate of mates) {
+    const index = pool.findIndex((seat) => seat.name.trim().toLowerCase() === mate.name.trim().toLowerCase())
+    const seat = index < 0 ? undefined : pool.splice(index, 1)[0]
+    if (mate.playerId === player.playerId) return seat ?? null
+  }
+  return null
+}
+
+function selectedCardLines(
+  player: HostManagedPlayer | null,
+  roster: readonly HostRosterSeat[],
+  waiting: readonly { id: string; phone?: HostRosterSeat['phone']; offlineSec?: number | null; triviaPoints?: number; allIn?: boolean }[],
+  tables: readonly HostFeltTable[],
+  moves: readonly { tableNum: number; playerName: string; kind: string; summary: string }[],
+  correctAnswer: number | null,
+): { label: string; value: string }[] {
+  if (player == null) return []
+  const facts = roster.find((row) => row.playerId === player.playerId)
+  const lobby = waiting.find((row) => row.id === player.playerId)
+  const table = tables.find((row) => row.tableNum === player.tableNum) ?? null
+  return hostPlayerCard(
+    cardInputForPlayer({
+      tableNum: player.tableNum,
+      seat: seatForPlayer(player, roster, table),
+      phone: facts?.phone ?? lobby?.phone,
+      offlineSec: facts?.offlineSec ?? lobby?.offlineSec,
+      allIn: facts?.allIn ?? lobby?.allIn,
+      triviaPoints: facts?.triviaPoints ?? lobby?.triviaPoints,
+      phase: table?.phase ?? null,
+      actingName: table?.actingPlayerName ?? null,
+      playerName: player.name,
+      lastAction: lastStreetAction(moves, player.tableNum, player.name),
+      correctAnswer,
+    }),
   )
 }
 
@@ -282,13 +354,24 @@ export function HostPlayersPanel({
   roster,
   waiting = [],
   tables = [],
+  moves = [],
+  correctAnswer = null,
   hostPlayerLabel,
   onRemove,
   onMove,
 }: {
-  roster: readonly { playerId: string; name: string; tableNum: number }[]
-  waiting?: readonly { id: string; name: string }[]
+  roster: readonly HostRosterSeat[]
+  waiting?: readonly {
+    id: string
+    name: string
+    phone?: HostRosterSeat['phone']
+    offlineSec?: number | null
+    triviaPoints?: number
+    allIn?: boolean
+  }[]
   tables?: readonly HostFeltTable[]
+  moves?: readonly { tableNum: number; playerName: string; kind: string; summary: string }[]
+  correctAnswer?: number | null
   hostPlayerLabel: (name: string) => string
   onRemove: (playerId: string) => void
   onMove?: (playerId: string, toTableNum: number) => void
@@ -303,6 +386,7 @@ export function HostPlayersPanel({
   const chairs = tables.find((table) => table.tableNum === currentTable)?.seats ?? []
   const felt = currentTable == null ? [] : feltSeatsForTable(currentTable, chairs, roster)
   const selected = players.find((player) => player.playerId === selectedId) ?? null
+  const lines = selectedCardLines(selected, roster, waiting, tables, moves, correctAnswer)
   if (players.length === 0) {
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-black/25 p-4" aria-label="Players">
@@ -340,6 +424,7 @@ export function HostPlayersPanel({
       </div>
       <HostSelectedPlayer
         player={selected}
+        lines={lines}
         hostPlayerLabel={hostPlayerLabel}
         armed={armedId === selected?.playerId}
         destination={selected ? destinationFor(selected, destinations[selected.playerId]) : 1}

@@ -4,6 +4,7 @@ let ioRef: Server | null = null
 
 const playerIdToSocketId = new Map<string, string>()
 const socketIdToPlayerId = new Map<string, string>()
+const offlineSinceMs = new Map<string, number>()
 
 export function initPlayerSocketRegistry(io: Server): void {
   ioRef = io
@@ -16,6 +17,7 @@ export function registerPlayerSocket(playerId: string, socketId: string): void {
   }
   playerIdToSocketId.set(playerId, socketId)
   socketIdToPlayerId.set(socketId, playerId)
+  offlineSinceMs.delete(playerId)
 }
 
 export function unregisterPlayerSocket(socketId: string): string | undefined {
@@ -25,6 +27,7 @@ export function unregisterPlayerSocket(socketId: string): string | undefined {
   if (playerIdToSocketId.get(playerId) === socketId) {
     playerIdToSocketId.delete(playerId)
   }
+  if (!playerIdToSocketId.has(playerId)) offlineSinceMs.set(playerId, Date.now())
   return playerId
 }
 
@@ -39,9 +42,16 @@ export function getSocketForPlayer(playerId: string): Socket | undefined {
   return ioRef.sockets.sockets.get(socketId)
 }
 
+export function playerOfflineSec(playerId: string, nowMs = Date.now()): number | null {
+  const since = offlineSinceMs.get(playerId)
+  if (since == null) return null
+  return Math.max(0, Math.floor((nowMs - since) / 1000))
+}
+
 export function clearPlayerSocketRegistry(): void {
   playerIdToSocketId.clear()
   socketIdToPlayerId.clear()
+  offlineSinceMs.clear()
 }
 
 /** Drop seat bindings for one venue. Other rooms on this process keep their phones. */

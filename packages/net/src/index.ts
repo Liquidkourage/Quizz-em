@@ -520,6 +520,18 @@ export type HostVenueBigBetEntry = {
   atMs: number
 }
 
+export type HostVenueRosterSeat = {
+  playerId: string
+  name: string
+  tableNum: number
+  /** The phone holding this seat. A practice bot has no phone. */
+  phone?: 'connected' | 'offline' | 'bot'
+  /** Seconds since the phone dropped. Null while it is connected, or if the drop was not seen. */
+  offlineSec?: number | null
+  triviaPoints?: number
+  allIn?: boolean
+}
+
 export type HostVenueFloorBriefPayload = {
   actionRows: HostVenueActionRow[]
   /** Newest-first log of every player move across seated tables. */
@@ -534,7 +546,7 @@ export type HostVenueFloorBriefPayload = {
   bigWinMinAmount: number
   fieldPlayerCount: number
   liveTableCount: number
-  roster: { playerId: string; name: string; tableNum: number }[]
+  roster: HostVenueRosterSeat[]
   venueHeld: boolean
   shuffleEveryHands: number
   venueShuffleHeld: boolean

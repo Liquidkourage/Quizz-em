@@ -201,6 +201,7 @@ import {
   getSocketForPlayer,
   initPlayerSocketRegistry,
   playerIdForSocket,
+  playerOfflineSec,
   registerPlayerSocket,
   unregisterPlayerSocket,
 } from './player-socket-registry'
@@ -1600,14 +1601,38 @@ export function shuffleVenueTablesNow(
   return { ok: result.shuffled, message }
 }
 
-export function venueRosterSeats(
-  venueCode: string,
-): { playerId: string; name: string; tableNum: number }[] {
-  const out: { playerId: string; name: string; tableNum: number }[] = []
+export function venueRosterSeats(venueCode: string, nowMs = Date.now()): {
+  playerId: string
+  name: string
+  tableNum: number
+  phone: 'connected' | 'offline' | 'bot'
+  offlineSec: number | null
+  triviaPoints: number
+  allIn: boolean
+}[] {
+  const out: {
+    playerId: string
+    name: string
+    tableNum: number
+    phone: 'connected' | 'offline' | 'bot'
+    offlineSec: number | null
+    triviaPoints: number
+    allIn: boolean
+  }[] = []
   for (const row of venuePlayableSnapshots(venueCode)) {
     if (!Number.isFinite(row.n)) continue
     for (const player of row.gs.players) {
-      out.push({ playerId: player.id, name: player.name, tableNum: row.n })
+      const bot = player.id.startsWith('vp:')
+      const connected = bot || Boolean(getSocketForPlayer(player.id)?.connected)
+      out.push({
+        playerId: player.id,
+        name: player.name,
+        tableNum: row.n,
+        phone: bot ? 'bot' : connected ? 'connected' : 'offline',
+        offlineSec: connected ? null : playerOfflineSec(player.id, nowMs),
+        triviaPoints: player.answerPoints ?? 0,
+        allIn: player.isAllIn === true,
+      })
     }
   }
   return out

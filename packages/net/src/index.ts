@@ -520,6 +520,19 @@ export type HostVenueBigBetEntry = {
   atMs: number
 }
 
+export type HostHandHistoryEntry = {
+  playerId: string
+  questionNum: number
+  prompt: string
+  guess: number | null
+  guessLabel: 'sent' | 'excused' | 'none'
+  offBy: number | null
+  chips: 'won' | 'lost' | 'folded' | 'sat'
+  amount: number
+  stackAfter: number
+  pointsGained: number
+}
+
 export type HostVenueRosterSeat = {
   playerId: string
   name: string
@@ -537,6 +550,8 @@ export type HostVenueFloorBriefPayload = {
   actionRows: HostVenueActionRow[]
   /** Newest-first log of every player move across seated tables. */
   moveLog: HostVenueMoveLogEntry[]
+  /** Newest-first finished questions, one line per player per question. */
+  handHistory?: HostHandHistoryEntry[]
   /** Players eliminated on the hand that just paid. */
   busts: HostVenueBustEntry[]
   bigWinners: HostVenueBigWinEntry[]

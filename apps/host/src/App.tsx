@@ -1239,6 +1239,7 @@ function HostApp() {
             onUndoBet={(playerId) => undoPlayerBet(playerId)}
             onReplaceGuess={(playerId, answer) => replacePlayerGuess(playerId, answer)}
             onExcuse={(playerId) => excusePlayerGuess(playerId)}
+            handHistory={venueFloorBrief?.handHistory ?? []}
           />
         ) : null}
 

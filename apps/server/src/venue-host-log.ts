@@ -1,5 +1,6 @@
 import {
   shownTriviaNumber,
+  handHistoryForTable,
   isVenueTileWageringPaused,
   medianSeatedStack,
   previewChipPayoutByPlayerId,
@@ -17,9 +18,11 @@ import type {
   HostVenueBustEntry,
   HostVenueFloorBriefPayload,
   HostVenueMoveLogEntry,
+  HostHandHistoryEntry,
   HostVenueMoveLogKind,
   VenueWallViewMode,
 } from '@qhe/net'
+import { getVenueHandsCompleted } from './venue-shuffle-settings'
 
 const LOG_CAP = 48
 const MOVE_LOG_CAP = 200
@@ -33,6 +36,7 @@ type VenueHostLog = {
   handBets: HostVenueBigBetEntry[]
   handRoundByTable: Record<number, string>
   moveLog: HostVenueMoveLogEntry[]
+  handHistory: HostHandHistoryEntry[]
   moveSeq: number
   actingClockByTable: Record<number, ActingClock>
 }
@@ -172,6 +176,7 @@ function logForVenue(vn: string): VenueHostLog {
       handBets: [],
       handRoundByTable: {},
       moveLog: [],
+      handHistory: [],
       moveSeq: 0,
       actingClockByTable: {},
     }
@@ -181,6 +186,7 @@ function logForVenue(vn: string): VenueHostLog {
   if (!Array.isArray(log.handBets)) log.handBets = []
   if (log.handRoundByTable == null) log.handRoundByTable = {}
   if (!Array.isArray(log.moveLog)) log.moveLog = []
+  if (!Array.isArray(log.handHistory)) log.handHistory = []
   if (typeof log.moveSeq !== 'number') log.moveSeq = 0
   if (log.actingClockByTable == null) log.actingClockByTable = {}
   return log
@@ -684,13 +690,45 @@ export function buildHostVenueActionRows(
     .sort((a, b) => a.tableNum - b.tableNum)
 }
 
+const HAND_HISTORY_PER_PLAYER = 25
+
+function keepNewestHands(lines: HostHandHistoryEntry[]): HostHandHistoryEntry[] {
+  const seen = new Map<string, number>()
+  const kept: HostHandHistoryEntry[] = []
+  for (const line of lines) {
+    const count = seen.get(line.playerId) ?? 0
+    if (count >= HAND_HISTORY_PER_PLAYER) continue
+    seen.set(line.playerId, count + 1)
+    kept.push(line)
+  }
+  return kept
+}
+
+function questionNumber(vn: string, questionNum?: number): number {
+  if (typeof questionNum === 'number' && Number.isFinite(questionNum)) return Math.max(1, Math.floor(questionNum))
+  return getVenueHandsCompleted(vn) + 1
+}
+
+function rememberHandHistory(
+  log: VenueHostLog,
+  rows: { before: GameState; after: GameState }[],
+  question: number,
+): void {
+  for (const { before, after } of rows) {
+    log.handHistory.unshift(...handHistoryForTable(before, after, question))
+  }
+  log.handHistory = keepNewestHands(log.handHistory)
+}
+
 export function recordVenueHostHandResults(
   vn: string,
   rows: { tableNum: number; before: GameState; after: GameState }[],
+  questionNum?: number,
 ): HostVenueBustEntry[] {
   const log = logForVenue(vn)
   const now = Date.now()
   const handBusts: HostVenueBustEntry[] = []
+  rememberHandHistory(log, rows, questionNumber(vn, questionNum))
 
   for (const { tableNum, before, after } of rows) {
     const threshold = bigWinThreshold(before)
@@ -776,6 +814,7 @@ export function buildHostVenueFloorBrief(args: {
       ),
     })),
     moveLog: log.moveLog.slice(0, MOVE_LOG_CAP),
+    handHistory: log.handHistory,
     busts: getVenueLastHandDisplay(args.venueCode)?.busts ?? [],
     bigWinners: log.bigWinners,
     bigBets: log.bigBets,

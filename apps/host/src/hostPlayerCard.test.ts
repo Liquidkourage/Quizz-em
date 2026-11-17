@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { firstMatchingPlayer, hostPlayerCard, playerAttention, type HostPlayerCardInput } from './hostPlayerCard'
+import { firstMatchingPlayer, handHistoryText, hostPlayerCard, playerAttention, type HostPlayerCardInput } from './hostPlayerCard'
 
 function card(over: Partial<HostPlayerCardInput> = {}) {
   return hostPlayerCard({
@@ -84,5 +84,25 @@ describe('player marks and find', () => {
     expect(playerAttention({ phone: 'connected', toAct: false, phase: 'answering', guess: null, guessLocked: false }).noGuess).toBe(true)
     expect(firstMatchingPlayer([{ name: 'Ada' }, { name: 'Bo' }], 'bo', (name) => name)?.name).toBe('Bo')
     expect(firstMatchingPlayer([{ name: 'Ada' }], '  ', (name) => name)).toBeNull()
+  })
+})
+
+describe('hand history text', () => {
+  it('reads the guess, the chips, and the stack for one finished question', () => {
+    const text = handHistoryText({
+      playerId: 'ada',
+      questionNum: 3,
+      prompt: 'How many moons?',
+      guess: 14,
+      guessLabel: 'sent',
+      offBy: 4,
+      chips: 'won',
+      amount: 40,
+      stackAfter: 520,
+      pointsGained: 60,
+    })
+    expect(text.title).toBe('Question 3')
+    expect(text.prompt).toBe('How many moons?')
+    expect(text.detail).toBe('Guess 14 · Off by 4 · Won $40 · Stack $520 · +60 points')
   })
 })

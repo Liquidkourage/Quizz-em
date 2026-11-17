@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
-import { cardInputForPlayer, firstMatchingPlayer, hostPlayerCard, lastStreetAction, playerAttention } from './hostPlayerCard'
+import { cardInputForPlayer, firstMatchingPlayer, handHistoryText, hostPlayerCard, lastStreetAction, playerAttention, type HostHandLine } from './hostPlayerCard'
 
 export type HostRosterSeat = {
   playerId: string
@@ -239,6 +239,27 @@ function HostPlayerIndex({
   )
 }
 
+export function HostHandHistory({ lines }: { lines: readonly HostHandLine[] }) {
+  if (lines.length === 0) return null
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wide text-white/45">Hand history</p>
+      <ul className="mt-1 max-h-48 space-y-2 overflow-y-auto">
+        {lines.map((line) => {
+          const text = handHistoryText(line)
+          return (
+            <li key={`${line.playerId}-${line.questionNum}`} className="text-sm text-white">
+              <p className="font-semibold">{text.title}</p>
+              {text.prompt ? <p className="break-words text-white/70">{text.prompt}</p> : null}
+              <p className="break-words text-white/80">{text.detail}</p>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
 function guessPhase(phase: string | null): boolean {
   return phase === 'answering' || phase === 'reveal' || phase === 'showdown'
 }
@@ -375,6 +396,7 @@ function HostSelectedPlayer({
   onUndoBet,
   onReplaceGuess,
   onExcuse,
+  history,
 }: {
   player: HostManagedPlayer | null
   lines: { label: string; value: string }[]
@@ -391,6 +413,7 @@ function HostSelectedPlayer({
   onUndoBet?: () => void
   onReplaceGuess?: (answer: number) => void
   onExcuse?: () => void
+  history: readonly HostHandLine[]
 }) {
   if (player == null) {
     return <p className="text-sm text-white/55">Select a player on the felt or the list.</p>
@@ -411,6 +434,7 @@ function HostSelectedPlayer({
           </dl>
         ) : null}
       </div>
+      <HostHandHistory lines={history} />
       <HostPlayerRulings
         key={player.playerId}
         phase={phase}
@@ -567,6 +591,7 @@ export function HostPlayersPanel({
   onUndoBet,
   onReplaceGuess,
   onExcuse,
+  handHistory = [],
 }: {
   roster: readonly HostRosterSeat[]
   waiting?: readonly {
@@ -587,6 +612,7 @@ export function HostPlayersPanel({
   onUndoBet?: (playerId: string) => void
   onReplaceGuess?: (playerId: string, answer: number) => void
   onExcuse?: (playerId: string) => void
+  handHistory?: readonly HostHandLine[]
 }) {
   const players = hostManagedPlayers(roster, waiting)
   const nums = tableNumbers(roster, tables)
@@ -692,6 +718,7 @@ export function HostPlayersPanel({
           selected && onReplaceGuess ? (answer) => onReplaceGuess(selected.playerId, answer) : undefined
         }
         onExcuse={selected && onExcuse ? () => onExcuse(selected.playerId) : undefined}
+        history={handHistory.filter((line) => line.playerId === selected?.playerId)}
         onRemove={() => {
           if (selected == null) return
           if (armedId !== selected.playerId) {

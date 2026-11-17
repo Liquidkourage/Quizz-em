@@ -2187,6 +2187,70 @@ export function listPointsStandings(
   ).map((row) => ({ name: row.name, answerPoints: row.answerPoints }));
 }
 
+export type HandHistoryLine = {
+  playerId: string
+  questionNum: number
+  prompt: string
+  guess: number | null
+  guessLabel: 'sent' | 'excused' | 'none'
+  offBy: number | null
+  chips: 'won' | 'lost' | 'folded' | 'sat'
+  amount: number
+  stackAfter: number
+  pointsGained: number
+}
+
+function guessOnHand(
+  player: PlayerState,
+  correct: number | undefined,
+): Pick<HandHistoryLine, 'guess' | 'guessLabel' | 'offBy' | 'pointsGained'> {
+  if (player.answerExcused === true) {
+    return { guess: null, guessLabel: 'excused', offBy: null, pointsGained: 0 }
+  }
+  const guess = player.submittedAnswer
+  if (typeof guess !== 'number' || !Number.isFinite(guess) || typeof correct !== 'number') {
+    return { guess: null, guessLabel: 'none', offBy: null, pointsGained: 0 }
+  }
+  return {
+    guess,
+    guessLabel: 'sent',
+    offBy: Math.abs(guess - correct),
+    pointsGained: triviaAnswerPoints(guess, correct),
+  }
+}
+
+function chipsOnHand(
+  before: GameState,
+  player: PlayerState,
+  stackAfter: number,
+): Pick<HandHistoryLine, 'chips' | 'amount'> {
+  const putIn = before.round.handContributions?.[player.id] ?? 0
+  const gain = stackAfter - player.bankroll
+  if (player.hasFolded) return { chips: 'folded', amount: putIn }
+  if (gain > 0) return { chips: 'won', amount: gain }
+  if (putIn > 0) return { chips: 'lost', amount: putIn }
+  return { chips: 'sat', amount: 0 }
+}
+
+/** One line per seat at the table that just paid. Newest hand is the caller's to store. */
+export function handHistoryForTable(before: GameState, after: GameState, questionNum: number): HandHistoryLine[] {
+  if (before.phase !== 'showdown' && before.phase !== 'reveal') return []
+  const correct = before.round.question?.answer
+  const prompt = before.round.question?.text.trim() ?? ''
+  const afterById = new Map(after.players.map((player) => [player.id, player]))
+  return before.players.map((player) => {
+    const stackAfter = afterById.get(player.id)?.bankroll ?? player.bankroll
+    return {
+      playerId: player.id,
+      questionNum,
+      prompt,
+      ...guessOnHand(player, correct),
+      ...chipsOnHand(before, player, stackAfter),
+      stackAfter,
+    }
+  })
+}
+
 /** Run from showdown (or reveal if host skips the beat): pays pot, resets to lobby. Wrong phase → unchanged. */
 export function endRound(state: GameState): GameState {
   if (state.phase !== 'showdown' && state.phase !== 'reveal') return state;

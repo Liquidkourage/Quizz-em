@@ -178,3 +178,38 @@ export function firstMatchingPlayer<T extends { name: string }>(
   if (!needle) return null
   return players.find((player) => label(player.name).toLowerCase().includes(needle)) ?? null
 }
+
+export type HostHandLine = {
+  playerId: string
+  questionNum: number
+  prompt: string
+  guess: number | null
+  guessLabel: 'sent' | 'excused' | 'none'
+  offBy: number | null
+  chips: 'won' | 'lost' | 'folded' | 'sat'
+  amount: number
+  stackAfter: number
+  pointsGained: number
+}
+
+function historyGuess(line: HostHandLine): string {
+  if (line.guessLabel === 'excused') return 'Excused'
+  if (line.guessLabel === 'sent' && line.guess != null) return `Guess ${line.guess}`
+  return 'Nothing sent'
+}
+
+function historyChips(line: HostHandLine): string | null {
+  if (line.chips === 'won') return `Won ${money(line.amount)}`
+  if (line.chips === 'lost') return `Lost ${money(line.amount)}`
+  if (line.chips === 'folded') return 'Folded'
+  return null
+}
+
+export function handHistoryText(line: HostHandLine): { title: string; prompt: string; detail: string } {
+  const off = line.offBy != null ? `Off by ${line.offBy}` : null
+  const points = line.pointsGained > 0 ? `+${line.pointsGained} points` : '0 points'
+  const detail = [historyGuess(line), off, historyChips(line), `Stack ${money(line.stackAfter)}`, points]
+    .filter((part) => part != null)
+    .join(' · ')
+  return { title: `Question ${line.questionNum}`, prompt: line.prompt, detail }
+}

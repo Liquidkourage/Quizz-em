@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { HostPlayersPanel } from './HostPlayersPanel'
+import { HostHandHistory, HostPlayersPanel } from './HostPlayersPanel'
 
 describe('HostPlayersPanel', () => {
   it('shows a felt to select a seated player and an alphabetical list', () => {
@@ -60,5 +60,30 @@ describe('HostPlayersPanel', () => {
       }),
     )
     expect(html).toContain('No one in the room yet.')
+  })
+
+  it('shows a finished question under the player', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostHandHistory, {
+        lines: [
+          {
+            playerId: 'ada',
+            questionNum: 3,
+            prompt: 'How many moons?',
+            guess: 14,
+            guessLabel: 'sent',
+            offBy: 4,
+            chips: 'won',
+            amount: 40,
+            stackAfter: 520,
+            pointsGained: 60,
+          },
+        ],
+      }),
+    )
+    expect(html).toContain('Hand history')
+    expect(html).toContain('Question 3')
+    expect(html).toContain('Guess 14')
+    expect(html).toContain('Won $40')
   })
 })

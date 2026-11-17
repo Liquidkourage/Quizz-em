@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyGame, type GameState } from '@qhe/core'
+import { createEmptyGame, endRound, type GameState } from '@qhe/core'
 import {
   attachVenueLastHandSeating,
   buildHostVenueActionRows,
@@ -526,6 +526,37 @@ describe('buildHostVenueFloorBrief busts', () => {
       bigBlindHint: 20,
     })
     expect(brief.busts.map((b) => b.name)).toEqual(['Bob D.'])
+  })
+})
+
+describe('hand history on the host brief', () => {
+  it('keeps a finished question for the player who just got paid', () => {
+    clearVenueHostLog('HIST')
+    let before = createEmptyGame('HIST', 'host', '1')
+    before = {
+      ...before,
+      phase: 'showdown',
+      players: [
+        { id: 'ada', name: 'Ada', bankroll: 480, hand: [], hasFolded: false, isAllIn: false, submittedAnswer: 14 },
+        { id: 'bo', name: 'Bo', bankroll: 480, hand: [], hasFolded: true, isAllIn: false },
+      ],
+      round: {
+        ...before.round,
+        pot: 40,
+        handContributions: { ada: 20, bo: 20 },
+        question: { id: 'q', text: 'How many moons?', answer: 10 },
+      },
+    }
+    recordVenueHostHandResults('HIST', [{ tableNum: 1, before, after: endRound(before) }], 3)
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'HIST',
+      tiles: [],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    const ada = brief.handHistory?.find((line) => line.playerId === 'ada')
+    expect(ada).toMatchObject({ questionNum: 3, guess: 14, chips: 'won', stackAfter: 520 })
   })
 })
 

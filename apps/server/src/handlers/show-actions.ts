@@ -711,6 +711,58 @@ export async function handleShowAction(
           break
         }
 
+        case 'undoPlayerBet': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const playerId = typeof (payload as { playerId?: unknown })?.playerId === 'string'
+            ? (payload as { playerId: string }).playerId
+            : ''
+          const undone = g.undoPlayerBet(gameState.code, playerId)
+          socket.emit('toast', undone.message)
+          socket.emit('ack', { ok: undone.ok, message: undone.message })
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
+        case 'replacePlayerGuess': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const playerId = typeof (payload as { playerId?: unknown })?.playerId === 'string'
+            ? (payload as { playerId: string }).playerId
+            : ''
+          const answer = Number((payload as { answer?: unknown })?.answer)
+          const replaced = g.replacePlayerGuess(gameState.code, playerId, answer)
+          socket.emit('toast', replaced.message)
+          socket.emit('ack', { ok: replaced.ok, message: replaced.message })
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
+        case 'excusePlayerGuess': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const playerId = typeof (payload as { playerId?: unknown })?.playerId === 'string'
+            ? (payload as { playerId: string }).playerId
+            : ''
+          const excused = g.excusePlayerGuess(gameState.code, playerId)
+          socket.emit('toast', excused.message)
+          socket.emit('ack', { ok: excused.ok, message: excused.message })
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
+        case 'handSeatToPhone': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const playerId = typeof (payload as { playerId?: unknown })?.playerId === 'string'
+            ? (payload as { playerId: string }).playerId
+            : ''
+          const waitingPlayerId = typeof (payload as { waitingPlayerId?: unknown })?.waitingPlayerId === 'string'
+            ? (payload as { waitingPlayerId: string }).waitingPlayerId
+            : ''
+          const handed = g.handSeatToPhone(gameState.code, playerId, waitingPlayerId)
+          socket.emit('toast', handed.message)
+          socket.emit('ack', { ok: handed.ok, message: handed.message })
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
         case 'setVenueHold': {
           if (!g.assertVenueHost(socket, gameState)) break
           const held = (payload as { held?: unknown })?.held === true

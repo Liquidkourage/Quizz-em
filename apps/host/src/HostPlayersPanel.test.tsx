@@ -35,6 +35,20 @@ describe('HostPlayersPanel', () => {
     expect(list.slice(cara, cara + 240)).toContain('Waiting')
     expect(list).not.toContain('<select')
     expect(html).toContain('Select a player')
+    expect(html).toContain('Find a player')
+  })
+
+  it('dims an offline name on the felt', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostPlayersPanel, {
+        roster: [{ playerId: 'human:a', name: 'Ada Lane', tableNum: 2, phone: 'offline' }],
+        tables: [{ tableNum: 2, seats: [{ name: 'Ada Lane', seatIndex: 0 }] }],
+        hostPlayerLabel: (name: string) => name,
+        onRemove: () => {},
+      }),
+    )
+    const felt = html.slice(html.indexOf('host-player-felt'), html.indexOf('host-player-index'))
+    expect(felt).toContain('opacity-40')
   })
 
   it('says the room is empty when nobody has joined', () => {

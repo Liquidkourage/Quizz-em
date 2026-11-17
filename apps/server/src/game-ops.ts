@@ -11,6 +11,7 @@ import {
   createEmptyGame,
   addPlayer,
   removePlayer,
+  undoLastChipMove,
   releasePlayer,
   isDisplayNameTaken,
   uniquePublicDisplayName,
@@ -26,6 +27,8 @@ import {
   placeBet,
   foldPlayer,
   submitAnswer,
+  excuseGuess,
+  replaceLockedGuess,
   forfeitOpenGuesses,
   answerCompositionForPlayer,
   communityIndicesFromAnswerComposition,
@@ -203,6 +206,7 @@ import {
   playerIdForSocket,
   playerOfflineSec,
   registerPlayerSocket,
+  transferPlayerSocket,
   unregisterPlayerSocket,
 } from './player-socket-registry'
 import { requiredHostSecret } from './host-auth'
@@ -1500,6 +1504,95 @@ export function releaseSeatedPlayer(
   return { ok: true, message }
 }
 
+function applySeatRuling(
+  venueCode: string,
+  playerId: string,
+  change: (state: GameState) => GameState,
+  okMessage: string,
+  failMessage: string,
+): { ok: true; message: string } | { ok: false; message: string } {
+  const found = findPlayerSessionInVenue(venueCode, playerId)
+  if (!found) return { ok: false, message: 'That player is not in this event.' }
+  const next = change(found.gameState)
+  if (next === found.gameState) return { ok: false, message: failMessage }
+  rooms.set(found.sessionKey, next)
+  emitVenueTableState(found.sessionKey, next)
+  return { ok: true, message: okMessage }
+}
+
+export function undoPlayerBet(venueCode: string, playerId: string) {
+  return applySeatRuling(
+    venueCode,
+    playerId,
+    (state) => undoLastChipMove(state, playerId),
+    'Bet returned. It is their turn.',
+    'There is no bet to give back.',
+  )
+}
+
+export function replacePlayerGuess(venueCode: string, playerId: string, answer: number) {
+  return applySeatRuling(
+    venueCode,
+    playerId,
+    (state) => replaceLockedGuess(state, playerId, answer),
+    'Guess replaced.',
+    'That guess cannot be replaced now.',
+  )
+}
+
+export function excusePlayerGuess(venueCode: string, playerId: string) {
+  return applySeatRuling(
+    venueCode,
+    playerId,
+    (state) => excuseGuess(state, playerId),
+    'This question will not count for them.',
+    'This question cannot be excused now.',
+  )
+}
+
+function handoffRefusal(
+  seatedPlayerId: string,
+  waitingPlayerId: string,
+  seated: ReturnType<typeof findPlayerSessionInVenue>,
+  waiting: ReturnType<typeof findPlayerSessionInVenue>,
+  connected: boolean,
+): string | null {
+  if (!seatedPlayerId || !waitingPlayerId || seatedPlayerId === waitingPlayerId) {
+    return 'Pick the seat and the new phone.'
+  }
+  if (!seated || !waiting) return 'Pick the seat and the new phone.'
+  if (!isLobbySessionKey(waiting.sessionKey)) return 'The new phone has to be in the waiting room.'
+  if (!connected) return 'That phone is not connected.'
+  return null
+}
+
+/** The waiting phone becomes the seated player. The chair, stack, and cards stay. */
+export function handSeatToPhone(
+  venueCode: string,
+  seatedPlayerId: string,
+  waitingPlayerId: string,
+): { ok: true; message: string } | { ok: false; message: string } {
+  const seated = findPlayerSessionInVenue(venueCode, seatedPlayerId)
+  const waiting = findPlayerSessionInVenue(venueCode, waitingPlayerId)
+  const sock = getSocketForPlayer(waitingPlayerId)
+  const refusal = handoffRefusal(seatedPlayerId, waitingPlayerId, seated, waiting, sock?.connected === true)
+  if (refusal || !seated || !waiting || !sock) return { ok: false, message: refusal ?? 'Pick the seat and the new phone.' }
+  if (!transferPlayerSocket(waitingPlayerId, seatedPlayerId)) {
+    return { ok: false, message: 'That phone is not connected.' }
+  }
+  rooms.set(waiting.sessionKey, removePlayer(waiting.gameState, waitingPlayerId))
+  const data = sock.data as DisplaySockData
+  data.viewerPlayerId = seatedPlayerId
+  data.sessionKey = seated.sessionKey
+  sock.leave(waiting.sessionKey)
+  sock.join(seated.sessionKey)
+  const lobby = rooms.get(waiting.sessionKey)
+  if (lobby) emitVenueTableState(waiting.sessionKey, lobby)
+  emitVenueTableState(seated.sessionKey, seated.gameState)
+  const seatedName = seated.gameState.players.find((player) => player.id === seatedPlayerId)
+  return { ok: true, message: `${shortPlayerName(seatedName ? seatedName.name : 'They')} is on the new phone.` }
+}
+
 /** Host: move any seated player to another table. Only while every felt is between hands. */
 export function moveSeatedPlayer(
   venueCode: string,
@@ -1609,6 +1702,7 @@ export function venueRosterSeats(venueCode: string, nowMs = Date.now()): {
   offlineSec: number | null
   triviaPoints: number
   allIn: boolean
+  excused: boolean
 }[] {
   const out: {
     playerId: string
@@ -1618,6 +1712,7 @@ export function venueRosterSeats(venueCode: string, nowMs = Date.now()): {
     offlineSec: number | null
     triviaPoints: number
     allIn: boolean
+    excused: boolean
   }[] = []
   for (const row of venuePlayableSnapshots(venueCode)) {
     if (!Number.isFinite(row.n)) continue
@@ -1632,6 +1727,7 @@ export function venueRosterSeats(venueCode: string, nowMs = Date.now()): {
         offlineSec: connected ? null : playerOfflineSec(player.id, nowMs),
         triviaPoints: player.answerPoints ?? 0,
         allIn: player.isAllIn === true,
+        excused: player.answerExcused === true,
       })
     }
   }

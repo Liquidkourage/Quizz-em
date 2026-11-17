@@ -37,6 +37,8 @@ export interface PlayerState {
   answerComposition?: readonly AnswerCardPick[];
   /** Nudge clock expired with no guess. Scores 0 and cannot take the chip pot. */
   answerForfeited?: boolean;
+  /** This question does not count. No points, and no claim on the pot. */
+  answerExcused?: boolean;
   /** Cumulative trivia score across answered rounds (even when busted off chips). */
   answerPoints?: number;
   /**
@@ -109,6 +111,20 @@ export interface RoundState {
   lastSeatBettingAction?: (SeatBettingAction | null)[];
   /** The action that just happened at this table, in the order it was taken. */
   lastPerformedAction?: { seatIndex: number; action: SeatBettingAction };
+  /** Host can give this chip move back. One move, the latest one. */
+  undoChipMove?: {
+    playerId: string
+    bankroll: number
+    isAllIn: boolean
+    pot: number
+    playerBets: Record<string, number>
+    handContributions: Record<string, number>
+    currentBet: number
+    lastFullRaiseAmount: number
+    currentPlayerIndex: number
+    lastSeatBettingAction?: (SeatBettingAction | null)[]
+    lastPerformedAction?: { seatIndex: number; action: SeatBettingAction }
+  };
   /** Total chips committed this hand (both wagering rounds); drives side-pot eligibility at payout. */
   handContributions?: Record<string, number>;
   /**
@@ -1260,6 +1276,56 @@ export function placeBet(state: GameState, playerId: string, amount: number): Ga
   };
 }
 
+function rememberChipUndo(before: GameState, playerId: string, after: GameState): GameState {
+  const seat = before.players.find((player) => player.id === playerId)
+  if (!seat) return after
+  return {
+    ...after,
+    round: {
+      ...after.round,
+      undoChipMove: {
+        playerId,
+        bankroll: seat.bankroll,
+        isAllIn: seat.isAllIn === true,
+        pot: before.round.pot,
+        playerBets: { ...(before.round.playerBets || {}) },
+        handContributions: { ...(before.round.handContributions || {}) },
+        currentBet: before.round.currentBet || 0,
+        lastFullRaiseAmount: before.round.lastFullRaiseAmount ?? before.bigBlind ?? 0,
+        currentPlayerIndex: before.round.currentPlayerIndex ?? 0,
+        lastSeatBettingAction: before.round.lastSeatBettingAction?.slice(),
+        lastPerformedAction: before.round.lastPerformedAction,
+      },
+    },
+  }
+}
+
+/** Put the latest chip move back and let that player act again. */
+export function undoLastChipMove(state: GameState, playerId: string): GameState {
+  const undo = state.round.undoChipMove
+  if (state.phase !== 'betting' || undo == null || undo.playerId !== playerId) return state
+  if (!state.players.some((player) => player.id === playerId)) return state
+  return {
+    ...state,
+    players: state.players.map((player) =>
+      player.id === playerId ? { ...player, bankroll: undo.bankroll, isAllIn: undo.isAllIn } : player,
+    ),
+    round: {
+      ...state.round,
+      pot: undo.pot,
+      playerBets: undo.playerBets,
+      handContributions: undo.handContributions,
+      currentBet: undo.currentBet,
+      lastFullRaiseAmount: undo.lastFullRaiseAmount,
+      currentPlayerIndex: undo.currentPlayerIndex,
+      isBettingOpen: true,
+      lastSeatBettingAction: undo.lastSeatBettingAction,
+      lastPerformedAction: undo.lastPerformedAction,
+      undoChipMove: undefined,
+    },
+  }
+}
+
 // Betting helpers and actions
 function getSeatIndexByPlayerId(state: GameState, playerId: string): number {
   return state.players.findIndex(p => p.id === playerId);
@@ -1515,7 +1581,7 @@ export function playerCall(state: GameState, playerId: string): GameState {
       ...seatActionRecord(after.round, after.players.length, seat, 'call'),
     },
   };
-  return isBettingComplete(after) ? { ...after, round: { ...after.round, isBettingOpen: false, currentPlayerIndex: -1 } } : after;
+  return finishChipAction(state, playerId, after);
 }
 
 /**
@@ -1584,9 +1650,7 @@ export function playerRaise(state: GameState, playerId: string, raiseAmount: num
       ...seatActionRecord(after.round, after.players.length, seat, 'raise'),
     },
   };
-  return isBettingComplete(after)
-    ? { ...after, round: { ...after.round, isBettingOpen: false, currentPlayerIndex: -1 } }
-    : after;
+  return finishChipAction(state, playerId, after);
 }
 
 export function playerAllIn(state: GameState, playerId: string): GameState {
@@ -1624,7 +1688,14 @@ export function playerAllIn(state: GameState, playerId: string): GameState {
       ...seatActionRecord(after.round, after.players.length, seat, 'allIn'),
     },
   };
-  return isBettingComplete(after) ? { ...after, round: { ...after.round, isBettingOpen: false, currentPlayerIndex: -1 } } : after;
+  return finishChipAction(state, playerId, after);
+}
+
+function finishChipAction(before: GameState, playerId: string, after: GameState): GameState {
+  const closed = isBettingComplete(after)
+    ? { ...after, round: { ...after.round, isBettingOpen: false, currentPlayerIndex: -1 } }
+    : after
+  return rememberChipUndo(before, playerId, closed)
 }
 
 // Admin/host helpers
@@ -1683,6 +1754,41 @@ export function forcedTurnAction(state: GameState, playerId: string): GameState 
   return toCall === 0 ? playerCheck(state, playerId) : foldPlayer(state, playerId);
 }
 
+/** Host: the number they meant, in place of the one the phone locked. */
+export function replaceLockedGuess(state: GameState, playerId: string, answer: number): GameState {
+  if (state.phase !== 'answering' && state.phase !== 'reveal' && state.phase !== 'showdown') return state
+  if (!Number.isFinite(answer)) return state
+  if (!state.players.some((player) => player.id === playerId)) return state
+  return {
+    ...state,
+    players: state.players.map((player) =>
+      player.id === playerId
+        ? { ...player, submittedAnswer: answer, answerForfeited: undefined, answerExcused: undefined }
+        : player,
+    ),
+  }
+}
+
+/** Host: this question does not count for them. */
+export function excuseGuess(state: GameState, playerId: string): GameState {
+  if (state.phase !== 'answering' && state.phase !== 'reveal' && state.phase !== 'showdown') return state
+  if (!state.players.some((player) => player.id === playerId)) return state
+  return {
+    ...state,
+    players: state.players.map((player) =>
+      player.id === playerId
+        ? {
+            ...player,
+            submittedAnswer: undefined,
+            answerComposition: undefined,
+            answerForfeited: undefined,
+            answerExcused: true,
+          }
+        : player,
+    ),
+  }
+}
+
 export function submitAnswer(
   state: GameState,
   playerId: string,
@@ -1712,7 +1818,7 @@ export function forfeitOpenGuesses(state: GameState): GameState {
   let changed = false;
   const players = state.players.map((player) => {
     if (typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)) return player;
-    if (player.answerForfeited === true) return player;
+    if (player.answerForfeited === true || player.answerExcused === true) return player;
     changed = true;
     return { ...player, answerForfeited: true };
   });
@@ -1837,7 +1943,7 @@ function unansweredPotRecipients(state: GameState, eligiblePlayerIds: readonly s
   for (const id of eligiblePlayerIds) {
     const player = chipSeat(state, id);
     if (!player) continue;
-    if (player.answerForfeited === true) {
+    if (player.answerForfeited === true || player.answerExcused === true) {
       forfeited.push(id);
       continue;
     }
@@ -2106,6 +2212,7 @@ export function endRound(state: GameState): GameState {
       submittedAnswer: undefined,
       answerComposition: undefined,
       answerForfeited: undefined,
+      answerExcused: undefined,
     };
   });
 

@@ -29,6 +29,10 @@ import {
   rehearsalSkipToShowdown,
   assignTablesFromLobby,
   movePlayerToTable,
+  undoPlayerBet,
+  replacePlayerGuess,
+  excusePlayerGuess,
+  handSeatToPhone,
   removePlayer as removePlayerFromEvent,
   setVenueHold,
   setVenueShuffleEvery,
@@ -1231,6 +1235,10 @@ function HostApp() {
             hostPlayerLabel={hostPlayerLabel}
             onRemove={(playerId) => removePlayerFromEvent(playerId)}
             onMove={(playerId, toTableNum) => movePlayerToTable(playerId, toTableNum)}
+            onHandPhone={(playerId, waitingPlayerId) => handSeatToPhone(playerId, waitingPlayerId)}
+            onUndoBet={(playerId) => undoPlayerBet(playerId)}
+            onReplaceGuess={(playerId, answer) => replacePlayerGuess(playerId, answer)}
+            onExcuse={(playerId) => excusePlayerGuess(playerId)}
           />
         ) : null}
 

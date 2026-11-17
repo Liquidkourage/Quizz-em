@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
-import { cardInputForPlayer, hostPlayerCard, lastStreetAction } from './hostPlayerCard'
+import { cardInputForPlayer, firstMatchingPlayer, hostPlayerCard, lastStreetAction, playerAttention } from './hostPlayerCard'
 
 export type HostRosterSeat = {
   playerId: string
@@ -10,6 +10,7 @@ export type HostRosterSeat = {
   offlineSec?: number | null
   triviaPoints?: number
   allIn?: boolean
+  excused?: boolean
 }
 
 export type HostManagedPlayer = {
@@ -134,7 +135,7 @@ function HostPlayerFelt({
 }: {
   tableNum: number | null
   tableNums: number[]
-  seats: readonly { playerId: string; name: string; seatIndex: number }[]
+  seats: readonly { playerId: string; name: string; seatIndex: number; attention?: { offline: boolean; toAct: boolean; noGuess: boolean } }[]
   selectedId: string | null
   hostPlayerLabel: (name: string) => string
   onShowTable: (tableNum: number) => void
@@ -177,6 +178,10 @@ function HostPlayerFelt({
               onClick={() => onSelect(seat.playerId)}
               style={{ left: slot.left, top: slot.top }}
               className={`absolute max-w-[9rem] -translate-x-1/2 -translate-y-1/2 rounded-full border px-2 py-1 text-sm font-semibold leading-tight ${
+                seat.attention?.offline ? 'opacity-40' : ''
+              } ${seat.attention?.toAct ? 'ring-2 ring-amber-300' : ''} ${
+                seat.attention?.noGuess ? 'border-dashed' : ''
+              } ${
                 selected
                   ? 'border-amber-200 bg-amber-400 text-black'
                   : 'border-white/30 bg-black/70 text-white'
@@ -195,11 +200,13 @@ function HostPlayerIndex({
   players,
   selectedId,
   hostPlayerLabel,
+  attentionFor,
   onSelect,
 }: {
   players: readonly HostManagedPlayer[]
   selectedId: string | null
   hostPlayerLabel: (name: string) => string
+  attentionFor: (player: HostManagedPlayer) => { offline: boolean; toAct: boolean; noGuess: boolean }
   onSelect: (player: HostManagedPlayer) => void
 }) {
   return (
@@ -207,6 +214,7 @@ function HostPlayerIndex({
       {players.map((player) => {
         const label = hostPlayerLabel(player.name)
         const selected = selectedId === player.playerId
+        const attention = attentionFor(player)
         return (
           <li key={player.playerId}>
             <button
@@ -214,8 +222,10 @@ function HostPlayerIndex({
               aria-pressed={selected}
               onClick={() => onSelect(player)}
               className={`flex min-h-11 w-full items-center justify-between gap-3 rounded-md px-2 text-left text-sm ${
-                selected ? 'bg-amber-400/20 text-amber-50' : 'text-white hover:bg-white/5'
-              }`}
+                attention.offline ? 'opacity-40' : ''
+              } ${attention.toAct ? 'ring-2 ring-amber-300' : ''} ${
+                attention.noGuess ? 'border border-dashed border-white/40' : ''
+              } ${selected ? 'bg-amber-400/20 text-amber-50' : 'text-white hover:bg-white/5'}`}
             >
               <span className="break-words font-semibold">{label}</span>
               <span className="shrink-0 text-white/55">
@@ -229,6 +239,126 @@ function HostPlayerIndex({
   )
 }
 
+function guessPhase(phase: string | null): boolean {
+  return phase === 'answering' || phase === 'reveal' || phase === 'showdown'
+}
+
+function PhoneRuling({
+  phones,
+  onHand,
+}: {
+  phones: readonly { id: string; name: string }[]
+  onHand?: (waitingPlayerId: string) => void
+}) {
+  const [phoneId, setPhoneId] = useState(phones[0] ? phones[0].id : '')
+  if (!onHand || phones.length === 0) return null
+  const chosen = phones.length === 1 ? phones[0].id : phoneId
+  return (
+    <>
+      {phones.length > 1 ? (
+        <select
+          aria-label="New phone"
+          value={phoneId}
+          onChange={(event) => setPhoneId(event.target.value)}
+          className="min-h-11 rounded-md border border-white/20 bg-zinc-950 px-2 text-sm text-white"
+        >
+          {phones.map((phone) => (
+            <option key={phone.id} value={phone.id}>
+              {phone.name}
+            </option>
+          ))}
+        </select>
+      ) : null}
+      <button
+        type="button"
+        className="min-h-11 rounded-md border border-emerald-300/50 px-3 text-sm font-bold text-emerald-100"
+        onClick={() => onHand(chosen)}
+      >
+        This phone
+      </button>
+    </>
+  )
+}
+
+function GuessRuling({
+  phase,
+  guessText,
+  onReplace,
+  onExcuse,
+}: {
+  phase: string | null
+  guessText: string
+  onReplace?: (answer: number) => void
+  onExcuse?: () => void
+}) {
+  const [draft, setDraft] = useState(guessText)
+  if (!guessPhase(phase)) return null
+  return (
+    <>
+      {onReplace ? (
+        <>
+          <input
+            aria-label="Replacement guess"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            className="min-h-11 w-28 rounded-md border border-white/20 bg-zinc-950 px-2 text-sm text-white"
+          />
+          <button
+            type="button"
+            className="min-h-11 rounded-md border border-amber-300/50 px-3 text-sm font-bold text-amber-100"
+            onClick={() => onReplace(Number(draft))}
+          >
+            Replace guess
+          </button>
+        </>
+      ) : null}
+      {onExcuse ? (
+        <button
+          type="button"
+          className="min-h-11 rounded-md border border-white/20 px-3 text-sm font-bold text-white/80"
+          onClick={onExcuse}
+        >
+          Excuse
+        </button>
+      ) : null}
+    </>
+  )
+}
+
+function HostPlayerRulings({
+  phase,
+  guessText,
+  waitingPhones,
+  onHandPhone,
+  onUndoBet,
+  onReplaceGuess,
+  onExcuse,
+}: {
+  phase: string | null
+  guessText: string
+  waitingPhones: readonly { id: string; name: string }[]
+  onHandPhone?: (waitingPlayerId: string) => void
+  onUndoBet?: () => void
+  onReplaceGuess?: (answer: number) => void
+  onExcuse?: () => void
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <PhoneRuling phones={waitingPhones} onHand={onHandPhone} />
+      {phase === 'betting' && onUndoBet ? (
+        <button
+          type="button"
+          className="min-h-11 rounded-md border border-sky-300/50 px-3 text-sm font-bold text-sky-100"
+          onClick={onUndoBet}
+        >
+          Undo last bet
+        </button>
+      ) : null}
+      <GuessRuling phase={phase} guessText={guessText} onReplace={onReplaceGuess} onExcuse={onExcuse} />
+    </div>
+  )
+}
+
 function HostSelectedPlayer({
   player,
   lines,
@@ -238,6 +368,13 @@ function HostSelectedPlayer({
   onDestination,
   onMove,
   onRemove,
+  phase,
+  guessText,
+  waitingPhones,
+  onHandPhone,
+  onUndoBet,
+  onReplaceGuess,
+  onExcuse,
 }: {
   player: HostManagedPlayer | null
   lines: { label: string; value: string }[]
@@ -247,6 +384,13 @@ function HostSelectedPlayer({
   onDestination: (tableNum: number) => void
   onMove?: (playerId: string, toTableNum: number) => void
   onRemove: () => void
+  phase: string | null
+  guessText: string
+  waitingPhones: readonly { id: string; name: string }[]
+  onHandPhone?: (waitingPlayerId: string) => void
+  onUndoBet?: () => void
+  onReplaceGuess?: (answer: number) => void
+  onExcuse?: () => void
 }) {
   if (player == null) {
     return <p className="text-sm text-white/55">Select a player on the felt or the list.</p>
@@ -267,6 +411,16 @@ function HostSelectedPlayer({
           </dl>
         ) : null}
       </div>
+      <HostPlayerRulings
+        key={player.playerId}
+        phase={phase}
+        guessText={guessText}
+        waitingPhones={waitingPhones}
+        onHandPhone={onHandPhone}
+        onUndoBet={onUndoBet}
+        onReplaceGuess={onReplaceGuess}
+        onExcuse={onExcuse}
+      />
       <div className="flex flex-wrap items-center gap-2">
       {onMove && player.tableNum != null ? (
         <>
@@ -321,6 +475,36 @@ function seatForPlayer(
   return null
 }
 
+function markPhone(
+  playerId: string,
+  roster: readonly HostRosterSeat[],
+  waiting: readonly { id: string; phone?: HostRosterSeat['phone'] }[],
+): HostRosterSeat['phone'] | undefined {
+  const facts = roster.find((row) => row.playerId === playerId)
+  if (facts) return facts.phone
+  const lobby = waiting.find((row) => row.id === playerId)
+  return lobby ? lobby.phone : undefined
+}
+
+function attentionOf(
+  player: HostManagedPlayer,
+  roster: readonly HostRosterSeat[],
+  waiting: readonly { id: string; phone?: HostRosterSeat['phone'] }[],
+  tables: readonly HostFeltTable[],
+) {
+  const table = tables.find((row) => row.tableNum === player.tableNum)
+  const seat = seatForPlayer(player, roster, table ?? null)
+  const actingName = table && table.actingPlayerName ? table.actingPlayerName : ''
+  const phase = table && table.phase ? table.phase : null
+  return playerAttention({
+    phone: markPhone(player.playerId, roster, waiting),
+    toAct: actingName.trim().toLowerCase() === player.name.trim().toLowerCase() && phase === 'betting',
+    phase,
+    guess: seat && typeof seat.guess === 'number' ? seat.guess : null,
+    guessLocked: seat ? seat.guessLocked === true : false,
+  })
+}
+
 function selectedCardLines(
   player: HostManagedPlayer | null,
   roster: readonly HostRosterSeat[],
@@ -346,8 +530,28 @@ function selectedCardLines(
       playerName: player.name,
       lastAction: lastStreetAction(moves, player.tableNum, player.name),
       correctAnswer,
+      excused: facts?.excused,
     }),
   )
+}
+
+function matchingPlayers(
+  listed: readonly HostManagedPlayer[],
+  query: string,
+  label: (name: string) => string,
+): readonly HostManagedPlayer[] {
+  const needle = query.trim().toLowerCase()
+  if (!needle) return listed
+  return listed.filter((player) => label(player.name).toLowerCase().includes(needle))
+}
+
+function connectedPhones(
+  waiting: readonly { id: string; name: string; phone?: HostRosterSeat['phone'] }[],
+  label: (name: string) => string,
+): { id: string; name: string }[] {
+  return waiting
+    .filter((row) => row.phone === 'connected')
+    .map((row) => ({ id: row.id, name: label(row.name) }))
 }
 
 export function HostPlayersPanel({
@@ -359,6 +563,10 @@ export function HostPlayersPanel({
   hostPlayerLabel,
   onRemove,
   onMove,
+  onHandPhone,
+  onUndoBet,
+  onReplaceGuess,
+  onExcuse,
 }: {
   roster: readonly HostRosterSeat[]
   waiting?: readonly {
@@ -375,6 +583,10 @@ export function HostPlayersPanel({
   hostPlayerLabel: (name: string) => string
   onRemove: (playerId: string) => void
   onMove?: (playerId: string, toTableNum: number) => void
+  onHandPhone?: (playerId: string, waitingPlayerId: string) => void
+  onUndoBet?: (playerId: string) => void
+  onReplaceGuess?: (playerId: string, answer: number) => void
+  onExcuse?: (playerId: string) => void
 }) {
   const players = hostManagedPlayers(roster, waiting)
   const nums = tableNumbers(roster, tables)
@@ -382,11 +594,19 @@ export function HostPlayersPanel({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [armedId, setArmedId] = useState<string | null>(null)
   const [destinations, setDestinations] = useState<Record<string, number>>({})
+  const [query, setQuery] = useState('')
   const currentTable = feltTable != null && nums.includes(feltTable) ? feltTable : (nums[0] ?? null)
   const chairs = tables.find((table) => table.tableNum === currentTable)?.seats ?? []
   const felt = currentTable == null ? [] : feltSeatsForTable(currentTable, chairs, roster)
   const selected = players.find((player) => player.playerId === selectedId) ?? null
   const lines = selectedCardLines(selected, roster, waiting, tables, moves, correctAnswer)
+  const listed = alphabeticalPlayers(players, hostPlayerLabel)
+  const shown = matchingPlayers(listed, query, hostPlayerLabel)
+  const waitingPhones = connectedPhones(waiting, hostPlayerLabel)
+  const selectedTable = tables.find((table) => table.tableNum === (selected ? selected.tableNum : null))
+  const selectedPhase = selectedTable && selectedTable.phase ? selectedTable.phase : null
+  const guessLine = lines.find((line) => line.label === 'Guess')
+  const guessText = guessLine && /^\d/.test(guessLine.value) ? guessLine.value : ''
   if (players.length === 0) {
     return (
       <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-black/25 p-4" aria-label="Players">
@@ -402,7 +622,15 @@ export function HostPlayersPanel({
         <HostPlayerFelt
           tableNum={currentTable}
           tableNums={nums}
-          seats={felt}
+          seats={felt.map((seat) => ({
+            ...seat,
+            attention: attentionOf(
+              { playerId: seat.playerId, name: seat.name, tableNum: currentTable },
+              roster,
+              waiting,
+              tables,
+            ),
+          }))}
           selectedId={selectedId}
           hostPlayerLabel={hostPlayerLabel}
           onShowTable={setFeltTable}
@@ -411,16 +639,36 @@ export function HostPlayersPanel({
             setArmedId(null)
           }}
         />
-        <HostPlayerIndex
-          players={alphabeticalPlayers(players, hostPlayerLabel)}
-          selectedId={selectedId}
-          hostPlayerLabel={hostPlayerLabel}
-          onSelect={(player) => {
-            setSelectedId(player.playerId)
-            setArmedId(null)
-            if (player.tableNum != null) setFeltTable(player.tableNum)
-          }}
-        />
+        <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
+          <label className="text-xs font-semibold uppercase tracking-wide text-white/45">
+            Find a player
+            <input
+              aria-label="Find a player"
+              value={query}
+              onChange={(event) => {
+                const next = event.target.value
+                setQuery(next)
+                const hit = firstMatchingPlayer(listed, next, hostPlayerLabel)
+                if (hit == null) return
+                setSelectedId(hit.playerId)
+                setArmedId(null)
+                if (hit.tableNum != null) setFeltTable(hit.tableNum)
+              }}
+              className="mt-1 min-h-11 w-full rounded-md border border-white/20 bg-zinc-950 px-2 text-sm font-normal normal-case tracking-normal text-white"
+            />
+          </label>
+          <HostPlayerIndex
+            players={shown}
+            selectedId={selectedId}
+            hostPlayerLabel={hostPlayerLabel}
+            attentionFor={(player) => attentionOf(player, roster, waiting, tables)}
+            onSelect={(player) => {
+              setSelectedId(player.playerId)
+              setArmedId(null)
+              if (player.tableNum != null) setFeltTable(player.tableNum)
+            }}
+          />
+        </div>
       </div>
       <HostSelectedPlayer
         player={selected}
@@ -433,6 +681,17 @@ export function HostPlayersPanel({
           setDestinations((current) => ({ ...current, [selected.playerId]: tableNum }))
         }}
         onMove={onMove}
+        phase={selectedPhase}
+        guessText={guessText}
+        waitingPhones={waitingPhones}
+        onHandPhone={
+          selected && onHandPhone ? (waitingPlayerId) => onHandPhone(selected.playerId, waitingPlayerId) : undefined
+        }
+        onUndoBet={selected && onUndoBet ? () => onUndoBet(selected.playerId) : undefined}
+        onReplaceGuess={
+          selected && onReplaceGuess ? (answer) => onReplaceGuess(selected.playerId, answer) : undefined
+        }
+        onExcuse={selected && onExcuse ? () => onExcuse(selected.playerId) : undefined}
         onRemove={() => {
           if (selected == null) return
           if (armedId !== selected.playerId) {

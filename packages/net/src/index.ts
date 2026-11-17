@@ -530,6 +530,7 @@ export type HostVenueRosterSeat = {
   offlineSec?: number | null
   triviaPoints?: number
   allIn?: boolean
+  excused?: boolean
 }
 
 export type HostVenueFloorBriefPayload = {

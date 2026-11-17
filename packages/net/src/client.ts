@@ -806,6 +806,30 @@ export function movePlayerToTable(playerId: string, toTableNum: number, callback
   if (callback) socket.once('ack', callback)
 }
 
+export function undoPlayerBet(playerId: string, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'undoPlayerBet', payload: { playerId } })
+  if (callback) socket.once('ack', callback)
+}
+
+export function replacePlayerGuess(playerId: string, answer: number, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'replacePlayerGuess', payload: { playerId, answer } })
+  if (callback) socket.once('ack', callback)
+}
+
+export function excusePlayerGuess(playerId: string, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'excusePlayerGuess', payload: { playerId } })
+  if (callback) socket.once('ack', callback)
+}
+
+export function handSeatToPhone(playerId: string, waitingPlayerId: string, callback?: (ack: ServerAck) => void) {
+  if (!socket) return
+  socket.emit('action', { type: 'handSeatToPhone', payload: { playerId, waitingPlayerId } })
+  if (callback) socket.once('ack', callback)
+}
+
 export function setVenueHold(held: boolean, callback?: (ack: ServerAck) => void) {
   if (!socket) return
   socket.emit('action', { type: 'setVenueHold', payload: { held } })

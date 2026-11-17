@@ -31,6 +31,14 @@ export function unregisterPlayerSocket(socketId: string): string | undefined {
   return playerId
 }
 
+export function transferPlayerSocket(fromPlayerId: string, toPlayerId: string): string | undefined {
+  const socketId = playerIdToSocketId.get(fromPlayerId)
+  if (!socketId || fromPlayerId === toPlayerId) return undefined
+  playerIdToSocketId.delete(fromPlayerId)
+  registerPlayerSocket(toPlayerId, socketId)
+  return socketId
+}
+
 export function playerIdForSocket(socketId: string): string | undefined {
   return socketIdToPlayerId.get(socketId)
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hostPlayerCard, type HostPlayerCardInput } from './hostPlayerCard'
+import { firstMatchingPlayer, hostPlayerCard, playerAttention, type HostPlayerCardInput } from './hostPlayerCard'
 
 function card(over: Partial<HostPlayerCardInput> = {}) {
   return hostPlayerCard({
@@ -71,5 +71,18 @@ describe('hostPlayerCard', () => {
     expect(value(lines, 'Phone')).toBe('Connected')
     expect(value(lines, 'In the pot')).toBeUndefined()
     expect(value(lines, 'Turn')).toBeUndefined()
+  })
+})
+
+describe('player marks and find', () => {
+  it('dims an offline phone, rings the person to act, and leaves an empty guess unmarked until answering', () => {
+    expect(playerAttention({ phone: 'offline', toAct: true, phase: 'betting', guess: null, guessLocked: false })).toEqual({
+      offline: true,
+      toAct: true,
+      noGuess: false,
+    })
+    expect(playerAttention({ phone: 'connected', toAct: false, phase: 'answering', guess: null, guessLocked: false }).noGuess).toBe(true)
+    expect(firstMatchingPlayer([{ name: 'Ada' }, { name: 'Bo' }], 'bo', (name) => name)?.name).toBe('Bo')
+    expect(firstMatchingPlayer([{ name: 'Ada' }], '  ', (name) => name)).toBeNull()
   })
 })

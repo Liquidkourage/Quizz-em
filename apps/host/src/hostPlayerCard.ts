@@ -13,6 +13,7 @@ export type HostPlayerCardInput = {
   guessLocked: boolean
   triviaPoints: number | null
   correctAnswer: number | null
+  excused?: boolean
 }
 
 export type HostPlayerCardLine = { label: string; value: string }
@@ -46,6 +47,7 @@ function placeValue(tableNum: number | null, seatIndex: number | null): string {
 function guessValue(input: HostPlayerCardInput): string | null {
   const live = input.phase === 'answering' || input.phase === 'reveal' || input.phase === 'showdown'
   if (!live) return null
+  if (input.excused) return 'Excused'
   if (typeof input.guess === 'number' && Number.isFinite(input.guess)) return String(input.guess)
   if (input.guessLocked) return 'Locked'
   if (input.phase === 'answering') return 'Still open'
@@ -117,6 +119,7 @@ export function cardInputForPlayer(args: {
   playerName: string
   lastAction: string | null
   correctAnswer: number | null
+  excused?: boolean
 }): HostPlayerCardInput {
   const acting = args.actingName != null && namesMatch(args.actingName, args.playerName)
   return {
@@ -134,6 +137,7 @@ export function cardInputForPlayer(args: {
     guessLocked: args.seat?.guessLocked === true,
     triviaPoints: args.triviaPoints ?? null,
     correctAnswer: args.correctAnswer,
+    excused: args.excused,
   }
 }
 
@@ -147,4 +151,30 @@ export function lastStreetAction(
     (move) => move.tableNum === tableNum && move.kind !== 'submit' && namesMatch(move.playerName, playerName),
   )
   return hit?.summary ?? null
+}
+
+export function playerAttention(input: {
+  phone?: 'connected' | 'offline' | 'bot'
+  toAct: boolean
+  phase: string | null
+  guess: number | null
+  guessLocked: boolean
+}): { offline: boolean; toAct: boolean; noGuess: boolean } {
+  const guessing = input.phase === 'answering'
+  const sent = (typeof input.guess === 'number' && Number.isFinite(input.guess)) || input.guessLocked
+  return {
+    offline: input.phone === 'offline',
+    toAct: input.toAct,
+    noGuess: guessing && !sent,
+  }
+}
+
+export function firstMatchingPlayer<T extends { name: string }>(
+  players: readonly T[],
+  query: string,
+  label: (name: string) => string,
+): T | null {
+  const needle = query.trim().toLowerCase()
+  if (!needle) return null
+  return players.find((player) => label(player.name).toLowerCase().includes(needle)) ?? null
 }

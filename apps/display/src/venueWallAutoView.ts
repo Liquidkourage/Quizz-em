@@ -66,12 +66,18 @@ export function hostPinnedAudienceView(hostWallView: VenueWallViewMode | undefin
     hostWallView === 'leaderboard' ||
     hostWallView === 'leaderboard-trivia' ||
     hostWallView === 'seating-chart' ||
-    hostWallView === 'busts'
+    hostWallView === 'busts' ||
+    hostWallView === 'join'
   )
 }
 
+/** The host asked for the join wall. It stays up after the floor is live. */
+export function hostWantsJoinWall(hostWallView: VenueWallViewMode | undefined): boolean {
+  return hostWallView === 'join'
+}
+
 /**
- * Chip scores, trivia scores, seating, eliminations, and how-to-play stay up when the host selects them.
+ * Chip scores, trivia scores, seating, eliminations, the join wall, and how-to-play stay up when the host selects them.
  * Tables follows the hand. After payout the tables stay until the host picks another screen.
  */
 export function resolveAudienceWallView(

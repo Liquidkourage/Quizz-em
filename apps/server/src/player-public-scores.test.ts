@@ -60,7 +60,7 @@ describe('player public scores', () => {
   })
 
   it('stays off the phone for every other display mode', () => {
-    for (const wallView of ['floor', 'rules', 'event', 'seating-chart', 'busts']) {
+    for (const wallView of ['floor', 'rules', 'event', 'seating-chart', 'busts', 'join']) {
       expect(playerPublicScores(wallView, [], []).scoresBoard).toBeNull()
     }
   })

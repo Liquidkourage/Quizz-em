@@ -753,6 +753,8 @@ function HostApp() {
 
   const showVenueFloorOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'floor' })
+  const showJoinOnTvs = () =>
+    displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'join' })
   const showLeaderboardOnTvs = () =>
     displaySetLayout({ layout: 'venueWall', focusTable: null, wallView: 'leaderboard' })
   const showTriviaLeaderboardOnTvs = () =>
@@ -1232,6 +1234,7 @@ function HostApp() {
             onLeaderboard={showLeaderboardOnTvs}
             onTriviaLeaderboard={showTriviaLeaderboardOnTvs}
             onSeatingChart={showSeatingChartOnTvs}
+            onJoin={showJoinOnTvs}
             onEliminations={
               (venueFloorBrief?.lastHandBustCount ?? 0) > 0 ? showEliminationsOnTvs : undefined
             }

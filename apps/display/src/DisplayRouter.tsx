@@ -26,7 +26,7 @@ import EventOverviewWall from './EventOverviewWall.tsx'
 import { buildVenueWallTileRows, venueWallHasLiveTiles, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
-import { hostPinnedAudienceView, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
+import { hostPinnedAudienceView, hostWantsJoinWall, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import VenueBlindChange, { blindChangeFromPayload } from './VenueBlindChange.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
@@ -134,7 +134,8 @@ export default function DisplayRouter({
   const audienceBriefing =
     onVenueWallLayout &&
     !hostPinnedRules &&
-    (venueWall === null ||
+    (hostWantsJoinWall(hostWallView) ||
+      venueWall === null ||
       !hasFloorTables ||
       (venueWall.showAudienceWelcome !== false && !mosaicForcedByHost && !venueFloorIsLive))
 

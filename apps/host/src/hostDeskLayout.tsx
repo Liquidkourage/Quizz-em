@@ -2986,6 +2986,7 @@ export function HostTvBar({
   onTriviaLeaderboard,
   onSeatingChart,
   onEliminations,
+  onJoin,
   onSeatingRules,
   onEventOverview,
   lessonTransport = null,
@@ -2998,6 +2999,7 @@ export function HostTvBar({
   onTriviaLeaderboard?: () => void
   onSeatingChart?: () => void
   onEliminations?: () => void
+  onJoin?: () => void
   onSeatingRules: () => void
   onEventOverview?: () => void
   /** Previous, pause, and next for the lesson currently on the TVs. */
@@ -3017,8 +3019,11 @@ export function HostTvBar({
 }) {
   const modes: Array<{ id: VenueWallViewMode; label: string; onClick: () => void }> = [
     { id: 'floor', label: 'Tables', onClick: onVenueFloor },
-    { id: 'leaderboard', label: 'Chip scores', onClick: onLeaderboard },
   ]
+  if (onJoin) {
+    modes.push({ id: 'join', label: 'Join', onClick: onJoin })
+  }
+  modes.push({ id: 'leaderboard', label: 'Chip scores', onClick: onLeaderboard })
   if (onTriviaLeaderboard) {
     modes.push({ id: 'leaderboard-trivia', label: 'Best of the Rest', onClick: onTriviaLeaderboard })
   }

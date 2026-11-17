@@ -41,6 +41,7 @@ export type VenueWallViewMode =
   | 'event'
   | 'seating-chart'
   | 'busts'
+  | 'join'
 
 const VENUE_WALL_VIEWS: readonly VenueWallViewMode[] = [
   'floor',
@@ -50,6 +51,7 @@ const VENUE_WALL_VIEWS: readonly VenueWallViewMode[] = [
   'event',
   'seating-chart',
   'busts',
+  'join',
 ]
 
 export function isVenueWallView(value: unknown): value is VenueWallViewMode {

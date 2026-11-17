@@ -22,6 +22,7 @@ export function HostLivePanel({
   onTriviaLeaderboard,
   onSeatingChart,
   onEliminations,
+  onJoin,
   onSeatingRules,
   onEventOverview,
   lessonTransport = null,
@@ -49,6 +50,7 @@ export function HostLivePanel({
   onTriviaLeaderboard: () => void
   onSeatingChart?: () => void
   onEliminations?: () => void
+  onJoin?: () => void
   onSeatingRules: () => void
   onEventOverview?: () => void
   lessonTransport?: {
@@ -89,6 +91,7 @@ export function HostLivePanel({
           onTriviaLeaderboard={onTriviaLeaderboard}
           onSeatingChart={onSeatingChart}
           onEliminations={onEliminations}
+          onJoin={onJoin}
           onSeatingRules={onSeatingRules}
           onEventOverview={onEventOverview}
           lessonTransport={lessonTransport}
@@ -129,6 +132,7 @@ export function HostLivePanel({
           onTriviaLeaderboard={onTriviaLeaderboard}
           onSeatingChart={onSeatingChart}
           onEliminations={onEliminations}
+          onJoin={onJoin}
           onSeatingRules={onSeatingRules}
           onEventOverview={onEventOverview}
           lessonTransport={lessonTransport}

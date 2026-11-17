@@ -177,6 +177,22 @@ describe('audience TV controls', () => {
     expect(html).toContain('Eliminations')
   })
 
+  it('lets the host put the join wall back on the TVs', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostTvBar, {
+        activeView: 'join',
+        onVenueFloor: noop,
+        onLeaderboard: noop,
+        onTriviaLeaderboard: noop,
+        onSeatingRules: noop,
+        onJoin: noop,
+      }),
+    )
+    expect(html).toContain('>Join<')
+    expect(html).toMatch(/host-tv-mode-active[^>]*>Join/)
+    expect(html.indexOf('>Tables<')).toBeLessThan(html.indexOf('>Join<'))
+  })
+
   it('mentions scores when this hand has not shown them', () => {
     const html = renderToStaticMarkup(
       createElement(HostTvBar, {

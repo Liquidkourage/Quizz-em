@@ -62,6 +62,10 @@ describe('resolveAudienceWallView', () => {
     expect(resolveAudienceWallView('busts', 'floor')).toBe('busts')
   })
 
+  it('keeps the join wall up during a hand', () => {
+    expect(resolveAudienceWallView('join', 'floor')).toBe('join')
+  })
+
   it('lets Tables follow the automatic view', () => {
     expect(resolveAudienceWallView('floor', 'floor')).toBe('floor')
     expect(resolveAudienceWallView('floor', 'leaderboard')).toBe('leaderboard')

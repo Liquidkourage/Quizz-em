@@ -48,7 +48,10 @@ describe('HostPlayersPanel', () => {
       }),
     )
     const felt = html.slice(html.indexOf('host-player-felt'), html.indexOf('host-player-index'))
+    const at = felt.indexOf('Select Ada Lane')
+    const name = felt.slice(Math.max(0, at - 200), at + 700)
     expect(felt).toContain('opacity-40')
+    expect(name).toContain('min-h-11')
   })
 
   it('says the room is empty when nobody has joined', () => {

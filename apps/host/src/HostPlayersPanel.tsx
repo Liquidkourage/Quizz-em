@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
-import { cardInputForPlayer, firstMatchingPlayer, handHistoryText, hostPlayerCard, lastStreetAction, playerAttention, type HostHandLine } from './hostPlayerCard'
+import { cardInputForPlayer, firstMatchingPlayer, handHistoryText, handoffPhoneChoices, hostPlayerCard, lastStreetAction, playerAttention, undoBetOffered, type HostHandLine } from './hostPlayerCard'
 
 export type HostRosterSeat = {
   playerId: string
@@ -11,6 +11,8 @@ export type HostRosterSeat = {
   triviaPoints?: number
   allIn?: boolean
   excused?: boolean
+  handoff?: boolean
+  canUndoBet?: boolean
 }
 
 export type HostManagedPlayer = {
@@ -177,7 +179,7 @@ function HostPlayerFelt({
               aria-pressed={selected}
               onClick={() => onSelect(seat.playerId)}
               style={{ left: slot.left, top: slot.top }}
-              className={`absolute max-w-[9rem] -translate-x-1/2 -translate-y-1/2 rounded-full border px-2 py-1 text-sm font-semibold leading-tight ${
+              className={`absolute flex min-h-11 min-w-11 max-w-[9rem] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border px-3 text-sm font-semibold leading-tight ${
                 seat.attention?.offline ? 'opacity-40' : ''
               } ${seat.attention?.toAct ? 'ring-2 ring-amber-300' : ''} ${
                 seat.attention?.noGuess ? 'border-dashed' : ''
@@ -348,6 +350,7 @@ function GuessRuling({
 
 function HostPlayerRulings({
   phase,
+  canUndo,
   guessText,
   waitingPhones,
   onHandPhone,
@@ -356,6 +359,7 @@ function HostPlayerRulings({
   onExcuse,
 }: {
   phase: string | null
+  canUndo: boolean
   guessText: string
   waitingPhones: readonly { id: string; name: string }[]
   onHandPhone?: (waitingPlayerId: string) => void
@@ -366,7 +370,7 @@ function HostPlayerRulings({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <PhoneRuling phones={waitingPhones} onHand={onHandPhone} />
-      {phase === 'betting' && onUndoBet ? (
+      {undoBetOffered(phase, canUndo) && onUndoBet ? (
         <button
           type="button"
           className="min-h-11 rounded-md border border-sky-300/50 px-3 text-sm font-bold text-sky-100"
@@ -390,6 +394,7 @@ function HostSelectedPlayer({
   onMove,
   onRemove,
   phase,
+  canUndo,
   guessText,
   waitingPhones,
   onHandPhone,
@@ -407,6 +412,7 @@ function HostSelectedPlayer({
   onMove?: (playerId: string, toTableNum: number) => void
   onRemove: () => void
   phase: string | null
+  canUndo: boolean
   guessText: string
   waitingPhones: readonly { id: string; name: string }[]
   onHandPhone?: (waitingPlayerId: string) => void
@@ -438,6 +444,7 @@ function HostSelectedPlayer({
       <HostPlayerRulings
         key={player.playerId}
         phase={phase}
+        canUndo={canUndo}
         guessText={guessText}
         waitingPhones={waitingPhones}
         onHandPhone={onHandPhone}
@@ -569,15 +576,6 @@ function matchingPlayers(
   return listed.filter((player) => label(player.name).toLowerCase().includes(needle))
 }
 
-function connectedPhones(
-  waiting: readonly { id: string; name: string; phone?: HostRosterSeat['phone'] }[],
-  label: (name: string) => string,
-): { id: string; name: string }[] {
-  return waiting
-    .filter((row) => row.phone === 'connected')
-    .map((row) => ({ id: row.id, name: label(row.name) }))
-}
-
 export function HostPlayersPanel({
   roster,
   waiting = [],
@@ -628,7 +626,11 @@ export function HostPlayersPanel({
   const lines = selectedCardLines(selected, roster, waiting, tables, moves, correctAnswer)
   const listed = alphabeticalPlayers(players, hostPlayerLabel)
   const shown = matchingPlayers(listed, query, hostPlayerLabel)
-  const waitingPhones = connectedPhones(waiting, hostPlayerLabel)
+  const waitingPhones = handoffPhoneChoices(
+    waiting,
+    roster.map((seat) => ({ id: seat.playerId, name: seat.name, handoff: seat.handoff })),
+    hostPlayerLabel,
+  ).filter((phone) => phone.id !== selectedId)
   const selectedTable = tables.find((table) => table.tableNum === (selected ? selected.tableNum : null))
   const selectedPhase = selectedTable && selectedTable.phase ? selectedTable.phase : null
   const guessLine = lines.find((line) => line.label === 'Guess')
@@ -708,6 +710,7 @@ export function HostPlayersPanel({
         }}
         onMove={onMove}
         phase={selectedPhase}
+        canUndo={roster.some((seat) => seat.playerId === selectedId && seat.canUndoBet === true)}
         guessText={guessText}
         waitingPhones={waitingPhones}
         onHandPhone={

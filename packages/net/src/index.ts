@@ -544,6 +544,10 @@ export type HostVenueRosterSeat = {
   triviaPoints?: number
   allIn?: boolean
   excused?: boolean
+  /** A connected phone that arrived after seating and can take over a chair. */
+  handoff?: boolean
+  /** This seat's latest chip move can still be given back. */
+  canUndoBet?: boolean
 }
 
 export type HostVenueFloorBriefPayload = {

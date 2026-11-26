@@ -155,6 +155,7 @@ import {
   clearVenueHostLog,
   getVenueLastHandDisplay,
   recordVenueHostHandResults,
+  forgetLatestBetMove,
   recordVenueMovesBetweenStates,
   rememberVenueTriviaField,
   setVenueLastHandDisplay,
@@ -1521,13 +1522,17 @@ function applySeatRuling(
 }
 
 export function undoPlayerBet(venueCode: string, playerId: string) {
-  return applySeatRuling(
-    venueCode,
-    playerId,
-    (state) => undoLastChipMove(state, playerId),
-    'Bet returned. It is their turn.',
-    'There is no bet to give back.',
-  )
+  const found = findPlayerSessionInVenue(venueCode, playerId)
+  if (!found) return { ok: false as const, message: 'That player is not in this event.' }
+  const next = undoLastChipMove(found.gameState, playerId)
+  if (next === found.gameState) return { ok: false as const, message: 'There is no bet to give back.' }
+  const player = found.gameState.players.find((seat) => seat.id === playerId)
+  const vn = normalizeVenueCode(venueCode)
+  const tableNum = tableNumFromSessionKey(vn, found.sessionKey)
+  if (player && tableNum != null) forgetLatestBetMove(vn, tableNum, player.name)
+  rooms.set(found.sessionKey, next)
+  emitVenueTableState(found.sessionKey, next)
+  return { ok: true as const, message: 'Bet returned. It is their turn.' }
 }
 
 export function replacePlayerGuess(venueCode: string, playerId: string, answer: number) {
@@ -1550,6 +1555,10 @@ export function excusePlayerGuess(venueCode: string, playerId: string) {
   )
 }
 
+function isReplacementPhone(player: { pointsOnly?: boolean; ghostHostId?: string } | undefined): boolean {
+  return player?.pointsOnly === true && typeof player.ghostHostId === 'string' && player.ghostHostId.length > 0
+}
+
 function handoffRefusal(
   seatedPlayerId: string,
   waitingPlayerId: string,
@@ -1561,7 +1570,9 @@ function handoffRefusal(
     return 'Pick the seat and the new phone.'
   }
   if (!seated || !waiting) return 'Pick the seat and the new phone.'
-  if (!isLobbySessionKey(waiting.sessionKey)) return 'The new phone has to be in the waiting room.'
+  const phone = waiting.gameState.players.find((player) => player.id === waitingPlayerId)
+  const inLobby = isLobbySessionKey(waiting.sessionKey)
+  if (!inLobby && !isReplacementPhone(phone)) return 'The new phone has to be in the waiting room.'
   if (!connected) return 'That phone is not connected.'
   return null
 }
@@ -1580,15 +1591,19 @@ export function handSeatToPhone(
   if (!transferPlayerSocket(waitingPlayerId, seatedPlayerId)) {
     return { ok: false, message: 'That phone is not connected.' }
   }
-  rooms.set(waiting.sessionKey, removePlayer(waiting.gameState, waitingPlayerId))
+  const nextPhoneTable = removePlayer(waiting.gameState, waitingPlayerId)
+  rooms.set(waiting.sessionKey, nextPhoneTable)
   const data = sock.data as DisplaySockData
   data.viewerPlayerId = seatedPlayerId
   data.sessionKey = seated.sessionKey
   sock.leave(waiting.sessionKey)
   sock.join(seated.sessionKey)
-  const lobby = rooms.get(waiting.sessionKey)
-  if (lobby) emitVenueTableState(waiting.sessionKey, lobby)
-  emitVenueTableState(seated.sessionKey, seated.gameState)
+  if (waiting.sessionKey !== seated.sessionKey) {
+    emitVenueTableState(waiting.sessionKey, nextPhoneTable)
+    emitVenueTableState(seated.sessionKey, seated.gameState)
+  } else {
+    emitVenueTableState(seated.sessionKey, nextPhoneTable)
+  }
   const seatedName = seated.gameState.players.find((player) => player.id === seatedPlayerId)
   return { ok: true, message: `${shortPlayerName(seatedName ? seatedName.name : 'They')} is on the new phone.` }
 }
@@ -1703,6 +1718,8 @@ export function venueRosterSeats(venueCode: string, nowMs = Date.now()): {
   triviaPoints: number
   allIn: boolean
   excused: boolean
+  handoff: boolean
+  canUndoBet: boolean
 }[] {
   const out: {
     playerId: string
@@ -1713,9 +1730,12 @@ export function venueRosterSeats(venueCode: string, nowMs = Date.now()): {
     triviaPoints: number
     allIn: boolean
     excused: boolean
+    handoff: boolean
+    canUndoBet: boolean
   }[] = []
   for (const row of venuePlayableSnapshots(venueCode)) {
     if (!Number.isFinite(row.n)) continue
+    const undoId = row.gs.phase === 'betting' ? row.gs.round.undoChipMove?.playerId : undefined
     for (const player of row.gs.players) {
       const bot = player.id.startsWith('vp:')
       const connected = bot || Boolean(getSocketForPlayer(player.id)?.connected)
@@ -1728,6 +1748,8 @@ export function venueRosterSeats(venueCode: string, nowMs = Date.now()): {
         triviaPoints: player.answerPoints ?? 0,
         allIn: player.isAllIn === true,
         excused: player.answerExcused === true,
+        handoff: !bot && connected && player.pointsOnly === true && typeof player.ghostHostId === 'string' && player.ghostHostId.length > 0,
+        canUndoBet: undoId === player.id,
       })
     }
   }

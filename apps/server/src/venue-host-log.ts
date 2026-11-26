@@ -379,6 +379,16 @@ function pushMove(
   }
 }
 
+/** The host gave that bet back, so the desk should not still say it happened. */
+export function forgetLatestBetMove(vnRaw: string, tableNum: number, playerName: string): void {
+  const log = logForVenue(vnRaw.trim().toUpperCase())
+  const name = shortPlayerName(playerName)
+  const index = log.moveLog.findIndex(
+    (move) => move.tableNum === tableNum && move.kind !== 'submit' && move.playerName === name,
+  )
+  if (index >= 0) log.moveLog.splice(index, 1)
+}
+
 /** Diff two table states and append every new betting action / answer submit to the venue log. */
 export function recordVenueMovesBetweenStates(
   vnRaw: string,

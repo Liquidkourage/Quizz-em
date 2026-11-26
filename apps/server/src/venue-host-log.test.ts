@@ -11,6 +11,7 @@ import {
   triviaFieldSnapshotRows,
   getVenueLastHandDisplay,
   recordVenueHostHandResults,
+  forgetLatestBetMove,
   recordVenueMovesBetweenStates,
   setVenueLastHandDisplay,
   shortPlayerName,
@@ -143,6 +144,29 @@ describe('recordVenueMovesBetweenStates', () => {
     expect(brief.moveLog.every((m) => m.tableNum === 1)).toBe(true)
     expect(brief.bigBets).toHaveLength(0)
     expect(brief.wallView).toBe('floor')
+  })
+
+  it('drops the bet line after that bet is given back', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const afterCheck: GameState = {
+      ...before,
+      round: {
+        ...before.round,
+        lastSeatBettingAction: ['check', null],
+        currentPlayerIndex: 1,
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, before, afterCheck)
+    forgetLatestBetMove('LOG', 1, 'Alice C.')
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(brief.moveLog.some((move) => move.playerName.startsWith('Alice'))).toBe(false)
   })
 
   it('calls the first wager of an unopened street a bet', () => {

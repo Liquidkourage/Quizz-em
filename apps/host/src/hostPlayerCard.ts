@@ -141,6 +141,27 @@ export function cardInputForPlayer(args: {
   }
 }
 
+export function handoffPhoneChoices(
+  waiting: readonly { id: string; name: string; phone?: 'connected' | 'offline' | 'bot'; handoff?: boolean }[],
+  arrivals: readonly { id: string; name: string; handoff?: boolean }[],
+  label: (name: string) => string,
+): { id: string; name: string }[] {
+  const seen = new Set<string>()
+  const rows = [
+    ...waiting.filter((row) => row.phone === 'connected'),
+    ...arrivals.filter((row) => row.handoff === true),
+  ]
+  return rows.flatMap((row) => {
+    if (seen.has(row.id)) return []
+    seen.add(row.id)
+    return [{ id: row.id, name: label(row.name) }]
+  })
+}
+
+export function undoBetOffered(phase: string | null, canUndo: boolean): boolean {
+  return phase === 'betting' && canUndo
+}
+
 export function lastStreetAction(
   moves: readonly { tableNum: number; playerName: string; kind: string; summary: string }[],
   tableNum: number | null,

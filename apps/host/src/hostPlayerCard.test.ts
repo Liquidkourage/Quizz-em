@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { firstMatchingPlayer, handHistoryText, hostPlayerCard, playerAttention, type HostPlayerCardInput } from './hostPlayerCard'
+import { firstMatchingPlayer, handHistoryText, handoffPhoneChoices, hostPlayerCard, playerAttention, undoBetOffered, type HostPlayerCardInput } from './hostPlayerCard'
 
 function card(over: Partial<HostPlayerCardInput> = {}) {
   return hostPlayerCard({
@@ -104,5 +104,23 @@ describe('hand history text', () => {
     expect(text.title).toBe('Question 3')
     expect(text.prompt).toBe('How many moons?')
     expect(text.detail).toBe('Guess 14 · Off by 4 · Won $40 · Stack $520 · +60 points')
+  })
+})
+
+describe('host desk rulings', () => {
+  it('offers a late points phone when the waiting room is empty', () => {
+    expect(
+      handoffPhoneChoices(
+        [],
+        [{ id: 'human:dee', name: 'Dee Moss', handoff: true }],
+        (name) => name,
+      ),
+    ).toEqual([{ id: 'human:dee', name: 'Dee Moss' }])
+  })
+
+  it('offers undo only while that player still has a bet to give back', () => {
+    expect(undoBetOffered('betting', true)).toBe(true)
+    expect(undoBetOffered('betting', false)).toBe(false)
+    expect(undoBetOffered('answering', true)).toBe(false)
   })
 })

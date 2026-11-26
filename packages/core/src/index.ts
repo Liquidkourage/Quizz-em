@@ -2252,6 +2252,9 @@ function chipsOnHand(
   const putIn = before.round.handContributions?.[player.id] ?? 0
   const gain = stackAfter - player.bankroll
   if (player.hasFolded) return { chips: 'folded', amount: putIn }
+  if (player.answerExcused === true && gain <= putIn) {
+    return gain === putIn ? { chips: 'sat', amount: 0 } : { chips: 'lost', amount: putIn - gain }
+  }
   if (gain > 0) return { chips: 'won', amount: gain }
   if (putIn > 0) return { chips: 'lost', amount: putIn }
   return { chips: 'sat', amount: 0 }

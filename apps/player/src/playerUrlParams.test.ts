@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE } from '@qhe/net'
-import { playerJoinBoot, playerLeaveScreen, playerSessionCanResume, venueBriefAfterLeave } from './playerUrlParams'
+import { playerJoinBoot, playerLeaveScreen, playerSessionCanResume, adoptSeatedPlayer, venueBriefAfterLeave } from './playerUrlParams'
 
 describe('playerSessionCanResume', () => {
   it('reconnects a phone that already joined', () => {
@@ -102,5 +102,22 @@ describe('playerSessionCanResume', () => {
         playerId: 'human:ada',
       }),
     ).toBe(false)
+  })
+
+  it('keeps the chair on the phone the host just handed over', () => {
+    expect(
+      adoptSeatedPlayer(
+        {
+          firstName: 'Dee',
+          lastInitial: 'P',
+          roomCode: 'UXTEST',
+          autoSeat: true,
+          tableId: 'LOBBY',
+          playerId: 'human:dee',
+          departed: false,
+        },
+        'human:cara',
+      ),
+    ).toMatchObject({ playerId: 'human:cara', departed: false, roomClosed: false })
   })
 })

@@ -309,6 +309,10 @@ export function onEventLeft(callback: (info: { message: string }) => void) {
   return subscribeSocket('eventLeft', callback)
 }
 
+export function onTookSeat(callback: (info: { playerId: string }) => void) {
+  return subscribeSocket('tookSeat', callback)
+}
+
 export function onHostBoundTable(callback: (info: { tableId: string }) => void) {
   return subscribeSocket('hostBoundTable', callback)
 }

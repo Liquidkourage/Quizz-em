@@ -126,6 +126,11 @@ export function readPlayerJoinPrefs(): PlayerJoinBootstrap {
   }
 }
 
+/** The host gave this phone someone else's chair. Keep that seat on the next refresh. */
+export function adoptSeatedPlayer(prefs: PlayerJoinPrefs, playerId: string): PlayerJoinPrefs {
+  return { ...prefs, playerId, departed: false, roomClosed: false }
+}
+
 export function persistPlayerJoinPrefs(prefs: PlayerJoinPrefs): void {
   if (typeof window === 'undefined') return
   try {

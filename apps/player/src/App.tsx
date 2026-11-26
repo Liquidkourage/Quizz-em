@@ -8,6 +8,7 @@ import {
   onPlayerNudge,
   onSeated,
   onEventLeft,
+  onTookSeat,
   onPlayerVenueBrief,
   onPlayerPhasePreview,
   quitEvent,
@@ -34,6 +35,7 @@ import {
   venueBriefAfterLeave,
   readPlayerJoinPrefs,
   persistPlayerJoinPrefs,
+  adoptSeatedPlayer,
   playerDisplayNameFromPrefs,
   type PlayerJoinBootstrap,
 } from './playerUrlParams'
@@ -294,6 +296,16 @@ function PlayerApp() {
       setJoinNonce(0)
       disconnect()
     })
+    const offTookSeat = onTookSeat(({ playerId }) => {
+      if (cancelled || !playerId) return
+      departedRef.current = false
+      setActivePlayerId(playerId)
+      setJoinPrefs((prev) => {
+        const next = adoptSeatedPlayer(prev, playerId)
+        persistPlayerJoinPrefs(next)
+        return next
+      })
+    })
     const offBrief = onPlayerVenueBrief(setVenueBrief)
     const stopKeepalive = startConnectionKeepalive({ syncMs: 30_000 })
 
@@ -305,6 +317,7 @@ function PlayerApp() {
       offNudge()
       offSeated()
       offLeft()
+      offTookSeat()
       offBrief()
     }
   }, [socketKey, joinTableId, showToast])

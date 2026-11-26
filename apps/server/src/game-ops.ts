@@ -1586,6 +1586,7 @@ export function handSeatToPhone(
   const seated = findPlayerSessionInVenue(venueCode, seatedPlayerId)
   const waiting = findPlayerSessionInVenue(venueCode, waitingPlayerId)
   const sock = getSocketForPlayer(waitingPlayerId)
+  const previous = getSocketForPlayer(seatedPlayerId)
   const refusal = handoffRefusal(seatedPlayerId, waitingPlayerId, seated, waiting, sock?.connected === true)
   if (refusal || !seated || !waiting || !sock) return { ok: false, message: refusal ?? 'Pick the seat and the new phone.' }
   if (!transferPlayerSocket(waitingPlayerId, seatedPlayerId)) {
@@ -1598,6 +1599,11 @@ export function handSeatToPhone(
   data.sessionKey = seated.sessionKey
   sock.leave(waiting.sessionKey)
   sock.join(seated.sessionKey)
+  if (previous && previous.id !== sock.id) {
+    previous.emit('eventLeft', { message: 'The host moved this seat to another phone.' })
+    previous.leave(seated.sessionKey)
+  }
+  sock.emit('tookSeat', { playerId: seatedPlayerId })
   if (waiting.sessionKey !== seated.sessionKey) {
     emitVenueTableState(waiting.sessionKey, nextPhoneTable)
     emitVenueTableState(seated.sessionKey, seated.gameState)

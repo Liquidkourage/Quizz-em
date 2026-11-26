@@ -38,15 +38,36 @@ describe('handSeatToPhone', () => {
         ghostHostId: 'ada',
       }),
     })
+    const heard: { event: string; data: unknown }[] = []
+    const oldHeard: { event: string; data: unknown }[] = []
     const sock = {
+      id: 'dee-sock',
       connected: true,
       data: {} as { viewerPlayerId?: string; sessionKey?: string },
       join() {},
       leave() {},
-      emit() {},
+      emit(event: string, data: unknown) {
+        heard.push({ event, data })
+      },
+    }
+    const oldSock = {
+      id: 'ada-sock',
+      connected: true,
+      data: {},
+      join() {},
+      leave() {},
+      emit(event: string, data: unknown) {
+        oldHeard.push({ event, data })
+      },
     }
     const io = {
-      sockets: { adapter: { rooms: new Map() }, sockets: new Map([['dee-sock', sock]]) },
+      sockets: {
+        adapter: { rooms: new Map() },
+        sockets: new Map([
+          ['dee-sock', sock],
+          ['ada-sock', oldSock],
+        ]),
+      },
       to() {
         return { emit() {} }
       },
@@ -54,6 +75,7 @@ describe('handSeatToPhone', () => {
     bindGameIo(io as unknown as Server)
     initPlayerSocketRegistry(io as unknown as Server)
     registerPlayerSocket('dee', 'dee-sock')
+    registerPlayerSocket('ada', 'ada-sock')
 
     const handed = handSeatToPhone(venue, 'ada', 'dee')
 
@@ -61,5 +83,7 @@ describe('handSeatToPhone', () => {
     expect(rooms.get(key)?.players.map((player) => player.id)).toEqual(['ada'])
     expect(playerIdForSocket('dee-sock')).toBe('ada')
     expect(sock.data.viewerPlayerId).toBe('ada')
+    expect(heard).toContainEqual({ event: 'tookSeat', data: { playerId: 'ada' } })
+    expect(oldHeard.some((row) => row.event === 'eventLeft')).toBe(true)
   })
 })

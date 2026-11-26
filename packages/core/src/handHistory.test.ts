@@ -81,5 +81,7 @@ describe('hand history for one paid question', () => {
     const paid = endRound(before)
     expect(paid.players.find((player) => player.id === 'ada')?.bankroll).toBe(500)
     expect(paid.players.find((player) => player.id === 'bo')?.bankroll).toBe(500)
+    const ada = handHistoryForTable(before, paid, 2).find((line) => line.playerId === 'ada')
+    expect(ada).toMatchObject({ guessLabel: 'excused', chips: 'sat', amount: 0, stackAfter: 500 })
   })
 })

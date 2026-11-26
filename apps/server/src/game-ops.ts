@@ -2861,7 +2861,8 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
         false,
         (p) =>
           (typeof p.submittedAnswer === 'number' && Number.isFinite(p.submittedAnswer)) ||
-          p.answerForfeited === true,
+          p.answerForfeited === true ||
+          p.answerExcused === true,
       )
     }
     if (gs.phase === 'showdown' || gs.phase === 'reveal') {

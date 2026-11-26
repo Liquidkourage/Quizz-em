@@ -67,4 +67,19 @@ describe('hand history for one paid question', () => {
       stackAfter: 480,
     })
   })
+
+  it('returns the pot when the only player still in the hand is excused', () => {
+    const before = excuseGuess(
+      {
+        ...showdown(),
+        players: showdown().players.map((player) =>
+          player.id === 'bo' ? { ...player, hasFolded: true, submittedAnswer: undefined } : { ...player, submittedAnswer: undefined },
+        ),
+      },
+      'ada',
+    )
+    const paid = endRound(before)
+    expect(paid.players.find((player) => player.id === 'ada')?.bankroll).toBe(500)
+    expect(paid.players.find((player) => player.id === 'bo')?.bankroll).toBe(500)
+  })
 })

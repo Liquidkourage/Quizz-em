@@ -1952,7 +1952,7 @@ function unansweredPotRecipients(state: GameState, eligiblePlayerIds: readonly s
   }
   if (alive.length > 0) return alive;
   if (seated.length > 0) return seated;
-  return forfeited;
+  return forfeited.filter((id) => chipSeat(state, id)?.answerExcused !== true);
 }
 
 function payoutPotToEligibleSurvivors(state: GameState, eligiblePlayerIds: string[], amount: number): GameState {
@@ -2010,6 +2010,31 @@ function awardPotStillOnTable(state: GameState): GameState {
   return payoutPotToEligibleSurvivors(state, ids, state.round.pot);
 }
 
+/** Nobody left who can claim the pot. Give each contribution back. */
+function returnUnclaimedPot(state: GameState): GameState {
+  const pot = state.round.pot
+  if (pot <= 0) return state
+  const contributions = state.round.handContributions ?? {}
+  const ids = state.players.map((player) => player.id).filter((id) => (contributions[id] ?? 0) > 0)
+  const total = ids.reduce((sum, id) => sum + (contributions[id] ?? 0), 0)
+  if (ids.length === 0 || total <= 0) return state
+  let left = pot
+  const shares = new Map<string, number>()
+  ids.forEach((id, index) => {
+    const share = index === ids.length - 1 ? left : Math.floor((pot * (contributions[id] ?? 0)) / total)
+    shares.set(id, share)
+    left -= share
+  })
+  return {
+    ...state,
+    players: state.players.map((player) => {
+      const add = shares.get(player.id) ?? 0
+      return add > 0 ? { ...player, bankroll: player.bankroll + add } : player
+    }),
+    round: { ...state.round, pot: 0 },
+  }
+}
+
 function hasChipContributions(contributions: Record<string, number>): boolean {
   for (const value of Object.values(contributions)) {
     if (typeof value === 'number' && value > 0) return true
@@ -2048,6 +2073,7 @@ export function payoutHandWithSidePots(state: GameState): GameState {
     if (pot.amount > 0) s = payoutPotToEligibleSurvivors(s, pot.eligiblePlayerIds, pot.amount);
   }
   s = awardPotStillOnTable(s);
+  s = returnUnclaimedPot(s);
   return { ...s, round: { ...s.round, pot: 0 } };
 }
 
@@ -2075,9 +2101,8 @@ function payoutLegacySinglePot(state: GameState): GameState {
     state,
     state.players.map((player) => player.id),
   );
-  return recipients.length > 0
-    ? payoutPotSplitAmong(state, recipients)
-    : { ...state, round: { ...state.round, pot: 0 } };
+  const paid = recipients.length > 0 ? payoutPotSplitAmong(state, recipients) : state
+  return returnUnclaimedPot(paid)
 }
 
 export function payoutWinner(state: GameState, winnerId: string): GameState {

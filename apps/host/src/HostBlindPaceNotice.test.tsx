@@ -31,14 +31,15 @@ describe('HostBlindPaceNotice', () => {
     expect(html).toContain('Blind pace')
     expect(html).toContain('While the answer is up')
     expect(html).toContain('Now')
-    expect(html).toContain('Next level')
+    expect(html).toContain('Increase Blinds')
+    expect(html).toContain('Apply')
+    expect(html).not.toContain('Next level')
     expect(html).not.toContain('Closest increase')
     expect(html).not.toContain('Next level, closest')
     expect(html).not.toContain('Slow down')
     expect(html).toContain('120 min')
     expect(html).not.toContain('guessing guide')
     expect(html).not.toContain('level every')
-    expect(html).not.toContain('Apply')
   })
 
   it('offers Apply when a higher level is closer to the clock than the blinds in play', () => {

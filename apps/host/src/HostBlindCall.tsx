@@ -84,7 +84,7 @@ export function blindPaceRows(pace: BlindPace): {
   const rows: { label: string; estimate: BlindLevelEstimate; apply: boolean }[] = [
     { label: 'Now', estimate: pace.current, apply: false },
   ]
-  if (pace.nextLevel) rows.push({ label: 'Next level', estimate: pace.nextLevel, apply: false })
+  if (pace.nextLevel) rows.push({ label: 'Increase Blinds', estimate: pace.nextLevel, apply: true })
   if (pace.closestIncrease) {
     rows.push({ label: 'Closest increase', estimate: pace.closestIncrease, apply: true })
   }

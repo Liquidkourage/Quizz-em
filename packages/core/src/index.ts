@@ -1,5 +1,16 @@
 ﻿import { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
 import { assignGhostHosts } from './ghostHost'
+import { streetPlanFrom } from './streetPlan'
+
+export {
+  PUBLIC_CARD_COUNT,
+  ORIGINAL_STREET_PLAN,
+  SINGLE_STREET_PLAN,
+  SPLIT_32_STREET_PLAN,
+  acceptedStreetPlan,
+  streetPlanFrom,
+  nextStreetReveal,
+} from './streetPlan'
 
 export { pickLateEntryHost, seatGhostsBesideHosts } from './ghostHost'
 
@@ -102,7 +113,8 @@ export interface RoundState {
    */
   turnDeadlineMs?: number;
   // Betting state
-  bettingRound?: 1 | 2; // 1: pre-community, 2: post-community
+  /** 1-based street now being bet. The street plan says how many public cards each street reveals. */
+  bettingRound?: number;
   currentBet?: number; // highest bet to be matched in current betting round
   currentPlayerIndex?: number; // seat index of player to act, -1 when closed
   isBettingOpen?: boolean; // when false, actions disabled until host advances
@@ -134,6 +146,8 @@ export interface RoundState {
   lastFullRaiseAmount?: number;
   /** Host closed further bets and raises. Call, check, and fold still stand. */
   raisesClosed?: boolean;
+  /** Public cards revealed at the start of each betting street for this hand. Sum is 5. */
+  streetPlan?: number[];
 }
 
 /** Contestable pot layer — only `eligiblePlayerIds` may win it (trivia-closest at showdown). */
@@ -163,6 +177,8 @@ export interface GameState {
   players: PlayerState[];
   /** Players with no stack. They are not seated. Trivia scores only. */
   pointsStandings?: PointsStanding[];
+  /** How this venue splits the 5 public cards across betting streets. The next hand copies it onto the round. */
+  streetPlan?: number[];
 }
 
 /** A player who left the table with no stack. Ranked on the trivia scores, not at a seat. */
@@ -775,6 +791,8 @@ export function openBettingRound1(state: GameState): GameState {
   if (state.round.question == null) return state;
   if (!playersHaveHoleCards(state)) return state;
 
+  const plan = streetPlanFrom(state.streetPlan)
+  const openingCards = publicCards(plan[0] ?? 0)
   const playersWithHands = state.players;
   const chipSeatCount = chipContestantCount(playersWithHands);
   /** One seat left in the chips has already won the pot. Leave them to answer for points. */
@@ -785,7 +803,8 @@ export function openBettingRound1(state: GameState): GameState {
       players: playersWithHands,
       round: {
         ...state.round,
-        communityCards: [],
+        communityCards: openingCards,
+        streetPlan: plan,
         bettingRound: 1,
         currentBet: 0,
         currentPlayerIndex: -1,
@@ -855,7 +874,8 @@ export function openBettingRound1(state: GameState): GameState {
     players: playersAfterBlinds,
     round: {
       ...state.round,
-      communityCards: [],
+      communityCards: openingCards,
+      streetPlan: plan,
       bettingRound: 1,
       currentBet: Math.max(state.bigBlind, 0),
       currentPlayerIndex: isBettingOpen ? currentPlayerIndex : -1,
@@ -1194,14 +1214,24 @@ export function venueTileActingSeatIndex(
   return tileChairIndex(row.currentPlayerIndex) ?? tileChairIndex(row.actingSeatIndex);
 }
 
-/** After round-1 wagering is closed: deal five community cards and open round-2 wagering. */
+function publicCards(count: number): NumericCard[] {
+  const n = Math.max(0, Math.floor(count))
+  return Array.from({ length: n }, () => dealCard())
+}
+
+/** After this street's wagering is closed: reveal the next street's public cards and open that street. */
 export function dealCommunityCards(state: GameState): GameState {
   if (state.phase !== 'betting') return state;
-  if (state.round.bettingRound !== 1) return state;
   if (state.round.isBettingOpen) return state;
-  if ((state.round.communityCards?.length ?? 0) >= 5) return state;
+  const plan = streetPlanFrom(state.round.streetPlan ?? state.streetPlan)
+  const round = state.round.bettingRound ?? 1
+  const reveal = plan[round]
+  if (round < 1 || round >= plan.length || reveal == null) return state
+  const have = state.round.communityCards?.length ?? 0
+  const expected = plan.slice(0, round).reduce((sum, count) => sum + count, 0)
+  if (have !== expected || have + reveal > 5) return state
 
-  const communityCards: NumericCard[] = [dealCard(), dealCard(), dealCard(), dealCard(), dealCard()];
+  const communityCards = [...(state.round.communityCards ?? []), ...publicCards(reveal)]
 
   const findNextToAct = (): number => {
     const players = state.players;
@@ -1225,7 +1255,8 @@ export function dealCommunityCards(state: GameState): GameState {
     round: {
       ...state.round,
       communityCards,
-      bettingRound: 2,
+      streetPlan: plan,
+      bettingRound: round + 1,
       currentBet: 0,
       currentPlayerIndex: isBettingOpen ? currentPlayerIndex : -1,
       isBettingOpen,

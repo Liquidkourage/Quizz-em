@@ -234,16 +234,25 @@ export async function handleShowAction(
           break
         }
 
+        case 'setStreetPlan': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const streets = Array.isArray(payload?.streets) ? payload.streets : payload
+          if (!g.setVenueStreetPlan(gameState.code, streets)) {
+            socket.emit('toast', 'Public cards have to add up to 5.')
+            break
+          }
+          socket.emit('toast', `Betting streets set: ${g.venueStreetPlan(gameState.code).join(', ')} public cards.`)
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
         case 'dealCommunityCards': {
           if (!g.assertVenueHost(socket, gameState)) break
           const lockBoard = g.requireAllSeatedTablesSatisfy(
             socket,
             gameState.code,
-            (gs) =>
-              gs.phase === 'betting' &&
-              gs.round.bettingRound === 1 &&
-              (gs.round.communityCards?.length ?? 0) < 5,
-            'be in pre-board wagering (round 1, board empty) before dealing community cards',
+            (gs) => gs.phase === 'betting' && g.feltHasNextStreet(gs),
+            'finish the current street before dealing the next public cards',
           )
           if (!lockBoard) break
           if (lockBoard.some((r) => r.gs.round.isBettingOpen !== false)) {
@@ -268,9 +277,9 @@ export async function handleShowAction(
             (gs) =>
               gs.phase === 'betting' &&
               gs.round.isBettingOpen === false &&
-              gs.round.bettingRound === 2 &&
+              !g.feltHasNextStreet(gs) &&
               (gs.round.communityCards?.length ?? 0) >= 5,
-            'finish post-board wagering (clock closed) with a complete board before trivia answers open',
+            'finish the last betting street with all 5 public cards out before trivia answers open',
           )
           if (!lockAns) break
           const vn = g.normalizeVenueCode(gameState.code)

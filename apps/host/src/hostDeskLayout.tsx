@@ -21,6 +21,8 @@ import {
   livePotLayers,
   LOBBY_TABLE_ID,
   playersHaveHoleCards,
+  nextStreetReveal,
+  streetPlanFrom,
   VENUE_NUMBERED_TABLE_MAX,
 } from '@qhe/core'
 import { nowOnServerClock } from './serverClock'
@@ -494,10 +496,9 @@ function runOfShowStepFromBeatPhase(
       const open = m[2] === 'T'
       const cc = Number(m[3]) || 0
       if (open && br === '1') return 'close-bet-1'
-      if (open && br !== '1') return 'close-bet-2'
-      if (!open && br === '1' && cc < 5) return 'deal-board'
+      if (!open && cc < 5) return 'deal-board'
+      if (open) return 'close-bet-2'
       if (!open && cc >= 5) return 'start-answer'
-      if (!open && br === '2') return 'close-bet-2'
     }
     return 'close-bet-2'
   }
@@ -584,9 +585,10 @@ export function resolveRunOfShowCurrentStepId(gameState: GameState): RunOfShowSt
     return gameState.round.question != null ? 'start' : 'question'
   }
   if (phase === 'betting') {
+    const moreStreets = nextStreetReveal(streetPlanFrom(gameState.round.streetPlan ?? gameState.streetPlan), bettingRound) != null
     if (bettingOpen && bettingRound <= 1) return 'close-bet-1'
-    if (!bettingOpen && bettingRound === 1 && communityLen < 5) return 'deal-board'
-    if (bettingOpen && bettingRound >= 2) return 'close-bet-2'
+    if (!bettingOpen && moreStreets) return 'deal-board'
+    if (bettingOpen) return 'close-bet-2'
     if (communityLen >= 5 && !bettingOpen) return 'start-answer'
     if (!bettingOpen && communityLen < 5) return 'deal-board'
     return 'close-bet-2'
@@ -623,7 +625,7 @@ export function buildHostRunOfShowSteps(
     },
     'deal-board': {
       label: 'Deal the street',
-      hint: 'Deals the street on every table.',
+      hint: 'Deals the street on every table. Each street reveals the public cards you set for it.',
     },
     'close-bet-2': {
       label: 'Close betting (2nd round)',
@@ -733,6 +735,14 @@ export function hostRunOfShowHeadline(
   }
 
   return { title: current.label }
+}
+
+function streetDealLabel(gameState: GameState, bettingRound: number): string {
+  const reveal = nextStreetReveal(streetPlanFrom(gameState.round.streetPlan ?? gameState.streetPlan), bettingRound)
+  if (reveal == null || reveal === 5) return 'Deal the street'
+  if (reveal === 0) return 'Open the next street'
+  if (reveal === 1) return 'Deal 1 public card'
+  return `Deal ${reveal} public cards`
 }
 
 export function buildHostPhaseDockItems(args: {
@@ -934,7 +944,7 @@ export function buildHostPhaseDockItems(args: {
       const items: HostDockItem[] = [
         {
           id: 'close-bet',
-          label: bettingRound <= 1 ? 'Close 1st betting round' : 'Close 2nd betting round',
+          label: `Close street ${Math.max(1, bettingRound)}`,
           onClick: () => adminCloseBetting(),
           disabled: closeBetBlocked,
           variant: 'red',
@@ -954,7 +964,7 @@ export function buildHostPhaseDockItems(args: {
       return withRehearsalSkip([
         {
           id: 'deal-board',
-          label: 'Deal the street',
+          label: streetDealLabel(gameState, bettingRound),
           onClick: onDealCommunity,
           disabled: dealCommunityBlocked,
           variant: 'blue',

@@ -24,6 +24,9 @@ import {
   playersHaveHoleCards,
   dealInitialCards,
   dealCommunityCards,
+  nextStreetReveal,
+  streetPlanFrom,
+  acceptedStreetPlan,
   placeBet,
   foldPlayer,
   submitAnswer,
@@ -402,18 +405,46 @@ export function armVenueAnswerGuideDeadline(venueCode: string, fireAtMs: number)
   venueShowdownAtMs.set(normalizeVenueCode(venueCode), fireAtMs)
 }
 
-/** Deal five community cards on every seated pre-board felt (round 2 opens). */
+export function feltHasNextStreet(gs: GameState): boolean {
+  const plan = streetPlanFrom(gs.round.streetPlan ?? gs.streetPlan)
+  return nextStreetReveal(plan, gs.round.bettingRound ?? 1) != null
+}
+
+const venueStreetPlans = new Map<string, number[]>()
+
+/** The street plan for this venue. Missing means the original hand: bet, then all 5, then bet. */
+export function venueStreetPlan(venueCode: string): number[] {
+  return venueStreetPlans.get(normalizeVenueCode(venueCode)) ?? streetPlanFrom(undefined)
+}
+
+/** Remember how this venue splits the 5 public cards, including tables already open. */
+export function setVenueStreetPlan(venueCode: string, plan: number[]): boolean {
+  const accepted = acceptedStreetPlan(plan)
+  if (accepted == null) return false
+  const vn = normalizeVenueCode(venueCode)
+  venueStreetPlans.set(vn, accepted)
+  const keys = [
+    ...venuePlayableSnapshots(vn).map((row) => row.tk),
+    tableSessionKey(vn, LOBBY_TABLE_ID),
+  ]
+  for (const tk of keys) {
+    const gs = rooms.get(tk)
+    if (!gs) continue
+    const next = { ...gs, streetPlan: accepted }
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next)
+  }
+  return true
+}
+
+/** Deal the next street's public cards on every seated felt whose clock is closed. */
 export function dealCommunityBoardForVenue(vnRaw: string): boolean {
   const vn = normalizeVenueCode(vnRaw)
   const rows = venuePlayableSnapshots(vn)
   if (rows.length === 0) return false
 
   const ready = rows.every(
-    (r) =>
-      r.gs.phase === 'betting' &&
-      r.gs.round.bettingRound === 1 &&
-      (r.gs.round.communityCards?.length ?? 0) < 5 &&
-      r.gs.round.isBettingOpen === false,
+    (r) => r.gs.phase === 'betting' && r.gs.round.isBettingOpen === false && feltHasNextStreet(r.gs),
   )
   if (!ready) return false
 
@@ -2725,7 +2756,7 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
     if (phase === 'betting') {
       const br = typeof gs.round.bettingRound === 'number' ? Math.floor(gs.round.bettingRound) : 0
       const cc = gs.round.communityCards?.length ?? 0
-      street = br === 1 ? 'Pre-board' : br === 2 ? `Board ${cc}/5` : `Bet rnd ${br}`
+      street = `Street ${br} · ${cc}/5`
       if (gs.round.isBettingOpen === true) clock = 'Clock open'
       else if (gs.round.isBettingOpen === false) clock = 'Clock closed'
       else clock = 'Clock unclear'
@@ -3421,6 +3452,7 @@ export function openBettingAfterQuestionOnVenue(venueCode: string): boolean {
     let gs = rooms.get(tk)
     if (!gs || gs.phase !== 'question' || gs.round.question == null || gs.players.length === 0) continue
     if (!playersHaveHoleCards(gs)) continue
+    gs = { ...gs, streetPlan: venueStreetPlan(vn) }
     gs = openBettingRound1(gs)
     if (gs.phase !== 'betting') continue
     anyOpened = true

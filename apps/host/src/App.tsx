@@ -96,6 +96,7 @@ import { HostMosaicPreviewPanel } from './HostMosaicPreviewPanel'
 import { HostPlayerPhasePreviewPanel } from './HostPlayerPhasePreviewPanel'
 import { HostConnectedDisplays } from './HostConnectedDisplays'
 import { HostPlayersPanel } from './HostPlayersPanel'
+import { HostStreetPlan } from './HostStreetPlan'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
 import { HostLivePanel } from './HostLivePanel'
@@ -486,6 +487,12 @@ function HostApp() {
   const handleDealCommunityCards = () => {
     if (socket) {
       socket.emit('action', { type: 'dealCommunityCards' })
+    }
+  }
+
+  const handleStreetPlan = (streets: number[]) => {
+    if (socket) {
+      socket.emit('action', { type: 'setStreetPlan', payload: { streets } })
     }
   }
 
@@ -986,6 +993,10 @@ function HostApp() {
                       </NeonButton>
                     </div>
                   </section>
+                </HostCollapsible>
+
+                <HostCollapsible summary="Betting streets" className="mb-0">
+                  <HostStreetPlan plan={gameState.streetPlan} onApply={handleStreetPlan} />
                 </HostCollapsible>
 
                 <HostCollapsible summary="Overrides & hard reset" className="mb-0">

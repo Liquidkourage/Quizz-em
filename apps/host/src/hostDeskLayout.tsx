@@ -2660,7 +2660,7 @@ export function HostVenueFloorBriefPanel({
             {rows.length === 0 ? (
               <p className="text-sm text-white/50">No seated tables yet.</p>
             ) : (
-              <ul className="grid max-h-[calc(2*7.25rem+0.375rem)] grid-cols-[repeat(auto-fill,minmax(7.5rem,9rem))] justify-start gap-1.5 overflow-y-auto">
+              <ul className="grid max-h-[calc(2*3.25rem+0.375rem)] grid-cols-[repeat(auto-fill,minmax(7.5rem,9rem))] justify-start gap-1.5 overflow-y-auto">
                 {rows.map((row) => {
                   const onPublicDisplay = soloTable === row.tableNum
                   const cue = tableActionCue(row)
@@ -2709,65 +2709,67 @@ export function HostVenueFloorBriefPanel({
                       } ${onPublicDisplay ? 'ring-1 ring-sky-300/70' : ''}`}
                     >
                       <span className="flex items-baseline justify-between gap-1">
-                        <span className="text-base font-bold text-white/90">
+                        <span className="min-w-0 truncate text-sm font-bold leading-none text-white/90">
                           T{row.tableNum}
                           {onPublicDisplay ? (
-                            <span className="ml-1 text-xs font-semibold uppercase text-sky-200">
+                            <span className="ml-1 text-[0.65rem] font-semibold uppercase text-sky-200">
                               Focus
                             </span>
                           ) : null}
+                          {sinceLast != null && sinceLast !== '—' ? (
+                            <span
+                              className="ml-1 font-mono text-xs font-black tabular-nums text-sky-100"
+                              aria-label={`Last action ${sinceLast}`}
+                            >
+                              {sinceLast}
+                            </span>
+                          ) : null}
                         </span>
-                        {sinceLast != null && sinceLast !== '—' ? (
-                          <span
-                            className="font-mono text-base font-black tabular-nums text-sky-100"
-                            aria-label={`Last action ${sinceLast}`}
-                          >
-                            {sinceLast}
-                          </span>
-                        ) : null}
+                        <span className="shrink-0 font-mono text-sm font-bold leading-none tabular-nums text-emerald-100">
+                          <HostPotFigure pot={row.pot} seats={row.seats ?? []} />
+                        </span>
                       </span>
-                      <p className="font-mono text-base font-bold tabular-nums text-emerald-100">
-                        <HostPotFigure pot={row.pot} seats={row.seats ?? []} />
-                      </p>
-                      <p className="text-sm font-semibold">
-                        {cue.label}
-                        {answerSec != null ? (
-                          <span
-                            className={`ml-1 font-mono text-base font-black tabular-nums ${
-                              answerSec <= 10 ? 'text-rose-200' : 'text-amber-200'
-                            }`}
-                            aria-label={`Answer clock ${answerSec}`}
-                          >
-                            {answerSec}
+                      <span className="flex items-baseline justify-between gap-1 text-xs leading-none">
+                        <span className="min-w-0 truncate font-semibold">
+                          {cue.label}
+                          {answerSec != null ? (
+                            <span
+                              className={`ml-1 font-mono font-black tabular-nums ${
+                                answerSec <= 10 ? 'text-rose-200' : 'text-amber-200'
+                              }`}
+                              aria-label={`Answer clock ${answerSec}`}
+                            >
+                              {answerSec}
+                            </span>
+                          ) : null}
+                          {nudgeSec != null ? (
+                            <span
+                              className={`ml-1 font-mono font-black tabular-nums ${
+                                nudgeSec <= 10 ? 'text-rose-200' : 'text-amber-200'
+                              }`}
+                              aria-label={`Nudge clock ${nudgeSec}`}
+                            >
+                              {nudgeSec}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="shrink-0 tabular-nums text-white/55">
+                          <span className="font-semibold text-emerald-200/85">
+                            {row.inPotCount ?? 0} in pot
                           </span>
-                        ) : null}
-                        {nudgeSec != null ? (
-                          <span
-                            className={`ml-1 font-mono text-base font-black tabular-nums ${
-                              nudgeSec <= 10 ? 'text-rose-200' : 'text-amber-200'
-                            }`}
-                            aria-label={`Nudge clock ${nudgeSec}`}
-                          >
-                            {nudgeSec}
-                          </span>
-                        ) : null}
-                      </p>
+                          {(row.pointsOnlyCount ?? 0) > 0 ? (
+                            <span className="font-semibold text-amber-200/85">
+                              {' · '}
+                              {row.pointsOnlyCount} out
+                            </span>
+                          ) : null}
+                        </span>
+                      </span>
                       {nudgeName ? (
-                        <p className="truncate text-sm font-semibold text-amber-50">
+                        <p className="truncate text-xs font-semibold leading-none text-amber-50">
                           {hostPlayerLabel(nudgeName)}
                         </p>
                       ) : null}
-                      <p className="text-sm tabular-nums text-white/50">
-                        <span className="font-semibold text-emerald-200/85">
-                          {row.inPotCount ?? 0} in pot
-                        </span>
-                        {(row.pointsOnlyCount ?? 0) > 0 ? (
-                          <span className="font-semibold text-amber-200/85">
-                            {' · '}
-                            {row.pointsOnlyCount} out
-                          </span>
-                        ) : null}
-                      </p>
                     </button>
                     </TableActionHoverFrame>
                     </li>

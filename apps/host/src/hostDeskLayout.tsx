@@ -14,6 +14,7 @@ import type {
   VenueWallViewMode,
 } from '@qhe/net'
 import {
+  answerRevealWarning,
   disambiguatePublicNames,
   displayedMainPot,
   shownTriviaNumber,
@@ -1137,7 +1138,11 @@ export function HostLiveStatusLine({
       ) : null}
       {phase === 'answering' ? (
         <span className="font-mono text-base font-bold tabular-nums text-casino-gold">
-          {Math.max(0, Math.ceil(((gameState.round.answerDeadline ?? 0) - nowOnServerClock()) / 1000))}s left
+          {typeof gameState.round.answerRevealAt === 'number'
+            ? answerRevealWarning(
+                Math.max(0, Math.ceil((gameState.round.answerRevealAt - nowOnServerClock()) / 1000)),
+              )
+            : `${Math.max(0, Math.ceil(((gameState.round.answerDeadline ?? 0) - nowOnServerClock()) / 1000))}s left`}
         </span>
       ) : null}
       {phase === 'showdown' && typeof question?.answer === 'number' ? (
@@ -3349,6 +3354,7 @@ export function HostAnswerClock({
   const [, setTick] = useState(0)
   const now = nowMs ?? nowOnServerClock()
   const nudge = soonestNudgeSeconds(rows, now)
+  const revealing = nudge == null && rows?.some((row) => row.answerRevealSoon === true) === true
   const answer = nudge == null ? soonestAnswerSeconds(rows, now) : null
   const seconds = nudge ?? answer
   const waiting = playersStillWaitedOn(rows)
@@ -3359,8 +3365,8 @@ export function HostAnswerClock({
   }, [nowMs, seconds])
   if (seconds == null) return null
   const urgent = seconds <= 10
-  const name = nudge != null ? 'Nudge' : 'Answer clock'
-  const label = waiting > 0 ? `${name} (${waiting})` : name
+  const name = nudge != null ? 'Nudge' : revealing ? 'Answer reveals' : 'Answer clock'
+  const label = waiting > 0 && !revealing ? `${name} (${waiting})` : name
   return (
     <div
       className={`flex w-32 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 ${
@@ -3369,7 +3375,11 @@ export function HostAnswerClock({
           : 'border-amber-300/75 bg-amber-950/45'
       }`}
       aria-live="polite"
-      aria-label={`${seconds} seconds left on the ${nudge != null ? 'nudge' : 'answer clock'}`}
+      aria-label={
+        revealing
+          ? `The answer reveals in ${seconds} seconds`
+          : `${seconds} seconds left on the ${nudge != null ? 'nudge' : 'answer clock'}`
+      }
     >
       <span
         className={`text-center text-[0.65rem] font-bold uppercase leading-tight text-amber-100/85 ${

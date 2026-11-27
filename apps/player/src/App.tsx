@@ -27,7 +27,7 @@ import {
   type SocketConnectionStatus,
 } from '@qhe/net'
 import { PLAYER_NEW_GAME_MESSAGE, PLAYER_ROOM_CLOSED_MESSAGE, type PlayerGameStateWire, type PlayerVenueBrief } from '@qhe/net'
-import { LOBBY_TABLE_ID, answerCompositionForPlayer, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, mayLockGuess, type PlayerPhasePreviewId } from '@qhe/core'
+import { LOBBY_TABLE_ID, answerCompositionForPlayer, answerRevealWarning, canPreloadTriviaAnswer, chipContestantCount, displayedMainPot, inChipContest, mayLockGuess, type PlayerPhasePreviewId } from '@qhe/core'
 import { recordServerClockSample } from './serverClock'
 import {
   playerJoinBoot,
@@ -422,6 +422,11 @@ function PlayerApp() {
   const handSummary = useHandSummary(gameState, currentPlayer)
   const tableResults = useTableResults(gameState, currentPlayer?.id ?? joinPrefs.playerId)
   const phoneClocks = phoneClockDeadlines(gameState, currentPlayer)
+  const revealAt =
+    gameState?.phase === 'answering' && typeof gameState.round.answerRevealAt === 'number'
+      ? gameState.round.answerRevealAt
+      : null
+  const revealSec = useAnswerCountdown(revealAt)
   const remainingSec = useAnswerCountdown(phoneClocks.answer)
   const nudgeRemainingSec = useAnswerCountdown(phoneClocks.nudge)
   const turnRemainingSec = useAnswerCountdown(
@@ -850,6 +855,10 @@ function PlayerApp() {
             {venueBrief?.venueHeld ? (
               <p className="player-game-strip" role="status">
                 Hold — we'll resume in a moment. Bets and guesses are paused.
+              </p>
+            ) : revealSec != null ? (
+              <p className="player-game-strip" role="status">
+                {answerRevealWarning(revealSec)}
               </p>
             ) : (
               <PlayerForfeitStrip

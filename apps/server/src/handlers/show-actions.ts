@@ -287,7 +287,7 @@ export async function handleShowAction(
           const durationSec = g.resolveAnswerWindowSecondsForStart(vn, payload)
           const durationMs = durationSec * 1000
           const deadlineMs2 = Date.now() + durationMs
-          g.armVenueAnswerGuideDeadline(vn, deadlineMs2)
+          g.beginAnswerWindow(vn, deadlineMs2)
           for (const { tk } of lockAns) {
             let gs = g.rooms.get(tk)!
             gs = {
@@ -299,6 +299,7 @@ export async function handleShowAction(
             g.rooms.set(tk, gs)
             g.emitVenueTableState(tk, gs, { skipOrchestration: true })
           }
+          g.closeGuessingIfReady(vn)
           gameState = g.rooms.get(sessionKey)!
           break
         }
@@ -334,7 +335,7 @@ export async function handleShowAction(
             socket.emit('ack', { ok: false, message: 'Not accepting answers right now.' })
             break
           }
-          // Guide countdown may hit 0; answers stay open until host revealAnswer.
+          // The guide and a full set of guesses close the window, then the answer reveals itself.
           if (
             !g.isSubmittedAnswerComposableFromDeal(
               gameState,

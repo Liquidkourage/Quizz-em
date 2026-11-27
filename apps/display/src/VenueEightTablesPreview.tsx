@@ -3084,6 +3084,7 @@ function VenueBroadcastHeadlineStrip({
   headlineAnswering,
   inAnsweringCountdown,
   answerDeadlineMs,
+  answerRevealSoon = false,
   answerSubmitCount = null,
   answerEligibleCount = null,
 }: {
@@ -3103,6 +3104,7 @@ function VenueBroadcastHeadlineStrip({
   headlineAnswering: boolean
   inAnsweringCountdown: boolean
   answerDeadlineMs: number | null
+  answerRevealSoon?: boolean
   answerSubmitCount?: number | null
   answerEligibleCount?: number | null
 }) {
@@ -3193,10 +3195,14 @@ function VenueBroadcastHeadlineStrip({
               : 'border-cyan-600/35 bg-cyan-950/25'
           }`}
           aria-live="polite"
-          aria-label={`Time to guess, ${timerSeconds} seconds`}
+          aria-label={
+            answerRevealSoon
+              ? `The answer reveals in ${timerSeconds} seconds`
+              : `Time to guess, ${timerSeconds} seconds`
+          }
         >
           <span className="vfd-broadcast-answer-prompt font-black uppercase tracking-wide text-cyan-100/90">
-            Time to guess
+            {answerRevealSoon ? 'Answer reveals in' : 'Time to guess'}
           </span>
           <div
             className={`${questionTimerClass} font-mono font-black tabular-nums tracking-tight${
@@ -3215,7 +3221,7 @@ function VenueBroadcastHeadlineStrip({
           }`}
         >
           <span className="vfd-broadcast-answer-prompt font-black uppercase tracking-wide text-cyan-100/90">
-            Answer on your phone
+            {answerRevealSoon ? 'Answer reveals in' : 'Answer on your phone'}
           </span>
           {typeof answerSubmitCount === 'number' &&
           typeof answerEligibleCount === 'number' &&
@@ -3547,6 +3553,7 @@ function VenueFloorHeadlineAside({
   othersStillWagering,
   answerSubmitCount,
   answerEligibleCount,
+  answerRevealSoon = false,
 }: {
   answerDeadlineMs: number | null
   headlineAnsweringUnified: boolean
@@ -3561,6 +3568,7 @@ function VenueFloorHeadlineAside({
   othersStillWagering: boolean
   answerSubmitCount: number | null
   answerEligibleCount: number | null
+  answerRevealSoon?: boolean
 }) {
   const timerSeconds = useAnswerSecondsLeft(inAnsweringCountdown ? answerDeadlineMs : null, 250)
   const headlineTimerOnly =
@@ -3624,14 +3632,23 @@ function VenueFloorHeadlineAside({
         </div>
       ) : headlineTimerOnly ? (
         <div
-          className={`flex shrink-0 items-center justify-center rounded-xl border px-3 py-1.5 sm:px-4 sm:py-2 ${
+          className={`flex shrink-0 flex-col items-center justify-center rounded-xl border px-3 py-1.5 sm:px-4 sm:py-2 ${
             timerSeconds <= 10
               ? 'border-cyan-400/55 bg-cyan-950/45 shadow-[0_0_24px_rgba(34,211,238,0.16)]'
               : 'border-cyan-600/35 bg-cyan-950/25'
           }`}
           aria-live="polite"
-          aria-label={`${timerSeconds} seconds remaining to answer`}
+          aria-label={
+            answerRevealSoon
+              ? `The answer reveals in ${timerSeconds} seconds`
+              : `${timerSeconds} seconds remaining to answer`
+          }
         >
+          {answerRevealSoon ? (
+            <span className={`text-center font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
+              Answer reveals in
+            </span>
+          ) : null}
           <div
             className={`venue-headline-answer-timer font-mono font-black tabular-nums tracking-tight${
               timerSeconds <= 10 ? ' venue-answer-timer--urgent' : ''
@@ -3657,7 +3674,7 @@ function VenueFloorHeadlineAside({
           }
         >
           <span className={`text-center font-black uppercase tracking-wide text-cyan-100/90 ${DISPLAY_TEXT_HEADLINE_BADGE}`}>
-            Answer on your phone
+            {answerRevealSoon ? 'Answer reveals in' : 'Answer on your phone'}
           </span>
           {typeof answerSubmitCount === 'number' &&
           typeof answerEligibleCount === 'number' &&
@@ -3708,6 +3725,7 @@ export default function VenueEightTablesPreview({
   const prefersReducedMotion = usePrefersReducedMotion()
   const headlineQuestionText = wall?.headlineQuestionText ?? null
   const answerDeadlineMs = wall?.answerDeadlineMs ?? null
+  const answerRevealSoon = wall?.answerRevealSoon === true
   const setlistCueNumber = wall?.setlistCueNumber ?? null
   const setlistCueTotal = wall?.setlistCueTotal ?? null
   const showSetlistCue =
@@ -3884,6 +3902,7 @@ export default function VenueEightTablesPreview({
                   headlineAnswering={headlineAnswering}
                   inAnsweringCountdown={inAnsweringCountdown}
                   answerDeadlineMs={answerDeadlineMs}
+                  answerRevealSoon={answerRevealSoon}
                   answerSubmitCount={wall?.answerSubmitCount ?? null}
                   answerEligibleCount={wall?.answerEligibleCount ?? null}
                 />
@@ -3950,7 +3969,7 @@ export default function VenueEightTablesPreview({
                     <p className="sr-only">Showdown in progress.</p>
                   ) : inAnsweringCountdown ? (
                     <p className="text-left text-lg font-bold leading-snug tracking-tight text-cyan-200 sm:text-xl">
-                      Answer on your phone now
+                      {answerRevealSoon ? 'The answer reveals in 5 seconds.' : 'Answer on your phone now'}
                     </p>
                   ) : (
                     <p className="sr-only">Answering in progress.</p>
@@ -3971,6 +3990,7 @@ export default function VenueEightTablesPreview({
                   othersStillWagering={othersStillWagering}
                   answerSubmitCount={wall?.answerSubmitCount ?? null}
                   answerEligibleCount={wall?.answerEligibleCount ?? null}
+                  answerRevealSoon={answerRevealSoon}
                 />
                 </div>
               </motion.div>

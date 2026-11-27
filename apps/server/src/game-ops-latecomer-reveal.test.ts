@@ -75,15 +75,12 @@ describe('revealVenueAnswersTogether with a card-less latecomer', () => {
     expect(toasts[0]).toContain('still guessing')
   })
 
-  it('reveals when the chip players have guessed and a points-only player with cards has not', () => {
+  it('waits for a points-only player who was dealt cards', () => {
     answeringTable('LR3', { bobGuessed: true, caraHand: cards(5, 6) })
     const { socket, toasts } = host()
-    expect(revealVenueAnswersTogether(socket, 'lr3')).toBe(true)
-    const cara = rooms.get(tableSessionKey('LR3', '1'))!.players.find((player) => player.id === 'cara')
-    expect(rooms.get(tableSessionKey('LR3', '1'))!.phase).toBe('reveal')
-    expect(cara?.answerForfeited).toBe(true)
-    expect(cara?.submittedAnswer).toBeUndefined()
-    expect(toasts).toEqual([])
+    expect(revealVenueAnswersTogether(socket, 'lr3')).toBe(false)
+    expect(rooms.get(tableSessionKey('LR3', '1'))!.phase).toBe('answering')
+    expect(toasts[0]).toContain('still guessing')
   })
 
   it('keeps a points-only guess that was locked before reveal', () => {

@@ -418,7 +418,13 @@ type DisplayTableLiveProps = {
 }
 
 /** Hero question-strip clock. Ticks here so the felt does not re-render every 200 ms. */
-function DisplayQuestionStripTimer({ deadlineMs }: { deadlineMs: number | null }) {
+function DisplayQuestionStripTimer({
+  deadlineMs,
+  revealSoon = false,
+}: {
+  deadlineMs: number | null
+  revealSoon?: boolean
+}) {
   const answerSecondsLeft = useAnswerSecondsLeft(deadlineMs, 200)
   return (
     <div
@@ -428,7 +434,9 @@ function DisplayQuestionStripTimer({ deadlineMs }: { deadlineMs: number | null }
           : 'border-yellow-500/25 bg-yellow-950/20'
       }`}
     >
-      <div className="text-lg font-bold uppercase tracking-widest text-white/75 sm:text-xl">Time left</div>
+      <div className="text-lg font-bold uppercase tracking-widest text-white/75 sm:text-xl">
+        {revealSoon ? 'Answer reveals in' : 'Time left'}
+      </div>
       <motion.div
         key={answerSecondsLeft ?? 'wait'}
         className={`tabular-nums text-7xl font-black sm:text-8xl md:text-9xl ${
@@ -1292,7 +1300,13 @@ function DisplayTableLive({
     (typeof fallbackQuestionText === 'string' && fallbackQuestionText.trim() !== ''
       ? fallbackQuestionText.trim()
       : null)
+  const answerRevealAt =
+    displayGameState.phase === 'answering' &&
+    typeof displayGameState.round.answerRevealAt === 'number'
+      ? displayGameState.round.answerRevealAt
+      : null
   const effectiveAnswerDeadlineMs =
+    answerRevealAt ??
     (displayGameState.phase === 'answering' &&
       typeof displayGameState.round.answerDeadline === 'number'
       ? displayGameState.round.answerDeadline
@@ -1426,7 +1440,7 @@ function DisplayTableLive({
               </div>
 
               {showQuestionStripTimer ? (
-                <DisplayQuestionStripTimer deadlineMs={effectiveAnswerDeadlineMs} />
+                <DisplayQuestionStripTimer deadlineMs={effectiveAnswerDeadlineMs} revealSoon={answerRevealAt != null} />
               ) : null}
             </div>
           </motion.div>

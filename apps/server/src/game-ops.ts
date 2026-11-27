@@ -38,8 +38,11 @@ import {
   inferAnswerComposition,
   PLAYER_ANSWER_DIGIT_CARD_COUNT,
   revealAnswer,
+  ANSWER_REVEAL_WARNING_MS,
   answerRevealOpen,
   answerRevealWaitLabel,
+  answerRevealWarning,
+  guessingWindowClosed,
   advanceRevealToShowdown,
   endRound,
   setRaisesClosed,
@@ -400,9 +403,45 @@ export function scheduleVenueRevealToShowdown(venueCode: string) {
   }
 }
 
-/** Remember the soft answer-guide deadline for lockstep UI; do not auto-close answers. */
+const answerWindowTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const answerRevealTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const answerRevealStarted = new Set<string>()
+
+export function clearAnswerRevealClocks(): void {
+  for (const timer of answerWindowTimers.values()) clearTimeout(timer)
+  for (const timer of answerRevealTimers.values()) clearTimeout(timer)
+  answerWindowTimers.clear()
+  answerRevealTimers.clear()
+  answerRevealStarted.clear()
+}
+
+function cancelAnswerRevealTimer(vn: string): void {
+  const timer = answerRevealTimers.get(vn)
+  if (timer) clearTimeout(timer)
+  answerRevealTimers.delete(vn)
+}
+
+/** A new guessing window forgets a warning left over from the previous hand. */
+export function beginAnswerWindow(venueCode: string, fireAtMs: number): void {
+  const vn = normalizeVenueCode(venueCode)
+  cancelAnswerRevealTimer(vn)
+  answerRevealStarted.delete(vn)
+  armVenueAnswerGuideDeadline(vn, fireAtMs)
+}
+
+/** Remember the answer-guide deadline and close guessing when it runs out. */
 export function armVenueAnswerGuideDeadline(venueCode: string, fireAtMs: number) {
-  venueShowdownAtMs.set(normalizeVenueCode(venueCode), fireAtMs)
+  const vn = normalizeVenueCode(venueCode)
+  venueShowdownAtMs.set(vn, fireAtMs)
+  const prev = answerWindowTimers.get(vn)
+  if (prev) clearTimeout(prev)
+  const timer = setTimeout(() => {
+    answerWindowTimers.delete(vn)
+    if (isVenueHeld(vn)) return
+    maybeStartAnswerReveal(vn)
+  }, Math.max(0, fireAtMs - Date.now()))
+  timer.unref?.()
+  answerWindowTimers.set(vn, timer)
 }
 
 export function feltHasNextStreet(gs: GameState): boolean {
@@ -1368,6 +1407,7 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
     if (venueHeld.has(vn)) return true
     venueHeld.add(vn)
     venueHoldStartedAtMs.set(vn, Date.now())
+    cancelAnswerRevealTimer(vn)
     for (const { tk } of venuePlayableSnapshots(vn)) {
       clearHumanTurnTimerHandle(tk)
     }
@@ -1385,6 +1425,7 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
   }
   resumeOpenGuessNudge(vn)
   restoreAnswerGuideIfGuessing(vn)
+  resumeAnswerRevealWarning(vn)
   emitDisplayVenueSnapshotNow(vn)
   return false
 }
@@ -1425,6 +1466,7 @@ function resumeHeldTable(vn: string, tk: string, gs: GameState, elapsed: number)
       round: {
         ...gs.round,
         answerDeadline: answerDeadline + elapsed,
+        answerRevealAt: shiftEpoch(gs.round.answerRevealAt, elapsed),
         guessNudgeDeadline: shiftEpoch(gs.round.guessNudgeDeadline, elapsed),
       },
     }
@@ -1866,7 +1908,10 @@ export function commitTableAdvance(
   }
   rooms.set(sessionKey, after)
   emitVenueTableState(sessionKey, after, opts)
-  if (after.phase === 'answering') releaseGuessNudgeWhenEveryoneHasGuessed(vn)
+  if (after.phase === 'answering') {
+    releaseGuessNudgeWhenEveryoneHasGuessed(vn)
+    maybeStartAnswerReveal(vn)
+  }
 }
 
 /**
@@ -2534,6 +2579,80 @@ export function setOneTablePhase(
   return { ok: true, tableNum, signature }
 }
 
+function guessingSeats(gs: GameState): GameState['players'] {
+  return gs.players.slice(0, VENUE_WALL_SEAT_COUNT)
+}
+
+function windowClosedOn(gs: GameState, nowMs: number): boolean {
+  const deadline = gs.round.answerDeadline
+  const deadlineMs = typeof deadline === 'number' && Number.isFinite(deadline) ? deadline : null
+  return guessingWindowClosed({ deadlineMs, nowMs, seats: guessingSeats(gs) })
+}
+
+/** After a guess lands, or when guessing opens, start the five-second warning once the window is closed. */
+export function closeGuessingIfReady(venueCode: string): void {
+  maybeStartAnswerReveal(venueCode)
+}
+
+function maybeStartAnswerReveal(vnRaw: string): void {
+  const vn = normalizeVenueCode(vnRaw)
+  if (answerRevealStarted.has(vn) || isVenueHeld(vn)) return
+  const rows = venuePlayableSnapshots(vn)
+  if (rows.length === 0 || rows.some((row) => row.gs.phase !== 'answering')) return
+  const nowMs = Date.now()
+  if (!rows.every((row) => windowClosedOn(row.gs, nowMs))) return
+  answerRevealStarted.add(vn)
+  const revealAt = nowMs + ANSWER_REVEAL_WARNING_MS
+  for (const { tk, gs } of rows) {
+    const closed = forfeitOpenGuesses(gs)
+    const next = { ...closed, round: { ...closed.round, answerRevealAt: revealAt } }
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next, { skipOrchestration: true })
+  }
+  io.to(hostVenueRoom(vn)).emit('toast', answerRevealWarning(5))
+  emitDisplayVenueSnapshotNow(vn)
+  const timer = setTimeout(() => {
+    answerRevealTimers.delete(vn)
+    if (isVenueHeld(vn)) return
+    finishAnswerReveal(vn)
+  }, ANSWER_REVEAL_WARNING_MS)
+  timer.unref?.()
+  answerRevealTimers.set(vn, timer)
+}
+
+function resumeAnswerRevealWarning(vnRaw: string): void {
+  const vn = normalizeVenueCode(vnRaw)
+  if (!answerRevealStarted.has(vn)) return
+  let revealAt: number | null = null
+  for (const { gs } of venuePlayableSnapshots(vn)) {
+    const at = gs.round.answerRevealAt
+    if (typeof at === 'number' && Number.isFinite(at)) revealAt = at
+  }
+  if (revealAt == null) return
+  cancelAnswerRevealTimer(vn)
+  const timer = setTimeout(() => {
+    answerRevealTimers.delete(vn)
+    if (isVenueHeld(vn)) return
+    finishAnswerReveal(vn)
+  }, Math.max(0, revealAt - Date.now()))
+  timer.unref?.()
+  answerRevealTimers.set(vn, timer)
+}
+
+function finishAnswerReveal(vnRaw: string): void {
+  const vn = normalizeVenueCode(vnRaw)
+  const rows = venuePlayableSnapshots(vn)
+  if (rows.length === 0 || rows.some((row) => row.gs.phase !== 'answering')) return
+  cancelAnswerRevealTimer(vn)
+  clearVenueWageringOrchestrationState(vn)
+  for (const { tk } of rows) {
+    const gs = rooms.get(tk)
+    if (!gs) continue
+    rooms.set(tk, revealAnswer(forfeitGuessesOffTheFelt(forfeitOpenGuesses(gs))))
+  }
+  scheduleVenueRevealToShowdown(vn)
+}
+
 /** Reveal is one venue beat. Returns false, and changes nothing, until every seated table is answering and the clock is done or every guess is in. */
 export function revealVenueAnswersTogether(socket: Socket, venueCode: string): boolean {
   const lock = requireVenueLockstepTables(
@@ -2553,6 +2672,7 @@ export function revealVenueAnswersTogether(socket: Socket, venueCode: string): b
     socket.emit('toast', answerRevealWaitLabel(stillGuessing.map((row) => row.n)))
     return false
   }
+  cancelAnswerRevealTimer(normalizeVenueCode(venueCode))
   clearVenueWageringOrchestrationState(normalizeVenueCode(venueCode))
   for (const { tk } of lock) {
     const gs = rooms.get(tk)
@@ -2597,7 +2717,7 @@ function tableAnswersReady(gs: GameState, nowMs: number): boolean {
   let submitted = 0
   for (const player of players) {
     if (typeof player.name !== 'string' || player.name.trim() === '') continue
-    if (player.pointsOnly === true) continue
+    if (player.pointsOnly === true && (player.hand?.length ?? 0) < 2) continue
     expected++
     if (guessLockedOnSeat(player)) submitted++
   }
@@ -2762,10 +2882,15 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
       else clock = 'Clock unclear'
     } else if (phase === 'answering') {
       street = 'Trivia lock-in'
-      const dl = gs.round.answerDeadline
+      const revealAt = gs.round.answerRevealAt
+      const dl = typeof revealAt === 'number' && Number.isFinite(revealAt) ? revealAt : gs.round.answerDeadline
       answerDeadlineMs =
         typeof dl === 'number' && Number.isFinite(dl) ? Math.floor(dl) : null
-      clock = answerDeadlineMs != null ? 'Countdown' : '—'
+      clock = typeof revealAt === 'number' && Number.isFinite(revealAt)
+        ? 'Answer reveals'
+        : answerDeadlineMs != null
+          ? 'Countdown'
+          : '—'
     } else if (phase === 'showdown') {
       street = 'Showdown'
       clock = '—'
@@ -2787,6 +2912,7 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
       street,
       clock,
       answerDeadlineMs,
+      answerRevealSoon: clock === 'Answer reveals',
       turnDeadlineMs: feltTurnDeadlineMs(gs, key),
       phaseStrictSig: phaseStrictSignature(gs),
       playersToAct: phase === 'betting' ? playersHoldingBetting(gs) : undefined,
@@ -3071,9 +3197,12 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       }
     }
     if (headlineGs.phase === 'answering') {
+      const revealAt = headlineGs.round?.answerRevealAt
       const venueDeadline = venueShowdownAtMs.get(vn)
       const tableDeadline = headlineGs.round?.answerDeadline
-      if (venueDeadline != null && Number.isFinite(venueDeadline)) {
+      if (typeof revealAt === 'number' && Number.isFinite(revealAt)) {
+        answerDeadlineMs = revealAt
+      } else if (venueDeadline != null && Number.isFinite(venueDeadline)) {
         answerDeadlineMs = venueDeadline
       } else if (typeof tableDeadline === 'number' && Number.isFinite(tableDeadline)) {
         answerDeadlineMs = tableDeadline
@@ -3148,6 +3277,10 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
     headlineQuestionAnswer,
     headlineAnswerComposition,
     answerDeadlineMs,
+    answerRevealSoon:
+      headlineGs?.phase === 'answering' &&
+      typeof headlineGs.round?.answerRevealAt === 'number' &&
+      Number.isFinite(headlineGs.round.answerRevealAt),
     answerSubmitCount,
     answerEligibleCount,
     headlineTableNum,
@@ -3503,7 +3636,7 @@ export async function prepareVenuePersistence(): Promise<string> {
   loadVenueBlindSettingsFromDisk()
   loadVenueShuffleSettingsFromDisk()
   console.log(
-    '⏱️ Trivia answer guide countdown: default from ANSWER_WINDOW_SECONDS (see server); host reveal closes answers (venue overrides in data/venue-answer-settings.json).',
+    '⏱️ Trivia answer guide countdown: default from ANSWER_WINDOW_SECONDS (see server); a full set of guesses or the guide closes the window, then the answer reveals in 5 seconds.',
   )
   console.log(
     '💰 Venue blinds: defaults 10/20 with level schedule; overrides in data/venue-blind-settings.json.',

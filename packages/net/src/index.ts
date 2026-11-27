@@ -290,6 +290,8 @@ export type DisplayVenueWallSnapshot = {
   headlineAnswerComposition?: readonly { source: 'hole' | 'community'; index: number }[] | null
   /** Server epoch ms when a trivia-visible felt is in `answering` with `answerDeadline`; cleared outside that window. */
   answerDeadlineMs: number | null
+  /** The answer is about to reveal. The countdown is the five-second warning, not time left to guess. */
+  answerRevealSoon?: boolean
   /**
    * Venue-wide answering drama: how many seated players have locked a guess.
    * Safe to show on TV — never includes the numeric answers themselves.
@@ -398,6 +400,8 @@ export type HostVenueFeltBeatRow = {
   street: string
   clock: string
   answerDeadlineMs: number | null
+  /** The five-second warning is running. The deadline above is when the answer reveals. */
+  answerRevealSoon?: boolean
   /** Epoch ms when a host nudge on the acting seat expires. Absent until the host nudges. */
   turnDeadlineMs?: number | null
   /**

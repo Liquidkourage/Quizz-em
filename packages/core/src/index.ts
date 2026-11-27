@@ -103,6 +103,8 @@ export interface RoundState {
   dealerIndex: number;
   /** Shared answer window. Every phone, the host desk, and the TV read this same deadline. */
   answerDeadline?: number;
+  /** Epoch ms when the answer reveals itself. Set for the last 5 seconds of guessing. */
+  answerRevealAt?: number;
   /** Host nudge is running. Open guesses forfeit at `guessNudgeDeadline`. */
   guessNudge?: boolean;
   /** Epoch ms when an unlocked guess forfeits. Does not replace `answerDeadline`. */
@@ -1535,6 +1537,7 @@ export function mayLockGuess(
   player: Pick<PlayerState, 'pointsOnly' | 'hasFolded' | 'isAllIn' | 'answerForfeited'> | null | undefined,
 ): boolean {
   if (player?.answerForfeited === true) return false
+  if (typeof state.round.answerRevealAt === 'number' && Number.isFinite(state.round.answerRevealAt)) return false
   if (state.phase === 'answering') return true
   if (state.phase !== 'betting' || player == null) return false
   if (!boardReadyForGuess(state)) return false
@@ -2188,7 +2191,14 @@ export {
   winnerScreensPayoutHint,
   winnerScreensReadyAt,
 } from './winnerScreens';
-export { answerRevealOpen, answerRevealWaitLabel } from './answerReveal';
+export {
+  ANSWER_REVEAL_WARNING_MS,
+  answerRevealOpen,
+  answerRevealWaitLabel,
+  answerRevealWarning,
+  guessingWindowClosed,
+  seatOwesAGuess,
+} from './answerReveal';
 export {
   advanceScoresWatch,
   emptyScoresWatch,

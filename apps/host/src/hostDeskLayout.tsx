@@ -2537,10 +2537,10 @@ export function HostVenueFloorBriefPanel({
           document.body,
         )
       : null}
-    <div className="host-desk-pair grid shrink-0 gap-2 lg:grid-cols-2">
+    <div className="host-desk-pair grid shrink-0 gap-2 md:grid-cols-2">
     <HostCollapsible
       expanded
-      className="host-hand-lists shrink-0"
+      className="host-hand-lists min-w-0 shrink-0"
       summary={
         <span>
           This hand
@@ -2615,9 +2615,9 @@ export function HostVenueFloorBriefPanel({
     </HostCollapsible>
     <HostCollapsible
       expanded
-      className="shrink-0"
+      className="min-w-0 shrink-0"
       toolbar={
-        blindCall ? <div className="host-floor-toolbar">{blindCall}</div> : undefined
+        blindCall ? <div className="host-floor-toolbar min-w-0">{blindCall}</div> : undefined
       }
       badge={
         brief != null ? (

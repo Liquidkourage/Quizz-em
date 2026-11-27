@@ -68,6 +68,10 @@ export type StadiumTableSeatsProps = {
   showUnmeasured?: boolean
   /** Host desk: name tags sit on the green and grow toward the middle. */
   labelsOnFelt?: boolean
+  /** Keep seats on the real table artwork when the frame is taller than it is wide. */
+  preserveArtwork?: boolean
+  /** Name tags sit straight up, down, left, or right of the initials. */
+  labelsOrthogonal?: boolean
 }
 
 /** Grow a phone seat tag away from the felt so it stays in the gutter, off the cards. */
@@ -85,6 +89,34 @@ function playerSeatLabelTransform(
   if (absDx > absDy * 1.05) return dx > 0 ? 'translate(0%, -50%)' : 'translate(-100%, -50%)'
   if (absDy > absDx * 1.05) return dy > 0 ? 'translate(-50%, 0%)' : 'translate(-50%, -100%)'
   return `translate(${dx > 0 ? '0%' : '-100%'}, ${dy > 0 ? '0%' : '-100%'})`
+}
+
+/** Straight off the initials: up, down, left, or right, whichever way leaves the table. */
+function orthogonalOffCup(
+  cup: { leftPct: number; topPct: number },
+  center: { leftPct: number; topPct: number },
+  gapPx: number,
+  w: number,
+  h: number,
+): { leftPct: number; topPct: number; transform: string } {
+  const dx = cup.leftPct - center.leftPct
+  const dy = cup.topPct - center.topPct
+  const gapX = w > 0 ? (gapPx / w) * 100 : 0
+  const gapY = h > 0 ? (gapPx / h) * 100 : 0
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    const right = dx >= 0
+    return {
+      leftPct: cup.leftPct + (right ? gapX : -gapX),
+      topPct: cup.topPct,
+      transform: right ? 'translate(0%, -50%)' : 'translate(-100%, -50%)',
+    }
+  }
+  const below = dy >= 0
+  return {
+    leftPct: cup.leftPct,
+    topPct: cup.topPct + (below ? gapY : -gapY),
+    transform: below ? 'translate(-50%, 0%)' : 'translate(-50%, -100%)',
+  }
 }
 
 /** The outward tag grows away from the felt. Flip that so the same tag grows onto the green. */
@@ -114,6 +146,8 @@ export function StadiumTableSeats({
   feltLayout = 'default',
   showUnmeasured = false,
   labelsOnFelt = false,
+  preserveArtwork = false,
+  labelsOrthogonal = false,
 }: StadiumTableSeatsProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [ringPx, setRingPx] = useState({ w: 0, h: 0 })
@@ -140,7 +174,8 @@ export function StadiumTableSeats({
   const rimH = ringPx.h > 0 ? ringPx.h : showUnmeasured ? MOSAIC_RING_FALLBACK_H_PX : 0
   const isPlayerLayout = feltLayout === 'player'
   /** A tall phone fills the oval. Seats follow that shape instead of the short artwork. */
-  const contentAspect = isPlayerLayout && rimW > 0 && rimH > rimW ? rimW / rimH : undefined
+  const contentAspect =
+    isPlayerLayout && !preserveArtwork && rimW > 0 && rimH > rimW ? rimW / rimH : undefined
   /** Player felt always uses the same 8 physical chairs as the venue display tables. */
   const count = isPlayerLayout ? MOSAIC_SEAT_COUNT : Math.max(1, seatCount)
   /** Size chrome by how many seats are occupied — not always 8 empty chairs. */
@@ -247,9 +282,16 @@ export function StadiumTableSeats({
                 contentAspect
               )
             : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_HOLE_CARDS_RADIAL)
-          const labelPt = isPlayerLayout
-            ? mosaicSeatLabelPct(i, rimW, rimH, labelOutwardPx, contentAspect)
-            : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_NAME_LABEL_RADIAL)
+          const centerPt = mosaicFeltCenterPct(rimW, rimH, contentAspect)
+          const orthogonal =
+            labelsOrthogonal && rimW > 0 && rimH > 0
+              ? orthogonalOffCup(cupPt, centerPt, cupSizePx / 2 + 12, rimW, rimH)
+              : null
+          const labelPt = orthogonal
+            ? orthogonal
+            : isPlayerLayout
+              ? mosaicSeatLabelPct(i, rimW, rimH, labelOutwardPx, contentAspect)
+              : stadiumSeatPointPx(i, count, rimW, rimH, STADIUM_NAME_LABEL_RADIAL)
           const state = seat?.state ?? (seat == null ? 'empty' : 'default')
           const showHoles =
             seat != null &&
@@ -334,11 +376,13 @@ export function StadiumTableSeats({
                     left: `${labelPt.leftPct}%`,
                     top: `${labelPt.topPct}%`,
                     zIndex: isPlayerLayout ? 34 : undefined,
-                    transform: isPlayerLayout
-                      ? labelsOnFelt
-                        ? growOntoFelt(playerSeatLabelTransform(labelPt, rimW, rimH, contentAspect))
-                        : playerSeatLabelTransform(labelPt, rimW, rimH, contentAspect)
-                      : undefined,
+                    transform: orthogonal
+                      ? orthogonal.transform
+                      : isPlayerLayout
+                        ? labelsOnFelt
+                          ? growOntoFelt(playerSeatLabelTransform(labelPt, rimW, rimH, contentAspect))
+                          : playerSeatLabelTransform(labelPt, rimW, rimH, contentAspect)
+                        : undefined,
                   }}
                 >
                   {seat.nameTag}

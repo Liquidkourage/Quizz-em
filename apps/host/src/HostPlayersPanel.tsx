@@ -239,15 +239,16 @@ function HostPlayerFelt({
         ))}
       </div>
       <div className="relative min-h-0 flex-1">
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center px-28 py-16">
       <StadiumTableSeats
-        className="host-player-felt h-full max-h-full w-auto max-w-full"
+        className="host-player-felt max-h-full max-w-full"
         feltLayout="player"
-        labelsOnFelt
+        preserveArtwork
+        labelsOrthogonal
         showUnmeasured
         seatCount={MOSAIC_SEAT_COUNT}
         hideEmptySeats
-        aspectClassName="aspect-[8/5]"
+        aspectClassName="aspect-[1262/643] w-full"
         centerContent={
           <div className="host-felt-pot flex flex-col items-center gap-1 rounded-md bg-black/45 px-4 py-2">
             <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-100/80">

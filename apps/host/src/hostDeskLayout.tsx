@@ -2660,7 +2660,7 @@ export function HostVenueFloorBriefPanel({
             {rows.length === 0 ? (
               <p className="text-sm text-white/50">No seated tables yet.</p>
             ) : (
-              <ul className="grid h-[calc(3*4.25rem+0.75rem)] content-start grid-cols-[repeat(auto-fill,minmax(9.5rem,11rem))] justify-start gap-1.5 overflow-y-auto">
+              <ul className="grid h-[calc(3*(1.5rem+1.5rem+1.35rem+0.25rem+2px)+0.75rem)] content-start grid-cols-[repeat(auto-fill,minmax(9.5rem,11rem))] justify-start gap-1.5 overflow-y-auto">
                 {rows.map((row) => {
                   const onPublicDisplay = soloTable === row.tableNum
                   const cue = tableActionCue(row)

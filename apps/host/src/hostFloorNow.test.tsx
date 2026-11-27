@@ -9,6 +9,7 @@ import {
   HostVenueFloorBriefPanel,
   TableActionHoverSheet,
   tableActionHoverOrigin,
+  pointerInsideHoverAnchor,
   tableContextMenu,
 } from './hostDeskLayout'
 
@@ -137,6 +138,13 @@ describe('venue floor now', () => {
     expect(
       tableActionHoverOrigin({ left: 10, top: 520, bottom: 560 }, { width: 800, height: 600 }).above,
     ).toBe(true)
+  })
+
+  it('keeps the hover only while the pointer is on the table card', () => {
+    const card = { left: 10, top: 40, right: 80, bottom: 90 }
+    expect(pointerInsideHoverAnchor(card, { x: 40, y: 60 })).toBe(true)
+    expect(pointerInsideHoverAnchor(card, { x: 40, y: 120 })).toBe(false)
+    expect(pointerInsideHoverAnchor(card, { x: 200, y: 60 })).toBe(false)
   })
 
   it('shows each table pot on the action square', () => {

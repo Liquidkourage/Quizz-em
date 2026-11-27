@@ -1783,6 +1783,14 @@ export function tableActionHoverOrigin(
   return { top: above ? anchor.top : below, left, above }
 }
 
+/** The roster is only for the pointer sitting on the card, not the sheet hanging off it. */
+export function pointerInsideHoverAnchor(
+  anchor: { left: number; top: number; right: number; bottom: number },
+  point: { x: number; y: number },
+): boolean {
+  return point.x >= anchor.left && point.x <= anchor.right && point.y >= anchor.top && point.y <= anchor.bottom
+}
+
 export function TableActionHoverSheet({
   top,
   left,
@@ -1876,8 +1884,28 @@ function TableActionHoverFrame({
     if (!rect || typeof document === 'undefined') return
     setOrigin(tableActionHoverOrigin(rect, { width: window.innerWidth, height: window.innerHeight }))
   }
+  useEffect(() => {
+    if (origin == null) return
+    const closeIfLeft = (event: PointerEvent) => {
+      const rect = ref.current?.getBoundingClientRect()
+      if (!rect || !pointerInsideHoverAnchor(rect, { x: event.clientX, y: event.clientY })) {
+        setOrigin(null)
+      }
+    }
+    const close = () => setOrigin(null)
+    window.addEventListener('pointermove', closeIfLeft)
+    window.addEventListener('pointerdown', close)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('contextmenu', close)
+    return () => {
+      window.removeEventListener('pointermove', closeIfLeft)
+      window.removeEventListener('pointerdown', close)
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('contextmenu', close)
+    }
+  }, [origin])
   return (
-    <div ref={ref} onMouseEnter={open} onMouseLeave={() => setOrigin(null)} onFocus={open} onBlur={() => setOrigin(null)}>
+    <div ref={ref} onMouseEnter={open}>
       {children}
       {origin
         ? createPortal(

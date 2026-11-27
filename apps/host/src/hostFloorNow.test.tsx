@@ -247,7 +247,7 @@ describe('venue floor now', () => {
     expect(html).toContain('minmax(9.5rem,11rem)')
     const action = html.slice(html.indexOf('Table action'), html.indexOf('Open table 1'))
     expect(action).toContain('overflow-y-auto')
-    expect(action).toContain('h-[calc(3*(1.5rem+1.5rem+1.35rem+0.25rem+2px)+0.75rem)]')
+    expect(action).toContain('h-[calc(3.25*(1.5rem+1.5rem+1.35rem+0.25rem+2px)+1.125rem)]')
     expect(action).not.toContain('h-[calc(3*4.25rem+0.75rem)]')
     const card = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
     const phase = card.slice(card.indexOf('Waiting room'), card.indexOf('4 in pot'))

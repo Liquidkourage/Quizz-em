@@ -249,7 +249,7 @@ describe('venue floor now', () => {
     expect(html).toContain('text-base text-white/50')
     expect(html).toContain('px-1.5 py-0.5')
     expect(html).not.toContain('lg:grid-cols-4')
-    expect(html).toContain('sm:grid-cols-3')
+    expect(html).not.toContain('sm:grid-cols-3')
     expect(html).not.toContain('grid grid-cols-2 gap-3')
     expect(tables).toBeGreaterThan(-1)
     expect(html).toContain('This hand')
@@ -829,6 +829,28 @@ describe('venue floor now', () => {
       }),
     )
     expect(scores).not.toContain('>Focus<')
+  })
+
+  it('packs this hand into short lines across the width', () => {
+    const night = brief()
+    night.busts = [
+      { name: 'Blake A.', tableNum: 1, atMs: 1 },
+      { name: 'Carla A.', tableNum: 1, atMs: 2 },
+    ]
+    night.bigWinners = [{ name: 'Frank A.', tableNum: 2, amount: 26000, atMs: 3 }]
+    const html = renderToStaticMarkup(
+      createElement(HostVenueFloorBriefPanel, {
+        brief: night,
+        hostPlayerLabel: (name: string) => name,
+        hostTableId: '1',
+      }),
+    )
+    const hand = html.slice(html.indexOf('>This hand<'), html.indexOf('Public TVs'))
+    expect(hand).toContain('Blake A.')
+    expect(hand).toContain('Frank A.')
+    expect(hand).toContain('grid-cols-[repeat(auto-fill,minmax(11rem,13rem))]')
+    expect(hand).toContain('justify-start')
+    expect(hand).not.toContain('sm:grid-cols-3')
   })
 
   it('lists big wins largest first', () => {

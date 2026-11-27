@@ -1247,7 +1247,7 @@ export function HostHandBetRank({
       {title ? (
         <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/45">{title}</p>
       ) : null}
-      <ol className="space-y-1">
+      <ol className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-1">
       {shown.map((bet, i) => (
         <li
           key={`${bet.tableNum}-${bet.atMs}-${bet.kind}-${bet.name}-${i}`}
@@ -2738,7 +2738,7 @@ export function HostVenueFloorBriefPanel({
       {brief == null ? (
         <p className="text-sm text-white/50">Waiting for venue sync…</p>
       ) : (
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="flex flex-col gap-3">
           <div>
             <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
               Busts
@@ -2746,7 +2746,7 @@ export function HostVenueFloorBriefPanel({
             {brief.busts.length === 0 ? (
               <p className="text-base text-white/50">None this hand.</p>
             ) : (
-              <ul className="space-y-1">
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-1">
                 {brief.busts.map((b, i) => (
                   <li
                     key={`${b.name}-${b.tableNum}-${b.atMs}-${i}`}
@@ -2781,7 +2781,7 @@ export function HostVenueFloorBriefPanel({
             {brief.bigWinners.length === 0 ? (
               <p className="text-base text-white/50">None yet this session.</p>
             ) : (
-              <ul className="space-y-1">
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-1">
                 {byAmountDesc(brief.bigWinners).map((w, i) => (
                   <li
                     key={`${w.name}-${w.tableNum}-${w.atMs}-${i}`}

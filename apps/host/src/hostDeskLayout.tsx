@@ -225,7 +225,9 @@ export function HostCollapsible({
           </span>
           {toolbar ? <div className="min-w-0 text-base font-normal">{toolbar}</div> : null}
         </div>
-        <div className={`min-h-0 px-3 py-2 ${bodyClassName}`}>{children}</div>
+        {children != null && children !== false ? (
+          <div className={`min-h-0 px-3 py-2 ${bodyClassName}`}>{children}</div>
+        ) : null}
       </section>
     )
   }
@@ -2535,6 +2537,82 @@ export function HostVenueFloorBriefPanel({
           document.body,
         )
       : null}
+    <div className="host-desk-pair grid shrink-0 gap-2 lg:grid-cols-2">
+    <HostCollapsible
+      expanded
+      className="host-hand-lists shrink-0"
+      summary={
+        <span>
+          This hand
+        </span>
+      }
+    >
+      {brief == null ? (
+        <p className="text-sm text-white/50">Waiting for venue sync…</p>
+      ) : (
+          <div className="flex flex-col gap-3">
+          <div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
+              Busts
+            </p>
+            {brief.busts.length === 0 ? (
+              <p className="text-base text-white/50">None this hand.</p>
+            ) : (
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-1">
+                {brief.busts.map((b, i) => (
+                  <li
+                    key={`${b.name}-${b.tableNum}-${b.atMs}-${i}`}
+                    className="flex items-baseline justify-between gap-2 rounded-md border border-red-400/25 bg-red-950/20 px-2 py-1.5 text-sm"
+                  >
+                    <span className="font-semibold text-red-100">{hostPlayerLabel(b.name)}</span>
+                    <span className="shrink-0 text-white/45">T{b.tableNum}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
+              Big bets this hand
+            </p>
+            {(brief.handBets ?? []).length === 0 ? (
+              <p className="text-base text-white/50">None this hand.</p>
+            ) : (
+              <HostHandBetRank bets={brief.handBets ?? []} />
+            )}
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
+              Big wins this session
+              <span className="ml-1 font-normal normal-case text-white/35">
+                (≥ <ChipText text={formatHostFloorMoney(brief.bigWinMinAmount)} />)
+              </span>
+            </p>
+            {brief.bigWinners.length === 0 ? (
+              <p className="text-base text-white/50">None yet this session.</p>
+            ) : (
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-1">
+                {byAmountDesc(brief.bigWinners).map((w, i) => (
+                  <li
+                    key={`${w.name}-${w.tableNum}-${w.atMs}-${i}`}
+                    className="flex items-baseline justify-between gap-2 rounded-md border border-emerald-400/30 bg-emerald-950/20 px-2 py-1.5 text-sm"
+                  >
+                    <span className="min-w-0 truncate font-semibold text-emerald-100">
+                      {hostPlayerLabel(w.name)}
+                    </span>
+                    <span className="shrink-0 font-mono font-bold tabular-nums text-emerald-200">
+                      +<ChipText text={formatHostFloorMoney(w.amount)} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          </div>
+      )}
+    </HostCollapsible>
     <HostCollapsible
       expanded
       className="shrink-0"
@@ -2563,7 +2641,12 @@ export function HostVenueFloorBriefPanel({
     >
       {brief == null ? (
         <p className="text-sm text-white/50">Waiting for venue sync…</p>
-      ) : (
+      ) : null}
+    </HostCollapsible>
+    </div>
+    {brief != null ? (
+      <section className="host-instrument flex min-h-0 flex-col overflow-hidden rounded-xl border border-white/10">
+        <div className="min-h-0 px-3 py-2">
         <div className="flex flex-col gap-3">
           <div>
             {endgameWinner ? (
@@ -2724,83 +2807,9 @@ export function HostVenueFloorBriefPanel({
             </HostModal>
           </div>
         </div>
-      )}
-    </HostCollapsible>
-    <HostCollapsible
-      expanded
-      className="host-hand-lists order-first shrink-0"
-      summary={
-        <span>
-          This hand
-        </span>
-      }
-    >
-      {brief == null ? (
-        <p className="text-sm text-white/50">Waiting for venue sync…</p>
-      ) : (
-          <div className="flex flex-col gap-3">
-          <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
-              Busts
-            </p>
-            {brief.busts.length === 0 ? (
-              <p className="text-base text-white/50">None this hand.</p>
-            ) : (
-              <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-1">
-                {brief.busts.map((b, i) => (
-                  <li
-                    key={`${b.name}-${b.tableNum}-${b.atMs}-${i}`}
-                    className="flex items-baseline justify-between gap-2 rounded-md border border-red-400/25 bg-red-950/20 px-2 py-1.5 text-sm"
-                  >
-                    <span className="font-semibold text-red-100">{hostPlayerLabel(b.name)}</span>
-                    <span className="shrink-0 text-white/45">T{b.tableNum}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
-              Big bets this hand
-            </p>
-            {(brief.handBets ?? []).length === 0 ? (
-              <p className="text-base text-white/50">None this hand.</p>
-            ) : (
-              <HostHandBetRank bets={brief.handBets ?? []} />
-            )}
-          </div>
-
-          <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-white/45">
-              Big wins this session
-              <span className="ml-1 font-normal normal-case text-white/35">
-                (≥ <ChipText text={formatHostFloorMoney(brief.bigWinMinAmount)} />)
-              </span>
-            </p>
-            {brief.bigWinners.length === 0 ? (
-              <p className="text-base text-white/50">None yet this session.</p>
-            ) : (
-              <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,13rem))] justify-start gap-1">
-                {byAmountDesc(brief.bigWinners).map((w, i) => (
-                  <li
-                    key={`${w.name}-${w.tableNum}-${w.atMs}-${i}`}
-                    className="flex items-baseline justify-between gap-2 rounded-md border border-emerald-400/30 bg-emerald-950/20 px-2 py-1.5 text-sm"
-                  >
-                    <span className="min-w-0 truncate font-semibold text-emerald-100">
-                      {hostPlayerLabel(w.name)}
-                    </span>
-                    <span className="shrink-0 font-mono font-bold tabular-nums text-emerald-200">
-                      +<ChipText text={formatHostFloorMoney(w.amount)} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          </div>
-      )}
-    </HostCollapsible>
+        </div>
+      </section>
+    ) : null}
     </div>
   )
 }

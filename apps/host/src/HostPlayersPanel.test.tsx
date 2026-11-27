@@ -24,6 +24,7 @@ describe('HostPlayersPanel', () => {
     const felt = html.slice(html.indexOf('host-player-felt'), html.indexOf('host-player-index'))
     expect(felt).toContain('Select Ada Lane')
     expect(felt).toContain('drop-shadow-md')
+    expect(felt).toContain('player-felt-frame')
     expect(felt).not.toContain('rounded-[50%]')
     expect(felt).not.toContain('Bo Kent')
     expect(html).toContain('Show table 4')
@@ -38,6 +39,27 @@ describe('HostPlayersPanel', () => {
     expect(list).not.toContain('<select')
     expect(html).toContain('Select a player')
     expect(html).toContain('Find a player')
+  })
+
+  it('shows stack and status beside the seat', () => {
+    const html = renderToStaticMarkup(
+      createElement(HostPlayersPanel, {
+        roster: [{ playerId: 'human:a', name: 'Ada Lane', tableNum: 2 }],
+        tables: [
+          {
+            tableNum: 2,
+            seats: [{ name: 'Ada Lane', seatIndex: 0, bankroll: 26000, invested: 40, reason: 'folded' }],
+          },
+        ],
+        hostPlayerLabel: (name: string) => name,
+        onRemove: () => {},
+      }),
+    )
+    const felt = html.slice(html.indexOf('host-player-felt'), html.indexOf('host-player-index'))
+    expect(felt).toContain('Ada Lane')
+    expect(felt).toContain('26,000')
+    expect(felt).toContain('Folded')
+    expect(felt).toContain('In $40')
   })
 
   it('dims an offline name on the felt', () => {

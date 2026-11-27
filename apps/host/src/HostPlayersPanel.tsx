@@ -84,29 +84,65 @@ function claimSlot(wanted: number, used: Set<number>): number {
   return wanted
 }
 
+function chairDetails(seat: HostFeltChair | { name: string }): {
+  bankroll?: number
+  invested?: number
+  kind?: HostFeltChair['kind']
+  reason?: HostFeltChair['reason']
+  guess?: number
+} | null {
+  if (!('seatIndex' in seat) && !('bankroll' in seat) && !('reason' in seat)) return null
+  const chair = seat as HostFeltChair
+  return {
+    bankroll: typeof chair.bankroll === 'number' ? chair.bankroll : undefined,
+    invested: typeof chair.invested === 'number' ? chair.invested : undefined,
+    kind: chair.kind,
+    reason: chair.reason,
+    guess: chair.guessLocked === true && typeof chair.guess === 'number' ? chair.guess : undefined,
+  }
+}
+
 function feltSeatsForTable(
   tableNum: number,
   seats: readonly HostFeltChair[],
   roster: readonly HostRosterSeat[],
-): { playerId: string; name: string; seatIndex: number; bankroll?: number }[] {
+): FeltGlanceSeat[] {
   const pool = roster.filter((player) => player.tableNum === tableNum)
   const onFelt = seats.filter((seat) => seat.offFelt !== true && seat.name.trim())
   const used = new Set<number>()
-  const placed: { playerId: string; name: string; seatIndex: number; bankroll?: number }[] = []
+  const placed: FeltGlanceSeat[] = []
   const source = onFelt.length > 0 ? onFelt : pool.map((player) => ({ name: player.name }))
   for (const seat of source) {
     const index = pool.findIndex((player) => sameName(player.name, seat.name))
     if (index < 0) continue
     const player = pool.splice(index, 1)[0]!
     const wanted = 'seatIndex' in seat && typeof seat.seatIndex === 'number' ? seat.seatIndex : placed.length
+    const chair = chairDetails(seat)
     placed.push({
       playerId: player.playerId,
       name: player.name,
       seatIndex: claimSlot(wanted, used),
-      bankroll: 'bankroll' in seat && typeof seat.bankroll === 'number' ? seat.bankroll : undefined,
+      bankroll: chair?.bankroll,
+      invested: chair?.invested,
+      kind: chair?.kind,
+      reason: chair?.reason,
+      guess: chair?.guess,
+      phone: player.phone,
     })
   }
   return placed
+}
+
+type FeltGlanceSeat = {
+  playerId: string
+  name: string
+  seatIndex: number
+  bankroll?: number
+  invested?: number
+  kind?: HostFeltChair['kind']
+  reason?: HostFeltChair['reason']
+  guess?: number
+  phone?: HostRosterSeat['phone']
 }
 
 function tableNumbers(roster: readonly HostRosterSeat[], tables: readonly HostFeltTable[]): number[] {
@@ -126,6 +162,27 @@ function seatInitials(name: string): string {
   if (parts.length === 0) return ''
   if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
   return `${parts[0]![0] ?? ''}${parts[parts.length - 1]![0] ?? ''}`.toUpperCase()
+}
+
+function money(amount: number): string {
+  return `$${Math.round(amount).toLocaleString('en-US')}`
+}
+
+function seatGlance(
+  seat: FeltGlanceSeat,
+  attention: { offline: boolean; toAct: boolean; noGuess: boolean } | undefined,
+): string[] {
+  const lines: string[] = []
+  if (attention?.toAct) lines.push('To act')
+  if (seat.phone === 'bot') lines.push('Bot')
+  else if (attention?.offline || seat.phone === 'offline') lines.push('Offline')
+  if (seat.reason === 'folded') lines.push('Folded')
+  else if (seat.reason === 'busted') lines.push('Bust')
+  else if (seat.kind === 'points') lines.push('Points')
+  if (attention?.noGuess) lines.push('No guess')
+  if (seat.invested != null && seat.invested > 0) lines.push(`In ${money(seat.invested)}`)
+  if (seat.guess != null) lines.push(`Guess ${seat.guess}`)
+  return lines
 }
 
 function feltCupState(
@@ -150,13 +207,9 @@ function HostPlayerFelt({
 }: {
   tableNum: number | null
   tableNums: number[]
-  seats: readonly {
-    playerId: string
-    name: string
-    seatIndex: number
-    bankroll?: number
+  seats: readonly (FeltGlanceSeat & {
     attention?: { offline: boolean; toAct: boolean; noGuess: boolean }
-  }[]
+  })[]
   selectedId: string | null
   hostPlayerLabel: (name: string) => string
   onShowTable: (tableNum: number) => void
@@ -183,7 +236,8 @@ function HostPlayerFelt({
         ))}
       </div>
       <StadiumTableSeats
-        className="host-player-felt"
+        className="host-player-felt px-36 py-32"
+        feltLayout="player"
         showUnmeasured
         seatCount={MOSAIC_SEAT_COUNT}
         hideEmptySeats
@@ -205,15 +259,20 @@ function HostPlayerFelt({
             'aria-label': `Select ${label}`,
             onSelect: () => onSelect(seat.playerId),
             nameTag: (
-              <span className="flex max-w-[9rem] flex-col items-center">
+              <span className="flex max-w-[9rem] flex-col items-center gap-0.5">
                 <span className={`text-sm font-semibold leading-tight ${selected ? 'text-amber-200' : 'text-white'}`}>
                   {label}
                 </span>
                 {seat.bankroll != null ? (
-                  <span className="text-xs font-bold text-amber-200">
-                    <ChipText text={`$${Math.round(seat.bankroll).toLocaleString('en-US')}`} />
+                  <span className="text-xs font-bold leading-none text-amber-200">
+                    <ChipText text={money(seat.bankroll)} />
                   </span>
                 ) : null}
+                {seatGlance(seat, seat.attention).map((line) => (
+                  <span key={line} className="text-xs font-semibold leading-none text-white/80">
+                    {line}
+                  </span>
+                ))}
               </span>
             ),
           }

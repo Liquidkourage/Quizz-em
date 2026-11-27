@@ -1,0 +1,26 @@
+---
+description: Each player is dealt 2 private cards and the board is 5 public cards. That count is locked.
+alwaysApply: true
+---
+
+# Card count is locked
+
+Every player is dealt **2 private cards**. The board is **5 public cards**. That deal is **locked**.
+
+## Do not change
+
+- The number of private cards
+- The number of public cards
+- A setting, experiment, or mode that deals 3 private cards, 1 private card, or a board other than 5
+- A discard that changes how many private cards a player holds
+
+Dealing the same 5 public cards across streets is the current game. Do not add or remove cards to change that total.
+
+## Allowed
+
+- Read-only answers about how the 2 and 5 are dealt
+- A bug fix that restores a hand to 2 private and 5 public when it dealt the wrong number
+
+## When the user countermands
+
+Only a message in the current turn that explicitly changes this lock (for example “change the number of cards”, “deal 3 private cards”) may alter it. Do not broaden that.

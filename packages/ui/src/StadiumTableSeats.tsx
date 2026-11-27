@@ -163,7 +163,7 @@ export function StadiumTableSeats({
   const labelOutwardPx = !isPlayerLayout
     ? 0
     : labelsOnFelt
-      ? -Math.max(36, Math.round(cupSizePx * 1.6))
+      ? -Math.max(Math.round(cupSizePx * 0.9), Math.round(Math.min(rimW, rimH) * 0.2))
       : shortOval
         ? Math.max(10, Math.round(cupSizePx * 0.55))
         : Math.max(20, Math.round(cupSizePx * 0.95))

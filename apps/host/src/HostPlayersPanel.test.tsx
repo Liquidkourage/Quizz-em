@@ -74,6 +74,11 @@ describe('HostPlayersPanel', () => {
     expect(felt).toContain('Pot')
     expect(felt).toContain('aria-label="$140"')
     expect(felt).not.toContain('px-36')
+    const seat = felt.slice(felt.indexOf('aria-label="Select Ada Lane"'), felt.indexOf('aria-label="Select Ada Lane"') + 900)
+    const tops = [...seat.matchAll(/top:([\d.]+)%/g)].map((match) => Number(match[1]))
+    expect(tops[1]! - tops[0]!).toBeGreaterThan(8)
+    expect(html).toContain('md:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.7fr)]')
+    expect(html).toContain('max-h-full')
   })
 
   it('dims an offline name on the felt', () => {

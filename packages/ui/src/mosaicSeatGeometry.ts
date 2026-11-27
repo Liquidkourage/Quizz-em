@@ -238,7 +238,7 @@ export function mosaicSeatLabelPct(
   contentAspect?: number
 ): { leftPct: number; topPct: number } {
   const cup = mosaicSeatDotPct(seatIndex, MOSAIC_SEAT_COUNT, w, h, contentAspect)
-  if (!(w > 0 && h > 0) || outwardPx <= 0) return cup
+  if (!(w > 0 && h > 0) || outwardPx === 0) return cup
 
   const center = mosaicFeltCenterPct(w, h, contentAspect)
   const cupX = (cup.leftPct / 100) * w

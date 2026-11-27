@@ -219,8 +219,8 @@ function HostPlayerFelt({
   onSelect: (playerId: string) => void
 }) {
   return (
-    <div className="min-w-0">
-      <div className="mb-2 flex flex-wrap gap-1.5" role="group" aria-label="Tables">
+    <div className="flex h-full min-h-0 min-w-0 flex-col">
+      <div className="mb-2 flex shrink-0 flex-wrap gap-1.5" role="group" aria-label="Tables">
         {nums.map((n) => (
           <button
             key={n}
@@ -238,20 +238,22 @@ function HostPlayerFelt({
           </button>
         ))}
       </div>
+      <div className="relative min-h-0 flex-1">
+      <div className="absolute inset-0 flex items-center justify-center">
       <StadiumTableSeats
-        className="host-player-felt"
+        className="host-player-felt h-full max-h-full w-auto max-w-full"
         feltLayout="player"
         labelsOnFelt
         showUnmeasured
         seatCount={MOSAIC_SEAT_COUNT}
         hideEmptySeats
-        aspectClassName="aspect-[8/5] w-full"
+        aspectClassName="aspect-[8/5]"
         centerContent={
-          <div className="flex flex-col items-center gap-1 rounded-md bg-black/45 px-3 py-2">
+          <div className="host-felt-pot flex flex-col items-center gap-1 rounded-md bg-black/45 px-4 py-2">
             <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-100/80">
               {tableNum == null ? 'No felt' : `Table ${tableNum}`}
             </p>
-            <p className="text-sm font-bold text-white">
+            <p className="text-xl font-bold text-white">
               Pot <ChipText text={money(tablePot(seats))} />
             </p>
           </div>
@@ -268,22 +270,24 @@ function HostPlayerFelt({
             'aria-label': `Select ${label}`,
             onSelect: () => onSelect(seat.playerId),
             nameTag: (
-              <span className="flex flex-col items-center gap-0.5 rounded-md bg-black/55 px-2 py-1 text-center">
-                <span className={`text-sm font-semibold leading-tight ${selected ? 'text-amber-200' : 'text-white'}`}>
+              <span className="host-seat-card flex flex-col items-center gap-0.5 rounded-md bg-black/70 px-2.5 py-1.5 text-center shadow-md">
+                <span className={`text-sm font-semibold ${selected ? 'text-amber-200' : 'text-white'}`}>
                   {label}
                 </span>
-                {seat.bankroll != null ? (
-                  <span className="text-sm font-bold leading-none text-amber-200">
-                    <ChipText text={money(seat.bankroll)} />
-                  </span>
-                ) : null}
-                {seat.invested != null ? (
-                  <span className="text-sm font-semibold leading-none text-white">
-                    Bet <ChipText text={money(seat.invested)} />
-                  </span>
-                ) : null}
+                <span className="flex flex-wrap items-center justify-center gap-x-2 text-sm font-semibold text-white">
+                  {seat.bankroll != null ? (
+                    <span className="font-bold text-amber-200">
+                      <ChipText text={money(seat.bankroll)} />
+                    </span>
+                  ) : null}
+                  {seat.invested != null ? (
+                    <span>
+                      Bet <ChipText text={money(seat.invested)} />
+                    </span>
+                  ) : null}
+                </span>
                 {seatGlance(seat, seat.attention).map((line) => (
-                  <span key={line} className="text-xs font-semibold leading-none text-white/80">
+                  <span key={line} className="text-xs font-semibold text-white/80">
                     {line}
                   </span>
                 ))}
@@ -292,6 +296,8 @@ function HostPlayerFelt({
           }
         })}
       />
+      </div>
+      </div>
     </div>
   )
 }
@@ -520,11 +526,11 @@ function HostSelectedPlayer({
   history: readonly HostHandLine[]
 }) {
   if (player == null) {
-    return <p className="text-sm text-white/55">Select a player on the felt or the list.</p>
+    return <p className="shrink-0 text-sm text-white/55">Select a player on the felt or the list.</p>
   }
   const label = hostPlayerLabel(player.name)
   return (
-    <div className="flex flex-col gap-3 border-t border-white/10 pt-3">
+    <div className="flex shrink-0 flex-col gap-3 border-t border-white/10 pt-3">
       <div>
         <p className="break-words text-base font-semibold text-white">{label}</p>
         {lines.length > 0 ? (
@@ -744,7 +750,7 @@ export function HostPlayersPanel({
   return (
     <section className="flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-xl border border-white/10 bg-black/25 p-4" aria-label="Players">
       <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-white/45">Players</h2>
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-[minmax(0,1.3fr)_minmax(16rem,0.7fr)]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden md:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.7fr)]">
         <HostPlayerFelt
           tableNum={currentTable}
           tableNums={nums}
@@ -766,7 +772,7 @@ export function HostPlayersPanel({
           }}
         />
         <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
-          <label className="text-xs font-semibold uppercase tracking-wide text-white/45">
+          <label className="shrink-0 text-xs font-semibold uppercase tracking-wide text-white/45">
             Find a player
             <input
               aria-label="Find a player"

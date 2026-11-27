@@ -386,6 +386,15 @@
   max-width: 14rem;
 }
 
+.host-player-felt .host-seat-card,
+.host-player-felt .host-seat-card .text-sm,
+.host-player-felt .host-seat-card .text-xs,
+.host-player-felt .host-felt-pot,
+.host-player-felt .host-felt-pot .text-sm,
+.host-player-felt .host-felt-pot .text-xl {
+  line-height: 1.25;
+}
+
 .host-root :focus-visible {
   outline: 2px solid var(--host-gold);
   outline-offset: 2px;

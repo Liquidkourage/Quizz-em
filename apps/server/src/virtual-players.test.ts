@@ -263,6 +263,39 @@ describe('CPU betting edge cases', () => {
     expect(advanceVirtualBettingStep(facing).players[0]!.hasFolded).toBe(true)
   })
 
+  it('finishes a first hand without betting the table all-in', () => {
+    let gs = createEmptyGame('V', 'h', '1')
+    for (let i = 0; i < 6; i++) gs = addPlayer(gs, `vp:rehearsal:1:${i}`, `Seat ${i}`)
+    gs = setQuestion(gs, SAMPLE_QUESTIONS[0]!)
+    gs = dealInitialCards(gs)
+    let steps = 0
+    while (gs.round.isBettingOpen && steps < 30) {
+      const next = advanceVirtualBettingStep(gs)
+      if (next === gs) break
+      gs = next
+      steps++
+    }
+    expect(gs.round.isBettingOpen).toBe(false)
+    expect(Math.min(...gs.players.map((player) => player.bankroll))).toBeGreaterThan(900)
+  })
+
+  it('raises a bet once, then calls when that bet comes back', () => {
+    const id = betSeat('trap')
+    const facing = bettingTable(
+      [bettingSeat(id, 1000, 40), bettingSeat(betSeat('flat'), 1000, 60)],
+      0,
+      60,
+    )
+    const already = {
+      ...facing,
+      round: { ...facing.round, lastSeatBettingAction: ['raise' as const, 'raise' as const] },
+    }
+    const next = advanceVirtualBettingStep(already)
+    expect(next.round.currentBet).toBe(60)
+    expect(next.players[0]!.bankroll).toBe(980)
+    expect(next.players[0]!.isAllIn).toBe(false)
+  })
+
   it('checks for free, then raises a bet', () => {
     const id = betSeat('trap')
     const free = bettingTable([

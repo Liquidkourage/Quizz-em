@@ -882,3 +882,45 @@ describe('buildHostVenueFloorBrief stacks', () => {
     expect(brief.medianStack).toBe(600)
   })
 })
+
+describe('a later call on the same street', () => {
+  it('writes the new chips down as a call', () => {
+    clearVenueHostLog('LOG')
+    const before = baseTable()
+    const called: GameState = {
+      ...before,
+      players: before.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 980 } : p,
+      ),
+      round: {
+        ...before.round,
+        currentBet: 20,
+        lastSeatBettingAction: ['call', null],
+        playerBets: { 'human:a': 20 },
+        currentPlayerIndex: 1,
+      },
+    }
+    const calledAgain: GameState = {
+      ...called,
+      players: called.players.map((p) =>
+        p.id === 'human:a' ? { ...p, bankroll: 960, isAllIn: false } : p,
+      ),
+      round: {
+        ...called.round,
+        currentBet: 40,
+        lastSeatBettingAction: ['call', null],
+        playerBets: { 'human:a': 40 },
+      },
+    }
+    recordVenueMovesBetweenStates('LOG', 1, called, calledAgain)
+    const brief = buildHostVenueFloorBrief({
+      venueCode: 'LOG',
+      tiles: [],
+      fieldPlayerCount: 2,
+      liveTableCount: 1,
+      bigBlindHint: 20,
+    })
+    expect(brief.moveLog.map((move) => move.summary)).toEqual(['Alice C. called $20'])
+    expect(brief.handBets.filter((bet) => bet.kind === 'allIn')).toEqual([])
+  })
+})

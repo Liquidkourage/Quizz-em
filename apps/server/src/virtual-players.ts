@@ -143,8 +143,16 @@ function flatBet(state: GameState, pid: string, toCall: number): GameState {
   return folded !== state ? folded : state
 }
 
+function alreadyRaisedThisStreet(state: GameState, pid: string): boolean {
+  const seat = state.players.findIndex((player) => player.id === pid)
+  if (seat < 0) return false
+  const action = state.round.lastSeatBettingAction?.[seat]
+  return action === 'raise' || action === 'allIn'
+}
+
 function trapBet(state: GameState, pid: string, toCall: number, bankroll: number): GameState | null {
   if (toCall === 0) return acted(playerCheck(state, pid), state)
+  if (alreadyRaisedThisStreet(state, pid)) return null
   return bankroll >= toCall + blindUnit(state) ? openMin(state, pid, bankroll) : null
 }
 

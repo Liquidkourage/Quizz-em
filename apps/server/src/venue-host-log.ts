@@ -411,7 +411,8 @@ export function recordVenueMovesBetweenStates(
     if (!p) continue
     const nextAct = afterActs[i] ?? null
     const prevAct = beforeActs[i] ?? null
-    if (nextAct != null && nextAct !== prevAct) {
+    const committedNow = chipsJustCommitted(before, after, p.id)
+    if (nextAct != null && (nextAct !== prevAct || committedNow > 0)) {
       noteSeatAction(log, tableNum, before, after, p, nextAct, now, notedBets)
     }
 

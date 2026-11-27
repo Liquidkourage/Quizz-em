@@ -375,15 +375,15 @@
     0 0 0 2px #1a1204;
 }
 
-/* Players tab uses the shared felt. The stage fills the padded frame so names sit outside the rail. */
+/* Players tab uses the shared felt. The stage fills the frame, and names sit on the green. */
 .host-player-felt .player-felt-stage {
   position: absolute;
   inset: 0;
 }
 
 .host-player-felt .player-seat-tag {
-  width: auto;
-  max-width: 9rem;
+  width: max-content;
+  max-width: 14rem;
 }
 
 .host-root :focus-visible {

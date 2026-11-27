@@ -180,7 +180,6 @@ function seatGlance(
   else if (seat.reason === 'busted') lines.push('Bust')
   else if (seat.kind === 'points') lines.push('Points')
   if (attention?.noGuess) lines.push('No guess')
-  if (seat.invested != null && seat.invested > 0) lines.push(`In ${money(seat.invested)}`)
   if (seat.guess != null) lines.push(`Guess ${seat.guess}`)
   return lines
 }
@@ -194,6 +193,10 @@ function feltCupState(
   if (attention?.offline) return 'folded'
   if (attention?.noGuess) return 'answerLocked'
   return 'default'
+}
+
+function tablePot(seats: readonly { invested?: number }[]): number {
+  return seats.reduce((sum, seat) => sum + (seat.invested ?? 0), 0)
 }
 
 function HostPlayerFelt({
@@ -236,16 +239,22 @@ function HostPlayerFelt({
         ))}
       </div>
       <StadiumTableSeats
-        className="host-player-felt px-36 py-32"
+        className="host-player-felt"
         feltLayout="player"
+        labelsOnFelt
         showUnmeasured
         seatCount={MOSAIC_SEAT_COUNT}
         hideEmptySeats
         aspectClassName="aspect-[8/5] w-full"
         centerContent={
-          <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-100/80">
-            {tableNum == null ? 'No felt' : `Table ${tableNum}`}
-          </p>
+          <div className="flex flex-col items-center gap-1 rounded-md bg-black/45 px-3 py-2">
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-100/80">
+              {tableNum == null ? 'No felt' : `Table ${tableNum}`}
+            </p>
+            <p className="text-sm font-bold text-white">
+              Pot <ChipText text={money(tablePot(seats))} />
+            </p>
+          </div>
         }
         seats={seats.map((seat) => {
           const label = hostPlayerLabel(seat.name)
@@ -259,13 +268,18 @@ function HostPlayerFelt({
             'aria-label': `Select ${label}`,
             onSelect: () => onSelect(seat.playerId),
             nameTag: (
-              <span className="flex max-w-[9rem] flex-col items-center gap-0.5">
+              <span className="flex flex-col items-center gap-0.5 rounded-md bg-black/55 px-2 py-1 text-center">
                 <span className={`text-sm font-semibold leading-tight ${selected ? 'text-amber-200' : 'text-white'}`}>
                   {label}
                 </span>
                 {seat.bankroll != null ? (
-                  <span className="text-xs font-bold leading-none text-amber-200">
+                  <span className="text-sm font-bold leading-none text-amber-200">
                     <ChipText text={money(seat.bankroll)} />
+                  </span>
+                ) : null}
+                {seat.invested != null ? (
+                  <span className="text-sm font-semibold leading-none text-white">
+                    Bet <ChipText text={money(seat.invested)} />
                   </span>
                 ) : null}
                 {seatGlance(seat, seat.attention).map((line) => (

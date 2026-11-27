@@ -41,14 +41,20 @@ describe('HostPlayersPanel', () => {
     expect(html).toContain('Find a player')
   })
 
-  it('shows stack and status beside the seat', () => {
+  it('reads each name, stack, and bet on the felt, with the pot in the middle', () => {
     const html = renderToStaticMarkup(
       createElement(HostPlayersPanel, {
-        roster: [{ playerId: 'human:a', name: 'Ada Lane', tableNum: 2 }],
+        roster: [
+          { playerId: 'human:a', name: 'Ada Lane', tableNum: 2 },
+          { playerId: 'human:b', name: 'Bo Kent', tableNum: 2 },
+        ],
         tables: [
           {
             tableNum: 2,
-            seats: [{ name: 'Ada Lane', seatIndex: 0, bankroll: 26000, invested: 40, reason: 'folded' }],
+            seats: [
+              { name: 'Ada Lane', seatIndex: 0, bankroll: 26000, invested: 40, reason: 'folded' },
+              { name: 'Bo Kent', seatIndex: 3, bankroll: 1000, invested: 100 },
+            ],
           },
         ],
         hostPlayerLabel: (name: string) => name,
@@ -56,10 +62,18 @@ describe('HostPlayersPanel', () => {
       }),
     )
     const felt = html.slice(html.indexOf('host-player-felt'), html.indexOf('host-player-index'))
+    expect(felt).toContain('labels-on-felt')
     expect(felt).toContain('Ada Lane')
+    expect(felt).toContain('Bo Kent')
     expect(felt).toContain('26,000')
+    expect(felt).toContain('1,000')
+    expect(felt).toContain('Bet')
+    expect(felt).toContain('aria-label="$40"')
+    expect(felt).toContain('aria-label="$100"')
     expect(felt).toContain('Folded')
-    expect(felt).toContain('In $40')
+    expect(felt).toContain('Pot')
+    expect(felt).toContain('aria-label="$140"')
+    expect(felt).not.toContain('px-36')
   })
 
   it('dims an offline name on the felt', () => {

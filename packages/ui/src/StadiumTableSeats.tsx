@@ -66,6 +66,8 @@ export type StadiumTableSeatsProps = {
   feltLayout?: StadiumFeltLayout
   /** Draw seats before the first measurement, using the standard table size. */
   showUnmeasured?: boolean
+  /** Host desk: name tags sit on the green and grow toward the middle. */
+  labelsOnFelt?: boolean
 }
 
 /** Grow a phone seat tag away from the felt so it stays in the gutter, off the cards. */
@@ -83,6 +85,14 @@ function playerSeatLabelTransform(
   if (absDx > absDy * 1.05) return dx > 0 ? 'translate(0%, -50%)' : 'translate(-100%, -50%)'
   if (absDy > absDx * 1.05) return dy > 0 ? 'translate(-50%, 0%)' : 'translate(-50%, -100%)'
   return `translate(${dx > 0 ? '0%' : '-100%'}, ${dy > 0 ? '0%' : '-100%'})`
+}
+
+/** The outward tag grows away from the felt. Flip that so the same tag grows onto the green. */
+function growOntoFelt(outwardTransform: string): string {
+  return outwardTransform.replace(/-?\d+%/g, (token) => {
+    if (token === '-50%') return '-50%'
+    return token === '0%' ? '-100%' : '0%'
+  })
 }
 
 function seatByIndex(seats: StadiumTableSeat[]): Map<number, StadiumTableSeat> {
@@ -103,6 +113,7 @@ export function StadiumTableSeats({
   aspectClassName = 'aspect-[8/5]',
   feltLayout = 'default',
   showUnmeasured = false,
+  labelsOnFelt = false,
 }: StadiumTableSeatsProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [ringPx, setRingPx] = useState({ w: 0, h: 0 })
@@ -149,11 +160,13 @@ export function StadiumTableSeats({
   // Just outside the cup. The tag grows further outward into the phone gutter.
   // A short wide oval has a thin gutter, so the tag stays closer to the rail.
   const shortOval = rimH > 0 && rimH < 110 && rimW > rimH
-  const labelOutwardPx = isPlayerLayout
-    ? shortOval
-      ? Math.max(10, Math.round(cupSizePx * 0.55))
-      : Math.max(20, Math.round(cupSizePx * 0.95))
-    : 0
+  const labelOutwardPx = !isPlayerLayout
+    ? 0
+    : labelsOnFelt
+      ? -Math.max(36, Math.round(cupSizePx * 1.6))
+      : shortOval
+        ? Math.max(10, Math.round(cupSizePx * 0.55))
+        : Math.max(20, Math.round(cupSizePx * 0.95))
 
   return (
     <div
@@ -161,7 +174,8 @@ export function StadiumTableSeats({
         'relative mx-auto w-full max-w-full',
         aspectClassName,
         className,
-        isPlayerLayout && 'player-felt-frame'
+        isPlayerLayout && 'player-felt-frame',
+        labelsOnFelt && 'labels-on-felt',
       )}
       style={
         isPlayerLayout
@@ -320,7 +334,11 @@ export function StadiumTableSeats({
                     left: `${labelPt.leftPct}%`,
                     top: `${labelPt.topPct}%`,
                     zIndex: isPlayerLayout ? 34 : undefined,
-                    transform: isPlayerLayout ? playerSeatLabelTransform(labelPt, rimW, rimH, contentAspect) : undefined,
+                    transform: isPlayerLayout
+                      ? labelsOnFelt
+                        ? growOntoFelt(playerSeatLabelTransform(labelPt, rimW, rimH, contentAspect))
+                        : playerSeatLabelTransform(labelPt, rimW, rimH, contentAspect)
+                      : undefined,
                   }}
                 >
                   {seat.nameTag}

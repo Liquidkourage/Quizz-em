@@ -71,6 +71,32 @@ export function actingNudgeName(row: {
   return name ? name : null
 }
 
+export type TableContextItem = { id: 'nudge' | 'fold' | 'last-call'; label: string }
+
+/** Nudge, fold, and last call for one table. Empty when that table has nothing to rule. */
+export function tableContextMenu(
+  row: {
+    tableNum: number
+    phase: string
+    betsClosed?: boolean
+    raisesClosed?: boolean
+    actingPlayerName?: string | null
+  },
+  offered: { nudge: boolean; fold: boolean; lastCall: boolean },
+): TableContextItem[] {
+  const name = actingNudgeName(row)
+  const items: TableContextItem[] = []
+  if (name && offered.nudge) items.push({ id: 'nudge', label: `Nudge ${name} on table ${row.tableNum}` })
+  if (name && offered.fold) items.push({ id: 'fold', label: `Fold ${name} on table ${row.tableNum}` })
+  if (offered.lastCall && row.phase === 'betting' && row.betsClosed !== true) {
+    items.push({
+      id: 'last-call',
+      label: row.raisesClosed ? `Open raises on table ${row.tableNum}` : `Last call on table ${row.tableNum}`,
+    })
+  }
+  return items
+}
+
 /** The table clock is how long the player on action has been sitting. */
 function tableActionClockHidden(row: {
   phase: string
@@ -2425,10 +2451,62 @@ export function HostVenueFloorBriefPanel({
     : null
   const { outlierTableNums, lockstepMisaligned } = venueFeltBeatLockstep(feltRows)
   const [openTable, setOpenTable] = useState<number | null>(null)
+  const [tableMenu, setTableMenu] = useState<{ tableNum: number; x: number; y: number } | null>(null)
   const openRow = rows.find((row) => row.tableNum === openTable)
+  useEffect(() => {
+    if (tableMenu == null) return
+    const close = () => setTableMenu(null)
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close()
+    }
+    window.addEventListener('pointerdown', close)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('pointerdown', close)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [tableMenu])
+  const menuRow = tableMenu ? rows.find((row) => row.tableNum === tableMenu.tableNum) : undefined
+  const menuItems = menuRow
+    ? tableContextMenu(menuRow, {
+        nudge: onNudgeTable != null,
+        fold: onSkipTable != null,
+        lastCall: onLastCall != null,
+      })
+    : []
 
   return (
     <div className="host-live-floor flex h-full min-h-0 flex-col gap-2 overflow-y-auto">
+    {tableMenu && menuItems.length > 0 && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            role="menu"
+            aria-label={`Table ${tableMenu.tableNum}`}
+            className="fixed z-50 flex min-w-44 flex-col gap-1 rounded-md border border-white/15 bg-zinc-950 p-1 shadow-lg"
+            style={{ left: tableMenu.x, top: tableMenu.y }}
+            onPointerDown={(event) => event.stopPropagation()}
+          >
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="menuitem"
+                aria-label={item.label}
+                className="min-h-11 rounded px-3 text-left text-sm font-semibold text-white hover:bg-white/10"
+                onClick={() => {
+                  if (item.id === 'nudge') onNudgeTable?.(tableMenu.tableNum)
+                  if (item.id === 'fold') onSkipTable?.(tableMenu.tableNum)
+                  if (item.id === 'last-call') onLastCall?.(tableMenu.tableNum, menuRow?.raisesClosed !== true)
+                  setTableMenu(null)
+                }}
+              >
+                {item.id === 'nudge' ? 'Nudge' : item.id === 'fold' ? 'Fold' : menuRow?.raisesClosed ? 'Open raises' : 'Last call'}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )
+      : null}
     <HostCollapsible
       expanded
       className="shrink-0"
@@ -2505,6 +2583,16 @@ export function HostVenueFloorBriefPanel({
                       type="button"
                       aria-label={`Open table ${row.tableNum}`}
                       onClick={() => setOpenTable(row.tableNum)}
+                      onContextMenu={(event) => {
+                        const items = tableContextMenu(row, {
+                          nudge: onNudgeTable != null,
+                          fold: onSkipTable != null,
+                          lastCall: onLastCall != null,
+                        })
+                        if (items.length === 0) return
+                        event.preventDefault()
+                        setTableMenu({ tableNum: row.tableNum, x: event.clientX, y: event.clientY })
+                      }}
                       className={`w-full cursor-pointer rounded-md border px-1.5 py-0.5 text-left leading-none ${cue.tone} ${
                         drift || row.interestingAction ? 'ring-1 ring-amber-300/70' : ''
                       } ${onPublicDisplay ? 'ring-1 ring-sky-300/70' : ''}`}
@@ -2570,40 +2658,6 @@ export function HostVenueFloorBriefPanel({
                         ) : null}
                       </p>
                     </button>
-                    {nudgeName && onNudgeTable ? (
-                      <button
-                        type="button"
-                        aria-label={`Nudge ${nudgeName} on table ${row.tableNum}`}
-                        onClick={() => onNudgeTable(row.tableNum)}
-                        className="mt-1 w-full rounded border border-amber-300/70 bg-amber-500/25 px-1 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-50"
-                      >
-                        Nudge
-                      </button>
-                    ) : null}
-                    {nudgeName && onSkipTable ? (
-                      <button
-                        type="button"
-                        aria-label={`Fold ${nudgeName} on table ${row.tableNum}`}
-                        onClick={() => onSkipTable(row.tableNum)}
-                        className="mt-1 w-full rounded border border-rose-300/70 bg-rose-500/25 px-1 py-0.5 text-xs font-bold uppercase tracking-wide text-rose-50"
-                      >
-                        Fold
-                      </button>
-                    ) : null}
-                    {onLastCall && row.phase === 'betting' && !row.betsClosed ? (
-                      <button
-                        type="button"
-                        aria-label={
-                          row.raisesClosed
-                            ? `Open raises on table ${row.tableNum}`
-                            : `Last call on table ${row.tableNum}`
-                        }
-                        onClick={() => onLastCall(row.tableNum, !row.raisesClosed)}
-                        className="mt-1 w-full rounded border border-amber-300/70 bg-amber-500/20 px-1 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-50"
-                      >
-                        {row.raisesClosed ? 'Open raises' : 'Last call'}
-                      </button>
-                    ) : null}
                     </TableActionHoverFrame>
                     </li>
                   )

@@ -9,6 +9,7 @@ import {
   HostVenueFloorBriefPanel,
   TableActionHoverSheet,
   tableActionHoverOrigin,
+  tableContextMenu,
 } from './hostDeskLayout'
 
 function actionRow(tableNum: number): HostVenueActionRow {
@@ -386,12 +387,24 @@ describe('venue floor now', () => {
     const waiting = html.slice(html.indexOf('Open table 1'), html.indexOf('Open table 2'))
     const closed = html.slice(html.indexOf('Open table 2'), html.indexOf('Open table 3'))
     const guessing = html.slice(html.indexOf('Open table 3'))
-    expect(waiting).toContain('Nudge Ada Lane on table 1')
-    expect(waiting).toContain('Fold Ada Lane on table 1')
+    expect(waiting).not.toContain('Nudge Ada Lane on table 1')
+    expect(waiting).not.toContain('Fold Ada Lane on table 1')
     expect(closed).not.toContain('Nudge')
     expect(closed).not.toContain('Fold')
     expect(guessing).not.toContain('Nudge')
     expect(guessing).not.toContain('Fold')
+    expect(
+      tableContextMenu(
+        { tableNum: 1, phase: 'betting', actingPlayerName: 'Ada Lane' },
+        { nudge: true, fold: true, lastCall: false },
+      ).map((item) => item.label),
+    ).toEqual(['Nudge Ada Lane on table 1', 'Fold Ada Lane on table 1'])
+    expect(
+      tableContextMenu(
+        { tableNum: 2, phase: 'betting', betsClosed: true, actingPlayerName: 'Bo' },
+        { nudge: true, fold: true, lastCall: true },
+      ),
+    ).toEqual([])
   })
 
   it('offers last call on an open betting table and shows stack and pot investment', () => {
@@ -415,8 +428,20 @@ describe('venue floor now', () => {
       }),
     )
     expect(html).not.toContain('Last call on betting tables')
-    expect(html).toContain('Last call on table 1')
+    expect(html).not.toContain('Last call on table 1')
     expect(html).not.toContain('Last call on table 2')
+    expect(
+      tableContextMenu(
+        { tableNum: 1, phase: 'betting', actingPlayerName: 'Ada Lane' },
+        { nudge: false, fold: false, lastCall: true },
+      ).map((item) => item.label),
+    ).toEqual(['Last call on table 1'])
+    expect(
+      tableContextMenu(
+        { tableNum: 1, phase: 'betting', raisesClosed: true },
+        { nudge: false, fold: false, lastCall: true },
+      ).map((item) => item.label),
+    ).toEqual(['Open raises on table 1'])
     const table = renderToStaticMarkup(
       createElement(HostTableOpen, {
         seats: floor.actionRows[0]!.seats,

@@ -115,9 +115,17 @@ describe('playerSessionCanResume', () => {
           tableId: 'LOBBY',
           playerId: 'human:dee',
           departed: false,
+          roomFromUrl: true,
+          nameFromUrl: false,
         },
         'human:cara',
       ),
-    ).toMatchObject({ playerId: 'human:cara', departed: false, roomClosed: false })
+    ).toMatchObject({
+      playerId: 'human:cara',
+      departed: false,
+      roomClosed: false,
+      roomFromUrl: true,
+      nameFromUrl: false,
+    })
   })
 })

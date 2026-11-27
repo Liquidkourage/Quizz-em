@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { VENUE_NUMBERED_TABLE_MAX } from '@qhe/core'
+import { ChipText, MOSAIC_SEAT_COUNT, StadiumTableSeats, type SeatCupholderState } from '@qhe/ui'
 import { cardInputForPlayer, firstMatchingPlayer, handHistoryText, handoffPhoneChoices, hostPlayerCard, lastStreetAction, playerAttention, undoBetOffered, type HostHandLine } from './hostPlayerCard'
 
 export type HostRosterSeat = {
@@ -41,17 +42,6 @@ export type HostFeltTable = {
   seats: readonly HostFeltChair[]
 }
 
-const FELT_SLOTS = [
-  { left: '50%', top: '10%' },
-  { left: '78%', top: '24%' },
-  { left: '90%', top: '50%' },
-  { left: '78%', top: '76%' },
-  { left: '50%', top: '90%' },
-  { left: '22%', top: '76%' },
-  { left: '10%', top: '50%' },
-  { left: '22%', top: '24%' },
-] as const
-
 export function hostManagedPlayers(
   roster: readonly HostRosterSeat[],
   waiting: readonly { id: string; name: string }[] = [],
@@ -84,8 +74,8 @@ function sameName(a: string, b: string): boolean {
 }
 
 function claimSlot(wanted: number, used: Set<number>): number {
-  for (let step = 0; step < FELT_SLOTS.length; step++) {
-    const slot = (wanted + step) % FELT_SLOTS.length
+  for (let step = 0; step < MOSAIC_SEAT_COUNT; step++) {
+    const slot = (wanted + step) % MOSAIC_SEAT_COUNT
     if (!used.has(slot)) {
       used.add(slot)
       return slot
@@ -98,18 +88,23 @@ function feltSeatsForTable(
   tableNum: number,
   seats: readonly HostFeltChair[],
   roster: readonly HostRosterSeat[],
-): { playerId: string; name: string; seatIndex: number }[] {
+): { playerId: string; name: string; seatIndex: number; bankroll?: number }[] {
   const pool = roster.filter((player) => player.tableNum === tableNum)
   const onFelt = seats.filter((seat) => seat.offFelt !== true && seat.name.trim())
   const used = new Set<number>()
-  const placed: { playerId: string; name: string; seatIndex: number }[] = []
+  const placed: { playerId: string; name: string; seatIndex: number; bankroll?: number }[] = []
   const source = onFelt.length > 0 ? onFelt : pool.map((player) => ({ name: player.name }))
   for (const seat of source) {
     const index = pool.findIndex((player) => sameName(player.name, seat.name))
     if (index < 0) continue
     const player = pool.splice(index, 1)[0]!
     const wanted = 'seatIndex' in seat && typeof seat.seatIndex === 'number' ? seat.seatIndex : placed.length
-    placed.push({ playerId: player.playerId, name: player.name, seatIndex: claimSlot(wanted, used) })
+    placed.push({
+      playerId: player.playerId,
+      name: player.name,
+      seatIndex: claimSlot(wanted, used),
+      bankroll: 'bankroll' in seat && typeof seat.bankroll === 'number' ? seat.bankroll : undefined,
+    })
   }
   return placed
 }
@@ -126,6 +121,24 @@ function destinationFor(player: HostManagedPlayer, chosen: number | undefined): 
   return player.tableNum === 1 ? 2 : 1
 }
 
+function seatInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return ''
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
+  return `${parts[0]![0] ?? ''}${parts[parts.length - 1]![0] ?? ''}`.toUpperCase()
+}
+
+function feltCupState(
+  selected: boolean,
+  attention: { offline: boolean; toAct: boolean; noGuess: boolean } | undefined,
+): SeatCupholderState {
+  if (selected) return 'winner'
+  if (attention?.toAct) return 'acting'
+  if (attention?.offline) return 'folded'
+  if (attention?.noGuess) return 'answerLocked'
+  return 'default'
+}
+
 function HostPlayerFelt({
   tableNum,
   tableNums: nums,
@@ -137,7 +150,13 @@ function HostPlayerFelt({
 }: {
   tableNum: number | null
   tableNums: number[]
-  seats: readonly { playerId: string; name: string; seatIndex: number; attention?: { offline: boolean; toAct: boolean; noGuess: boolean } }[]
+  seats: readonly {
+    playerId: string
+    name: string
+    seatIndex: number
+    bankroll?: number
+    attention?: { offline: boolean; toAct: boolean; noGuess: boolean }
+  }[]
   selectedId: string | null
   hostPlayerLabel: (name: string) => string
   onShowTable: (tableNum: number) => void
@@ -163,37 +182,43 @@ function HostPlayerFelt({
           </button>
         ))}
       </div>
-      <div className="host-player-felt relative mx-auto aspect-[8/5] w-full max-w-xl rounded-[50%] border border-emerald-700/70 bg-emerald-950/80">
-        <p className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-bold uppercase tracking-[0.16em] text-emerald-100/50">
-          {tableNum == null ? 'No felt' : `Table ${tableNum}`}
-        </p>
-        {seats.map((seat) => {
-          const slot = FELT_SLOTS[seat.seatIndex] ?? FELT_SLOTS[0]
+      <StadiumTableSeats
+        className="host-player-felt"
+        showUnmeasured
+        seatCount={MOSAIC_SEAT_COUNT}
+        hideEmptySeats
+        aspectClassName="aspect-[8/5] w-full"
+        centerContent={
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-100/80">
+            {tableNum == null ? 'No felt' : `Table ${tableNum}`}
+          </p>
+        }
+        seats={seats.map((seat) => {
           const label = hostPlayerLabel(seat.name)
           const selected = selectedId === seat.playerId
-          return (
-            <button
-              key={seat.playerId}
-              type="button"
-              aria-label={`Select ${label}`}
-              aria-pressed={selected}
-              onClick={() => onSelect(seat.playerId)}
-              style={{ left: slot.left, top: slot.top }}
-              className={`absolute flex min-h-11 min-w-11 max-w-[9rem] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border px-3 text-sm font-semibold leading-tight ${
-                seat.attention?.offline ? 'opacity-40' : ''
-              } ${seat.attention?.toAct ? 'ring-2 ring-amber-300' : ''} ${
-                seat.attention?.noGuess ? 'border-dashed' : ''
-              } ${
-                selected
-                  ? 'border-amber-200 bg-amber-400 text-black'
-                  : 'border-white/30 bg-black/70 text-white'
-              }`}
-            >
-              {label}
-            </button>
-          )
+          return {
+            index: seat.seatIndex,
+            label: seatInitials(label),
+            state: feltCupState(selected, seat.attention),
+            pressed: selected,
+            buttonClassName: seat.attention?.offline ? 'opacity-40' : undefined,
+            'aria-label': `Select ${label}`,
+            onSelect: () => onSelect(seat.playerId),
+            nameTag: (
+              <span className="flex max-w-[9rem] flex-col items-center">
+                <span className={`text-sm font-semibold leading-tight ${selected ? 'text-amber-200' : 'text-white'}`}>
+                  {label}
+                </span>
+                {seat.bankroll != null ? (
+                  <span className="text-xs font-bold text-amber-200">
+                    <ChipText text={`$${Math.round(seat.bankroll).toLocaleString('en-US')}`} />
+                  </span>
+                ) : null}
+              </span>
+            ),
+          }
         })}
-      </div>
+      />
     </div>
   )
 }

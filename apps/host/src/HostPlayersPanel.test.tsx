@@ -23,6 +23,8 @@ describe('HostPlayersPanel', () => {
     )
     const felt = html.slice(html.indexOf('host-player-felt'), html.indexOf('host-player-index'))
     expect(felt).toContain('Select Ada Lane')
+    expect(felt).toContain('drop-shadow-md')
+    expect(felt).not.toContain('rounded-[50%]')
     expect(felt).not.toContain('Bo Kent')
     expect(html).toContain('Show table 4')
     const list = html.slice(html.indexOf('host-player-index'))

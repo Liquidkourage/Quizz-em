@@ -17,6 +17,8 @@ import {
   type StadiumFeltLayout,
 } from './stadiumSeatLayout'
 import {
+  MOSAIC_RING_FALLBACK_H_PX,
+  MOSAIC_RING_FALLBACK_W_PX,
   MOSAIC_SEAT_COUNT,
   mosaicFeltCenterPct,
   mosaicSeatDotPct,
@@ -42,6 +44,10 @@ export type StadiumTableSeat = {
   faceDown?: boolean
   holeVariant?: 'emerald' | 'gold' | 'purple' | 'red' | 'blue' | 'cyan' | 'pink' | 'orange' | 'lime' | 'violet'
   'aria-label'?: string
+  /** Host desk: choose this seat. Omitted on the player and the public table. */
+  onSelect?: () => void
+  pressed?: boolean
+  buttonClassName?: string
 }
 
 export type StadiumTableSeatsProps = {
@@ -58,6 +64,8 @@ export type StadiumTableSeatsProps = {
   aspectClassName?: string
   /** `player` — display-table mosaic seat anchors + phone-readable sizes. */
   feltLayout?: StadiumFeltLayout
+  /** Draw seats before the first measurement, using the standard table size. */
+  showUnmeasured?: boolean
 }
 
 /** Grow a phone seat tag away from the felt so it stays in the gutter, off the cards. */
@@ -94,6 +102,7 @@ export function StadiumTableSeats({
   style,
   aspectClassName = 'aspect-[8/5]',
   feltLayout = 'default',
+  showUnmeasured = false,
 }: StadiumTableSeatsProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [ringPx, setRingPx] = useState({ w: 0, h: 0 })
@@ -116,7 +125,8 @@ export function StadiumTableSeats({
     return () => ro.disconnect()
   }, [])
 
-  const { w: rimW, h: rimH } = ringPx
+  const rimW = ringPx.w > 0 ? ringPx.w : showUnmeasured ? MOSAIC_RING_FALLBACK_W_PX : 0
+  const rimH = ringPx.h > 0 ? ringPx.h : showUnmeasured ? MOSAIC_RING_FALLBACK_H_PX : 0
   const isPlayerLayout = feltLayout === 'player'
   /** A tall phone fills the oval. Seats follow that shape instead of the short artwork. */
   const contentAspect = isPlayerLayout && rimW > 0 && rimH > rimW ? rimW / rimH : undefined
@@ -248,9 +258,26 @@ export function StadiumTableSeats({
                   labelClassName={seat?.labelClassName}
                   labelFontSizePx={cupLabelFontPx}
                   state={state}
-                  aria-label={seat?.['aria-label'] ?? (seat?.label != null ? String(seat.label) : `Seat ${i + 1}`)}
+                  aria-label={
+                    seat?.onSelect
+                      ? undefined
+                      : (seat?.['aria-label'] ?? (seat?.label != null ? String(seat.label) : `Seat ${i + 1}`))
+                  }
                 />
               </div>
+              {seat?.onSelect ? (
+                <button
+                  type="button"
+                  aria-label={seat['aria-label'] ?? `Seat ${i + 1}`}
+                  aria-pressed={seat.pressed === true}
+                  onClick={seat.onSelect}
+                  className={clsx(
+                    'absolute z-[40] min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 rounded-full',
+                    seat.buttonClassName,
+                  )}
+                  style={{ left: `${cupPt.leftPct}%`, top: `${cupPt.topPct}%` }}
+                />
+              ) : null}
 
               {showHoles ? (
                 <div

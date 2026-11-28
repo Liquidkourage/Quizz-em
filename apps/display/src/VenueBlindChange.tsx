@@ -32,9 +32,12 @@ function wholeBlind(value: unknown): number | null {
   return Math.floor(value)
 }
 
+function blindMoney(amount: number): string {
+  return `$${Math.round(amount).toLocaleString('en-US')}`
+}
+
 function blindChangeMoney(smallBlind: number, bigBlind: number): string {
-  const money = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`
-  return `${money(smallBlind)} / ${money(bigBlind)}`
+  return `${blindMoney(smallBlind)} / ${blindMoney(bigBlind)}`
 }
 
 function previousPair(notice: BlindChangeNotice): { smallBlind: number; bigBlind: number } | null {
@@ -59,6 +62,14 @@ export function climbedBlind(from: number, to: number, progress: number): number
   const t = progress < 0 ? 0 : progress > 1 ? 1 : progress
   const ease = 1 - (1 - t) ** 3
   return Math.round(from + (to - from) * ease)
+}
+
+/** Share of the tallest blind, so a column can grow from the old amount to the new one. */
+export function blindRise(amount: number, peak: number): number {
+  if (!(peak > 0)) return 1
+  const ratio = amount / peak
+  const clamped = ratio < 0 ? 0 : ratio > 1 ? 1 : ratio
+  return Math.round(clamped * 1000) / 1000
 }
 
 const BLIND_CLIMB_MS = 2200
@@ -91,11 +102,23 @@ function BlindScore({ notice }: { notice: BlindChangeNotice }) {
     return () => cancelAnimationFrame(frame)
   }, [notice.atMs, notice.smallBlind, notice.bigBlind, fromSmall, fromBig, reduce])
 
-  const shown = blindChangeMoney(small, big)
+  const peak = Math.max(notice.bigBlind, fromBig ?? notice.bigBlind)
   return (
-    <p className="blind-figure blind-climb" aria-label={blindChangeMoney(notice.smallBlind, notice.bigBlind)}>
-      <span aria-hidden>{shown}</span>
-    </p>
+    <div className="blind-board">
+      <p className="blind-title">Blinds</p>
+      <div className="blind-stage" aria-label={blindChangeMoney(notice.smallBlind, notice.bigBlind)}>
+        <div className="blind-rise" aria-hidden>
+          <div className="blind-rise-shaft" style={{ ['--rise' as string]: blindRise(small, peak) }}>
+            <div className="blind-rise-fill blind-rise-small" />
+            <span className="blind-rise-amount">{blindMoney(small)}</span>
+          </div>
+          <div className="blind-rise-shaft blind-rise-shaft-big" style={{ ['--rise' as string]: blindRise(big, peak) }}>
+            <div className="blind-rise-fill blind-rise-big" />
+            <span className="blind-rise-amount">{blindMoney(big)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -126,10 +149,7 @@ export function BlindChangeCard({
       aria-modal="true"
       aria-label="Blinds changed"
     >
-      <p className="blind-title relative z-10">Blinds</p>
-      <div className="relative z-10 mt-2 flex w-full max-w-6xl flex-col items-center">
-        <BlindScore notice={notice} />
-      </div>
+      <BlindScore notice={notice} />
     </div>
   )
 }

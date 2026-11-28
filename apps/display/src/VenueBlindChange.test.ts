@@ -1,7 +1,12 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import VenueBlindChange, { blindChangeFromPayload, climbedBlind, questionYieldsToBlinds } from './VenueBlindChange'
+import VenueBlindChange, {
+  blindChangeFromPayload,
+  blindRise,
+  climbedBlind,
+  questionYieldsToBlinds,
+} from './VenueBlindChange'
 
 describe('VenueBlindChange', () => {
   it('reads a blind change off the wall snapshot', () => {
@@ -62,10 +67,21 @@ describe('VenueBlindChange', () => {
     expect(html).not.toContain('Were')
     expect(html).not.toContain('Now')
     expect(html).not.toContain('In play')
-    expect(html).toContain('>$10 / $20<')
+    expect(html).toContain('>$10<')
+    expect(html).toContain('>$20<')
+    expect(html).toContain('blind-rise-amount')
+    expect(html).not.toContain('>$10 / $20<')
     expect(html).toContain('aria-label="$20 / $40"')
+    expect(blindRise(10, 40)).toBe(0.25)
+    expect(blindRise(20, 40)).toBe(0.5)
+    expect(blindRise(40, 40)).toBe(1)
+    expect(html).toContain('blind-rise-small')
+    expect(html).toContain('blind-rise-big')
+    expect(html).toContain('--rise:0.25')
+    expect(html).toContain('--rise:0.5')
     expect(html).not.toContain('blind-reel')
     expect(html).not.toContain('blind-beam')
+    expect(html).not.toContain('chip')
   })
 
   it('keeps the question off the screen until the blinds announcement is finished', () => {

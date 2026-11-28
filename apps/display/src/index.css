@@ -5471,7 +5471,153 @@
   }
 }
 
-/** Blinds increase: one pair ticks from the old amounts to the new ones. */
+/** Blinds increase: one pair ticks up, and two columns of light grow with it. */
+.blind-board {
+  display: flex;
+  width: min(96vw, 90rem);
+  height: 88vh;
+  flex-direction: column;
+  align-items: center;
+}
+
+.blind-stage {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+.blind-rise {
+  position: absolute;
+  inset: 18% 4% 6%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: min(6vw, 3rem);
+  pointer-events: none;
+}
+
+.blind-rise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to top,
+    transparent 0,
+    transparent calc(12.5% - 1px),
+    rgba(255, 236, 200, 0.16) calc(12.5% - 1px),
+    rgba(255, 236, 200, 0.16) 12.5%
+  );
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+
+.blind-rise::after {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 236, 190, 0.9), transparent);
+  box-shadow: 0 0 18px rgba(255, 190, 70, 0.65);
+}
+
+.blind-rise-shaft {
+  position: relative;
+  width: min(34vw, 26rem);
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.blind-rise-shaft-big {
+  width: min(42vw, 32rem);
+}
+
+.blind-rise-amount {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--rise) * 100%);
+  z-index: 2;
+  transform: translate(-50%, 42%);
+  font-size: clamp(3rem, 7.5vw, 7rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #fff8e6;
+  text-shadow:
+    0 0 18px rgba(251, 191, 36, 0.85),
+    0 0 48px rgba(251, 191, 36, 0.45);
+  white-space: nowrap;
+}
+
+.blind-rise-fill {
+  width: 100%;
+  height: 100%;
+  transform: scaleY(var(--rise));
+  transform-origin: bottom center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.35rem 0.35rem 0 0;
+}
+
+.blind-rise-small {
+  background: linear-gradient(
+    to top,
+    rgba(255, 196, 90, 0.12) 0%,
+    rgba(255, 226, 168, 0.5) 58%,
+    rgba(255, 248, 230, 0.96) 100%
+  );
+  box-shadow:
+    0 0 32px rgba(255, 214, 140, 0.35),
+    inset 0 0 22px rgba(255, 255, 255, 0.18);
+}
+
+.blind-rise-big {
+  background: linear-gradient(
+    to top,
+    rgba(150, 70, 8, 0.28) 0%,
+    rgba(255, 168, 32, 0.78) 46%,
+    rgba(255, 244, 206, 1) 100%
+  );
+  box-shadow:
+    0 0 56px rgba(255, 170, 40, 0.55),
+    inset 0 0 36px rgba(255, 255, 255, 0.22);
+}
+
+.blind-rise-fill::before {
+  content: "";
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 0;
+  height: 3px;
+  background: #fff;
+  box-shadow: 0 0 18px 5px rgba(255, 244, 214, 0.95);
+}
+
+.blind-rise-fill::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 38%;
+  background: linear-gradient(to top, transparent, rgba(255, 255, 255, 0.38), transparent);
+  animation: blind-rise-sheen 2.4s ease-in-out infinite;
+}
+
+@keyframes blind-rise-sheen {
+  from {
+    transform: translateY(280%);
+  }
+  to {
+    transform: translateY(-140%);
+  }
+}
+
 .blind-title {
   font-family: Orbitron, sans-serif;
   font-size: clamp(1.2rem, 2.8vh, 1.8rem);
@@ -5480,23 +5626,6 @@
   text-transform: uppercase;
   color: rgba(254, 243, 199, 0.92);
   animation: blind-title-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.blind-figure {
-  margin-top: 0.2rem;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.blind-climb {
-  font-size: clamp(4.8rem, 13vw, 9.5rem);
-  color: #fff8e6;
-  text-shadow:
-    0 0 18px rgba(251, 191, 36, 0.85),
-    0 0 64px rgba(251, 191, 36, 0.45);
 }
 
 @keyframes blind-title-in {
@@ -5513,7 +5642,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blind-title {
+  .blind-title,
+  .blind-rise-fill::after {
     animation: none;
   }
 }

@@ -24,7 +24,22 @@ function blindChangeMoney(smallBlind: number, bigBlind: number): string {
   return `${money(smallBlind)} / ${money(bigBlind)}`
 }
 
-export function BlindChangeCard({ notice }: { notice: BlindChangeNotice }) {
+/** The question stays off the TV until this blinds announcement has had the screen. */
+export function questionYieldsToBlinds(
+  questionOnScreen: boolean,
+  blindsAtMs: number | null,
+  blindsFinishedAtMs: number | null,
+): boolean {
+  return questionOnScreen && blindsAtMs != null && blindsFinishedAtMs !== blindsAtMs
+}
+
+export function BlindChangeCard({
+  notice,
+  onFinished,
+}: {
+  notice: BlindChangeNotice
+  onFinished?: (atMs: number) => void
+}) {
   const [open, setOpen] = useState(true)
 
   useEffect(() => {
@@ -32,22 +47,34 @@ export function BlindChangeCard({ notice }: { notice: BlindChangeNotice }) {
     return () => window.clearTimeout(timer)
   }, [notice.atMs])
 
+  useEffect(() => {
+    if (!open) onFinished?.(notice.atMs)
+  }, [open, notice.atMs, onFinished])
+
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/55 p-6" role="dialog" aria-modal="true" aria-label="Blinds changed">
-      <button type="button" className="absolute inset-0" aria-label="Dismiss" onClick={() => setOpen(false)} />
-      <div className="relative rounded-2xl border border-amber-200/40 bg-zinc-950/95 px-10 py-8 text-center shadow-2xl">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-amber-100/80">Blinds</p>
-        <p className="mt-3 text-5xl font-black text-white">
-          <ChipText text={blindChangeMoney(notice.smallBlind, notice.bigBlind)} />
-        </p>
-      </div>
+    <div
+      className="fixed inset-0 z-[220] flex flex-col items-center justify-center bg-[#050806] px-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Blinds changed"
+    >
+      <p className="text-[clamp(1.1rem,2.4vh,1.6rem)] font-black uppercase tracking-[0.2em] text-amber-100/80">Blinds</p>
+      <p className="mt-4 text-center text-[clamp(4rem,12vw,8rem)] font-black leading-none text-white">
+        <ChipText text={blindChangeMoney(notice.smallBlind, notice.bigBlind)} />
+      </p>
     </div>
   )
 }
 
-export default function VenueBlindChange({ notice }: { notice: BlindChangeNotice | null }) {
+export default function VenueBlindChange({
+  notice,
+  onFinished,
+}: {
+  notice: BlindChangeNotice | null
+  onFinished?: (atMs: number) => void
+}) {
   if (notice == null) return null
-  return <BlindChangeCard key={notice.atMs} notice={notice} />
+  return <BlindChangeCard key={notice.atMs} notice={notice} onFinished={onFinished} />
 }

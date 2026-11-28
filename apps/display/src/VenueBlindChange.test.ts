@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import VenueBlindChange, { blindChangeFromPayload } from './VenueBlindChange'
+import VenueBlindChange, { blindChangeFromPayload, questionYieldsToBlinds } from './VenueBlindChange'
 
 describe('VenueBlindChange', () => {
   it('reads a blind change off the wall snapshot', () => {
@@ -21,5 +21,13 @@ describe('VenueBlindChange', () => {
     expect(html).toContain('role="dialog"')
     expect(html).toContain('Blinds')
     expect(html).toContain('aria-label="$15 / $30"')
+    expect(html).not.toContain('bg-black/55')
+    expect(html).toContain('bg-[#050806]')
+  })
+
+  it('keeps the question off the screen until the blinds announcement is finished', () => {
+    expect(questionYieldsToBlinds(true, 5, null)).toBe(true)
+    expect(questionYieldsToBlinds(true, 5, 5)).toBe(false)
+    expect(questionYieldsToBlinds(false, 5, null)).toBe(false)
   })
 })

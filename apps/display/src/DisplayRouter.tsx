@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { DisplayLayoutPayload, DisplayVenueWallSnapshot } from '@qhe/net'
 import {
@@ -29,7 +29,7 @@ import { useVenueWallAutoView } from './useVenueWallAutoView'
 import { hostPinnedAudienceView, hostWantsJoinWall, questionCoversTheFloor, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
 import { PublicQuestionScreen } from './PublicQuestionScreen.tsx'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
-import VenueBlindChange, { blindChangeFromPayload } from './VenueBlindChange.tsx'
+import VenueBlindChange, { blindChangeFromPayload, questionYieldsToBlinds } from './VenueBlindChange.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
 import { useVenueBustAnnouncement } from './useVenueBustAnnouncement'
 import { venueWallScoreLists } from './venueLeaderboard'
@@ -412,10 +412,14 @@ export default function DisplayRouter({
   })
 
   const showConnBadge = connectionStatus !== 'connected'
+  const blindAt = venueWall?.blindChange?.atMs ?? null
+  const [blindFinishedAt, setBlindFinishedAt] = useState<number | null>(null)
+  const finishBlinds = useCallback((atMs: number) => setBlindFinishedAt(atMs), [])
+  const showQuestionNow = showQuestionScreen && !questionYieldsToBlinds(showQuestionScreen, blindAt, blindFinishedAt)
 
   return (
     <>
-    <VenueBlindChange notice={venueWall?.blindChange ?? null} />
+    <VenueBlindChange notice={venueWall?.blindChange ?? null} onFinished={finishBlinds} />
     <AnimatePresence>
       {showHostBusts ? (
         <VenueBustAnnouncement key="venue-bust-announcement" busts={lastHandBusts} />
@@ -518,7 +522,7 @@ export default function DisplayRouter({
           <EventOverviewWall venueCode={venueCode} step={layout.lessonStep} />
         </motion.div>
       )}
-      {showQuestionScreen && venueWall?.headlineQuestionText ? (
+      {showQuestionNow && venueWall?.headlineQuestionText ? (
         <motion.div
           key="venue-question"
           className="relative z-10 min-h-screen w-full"

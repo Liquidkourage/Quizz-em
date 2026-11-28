@@ -2,7 +2,9 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import VenueBlindChange, {
+  BLIND_CHANGE_MS,
   blindChangeFromPayload,
+  blindColumnLag,
   blindDigitCells,
   blindHeadline,
   blindPhaseAt,
@@ -75,7 +77,8 @@ describe('VenueBlindChange', () => {
         },
       }),
     )
-    expect(html).toContain('BLINDS INCREASING')
+    expect(html).toContain('aria-label="BLINDS INCREASING"')
+    expect(html).toContain('blind-letter')
     expect(html).toContain('Quizz')
     expect(html).toContain('>1<')
     expect(html).toContain('>2<')
@@ -83,6 +86,10 @@ describe('VenueBlindChange', () => {
     expect(html).toContain('blind-digit')
     expect(html).not.toContain('blind-flap')
     expect(html).toContain('blind-chips')
+    expect(html).toContain('blind-chip')
+    expect(html).toContain('data-lag="120"')
+    expect(blindColumnLag('small')).toBe(0)
+    expect(blindColumnLag('big')).toBe(120)
   })
 
   it('reads a development preview without a live tournament', () => {
@@ -101,11 +108,13 @@ describe('VenueBlindChange', () => {
     expect(blindPreviewNotice('?blindPreview=100,200')).toBeNull()
     expect(blindPreviewOffset('?blindAt=950')).toBe(950)
     expect(blindPreviewOffset('')).toBeNull()
+    expect(BLIND_CHANGE_MS).toBe(3500)
     expect(blindPhaseAt(400)).toBe('hold')
-    expect(blindPhaseAt(950)).toBe('flip')
-    expect(blindPhaseAt(1500)).toBe('rise')
-    expect(blindPhaseAt(2100)).toBe('sweep')
-    expect(blindPhaseAt(2700)).toBe('confirm')
+    expect(blindPhaseAt(680)).toBe('hold')
+    expect(blindPhaseAt(800)).toBe('flip')
+    expect(blindPhaseAt(1400)).toBe('rise')
+    expect(blindPhaseAt(1900)).toBe('sweep')
+    expect(blindPhaseAt(2300)).toBe('confirm')
     expect(blindHeadline('hold', true)).toBe('BLINDS INCREASING')
     expect(blindHeadline('confirm', true)).toBe('NEW BLINDS')
     expect(blindStageClass('rise', false)).toContain('rise')

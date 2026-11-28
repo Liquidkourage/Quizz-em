@@ -5471,7 +5471,7 @@
   }
 }
 
-/** Blinds increase: split-flap counters, then the chip stacks, then one gold sweep. */
+/** Blinds increase: one 3.5s broadcast beat. Anticipation, escalation, impact, then a held settle. */
 .blind-announce {
   position: fixed;
   inset: 0;
@@ -5482,6 +5482,11 @@
   background: #010609;
   color: #f4ddaa;
   font-family: Georgia, 'Times New Roman', serif;
+  animation: blind-veil 3.5s linear both;
+}
+
+.blind-announce:has(.frozen) {
+  animation: none;
 }
 
 .blind-stage {
@@ -5493,6 +5498,25 @@
   background-color: #06312f;
   background-repeat: repeat;
   isolation: isolate;
+  transform-origin: 50% 46%;
+  animation: blind-push 3.5s linear both;
+}
+
+.blind-stage.frozen {
+  animation: none;
+}
+
+.blind-dim {
+  position: absolute;
+  inset: 0;
+  background: #010609;
+  pointer-events: none;
+  animation: blind-gather 3.5s linear both;
+}
+
+.blind-stage.frozen .blind-dim {
+  animation: none;
+  opacity: 0;
 }
 
 .blind-stage::before {
@@ -5514,6 +5538,14 @@
   background-repeat: no-repeat;
   mask-image: linear-gradient(transparent, #000 25%);
   z-index: -1;
+}
+
+.blind-brand,
+.blind-ornament,
+.blind-headline,
+.blind-rule,
+.blind-columns {
+  z-index: 1;
 }
 
 .blind-brand {
@@ -5561,6 +5593,20 @@
   line-height: 1.25;
   color: #f5d59a;
   text-shadow: 0 2px 5px #000;
+}
+
+.blind-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.55cqw);
+  animation: blind-letter 0.5s cubic-bezier(0.16, 0.84, 0.24, 1) forwards;
+  animation-delay: var(--letter, 0ms);
+}
+
+.blind-stage.frozen .blind-letter {
+  animation: none;
+  opacity: 1;
+  transform: none;
 }
 
 .blind-rule {
@@ -5700,27 +5746,42 @@
 }
 
 .blind-stage.frozen.sweeping .blind-sweep {
-  animation: none;
-  opacity: 1;
-  transform: scaleX(0.72);
+  animation-play-state: paused;
+  animation-delay: calc(0ms - var(--sweep-elapsed, 0ms));
 }
 
-.blind-stage.frozen .blind-flap {
+.blind-stage.frozen .blind-flap,
+.blind-stage.frozen .blind-chip,
+.blind-stage.frozen .blind-contact,
+.blind-stage.frozen .blind-ripple {
   animation-play-state: paused;
+}
+
+.blind-stage.frozen.rise .blind-chip,
+.blind-stage.frozen.rise .blind-contact {
+  animation-delay: calc(var(--drop, 0ms) - var(--rise-elapsed, 0ms));
 }
 
 .blind-flap.blind-top {
   transform-origin: bottom center;
-  animation: blind-flip-top 0.42s ease-in forwards;
+  animation: blind-flip-top 0.32s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
   animation-delay: calc(var(--flap-delay, 0ms) - var(--flap-elapsed, 0ms));
   box-shadow: 0 0.6cqw 1.2cqw rgba(0, 0, 0, 0.55);
 }
 
 .blind-flap.blind-bottom {
   transform-origin: top center;
-  animation: blind-flip-bottom 0.48s ease-out both;
-  animation-delay: calc(var(--flap-delay, 0ms) + 420ms - var(--flap-elapsed, 0ms));
+  animation: blind-flip-bottom 0.4s cubic-bezier(0.16, 0.9, 0.22, 1) both;
+  animation-delay: calc(var(--flap-delay, 0ms) + 240ms - var(--flap-elapsed, 0ms));
   box-shadow: 0 -0.4cqw 1cqw rgba(0, 0, 0, 0.4);
+}
+
+.blind-stage.sweeping .blind-counter {
+  animation: blind-lock 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.blind-stage.frozen .blind-counter {
+  animation: none;
 }
 
 .blind-chips {
@@ -5733,21 +5794,108 @@
   height: 12cqw;
   object-fit: contain;
   pointer-events: none;
-  opacity: 0;
-  transform: translate(-50%, 2cqw) scale(0.94);
-  transition:
-    transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.35s;
+  opacity: 1;
+  transform: translate(-50%, 0.35cqw) scale(0.985);
 }
 
 .blind-stage.rise .blind-chips {
-  opacity: 1;
   transform: translate(-50%, 0) scale(1);
+  transition: transform 0.42s cubic-bezier(0.18, 0.85, 0.24, 1);
 }
 
-.blind-stage.confirm .blind-chips {
+.blind-drops {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 3;
+  height: 0;
+  pointer-events: none;
+}
+
+.blind-chip {
+  --rest: 1.15cqw;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 6.2cqw;
+  height: 1.5cqw;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 32%, #3d7d68, #12362f 58%, #071512);
+  box-shadow:
+    0 0 0 0.11cqw #e2c48a,
+    0 0.35cqw 0.4cqw #000c,
+    inset 0 0.18cqw 0 #ffffff1c;
   opacity: 0;
-  transform: translate(-50%, 1cqw) scale(0.97);
+  transform: translate(-50%, -14cqw);
+}
+
+.blind-chip:nth-child(2) {
+  --rest: 0.55cqw;
+}
+
+.blind-chip:nth-child(3) {
+  --rest: 0.05cqw;
+}
+
+.blind-stage.rise .blind-chip {
+  animation: blind-drop 0.56s cubic-bezier(0.2, 0.75, 0.25, 1) forwards;
+  animation-delay: var(--drop, 0ms);
+}
+
+.blind-stage.frozen.rise .blind-chip,
+.blind-stage.frozen.rise .blind-contact {
+  animation-play-state: paused;
+  animation-delay: calc(var(--drop, 0ms) - var(--rise-elapsed, 0ms));
+}
+
+.blind-stage.confirm .blind-chip,
+.blind-stage.confirm .blind-contact {
+  animation: none;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.blind-contact {
+  position: absolute;
+  left: 50%;
+  top: 1.6cqw;
+  width: 6.4cqw;
+  height: 1cqw;
+  border-radius: 50%;
+  background: #000c;
+  opacity: 0;
+  transform: translate(-50%, 0) scaleX(0.35);
+}
+
+.blind-stage.rise .blind-contact {
+  animation: blind-contact 0.56s linear forwards;
+  animation-delay: var(--drop, 0ms);
+}
+
+.blind-stage.frozen.rise .blind-contact {
+  animation-play-state: paused;
+  animation-delay: calc(var(--drop, 0ms) - var(--rise-elapsed, 0ms));
+}
+
+.blind-ripple {
+  position: absolute;
+  left: 50%;
+  top: 1.4cqw;
+  width: 8cqw;
+  height: 2.1cqw;
+  border: 1px solid #e6c27a;
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 0.8cqw #e5ae4b33;
+}
+
+.blind-stage.sweeping .blind-ripple {
+  animation: blind-ripple 0.7s cubic-bezier(0.16, 0.6, 0.24, 1) both;
+}
+
+.blind-stage.sweeping .blind-ripple-late {
+  animation-delay: 130ms;
 }
 
 .blind-halo {
@@ -5776,18 +5924,23 @@
 .blind-sweep {
   position: absolute;
   left: 0;
-  right: 0;
-  top: 58%;
-  z-index: 1;
-  height: 1px;
+  top: 16%;
+  z-index: 4;
+  width: 22%;
+  height: 68%;
   pointer-events: none;
   opacity: 0;
-  background: linear-gradient(90deg, transparent, #b48032, #ffdda1, #b48032, transparent);
-  box-shadow: 0 0 1.3cqw 0.25cqw #e8bd6a66;
+  background: linear-gradient(90deg, transparent, #e8c27a22 40%, #fff1cc55 50%, #e8c27a22 60%, transparent);
+  mix-blend-mode: screen;
 }
 
 .blind-stage.sweeping .blind-sweep {
-  animation: blind-sweep 0.8s ease-out both;
+  animation: blind-sweep 0.72s cubic-bezier(0.4, 0.05, 0.2, 1) both;
+}
+
+.blind-stage.frozen.sweeping .blind-sweep {
+  animation-play-state: paused;
+  animation-delay: calc(0ms - var(--sweep-elapsed, 0ms));
 }
 
 .blind-replay {
@@ -5803,48 +5956,126 @@
   font: 600 12px system-ui;
 }
 
-@keyframes blind-flip-top {
+@keyframes blind-veil {
+  0% { opacity: 0; }
+  7% { opacity: 1; }
+  91% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes blind-push {
+  0% { transform: scale(1); }
+  16% { transform: scale(1.022); }
+  48% { transform: scale(1.036); }
+  52% { transform: scale(1.05); }
+  60% { transform: scale(1.028); }
+  100% { transform: scale(1.01); }
+}
+
+@keyframes blind-gather {
+  0% { opacity: 0.62; }
+  22% { opacity: 0.12; }
+  48% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes blind-letter {
   to {
-    transform: scaleY(0);
-    filter: brightness(0.55);
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes blind-flip-top {
+  0% {
+    transform: scaleY(1.03) rotateX(0deg);
+    filter: blur(0);
+  }
+  38% {
+    transform: scaleY(0.55) rotateX(-36deg);
+    filter: blur(1.4px);
+  }
+  100% {
+    transform: scaleY(0) rotateX(-78deg);
+    filter: blur(0);
   }
 }
 
 @keyframes blind-flip-bottom {
-  from {
-    transform: scaleY(0);
-    filter: brightness(0.7);
+  0% {
+    transform: scaleY(0.08) rotateX(64deg);
+    filter: blur(1.6px);
   }
-  to {
-    transform: scaleY(1);
+  68% {
+    transform: scaleY(1.07) rotateX(-7deg);
+    filter: blur(0);
+  }
+  100% {
+    transform: scaleY(1) rotateX(0deg);
+    filter: blur(0);
+  }
+}
+
+@keyframes blind-drop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -1.7cqw) scale(0.98, 1.04);
+  }
+  16% { opacity: 1; }
+  68% {
+    opacity: 1;
+    transform: translate(-50%, 0.45cqw) scale(1.16, 0.68);
+  }
+  82% {
+    transform: translate(-50%, -0.28cqw) scale(0.98, 1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, var(--rest)) scale(1);
+  }
+}
+
+@keyframes blind-contact {
+  0%, 58% {
+    opacity: 0;
+    transform: translate(-50%, 0) scaleX(0.3);
+  }
+  72% {
+    opacity: 0.75;
+    transform: translate(-50%, 0) scaleX(1.05);
+  }
+  100% {
+    opacity: 0.28;
+    transform: translate(-50%, 0) scaleX(0.8);
+  }
+}
+
+@keyframes blind-lock {
+  0% { transform: scale(1); filter: brightness(1); }
+  32% { transform: scale(1.04); filter: brightness(1.28); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes blind-ripple {
+  0% {
+    opacity: 0.75;
+    transform: translate(-50%, 0) scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(1.75);
   }
 }
 
 @keyframes blind-sweep {
   0% {
     opacity: 0;
-    transform: scaleX(0.04);
+    transform: translateX(-40%);
   }
-  35% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 0.8;
-    transform: scaleX(1);
-  }
+  18% { opacity: 1; }
   100% {
     opacity: 0;
-    transform: scaleX(1);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .blind-flap,
-  .blind-chips,
-  .blind-halo,
-  .blind-sweep {
-    animation: none;
-    transition: none;
+    transform: translateX(380%);
   }
 }
 

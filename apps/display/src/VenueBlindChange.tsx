@@ -5,7 +5,7 @@ import railUrl from './assets/blinds/rail.png'
 import smallStackUrl from './assets/blinds/small-stack.png'
 import bigStackUrl from './assets/blinds/big-stack.png'
 
-export const BLIND_CHANGE_MS = 4600
+export const BLIND_CHANGE_MS = 3500
 
 const SEEN_BLIND_KEY = 'qhe-blind-seen'
 
@@ -78,20 +78,26 @@ function flapsAreMoving(phase: BlindPhase, animate: boolean): boolean {
   return phase !== 'hold' && animate
 }
 
-function flapDelay(frozen: boolean, frozenAt: number | null): number {
+function motionElapsed(frozen: boolean, frozenAt: number | null, start: number): number {
   if (!frozen || frozenAt == null) return 0
-  return Math.max(0, frozenAt - 650)
+  return Math.max(0, frozenAt - start)
+}
+
+/** The big blind follows the small blind, so the two counters do not move together. */
+export function blindColumnLag(column: 'small' | 'big'): number {
+  return column === 'big' ? 120 : 0
 }
 
 export function blindHeadline(phase: BlindPhase, animate: boolean): string {
-  return phase === 'confirm' || !animate ? 'NEW BLINDS' : 'BLINDS INCREASING'
+  const locked = phase === 'sweep' || phase === 'confirm'
+  return locked || !animate ? 'NEW BLINDS' : 'BLINDS INCREASING'
 }
 
 export function blindPhaseAt(ms: number): BlindPhase {
-  if (ms >= 2450) return 'confirm'
-  if (ms >= 1850) return 'sweep'
-  if (ms >= 1250) return 'rise'
-  if (ms >= 650) return 'flip'
+  if (ms >= 2150) return 'confirm'
+  if (ms >= 1750) return 'sweep'
+  if (ms >= 1100) return 'rise'
+  if (ms >= 700) return 'flip'
   return 'hold'
 }
 
@@ -135,6 +141,31 @@ function markBlind(atMs: number): void {
   }
 }
 
+function BlindHeadline({ text }: { text: string }) {
+  return (
+    <h1 className="blind-headline" aria-label={text}>
+      {text.split('').map((character, index) => (
+        <span key={`${text}-${index}`} className="blind-letter" style={{ ['--letter' as string]: `${index * 28}ms` }}>
+          {character === ' ' ? '\u00a0' : character}
+        </span>
+      ))}
+    </h1>
+  )
+}
+
+function BlindDrops({ lag }: { lag: number }) {
+  return (
+    <div className="blind-drops" aria-hidden="true">
+      {[0, 80, 150].map((drop) => (
+        <span key={drop} className="blind-chip" style={{ ['--drop' as string]: `${drop + lag}ms` }} />
+      ))}
+      <span className="blind-contact" style={{ ['--drop' as string]: `${150 + lag}ms` }} />
+      <span className="blind-ripple" />
+      <span className="blind-ripple blind-ripple-late" />
+    </div>
+  )
+}
+
 function BlindDigit({ old, next, flipping, delay }: { old: string; next: string; flipping: boolean; delay: number }) {
   const change = flipping && old !== next
   const top = change ? next : old
@@ -161,7 +192,7 @@ function BlindDigit({ old, next, flipping, delay }: { old: string; next: string;
   )
 }
 
-function BlindCounter({ from, to, flipping }: { from: number; to: number; flipping: boolean }) {
+function BlindCounter({ from, to, flipping, lag }: { from: number; to: number; flipping: boolean; lag: number }) {
   const cells = blindDigitCells(from, to)
   const width = Math.min(5.2, 23 / cells.length)
   return (
@@ -171,7 +202,7 @@ function BlindCounter({ from, to, flipping }: { from: number; to: number; flippi
       aria-label={String(flipping ? to : from)}
     >
       {cells.map((cell, index) => (
-        <BlindDigit key={index} old={cell.old} next={cell.next} flipping={flipping} delay={index * 65} />
+        <BlindDigit key={index} old={cell.old} next={cell.next} flipping={flipping} delay={index * 48 + lag} />
       ))}
     </div>
   )
@@ -183,18 +214,22 @@ function BlindColumn({
   to,
   flipping,
   stack,
+  column,
 }: {
   label: string
   from: number
   to: number
   flipping: boolean
   stack: string
+  column: 'small' | 'big'
 }) {
+  const lag = blindColumnLag(column)
   return (
-    <div className="blind-column">
+    <div className="blind-column" data-lag={lag}>
       <div className="blind-label">{label}</div>
-      <BlindCounter from={from} to={to} flipping={flipping} />
+      <BlindCounter from={from} to={to} flipping={flipping} lag={lag} />
       <img className="blind-chips" src={stack} alt="" />
+      <BlindDrops lag={lag} />
       <div className="blind-halo" />
     </div>
   )
@@ -239,7 +274,7 @@ function useBlindMotion(
         current = next
         setPhase(next)
       }
-      if (now - start < 3200) frame = window.requestAnimationFrame(tick)
+      if (now - start < BLIND_CHANGE_MS - 80) frame = window.requestAnimationFrame(tick)
     }
     frame = window.requestAnimationFrame(tick)
     return () => window.cancelAnimationFrame(frame)
@@ -272,12 +307,18 @@ export function BlindChangeCard({
       <div
         className={blindStageClass(phase, frozen)}
         data-phase={phase}
-        style={{ backgroundImage: `url(${feltUrl})`, ['--flap-elapsed' as string]: `${flapDelay(frozen, frozenAt)}ms` }}
+        style={{
+          backgroundImage: `url(${feltUrl})`,
+          ['--flap-elapsed' as string]: `${motionElapsed(frozen, frozenAt, 700)}ms`,
+          ['--rise-elapsed' as string]: `${motionElapsed(frozen, frozenAt, 1100)}ms`,
+          ['--sweep-elapsed' as string]: `${motionElapsed(frozen, frozenAt, 1750)}ms`,
+        }}
       >
+        <div className="blind-dim" />
         <div className="blind-rail" style={{ backgroundImage: `url(${railUrl})` }} />
         <div className="blind-brand">Quizz’em</div>
         <div className="blind-ornament">♠</div>
-        <h1 className="blind-headline">{blindHeadline(phase, animate)}</h1>
+        <BlindHeadline text={blindHeadline(phase, animate)} />
         <div className="blind-rule" />
         <div className="blind-columns">
           <BlindColumn
@@ -286,6 +327,7 @@ export function BlindChangeCard({
             to={notice.smallBlind}
             flipping={flapsAreMoving(phase, animate)}
             stack={smallStackUrl}
+            column="small"
           />
           <BlindColumn
             label="Big blind"
@@ -293,6 +335,7 @@ export function BlindChangeCard({
             to={notice.bigBlind}
             flipping={flapsAreMoving(phase, animate)}
             stack={bigStackUrl}
+            column="big"
           />
         </div>
         <div className="blind-sweep" />

@@ -367,7 +367,23 @@ export function venueBlindLevelSummary(venueCode: string): {
 
 const BLIND_NOTICE_MS = 12_000
 
-type BlindChangeNotice = { smallBlind: number; bigBlind: number; atMs: number }
+type BlindChangeNotice = {
+  smallBlind: number
+  bigBlind: number
+  atMs: number
+  previousSmallBlind?: number
+  previousBigBlind?: number
+}
+
+function rememberedBlindPair(key: string | undefined): Pick<BlindChangeNotice, 'previousSmallBlind' | 'previousBigBlind'> | null {
+  if (key == null) return null
+  const [smallRaw, bigRaw] = key.split('/')
+  const previousSmallBlind = Number(smallRaw)
+  const previousBigBlind = Number(bigRaw)
+  if (!Number.isInteger(previousSmallBlind) || !Number.isInteger(previousBigBlind)) return null
+  if (previousSmallBlind < 1 || previousBigBlind < 1) return null
+  return { previousSmallBlind, previousBigBlind }
+}
 
 const shownBlindKey = new Map<string, string>()
 const blindNotices = new Map<string, BlindChangeNotice>()
@@ -399,7 +415,7 @@ export function noteShownVenueBlinds(
   const prev = shownBlindKey.get(vn)
   shownBlindKey.set(vn, key)
   if (prev != null && prev !== key) {
-    blindNotices.set(vn, { smallBlind, bigBlind, atMs: now })
+    blindNotices.set(vn, { smallBlind, bigBlind, atMs: now, ...(rememberedBlindPair(prev) ?? {}) })
   }
   const notice = blindNotices.get(vn)
   if (notice == null || now - notice.atMs >= BLIND_NOTICE_MS) return null

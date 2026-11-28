@@ -156,6 +156,9 @@ export type BlindChangeNotice = {
   smallBlind: number
   bigBlind: number
   atMs: number
+  /** The pair in play before this increase. Omitted when the room has no earlier pair. */
+  previousSmallBlind?: number
+  previousBigBlind?: number
 }
 
 /** Server `state` payload may include wire-only timing metadata. */

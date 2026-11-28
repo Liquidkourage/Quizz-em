@@ -5470,3 +5470,77 @@
     animation: none;
   }
 }
+
+/** Blinds increase: the old pair settles, a rule draws, then the new pair arrives with a light sweep. */
+.blind-change-were {
+  animation: blind-were-settle 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.blind-change-rule {
+  transform-origin: left center;
+  animation: blind-rule-draw 0.4s 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.blind-change-now {
+  animation: blind-now-arrive 0.72s 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.blind-change-sweep {
+  animation: blind-sweep 0.7s 1.15s ease-in-out both;
+}
+
+@keyframes blind-were-settle {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes blind-rule-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes blind-now-arrive {
+  0% {
+    opacity: 0;
+    transform: translateY(1.4rem) scale(0.9);
+    filter: brightness(1.7);
+  }
+  60% {
+    opacity: 1;
+    transform: none;
+    filter: brightness(1.25);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes blind-sweep {
+  from {
+    transform: translateX(-140%);
+  }
+  to {
+    transform: translateX(280%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blind-change-were,
+  .blind-change-rule,
+  .blind-change-now,
+  .blind-change-sweep {
+    animation: none;
+  }
+}

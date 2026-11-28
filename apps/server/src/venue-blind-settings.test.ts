@@ -116,6 +116,8 @@ describe('blinds during a hand', () => {
     expect(noteShownVenueBlinds('WAIT', nextQuestion.smallBlind, nextQuestion.bigBlind, 3_000, true)).toEqual({
       smallBlind: 50,
       bigBlind: 100,
+      previousSmallBlind: 10,
+      previousBigBlind: 20,
       atMs: 3_000,
     })
     expect(noteShownVenueBlinds('WAIT', nextQuestion.smallBlind, nextQuestion.bigBlind, 4_000, true)?.atMs).toBe(3_000)

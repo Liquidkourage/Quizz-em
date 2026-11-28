@@ -1,6 +1,7 @@
 ﻿import { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
 import { assignGhostHosts } from './ghostHost'
 import { streetPlanFrom } from './streetPlan'
+import type { VenuePace } from './venuePace'
 
 export {
   PUBLIC_CARD_COUNT,
@@ -181,6 +182,12 @@ export interface GameState {
   pointsStandings?: PointsStanding[];
   /** How this venue splits the 5 public cards across betting streets. The next hand copies it onto the round. */
   streetPlan?: number[];
+  /**
+   * `sync`: every table waits for the same host beat.
+   * `async`: after the question starts, each table deals and opens guessing on its own.
+   * Both modes still wait together for the answer reveal.
+   */
+  venuePace?: VenuePace;
 }
 
 /** A player who left the table with no stack. Ranked on the trivia scores, not at a seat. */
@@ -2191,6 +2198,8 @@ export {
   winnerScreensPayoutHint,
   winnerScreensReadyAt,
 } from './winnerScreens';
+export { venuePaceFrom, type VenuePace } from './venuePace'
+
 export {
   ANSWER_REVEAL_WARNING_MS,
   answerRevealOpen,

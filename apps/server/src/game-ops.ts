@@ -27,6 +27,8 @@ import {
   nextStreetReveal,
   streetPlanFrom,
   acceptedStreetPlan,
+  venuePaceFrom,
+  type VenuePace,
   placeBet,
   foldPlayer,
   submitAnswer,
@@ -404,14 +406,17 @@ export function scheduleVenueRevealToShowdown(venueCode: string) {
 }
 
 const answerWindowTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const tableAnswerTimers = new Map<string, ReturnType<typeof setTimeout>>()
 const answerRevealTimers = new Map<string, ReturnType<typeof setTimeout>>()
 const answerRevealStarted = new Set<string>()
 
 export function clearAnswerRevealClocks(): void {
   for (const timer of answerWindowTimers.values()) clearTimeout(timer)
   for (const timer of answerRevealTimers.values()) clearTimeout(timer)
+  for (const timer of tableAnswerTimers.values()) clearTimeout(timer)
   answerWindowTimers.clear()
   answerRevealTimers.clear()
+  tableAnswerTimers.clear()
   answerRevealStarted.clear()
 }
 
@@ -474,6 +479,85 @@ export function setVenueStreetPlan(venueCode: string, plan: number[]): boolean {
     emitVenueTableState(tk, next)
   }
   return true
+}
+
+const venuePaces = new Map<string, VenuePace>()
+
+/** Sync until the host chooses otherwise. A restored table keeps the pace stamped on it. */
+export function venuePace(venueCode: string): VenuePace {
+  const vn = normalizeVenueCode(venueCode)
+  const remembered = venuePaces.get(vn)
+  if (remembered) return remembered
+  const stamped = [
+    ...venuePlayableSnapshots(vn).map((row) => row.gs.venuePace),
+    rooms.get(tableSessionKey(vn, LOBBY_TABLE_ID))?.venuePace,
+  ]
+  const pace = venuePaceFrom(stamped.find((value) => value === 'async' || value === 'sync'))
+  if (stamped.some((value) => value === 'async' || value === 'sync')) venuePaces.set(vn, pace)
+  return pace
+}
+
+function armTableAnswerClock(sessionKey: string, fireAtMs: number): void {
+  const prev = tableAnswerTimers.get(sessionKey)
+  if (prev) clearTimeout(prev)
+  const timer = setTimeout(() => {
+    tableAnswerTimers.delete(sessionKey)
+    const gs = rooms.get(sessionKey)
+    if (!gs || isVenueHeld(gs.code)) return
+    maybeStartAnswerReveal(gs.code)
+  }, Math.max(0, fireAtMs - Date.now()))
+  timer.unref?.()
+  tableAnswerTimers.set(sessionKey, timer)
+}
+
+function openTableAnswering(sessionKey: string, gs: GameState): void {
+  const vn = normalizeVenueCode(gs.code)
+  const deadline = Date.now() + resolveAnswerWindowSecondsForStart(vn, null) * 1000
+  const next: GameState = {
+    ...gs,
+    phase: 'answering',
+    round: { ...gs.round, answerDeadline: deadline },
+  }
+  armTableAnswerClock(sessionKey, deadline)
+  commitTableAdvance(sessionKey, gs, next)
+  const opened = rooms.get(sessionKey)
+  if (opened) playVirtualPlayers(sessionKey, opened)
+}
+
+/** One table, after its own betting street closes. Sync mode does nothing. */
+function advanceAsyncTable(sessionKey: string): void {
+  const gs = rooms.get(sessionKey)
+  if (!gs || venuePace(gs.code) !== 'async' || isVenueHeld(gs.code)) return
+  if (gs.phase !== 'betting' || gs.round.isBettingOpen !== false) return
+  if (feltHasNextStreet(gs)) {
+    const dealt = dealCommunityCards(gs)
+    if (dealt === gs) return
+    commitTableAdvance(sessionKey, gs, dealt)
+    return
+  }
+  if ((gs.round.communityCards?.length ?? 0) >= 5) openTableAnswering(sessionKey, gs)
+}
+
+/** Host choice: tables share each beat, or each table moves until the answer. */
+export function setVenuePace(venueCode: string, raw: unknown): VenuePace {
+  const pace = venuePaceFrom(raw)
+  const vn = normalizeVenueCode(venueCode)
+  venuePaces.set(vn, pace)
+  const keys = [
+    ...venuePlayableSnapshots(vn).map((row) => row.tk),
+    tableSessionKey(vn, LOBBY_TABLE_ID),
+  ]
+  for (const tk of keys) {
+    const gs = rooms.get(tk)
+    if (!gs) continue
+    const next = { ...gs, venuePace: pace }
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next, { skipOrchestration: true })
+  }
+  if (pace === 'async') {
+    for (const row of venuePlayableSnapshots(vn)) advanceAsyncTable(row.tk)
+  }
+  return pace
 }
 
 /** Deal the next street's public cards on every seated felt whose clock is closed. */
@@ -1912,6 +1996,9 @@ export function commitTableAdvance(
     releaseGuessNudgeWhenEveryoneHasGuessed(vn)
     maybeStartAnswerReveal(vn)
   }
+  if (after.phase === 'betting' && after.round.isBettingOpen === false) {
+    advanceAsyncTable(sessionKey)
+  }
 }
 
 /**
@@ -3202,7 +3289,7 @@ export function emitDisplayVenueSnapshotNow(vnRaw: string) {
       const tableDeadline = headlineGs.round?.answerDeadline
       if (typeof revealAt === 'number' && Number.isFinite(revealAt)) {
         answerDeadlineMs = revealAt
-      } else if (venueDeadline != null && Number.isFinite(venueDeadline)) {
+      } else if (venuePace(vn) === 'sync' && venueDeadline != null && Number.isFinite(venueDeadline)) {
         answerDeadlineMs = venueDeadline
       } else if (typeof tableDeadline === 'number' && Number.isFinite(tableDeadline)) {
         answerDeadlineMs = tableDeadline
@@ -3602,6 +3689,7 @@ export const VENUE_SYNC_ACTION_TYPES = new Set<string>([
   'setQuestion',
   'nextQuestionFromSetlist',
   'dealInitialCards',
+  'setVenuePace',
   'dealCommunityCards',
   'startAnswering',
   'revealAnswer',

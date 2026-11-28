@@ -96,6 +96,7 @@ import { HostMosaicPreviewPanel } from './HostMosaicPreviewPanel'
 import { HostPlayerPhasePreviewPanel } from './HostPlayerPhasePreviewPanel'
 import { HostConnectedDisplays } from './HostConnectedDisplays'
 import { HostPlayersPanel } from './HostPlayersPanel'
+import { HostPaceMode } from './HostPaceMode'
 import { HostStreetPlan } from './HostStreetPlan'
 import { HostPreShowPanel } from './HostPreShowPanel'
 import { HostRoomControls } from './HostRoomControls'
@@ -487,6 +488,12 @@ function HostApp() {
   const handleDealCommunityCards = () => {
     if (socket) {
       socket.emit('action', { type: 'dealCommunityCards' })
+    }
+  }
+
+  const handleVenuePace = (pace: 'sync' | 'async') => {
+    if (socket) {
+      socket.emit('action', { type: 'setVenuePace', payload: { pace } })
     }
   }
 
@@ -993,6 +1000,10 @@ function HostApp() {
                       </NeonButton>
                     </div>
                   </section>
+                </HostCollapsible>
+
+                <HostCollapsible summary="Table pace" className="mb-0">
+                  <HostPaceMode pace={gameState.venuePace} onChoose={handleVenuePace} />
                 </HostCollapsible>
 
                 <HostCollapsible summary="Betting streets" className="mb-0">

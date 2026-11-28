@@ -246,8 +246,26 @@ export async function handleShowAction(
           break
         }
 
+        case 'setVenuePace': {
+          if (!g.assertVenueHost(socket, gameState)) break
+          const pace = g.setVenuePace(gameState.code, payload?.pace ?? payload)
+          socket.emit(
+            'toast',
+            pace === 'async'
+              ? 'Tables will move on their own after the question starts. They still wait together for the answer.'
+              : 'Tables will wait for each other again.',
+          )
+          gameState = g.rooms.get(sessionKey) ?? gameState
+          break
+        }
+
         case 'dealCommunityCards': {
           if (!g.assertVenueHost(socket, gameState)) break
+          if (g.venuePace(gameState.code) === 'async') {
+            g.setVenuePace(gameState.code, 'async')
+            gameState = g.rooms.get(sessionKey)!
+            break
+          }
           const lockBoard = g.requireAllSeatedTablesSatisfy(
             socket,
             gameState.code,
@@ -271,6 +289,11 @@ export async function handleShowAction(
 
         case 'startAnswering': {
           if (!g.assertVenueHost(socket, gameState)) break
+          if (g.venuePace(gameState.code) === 'async') {
+            g.setVenuePace(gameState.code, 'async')
+            gameState = g.rooms.get(sessionKey)!
+            break
+          }
           const lockAns = g.requireVenueLockstepTables(
             socket,
             gameState.code,

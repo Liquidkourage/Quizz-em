@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { DisplayVenueTileSnapshot } from '@qhe/net'
 import {
   INITIAL_VENUE_WALL_AUTO_VIEW_STATE,
+  questionCoversTheFloor,
   resolveAudienceWallView,
   stepVenueWallAutoView,
   venueWallFloorIsLive,
@@ -71,6 +72,23 @@ describe('resolveAudienceWallView', () => {
     expect(resolveAudienceWallView('floor', 'leaderboard')).toBe('leaderboard')
     expect(resolveAudienceWallView('rules', 'floor')).toBe('rules')
     expect(resolveAudienceWallView('event', 'floor')).toBe('event')
+  })
+})
+
+describe('questionCoversTheFloor', () => {
+  it('fills the TV while the question is up and the hole cards are not dealt', () => {
+    expect(questionCoversTheFloor([tile('question')], 'How many feet are in a mile?')).toBe(true)
+  })
+
+  it('returns to the tables once any table has hole cards', () => {
+    const dealt = { ...tile('question'), seatHolesDealt: [true, true, false, false, false, false, false, false] }
+    expect(questionCoversTheFloor([dealt], 'How many feet are in a mile?')).toBe(false)
+    expect(questionCoversTheFloor([tile('question'), tile('betting', 2)], 'How many feet are in a mile?')).toBe(false)
+  })
+
+  it('stays off when there is no question', () => {
+    expect(questionCoversTheFloor([tile('question')], '  ')).toBe(false)
+    expect(questionCoversTheFloor([tile('lobby')], 'How many feet are in a mile?')).toBe(false)
   })
 })
 

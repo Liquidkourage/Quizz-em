@@ -26,7 +26,8 @@ import EventOverviewWall from './EventOverviewWall.tsx'
 import { buildVenueWallTileRows, venueWallHasLiveTiles, venueWallShowSeatingChart } from './venueWallModel.ts'
 import { recordServerClockSample } from './serverClock'
 import { useVenueWallAutoView } from './useVenueWallAutoView'
-import { hostPinnedAudienceView, hostWantsJoinWall, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
+import { hostPinnedAudienceView, hostWantsJoinWall, questionCoversTheFloor, resolveAudienceWallView, venueWallFloorIsLive } from './venueWallAutoView.ts'
+import { PublicQuestionScreen } from './PublicQuestionScreen.tsx'
 import VenueBustAnnouncement from './VenueBustAnnouncement.tsx'
 import VenueBlindChange, { blindChangeFromPayload } from './VenueBlindChange.tsx'
 import VenueSeatingAnnouncement from './VenueSeatingAnnouncement.tsx'
@@ -153,10 +154,15 @@ export default function DisplayRouter({
     wallView !== 'rules' &&
     wallView !== 'event' &&
     venueWallShowSeatingChart(venueWall, tileRows, venueWall?.serverNowMs ?? Date.now())
+  const questionFullScreen =
+    venueWall != null && questionCoversTheFloor(venueWall.tiles, venueWall.headlineQuestionText)
+  const showQuestionScreen =
+    questionFullScreen && !hostPinnedAudienceView(hostWallView) && !audienceBriefing && !showHostBusts
   const showSeatingChart =
     onVenueWallLayout &&
     !audienceBriefing &&
     !showHostBusts &&
+    !showQuestionScreen &&
     hasFloorTables &&
     (hostWantsSeatingChart || autoSeatingChart)
   const showRules = onVenueWallLayout && !showHostBusts && hostWallView === 'rules'
@@ -385,7 +391,8 @@ export default function DisplayRouter({
     !showSeatingChart &&
     !showLeaderboard &&
     !showRules &&
-    !showEvent
+    !showEvent &&
+    !showQuestionScreen
 
   const answerReveal = useVenueAnswerReveal(
     showVenueMosaicShell && !showHostBusts ? venueWall : null,
@@ -511,6 +518,23 @@ export default function DisplayRouter({
           <EventOverviewWall venueCode={venueCode} step={layout.lessonStep} />
         </motion.div>
       )}
+      {showQuestionScreen && venueWall?.headlineQuestionText ? (
+        <motion.div
+          key="venue-question"
+          className="relative z-10 min-h-screen w-full"
+          role="presentation"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <PublicQuestionScreen
+            text={venueWall.headlineQuestionText}
+            cueNumber={venueWall.setlistCueNumber}
+            cueTotal={venueWall.setlistCueTotal}
+          />
+        </motion.div>
+      ) : null}
       {showRules && (
         <motion.div
           key="venue-seating-rules"

@@ -76,6 +76,22 @@ export function hostWantsJoinWall(hostWallView: VenueWallViewMode | undefined): 
   return hostWallView === 'join'
 }
 
+function tileHasHoleCards(tile: DisplayVenueTileSnapshot): boolean {
+  return tile.seatHolesDealt?.some((dealt) => dealt === true) === true
+}
+
+/** The question owns the TV until every live table has its hole cards. */
+export function questionCoversTheFloor(
+  tiles: DisplayVenueTileSnapshot[],
+  headlineQuestionText: string | null | undefined,
+): boolean {
+  const text = typeof headlineQuestionText === 'string' ? headlineQuestionText.trim() : ''
+  if (text === '') return false
+  const live = tiles.filter((tile) => tile.seated > 0 && tile.phase !== 'lobby')
+  if (live.length === 0) return false
+  return live.every((tile) => tile.phase === 'question' && !tileHasHoleCards(tile))
+}
+
 /**
  * Chip scores, trivia scores, seating, eliminations, the join wall, and how-to-play stay up when the host selects them.
  * Tables follows the hand. After payout the tables stay until the host picks another screen.

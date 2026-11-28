@@ -2436,7 +2436,8 @@
   .venue-headline-question-fit-host-dense,
   .venue-headline-question-fit-host-broadcast,
   .display-fit-question-host-app,
-  .display-fit-question-host-reveal {
+  .display-fit-question-host-reveal,
+  .display-fit-question-host-fullscreen {
     display: flex;
     width: 100%;
     min-width: 0;
@@ -2495,6 +2496,12 @@
   .display-fit-question-host-reveal {
     height: min(48vh, 30rem);
     max-height: min(48vh, 30rem);
+  }
+
+  .display-fit-question-host-fullscreen {
+    height: min(72vh, 100%);
+    max-height: 72vh;
+    width: min(92vw, 90rem);
   }
 
   .venue-headline-answer-timer {

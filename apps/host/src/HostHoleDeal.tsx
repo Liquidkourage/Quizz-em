@@ -9,7 +9,7 @@ const CHOICES: { id: HoleDeal; label: string; detail: string }[] = [
   {
     id: 'auto',
     label: '10 seconds later',
-    detail: 'Hole cards come out 10 seconds after the question is on the tables. You still open the betting.',
+    detail: 'Ten seconds after the question is on the tables, the hole cards are dealt and betting opens.',
   },
 ]
 

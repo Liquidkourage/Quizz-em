@@ -618,7 +618,14 @@ function fireHoleDeal(vn: string): void {
   holeDealAtMs.delete(vn)
   if (holeDeal(vn) !== 'auto' || !waitingOnHoleCards(vn)) return
   if (!autoDealHoleCardsOnVenue(vn)) return
-  io.to(hostVenueRoom(vn)).emit('toast', 'Hole cards are out. Open betting when you are ready.')
+  const opened = openBettingAfterQuestionOnVenue(vn)
+  if (opened) markVenueShowStarted(vn)
+  io.to(hostVenueRoom(vn)).emit(
+    'toast',
+    opened
+      ? 'Hole cards dealt — wagering round 1 open (all tables).'
+      : 'Hole cards dealt. Wagering did not open — check every table.',
+  )
 }
 
 function scheduleHoleDeal(vn: string, fireAt: number): void {
@@ -643,7 +650,7 @@ function resumeHoleDeal(vn: string, elapsed: number): void {
   scheduleHoleDeal(vn, at + elapsed)
 }
 
-/** Host choice: deal the hole cards yourself, or 10 seconds after each question. */
+/** Host choice: deal and open betting yourself, or 10 seconds after each question. */
 export function setVenueHoleDeal(venueCode: string, raw: unknown): HoleDeal {
   const choice = holeDealFrom(raw)
   const vn = normalizeVenueCode(venueCode)

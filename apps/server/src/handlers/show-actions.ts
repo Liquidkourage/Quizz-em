@@ -252,7 +252,7 @@ export async function handleShowAction(
           socket.emit(
             'toast',
             choice === 'auto'
-              ? 'Hole cards will come out 10 seconds after each question.'
+              ? 'Hole cards and betting will open 10 seconds after each question.'
               : 'You will deal the hole cards.',
           )
           gameState = g.rooms.get(sessionKey) ?? gameState

@@ -55,17 +55,18 @@ describe('automatic hole cards', () => {
     expect(rooms.get(key)!.phase).toBe('question')
   })
 
-  it('deals two hole cards 10 seconds after the question and leaves betting closed', () => {
+  it('deals the hole cards and opens betting together 10 seconds after the question', () => {
     const key = seated('AUTO')
     setVenueHoleDeal('AUTO', 'auto')
     applyQuestionToAllPlayable('AUTO', QUESTION)
     vi.advanceTimersByTime(HOLE_DEAL_DELAY_MS - 1)
     expect(rooms.get(key)!.players[0]!.hand).toHaveLength(0)
+    expect(rooms.get(key)!.phase).toBe('question')
     vi.advanceTimersByTime(1)
     const after = rooms.get(key)!
     expect(after.players.every((player) => player.hand.length === 2)).toBe(true)
-    expect(after.phase).toBe('question')
-    expect(after.round.isBettingOpen).toBe(false)
+    expect(after.phase).toBe('betting')
+    expect(after.round.isBettingOpen).toBe(true)
   })
 
   it('stops the countdown when the host takes the deal back', () => {

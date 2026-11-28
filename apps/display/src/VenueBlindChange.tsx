@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import type { BlindChangeNotice } from '@qhe/net'
+import feltUrl from './assets/blinds/felt.png'
+import railUrl from './assets/blinds/rail.png'
+import smallStackUrl from './assets/blinds/small-stack.png'
+import bigStackUrl from './assets/blinds/big-stack.png'
 
-export const BLIND_CHANGE_MS = 4500
+export const BLIND_CHANGE_MS = 3500
+
+const SEEN_BLIND_KEY = 'qhe-blind-seen'
 
 export function blindChangeFromPayload(raw: unknown): BlindChangeNotice | null {
   if (raw == null || typeof raw !== 'object') return null
@@ -32,19 +38,12 @@ function wholeBlind(value: unknown): number | null {
   return Math.floor(value)
 }
 
-function blindMoney(amount: number): string {
-  return `$${Math.round(amount).toLocaleString('en-US')}`
-}
-
-function blindChangeMoney(smallBlind: number, bigBlind: number): string {
-  return `${blindMoney(smallBlind)} / ${blindMoney(bigBlind)}`
-}
-
 function previousPair(notice: BlindChangeNotice): { smallBlind: number; bigBlind: number } | null {
   const smallBlind = notice.previousSmallBlind
   const bigBlind = notice.previousBigBlind
   if (smallBlind == null || bigBlind == null) return null
   if (smallBlind === notice.smallBlind && bigBlind === notice.bigBlind) return null
+  if (smallBlind > notice.smallBlind || bigBlind > notice.bigBlind) return null
   return { smallBlind, bigBlind }
 }
 
@@ -57,99 +56,247 @@ export function questionYieldsToBlinds(
   return questionOnScreen && blindsAtMs != null && blindsFinishedAtMs !== blindsAtMs
 }
 
-/** Ease-out so the pair ticks quickly, then settles on the new blinds. */
-export function climbedBlind(from: number, to: number, progress: number): number {
-  const t = progress < 0 ? 0 : progress > 1 ? 1 : progress
-  const ease = 1 - (1 - t) ** 3
-  return Math.round(from + (to - from) * ease)
+/** Development replay: `?blindPreview=100,200,200,400` is old small, old big, new small, new big. */
+type BlindPhase = 'hold' | 'flip' | 'rise' | 'sweep' | 'confirm'
+
+/** Development still: `?blindAt=950` freezes the preview at that millisecond. */
+export function blindPreviewOffset(search: string): number | null {
+  const raw = new URLSearchParams(search).get('blindAt')
+  if (raw == null || raw === '') return null
+  const value = Number(raw)
+  if (!Number.isFinite(value) || value < 0) return null
+  return value
 }
 
-/** Share of the tallest blind, so a column can grow from the old amount to the new one. */
-export function blindRise(amount: number, peak: number): number {
-  if (!(peak > 0)) return 1
-  const ratio = amount / peak
-  const clamped = ratio < 0 ? 0 : ratio > 1 ? 1 : ratio
-  return Math.round(clamped * 1000) / 1000
+export function blindStageClass(phase: BlindPhase, frozen: boolean): string {
+  const risen = phase === 'rise' || phase === 'sweep' || phase === 'confirm'
+  const sweeping = phase === 'sweep' || phase === 'confirm'
+  const confirmed = phase === 'confirm'
+  return `blind-stage${risen ? ' rise' : ''}${sweeping ? ' sweeping' : ''}${confirmed ? ' confirm' : ''}${frozen ? ' frozen' : ''}`
 }
 
-const BLIND_CLIMB_MS = 2200
+function flapsAreMoving(phase: BlindPhase, animate: boolean): boolean {
+  return phase !== 'hold' && animate
+}
 
-function BlindScore({ notice }: { notice: BlindChangeNotice }) {
-  const previous = previousPair(notice)
-  const fromSmall = previous?.smallBlind
-  const fromBig = previous?.bigBlind
-  const reduce = useReducedMotion()
-  const [small, setSmall] = useState(fromSmall ?? notice.smallBlind)
-  const [big, setBig] = useState(fromBig ?? notice.bigBlind)
+function flapDelay(frozen: boolean, frozenAt: number | null): number {
+  if (!frozen || frozenAt == null) return 0
+  return Math.max(0, frozenAt - 650)
+}
 
-  useEffect(() => {
-    if (fromSmall == null || fromBig == null || reduce) {
-      setSmall(notice.smallBlind)
-      setBig(notice.bigBlind)
-      return
-    }
-    const start = performance.now()
-    let frame = 0
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / BLIND_CLIMB_MS)
-      setSmall(climbedBlind(fromSmall, notice.smallBlind, t))
-      setBig(climbedBlind(fromBig, notice.bigBlind, t))
-      if (t < 1) frame = requestAnimationFrame(tick)
-    }
-    setSmall(fromSmall)
-    setBig(fromBig)
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [notice.atMs, notice.smallBlind, notice.bigBlind, fromSmall, fromBig, reduce])
+export function blindHeadline(phase: BlindPhase, animate: boolean): string {
+  return phase === 'confirm' || !animate ? 'NEW BLINDS' : 'BLINDS INCREASING'
+}
 
-  const peak = Math.max(notice.bigBlind, fromBig ?? notice.bigBlind)
+export function blindPhaseAt(ms: number): BlindPhase {
+  if (ms >= 2450) return 'confirm'
+  if (ms >= 1850) return 'sweep'
+  if (ms >= 1250) return 'rise'
+  if (ms >= 650) return 'flip'
+  return 'hold'
+}
+
+export function blindPreviewNotice(search: string): BlindChangeNotice | null {
+  const raw = new URLSearchParams(search).get('blindPreview')
+  if (raw == null || raw === '') return null
+  const parts = raw.split(',').map((part) => Number(part.trim()))
+  if (parts.length !== 4 || parts.some((value) => !Number.isInteger(value) || value < 1)) return null
+  const [previousSmallBlind, previousBigBlind, smallBlind, bigBlind] = parts
+  return blindChangeFromPayload({
+    smallBlind,
+    bigBlind,
+    previousSmallBlind,
+    previousBigBlind,
+    atMs: 1,
+  })
+}
+
+export function blindDigitCells(from: number, to: number): { old: string; next: string }[] {
+  const oldText = String(from)
+  const nextText = String(to)
+  const width = Math.max(oldText.length, nextText.length)
+  const oldPad = oldText.padStart(width, ' ')
+  const nextPad = nextText.padStart(width, ' ')
+  return [...nextPad].map((next, index) => ({ old: oldPad[index] ?? ' ', next }))
+}
+
+function seenBlind(atMs: number): boolean {
+  try {
+    return sessionStorage.getItem(SEEN_BLIND_KEY) === String(atMs)
+  } catch {
+    return false
+  }
+}
+
+function markBlind(atMs: number): void {
+  try {
+    sessionStorage.setItem(SEEN_BLIND_KEY, String(atMs))
+  } catch {
+    /* private browsing */
+  }
+}
+
+function BlindDigit({ old, next, flipping, delay }: { old: string; next: string; flipping: boolean; delay: number }) {
+  const change = flipping && old !== next
+  const top = change ? next : old
+  const bottom = change ? old : old
   return (
-    <div className="blind-board">
-      <p className="blind-title">Blinds</p>
-      <div className="blind-stage" aria-label={blindChangeMoney(notice.smallBlind, notice.bigBlind)}>
-        <div className="blind-rise" aria-hidden>
-          <div className="blind-rise-shaft" style={{ ['--rise' as string]: blindRise(small, peak) }}>
-            <div className="blind-rise-fill blind-rise-small" />
-            <span className="blind-rise-amount">{blindMoney(small)}</span>
-          </div>
-          <div className="blind-rise-shaft blind-rise-shaft-big" style={{ ['--rise' as string]: blindRise(big, peak) }}>
-            <div className="blind-rise-fill blind-rise-big" />
-            <span className="blind-rise-amount">{blindMoney(big)}</span>
-          </div>
-        </div>
+    <div className="blind-digit" style={{ ['--flap-delay' as string]: `${delay}ms` }}>
+      <div className="blind-half blind-top">
+        <span>{top}</span>
       </div>
+      <div className="blind-half blind-bottom">
+        <span>{bottom}</span>
+      </div>
+      {change ? (
+        <>
+          <div className="blind-half blind-top blind-flap">
+            <span>{old}</span>
+          </div>
+          <div className="blind-half blind-bottom blind-flap">
+            <span>{next}</span>
+          </div>
+        </>
+      ) : null}
     </div>
   )
+}
+
+function BlindCounter({ from, to, flipping }: { from: number; to: number; flipping: boolean }) {
+  const cells = blindDigitCells(from, to)
+  const width = Math.min(5.2, 23 / cells.length)
+  return (
+    <div
+      className="blind-counter"
+      style={{ ['--digit-width' as string]: `${width}cqw` }}
+      aria-label={String(flipping ? to : from)}
+    >
+      {cells.map((cell, index) => (
+        <BlindDigit key={index} old={cell.old} next={cell.next} flipping={flipping} delay={index * 65} />
+      ))}
+    </div>
+  )
+}
+
+function BlindColumn({
+  label,
+  from,
+  to,
+  flipping,
+  stack,
+}: {
+  label: string
+  from: number
+  to: number
+  flipping: boolean
+  stack: string
+}) {
+  return (
+    <div className="blind-column">
+      <div className="blind-label">{label}</div>
+      <BlindCounter from={from} to={to} flipping={flipping} />
+      <img className="blind-chips" src={stack} alt="" />
+      <div className="blind-halo" />
+    </div>
+  )
+}
+
+function useBlindMotion(
+  animate: boolean,
+  frozenAt: number | null,
+  atMs: number,
+  onFinished?: (atMs: number) => void,
+  onReplay?: () => void,
+) {
+  const frozen = frozenAt != null
+  const [open, setOpen] = useState(frozen ? frozenAt < BLIND_CHANGE_MS : true)
+  const [phase, setPhase] = useState<BlindPhase>(frozen ? blindPhaseAt(frozenAt) : animate ? 'hold' : 'confirm')
+
+  useEffect(() => {
+    if (frozen) return
+    const timer = window.setTimeout(() => setOpen(false), BLIND_CHANGE_MS)
+    return () => window.clearTimeout(timer)
+  }, [atMs, frozen])
+
+  useEffect(() => {
+    if (!open) {
+      if (onReplay == null) markBlind(atMs)
+      onFinished?.(atMs)
+    }
+  }, [open, atMs, onFinished, onReplay])
+
+  useEffect(() => {
+    if (frozen || !animate) {
+      if (!frozen) setPhase('confirm')
+      return
+    }
+    const timers = [
+      window.setTimeout(() => setPhase('flip'), 650),
+      window.setTimeout(() => setPhase('rise'), 1250),
+      window.setTimeout(() => setPhase('sweep'), 1850),
+      window.setTimeout(() => setPhase('confirm'), 2450),
+    ]
+    return () => timers.forEach((timer) => window.clearTimeout(timer))
+  }, [animate, frozen, atMs])
+
+  return { open, phase, frozen }
 }
 
 export function BlindChangeCard({
   notice,
   onFinished,
+  onReplay,
+  frozenAt = null,
 }: {
   notice: BlindChangeNotice
   onFinished?: (atMs: number) => void
+  onReplay?: () => void
+  frozenAt?: number | null
 }) {
-  const [open, setOpen] = useState(true)
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setOpen(false), BLIND_CHANGE_MS)
-    return () => window.clearTimeout(timer)
-  }, [notice.atMs])
-
-  useEffect(() => {
-    if (!open) onFinished?.(notice.atMs)
-  }, [open, notice.atMs, onFinished])
+  const previous = previousPair(notice)
+  const reduce = useReducedMotion()
+  const animate = previous != null && !reduce
+  const fromSmall = previous?.smallBlind ?? notice.smallBlind
+  const fromBig = previous?.bigBlind ?? notice.bigBlind
+  const { open, phase, frozen } = useBlindMotion(animate, frozenAt, notice.atMs, onFinished, onReplay)
 
   if (!open) return null
 
   return (
-    <div
-      className="fixed inset-0 z-[220] flex flex-col items-center justify-center overflow-hidden bg-[#050806] px-6"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Blinds changed"
-    >
-      <BlindScore notice={notice} />
+    <div className="blind-announce" role="dialog" aria-modal="true" aria-label="Blinds changed">
+      <div
+        className={blindStageClass(phase, frozen)}
+        data-phase={phase}
+        style={{ backgroundImage: `url(${feltUrl})`, ['--flap-elapsed' as string]: `${flapDelay(frozen, frozenAt)}ms` }}
+      >
+        <div className="blind-rail" style={{ backgroundImage: `url(${railUrl})` }} />
+        <div className="blind-brand">Quizz’em</div>
+        <div className="blind-ornament">♠</div>
+        <h1 className="blind-headline">{blindHeadline(phase, animate)}</h1>
+        <div className="blind-rule" />
+        <div className="blind-columns">
+          <BlindColumn
+            label="Small blind"
+            from={fromSmall}
+            to={notice.smallBlind}
+            flipping={flapsAreMoving(phase, animate)}
+            stack={smallStackUrl}
+          />
+          <BlindColumn
+            label="Big blind"
+            from={fromBig}
+            to={notice.bigBlind}
+            flipping={flapsAreMoving(phase, animate)}
+            stack={bigStackUrl}
+          />
+        </div>
+        <div className="blind-sweep" />
+      </div>
+      {onReplay ? (
+        <button type="button" className="blind-replay" onClick={onReplay}>
+          Replay
+        </button>
+      ) : null}
     </div>
   )
 }
@@ -157,10 +304,26 @@ export function BlindChangeCard({
 export default function VenueBlindChange({
   notice,
   onFinished,
+  onReplay,
+  frozenAt = null,
 }: {
   notice: BlindChangeNotice | null
   onFinished?: (atMs: number) => void
+  onReplay?: () => void
+  frozenAt?: number | null
 }) {
-  if (notice == null) return null
-  return <BlindChangeCard key={notice.atMs} notice={notice} onFinished={onFinished} />
+  const alreadySeen = notice != null && onReplay == null && seenBlind(notice.atMs)
+  useEffect(() => {
+    if (alreadySeen && notice) onFinished?.(notice.atMs)
+  }, [alreadySeen, notice, onFinished])
+  if (notice == null || alreadySeen) return null
+  return (
+    <BlindChangeCard
+      key={`${notice.atMs}`}
+      notice={notice}
+      onFinished={onFinished}
+      onReplay={onReplay}
+      frozenAt={frozenAt}
+    />
+  )
 }

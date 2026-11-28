@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import DisplayRouter from './DisplayRouter.tsx'
 import PairingScreen from './PairingScreen.tsx'
+import VenueBlindChange, { blindPreviewNotice, blindPreviewOffset } from './VenueBlindChange.tsx'
 import {
   clearSavedDisplayVenue,
   displayVenueOnBoot,
@@ -34,11 +35,11 @@ export default function DisplayGate() {
     setGate({ venue: null, pairedViaHandshake: false })
   }, [])
 
-  if (!venue) {
-    return <PairingScreen onPaired={followVenue} />
-  }
-
-  return (
+  const blindPreview = import.meta.env.DEV ? blindPreviewNotice(window.location.search) : null
+  const [blindReplay, setBlindReplay] = useState(0)
+  const screen = !venue ? (
+    <PairingScreen onPaired={followVenue} />
+  ) : (
     <DisplayRouter
       key={venue}
       venueCode={venue}
@@ -46,5 +47,19 @@ export default function DisplayGate() {
       onReleased={onReleased}
       onVenueCode={followVenue}
     />
+  )
+
+  return (
+    <>
+      {screen}
+      {blindPreview ? (
+        <VenueBlindChange
+          key={blindReplay}
+          notice={blindPreview}
+          frozenAt={blindPreviewOffset(window.location.search)}
+          onReplay={() => setBlindReplay((n) => n + 1)}
+        />
+      ) : null}
+    </>
   )
 }

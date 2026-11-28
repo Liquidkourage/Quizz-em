@@ -3,8 +3,12 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import VenueBlindChange, {
   blindChangeFromPayload,
-  blindRise,
-  climbedBlind,
+  blindDigitCells,
+  blindHeadline,
+  blindPhaseAt,
+  blindStageClass,
+  blindPreviewNotice,
+  blindPreviewOffset,
   questionYieldsToBlinds,
 } from './VenueBlindChange'
 
@@ -34,54 +38,78 @@ describe('VenueBlindChange', () => {
     })
   })
 
-  it('shows the new blinds', () => {
+  it('shows the current level when no earlier blinds are known', () => {
     const html = renderToStaticMarkup(
       createElement(VenueBlindChange, { notice: { smallBlind: 15, bigBlind: 30, atMs: 5 } }),
     )
     expect(html).toContain('role="dialog"')
-    expect(html).toContain('Blinds')
-    expect(html).toContain('aria-label="$15 / $30"')
-    expect(html).not.toContain('bg-black/55')
-    expect(html).toContain('bg-[#050806]')
+    expect(html).toContain('NEW BLINDS')
+    expect(html).toContain('Small blind')
+    expect(html).toContain('Big blind')
+    expect(html).toContain('>1<')
+    expect(html).toContain('>5<')
+    expect(html).toContain('>3<')
+    expect(html).toContain('>0<')
+    expect(html).not.toContain('BLINDS INCREASING')
+    expect(html).not.toContain('blind-flap')
   })
 
-  it('counts one pair up from the blinds the room just left', () => {
-    expect(climbedBlind(10, 20, 0)).toBe(10)
-    expect(climbedBlind(10, 20, 1)).toBe(20)
-    expect(climbedBlind(10, 20, 0.5)).toBeGreaterThan(15)
-    expect(climbedBlind(10, 20, 0.5)).toBeLessThan(20)
-    expect(climbedBlind(40, 20, 1)).toBe(20)
+  it('opens on the old amounts and flips only the digits that change', () => {
+    expect(blindDigitCells(100, 200)).toEqual([
+      { old: '1', next: '2' },
+      { old: '0', next: '0' },
+      { old: '0', next: '0' },
+    ])
+    expect(blindDigitCells(150, 200).map((cell) => `${cell.old}${cell.next}`).join(' ')).toBe('12 50 00')
+    expect(blindDigitCells(500, 1000).map((cell) => cell.next).join('')).toBe('1000')
+    expect(blindDigitCells(1000, 2000).map((cell) => cell.old).join('')).toBe('1000')
 
     const html = renderToStaticMarkup(
       createElement(VenueBlindChange, {
         notice: {
-          smallBlind: 20,
-          bigBlind: 40,
-          previousSmallBlind: 10,
-          previousBigBlind: 20,
+          smallBlind: 200,
+          bigBlind: 400,
+          previousSmallBlind: 100,
+          previousBigBlind: 200,
           atMs: 9,
         },
       }),
     )
-    expect(html).toContain('Blinds')
-    expect(html).not.toContain('Were')
-    expect(html).not.toContain('Now')
-    expect(html).not.toContain('In play')
-    expect(html).toContain('>$10<')
-    expect(html).toContain('>$20<')
-    expect(html).toContain('blind-rise-amount')
-    expect(html).not.toContain('>$10 / $20<')
-    expect(html).toContain('aria-label="$20 / $40"')
-    expect(blindRise(10, 40)).toBe(0.25)
-    expect(blindRise(20, 40)).toBe(0.5)
-    expect(blindRise(40, 40)).toBe(1)
-    expect(html).toContain('blind-rise-small')
-    expect(html).toContain('blind-rise-big')
-    expect(html).toContain('--rise:0.25')
-    expect(html).toContain('--rise:0.5')
-    expect(html).not.toContain('blind-reel')
-    expect(html).not.toContain('blind-beam')
-    expect(html).not.toContain('chip')
+    expect(html).toContain('BLINDS INCREASING')
+    expect(html).toContain('Quizz')
+    expect(html).toContain('>1<')
+    expect(html).toContain('>2<')
+    expect(html).not.toContain('>4<')
+    expect(html).toContain('blind-digit')
+    expect(html).not.toContain('blind-flap')
+    expect(html).toContain('blind-chips')
+  })
+
+  it('reads a development preview without a live tournament', () => {
+    expect(blindPreviewNotice('?blindPreview=100,200,200,400')).toEqual({
+      previousSmallBlind: 100,
+      previousBigBlind: 200,
+      smallBlind: 200,
+      bigBlind: 400,
+      atMs: 1,
+    })
+    expect(blindPreviewNotice('?blindPreview=150,300,200,400')?.smallBlind).toBe(200)
+    expect(blindPreviewNotice('?blindPreview=500,1000,1000,2000')?.previousBigBlind).toBe(1000)
+    expect(blindPreviewNotice('?blindPreview=1000,2000,2000,4000')?.bigBlind).toBe(4000)
+    expect(blindPreviewNotice('')).toBeNull()
+    expect(blindPreviewNotice('?blindPreview=0,200,200,400')).toBeNull()
+    expect(blindPreviewNotice('?blindPreview=100,200')).toBeNull()
+    expect(blindPreviewOffset('?blindAt=950')).toBe(950)
+    expect(blindPreviewOffset('')).toBeNull()
+    expect(blindPhaseAt(400)).toBe('hold')
+    expect(blindPhaseAt(950)).toBe('flip')
+    expect(blindPhaseAt(1500)).toBe('rise')
+    expect(blindPhaseAt(2100)).toBe('sweep')
+    expect(blindPhaseAt(2700)).toBe('confirm')
+    expect(blindHeadline('hold', true)).toBe('BLINDS INCREASING')
+    expect(blindHeadline('confirm', true)).toBe('NEW BLINDS')
+    expect(blindStageClass('rise', false)).toContain('rise')
+    expect(blindStageClass('confirm', true)).toContain('frozen')
   })
 
   it('keeps the question off the screen until the blinds announcement is finished', () => {

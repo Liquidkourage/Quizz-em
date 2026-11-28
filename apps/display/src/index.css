@@ -5471,179 +5471,377 @@
   }
 }
 
-/** Blinds increase: one pair ticks up, and two columns of light grow with it. */
-.blind-board {
-  display: flex;
-  width: min(96vw, 90rem);
-  height: 88vh;
-  flex-direction: column;
-  align-items: center;
+/** Blinds increase: split-flap counters, then the chip stacks, then one gold sweep. */
+.blind-announce {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #010609;
+  color: #f4ddaa;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
 .blind-stage {
+  width: min(100vw, 177.78vh);
+  aspect-ratio: 16 / 9;
   position: relative;
-  width: 100%;
-  flex: 1;
-  display: grid;
-  place-items: center;
+  overflow: hidden;
+  container-type: inline-size;
+  background-color: #06312f;
+  background-repeat: repeat;
+  isolation: isolate;
 }
 
-.blind-rise {
-  position: absolute;
-  inset: 18% 4% 6%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: min(6vw, 3rem);
-  pointer-events: none;
-}
-
-.blind-rise::before {
+.blind-stage::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: repeating-linear-gradient(
-    to top,
-    transparent 0,
-    transparent calc(12.5% - 1px),
-    rgba(255, 236, 200, 0.16) calc(12.5% - 1px),
-    rgba(255, 236, 200, 0.16) 12.5%
-  );
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  background: radial-gradient(ellipse at 50% 48%, #0b504a22 0%, #00101444 59%, #010609e8 100%);
+  z-index: -1;
 }
 
-.blind-rise::after {
-  content: "";
+.blind-rail {
   position: absolute;
-  left: 6%;
-  right: 6%;
   bottom: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255, 236, 190, 0.9), transparent);
-  box-shadow: 0 0 18px rgba(255, 190, 70, 0.65);
-}
-
-.blind-rise-shaft {
-  position: relative;
-  width: min(34vw, 26rem);
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-}
-
-.blind-rise-shaft-big {
-  width: min(42vw, 32rem);
-}
-
-.blind-rise-amount {
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--rise) * 100%);
-  z-index: 2;
-  transform: translate(-50%, 42%);
-  font-size: clamp(3rem, 7.5vw, 7rem);
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  color: #fff8e6;
-  text-shadow:
-    0 0 18px rgba(251, 191, 36, 0.85),
-    0 0 48px rgba(251, 191, 36, 0.45);
-  white-space: nowrap;
-}
-
-.blind-rise-fill {
+  left: 0;
   width: 100%;
-  height: 100%;
-  transform: scaleY(var(--rise));
-  transform-origin: bottom center;
-  position: relative;
-  overflow: hidden;
-  border-radius: 0.35rem 0.35rem 0 0;
+  height: 22%;
+  background-position: center bottom;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  mask-image: linear-gradient(transparent, #000 25%);
+  z-index: -1;
 }
 
-.blind-rise-small {
-  background: linear-gradient(
-    to top,
-    rgba(255, 196, 90, 0.12) 0%,
-    rgba(255, 226, 168, 0.5) 58%,
-    rgba(255, 248, 230, 0.96) 100%
-  );
-  box-shadow:
-    0 0 32px rgba(255, 214, 140, 0.35),
-    inset 0 0 22px rgba(255, 255, 255, 0.18);
+.blind-brand {
+  position: absolute;
+  top: 4%;
+  width: 100%;
+  text-align: center;
+  font-size: 4cqw;
+  font-weight: bold;
+  font-variant: small-caps;
+  letter-spacing: -0.06em;
+  text-shadow: 0 3px 5px #000;
 }
 
-.blind-rise-big {
-  background: linear-gradient(
-    to top,
-    rgba(150, 70, 8, 0.28) 0%,
-    rgba(255, 168, 32, 0.78) 46%,
-    rgba(255, 244, 206, 1) 100%
-  );
-  box-shadow:
-    0 0 56px rgba(255, 170, 40, 0.55),
-    inset 0 0 36px rgba(255, 255, 255, 0.22);
+.blind-ornament {
+  position: absolute;
+  top: 13%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9cqw;
+  color: #e9bf75;
+  font-size: 1.6cqw;
 }
 
-.blind-rise-fill::before {
+.blind-ornament::before,
+.blind-ornament::after {
+  content: "";
+  width: 14cqw;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #cba35b);
+}
+
+.blind-headline {
+  position: absolute;
+  top: 18%;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 3.2cqw;
+  font-weight: normal;
+  letter-spacing: 0.17em;
+  line-height: 1.25;
+  color: #f5d59a;
+  text-shadow: 0 2px 5px #000;
+}
+
+.blind-rule {
+  position: absolute;
+  top: 29%;
+  left: 25%;
+  width: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #cba35b 45%, #cba35b 55%, transparent);
+}
+
+.blind-rule::after {
   content: "";
   position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 0;
-  height: 3px;
-  background: #fff;
-  box-shadow: 0 0 18px 5px rgba(255, 244, 214, 0.95);
+  width: 0.75cqw;
+  height: 0.75cqw;
+  left: 50%;
+  background: #f0cb85;
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
-.blind-rise-fill::after {
+.blind-columns {
+  position: absolute;
+  top: 37%;
+  left: 16%;
+  right: 16%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12cqw;
+}
+
+.blind-column {
+  position: relative;
+  min-width: 0;
+  text-align: center;
+}
+
+.blind-label {
+  margin-bottom: 1.1cqw;
+  color: #f3e3bd;
+  font-size: 2.1cqw;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 2px 4px #000;
+}
+
+.blind-counter {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 0.16cqw;
+  width: max-content;
+  max-width: 100%;
+  margin: auto;
+  padding: 0.45cqw;
+  border: 1px solid #39504d;
+  border-radius: 0.75cqw;
+  background: linear-gradient(#293638, #070d0f 40%, #172426);
+  box-shadow:
+    0 0.4cqw 0.6cqw #000b,
+    inset 0 0 0.4cqw #000;
+}
+
+.blind-digit {
+  position: relative;
+  width: var(--digit-width);
+  height: 8cqw;
+  font-size: 6.7cqw;
+  font-weight: bold;
+  line-height: 8cqw;
+  color: #f1d29a;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 2px #000;
+  perspective: 450px;
+  isolation: isolate;
+}
+
+.blind-half {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  overflow: hidden;
+  border-radius: 0.25cqw;
+  background: linear-gradient(120deg, #171d1f, #090e10 75%);
+  box-shadow: inset 0 0 0.4cqw #0008;
+}
+
+.blind-half span {
+  position: absolute;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 8cqw;
+  line-height: 8cqw;
+}
+
+.blind-top {
+  top: 0;
+}
+
+.blind-top span {
+  top: 0;
+}
+
+.blind-bottom {
+  bottom: 0;
+  background: linear-gradient(#101617, #252526);
+}
+
+.blind-bottom span {
+  bottom: 0;
+}
+
+.blind-digit::after {
   content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  height: 1px;
+  background: #040909a8;
+}
+
+.blind-flap {
+  z-index: 4;
+  backface-visibility: hidden;
+  animation-fill-mode: both;
+}
+
+.blind-stage.frozen .blind-chips,
+.blind-stage.frozen .blind-halo {
+  transition: none;
+}
+
+.blind-stage.frozen.sweeping .blind-sweep {
+  animation: none;
+  opacity: 1;
+  transform: scaleX(0.72);
+}
+
+.blind-stage.frozen .blind-flap {
+  animation-play-state: paused;
+}
+
+.blind-flap.blind-top {
+  transform-origin: bottom;
+  animation: blind-flip-top 0.22s ease-in forwards;
+  animation-delay: calc(var(--flap-delay, 0ms) - var(--flap-elapsed, 0ms));
+}
+
+.blind-flap.blind-bottom {
+  transform-origin: top;
+  animation: blind-flip-bottom 0.28s ease-out both;
+  animation-delay: calc(var(--flap-delay, 0ms) + 220ms - var(--flap-elapsed, 0ms));
+}
+
+.blind-chips {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  z-index: 2;
+  display: block;
+  width: 12cqw;
+  height: 12cqw;
+  object-fit: contain;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 2cqw) scale(0.94);
+  transition:
+    transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.35s;
+}
+
+.blind-stage.rise .blind-chips {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.blind-stage.confirm .blind-chips {
+  opacity: 0;
+  transform: translate(-50%, 1cqw) scale(0.97);
+}
+
+.blind-halo {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 21cqw;
+  height: 3.4cqw;
+  border: 1px solid #dca54e;
+  border-radius: 50%;
+  box-shadow:
+    0 0 1.5cqw #e5ae4b55,
+    inset 0 0 0.8cqw #e5ae4b22;
+  opacity: 0;
+  transform: translate(-50%, -45%) scale(0.8);
+  transition:
+    opacity 0.5s,
+    transform 0.6s;
+}
+
+.blind-stage.confirm .blind-halo {
+  opacity: 0.8;
+  transform: translate(-50%, -45%) scale(1);
+}
+
+.blind-sweep {
   position: absolute;
   left: 0;
   right: 0;
-  height: 38%;
-  background: linear-gradient(to top, transparent, rgba(255, 255, 255, 0.38), transparent);
-  animation: blind-rise-sheen 2.4s ease-in-out infinite;
+  top: 58%;
+  z-index: 1;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, #b48032, #ffdda1, #b48032, transparent);
+  box-shadow: 0 0 1.3cqw 0.25cqw #e8bd6a66;
 }
 
-@keyframes blind-rise-sheen {
+.blind-stage.sweeping .blind-sweep {
+  animation: blind-sweep 0.8s ease-out both;
+}
+
+.blind-replay {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 221;
+  border: 0;
+  border-radius: 3px;
+  background: #d4b273;
+  color: #14201c;
+  padding: 7px 10px;
+  font: 600 12px system-ui;
+}
+
+@keyframes blind-flip-top {
+  to {
+    transform: rotateX(-90deg);
+    filter: brightness(0.65);
+  }
+}
+
+@keyframes blind-flip-bottom {
   from {
-    transform: translateY(280%);
+    transform: rotateX(90deg);
+    filter: brightness(0.7);
   }
   to {
-    transform: translateY(-140%);
+    transform: rotateX(0);
   }
 }
 
-.blind-title {
-  font-family: Orbitron, sans-serif;
-  font-size: clamp(1.2rem, 2.8vh, 1.8rem);
-  font-weight: 900;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: rgba(254, 243, 199, 0.92);
-  animation: blind-title-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes blind-title-in {
-  from {
+@keyframes blind-sweep {
+  0% {
     opacity: 0;
-    letter-spacing: 0.7em;
-    filter: blur(8px);
+    transform: scaleX(0.04);
   }
-  to {
+  35% {
     opacity: 1;
-    letter-spacing: 0.34em;
-    filter: none;
+  }
+  80% {
+    opacity: 0.8;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .blind-title,
-  .blind-rise-fill::after {
+  .blind-flap,
+  .blind-chips,
+  .blind-halo,
+  .blind-sweep {
     animation: none;
+    transition: none;
   }
 }
+

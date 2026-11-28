@@ -5635,7 +5635,8 @@
   color: #f1d29a;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 2px #000;
-  perspective: 450px;
+  perspective: 700px;
+  transform-style: preserve-3d;
   isolation: isolate;
 }
 
@@ -5709,15 +5710,17 @@
 }
 
 .blind-flap.blind-top {
-  transform-origin: bottom;
-  animation: blind-flip-top 0.22s ease-in forwards;
+  transform-origin: bottom center;
+  animation: blind-flip-top 0.42s ease-in forwards;
   animation-delay: calc(var(--flap-delay, 0ms) - var(--flap-elapsed, 0ms));
+  box-shadow: 0 0.6cqw 1.2cqw rgba(0, 0, 0, 0.55);
 }
 
 .blind-flap.blind-bottom {
-  transform-origin: top;
-  animation: blind-flip-bottom 0.28s ease-out both;
-  animation-delay: calc(var(--flap-delay, 0ms) + 220ms - var(--flap-elapsed, 0ms));
+  transform-origin: top center;
+  animation: blind-flip-bottom 0.48s ease-out both;
+  animation-delay: calc(var(--flap-delay, 0ms) + 420ms - var(--flap-elapsed, 0ms));
+  box-shadow: 0 -0.4cqw 1cqw rgba(0, 0, 0, 0.4);
 }
 
 .blind-chips {
@@ -5802,18 +5805,18 @@
 
 @keyframes blind-flip-top {
   to {
-    transform: rotateX(-90deg);
-    filter: brightness(0.65);
+    transform: scaleY(0);
+    filter: brightness(0.55);
   }
 }
 
 @keyframes blind-flip-bottom {
   from {
-    transform: rotateX(90deg);
+    transform: scaleY(0);
     filter: brightness(0.7);
   }
   to {
-    transform: rotateX(0);
+    transform: scaleY(1);
   }
 }
 

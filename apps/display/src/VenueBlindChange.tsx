@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
 import type { BlindChangeNotice } from '@qhe/net'
 import feltUrl from './assets/blinds/felt.png'
 import railUrl from './assets/blinds/rail.png'
 import smallStackUrl from './assets/blinds/small-stack.png'
 import bigStackUrl from './assets/blinds/big-stack.png'
 
-export const BLIND_CHANGE_MS = 3500
+export const BLIND_CHANGE_MS = 4600
 
 const SEEN_BLIND_KEY = 'qhe-blind-seen'
 
@@ -230,13 +229,20 @@ function useBlindMotion(
       if (!frozen) setPhase('confirm')
       return
     }
-    const timers = [
-      window.setTimeout(() => setPhase('flip'), 650),
-      window.setTimeout(() => setPhase('rise'), 1250),
-      window.setTimeout(() => setPhase('sweep'), 1850),
-      window.setTimeout(() => setPhase('confirm'), 2450),
-    ]
-    return () => timers.forEach((timer) => window.clearTimeout(timer))
+    let start = 0
+    let current: BlindPhase = 'hold'
+    let frame = 0
+    const tick = (now: number) => {
+      if (start === 0) start = now
+      const next = blindPhaseAt(now - start)
+      if (next !== current) {
+        current = next
+        setPhase(next)
+      }
+      if (now - start < 3200) frame = window.requestAnimationFrame(tick)
+    }
+    frame = window.requestAnimationFrame(tick)
+    return () => window.cancelAnimationFrame(frame)
   }, [animate, frozen, atMs])
 
   return { open, phase, frozen }
@@ -254,8 +260,7 @@ export function BlindChangeCard({
   frozenAt?: number | null
 }) {
   const previous = previousPair(notice)
-  const reduce = useReducedMotion()
-  const animate = previous != null && !reduce
+  const animate = previous != null
   const fromSmall = previous?.smallBlind ?? notice.smallBlind
   const fromBig = previous?.bigBlind ?? notice.bigBlind
   const { open, phase, frozen } = useBlindMotion(animate, frozenAt, notice.atMs, onFinished, onReplay)

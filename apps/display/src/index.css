@@ -5471,31 +5471,7 @@
   }
 }
 
-/** Blinds increase: lights keep moving, the old pair yields, then each digit rolls into the new amount. */
-.blind-beam {
-  position: absolute;
-  left: -25%;
-  top: -25%;
-  width: 150%;
-  height: 150%;
-  pointer-events: none;
-}
-
-.blind-beam-a {
-  background: conic-gradient(from 18deg, transparent 0 58%, rgba(251, 191, 36, 0.28), transparent 72%);
-  animation: blind-beam-spin 8s linear infinite;
-}
-
-.blind-beam-b {
-  background: conic-gradient(from 200deg, transparent 0 64%, rgba(0, 255, 180, 0.16), transparent 76%);
-  animation: blind-beam-spin 13s linear infinite reverse;
-}
-
-.blind-beam-c {
-  background: linear-gradient(105deg, transparent 35%, rgba(255, 248, 220, 0.2) 50%, transparent 65%);
-  animation: blind-sheen 2.2s ease-in-out infinite alternate;
-}
-
+/** Blinds increase: one pair ticks from the old amounts to the new ones. */
 .blind-title {
   font-family: Orbitron, sans-serif;
   font-size: clamp(1.2rem, 2.8vh, 1.8rem);
@@ -5515,67 +5491,12 @@
   white-space: nowrap;
 }
 
-.blind-change-were .blind-figure {
-  font-size: clamp(4.2rem, 11vw, 8rem);
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.blind-change-now .blind-figure {
+.blind-climb {
   font-size: clamp(4.8rem, 13vw, 9.5rem);
   color: #fff8e6;
   text-shadow:
     0 0 18px rgba(251, 191, 36, 0.85),
     0 0 64px rgba(251, 191, 36, 0.45);
-}
-
-.blind-change-were {
-  animation: blind-were-yield 2.4s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.blind-change-now {
-  animation: blind-now-arrive 1.7s 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.blind-reel {
-  display: inline-block;
-  height: 1em;
-  overflow: hidden;
-  vertical-align: bottom;
-  line-height: 1;
-}
-
-.blind-reel-strip {
-  display: flex;
-  flex-direction: column;
-  animation: blind-reel-spin 1.55s cubic-bezier(0.12, 0.8, 0.16, 1) both;
-  animation-delay: var(--reel-delay, 0s);
-}
-
-.blind-reel-strip span {
-  display: block;
-  height: 1em;
-  line-height: 1;
-}
-
-.blind-glyph-lock {
-  display: inline-block;
-  animation: blind-glyph-lock 0.45s ease both;
-  animation-delay: var(--reel-delay, 0s);
-}
-
-@keyframes blind-beam-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes blind-sheen {
-  from {
-    transform: translateX(-18%) rotate(8deg);
-  }
-  to {
-    transform: translateX(18%) rotate(8deg);
-  }
 }
 
 @keyframes blind-title-in {
@@ -5591,81 +5512,8 @@
   }
 }
 
-@keyframes blind-were-yield {
-  0% {
-    opacity: 0;
-    transform: scale(1.08);
-    filter: blur(10px);
-  }
-  18% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-  42% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-  100% {
-    opacity: 0.4;
-    transform: translateY(-42%) scale(0.42);
-    filter: blur(1px);
-  }
-}
-
-@keyframes blind-now-arrive {
-  0% {
-    opacity: 0;
-    transform: translateY(22%) scale(0.94);
-    filter: blur(14px) brightness(1.8);
-  }
-  32% {
-    opacity: 1;
-    filter: blur(0) brightness(1.45);
-    transform: none;
-  }
-  70% {
-    filter: brightness(1);
-  }
-  86% {
-    filter: brightness(1.28);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-@keyframes blind-reel-spin {
-  to {
-    transform: translateY(var(--reel-end));
-  }
-}
-
-@keyframes blind-glyph-lock {
-  from {
-    opacity: 0;
-    transform: translateY(0.4em);
-    filter: blur(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .blind-beam-a,
-  .blind-beam-b,
-  .blind-beam-c,
-  .blind-title,
-  .blind-change-were,
-  .blind-change-now,
-  .blind-reel-strip,
-  .blind-glyph-lock {
+  .blind-title {
     animation: none;
   }
 }

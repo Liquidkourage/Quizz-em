@@ -54,92 +54,48 @@ export function questionYieldsToBlinds(
   return questionOnScreen && blindsAtMs != null && blindsFinishedAtMs !== blindsAtMs
 }
 
-function moneyDigits(amount: number): string {
-  return `$${Math.round(amount).toLocaleString('en-US')}`
+/** Ease-out so the pair ticks quickly, then settles on the new blinds. */
+export function climbedBlind(from: number, to: number, progress: number): number {
+  const t = progress < 0 ? 0 : progress > 1 ? 1 : progress
+  const ease = 1 - (1 - t) ** 3
+  return Math.round(from + (to - from) * ease)
 }
 
-/** Extra full turn so a digit that barely changes still rolls. */
-function reelTravel(from: number, to: number): number {
-  const steps = (to - from + 10) % 10
-  return steps === 0 ? 10 : steps + 10
-}
+const BLIND_CLIMB_MS = 2200
 
-function alignedGlyphs(fromAmount: number, toAmount: number): { from: string; to: string }[] {
-  const fromText = moneyDigits(fromAmount)
-  const toText = moneyDigits(toAmount)
-  const width = Math.max(fromText.length, toText.length)
-  const fromPad = fromText.padStart(width, ' ')
-  const toPad = toText.padStart(width, ' ')
-  return [...toPad].map((to, index) => ({ from: fromPad[index] ?? ' ', to }))
-}
-
-function BlindGlyph({ from, to, delay }: { from: string; to: string; delay: number }) {
-  if (from === ' ' && to === ' ') return null
-  const fromDigit = /\d/.test(from) ? Number(from) : null
-  const toDigit = /\d/.test(to) ? Number(to) : null
-  if (fromDigit == null || toDigit == null) {
-    return (
-      <span className="blind-glyph-lock" style={{ animationDelay: `${delay}s` }}>
-        {to === ' ' ? '' : to}
-      </span>
-    )
-  }
-  const travel = reelTravel(fromDigit, toDigit)
-  const cells = Array.from({ length: travel + 1 }, (_, step) => (fromDigit + step) % 10)
-  return (
-    <span className="blind-reel" aria-hidden>
-      <span
-        className="blind-reel-strip"
-        style={{ ['--reel-end' as string]: `-${travel}em`, animationDelay: `${delay}s` }}
-      >
-        {cells.map((digit, index) => (
-          <span key={index}>{digit}</span>
-        ))}
-      </span>
-    </span>
-  )
-}
-
-function BlindRoll({ from, to, delay }: { from: number; to: number; delay: number }) {
+function BlindScore({ notice }: { notice: BlindChangeNotice }) {
+  const previous = previousPair(notice)
+  const fromSmall = previous?.smallBlind
+  const fromBig = previous?.bigBlind
   const reduce = useReducedMotion()
-  if (reduce) return <span>{moneyDigits(to)}</span>
-  const glyphs = alignedGlyphs(from, to)
-  return (
-    <span className="blind-roll" aria-hidden>
-      {glyphs.map((glyph, index) => (
-        <BlindGlyph key={index} from={glyph.from} to={glyph.to} delay={delay + index * 0.05} />
-      ))}
-    </span>
-  )
-}
+  const [small, setSmall] = useState(fromSmall ?? notice.smallBlind)
+  const [big, setBig] = useState(fromBig ?? notice.bigBlind)
 
-function BlindFigure({
-  smallBlind,
-  bigBlind,
-  fromSmall,
-  fromBig,
-  tone,
-  rollDelay,
-}: {
-  smallBlind: number
-  bigBlind: number
-  fromSmall: number
-  fromBig: number
-  tone: 'were' | 'now'
-  rollDelay: number
-}) {
+  useEffect(() => {
+    if (fromSmall == null || fromBig == null || reduce) {
+      setSmall(notice.smallBlind)
+      setBig(notice.bigBlind)
+      return
+    }
+    const start = performance.now()
+    let frame = 0
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / BLIND_CLIMB_MS)
+      setSmall(climbedBlind(fromSmall, notice.smallBlind, t))
+      setBig(climbedBlind(fromBig, notice.bigBlind, t))
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    setSmall(fromSmall)
+    setBig(fromBig)
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [notice.atMs, notice.smallBlind, notice.bigBlind, fromSmall, fromBig, reduce])
+
+  const shown = blindChangeMoney(small, big)
   return (
-    <div className={tone === 'were' ? 'blind-change-were text-center' : 'blind-change-now text-center'} aria-label={blindChangeMoney(smallBlind, bigBlind)}>
-      <p className="blind-figure">
-        {tone === 'were' ? (
-          moneyDigits(smallBlind)
-        ) : (
-          <BlindRoll from={fromSmall} to={smallBlind} delay={rollDelay} />
-        )}
-        <span className="blind-slash"> / </span>
-        {tone === 'were' ? moneyDigits(bigBlind) : <BlindRoll from={fromBig} to={bigBlind} delay={rollDelay + 0.18} />}
-      </p>
-    </div>
+    <p className="blind-figure blind-climb" aria-label={blindChangeMoney(notice.smallBlind, notice.bigBlind)}>
+      <span aria-hidden>{shown}</span>
+    </p>
   )
 }
 
@@ -151,7 +107,6 @@ export function BlindChangeCard({
   onFinished?: (atMs: number) => void
 }) {
   const [open, setOpen] = useState(true)
-  const previous = previousPair(notice)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setOpen(false), BLIND_CHANGE_MS)
@@ -171,29 +126,9 @@ export function BlindChangeCard({
       aria-modal="true"
       aria-label="Blinds changed"
     >
-      <div className="blind-beam blind-beam-a" aria-hidden />
-      <div className="blind-beam blind-beam-b" aria-hidden />
-      <div className="blind-beam blind-beam-c" aria-hidden />
       <p className="blind-title relative z-10">Blinds</p>
       <div className="relative z-10 mt-2 flex w-full max-w-6xl flex-col items-center">
-        {previous ? (
-          <BlindFigure
-            smallBlind={previous.smallBlind}
-            bigBlind={previous.bigBlind}
-            fromSmall={previous.smallBlind}
-            fromBig={previous.bigBlind}
-            tone="were"
-            rollDelay={0}
-          />
-        ) : null}
-        <BlindFigure
-          smallBlind={notice.smallBlind}
-          bigBlind={notice.bigBlind}
-          fromSmall={previous?.smallBlind ?? notice.smallBlind}
-          fromBig={previous?.bigBlind ?? notice.bigBlind}
-          tone="now"
-          rollDelay={1.15}
-        />
+        <BlindScore notice={notice} />
       </div>
     </div>
   )

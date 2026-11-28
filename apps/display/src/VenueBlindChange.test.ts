@@ -1,7 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import VenueBlindChange, { blindChangeFromPayload, questionYieldsToBlinds } from './VenueBlindChange'
+import VenueBlindChange, { blindChangeFromPayload, climbedBlind, questionYieldsToBlinds } from './VenueBlindChange'
 
 describe('VenueBlindChange', () => {
   it('reads a blind change off the wall snapshot', () => {
@@ -40,7 +40,13 @@ describe('VenueBlindChange', () => {
     expect(html).toContain('bg-[#050806]')
   })
 
-  it('shows the blinds the room just left beside the new blinds', () => {
+  it('counts one pair up from the blinds the room just left', () => {
+    expect(climbedBlind(10, 20, 0)).toBe(10)
+    expect(climbedBlind(10, 20, 1)).toBe(20)
+    expect(climbedBlind(10, 20, 0.5)).toBeGreaterThan(15)
+    expect(climbedBlind(10, 20, 0.5)).toBeLessThan(20)
+    expect(climbedBlind(40, 20, 1)).toBe(20)
+
     const html = renderToStaticMarkup(
       createElement(VenueBlindChange, {
         notice: {
@@ -56,12 +62,10 @@ describe('VenueBlindChange', () => {
     expect(html).not.toContain('Were')
     expect(html).not.toContain('Now')
     expect(html).not.toContain('In play')
-    expect(html).toContain('aria-label="$10 / $20"')
+    expect(html).toContain('>$10 / $20<')
     expect(html).toContain('aria-label="$20 / $40"')
-    expect(html).toContain('blind-change-were')
-    expect(html).toContain('blind-change-now')
-    expect(html).toContain('blind-reel')
-    expect(html).toContain('blind-beam')
+    expect(html).not.toContain('blind-reel')
+    expect(html).not.toContain('blind-beam')
   })
 
   it('keeps the question off the screen until the blinds announcement is finished', () => {

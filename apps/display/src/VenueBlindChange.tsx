@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useReducedMotion } from 'framer-motion'
 import type { BlindChangeNotice } from '@qhe/net'
 import { QuizzEmWordmark } from '@qhe/ui'
 
@@ -58,35 +59,90 @@ function moneyDigits(amount: number): string {
   return `$${Math.round(amount).toLocaleString('en-US')}`
 }
 
-function BlindCoin({ amount, hero }: { amount: number; hero: boolean }) {
+/** Extra full turn so a digit that barely changes still rolls. */
+function reelTravel(from: number, to: number): number {
+  const steps = (to - from + 10) % 10
+  return steps === 0 ? 10 : steps + 10
+}
+
+function alignedGlyphs(fromAmount: number, toAmount: number): { from: string; to: string }[] {
+  const fromText = moneyDigits(fromAmount)
+  const toText = moneyDigits(toAmount)
+  const width = Math.max(fromText.length, toText.length)
+  const fromPad = fromText.padStart(width, ' ')
+  const toPad = toText.padStart(width, ' ')
+  return [...toPad].map((to, index) => ({ from: fromPad[index] ?? ' ', to }))
+}
+
+function BlindGlyph({ from, to, delay }: { from: string; to: string; delay: number }) {
+  if (from === ' ' && to === ' ') return null
+  const fromDigit = /\d/.test(from) ? Number(from) : null
+  const toDigit = /\d/.test(to) ? Number(to) : null
+  if (fromDigit == null || toDigit == null) {
+    return (
+      <span className="blind-glyph-lock" style={{ animationDelay: `${delay}s` }}>
+        {to === ' ' ? '' : to}
+      </span>
+    )
+  }
+  const travel = reelTravel(fromDigit, toDigit)
+  const cells = Array.from({ length: travel + 1 }, (_, step) => (fromDigit + step) % 10)
   return (
-    <div className={`blind-coin${hero ? ' blind-coin-hero' : ''}`} aria-hidden>
-      <span className="blind-coin-spots" />
-      <span className="blind-coin-face">{moneyDigits(amount)}</span>
-    </div>
+    <span className="blind-reel" aria-hidden>
+      <span
+        className="blind-reel-strip"
+        style={{ ['--reel-end' as string]: `-${travel}em`, animationDelay: `${delay}s` }}
+      >
+        {cells.map((digit, index) => (
+          <span key={index}>{digit}</span>
+        ))}
+      </span>
+    </span>
   )
 }
 
-function BlindPairArt({
+function BlindRoll({ from, to, delay }: { from: number; to: number; delay: number }) {
+  const reduce = useReducedMotion()
+  if (reduce) return <span>{moneyDigits(to)}</span>
+  const glyphs = alignedGlyphs(from, to)
+  return (
+    <span className="blind-roll" aria-hidden>
+      {glyphs.map((glyph, index) => (
+        <BlindGlyph key={index} from={glyph.from} to={glyph.to} delay={delay + index * 0.05} />
+      ))}
+    </span>
+  )
+}
+
+function BlindFigure({
   label,
   smallBlind,
   bigBlind,
+  fromSmall,
+  fromBig,
   tone,
+  rollDelay,
 }: {
   label: string
   smallBlind: number
   bigBlind: number
+  fromSmall: number
+  fromBig: number
   tone: 'were' | 'now'
+  rollDelay: number
 }) {
   return (
-    <div className={tone === 'were' ? 'blind-change-were text-center' : 'blind-change-now relative text-center'} aria-label={blindChangeMoney(smallBlind, bigBlind)}>
-      <p className="text-[clamp(0.95rem,2vh,1.35rem)] font-black uppercase tracking-[0.28em] text-amber-100/75">{label}</p>
-      <div className={`blind-coin-row ${tone === 'now' ? 'blind-coin-row-now' : 'blind-coin-row-were'}`}>
-        {tone === 'now' ? <span className="blind-coin-halo" aria-hidden /> : null}
-        <BlindCoin amount={smallBlind} hero={false} />
-        <BlindCoin amount={bigBlind} hero={tone === 'now'} />
-        {tone === 'now' ? <span className="blind-change-sweep" aria-hidden /> : null}
-      </div>
+    <div className={tone === 'were' ? 'blind-change-were text-center' : 'blind-change-now text-center'} aria-label={blindChangeMoney(smallBlind, bigBlind)}>
+      <p className="blind-kicker">{label}</p>
+      <p className="blind-figure">
+        {tone === 'were' ? (
+          moneyDigits(smallBlind)
+        ) : (
+          <BlindRoll from={fromSmall} to={smallBlind} delay={rollDelay} />
+        )}
+        <span className="blind-slash"> / </span>
+        {tone === 'were' ? moneyDigits(bigBlind) : <BlindRoll from={fromBig} to={bigBlind} delay={rollDelay + 0.18} />}
+      </p>
     </div>
   )
 }
@@ -119,26 +175,34 @@ export function BlindChangeCard({
       aria-modal="true"
       aria-label="Blinds changed"
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_72%_48%_at_50%_46%,rgba(251,191,36,0.18),transparent_68%)]"
-        aria-hidden
-      />
-      <div className="relative z-10 mb-8 w-[clamp(7rem,14vw,11rem)]" style={{ aspectRatio: '958 / 592' }}>
+      <div className="blind-beam blind-beam-a" aria-hidden />
+      <div className="blind-beam blind-beam-b" aria-hidden />
+      <div className="blind-beam blind-beam-c" aria-hidden />
+      <div className="relative z-10 mb-6 w-[clamp(7rem,14vw,11rem)]" style={{ aspectRatio: '958 / 592' }}>
         <QuizzEmWordmark layout="fill" />
       </div>
-      <p className="relative z-10 font-orbitron text-[clamp(1.15rem,2.6vh,1.7rem)] font-black uppercase tracking-[0.28em] text-amber-100/85">
-        Blinds
-      </p>
-      <div className="relative z-10 mt-6 flex w-full max-w-6xl flex-wrap items-end justify-center gap-x-12 gap-y-8">
+      <p className="blind-title relative z-10">Blinds</p>
+      <div className="relative z-10 mt-4 flex w-full max-w-6xl flex-col items-center gap-2">
         {previous ? (
-          <BlindPairArt label="Were" smallBlind={previous.smallBlind} bigBlind={previous.bigBlind} tone="were" />
+          <BlindFigure
+            label="Were"
+            smallBlind={previous.smallBlind}
+            bigBlind={previous.bigBlind}
+            fromSmall={previous.smallBlind}
+            fromBig={previous.bigBlind}
+            tone="were"
+            rollDelay={0}
+          />
         ) : null}
-        {previous ? <div className="blind-change-rule mb-10 hidden h-1 w-24 rounded-full sm:block" aria-hidden /> : null}
-        <BlindPairArt
+        <div className="blind-change-rule" aria-hidden />
+        <BlindFigure
           label={previous ? 'Now' : 'In play'}
           smallBlind={notice.smallBlind}
           bigBlind={notice.bigBlind}
+          fromSmall={previous?.smallBlind ?? notice.smallBlind}
+          fromBig={previous?.bigBlind ?? notice.bigBlind}
           tone="now"
+          rollDelay={1.15}
         />
       </div>
     </div>

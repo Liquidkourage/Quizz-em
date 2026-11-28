@@ -413,6 +413,8 @@ export type HostVenueFeltBeatRow = {
   playersToAct?: number
   /** Players this table is still waiting on. During a guess, every player who has not locked an answer. */
   playersWaiting?: number
+  /** Guesses already locked at this table. */
+  playersGuessed?: number
   /** Live trivia on this felt. Null between hands. */
   questionText?: string | null
   /** Host-only answer for {@link questionText}. */

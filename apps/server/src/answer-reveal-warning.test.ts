@@ -4,8 +4,9 @@ import type { GameState } from '@qhe/core'
 import type { Server } from 'socket.io'
 import {
   beginAnswerWindow,
-  closeGuessingIfReady,
   bindGameIo,
+  closeGuessingIfReady,
+  sweepAnswerWindows,
   clearAnswerRevealClocks,
   commitTableAdvance,
   prepareVenuePersistence,
@@ -124,6 +125,25 @@ describe('answer reveals itself', () => {
     expect(rooms.get(key)!.phase).toBe('answering')
     expect(rooms.get(key)!.round.answerRevealAt).toBe(1_000_000 + ANSWER_REVEAL_WARNING_MS)
     expect(toasts).toContain('The answer reveals in 5 seconds.')
+  })
+
+  it('closes a guide that already ran out even when the timer was missed', () => {
+    let gs = createEmptyGame('RM', 'host', '1')
+    gs = addPlayer(gs, 'ada', 'Ada', 500)
+    gs = addPlayer(gs, 'bo', 'Bo', 500)
+    const key = answering('RM', [
+      { ...gs.players[0]!, hand: [{ digit: 1 }, { digit: 2 }] as never, submittedAnswer: 10 },
+      { ...gs.players[1]!, hand: [{ digit: 3 }, { digit: 4 }] as never },
+    ])
+    rooms.set(key, {
+      ...rooms.get(key)!,
+      round: { ...rooms.get(key)!.round, answerDeadline: 1_000_000 },
+    })
+    sweepAnswerWindows(1_000_000)
+    const after = rooms.get(key)!
+    expect(after.players.find((player) => player.id === 'bo')?.answerForfeited).toBe(true)
+    expect(after.round.answerRevealAt).toBe(1_000_000 + ANSWER_REVEAL_WARNING_MS)
+    expect(after.phase).toBe('answering')
   })
 
   it('closes on its own when the guide runs out and nobody sends another action', async () => {

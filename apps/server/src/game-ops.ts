@@ -45,6 +45,7 @@ import {
   answerRevealWaitLabel,
   answerRevealWarning,
   guessingWindowClosed,
+  seatOwesAGuess,
   advanceRevealToShowdown,
   endRound,
   setRaisesClosed,
@@ -2169,10 +2170,7 @@ export function clearGuessNudgeClocks(): void {
 
 function seatsStillGuessing(gs: GameState): GameState['players'] {
   if (gs.phase !== 'answering') return []
-  return gs.players.filter((player) => {
-    const locked = typeof player.submittedAnswer === 'number' && Number.isFinite(player.submittedAnswer)
-    return !locked && player.answerForfeited !== true
-  })
+  return gs.players.filter((player) => seatOwesAGuess(player))
 }
 
 function forfeitOpenGuessesOnVenue(vn: string): void {
@@ -2684,9 +2682,17 @@ export function closeGuessingIfReady(venueCode: string): void {
 function maybeStartAnswerReveal(vnRaw: string): void {
   const vn = normalizeVenueCode(vnRaw)
   if (answerRevealStarted.has(vn) || isVenueHeld(vn)) return
+  const nowMs = Date.now()
+  for (const row of venuePlayableSnapshots(vn)) {
+    const gs = rooms.get(row.tk)
+    if (!gs || gs.phase !== 'answering' || !windowClosedOn(gs, nowMs)) continue
+    const closed = forfeitOpenGuesses(gs)
+    if (closed === gs) continue
+    rooms.set(row.tk, closed)
+    emitVenueTableState(row.tk, closed, { skipOrchestration: true })
+  }
   const rows = venuePlayableSnapshots(vn)
   if (rows.length === 0 || rows.some((row) => row.gs.phase !== 'answering')) return
-  const nowMs = Date.now()
   if (!rows.every((row) => windowClosedOn(row.gs, nowMs))) return
   answerRevealStarted.add(vn)
   const revealAt = nowMs + ANSWER_REVEAL_WARNING_MS
@@ -2705,6 +2711,27 @@ function maybeStartAnswerReveal(vnRaw: string): void {
   }, ANSWER_REVEAL_WARNING_MS)
   timer.unref?.()
   answerRevealTimers.set(vn, timer)
+}
+
+/** Close a guessing window whose timer was missed. A passed guide still ends the guesses. */
+export function sweepAnswerWindows(nowMs = Date.now()): void {
+  const seen = new Set<string>()
+  for (const gs of rooms.values()) {
+    const vn = normalizeVenueCode(gs.code)
+    if (seen.has(vn) || isVenueHeld(vn)) continue
+    seen.add(vn)
+    const rows = venuePlayableSnapshots(vn)
+    if (!rows.some((row) => row.gs.phase === 'answering' && windowClosedOn(row.gs, nowMs))) continue
+    maybeStartAnswerReveal(vn)
+  }
+}
+
+let answerSweepTimer: ReturnType<typeof setInterval> | null = null
+
+export function startAnswerWindowSweep(): void {
+  if (answerSweepTimer) return
+  answerSweepTimer = setInterval(() => sweepAnswerWindows(), 1000)
+  answerSweepTimer.unref?.()
 }
 
 function resumeAnswerRevealWarning(vnRaw: string): void {
@@ -3004,6 +3031,10 @@ export function buildHostVenueFeltBeatPayload(vnRaw: string): { felts: HostVenue
       phaseStrictSig: phaseStrictSignature(gs),
       playersToAct: phase === 'betting' ? playersHoldingBetting(gs) : undefined,
       playersWaiting: playersTheRoomIsWaitingOn(gs),
+      playersGuessed:
+        phase === 'answering'
+          ? gs.players.filter((player) => guessLockedOnSeat(player)).length
+          : undefined,
       questionText: gs.round.question?.text?.trim() || null,
       questionAnswer:
         gs.round.question != null && Number.isFinite(gs.round.question.answer)

@@ -3335,12 +3335,25 @@ export function soonestAnswerSeconds(
   nowMs: number,
 ): number | null {
   let soonest: number | null = null
+  let sawDeadline = false
   for (const row of rows ?? []) {
     if (!row.active || row.seated < 1 || row.phase !== 'answering' || row.answerDeadlineMs == null) continue
-    const sec = Math.max(0, Math.ceil((row.answerDeadlineMs - nowMs) / 1000))
+    sawDeadline = true
+    const sec = Math.ceil((row.answerDeadlineMs - nowMs) / 1000)
+    if (sec <= 0) continue
     soonest = soonest == null ? sec : Math.min(soonest, sec)
   }
-  return soonest
+  if (soonest != null) return soonest
+  return sawDeadline ? 0 : null
+}
+
+function guessesLocked(rows: readonly HostVenueFeltBeatRow[] | null): number {
+  let total = 0
+  for (const row of rows ?? []) {
+    const locked = row.playersGuessed
+    if (typeof locked === 'number' && Number.isFinite(locked) && locked > 0) total += locked
+  }
+  return total
 }
 
 /** Guessing countdown. A running nudge takes this box, with the outstanding count in parentheses. */
@@ -3358,6 +3371,8 @@ export function HostAnswerClock({
   const answer = nudge == null ? soonestAnswerSeconds(rows, now) : null
   const seconds = nudge ?? answer
   const waiting = playersStillWaitedOn(rows)
+  const locked = guessesLocked(rows)
+  const expired = !revealing && nudge == null && seconds === 0
   useEffect(() => {
     if (nowMs != null || seconds == null) return
     const id = window.setInterval(() => setTick((n) => n + 1), 250)
@@ -3366,7 +3381,7 @@ export function HostAnswerClock({
   if (seconds == null) return null
   const urgent = seconds <= 10
   const name = nudge != null ? 'Nudge' : revealing ? 'Answer reveals' : 'Answer clock'
-  const label = waiting > 0 && !revealing ? `${name} (${waiting})` : name
+  const label = expired || revealing || waiting <= 0 ? name : `${name} (${waiting})`
   return (
     <div
       className={`flex w-32 shrink-0 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-3 ${
@@ -3376,9 +3391,11 @@ export function HostAnswerClock({
       }`}
       aria-live="polite"
       aria-label={
-        revealing
-          ? `The answer reveals in ${seconds} seconds`
-          : `${seconds} seconds left on the ${nudge != null ? 'nudge' : 'answer clock'}`
+        expired
+          ? "Time's up"
+          : revealing
+            ? `The answer reveals in ${seconds} seconds`
+            : `${seconds} seconds left on the ${nudge != null ? 'nudge' : 'answer clock'}`
       }
     >
       <span
@@ -3388,13 +3405,20 @@ export function HostAnswerClock({
       >
         {label}
       </span>
-      <span
-        className={`font-mono text-4xl font-black leading-none tabular-nums ${
-          urgent ? 'text-rose-200' : 'text-amber-200'
-        }`}
-      >
-        {seconds}
-      </span>
+      {expired ? (
+        <span className="text-center text-2xl font-black leading-none text-rose-100">Time's up</span>
+      ) : (
+        <span
+          className={`font-mono text-4xl font-black leading-none tabular-nums ${
+            urgent ? 'text-rose-200' : 'text-amber-200'
+          }`}
+        >
+          {seconds}
+        </span>
+      )}
+      {!expired && locked > 0 ? (
+        <span className="text-xs font-bold tabular-nums text-amber-100/80">{locked} locked</span>
+      ) : null}
     </div>
   )
 }

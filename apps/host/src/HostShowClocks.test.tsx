@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import type { HostVenueFeltBeatRow } from '@qhe/net'
-import { HostAnswerClock } from './hostDeskLayout'
+import { HostAnswerClock, soonestAnswerSeconds } from './hostDeskLayout'
 import {
   HostShowClocks,
   formatElapsedClock,
@@ -153,5 +153,48 @@ describe('host show clocks', () => {
     expect(after).toContain('Nudge (3)')
     expect(after).toContain('30')
     expect(after).not.toContain('Answer clock')
+  })
+
+  it('keeps a live table on the clock when another table has already run out', () => {
+    const now = 1_000_000
+    const rows = [
+      felt({ phase: 'answering', playersWaiting: 90, answerDeadlineMs: now - 5_000 }),
+      felt({ tableNum: 2, phase: 'answering', playersWaiting: 3, answerDeadlineMs: now + 20_000 }),
+    ]
+    expect(soonestAnswerSeconds(rows, now)).toBe(20)
+    const html = renderToStaticMarkup(createElement(HostAnswerClock, { rows, nowMs: now }))
+    expect(html).toContain('20')
+    expect(html).not.toContain("Time's up")
+  })
+
+  it('says time is up instead of sitting on zero', () => {
+    const now = 1_000_000
+    const rows = [
+      felt({
+        phase: 'answering',
+        playersWaiting: 93,
+        playersGuessed: 18,
+        answerDeadlineMs: now - 1_000,
+      }),
+    ]
+    const html = renderToStaticMarkup(createElement(HostAnswerClock, { rows, nowMs: now }))
+    expect(html).toContain('Time&#x27;s up')
+    expect(html).not.toContain('Answer clock (93)')
+    expect(html).not.toContain('>0<')
+  })
+
+  it('shows how many guesses are already locked', () => {
+    const now = 1_000_000
+    const rows = [
+      felt({
+        phase: 'answering',
+        playersWaiting: 3,
+        playersGuessed: 18,
+        answerDeadlineMs: now + 30_000,
+      }),
+    ]
+    const html = renderToStaticMarkup(createElement(HostAnswerClock, { rows, nowMs: now }))
+    expect(html).toContain('18 locked')
+    expect(html).toContain('30')
   })
 })

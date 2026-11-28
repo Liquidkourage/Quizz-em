@@ -383,7 +383,7 @@ describe('nudge open guesses', () => {
       players: [
         { ...gs.players[0]!, submittedAnswer: 10 },
         { ...gs.players[1]! },
-        { ...gs.players[2]!, pointsOnly: true },
+        { ...gs.players[2]!, pointsOnly: true, hand: [{ digit: 1 }, { digit: 2 }] as never },
       ],
     })
     const felt = buildHostVenueFeltBeatPayload('NG').felts.find((row) => row.tableNum === 1)

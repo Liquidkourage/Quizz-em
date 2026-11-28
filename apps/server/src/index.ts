@@ -5,7 +5,7 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { initPlayerSocketRegistry } from './player-socket-registry'
-import { bindGameIo, prepareVenuePersistence, restoreRoomsFromSnapshot, rooms } from './game-ops'
+import { bindGameIo, prepareVenuePersistence, restoreRoomsFromSnapshot, rooms, startAnswerWindowSweep } from './game-ops'
 import { dropStaleVenues, snapshotMaxAgeMs, splitTriviaFieldRows } from './room-snapshot'
 import { restoreTriviaFieldSnapshots } from './venue-host-log'
 import { startRoomSnapshotSaver, type RoomSnapshotSaver } from './room-snapshot-saver'
@@ -813,6 +813,7 @@ async function bootstrap(): Promise<void> {
     await snapshotSaver?.flush()
   })
   await recoverAndStartSaving()
+  startAnswerWindowSweep()
 
   await new Promise<void>((resolve) => {
     httpServer.listen(PORT, HOST, () => {

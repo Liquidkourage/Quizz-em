@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import type { BlindChangeNotice } from '@qhe/net'
-import { QuizzEmWordmark } from '@qhe/ui'
 
 export const BLIND_CHANGE_MS = 4500
 
@@ -115,7 +114,6 @@ function BlindRoll({ from, to, delay }: { from: number; to: number; delay: numbe
 }
 
 function BlindFigure({
-  label,
   smallBlind,
   bigBlind,
   fromSmall,
@@ -123,7 +121,6 @@ function BlindFigure({
   tone,
   rollDelay,
 }: {
-  label: string
   smallBlind: number
   bigBlind: number
   fromSmall: number
@@ -133,7 +130,6 @@ function BlindFigure({
 }) {
   return (
     <div className={tone === 'were' ? 'blind-change-were text-center' : 'blind-change-now text-center'} aria-label={blindChangeMoney(smallBlind, bigBlind)}>
-      <p className="blind-kicker">{label}</p>
       <p className="blind-figure">
         {tone === 'were' ? (
           moneyDigits(smallBlind)
@@ -178,14 +174,10 @@ export function BlindChangeCard({
       <div className="blind-beam blind-beam-a" aria-hidden />
       <div className="blind-beam blind-beam-b" aria-hidden />
       <div className="blind-beam blind-beam-c" aria-hidden />
-      <div className="relative z-10 mb-6 w-[clamp(7rem,14vw,11rem)]" style={{ aspectRatio: '958 / 592' }}>
-        <QuizzEmWordmark layout="fill" />
-      </div>
       <p className="blind-title relative z-10">Blinds</p>
-      <div className="relative z-10 mt-4 flex w-full max-w-6xl flex-col items-center gap-2">
+      <div className="relative z-10 mt-2 flex w-full max-w-6xl flex-col items-center">
         {previous ? (
           <BlindFigure
-            label="Were"
             smallBlind={previous.smallBlind}
             bigBlind={previous.bigBlind}
             fromSmall={previous.smallBlind}
@@ -194,9 +186,7 @@ export function BlindChangeCard({
             rollDelay={0}
           />
         ) : null}
-        <div className="blind-change-rule" aria-hidden />
         <BlindFigure
-          label={previous ? 'Now' : 'In play'}
           smallBlind={notice.smallBlind}
           bigBlind={notice.bigBlind}
           fromSmall={previous?.smallBlind ?? notice.smallBlind}

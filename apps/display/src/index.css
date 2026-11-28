@@ -5506,14 +5506,6 @@
   animation: blind-title-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.blind-kicker {
-  font-size: clamp(0.95rem, 2vh, 1.3rem);
-  font-weight: 800;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: rgba(253, 230, 138, 0.72);
-}
-
 .blind-figure {
   margin-top: 0.2rem;
   font-weight: 900;
@@ -5524,8 +5516,8 @@
 }
 
 .blind-change-were .blind-figure {
-  font-size: clamp(2.4rem, 6vw, 4.6rem);
-  color: rgba(255, 255, 255, 0.55);
+  font-size: clamp(4.2rem, 11vw, 8rem);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .blind-change-now .blind-figure {
@@ -5537,17 +5529,7 @@
 }
 
 .blind-change-were {
-  animation: blind-were-yield 2.1s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.blind-change-rule {
-  width: min(28rem, 70vw);
-  height: 2px;
-  margin: 0.35rem 0 0.15rem;
-  transform-origin: left center;
-  background: linear-gradient(90deg, transparent, #ffe7a3 40%, #f59e0b 70%, transparent);
-  box-shadow: 0 0 18px rgba(251, 191, 36, 0.7);
-  animation: blind-rule-draw 0.55s 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: blind-were-yield 2.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .blind-change-now {
@@ -5612,30 +5594,23 @@
 @keyframes blind-were-yield {
   0% {
     opacity: 0;
-    transform: translateY(0.8rem);
+    transform: scale(1.08);
+    filter: blur(10px);
   }
-  16% {
+  18% {
     opacity: 1;
     transform: none;
+    filter: none;
   }
-  48% {
+  42% {
     opacity: 1;
     transform: none;
+    filter: none;
   }
   100% {
-    opacity: 0.85;
-    transform: translateY(-0.35rem) scale(0.78);
-  }
-}
-
-@keyframes blind-rule-draw {
-  from {
-    transform: scaleX(0);
-    opacity: 0;
-  }
-  to {
-    transform: scaleX(1);
-    opacity: 1;
+    opacity: 0.4;
+    transform: translateY(-42%) scale(0.42);
+    filter: blur(1px);
   }
 }
 
@@ -5688,7 +5663,6 @@
   .blind-beam-c,
   .blind-title,
   .blind-change-were,
-  .blind-change-rule,
   .blind-change-now,
   .blind-reel-strip,
   .blind-glyph-lock {

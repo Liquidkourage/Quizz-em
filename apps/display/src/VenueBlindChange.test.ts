@@ -52,8 +52,10 @@ describe('VenueBlindChange', () => {
         },
       }),
     )
-    expect(html).toContain('Were')
-    expect(html).toContain('Now')
+    expect(html).toContain('Blinds')
+    expect(html).not.toContain('Were')
+    expect(html).not.toContain('Now')
+    expect(html).not.toContain('In play')
     expect(html).toContain('aria-label="$10 / $20"')
     expect(html).toContain('aria-label="$20 / $40"')
     expect(html).toContain('blind-change-were')

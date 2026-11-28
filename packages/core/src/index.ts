@@ -1,6 +1,7 @@
 ﻿import { VENUE_NUMBERED_TABLE_MAX, VENUE_WALL_SEAT_SLOTS } from './venueConstants'
 import { assignGhostHosts } from './ghostHost'
 import { streetPlanFrom } from './streetPlan'
+import type { HoleDeal } from './holeDeal'
 import type { VenuePace } from './venuePace'
 
 export {
@@ -188,6 +189,8 @@ export interface GameState {
    * Both modes still wait together for the answer reveal.
    */
   venuePace?: VenuePace;
+  /** `host` deals the hole cards. `auto` deals them 10 seconds after the question is on the tables. */
+  holeDeal?: HoleDeal;
 }
 
 /** A player who left the table with no stack. Ranked on the trivia scores, not at a seat. */
@@ -2199,6 +2202,7 @@ export {
   winnerScreensReadyAt,
 } from './winnerScreens';
 export { venuePaceFrom, type VenuePace } from './venuePace'
+export { HOLE_DEAL_DELAY_MS, holeDealFrom, type HoleDeal } from './holeDeal'
 
 export {
   ANSWER_REVEAL_WARNING_MS,

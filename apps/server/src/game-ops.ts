@@ -29,6 +29,9 @@ import {
   acceptedStreetPlan,
   venuePaceFrom,
   type VenuePace,
+  HOLE_DEAL_DELAY_MS,
+  holeDealFrom,
+  type HoleDeal,
   placeBet,
   foldPlayer,
   submitAnswer,
@@ -559,6 +562,106 @@ export function setVenuePace(venueCode: string, raw: unknown): VenuePace {
     for (const row of venuePlayableSnapshots(vn)) advanceAsyncTable(row.tk)
   }
   return pace
+}
+
+const venueHoleDeals = new Map<string, HoleDeal>()
+const holeDealAtMs = new Map<string, number>()
+const holeDealTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+/** Host deals until they choose otherwise. A restored table keeps the choice stamped on it. */
+export function holeDeal(venueCode: string): HoleDeal {
+  const vn = normalizeVenueCode(venueCode)
+  const remembered = venueHoleDeals.get(vn)
+  if (remembered) return remembered
+  const stamped = [
+    ...venuePlayableSnapshots(vn).map((row) => row.gs.holeDeal),
+    rooms.get(tableSessionKey(vn, LOBBY_TABLE_ID))?.holeDeal,
+  ]
+  const choice = holeDealFrom(stamped.find((value) => value === 'auto' || value === 'host'))
+  if (stamped.some((value) => value === 'auto' || value === 'host')) venueHoleDeals.set(vn, choice)
+  return choice
+}
+
+function waitingOnHoleCards(vn: string): boolean {
+  const rows = venuePlayableSnapshots(vn)
+  return (
+    rows.length > 0 &&
+    rows.every(
+      (row) =>
+        row.gs.phase === 'question' &&
+        row.gs.round.question != null &&
+        !playersHaveHoleCards(row.gs),
+    )
+  )
+}
+
+function pauseHoleDeal(vn: string): void {
+  const timer = holeDealTimers.get(vn)
+  if (timer) clearTimeout(timer)
+  holeDealTimers.delete(vn)
+}
+
+function cancelHoleDeal(vn: string): void {
+  pauseHoleDeal(vn)
+  holeDealAtMs.delete(vn)
+}
+
+export function clearHoleDealClocks(): void {
+  for (const vn of holeDealTimers.keys()) pauseHoleDeal(vn)
+  holeDealAtMs.clear()
+  venueHoleDeals.clear()
+}
+
+function fireHoleDeal(vn: string): void {
+  holeDealTimers.delete(vn)
+  if (isVenueHeld(vn)) return
+  holeDealAtMs.delete(vn)
+  if (holeDeal(vn) !== 'auto' || !waitingOnHoleCards(vn)) return
+  if (!autoDealHoleCardsOnVenue(vn)) return
+  io.to(hostVenueRoom(vn)).emit('toast', 'Hole cards are out. Open betting when you are ready.')
+}
+
+function scheduleHoleDeal(vn: string, fireAt: number): void {
+  pauseHoleDeal(vn)
+  holeDealAtMs.set(vn, fireAt)
+  const timer = setTimeout(() => fireHoleDeal(vn), Math.max(0, fireAt - Date.now()))
+  timer.unref?.()
+  holeDealTimers.set(vn, timer)
+}
+
+function armHoleDealAfterQuestion(vn: string): void {
+  if (holeDeal(vn) !== 'auto' || !waitingOnHoleCards(vn)) {
+    cancelHoleDeal(vn)
+    return
+  }
+  scheduleHoleDeal(vn, Date.now() + HOLE_DEAL_DELAY_MS)
+}
+
+function resumeHoleDeal(vn: string, elapsed: number): void {
+  const at = holeDealAtMs.get(vn)
+  if (at == null) return
+  scheduleHoleDeal(vn, at + elapsed)
+}
+
+/** Host choice: deal the hole cards yourself, or 10 seconds after each question. */
+export function setVenueHoleDeal(venueCode: string, raw: unknown): HoleDeal {
+  const choice = holeDealFrom(raw)
+  const vn = normalizeVenueCode(venueCode)
+  venueHoleDeals.set(vn, choice)
+  const keys = [
+    ...venuePlayableSnapshots(vn).map((row) => row.tk),
+    tableSessionKey(vn, LOBBY_TABLE_ID),
+  ]
+  for (const tk of keys) {
+    const gs = rooms.get(tk)
+    if (!gs) continue
+    const next = { ...gs, holeDeal: choice }
+    rooms.set(tk, next)
+    emitVenueTableState(tk, next, { skipOrchestration: true })
+  }
+  if (choice === 'auto') armHoleDealAfterQuestion(vn)
+  else cancelHoleDeal(vn)
+  return choice
 }
 
 /** Deal the next street's public cards on every seated felt whose clock is closed. */
@@ -1493,6 +1596,7 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
     venueHeld.add(vn)
     venueHoldStartedAtMs.set(vn, Date.now())
     cancelAnswerRevealTimer(vn)
+    pauseHoleDeal(vn)
     for (const { tk } of venuePlayableSnapshots(vn)) {
       clearHumanTurnTimerHandle(tk)
     }
@@ -1509,6 +1613,7 @@ export function setVenueRoomHold(venueCode: string, held: boolean): boolean {
     resumeHeldTable(vn, tk, gs, elapsed)
   }
   resumeOpenGuessNudge(vn)
+  resumeHoleDeal(vn, elapsed)
   restoreAnswerGuideIfGuessing(vn)
   resumeAnswerRevealWarning(vn)
   emitDisplayVenueSnapshotNow(vn)
@@ -3662,7 +3767,9 @@ export function applyQuestionToAllPlayable(venueCode: string, picked: Question):
     rooms.set(tk, gs)
     emitVenueTableState(tk, gs!)
   }
-  return openBettingAfterQuestionOnVenue(venueCode)
+  const opened = openBettingAfterQuestionOnVenue(venueCode)
+  armHoleDealAfterQuestion(vn)
+  return opened
 }
 
 /** Deal hole cards on every seated table in question setup (no blinds yet). */
@@ -3721,6 +3828,7 @@ export const VENUE_SYNC_ACTION_TYPES = new Set<string>([
   'nextQuestionFromSetlist',
   'dealInitialCards',
   'setVenuePace',
+  'setVenueHoleDeal',
   'dealCommunityCards',
   'startAnswering',
   'revealAnswer',

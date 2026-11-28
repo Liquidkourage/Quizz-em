@@ -96,6 +96,7 @@ import { HostMosaicPreviewPanel } from './HostMosaicPreviewPanel'
 import { HostPlayerPhasePreviewPanel } from './HostPlayerPhasePreviewPanel'
 import { HostConnectedDisplays } from './HostConnectedDisplays'
 import { HostPlayersPanel } from './HostPlayersPanel'
+import { HostHoleDeal } from './HostHoleDeal'
 import { HostPaceMode } from './HostPaceMode'
 import { HostStreetPlan } from './HostStreetPlan'
 import { HostPreShowPanel } from './HostPreShowPanel'
@@ -494,6 +495,12 @@ function HostApp() {
   const handleVenuePace = (pace: 'sync' | 'async') => {
     if (socket) {
       socket.emit('action', { type: 'setVenuePace', payload: { pace } })
+    }
+  }
+
+  const handleHoleDeal = (holeDeal: 'host' | 'auto') => {
+    if (socket) {
+      socket.emit('action', { type: 'setVenueHoleDeal', payload: { holeDeal } })
     }
   }
 
@@ -1004,6 +1011,10 @@ function HostApp() {
 
                 <HostCollapsible summary="Table pace" className="mb-0">
                   <HostPaceMode pace={gameState.venuePace} onChoose={handleVenuePace} />
+                </HostCollapsible>
+
+                <HostCollapsible summary="Hole cards" className="mb-0">
+                  <HostHoleDeal holeDeal={gameState.holeDeal} onChoose={handleHoleDeal} />
                 </HostCollapsible>
 
                 <HostCollapsible summary="Betting streets" className="mb-0">

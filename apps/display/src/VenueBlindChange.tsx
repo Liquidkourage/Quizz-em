@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { BlindChangeNotice } from '@qhe/net'
-import { ChipText, QuizzEmWordmark } from '@qhe/ui'
+import { QuizzEmWordmark } from '@qhe/ui'
 
 export const BLIND_CHANGE_MS = 4500
 
@@ -54,23 +54,39 @@ export function questionYieldsToBlinds(
   return questionOnScreen && blindsAtMs != null && blindsFinishedAtMs !== blindsAtMs
 }
 
-function BlindAmount({
+function moneyDigits(amount: number): string {
+  return `$${Math.round(amount).toLocaleString('en-US')}`
+}
+
+function BlindCoin({ amount, hero }: { amount: number; hero: boolean }) {
+  return (
+    <div className={`blind-coin${hero ? ' blind-coin-hero' : ''}`} aria-hidden>
+      <span className="blind-coin-spots" />
+      <span className="blind-coin-face">{moneyDigits(amount)}</span>
+    </div>
+  )
+}
+
+function BlindPairArt({
   label,
   smallBlind,
   bigBlind,
-  amountClass,
+  tone,
 }: {
   label: string
   smallBlind: number
   bigBlind: number
-  amountClass: string
+  tone: 'were' | 'now'
 }) {
   return (
-    <div className="text-center">
-      <p className="text-[clamp(0.9rem,1.8vh,1.2rem)] font-bold uppercase tracking-[0.22em] text-amber-100/60">{label}</p>
-      <p className={amountClass}>
-        <ChipText text={blindChangeMoney(smallBlind, bigBlind)} />
-      </p>
+    <div className={tone === 'were' ? 'blind-change-were text-center' : 'blind-change-now relative text-center'} aria-label={blindChangeMoney(smallBlind, bigBlind)}>
+      <p className="text-[clamp(0.95rem,2vh,1.35rem)] font-black uppercase tracking-[0.28em] text-amber-100/75">{label}</p>
+      <div className={`blind-coin-row ${tone === 'now' ? 'blind-coin-row-now' : 'blind-coin-row-were'}`}>
+        {tone === 'now' ? <span className="blind-coin-halo" aria-hidden /> : null}
+        <BlindCoin amount={smallBlind} hero={false} />
+        <BlindCoin amount={bigBlind} hero={tone === 'now'} />
+        {tone === 'now' ? <span className="blind-change-sweep" aria-hidden /> : null}
+      </div>
     </div>
   )
 }
@@ -113,32 +129,17 @@ export function BlindChangeCard({
       <p className="relative z-10 font-orbitron text-[clamp(1.15rem,2.6vh,1.7rem)] font-black uppercase tracking-[0.28em] text-amber-100/85">
         Blinds
       </p>
-      <div className="relative z-10 mt-8 flex w-full max-w-6xl flex-wrap items-end justify-center gap-x-10 gap-y-8">
+      <div className="relative z-10 mt-6 flex w-full max-w-6xl flex-wrap items-end justify-center gap-x-12 gap-y-8">
         {previous ? (
-          <div className="blind-change-were">
-            <BlindAmount
-              label="Were"
-              smallBlind={previous.smallBlind}
-              bigBlind={previous.bigBlind}
-              amountClass="mt-3 text-[clamp(2rem,4.6vw,3.5rem)] font-black leading-none text-white/45"
-            />
-          </div>
+          <BlindPairArt label="Were" smallBlind={previous.smallBlind} bigBlind={previous.bigBlind} tone="were" />
         ) : null}
-        {previous ? (
-          <div className="blind-change-rule mb-3 hidden h-0.5 w-20 bg-gradient-to-r from-white/15 via-amber-200 to-amber-300 sm:block" aria-hidden />
-        ) : null}
-        <div className="blind-change-now relative overflow-hidden">
-          <div
-            className="blind-change-sweep pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-amber-100/35 to-transparent"
-            aria-hidden
-          />
-          <BlindAmount
-            label={previous ? 'Now' : 'In play'}
-            smallBlind={notice.smallBlind}
-            bigBlind={notice.bigBlind}
-            amountClass="relative mt-3 text-[clamp(3.6rem,9vw,7.4rem)] font-black leading-none text-amber-50 drop-shadow-[0_0_32px_rgba(251,191,36,0.42)]"
-          />
-        </div>
+        {previous ? <div className="blind-change-rule mb-10 hidden h-1 w-24 rounded-full sm:block" aria-hidden /> : null}
+        <BlindPairArt
+          label={previous ? 'Now' : 'In play'}
+          smallBlind={notice.smallBlind}
+          bigBlind={notice.bigBlind}
+          tone="now"
+        />
       </div>
     </div>
   )

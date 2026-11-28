@@ -58,7 +58,8 @@ describe('VenueBlindChange', () => {
     expect(html).toContain('aria-label="$20 / $40"')
     expect(html).toContain('blind-change-were')
     expect(html).toContain('blind-change-now')
-    expect(html).toContain('blind-change-sweep')
+    expect(html).toContain('blind-coin-hero')
+    expect(html).toContain('>$40<')
   })
 
   it('keeps the question off the screen until the blinds announcement is finished', () => {

@@ -5471,21 +5471,127 @@
   }
 }
 
-/** Blinds increase: the old pair settles, a rule draws, then the new pair arrives with a light sweep. */
+/** Blinds increase: dim old chips, then the new big blind slams in as the hero coin. */
+.blind-coin-row {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin-top: 0.85rem;
+}
+
+.blind-coin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(7.5rem, 16vw, 11rem);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 38%, #fff8e4 0%, #f6c453 26%, #d0891c 58%, #7a4510 100%);
+  box-shadow:
+    0 0 0 0.42rem #3d270c,
+    0 0 0 0.72rem #ffe7a3,
+    0 0 0 1.02rem #8d5a14,
+    0 16px 28px rgba(0, 0, 0, 0.55),
+    0 0 36px rgba(251, 191, 36, 0.35);
+}
+
+.blind-coin-spots {
+  position: absolute;
+  inset: 0.28rem;
+  border-radius: inherit;
+  background: repeating-conic-gradient(from 0deg, #fff6d0 0 9deg, transparent 9deg 45deg);
+  -webkit-mask: radial-gradient(circle, transparent 61%, #000 63% 76%, transparent 78%);
+  mask: radial-gradient(circle, transparent 61%, #000 63% 76%, transparent 78%);
+}
+
+.blind-coin-face {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 68%;
+  height: 68%;
+  place-items: center;
+  border-radius: inherit;
+  border: 2px dashed rgba(92, 52, 8, 0.55);
+  background: radial-gradient(circle at 50% 36%, #fffdf6 0%, #f8d56a 72%, #e0a62e 100%);
+  color: #3a2206;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-size: clamp(1.35rem, 3.1vw, 2.5rem);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.blind-coin-row-were .blind-coin {
+  width: clamp(5.25rem, 11vw, 7.6rem);
+  filter: saturate(0.2) brightness(0.78);
+  box-shadow:
+    0 0 0 0.28rem #2a241c,
+    0 0 0 0.48rem #b7ab96,
+    0 0 0 0.68rem #5c5348,
+    0 10px 18px rgba(0, 0, 0, 0.45);
+}
+
+.blind-coin-row-were .blind-coin + .blind-coin {
+  margin-left: -0.85rem;
+}
+
+.blind-coin-row-now .blind-coin-hero {
+  width: clamp(11.5rem, 26vw, 18rem);
+  margin-left: -2.1rem;
+  z-index: 2;
+  box-shadow:
+    0 0 0 0.55rem #4a2d0c,
+    0 0 0 0.95rem #ffe9a8,
+    0 0 0 1.3rem #c4841a,
+    0 22px 36px rgba(0, 0, 0, 0.6),
+    0 0 64px rgba(251, 191, 36, 0.72);
+}
+
+.blind-coin-row-now .blind-coin-hero .blind-coin-face {
+  font-size: clamp(2rem, 5.4vw, 4.4rem);
+  background: radial-gradient(circle at 50% 34%, #fffef8 0%, #ffe08a 55%, #f0b429 100%);
+}
+
+.blind-coin-halo {
+  position: absolute;
+  left: 58%;
+  top: 54%;
+  width: clamp(12rem, 28vw, 20rem);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 226, 150, 0.85);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: blind-coin-halo 1.15s 0.7s ease-out both;
+}
+
 .blind-change-were {
   animation: blind-were-settle 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .blind-change-rule {
   transform-origin: left center;
+  background: linear-gradient(90deg, rgba(255, 244, 214, 0.15), #ffe7a3 45%, #f59e0b);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.65);
   animation: blind-rule-draw 0.4s 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .blind-change-now {
-  animation: blind-now-arrive 0.72s 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: blind-now-arrive 0.78s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .blind-change-sweep {
+  position: absolute;
+  inset: 8% 0 auto;
+  height: 78%;
+  width: 28%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 250, 230, 0.72), transparent);
+  mix-blend-mode: screen;
   animation: blind-sweep 0.7s 1.15s ease-in-out both;
 }
 
@@ -5512,13 +5618,17 @@
 @keyframes blind-now-arrive {
   0% {
     opacity: 0;
-    transform: translateY(1.4rem) scale(0.9);
-    filter: brightness(1.7);
+    transform: translateY(1.6rem) scale(0.42);
+    filter: brightness(2);
   }
-  60% {
+  58% {
     opacity: 1;
-    transform: none;
-    filter: brightness(1.25);
+    transform: translateY(0) scale(1.07);
+    filter: brightness(1.35);
+  }
+  78% {
+    transform: translateY(0) scale(0.98);
+    filter: brightness(1.05);
   }
   100% {
     opacity: 1;
@@ -5527,12 +5637,23 @@
   }
 }
 
+@keyframes blind-coin-halo {
+  0% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.45);
+  }
+}
+
 @keyframes blind-sweep {
   from {
-    transform: translateX(-140%);
+    transform: translateX(-160%);
   }
   to {
-    transform: translateX(280%);
+    transform: translateX(320%);
   }
 }
 
@@ -5540,7 +5661,8 @@
   .blind-change-were,
   .blind-change-rule,
   .blind-change-now,
-  .blind-change-sweep {
+  .blind-change-sweep,
+  .blind-coin-halo {
     animation: none;
   }
 }
